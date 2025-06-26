@@ -10,7 +10,8 @@ from tempfile import TemporaryDirectory
 
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT
+from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT, FOLDERNAME_EXIFTOOL
+from Features.GoogleTakeout.MetadataFixers import get_exif_tool_path
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -85,9 +86,12 @@ def process_block(file_paths, block_index, temporary_directory, output_filename,
         # Filter any .json from file_paths to run exiftool without any .json file in the list
         file_paths_without_json = [p for p in file_paths if Path(p).suffix.lower() != '.json']
 
+        # Get exiftool complete path
+        exif_tool_path = get_exif_tool_path(FOLDERNAME_EXIFTOOL)
+
         # Prepare exiftool command
         command = [
-                      "./gpth_tool/exif_tool/exiftool",
+                      f"{exif_tool_path}",
                       "-j", "-n", "-time:all", "-fast", "-fast2", "-s"
                   ] + file_paths_without_json
         try:
@@ -358,9 +362,12 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
             # Filter any .json from file_paths to run exiftool without any .json file in the list
             file_paths_without_json = [p for p in file_paths if Path(p).suffix.lower() != '.json']
 
+            # Get exiftool complete path
+            exif_tool_path = get_exif_tool_path(FOLDERNAME_EXIFTOOL)
+
             # Prepare exiftool command
             command = [
-                          "./gpth_tool/exif_tool/exiftool",
+                          f"{exif_tool_path}",
                           "-j", "-n", "-time:all", "-fast", "-fast2", "-s"
                       ] + file_paths_without_json
             try:

@@ -144,14 +144,17 @@ def main():
     GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
     GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
-    GV.LOGGER.info(f"  - Folder for Albums             : {GV.FOLDERNAME_ALBUMS}")
-    GV.LOGGER.info(f"  - Folder for No-Albums          : {GV.FOLDERNAME_NO_ALBUMS}")
+    GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
+    GV.LOGGER.info(f"  - Folder/Binary for EXIF TOOL   : {GV.FOLDERNAME_EXIFTOOL}")
     GV.LOGGER.info(f"  - Folder for Duplicates Outputs : {GV.FOLDERNAME_DUPLICATES_OUTPUT}")
     GV.LOGGER.info(f"  - Folder for Exiftool Outputs   : {GV.FOLDERNAME_EXIFTOOL_OUTPUT}")
     if not GV.ARGS['no-log-file']:
         GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
         GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FOLDER_FILENAME+'.log'}")
         GV.LOGGER.info(f"  - Log Level                     : {logging.getLevelName(GV.LOG_LEVEL)} ({str(GV.LOG_LEVEL).upper()})")
+    GV.LOGGER.info(f"")
+    GV.LOGGER.info(f"  - SubFolder for Albums          : <OUTPUT_FOLDER>/{GV.FOLDERNAME_ALBUMS}")
+    GV.LOGGER.info(f"  - SubFolder for No-Albums       : <OUTPUT_FOLDER>/{GV.FOLDERNAME_NO_ALBUMS}")
     GV.LOGGER.info(f"")
 
     # Get the execution mode and run it.

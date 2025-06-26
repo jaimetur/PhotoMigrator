@@ -1,3 +1,6 @@
+from Core.GlobalVariables import FOLDERNAME_ALBUMS
+
+
 def set_help_texts():
     import textwrap
     HELP_TEXTS = {}
@@ -35,7 +38,7 @@ def set_help_texts():
             """)
 
     HELP_TEXTS["upload-folder"] = textwrap.dedent(f"""
-            ATTENTION!!!: This process will connect to your to your Photos account and will upload all Photos/Videos found within <INPUT_FOLDER> (including subfolders, except 'Albums' subfolder).
+            ATTENTION!!!: This process will connect to your to your Photos account and will upload all Photos/Videos found within <INPUT_FOLDER> (including subfolders, except f'{FOLDERNAME_ALBUMS}' subfolder).
             """)
 
     HELP_TEXTS["upload-albums"] = textwrap.dedent(f"""

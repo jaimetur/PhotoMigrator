@@ -109,37 +109,37 @@ class CustomConsoleFormatter(logging.Formatter):
             formatted_message = f"{color}{formatted_message}{Style.RESET_ALL}"
         return formatted_message
 
-# # Clase personalizada para formatear los mensajes que van al fichero plano txt (sin colores)
-# class CustomTxtFormatter(logging.Formatter):
-#     def format(self, record):
-#         # Crear una copia del mensaje para evitar modificar record.msg globalmente
-#         original_msg = record.msg
-#         formatted_message = super().format(record)
-#         # Restaurar el mensaje original
-#         record.msg = original_msg
-#         return formatted_message
+# Clase personalizada para formatear los mensajes que van al fichero plano txt (sin colores)
+class CustomTxtFormatter(logging.Formatter):
+    def format(self, record):
+        # Crear una copia del mensaje para evitar modificar record.msg globalmente
+        original_msg = record.msg
+        formatted_message = super().format(record)
+        # Restaurar el mensaje original
+        record.msg = original_msg
+        return formatted_message
 
-# # Clase personalizada para formatear los mensajes que van al fichero de log (Sin colores, y sustituyendo INFO:, WARNING:, ERROR:, CRITICAL:, DEBUG:, VERBOSE: por '')
-# class CustomLogFormatter(logging.Formatter):
-#     def format(self, record):
-#         # Crear una copia del mensaje para evitar modificar record.msg globalmente
-#         original_msg = record.msg
-#         if record.levelname == "VERBOSE":
-#             record.msg = record.msg.replace("VERBOSE : ", "")
-#         elif record.levelname == "DEBUG":
-#             record.msg = record.msg.replace("DEBUG   : ", "")
-#         elif record.levelname == "INFO":
-#             record.msg = record.msg.replace("INFO    : ", "")
-#         elif record.levelname == "WARNING":
-#             record.msg = record.msg.replace("WARNING : ", "")
-#         elif record.levelname == "ERROR":
-#             record.msg = record.msg.replace("ERROR   : ", "")
-#         elif record.levelname == "CRITICAL":
-#             record.msg = record.msg.replace("CRITICAL: ", "")
-#         formatted_message = super().format(record)
-#         # Restaurar el mensaje original
-#         record.msg = original_msg
-#         return formatted_message
+# Clase personalizada para formatear los mensajes que van al fichero de log (Sin colores, y sustituyendo INFO:, WARNING:, ERROR:, CRITICAL:, DEBUG:, VERBOSE: por '')
+class CustomLogFormatter(logging.Formatter):
+    def format(self, record):
+        # Crear una copia del mensaje para evitar modificar record.msg globalmente
+        original_msg = record.msg
+        if record.levelname == "VERBOSE":
+            record.msg = record.msg.replace("VERBOSE : ", "")
+        elif record.levelname == "DEBUG":
+            record.msg = record.msg.replace("DEBUG   : ", "")
+        elif record.levelname == "INFO":
+            record.msg = record.msg.replace("INFO    : ", "")
+        elif record.levelname == "WARNING":
+            record.msg = record.msg.replace("WARNING : ", "")
+        elif record.levelname == "ERROR":
+            record.msg = record.msg.replace("ERROR   : ", "")
+        elif record.levelname == "CRITICAL":
+            record.msg = record.msg.replace("CRITICAL: ", "")
+        formatted_message = super().format(record)
+        # Restaurar el mensaje original
+        record.msg = original_msg
+        return formatted_message
 
 class CustomInMemoryLogHandler(logging.Handler):
     """
@@ -185,32 +185,6 @@ class LoggerCapture:
     def flush(self):
         pass  # No es necesario para logging
 
-
-# Integrar tqdm con el logger
-class LoggerConsoleTqdm:
-    """Redirige la salida de tqdm solo a los manejadores de consola del GV.LOGGER."""
-    def __init__(self, logger, level=logging.INFO):
-        self.logger = logger
-        self.level = level
-    def write(self, message):
-        message = message.strip()
-        if message:
-            for handler in self.logger.handlers:
-                if isinstance(handler, logging.StreamHandler):  # Solo handlers de consola
-                    handler.emit(logging.LogRecord(
-                        name=self.logger.name,
-                        level=self.level,
-                        pathname="",
-                        lineno=0,
-                        msg=message,
-                        args=(),
-                        exc_info=None
-                    ))
-    def flush(self):
-        pass  # Necesario para compatibilidad con tqdm
-    def isatty(self):
-        """Engañar a tqdm para que lo trate como un terminal interactivo."""
-        return True
 
 def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip_logfile=False, skip_console=False, format='log'):
     """

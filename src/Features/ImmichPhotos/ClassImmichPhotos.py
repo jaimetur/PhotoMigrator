@@ -16,7 +16,7 @@ from halo import Halo
 from tabulate import tabulate
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE
+from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.StandaloneUtils import change_working_dir
@@ -1429,7 +1429,7 @@ class ClassImmichPhotos:
             return (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
 
 
-    def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_no_albums(self, input_folder, subfolders_exclusion=f'{FOLDERNAME_ALBUMS}', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
         compatible files (photos/videos) to Immich without associating them to any album.
@@ -1529,7 +1529,7 @@ class ClassImmichPhotos:
             # Ensure 'Albums' is included
             albums_folder_included = any((subf.lower() == 'albums') for subf in albums_folders)
             if not albums_folder_included:
-                albums_folders.append('Albums')
+                albums_folders.append(f'{FOLDERNAME_ALBUMS}')
 
             LOGGER.info(f"")
             LOGGER.info(f"Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
@@ -1568,7 +1568,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            output_folder = os.path.join(output_folder, "Albums")
+            output_folder = os.path.join(output_folder, f"{FOLDERNAME_ALBUMS}")
             os.makedirs(output_folder, exist_ok=True)
 
             # Check if there is some filter applied

@@ -7,14 +7,21 @@ There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blo
 
 ## 🧩 Core Arguments
 
-| Argument                                          | Description                                                    |
-|---------------------------------------------------|----------------------------------------------------------------|
-| `-h`,<br>`--help`                                 | Show help and exit                                             |
-| `-v`,<br>`--version`                              | Show tool version and exit                                     |
-| `-noConfirm`,<br>`--no-request-user-confirmation` | No Request User Confirmation before to execute any Feature.    |
-| `-noLog`,<br>`--no-log-file`                      | Disable log file creation                                      |
-| `-logLevel`,<br>`--log-level`                     | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR` |
-| `-logFormat`,<br>`--log-format`                   | Sets log file format: `LOG`, `TXT`, `ALL`                      |
+| Argument                                           | Description                                                                                        |
+|----------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| `-h`,<br>`--help`                                  | Show help and exit                                                                                 |
+| `-v`,<br>`--version`                               | Show tool version and exit                                                                         |
+| `-noConfirm`,<br>`--no-request-user-confirmation`  | No Request User Confirmation before to execute any Feature.                                        |
+| `-noLog`,<br>`--no-log-file`                       | Disable log file creation                                                                          |
+| `-logLevel`,<br>`--log-level`                      | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`                                     |
+| `-logFormat`,<br>`--log-format`                    | Sets log file format: `LOG`, `TXT`, `ALL`                                                          |
+| `-fnAlbums`,<br>`--foldername-albums`              | Specify the folder name to store all your processed photos associated to any Album.                |
+| `-fnNoAlbums`,<br>`--foldername-no-albums`         | Specify the folder name to store all your processed photos (including those associated to Albums). |
+| `-fnLogs`,<br>`--foldername-logs`                  | Specify the folder name to save the execution Logs.                                                |
+| `-fnDuplicat`,<br>`--foldername-duplicates-output` | Specify the folder name to save the outputs of 'Find Duplicates' Feature.                          |
+| `-fnExiftool`,<br>`--foldername-exiftool-output`   | Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.                          |
+| `-exeGpthTool`,<br>`--exec-gpth-tool`              | Specify an external version of GPTH Tool binary.                                                   |
+| `-exeExifTool`,<br>`--exec-exif-tool`              | Specify an external version of GPTH Tool binary.                                                   |
 
 #### 🧪 Examples:
 ```bash
@@ -87,8 +94,8 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsef`,<br>`--google-skip-extras-files`           | Skips extra Google photos like edited/effects.                                                                         |
 | `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                                                                                |
 | `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                                                                       |
-| `-gKeepTkout`,<br>`--google-keep-takeout-folder`   | Copy (instead of Move) your original Takeout into <OUTPUT_TAKEOUT_FOLDER> (requires double HDD space)                  |
 | `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).                                                             |
+| `-gKeepTkout`,<br>`--google-keep-takeout-folder`   | Copy (instead of Move) your original Takeout into <OUTPUT_TAKEOUT_FOLDER> (requires double HDD space)                  |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                                                                            |
 | `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true)                                                                               |
 

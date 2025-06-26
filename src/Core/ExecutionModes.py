@@ -201,7 +201,6 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
 
         # Call the Function
         result = takeout.process(output_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
-        # result = takeout.process(capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
 
 
 #############################

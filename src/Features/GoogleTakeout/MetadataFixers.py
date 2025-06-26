@@ -3,14 +3,56 @@ import os
 import platform
 import subprocess
 import sys
+from pathlib import Path
 
 from packaging.version import Version
 
 from Core.CustomLogger import set_log_level, custom_print
-from Core.GlobalVariables import LOGGER, GPTH_VERSION, ARGS, FOLDERNAME_NO_ALBUMS
+from Core.GlobalVariables import LOGGER, GPTH_VERSION, ARGS, FOLDERNAME_NO_ALBUMS, FOLDERNAME_GPTH
 from Features.GoogleTakeout.GoogleTakeoutFunctions import run_command
 from Utils.FileUtils import resource_path
 from Utils.GeneralUtils import get_os, get_arch, ensure_executable, print_arguments_pretty
+
+def get_gpth_tool_path(base_path: str, exec_name: str) -> str:
+    """
+    Devuelve la ruta al ejecutable GPTH.
+
+    - Si `base_path` es un fichero (existe y es ejecutable), se usa tal cual.
+      No importa cómo se llame: gpth_v2, gpth-dev, lo-que-sea.
+
+    - En cualquier otro caso se asume que es una carpeta y se concatena `tool_name`.
+    """
+    p = Path(base_path)
+
+    # --------- Caso 1: parece un ejecutable completo ----------
+    # `exists()` evita falsos positivos con rutas de carpetas inexistentes
+    # `os.access(..., os.X_OK)` asegura que sea realmente ejecutable (opcional pero útil)
+    if p.exists() and p.is_file() and os.access(p, os.X_OK):
+        return resource_path(str(p))
+
+    # --------- Caso 2: directorio (o ruta aún no creada) ----------
+    # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
+    return resource_path(str(p / exec_name))
+
+def get_exif_tool_path(base_path: str) -> str:
+    """
+    Devuelve la ruta al ejecutable de ExifTool.
+
+    - Si `base_path` es un fichero ejecutable existente, se devuelve tal cual.
+    - En caso contrario se asume que es un directorio y se concatena el
+      nombre apropiado del ejecutable:
+        * Linux / macOS → 'exiftool'
+        * Windows       → 'exiftool.exe'
+    """
+    p = Path(base_path)
+
+    # --------- Caso 1: ya es un ejecutable válido ----------
+    if p.exists() and p.is_file() and os.access(p, os.X_OK):
+        return resource_path(str(p))
+
+    # --------- Caso 2: es (o será) un directorio ----------
+    exec_name = "exiftool.exe" if platform.system().lower() == "windows" else "exiftool"
+    return resource_path(str(p / exec_name))
 
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, no_symbolic_albums=False, keep_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=None):
@@ -38,9 +80,9 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             LOGGER.error(f"{step_name}Invalid OS: {current_os}. Exiting...")
             sys.exit(-1)
 
-        LOGGER.info(f"{step_name}Using GPTH Tool file: '{tool_name}'...")
-        # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
-        gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
+        # Get gpth_tool_path
+        gpth_tool_path = get_gpth_tool_path(FOLDERNAME_GPTH, tool_name)
+        LOGGER.info(f"{step_name}Using GPTH Tool file: '{gpth_tool_path}'...")
 
         # Check if the file exists
         if not os.path.exists(gpth_tool_path):

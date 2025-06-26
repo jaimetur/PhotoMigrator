@@ -13,6 +13,7 @@ SCRIPT_VERSION_WITHOUT_V        = "3.4.0"
 SCRIPT_VERSION                  = f"v{SCRIPT_VERSION_WITHOUT_V}"
 SCRIPT_DATE                     = "2025-06-30"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
+
 GPTH_VERSION                    = "4.0.9"
 EXIF_VERSION                    = "13.30"
 INCLUDE_EXIF_TOOL               = True
@@ -23,6 +24,8 @@ TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
 
 # Customizable DIR Folders
 CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_FOLDERS
+FOLDERNAME_GPTH                 = 'gpth_tool'                                   # To be Changed in set_FOLDERS
+FOLDERNAME_EXIFTOOL             = 'gpth_tool/exif_tool'                         # To be Changed in set_FOLDERS
 FOLDERNAME_ALBUMS               = "Albums"                                      # To be Changed in set_FOLDERS
 FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  # To be Changed in set_FOLDERS
 FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_FOLDERS
