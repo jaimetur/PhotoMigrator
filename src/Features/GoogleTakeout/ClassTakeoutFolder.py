@@ -8,7 +8,7 @@ from pathlib import Path
 
 from Core.CustomLogger import set_log_level
 from Core.FileStatistics import count_files_per_type_and_extract_dates_multi_threads
-from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER, TIMESTAMP, FOLDERNAME_NO_ALBUMS, START_TIME
+from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER, TIMESTAMP, FOLDERNAME_NO_ALBUMS, START_TIME, FOLDERNAME_ALBUMS
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
@@ -98,7 +98,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
     def get_albums_folder(self):
         if not self.ARGS['google-skip-move-albums']:
-            self.albums_folder = os.path.join(self.output_folder, 'Albums')
+            self.albums_folder = os.path.join(self.output_folder, FOLDERNAME_ALBUMS)
         else:
             self.albums_folder = self.output_folder
         return self.albums_folder
