@@ -585,14 +585,27 @@ def capitalize_first_letter(text):
     return text[0].upper() + text[1:]
 
 
-def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
-    all_entries = os.listdir(input_folder)
-    subfolders = [
-        entry for entry in all_entries
-        if os.path.isdir(os.path.join(input_folder, entry)) and
-           (exclude_subfolder is None or entry not in exclude_subfolder)
+def get_subfolders_with_exclusions(input_folder, exclude_subfolders=None):
+    """
+    Devuelve la lista de subcarpetas directas dentro de `input_folder`,
+    excluyendo las indicadas en `exclude_subfolders`.
+    Si `input_folder` no existe o no es un directorio, devuelve una lista vacía.
+    """
+    if not os.path.isdir(input_folder):
+        return []
+
+    if exclude_subfolders is None:
+        exclude = set()
+    elif isinstance(exclude_subfolders, str):
+        exclude = {exclude_subfolders}
+    else:
+        exclude = set(exclude_subfolders)
+
+    return [
+        entry
+        for entry in os.listdir(input_folder)
+        if os.path.isdir(os.path.join(input_folder, entry)) and entry not in exclude
     ]
-    return subfolders
 
 
 def print_dict_pretty(result, log_level):

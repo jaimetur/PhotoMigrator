@@ -626,10 +626,10 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
         action = 'Moving' if move else 'Copying'
         try:
             if not is_valid_path(src):
-                LOGGER.error(f"{step_name}The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
+                LOGGER.error(f"{step_name}The path '{src}' is not valid for the execution platform. Cannot copy/move folders from it.")
                 return False
             if not is_valid_path(dst):
-                LOGGER.error(f"{step_name}The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
+                LOGGER.error(f"{step_name}The path '{dst}' is not valid for the execution platform. Cannot copy/move folders to it.")
                 return False
 
             def ignore_function(files, ignore_patterns):

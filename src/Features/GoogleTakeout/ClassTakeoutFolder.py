@@ -104,7 +104,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         return self.albums_folder
 
     def get_output_folder(self):
-        if self.needs_process:
+        if self.needs_process or self.ARGS['google-ignore-check-structure']:
             if self.ARGS['output-folder']:
                 self.output_folder = Path(self.ARGS['output-folder'])
             else:
@@ -323,20 +323,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             self.precheck_takeout_and_calculate_initial_counters(log_level=log_level)
 
-            # --------------------------------------------------------------------------------------------------------------------------------------------------------
-            # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
-            # This need to be done after Pre-checks because if takeout folders have been unzipped, the input_folder, output_folder and albums_folder need to be updated
-            # --------------------------------------------------------------------------------------------------------------------------------------------------------
-            # If the user have passed an output_folder directly to the process() method, then update the object with this output_folder
-            if output_folder:
-                self.output_folder = output_folder
-            # Determine the output_folder if it has not been given in the call to process() method
-            output_folder = self.get_output_folder()
-            # Determine the input_folder depending on if the Takeout have been unzipped or not
-            input_folder = self.get_input_folder()
-            # Determine where the Albums will be located
-            albums_folder = self.get_albums_folder()
-
             # Step 2: Pre-Process Takeout folder
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-preprocess']:
@@ -363,6 +349,21 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         LOGGER.warning(f"{step_name}No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
 
+                # --------------------------------------------------------------------------------------------------------------------------------------------------------
+                # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
+                # This need to be done after Pre-checks because if takeout folders have been unzipped, the input_folder, output_folder and albums_folder need to be updated
+                # --------------------------------------------------------------------------------------------------------------------------------------------------------
+                # If the user have passed an output_folder directly to the process() method, then update the object with this output_folder
+                if output_folder:
+                    self.output_folder = output_folder
+                # Determine the output_folder if it has not been given in the call to process() method
+                output_folder = self.get_output_folder()
+                # Determine the input_folder depending on if the Takeout have been unzipped or not
+                input_folder = self.get_input_folder()
+                # Determine where the Albums will be located
+                albums_folder = self.get_albums_folder()
+
+                # Now Call GPTH Tool
                 ok = MetadataFixers.fix_metadata_with_gpth_tool(
                     input_folder=self.input_folder,
                     output_folder=output_folder,
