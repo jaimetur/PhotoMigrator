@@ -9,7 +9,8 @@ from datetime import datetime
 import piexif
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT
+from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT, FOLDERNAME_EXIFTOOL
+from Features.GoogleTakeout.MetadataFixers import get_exif_tool_path
 from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions
 
 
@@ -80,9 +81,11 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         with set_log_level(LOGGER, log_level):
             try:
                 LOGGER.debug(f"{step_name} Executing exiftool for {image_path}")
+                # Get exiftool complete path
+                exif_tool_path = get_exif_tool_path(FOLDERNAME_EXIFTOOL)
                 # Llama a exiftool con todos los flags recomendados
                 result = subprocess.check_output([
-                    "./gpth_tool/exif_tool/exiftool",
+                    f"{exif_tool_path}",
                     "-j", "-n", "-time:all", "-fast", "-fast2", "-s",
                     image_path
                 ], stderr=subprocess.STDOUT)

@@ -16,11 +16,52 @@ import piexif
 from tqdm import tqdm as original_tqdm
 
 # import Core.GlobalVariables as GV
-from Core.CustomLogger import LoggerConsoleTqdm, set_log_level
+from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, VIDEO_EXT, PHOTO_EXT, MSG_TAGS, VERBOSE_LEVEL_NUM
 
+# ------------------------------------------------------------------
+# Integrar tqdm con el logger
+class TqdmLoggerConsole:
+    """Redirige la salida de tqdm solo a los manejadores de consola del GV.LOGGER."""
+    def __init__(self, logger, level=logging.INFO):
+        self.logger = logger
+        self.level = level
+        self.levelname = logging.getLevelName(level)
+    def write(self, message):
+        message = message.strip()
+        if message:
+            if self.levelname == "VERBOSE":
+                message = message.replace("VERBOSE : ", "")
+            elif self.levelname == "DEBUG":
+                message = message.replace("DEBUG   : ", "")
+            elif self.levelname == "INFO":
+                message = message.replace("INFO    : ", "")
+            elif self.levelname == "WARNING":
+                message = message.replace("WARNING : ", "")
+            elif self.levelname == "ERROR":
+                message = message.replace("ERROR   : ", "")
+            elif self.levelname == "CRITICAL":
+                message = message.replace("CRITICAL: ", "")
+
+            for handler in self.logger.handlers:
+                if isinstance(handler, logging.StreamHandler):  # Solo handlers de consola
+                    handler.emit(logging.LogRecord(
+                        name=self.logger.name,
+                        level=self.level,
+                        pathname="",
+                        lineno=0,
+                        msg=message,
+                        args=(),
+                        exc_info=None
+                    ))
+    def flush(self):
+        pass  # Necesario para compatibilidad con tqdm
+    def isatty(self):
+        """Engañar a tqdm para que lo trate como un terminal interactivo."""
+        return True
+
 # Crear instancia global del wrapper
-TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
+TQDM_LOGGER_INSTANCE = TqdmLoggerConsole(LOGGER, logging.INFO)
 
 ######################
 # FUNCIONES AUXILIARES

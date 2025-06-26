@@ -2,6 +2,7 @@ import argparse
 import os
 import re
 import sys
+from pathlib import PurePath
 
 from colorama import Style
 
@@ -37,7 +38,7 @@ def parse_arguments():
             parser.exit()
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
-    PARSER.add_argument("-config", "--configuration-file", metavar="<CONFIGURATION_FILE>", default="Config.ini", help="Specify the file that contains the Configuration to connect to the different Photo Cloud Services.")
+    PARSER.add_argument("-config", "--configuration-file", metavar="<CONFIGURATION_FILE>", default="", help="Specify the file that contains the Configuration to connect to the different Photo Cloud Services.")
     PARSER.add_argument("-noConfirm", "--no-request-user-confirmation", action="store_true", help="No Request User Confirmation before execute any Feature.")
     PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-logLevel", "--log-level",
@@ -55,17 +56,19 @@ def parse_arguments():
                         type=lambda s: s.lower(),  # Convert input to lowercase
                         help="Specify the log file format.",
                         )
-    PARSER.add_argument("-fnAlbums", "--foldername-albums", metavar="<ALBUMS_FOLDER>", default="Albums", help="Specify the folder name to store all your processed photos associated to any Album.")
-    PARSER.add_argument("-fnNoAlbums", "--foldername-no-albums", metavar="<NO_ALBUMS_FOLDER>", default="ALL_PHOTOS", help="Specify the folder name to store all your processed photos (including those associated to Albums).")
-    PARSER.add_argument("-fnLogs", "--foldername-logs", metavar="<LOG_FOLDER>", default="Logs", help="Specify the folder name to save the execution Logs.")
-    PARSER.add_argument("-fnDuplicat", "--foldername-duplicates-output", metavar="<DUPLICATES_OUTPUT_FOLDER>", default="Duplicates_outputs", help="Specify the folder name to save the outputs of 'Find Duplicates' Feature.")
-    PARSER.add_argument("-fnExiftool", "--foldername-exiftool-output", metavar="<EXIFTOOL_OUTPUT_FOLDER>", default="Exiftool_outputs", help="Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.")
+    PARSER.add_argument("-fnAlbums", "--foldername-albums", metavar="<ALBUMS_FOLDER>", default="", help="Specify the folder name to store all your processed photos associated to any Album.")
+    PARSER.add_argument("-fnNoAlbums", "--foldername-no-albums", metavar="<NO_ALBUMS_FOLDER>", default="", help="Specify the folder name to store all your processed photos (including those associated to Albums).")
+    PARSER.add_argument("-fnLogs", "--foldername-logs", metavar="<LOG_FOLDER>", default="", help="Specify the folder name to save the execution Logs.")
+    PARSER.add_argument("-fnDuplicat", "--foldername-duplicates-output", metavar="<DUPLICATES_OUTPUT_FOLDER>", default="", help="Specify the folder name to save the outputs of 'Find Duplicates' Feature.")
+    PARSER.add_argument("-fnExiftool", "--foldername-exiftool-output", metavar="<EXIFTOOL_OUTPUT_FOLDER>", default="", help="Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.")
+    PARSER.add_argument("-exeGpthTool", "--exec-gpth-tool", metavar="<GPTH_PATH>", default="", help="Specify an external version of GPTH Tool binary. \nPhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument.")
+    PARSER.add_argument("-exeExifTool", "--exec-exif-tool", metavar="<EXIFTOOL_PATH>", default="", help="Specify an external version of EXIF Tool binary. \nPhotoMigrator contains an embedded version of EXIF Tool, but if you want to use a different version, you can use this argument.")
 
 
     # GENERAL FEATURES:
     # -----------------
-    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
-    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", type=clean_path, help="Specify the input folder that you want to process.")
+    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", type=clean_path, help="Specify the output folder to save the result of the processing action.")
     PARSER.add_argument("-client", "--client",
                         metavar="= ['google-takeout', 'synology', 'immich']",
                         default='google-takeout',  # Si no se pasa el argumento, se asigna 'google-takeout'
@@ -182,13 +185,13 @@ def parse_arguments():
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skips processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skips moving albums to '<ALBUMS_FOLDER>'.")
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skips processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposes.")
-    PARSER.add_argument("-gKeepTkout", "--google-keep-takeout-folder", action="store_true", help=f"Keeps a copy of your original Takeout before to start to process it (requires double HDD space). \nTIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files, \nyou will always conserve the original Zips and don't need to use this flag.")
     PARSER.add_argument("-gSkipPrep", "--google-skip-preprocess", action="store_true",
                         help="Skip Pre-process Google Takeout which has following steps:"
                              "\n  1.Clean Takeout Folder"
                              "\n  2.Fix MP4/Live Picture associations"
                              "\n  3.Fix Truncated filenames/extensions." 
                            "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing in a previous execution using the flag '-gKeepTkout,--google-keep-takeout-folder' then you can skip it for that <TAKEOUT_FOLDER>.")
+    PARSER.add_argument("-gKeepTkout", "--google-keep-takeout-folder", action="store_true", help=f"Keeps a copy of your original Takeout before to start to process it (requires double HDD space). \nTIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files, \nyou will always conserve the original Zips and don't need to use this flag.")
     PARSER.add_argument("-gpthInfo", "--show-gpth-info",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -332,32 +335,47 @@ def checkArgs(ARGS, PARSER):
     if ARGS['input-folder'] != '' and ARGS['google-takeout'] == '':
         ARGS['google-takeout'] = ARGS['input-folder']
 
-    # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
-    keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout',
-                     'upload-albums', 'upload-all', 'download-all',
-                     'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
-                     'foldername-logs', 'foldername-duplicates-output', 'foldername-exiftool-output', 'configuration-file'
-                     ]
+    # Remove last / for all folders expected as arguments:
+    ARGS['foldername-albums']               = fix_path(ARGS['foldername-albums'])
+    ARGS['foldername-no-albums']            = fix_path(ARGS['foldername-no-albums'])
+    ARGS['foldername-logs']                 = fix_path(ARGS['foldername-logs'])
+    ARGS['foldername-duplicates-output']    = fix_path(ARGS['foldername-duplicates-output'])
+    ARGS['foldername-exiftool-output']      = fix_path(ARGS['foldername-exiftool-output'])
+    ARGS['input-folder']                    = fix_path(ARGS['input-folder'])
+    ARGS['output-folder']                   = fix_path(ARGS['output-folder'])
+    ARGS['google-takeout']                  = fix_path(ARGS['google-takeout'])
+    ARGS['upload-albums']                   = fix_path(ARGS['upload-albums'])
+    ARGS['upload-all']                      = fix_path(ARGS['upload-all'])
+    ARGS['download-all']                    = fix_path(ARGS['download-all'])
+    ARGS['fix-symlinks-broken']             = fix_path(ARGS['fix-symlinks-broken'])
+    ARGS['rename-folders-content-based']    = fix_path(ARGS['rename-folders-content-based'])
 
+    # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
+    keys_to_check = ['source',
+                     'target',
+                     'input-folder',
+                     'output-folder',
+                     'albums-folder',
+                     'google-takeout',
+                     'upload-albums',
+                     'upload-all',
+                     'download-all',
+                     'find-duplicates',
+                     'fix-symlinks-broken',
+                     'rename-folders-content-based',
+                     'configuration-file',
+                     'exec-gpth-tool',
+                     'exec-exif-tool',
+                     'foldername-exiftool-output',
+                     'foldername-duplicates-output',
+                     # 'foldername-albums',       # Do not include this because it will depend on the <OUTPUT_FOLDER>
+                     # 'foldername-no-albums',    # Do not include this because it will depend on the <OUTPUT_FOLDER>
+                     'foldername-logs',
+                     ]
     resolve_all_possible_paths(args_dict=ARGS, keys_to_check=keys_to_check)
 
     # Remove '_' at the beginning of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
-
-    # Remove last / for all folders expected as arguments:
-    ARGS['foldername-albums']               = clean_path(ARGS['foldername-albums'])
-    ARGS['foldername-no-albums']            = clean_path(ARGS['foldername-no-albums'])
-    ARGS['foldername-logs']                 = clean_path(ARGS['foldername-logs'])
-    ARGS['foldername-duplicates-output']    = clean_path(ARGS['foldername-duplicates-output'])
-    ARGS['foldername-exiftool-output']      = clean_path(ARGS['foldername-exiftool-output'])
-    ARGS['input-folder']                    = clean_path(ARGS['input-folder'])
-    ARGS['output-folder']                   = clean_path(ARGS['output-folder'])
-    ARGS['google-takeout']                  = clean_path(ARGS['google-takeout'])
-    ARGS['upload-albums']                   = clean_path(ARGS['upload-albums'])
-    ARGS['upload-all']                      = clean_path(ARGS['upload-all'])
-    ARGS['download-all']                    = clean_path(ARGS['download-all'])
-    ARGS['fix-symlinks-broken']             = clean_path(ARGS['fix-symlinks-broken'])
-    ARGS['rename-folders-content-based']    = clean_path(ARGS['rename-folders-content-based'])
 
     # Set None for google-input-zip-folder argument, and only if unzip is needed will change this to the proper folder.
     ARGS['google-input-zip-folder'] = None
@@ -491,26 +509,53 @@ def create_global_variable_from_args(args):
     ARGS = {arg_name.replace("_", "-"): arg_value for arg_name, arg_value in vars(args).items()}
     return ARGS
 
-def clean_path(path: str) -> str:
-    """Limpia una ruta:
-    - Quita barras finales / o \
-    - Corrige comillas sueltas al final
-    - Respeta las comillas exteriores si están correctamente cerradas
+# def fix_path(path: str) -> str:
+#     """Limpia una ruta:
+#     - Quita barras finales / o \
+#     - Corrige comillas sueltas al final
+#     - Respeta las comillas exteriores si están correctamente cerradas
+#     """
+#     path = path.strip()
+#
+#     if path.endswith('"') and not path.startswith('"'):
+#         # Caso especial: comilla final suelta por error (escapada)
+#         path = path.rstrip('"')
+#
+#     if (path.startswith('"') and path.endswith('"')) or path.startswith("'") and path.endswith("'"):
+#         # Ruta correctamente entre comillas
+#         inner_path = path[1:-1]
+#         inner_path = inner_path.rstrip('/\\')
+#         return f'"{inner_path}"'
+#     else:
+#         return path.rstrip('/\\')
+
+def fix_path(path: str) -> str:
+    """
+    Limpia una ruta:
+    - Quita comillas exteriores (si están cerradas)
+    - Quita comilla final suelta (si está escapada)
+    - Elimina barra final (/ o \), excepto si la ruta es raíz
     """
     path = path.strip()
-
+    # Caso especial: comilla final suelta escapada
     if path.endswith('"') and not path.startswith('"'):
-        # Caso especial: comilla final suelta por error (escapada)
         path = path.rstrip('"')
+    # Eliminar comillas exteriores si están bien cerradas
+    if (path.startswith('"') and path.endswith('"')) or \
+       (path.startswith("'") and path.endswith("'")):
+        path = path[1:-1]
+    # Eliminar barra final si no es raíz (como C:\)
+    if len(path) > 3 and path[-1] in ('\\', '/'):
+        path = path[:-1]
+    return path
 
-    if path.startswith('"') and path.endswith('"'):
-        # Ruta correctamente entre comillas
-        inner_path = path[1:-1]
-        inner_path = inner_path.rstrip('/\\')
-        return f'"{inner_path}"'
+def clean_path(raw: str) -> str:
+    if raw == '':
+        return raw
     else:
-        return path.rstrip('/\\')
-
+        raw = raw.strip().strip("\"'")
+        clean = str(PurePath(raw).with_name(PurePath(raw).name))  # quita la barra final salvo si es raíz
+        return clean
 
 def resolve_all_possible_paths(args_dict, keys_to_check=None):
     """

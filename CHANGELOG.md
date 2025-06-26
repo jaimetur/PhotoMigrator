@@ -14,7 +14,7 @@
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
     - [x] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTkout, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.
-    - [x] Replaced argument `-gnsa, --google-create-symbolic-albums` by `-gnsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.
+    - [x] Replaced argument `-gcsa, --google-create-symbolic-albums` by `-gnsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.
     - [x] Replaced argument `-confirm, --request-user-confirmation` by `-noConfirm, --no-request-user-confirmation` and inverted logic. 
     
   - #### 🌟 New Features:
@@ -25,12 +25,14 @@
     - [x] Added new `VERBOSE` value for `-logLevel` argument.
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
     - [x] Added new argument `-config, --configuration-file` to Allow user to define configuration file (path and name).
-    - [x] Added new argument `-gSkipPrep, --google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
     - [x] Added new argument `-fnAlbums, --foldername-albums` to Allow user to define folder name for 'Albums'.
     - [x] Added new argument `-fnNoAlbums, --foldername-no/albums` to Allow user to define folder name for 'No-Albums'.
     - [x] Added new argument `-fnLogs, --foldername-logs` to Allow user to define folder name for 'Logs'.
     - [x] Added new argument `-fnDuplicat, --foldername-duplicates-output` to Allow user to define folder name for 'Duplicates Outputs'.
     - [x] Added new argument `-fnExiftool, --foldername-exiftool-output` to Allow user to define folder name for 'Exiftool Outputs'.
+    - [x] Added new argument `-exeGpthTool, --exec-gpth-tool` to Allow user to specify an external version of GPTH Tool binary.
+    - [x] Added new argument `-exeExifTool, --exec-exif-tool` to Allow user to specify an external version of EXIF Tool binary.
+    - [x] Added new argument `-gSkipPrep, --google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
   
   - #### 🚀 Enhancements:
     - [x] Code totally refactored and structured in a Single Package called `photomigrator` for a better portability and maintenance.
