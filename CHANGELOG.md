@@ -38,9 +38,11 @@
     - [x] Code totally refactored and structured in a Single Package called `photomigrator` for a better portability and maintenance.
     - [x] Code organized per packages modules within Core/Features/Utils Sub-Packages.
     - [x] Reorganized Pre-checks/Pre-process/Process steps for a clearer maintenance and better visualization. 
+    - [x] New FileStatistics module have been added to completely redesign Counting files and extracting dates.
+      - [x] Improved performance on Counting files and extracting dates during Google Takeout Processing using an optimized multi-thread function.
+      - [x] Added Fallback to PIL when EXIFTOOL is not found during FileStatistics generation.
     - [x] The Feature `Google Takeout Processing` is no longer called using the Pre-checks functions but always using the Process() function from ClassTakeoutFolder.
     - [x] Included Input/Output folder size in Google Takeout Statistics.
-    - [x] Improved performance on Counting files and extracting dates during Google Takeout Processing using an optimized multi-thread function.
     - [x] Improved Logging messages and screen messages prefixes using Global Variables instead of hardcoded strings.
     - [x] Improved Logging messages type detection when running GPTH (automatically detects warning messages and log them as warnings instead of info).
     - [x] Inserted Profiler support to Profile any function and optimize it.
