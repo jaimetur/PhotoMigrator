@@ -20,6 +20,7 @@
     - [ ] Implement logic for `-gKeepTkout, --google-keep-takeout-folder` or wait to GPTH to restore `--copy` feature.
 
   - #### 🚀 Enhancements:
+    - [ ] Update GPTH to 4.1.0 to include latest improvements. 
 
   - #### 🐛 Bug fixes:
     - [ ] Investigate Performance on Automatic Migration when target=`synology`.

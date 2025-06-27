@@ -13,9 +13,10 @@
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - [x] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTkout, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.
-    - [x] Replaced argument `-gcsa, --google-create-symbolic-albums` by `-gnsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.
-    - [x] Replaced argument `-confirm, --request-user-confirmation` by `-noConfirm, --no-request-user-confirmation` and inverted logic. 
+    - [x] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTkout, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.  
+           **NOTE: Now the tool moves assets from `TAKEOUT_FOLDER` to `<OUTPUT_FOLDER` by default.**
+    - [x] Replaced argument `-gcsa, --google-create-symbolic-albums` by `-gnsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.  
+           **NOTE: Now the tool creates Albums as symlinks/shortcuts to the original assets in `ALL_PHOTOS` folder by default.**
     
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
@@ -53,6 +54,7 @@
     - [x] Renamed argument `-AlbFld` to `-AlbFolder`.
     - [x] Renamed argument `-rAlbAss` to `-rAlbAsset`.
     - [x] Renamed argument `-gpthErr` to `-gpthError`.
+    - [x] Replaced argument `-confirm, --request-user-confirmation` by `-noConfirm, --no-request-user-confirmation` and inverted logic. 
     - [x] Updated GPTH to version `4.0.9` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - This release represents a fundamental restructuring of the codebase following **Clean Architecture** principles, providing better maintainability, testability, and performance.
       - ##### 🚨 **Critical Bug Fixes**
