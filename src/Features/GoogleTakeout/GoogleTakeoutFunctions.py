@@ -909,35 +909,27 @@ def count_valid_albums(folder_path, excluded_folders=None, step_name="", log_lev
     
 
 
-@contextmanager
-def create_backup_if_needed(input_folder, step_name="", log_level=None):
+def clone_backup_if_needed(input_folder, step_name="", log_level=None):
     """
-    Context manager that creates a temporary working copy of the input folder
-    if ARGS['google-keep-takeout-folder'] is True. The temporary folder is named
-    '{input_folder}_tmp_{TIMESTAMP}' and the value of ARGS['google-takeout'] is updated
-    to point to it. If not enabled or if an error occurs, yields the original input_folder.
+    Creates a clone of the given input folder with a suffix '_tmp_{TIMESTAMP}' in the same parent directory.
+    If the cloning fails, returns the original input_folder instead. This function does not modify any global variables
+    and always attempts to perform the cloning.
 
-    Usage:
-        with create_backup_if_needed(input_folder) as working_folder:
-            # use working_folder instead of input_folder
+    Example:
+        working_folder = clone_backup_if_needed("/path/to/folder")
     """
     with set_log_level(LOGGER, log_level):
-        tmp_folder = None
-        try:
-            if ARGS.get('google-keep-takeout-folder'):
-                # Generate the temporary folder path with timestamp
-                parent_dir = dirname(input_folder)
-                folder_name = basename(input_folder)
-                tmp_folder = join(parent_dir, f"{folder_name}_tmp_{TIMESTAMP}")
+        # Generate the target temporary folder path
+        parent_dir = dirname(input_folder)
+        folder_name = basename(input_folder)
+        tmp_folder = join(parent_dir, f"{folder_name}_tmp_{TIMESTAMP}")
 
-                # Create the temporary working copy
-                LOGGER.info(f"{step_name}Creating temporary working folder at: {tmp_folder}")
-                copytree(input_folder, tmp_folder)
-                ARGS['google-takeout'] = tmp_folder
-                LOGGER.info(f"{step_name}Temporary copy created successfully. google-takeout -> {tmp_folder}")
-                yield tmp_folder
-            else:
-                yield input_folder
+        # Clone the input folder into the temporary folder
+        LOGGER.info(f"{step_name}Creating temporary working folder at: {tmp_folder}")
+        try:
+            copytree(input_folder, tmp_folder)
+            LOGGER.info(f"{step_name}Temporary copy created successfully -> {tmp_folder}")
+            return tmp_folder
         except Exception as e:
             LOGGER.warning(f"{step_name}❌ Failed to create backup of {input_folder}: {e}")
-            yield input_folder
+            return input_folder
