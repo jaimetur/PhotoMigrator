@@ -71,77 +71,78 @@ def contains_takeout_structure(input_folder, step_name="", log_level=None):
 # ---------------------------------------------------------------------------------------------------------------------------
 def fix_mp4_files(input_folder, step_name="", log_level=None):
     """
-    Look for all .MP4 files that have the same base name as any Live Picture in the same folder.
-    If found, copy the associated .json file (including those with a truncated '.supplemental-metadata')
-    and rename it to match the .MP4 file, completing the truncated suffix if necessary.
+    Busca archivos .MP4/.MOV/.AVI sin su JSON correspondiente. Si existe un archivo .HEIC/.JPG/.JPEG
+    con el mismo nombre base y sí tiene JSON (posiblemente truncado con .supplemental-metadata),
+    copia ese JSON renombrándolo con el nombre del vídeo, completando el sufijo si es necesario.
 
     Args:
-        input_folder (str): The root folder to scan.
-        log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
-        :param step_name:
+        input_folder: Carpeta raíz donde buscar.
+        step_name: Prefijo de mensajes de log.
+        log_level: Nivel de log.
     """
-    with set_log_level(LOGGER, log_level):  # Set desired log level
+    with set_log_level(LOGGER, log_level):
         counter_mp4_files_changed = 0
-        # Count total .mp4 files for progress bar
-        all_mp4_files = []
-        for _, _, files in os.walk(input_folder, topdown=True):
-            for file in files:
-                if file.lower().endswith('.mp4'):
-                    all_mp4_files.append(file)
-        total_files = len(all_mp4_files)
-        if total_files == 0:
-            return 0
-        # Mostrar la barra de progreso basada en carpetas
+        video_exts = ['.mp4', '.mov', '.avi']
+        image_exts = ['.heic', '.jpg', '.jpeg']
+        supplemental = SUPPLEMENTAL_METADATA  # ya definido globalmente como 'supplemental-metadata'
         disable_tqdm = log_level < logging.WARNING
-        with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Fixing .MP4 files in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
-            for path, _, files in os.walk(input_folder):
-                # Filter files with .mp4 extension (case-insensitive)
-                mp4_files = [f for f in files if f.lower().endswith('.mp4')]
-                for mp4_file in mp4_files:
+
+        all_video_files = []
+        for _, _, files in os.walk(input_folder):
+            all_video_files += [f for f in files if os.path.splitext(f)[1].lower() in video_exts]
+
+        if not all_video_files:
+            return 0
+
+        with tqdm(total=len(all_video_files), smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Fixing video JSONs", unit=" files", disable=disable_tqdm) as pbar:
+            for root, _, files in os.walk(input_folder):
+                file_set = set(files)
+
+                video_files = [f for f in files if os.path.splitext(f)[1].lower() in video_exts]
+
+                for video_file in video_files:
                     pbar.update(1)
-                    # Get the base name of the MP4 file (without extension)
-                    mp4_base = os.path.splitext(mp4_file)[0]
-                    # Search for JSON files with the same base name but ignoring case for the extension
-                    for candidate in files:
-                        if not candidate.lower().endswith('.json'):
-                            continue
-                        candidate_path = os.path.join(path, candidate)
-                        candidate_no_ext = candidate[:-5]  # Remove .json
-                        # Build a regex pattern to match: (i.e: IMG_1094.HEIC(.supplemental-metadata)?.json)
+                    base_name, ext = os.path.splitext(video_file)
+                    target_json = f"{video_file}.json"
 
-                        # Precompute suffix and regex to fix any truncated '.supplemental-metadata' (preserves '(n)' counters)
-                        SUPPLEMENTAL_METADATA_WITH_DOT = '.' + SUPPLEMENTAL_METADATA
-                        # common part
-                        base_pattern = rf'({re.escape(mp4_base)}\.(?:heic|jpg|jpeg))'
-                        # parte con llaves literales y variable
-                        supp_pattern = r'(?:\{' + SUPPLEMENTAL_METADATA_WITH_DOT + r'\}.*)?$'
-                        full_pattern = base_pattern + supp_pattern
-                        match = re.match(full_pattern, candidate_no_ext, re.IGNORECASE)
+                    if target_json in file_set:
+                        continue
 
-                        if match:
-                            base_part = match.group(1)
-                            suffix = match.group(3) or ''
-                            # Check if it's a truncated version of '.supplemental-metadata'
-                            if suffix and not suffix.lower().startswith(SUPPLEMENTAL_METADATA):
-                                # Try to match a valid truncation
-                                for i in range(2, len(SUPPLEMENTAL_METADATA) + 1):
-                                    if suffix.lower() == SUPPLEMENTAL_METADATA[:i]:
-                                        suffix = '.'+SUPPLEMENTAL_METADATA
-                                        break
-                            # Generate the new name for the duplicated file
-                            new_json_name = f"{mp4_file}{suffix}.json"
-                            new_json_path = os.path.join(path, new_json_name)
-                            # Check if the target file already exists to avoid overwriting
-                            if not os.path.exists(new_json_path):
-                                # Copy the original JSON file to the new file
-                                if candidate_path.lower != new_json_path.lower():
-                                    shutil.copy(candidate_path, new_json_path)
-                                    LOGGER.info(f"{step_name}Copied: {candidate} -> {new_json_name}")
-                                    counter_mp4_files_changed += 1
-                                    continue # if already found a matched candidate, then continue with the next file
-                            else:
-                                LOGGER.info(f"{step_name}Skipped: {new_json_name} already exists")
+                    # Buscar posibles imágenes con el mismo nombre base
+                    matched_candidate = None
+                    for image_ext in image_exts:
+                        candidate_base = f"{base_name}{image_ext}"
+
+                        # Buscar json exacto o con posible truncación del supplemental
+                        for f in files:
+                            if not f.lower().endswith('.json'):
+                                continue
+
+                            json_base = f[:-5]  # sin el .json
+                            if not json_base.lower().startswith(candidate_base.lower()):
+                                continue
+
+                            # ¿Tiene .supplemental-metadata (truncado o completo)?
+                            suffix = json_base[len(candidate_base):]
+                            if suffix == '':
+                                matched_candidate = f
+                                break
+                            elif supplemental.startswith(suffix.lstrip('.')):
+                                matched_candidate = f
+                                break
+
+                        if matched_candidate:
+                            break  # no seguir buscando si ya tenemos uno
+
+                    if matched_candidate:
+                        src_path = os.path.join(root, matched_candidate)
+                        dst_path = os.path.join(root, target_json)
+                        shutil.copy(src_path, dst_path)
+                        LOGGER.info(f"{step_name}Copied: {matched_candidate} → {target_json}")
+                        counter_mp4_files_changed += 1
+
         return counter_mp4_files_changed
+
 
 
 def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_length_threshold=46):
