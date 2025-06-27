@@ -14,9 +14,9 @@
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
     - [x] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTkout, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.  
-           NOTE: Now the tool moves assets from `TAKEOUT_FOLDER` to `<OUTPUT_FOLDER` by default. 
+           **NOTE: Now the tool moves assets from `TAKEOUT_FOLDER` to `<OUTPUT_FOLDER` by default.**
     - [x] Replaced argument `-gcsa, --google-create-symbolic-albums` by `-gnsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.  
-           NOTE: Now the tool creates Albums as symlinks/shortcuts to the original assets in `ALL_PHOTOS` folder. 
+           **NOTE: Now the tool creates Albums as symlinks/shortcuts to the original assets in `ALL_PHOTOS` folder.**
     - [x] Replaced argument `-confirm, --request-user-confirmation` by `-noConfirm, --no-request-user-confirmation` and inverted logic. 
     
   - #### 🌟 New Features:
