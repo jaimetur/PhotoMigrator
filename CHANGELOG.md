@@ -108,7 +108,8 @@
   - #### 🐛 Bug fixes:
     - [x] Fixed LOG_LEVEL change in `Google Takeout Processing Feature`.
     - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
-    - [x] Fixed a bug in `Auto Rename Albums content based` when an Albums only contains Videos because the list of TAGS where search dates did't include valid TAGs for Video files.
+    - [x] Fixed a bug in `Auto Rename Albums content based` when an Albums only contains Videos because the list of TAGS where search dates didn't include valid TAGs for Video files.
+    - [x] Fixed issue in MP4/Live Pictures Fixers when the original picture's json has .supplemental-metadata suffix.
 
   - #### 📚 Documentation:
     - [x] Modified 'Execution from Source' documentation to support the new package structure.
