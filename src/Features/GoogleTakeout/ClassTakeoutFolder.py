@@ -4,15 +4,16 @@
 import logging
 import os
 from datetime import datetime, timedelta
+from os.path import dirname, basename
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.FileStatistics import count_files_per_type_and_extract_dates_multi_threads
-from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS
+from Core.FileStatistics import count_files_and_extract_dates
+from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
-from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure, unpack_zips
+from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure, unpack_zips, clone_backup_if_needed
 from Features.GoogleTakeout.GoogleTakeoutFunctions import fix_mp4_files, fix_truncations, sync_mp4_timestamps_with_images, force_remove_directory, copy_move_folder, organize_files_by_date, move_albums, count_valid_albums
 from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAlone.Duplicates import find_duplicates
@@ -50,6 +51,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Verificar si la carpeta necesita ser descomprimida
         self.needs_unzip = self.check_if_needs_unzip(log_level=logging.WARNING)
         self.unzipped_folder = None # Only will have value if the Takeout have been already unzipped
+
+        # Backup_folder in case of needed
+        self.backup_takeout_folder = None
 
         # Verificar si la carpeta necesita ser procesada
         self.needs_process = self.check_if_needs_process(log_level=logging.WARNING)
@@ -154,43 +158,47 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
+
             # Sub-Step 2: create_backup_if_needed
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS.get('google-keep-takeout-folder'):
-                # Determine the input_folder deppending if the Takeout have been unzipped or not
+                # Determine the input_folder depending if the Takeout have been unzipped or not
                 input_folder = self.get_input_folder()
-                step_name = '🔍 [PRE-CHECKS]-[Takeout Clonning] : '
+                step_name = '🔍 [PRE-CHECKS]-[Clone Takeout] : '
                 self.substep += 1
                 sub_step_start_time = datetime.now()
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Clonning Takeout Folder: {input_folder}...")
-                # Call the clonning functuon
-                tmp_folder = clone_backup_if_needed (self.input_folder, step_name=step_name, log_level=log_level)
+                LOGGER.warning(f"{step_name}Flag '-gKeepTkout, --google-keep-takeout-folder' detected. Cloning Takeout Folder...")
+                # Generate the target temporary folder path
+                parent_dir = dirname(self.takeout_folder)
+                folder_name = basename(self.takeout_folder)
+                cloned_folder = os.path.join(parent_dir, f"{folder_name}_tmp_{TIMESTAMP}")
+                # Call the cloning function
+                tmp_folder = clone_backup_if_needed (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
                 if tmp_folder != self.input_folder:
                     ARGS['google-takeout'] = tmp_folder
-                    self.input_folder = tmp_folder
-                    LOGGER.info(f"{step_name}Takeout folder clonned succesfully as working folder: '{tmp_folder}' ")
+                    self.unzipped_folder = tmp_folder
+                    self.backup_takeout_folder = input_folder
+                    LOGGER.info(f"{step_name}Takeout folder cloned successfully and will be used as working folder for next steps. ")
+                    LOGGER.info(f"{step_name}Your original Takeout files have been safely preserved in the folder: '{self.backup_takeout_folder}' ")
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
                 step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-    
-    
-            # Sub-Step 2: Count initial files in Takeout Folder before to process with GPTH and modify any original file
+
+            # Sub-Step 3: Count initial files in Takeout Folder before to process with GPTH and modify any original file
             # ----------------------------------------------------------------------------------------------------------------------
-            # Determine the input_folder deppending if the Takeout have been unzipped or not
+            # Determine the input_folder depending if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
             step_name = '🔍 [PRE-CHECKS]-[Count Files  ] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Counting files in Takeout Folder: {input_folder}...")
-
             # New function to count all file types and extract also date info
-            initial_takeout_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
-
+            initial_takeout_counters, dates = count_files_and_extract_dates(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
             # Clean input dict
             self.result['input_counters'].clear()
             # Assign all pairs key-value from initial_takeout_counters to counter['input_counters'] dict
@@ -218,6 +226,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
 
             # Finally show TOTAL DURATION OF PRE-CHECKS PHASE
             step_name = '🔍 [PRE-CHECKS] : '
@@ -653,10 +662,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # 1. First count all Files in output Folder
 
             # New function to count all file types and extract also date info
-            # output_counters = count_files_per_type_and_extract_dates_multi_threads(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
+            # output_counters = count_files_and_extract_dates(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
 
             # New function to count all file types and extract also date info
-            output_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            output_counters, dates = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['output_counters'].clear()
@@ -676,26 +685,25 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 13: FINAL CLEANING
             # ----------------------------------------------------------------------------------------------------------------------
-            if not ARGS['google-keep-takeout-folder']:
-                step_name = '🧹 [FINAL-CLEANING] : '
-                step_start_time = datetime.now()
-                self.step += 1
-                LOGGER.info(f"")
-                LOGGER.info(f"==========================================")
-                LOGGER.info(f"{self.step}. FINAL CLEANING... ")
-                LOGGER.info(f"==========================================")
-                LOGGER.info(f"")
-                # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
-                removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
-                if removed:
-                    LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
-                else:
-                    LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+            step_name = '🧹 [FINAL-CLEANING] : '
+            step_start_time = datetime.now()
+            self.step += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"==========================================")
+            LOGGER.info(f"{self.step}. FINAL CLEANING... ")
+            LOGGER.info(f"==========================================")
+            LOGGER.info(f"")
+            # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
+            removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
+            if removed:
+                LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
+            else:
+                LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
+            step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
@@ -778,7 +786,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"============================================================================================================================")
                 LOGGER.info(f"✅ PROCESS COMPLETED SUCCESSFULLY!")
                 LOGGER.info(f"")
-                LOGGER.info(f"All the Photos/Videos Fixed can be found on folder: '{output_folder}'")
+                LOGGER.info(f"All the Photos/Videos Fixed can be found on folder                    : '{output_folder}'")
+                if self.ARGS.get('google-keep-takeout-folder'):
+                    LOGGER.info(f"Your original Takeout files have been safely preserved in the folder  : '{self.backup_takeout_folder}' ")
                 LOGGER.info(f"")
                 LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")

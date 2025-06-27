@@ -17,7 +17,6 @@
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
       - [ ] Auto-Update Issues Templates with new published releases.
-    - [ ] Implement logic for `-gKeepTkout, --google-keep-takeout-folder` or wait to GPTH to restore `--copy` feature.
 
   - #### 🚀 Enhancements:
     - [ ] Update GPTH to 4.1.0 to include latest improvements. 
