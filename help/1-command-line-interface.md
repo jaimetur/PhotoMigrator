@@ -34,7 +34,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-id [= [1-3]]]
                      [-from <FROM_DATE>] [-to <TO_DATE>] [-type = [image,video,all]]
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
-                     [-AlbFolder [<ALBUMS_FOLDER> ...]] [-rAlbAsset]
+                     [-AlbFolder [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]] [-rAlbAsset]
                      [-source <SOURCE>] [-target <TARGET>]
                      [-move [= [true,false]]] [-dashboard [= [true,false]]] [-parallel [= [true,false]]]
                      [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
@@ -57,7 +57,7 @@ PhotoMigrator v3.4.0 - 2025-06-30
 
           ©️ 2024-2025 by Jaime Tur (@jaimetur)
 
-options:
+optional arguments:
 
 -h          ; --help
               show this help message and exit
@@ -222,7 +222,7 @@ for the rest of the arguments for this extra mode.
               Pre-Processing in a previous execution using the flag '-gKeepTkout,--google-keep-takeout-folder' then you
               can skip it for that <TAKEOUT_FOLDER>.
 -gKeepTkout ; --google-keep-takeout-folder
-              Keeps a copy of your original Takeout before to start to process it (requires double HDD space).
+              Keeps a untouched copy of your original Takeout folder. (requires double HDD space).
               TIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files,
               you will always conserve the original Zips and don't need to use this flag.
 -gpthInfo   ; --show-gpth-info = [true,false]
@@ -292,6 +292,38 @@ If more than one optional arguments are detected, only the first one will be exe
               CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the
               selected Photo client.
               You must provide the Photo client using the mandatory flag '--client'.
+-rEmpAlb    ; --remove-empty-albums
+              The Tool will look for all Albums in the selected Photo client account and if any Album is empty, will
+              remove it from the selected Photo client account.
+              You must provide the Photo client using the mandatory flag '--client'.
+-rDupAlb    ; --remove-duplicates-albums
+              The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated
+              (with the same name and size), will remove it from the selected Photo client account.
+              You must provide the Photo client using the mandatory flag '--client'.
+-mDupAlb    ; --merge-duplicates-albums
+              The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated
+              (with the same name), will transfer all its assets to the most relevant album and remove it from the
+              selected Photo client account.
+              You must provide the Photo client using the mandatory flag '--client'.
+-rOrphan    ; --remove-orphan-assets
+              The Tool will look for all Orphan Assets in the selected Photo client and will remove them.
+              You must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature
+              requires a valid ADMIN_API_KEY configured in Config.ini.
+-OTP        ; --one-time-password
+              This Flag allow you to login into Synology Photos using 2FA with an OTP Token.
+
+
+OTHER STANDALONE FEATURES:
+--------------------------
+Following arguments can be used to execute the Tool in any of the useful Extra Standalone Features included.
+If more than one Feature is detected, only the first one will be executed.
+
+-fixSym     ; --fix-symlinks-broken <FOLDER_TO_FIX>
+              The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move
+              any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.
+-renFldcb   ; --rename-folders-content-based <ALBUMS_FOLDER>
+              Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on the date content
+              found.
 -findDup    ; --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
               Find duplicates in specified folders.
               <ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list'
@@ -301,7 +333,7 @@ If more than one optional arguments are detected, only the first one will be exe
 -procDup    ; --process-duplicates <DUPLICATES_REVISED_CSV>
               Specify the Duplicates CSV file revised with specifics Actions in Action column, and the Tool will execute
               that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate /
-              replace_duplicate.                                                                           -rDupAlb    ; --remove-duplicates-albums                                                                                                                                         The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated                                                              (with the same name and size), will remove it from the selected Photo client account.                                                                              You must provide the Photo client using the mandatory flag '--client'.                                                                               -mDupAlb    ; --merge-duplicates-albums                                                                                                                                          The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated                                                              (with the same name), will transfer all its assets to the most relevant album and remove it from the                                                               selected Photo client account.                                                                                                                                     You must provide the Photo client using the mandatory flag '--client'.                                                                               -rOrphan    ; --remove-orphan-assets                                                                                                                                             The Tool will look for all Orphan Assets in the selected Photo client and will remove them.                                                                        You must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature                                                                 requires a valid ADMIN_API_KEY configured in Config.ini.                                                                                             -OTP        ; --one-time-password                                                                                                                                                This Flag allow you to login into Synology Photos using 2FA with an OTP Token.                                                                                                                                                                                                                                                                                                                                                                                                             OTHER STANDALONE FEATURES:                                                                                                                                         --------------------------                                                                                                                                         Following arguments can be used to execute the Tool in any of the useful Extra Standalone Features included.                                                       If more than one Feature is detected, only the first one will be executed.                                                                                                                                                                                                                                                            -fixSym     ; --fix-symlinks-broken <FOLDER_TO_FIX>                                                                                                                              The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move                                                          any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.                                                                         -renFldcb   ; --rename-folders-content-based <ALBUMS_FOLDER>                                                                                                                     Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on the date content                                                              found.                                                                                                                                               -findDup    ; --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]                                                                                           Find duplicates in specified folders.                                                                                                                              <ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list'                                                                    <DUPLICATES_FOLDER> are one or more folders (string or list), where the Tool will look for duplicates                                                              files. The order of this list is important to determine the principal file of a duplicates set. First                                                              folder will have higher priority.                                                                                                                    -procDup    ; --process-duplicates <DUPLICATES_REVISED_CSV>                                                                                                                      Specify the Duplicates CSV file revised with specifics Actions in Action column, and the Tool will execute                                                         that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate /                                                                replace_duplicate. 
+              replace_duplicate. 
 ---------------------------------------------------------------------------------------------------------
 ```
 
