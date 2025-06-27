@@ -191,7 +191,7 @@ def parse_arguments():
                              "\n  2.Fix MP4/Live Picture associations"
                              "\n  3.Fix Truncated filenames/extensions." 
                            "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing in a previous execution using the flag '-gKeepTkout,--google-keep-takeout-folder' then you can skip it for that <TAKEOUT_FOLDER>.")
-    PARSER.add_argument("-gKeepTkout", "--google-keep-takeout-folder", action="store_true", help=f"Keeps a copy of your original Takeout before to start to process it (requires double HDD space). \nTIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files, \nyou will always conserve the original Zips and don't need to use this flag.")
+    PARSER.add_argument("-gKeepTkout", "--google-keep-takeout-folder", action="store_true", help=f"Keeps a untouched copy of your original Takeout folder. (requires double HDD space).  \nTIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files, \nyou will always conserve the original Zips and don't need to use this flag.")
     PARSER.add_argument("-gpthInfo", "--show-gpth-info",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
