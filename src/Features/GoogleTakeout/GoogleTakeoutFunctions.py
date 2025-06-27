@@ -138,7 +138,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=None):
                         src_path = os.path.join(root, matched_candidate)
                         dst_path = os.path.join(root, target_json)
                         shutil.copy(src_path, dst_path)
-                        LOGGER.info(f"{step_name}Copied: {matched_candidate} → {target_json}")
+                        LOGGER.debug(f"{step_name}Copied: {matched_candidate} → {target_json}")
                         counter_mp4_files_changed += 1
 
         return counter_mp4_files_changed
