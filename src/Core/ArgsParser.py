@@ -380,17 +380,17 @@ def checkArgs(ARGS, PARSER):
     # Set None for google-input-zip-folder argument, and only if unzip is needed will change this to the proper folder.
     ARGS['google-input-zip-folder'] = None
 
-    # Set None for MIGRATION argument, and only if both source and target argument are providin, it will set properly.
+    # Set None for MIGRATION argument, and only if both source and target argument are provide, it will set properly.
     ARGS['AUTOMATIC-MIGRATION'] = None
 
 
     # Parse AUTOMATIC-MIGRATION Arguments
     # Manual validation of --source and --target to allow predefined values but also local folders.
     if ARGS['source'] and not ARGS['target']:
-        PARSER.error(f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}Invalid syntax. Argument '--source' detected but not '--target' provided'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['target'] and not ARGS['source']:
-        PARSER.error(f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}Invalid syntax. Argument '--target' detected but not '--source' provided'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATIC_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
         PARSER.error(f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n{Style.RESET_ALL}")
