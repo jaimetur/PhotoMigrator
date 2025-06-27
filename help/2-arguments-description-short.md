@@ -95,7 +95,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                                                                                |
 | `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                                                                       |
 | `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).                                                             |
-| `-gKeepTkout`,<br>`--google-keep-takeout-folder`   | Copy (instead of Move) your original Takeout into <OUTPUT_TAKEOUT_FOLDER> (requires double HDD space)                  |
+| `-gKeepTkout`,<br>`--google-keep-takeout-folder`   | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                                                                            |
 | `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true)                                                                               |
 

@@ -6,12 +6,15 @@ import shutil
 import stat
 import subprocess
 import zipfile
+from os.path import basename, dirname, join
 from pathlib import Path
+from shutil import copytree
 
-from colorama import init, Style
+from colorama import init
 
 from Core.CustomLogger import set_log_level, custom_print
-from Core.GlobalVariables import LOGGER, MSG_TAGS, MSG_TAGS_COLORED, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALBUMS
+from Core.GlobalVariables import LOGGER, MSG_TAGS, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALBUMS
+from Core.GlobalVariables import TIMESTAMP
 from Utils.FileUtils import is_valid_path
 from Utils.GeneralUtils import tqdm
 
@@ -901,3 +904,25 @@ def count_valid_albums(folder_path, excluded_folders=None, step_name="", log_lev
                     LOGGER.warning(f"{step_name}⚠️ Cannot inspect {fpath}: {exc}")
 
     return valid_albums
+    
+
+
+def clone_backup_if_needed(input_folder, cloned_folder, step_name="", log_level=None):
+    """
+    Creates a clone of the given input folder with a suffix '_tmp_{TIMESTAMP}' in the same parent directory.
+    If the cloning fails, returns the original input_folder instead. This function does not modify any global variables
+    and always attempts to perform the cloning.
+
+    Example:
+        working_folder = clone_backup_if_needed("/path/to/folder")
+    """
+    with set_log_level(LOGGER, log_level):
+        # Clone the input folder into the temporary folder
+        LOGGER.info(f"{step_name}Creating temporary working folder at: {cloned_folder}")
+        try:
+            copytree(input_folder, cloned_folder)
+            LOGGER.info(f"{step_name}Temporary cloned successfully {input_folder} -> {cloned_folder}")
+            return cloned_folder
+        except Exception as e:
+            LOGGER.warning(f"{step_name}❌ Failed to create backup of {input_folder}: {e}")
+            return input_folder

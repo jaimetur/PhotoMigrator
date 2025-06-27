@@ -22,6 +22,7 @@
     - [x] Created GitHub Forms on New Issues.
       - [ ] Auto-Update Issues Templates with new published releases.
     - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
+    - [x] Implemented logic for `-gKeepTkout, --google-keep-takeout-folder` feature.
     - [x] Call GPTH with `--verbose` argument when PhotoMigrator logLevel is VERBOSE.
     - [x] Added new `VERBOSE` value for `-logLevel` argument.
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.

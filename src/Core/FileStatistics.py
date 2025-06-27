@@ -22,7 +22,7 @@ from Features.GoogleTakeout.MetadataFixers import get_exif_tool_path
 # ================================================================================================================================================
 # NEW VERSION OF COUNT_FILES_PER_TYPE_AND_DATE USING MULTI-THREADS (BETTER THAN MULTI-PROCESS FOR I/O OPERATIONS) AND SUPPORTS EMBEDDED FUNCTIONS)
 # ================================================================================================================================================
-def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files=None, exclude_ext=None, include_ext=None, output_file="dates_metadata.json", extract_dates=True, step_name='', log_level=None):
+def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None, include_ext=None, output_file="dates_metadata.json", extract_dates=True, step_name='', log_level=None):
     """
         Main orchestration: divides files into fixed 10 000-file blocks, runs each block
         in parallel via process_block, shows overall progress as blocks complete,
