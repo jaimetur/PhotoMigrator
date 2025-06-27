@@ -176,6 +176,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Total Files in Takeout folder                    : {self.result['input_counters']['total_files']:<7}")
             LOGGER.info(f"{step_name}Total Non-Supported files in Takeout folder      : {self.result['input_counters']['unsupported_files']:<7}")
             LOGGER.info(f"{step_name}Total Supported files in Takeout folder          : {self.result['input_counters']['supported_files']:<7}")
+            LOGGER.info(f"{step_name}  - Total Non-Media files in Takeout folder      : {self.result['input_counters']['non_media_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Metadata in Takeout folder           : {self.result['input_counters']['metadata_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Sidecars in Takeout folder           : {self.result['input_counters']['sidecar_files']:<7}")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
             LOGGER.info(f"{step_name}  - Total Media files in Takeout folder          : {self.result['input_counters']['media_files']:<7}")
             LOGGER.info(f"{step_name}    - Total Photos in Takeout folder             : {self.result['input_counters']['photo_files']:<7}")
             LOGGER.info(f"{step_name}      - Correct Date                             : {self.result['input_counters']['photos']['with_date']:<7} ({self.result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
@@ -183,9 +187,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}    - Total Videos in Takeout folder             : {self.result['input_counters']['video_files']:<7}")
             LOGGER.info(f"{step_name}      - Correct Date                             : {self.result['input_counters']['videos']['with_date']:<7} ({self.result['input_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
             LOGGER.info(f"{step_name}      - Incorrect Date                           : {self.result['input_counters']['videos']['without_date']:<7} ({self.result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
-            LOGGER.info(f"{step_name}  - Total Non-Media files in Takeout folder      : {self.result['input_counters']['non_media_files']:<7}")
-            LOGGER.info(f"{step_name}    - Total Metadata in Takeout folder           : {self.result['input_counters']['metadata_files']:<7}")
-            LOGGER.info(f"{step_name}    - Total Sidecars in Takeout folder           : {self.result['input_counters']['sidecar_files']:<7}")
             LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
@@ -704,34 +705,34 @@ class ClassTakeoutFolder(ClassLocalFolder):
             output_perc_videos_without_date = result['output_counters']['videos']['pct_without_date']
 
             # Calculate percentages from output vs input
-            perc_of_input_total_files               = 100 * result['output_counters']['total_files']           / result['input_counters']['total_files']             if result['input_counters']['total_files']           != 0 and result['output_counters']['total_files']           != 0 else 100
-            perc_of_input_total_unsupported_files   = 100 * result['output_counters']['unsupported_files']     / result['input_counters']['unsupported_files']       if result['input_counters']['unsupported_files']     != 0 and result['output_counters']['unsupported_files']     != 0 else 100
-            perc_of_input_total_supported_files     = 100 * result['output_counters']['supported_files']       / result['input_counters']['supported_files']         if result['input_counters']['supported_files']       != 0 and result['output_counters']['supported_files']       != 0 else 100
-            perc_of_input_total_media               = 100 * result['output_counters']['media_files']           / result['input_counters']['media_files']             if result['input_counters']['media_files']           != 0 and result['output_counters']['media_files']           != 0 else 100
-            perc_of_input_total_images              = 100 * result['output_counters']['photo_files']           / result['input_counters']['photo_files']             if result['input_counters']['photo_files']           != 0 and result['output_counters']['photo_files']           != 0 else 100
-            perc_of_input_total_photos_with_date    = 100 * result['output_counters']['photos']['with_date']   / result['input_counters']['photos']['with_date']     if result['input_counters']['photos']['with_date']   != 0 and result['output_counters']['photos']['with_date']   != 0 else 100
-            perc_of_input_total_photos_without_date = 100 * result['output_counters']['photos']['without_date']/ result['input_counters']['photos']['without_date']  if result['input_counters']['photos']['without_date']!= 0 and result['output_counters']['photos']['without_date']!= 0 else 100
-            perc_of_input_total_videos              = 100 * result['output_counters']['video_files']           / result['input_counters']['video_files']             if result['input_counters']['video_files']           != 0 and result['output_counters']['video_files']           != 0 else 100
-            perc_of_input_total_videos_with_date    = 100 * result['output_counters']['videos']['with_date']   / result['input_counters']['videos']['with_date']     if result['input_counters']['videos']['with_date']   != 0 and result['output_counters']['videos']['with_date']   != 0 else 100
-            perc_of_input_total_videos_without_date = 100 * result['output_counters']['videos']['without_date']/ result['input_counters']['videos']['without_date']  if result['input_counters']['videos']['without_date']!= 0 and result['output_counters']['videos']['without_date']!= 0 else 100
-            perc_of_input_total_non_media           = 100 * result['output_counters']['non_media_files']       / result['input_counters']['non_media_files']         if result['input_counters']['non_media_files']       != 0 and result['output_counters']['non_media_files']       != 0 else 100
-            perc_of_input_total_metadata            = 100 * result['output_counters']['metadata_files']        / result['input_counters']['metadata_files']          if result['input_counters']['metadata_files']        != 0 and result['output_counters']['metadata_files']        != 0 else 100
-            perc_of_input_total_sidecars            = 100 * result['output_counters']['sidecar_files']         / result['input_counters']['sidecar_files']           if result['input_counters']['sidecar_files']         != 0 and result['output_counters']['sidecar_files']         != 0 else 100
+            perc_of_input_total_files               = 100 * result['output_counters']['total_files']           / result['input_counters']['total_files']             if result['input_counters']['total_files']           != 0 else 100
+            perc_of_input_total_unsupported_files   = 100 * result['output_counters']['unsupported_files']     / result['input_counters']['unsupported_files']       if result['input_counters']['unsupported_files']     != 0 else 100
+            perc_of_input_total_supported_files     = 100 * result['output_counters']['supported_files']       / result['input_counters']['supported_files']         if result['input_counters']['supported_files']       != 0 else 100
+            perc_of_input_total_media               = 100 * result['output_counters']['media_files']           / result['input_counters']['media_files']             if result['input_counters']['media_files']           != 0 else 100
+            perc_of_input_total_images              = 100 * result['output_counters']['photo_files']           / result['input_counters']['photo_files']             if result['input_counters']['photo_files']           != 0 else 100
+            perc_of_input_total_photos_with_date    = 100 * result['output_counters']['photos']['with_date']   / result['input_counters']['photos']['with_date']     if result['input_counters']['photos']['with_date']   != 0 else 100
+            perc_of_input_total_photos_without_date = 100 * result['output_counters']['photos']['without_date']/ result['input_counters']['photos']['without_date']  if result['input_counters']['photos']['without_date']!= 0 else 100
+            perc_of_input_total_videos              = 100 * result['output_counters']['video_files']           / result['input_counters']['video_files']             if result['input_counters']['video_files']           != 0 else 100
+            perc_of_input_total_videos_with_date    = 100 * result['output_counters']['videos']['with_date']   / result['input_counters']['videos']['with_date']     if result['input_counters']['videos']['with_date']   != 0 else 100
+            perc_of_input_total_videos_without_date = 100 * result['output_counters']['videos']['without_date']/ result['input_counters']['videos']['without_date']  if result['input_counters']['videos']['without_date']!= 0 else 100
+            perc_of_input_total_non_media           = 100 * result['output_counters']['non_media_files']       / result['input_counters']['non_media_files']         if result['input_counters']['non_media_files']       != 0 else 100
+            perc_of_input_total_metadata            = 100 * result['output_counters']['metadata_files']        / result['input_counters']['metadata_files']          if result['input_counters']['metadata_files']        != 0 else 100
+            perc_of_input_total_sidecars            = 100 * result['output_counters']['sidecar_files']         / result['input_counters']['sidecar_files']           if result['input_counters']['sidecar_files']         != 0 else 100
 
             # Calculate differences from output vs input
-            diff_output_input_total_files               = result['output_counters']['total_files']           - result['input_counters']['total_files']              if result['input_counters']['total_files']           != 0 and result['output_counters']['total_files']           != 0 else 0
-            diff_output_input_total_unsupported_files   = result['output_counters']['unsupported_files']     - result['input_counters']['unsupported_files']        if result['input_counters']['unsupported_files']     != 0 and result['output_counters']['unsupported_files']     != 0 else 0
-            diff_output_input_total_supported_files     = result['output_counters']['supported_files']       - result['input_counters']['supported_files']          if result['input_counters']['supported_files']       != 0 and result['output_counters']['supported_files']       != 0 else 0
-            diff_output_input_total_media               = result['output_counters']['media_files']           - result['input_counters']['media_files']              if result['input_counters']['media_files']           != 0 and result['output_counters']['media_files']           != 0 else 0
-            diff_output_input_total_images              = result['output_counters']['photo_files']           - result['input_counters']['photo_files']              if result['input_counters']['photo_files']           != 0 and result['output_counters']['photo_files']           != 0 else 0
-            diff_output_input_total_photos_with_date    = result['output_counters']['photos']['with_date']   - result['input_counters']['photos']['with_date']      if result['input_counters']['photos']['with_date']   != 0 and result['output_counters']['photos']['with_date']   != 0 else 0
-            diff_output_input_total_photos_without_date = result['output_counters']['photos']['without_date']- result['input_counters']['photos']['without_date']   if result['input_counters']['photos']['without_date']!= 0 and result['output_counters']['photos']['without_date']!= 0 else 0
-            diff_output_input_total_videos              = result['output_counters']['video_files']           - result['input_counters']['video_files']              if result['input_counters']['video_files']           != 0 and result['output_counters']['video_files']           != 0 else 0
-            diff_output_input_total_videos_with_date    = result['output_counters']['videos']['with_date']   - result['input_counters']['videos']['with_date']      if result['input_counters']['videos']['with_date']   != 0 and result['output_counters']['videos']['with_date']   != 0 else 0
-            diff_output_input_total_videos_without_date = result['output_counters']['videos']['without_date']- result['input_counters']['videos']['without_date']   if result['input_counters']['videos']['without_date']!= 0 and result['output_counters']['videos']['without_date']!= 0 else 0
-            diff_output_input_total_non_media           = result['output_counters']['non_media_files']       - result['input_counters']['non_media_files']          if result['input_counters']['non_media_files']       != 0 and result['output_counters']['non_media_files']       != 0 else 0
-            diff_output_input_total_metadata            = result['output_counters']['metadata_files']        - result['input_counters']['metadata_files']           if result['input_counters']['metadata_files']        != 0 and result['output_counters']['metadata_files']        != 0 else 0
-            diff_output_input_total_sidecars            = result['output_counters']['sidecar_files']         - result['input_counters']['sidecar_files']            if result['input_counters']['sidecar_files']         != 0 and result['output_counters']['sidecar_files']         != 0 else 0
+            diff_output_input_total_files               = result['output_counters']['total_files']           - result['input_counters']['total_files']
+            diff_output_input_total_unsupported_files   = result['output_counters']['unsupported_files']     - result['input_counters']['unsupported_files']
+            diff_output_input_total_supported_files     = result['output_counters']['supported_files']       - result['input_counters']['supported_files']          
+            diff_output_input_total_media               = result['output_counters']['media_files']           - result['input_counters']['media_files']
+            diff_output_input_total_images              = result['output_counters']['photo_files']           - result['input_counters']['photo_files']
+            diff_output_input_total_photos_with_date    = result['output_counters']['photos']['with_date']   - result['input_counters']['photos']['with_date']
+            diff_output_input_total_photos_without_date = result['output_counters']['photos']['without_date']- result['input_counters']['photos']['without_date']   
+            diff_output_input_total_videos              = result['output_counters']['video_files']           - result['input_counters']['video_files']
+            diff_output_input_total_videos_with_date    = result['output_counters']['videos']['with_date']   - result['input_counters']['videos']['with_date']
+            diff_output_input_total_videos_without_date = result['output_counters']['videos']['without_date']- result['input_counters']['videos']['without_date']
+            diff_output_input_total_non_media           = result['output_counters']['non_media_files']       - result['input_counters']['non_media_files']
+            diff_output_input_total_metadata            = result['output_counters']['metadata_files']        - result['input_counters']['metadata_files']
+            diff_output_input_total_sidecars            = result['output_counters']['sidecar_files']         - result['input_counters']['sidecar_files']
 
             end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
@@ -760,34 +761,35 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"Total Size of Takeout folder                : {result['input_counters']['total_size_mb']} MB")
                 LOGGER.info(f"Total Files in Takeout folder               : {result['input_counters']['total_files']:<7}")
                 LOGGER.info(f"Total Non-Supported files in Takeout folder : {result['input_counters']['unsupported_files']:<7}")
-                LOGGER.info(f"")
                 LOGGER.info(f"Total Supported files in Takeout folder     : {result['input_counters']['supported_files']:<7}")
-                LOGGER.info(f"  - Total Media files in Takeout folder     : {result['input_counters']['media_files']:<7}")
-                LOGGER.info(f"    - Total Photos in Takeout folder        : {result['input_counters']['photo_files']:<7}")
-                LOGGER.info(f"      - Correct Date                        : {result['input_counters']['photos']['with_date']:<7} ({result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
-                LOGGER.info(f"      - Incorrect Date                      : {result['input_counters']['photos']['without_date']:<7} ({result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
-                LOGGER.info(f"    - Total Videos in Takeout folder        : {result['input_counters']['video_files']:<7}")
-                LOGGER.info(f"      - Correct Date                        : {result['input_counters']['videos']['with_date']:<7} ({result['input_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
-                LOGGER.info(f"      - Incorrect Date                      : {result['input_counters']['videos']['without_date']:<7} ({result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
                 LOGGER.info(f"  - Total Non-Media files in Takeout folder : {result['input_counters']['non_media_files']:<7}")
                 LOGGER.info(f"    - Total Metadata in Takeout folder      : {result['input_counters']['metadata_files']:<7}")
                 LOGGER.info(f"    - Total Sidecars in Takeout folder      : {result['input_counters']['sidecar_files']:<7}")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+                LOGGER.info(f"  - Total Media files in Takeout folder     : {result['input_counters']['media_files']:<7}")
+                LOGGER.info(f"    - Total Photos in Takeout folder        : {result['input_counters']['photo_files']:<7}")
+                LOGGER.info(f"      - Correct Date                        : {result['input_counters']['photos']['with_date']:<7}  ({result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
+                LOGGER.info(f"      - Incorrect Date                      : {result['input_counters']['photos']['without_date']:<7}  ({result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
+                LOGGER.info(f"    - Total Videos in Takeout folder        : {result['input_counters']['video_files']:<7}")
+                LOGGER.info(f"      - Correct Date                        : {result['input_counters']['videos']['with_date']:<7}  ({result['input_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
+                LOGGER.info(f"      - Incorrect Date                      : {result['input_counters']['videos']['without_date']:<7}  ({result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
                 LOGGER.info(f"Total Size of Output folder                 : {result['output_counters']['total_size_mb']} MB")
-                LOGGER.info(f"Total Files in Output folder                : {result['output_counters']['total_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_files:>5})  |  ({perc_of_input_total_files:>5.1f}% of input) ")
-                LOGGER.info(f"Total Non-Supported files in Output folder  : {result['output_counters']['unsupported_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_unsupported_files:>5})  |  ({perc_of_input_total_unsupported_files:>5.1f}% of input) ")
-                LOGGER.info(f"")
-                LOGGER.info(f"Total Supported files in Output folder      : {result['output_counters']['supported_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_supported_files:>5})  |  ({perc_of_input_total_supported_files:>5.1f}% of input) ")
-                LOGGER.info(f"  - Total Media files in Output folder      : {result['output_counters']['media_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_media:>5})  |  ({perc_of_input_total_media:>5.1f}% of input) ")
-                LOGGER.info(f"    - Total Photos in Output folder         : {result['output_counters']['photo_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_images:>5})  |  ({perc_of_input_total_images:>5.1f}% of input) ")
-                LOGGER.info(f"      - Correct Date                        : {result['output_counters']['photos']['with_date']:<7}" f" {f'({output_perc_photos_with_date:>5.1f}% of total photos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_photos_with_date:>5})  |  ({perc_of_input_total_photos_with_date:>5.1f}% of input)'.rjust(40)} ")
-                LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['photos']['without_date']:<7}" f" {f'({output_perc_photos_without_date:>5.1f}% of total photos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_photos_without_date:>5})  |  ({perc_of_input_total_photos_without_date:>5.1f}% of input)'.rjust(40)} ")
-                LOGGER.info(f"    - Total Videos in Output folder         : {result['output_counters']['video_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_videos:>5})  |  ({perc_of_input_total_videos:>5.1f}% of input) ")
-                LOGGER.info(f"      - Correct Date                        : {result['output_counters']['videos']['with_date']:<7}" f" {f'({output_perc_videos_with_date:>5.1f}% of total videos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_videos_with_date:>5})  |  ({perc_of_input_total_videos_with_date:>5.1f}% of input)'.rjust(40)} ")
-                LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['videos']['without_date']:<7}" f" {f'({output_perc_videos_without_date:>5.1f}% of total videos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_videos_without_date:>5})  |  ({perc_of_input_total_videos_without_date:>5.1f}% of input)'.rjust(40)} ")
-                LOGGER.info(f"  - Total Non-Media files in Output folder  : {result['output_counters']['non_media_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_non_media:>5})  |  ({perc_of_input_total_non_media:>5.1f}% of input) ")
-                LOGGER.info(f"    - Total Metadata in Output folder       : {result['output_counters']['metadata_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_metadata:>5})  |  ({perc_of_input_total_metadata:>5.1f}% of input) ")
-                LOGGER.info(f"    - Total Sidecars in Output folder       : {result['output_counters']['sidecar_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_sidecars:>5})  |  ({perc_of_input_total_sidecars:>5.1f}% of input) ")
+                LOGGER.info(f"Total Files in Output folder                : {result['output_counters']['total_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_files:>7})  |  ({perc_of_input_total_files:>5.1f}% of input) ")
+                LOGGER.info(f"Total Non-Supported files in Output folder  : {result['output_counters']['unsupported_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_unsupported_files:>7})  |  ({perc_of_input_total_unsupported_files:>5.1f}% of input) ")
+                LOGGER.info(f"Total Supported files in Output folder      : {result['output_counters']['supported_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_supported_files:>7})  |  ({perc_of_input_total_supported_files:>5.1f}% of input) ")
+                LOGGER.info(f"  - Total Non-Media files in Output folder  : {result['output_counters']['non_media_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_non_media:>7})  |  ({perc_of_input_total_non_media:>5.1f}% of input) ")
+                LOGGER.info(f"    - Total Metadata in Output folder       : {result['output_counters']['metadata_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_metadata:>7})  |  ({perc_of_input_total_metadata:>5.1f}% of input) ")
+                LOGGER.info(f"    - Total Sidecars in Output folder       : {result['output_counters']['sidecar_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_sidecars:>7})  |  ({perc_of_input_total_sidecars:>5.1f}% of input) ")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+                LOGGER.info(f"  - Total Media files in Output folder      : {result['output_counters']['media_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_media:>7})  |  ({perc_of_input_total_media:>5.1f}% of input) ")
+                LOGGER.info(f"    - Total Photos in Output folder         : {result['output_counters']['photo_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_images:>7})  |  ({perc_of_input_total_images:>5.1f}% of input) ")
+                LOGGER.info(f"      - Correct Date                        : {result['output_counters']['photos']['with_date']:<7}" f"   {f'({output_perc_photos_with_date:>5.1f}% of total photos)'.ljust(28)}" f"{f'|  (diff: {diff_output_input_total_photos_with_date:>7})  |  ({perc_of_input_total_photos_with_date:>5.1f}% of input)'.rjust(40)} ")
+                LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['photos']['without_date']:<7}" f"   {f'({output_perc_photos_without_date:>5.1f}% of total photos)'.ljust(28)}" f"{f'|  (diff: {diff_output_input_total_photos_without_date:>7})  |  ({perc_of_input_total_photos_without_date:>5.1f}% of input)'.rjust(40)} ")
+                LOGGER.info(f"    - Total Videos in Output folder         : {result['output_counters']['video_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_videos:>7})  |  ({perc_of_input_total_videos:>5.1f}% of input) ")
+                LOGGER.info(f"      - Correct Date                        : {result['output_counters']['videos']['with_date']:<7}" f"   {f'({output_perc_videos_with_date:>5.1f}% of total videos)'.ljust(28)}" f"{f'|  (diff: {diff_output_input_total_videos_with_date:>7})  |  ({perc_of_input_total_videos_with_date:>5.1f}% of input)'.rjust(40)} ")
+                LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['videos']['without_date']:<7}" f"   {f'({output_perc_videos_without_date:>5.1f}% of total videos)'.ljust(28)}" f"{f'|  (diff: {diff_output_input_total_videos_without_date:>7})  |  ({perc_of_input_total_videos_without_date:>5.1f}% of input)'.rjust(40)} ")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
                 LOGGER.info(f"")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
