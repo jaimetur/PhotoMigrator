@@ -156,24 +156,28 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 2: create_backup_if_needed
             # ----------------------------------------------------------------------------------------------------------------------
-            # Determine the input_folder deppending if the Takeout have been unzipped or not
-            input_folder = self.get_input_folder()
-            step_name = '🔍 [PRE-CHECKS]-[Takeout Clonning] : '
-            self.substep += 1
-            sub_step_start_time = datetime.now()
-            LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Clonning Takeout Folder: {input_folder}...")
-            # Call the clonning functuon
-            self.input_folder = clone_backup_if_needed (self.input_folder, step_name=step_name, log_level=log_level)
-            
-            sub_step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-            LOGGER.info(f"")
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
-            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-
-
+            if self.ARGS.get('google-keep-takeout-folder'):
+                # Determine the input_folder deppending if the Takeout have been unzipped or not
+                input_folder = self.get_input_folder()
+                step_name = '🔍 [PRE-CHECKS]-[Takeout Clonning] : '
+                self.substep += 1
+                sub_step_start_time = datetime.now()
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Clonning Takeout Folder: {input_folder}...")
+                # Call the clonning functuon
+                tmp_folder = clone_backup_if_needed (self.input_folder, step_name=step_name, log_level=log_level)
+                if tmp_folder != self.input_folder:
+                    ARGS['google-takeout'] = tmp_folder
+                    self.input_folder = tmp_folder
+                    LOGGER.info(f"{step_name}Takeout folder clonned succesfully as working folder: '{tmp_folder}' ")
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+    
+    
             # Sub-Step 2: Count initial files in Takeout Folder before to process with GPTH and modify any original file
             # ----------------------------------------------------------------------------------------------------------------------
             # Determine the input_folder deppending if the Takeout have been unzipped or not
