@@ -419,13 +419,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # Determine if manual copy/move is needed (for step 4)
                 manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
 
-                # if manual copy is detected, don't delete the input folder yet, will do it in next step
-                if not self.ARGS['google-keep-takeout-folder'] and not manual_copy_move_needed:
-                    removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
-                    if removed:
-                        LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
-                    else:
-                        LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
+#                # if manual copy is detected, don't delete the input folder yet, will do it in next step
+#                if not self.ARGS['google-keep-takeout-folder'] and not manual_copy_move_needed:
+#                    removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
+#                    if removed:
+#                        LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
+#                    else:
+#                        LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
                 LOGGER.info(f"")
