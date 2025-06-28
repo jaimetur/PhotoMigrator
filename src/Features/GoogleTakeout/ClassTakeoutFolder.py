@@ -174,7 +174,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 folder_name = basename(self.takeout_folder)
                 cloned_folder = os.path.join(parent_dir, f"{folder_name}_tmp_{TIMESTAMP}")
                 # Call the cloning function
-                tmp_folder = clone_backup_if_needed (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
+                # tmp_folder = clone_backup_if_needed (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
+                tmp_folder = clone_folder_fast (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
                 if tmp_folder != self.input_folder:
                     ARGS['google-takeout'] = tmp_folder
                     self.unzipped_folder = tmp_folder
