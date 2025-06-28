@@ -13,7 +13,7 @@ from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
-from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure, unpack_zips, clone_backup_if_needed
+from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure, unpack_zips, clone_folder, clone_folder_fast
 from Features.GoogleTakeout.GoogleTakeoutFunctions import fix_mp4_files, fix_truncations, sync_mp4_timestamps_with_images, force_remove_directory, copy_move_folder, organize_files_by_date, move_albums, count_valid_albums
 from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAlone.Duplicates import find_duplicates
@@ -174,7 +174,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 folder_name = basename(self.takeout_folder)
                 cloned_folder = os.path.join(parent_dir, f"{folder_name}_tmp_{TIMESTAMP}")
                 # Call the cloning function
-                # tmp_folder = clone_backup_if_needed (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
+                # tmp_folder = clone_folder (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
                 tmp_folder = clone_folder_fast (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
                 if tmp_folder != self.input_folder:
                     ARGS['google-takeout'] = tmp_folder

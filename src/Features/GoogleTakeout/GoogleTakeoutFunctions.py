@@ -908,7 +908,7 @@ def count_valid_albums(folder_path, excluded_folders=None, step_name="", log_lev
     return valid_albums
 
 
-def clone_backup_if_needed(input_folder, cloned_folder, step_name="", log_level=None):
+def clone_folder(input_folder, cloned_folder, step_name="", log_level=None):
     """
     Clones the given input folder into cloned_folder using the fastest available method.
     It prioritizes robocopy (Windows), rsync (Linux/macOS), and falls back to shutil.copytree.
