@@ -7,6 +7,10 @@ import shutil
 import stat
 import subprocess
 import zipfile
+import os
+import platform
+import shutil
+import subprocess
 from pathlib import Path
 
 from colorama import init
@@ -904,11 +908,6 @@ def count_valid_albums(folder_path, excluded_folders=None, step_name="", log_lev
     return valid_albums
 
 
-import os
-import platform
-import shutil
-import subprocess
-
 def clone_backup_if_needed(input_folder, cloned_folder, step_name="", log_level=None):
     """
     Clones the given input folder into cloned_folder using the fastest available method.
@@ -958,4 +957,65 @@ def clone_backup_if_needed(input_folder, cloned_folder, step_name="", log_level=
             return cloned_folder
         except Exception as e:
             LOGGER.warning(f"{step_name}❌ Failed to clone {input_folder}: {e}")
+            return input_folder
+            
+
+def clone_folder_fast(input_folder, cloned_folder, step_name="", log_level=None):
+    """
+    Clones input_folder into cloned_folder using the fastest method available:
+    - Tries CoW (cp --reflink=auto) on Linux/macOS.
+    - Uses robocopy on Windows.
+    - Uses rsync on Unix-like systems if reflink is not available.
+    - Falls back to shutil.copytree.
+
+    Returns:
+        str: Path to the cloned folder (or input_folder if all methods fail).
+    """
+    with set_log_level(LOGGER, log_level):
+        LOGGER.info(f"{step_name}Creating temporary working folder at: {cloned_folder}")
+
+        system = platform.system()
+
+        try:
+            # 1. Attempt cp --reflink (Linux/macOS with Btrfs, APFS, etc.)
+            if system in ("Linux", "Darwin"):
+                LOGGER.info(f"{step_name}Trying fast clone with cp --reflink=auto...")
+                subprocess.run([
+                    "cp", "-a", "--reflink=auto", input_folder, cloned_folder
+                ], check=True)
+                LOGGER.info(f"{step_name}✅ CoW clone succeeded with cp --reflink.")
+                return cloned_folder
+
+        except Exception as e:
+            LOGGER.warning(f"{step_name}⚠️ cp --reflink failed: {e}")
+
+        try:
+            if system == "Windows":
+                LOGGER.info(f"{step_name}Trying fast clone with robocopy...")
+                result = subprocess.run([
+                    "robocopy", input_folder, cloned_folder, "/MIR", "/R:0", "/W:0", "/NFL", "/NDL", "/NJH", "/NJS"
+                ], capture_output=True, text=True)
+                if result.returncode <= 7:
+                    LOGGER.info(f"{step_name}✅ Clone succeeded with robocopy.")
+                    return cloned_folder
+                else:
+                    raise Exception(f"robocopy error code {result.returncode}: {result.stderr}")
+
+            elif system in ("Linux", "Darwin"):
+                LOGGER.info(f"{step_name}Trying fast clone with rsync...")
+                subprocess.run([
+                    "rsync", "-a", "--info=progress2", input_folder + "/", cloned_folder
+                ], check=True)
+                LOGGER.info(f"{step_name}✅ Clone succeeded with rsync.")
+                return cloned_folder
+
+        except Exception as e:
+            LOGGER.warning(f"{step_name}⚠️ Fast method failed, falling back to copytree: {e}")
+
+        try:
+            shutil.copytree(input_folder, cloned_folder)
+            LOGGER.info(f"{step_name}✅ Clone succeeded with shutil.copytree.")
+            return cloned_folder
+        except Exception as e:
+            LOGGER.warning(f"{step_name}❌ All cloning methods failed: {e}")
             return input_folder
