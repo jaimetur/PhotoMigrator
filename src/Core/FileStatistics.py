@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from subprocess import run, DEVNULL
 from tempfile import TemporaryDirectory
+from dateutil import parser
 
 from PIL import ExifTags, Image
 
@@ -82,10 +83,16 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
             'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
         ]
         date_formats = [
-            "%Y:%m:%d %H:%M:%S",
-            "%Y-%m-%d %H:%M:%S",
-            "%Y:%m:%d",
-            "%Y-%m-%d"
+            "%Y:%m:%d %H:%M:%S",             # ya incluido
+            "%Y-%m-%d %H:%M:%S",             # ya incluido
+            "%Y:%m:%d",                      # ya incluido
+            "%Y-%m-%d",                      # ya incluido
+            "%Y:%m:%d %H:%M:%S%z",           # con zona horaria sin dos puntos (ej: +0100)
+            "%Y-%m-%d %H:%M:%S%z",           # igual pero con guiones
+            "%Y:%m:%d %H:%M:%S%z",           # duplicado intencional, para claridad
+            "%Y:%m:%d %H:%M:%S%z",           # para compatibilidad redundante
+            "%Y:%m:%d %H:%M:%S%z",           # repite si usas parser tolerante
+            "%Y:%m:%d %H:%M:%S%z",           # mantén si haces fallback manual
         ]
         supported_extensions = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
         reference_timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
@@ -145,12 +152,10 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     for tag in candidate_date_tags:
                         raw = entry.get(tag)
                         if isinstance(raw, str):
-                            for fmt in date_formats:
-                                try:
-                                    found.append(datetime.strptime(raw.strip(), fmt))
-                                    break
-                                except ValueError:
-                                    continue
+                            try:
+                                found.append(parser.parse(raw.strip()))
+                            except (ValueError, OverflowError):
+                                continue
                     metadata_map[norm] = min(found) if found else None
 
             # If exiftool is not found, fallback to PIL.Image
