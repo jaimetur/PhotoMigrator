@@ -679,13 +679,48 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                                 shutil.move(src_file, dst_file)
                     LOGGER.info(f"{step_name}Folder moved successfully from {src} to {dst}")
             else:
-                # Copy the folder contents
+                system = platform.system()
+                try:
+                    if system in ("Linux", "Darwin"):
+                        LOGGER.info(f"{step_name}Trying fast copy with cp --reflink=auto...")
+                        subprocess.run([
+                            "cp", "-a", "--reflink=auto", os.path.join(src, "."), dst
+                        ], check=True)
+                        LOGGER.info(f"{step_name}Folder copied successfully from {src} to {dst} using cp --reflink.")
+                        return True
+                except Exception as e:
+                    LOGGER.warning(f"{step_name}cp --reflink failed: {e}")
+
+                try:
+                    if system == "Windows":
+                        LOGGER.info(f"{step_name}Trying fast copy with robocopy...")
+                        result = subprocess.run([
+                            "robocopy", src, dst, "/MIR", "/R:0", "/W:0", "/NFL", "/NDL", "/NJH", "/NJS"
+                        ], capture_output=True, text=True)
+                        if result.returncode <= 7:
+                            LOGGER.info(f"{step_name}Folder copied successfully from {src} to {dst} using robocopy.")
+                            return True
+                        else:
+                            raise Exception(f"robocopy error code {result.returncode}: {result.stderr}")
+                    elif system in ("Linux", "Darwin"):
+                        LOGGER.info(f"{step_name}Trying fast copy with rsync...")
+                        subprocess.run([
+                            "rsync", "-a", "--info=progress2", src + "/", dst
+                        ], check=True)
+                        LOGGER.info(f"{step_name}Folder copied successfully from {src} to {dst} using rsync.")
+                        return True
+                except Exception as e:
+                    LOGGER.warning(f"{step_name}Fast copy methods failed: {e}, falling back to copytree.")
+
+                # Copy the folder contents with fallback
                 shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_function)
-                LOGGER.info(f"{step_name}Folder copied successfully from {src} to {dst}")
+                LOGGER.info(f"{step_name}Folder copied successfully from {src} to {dst} using shutil.copytree.")
                 return True
+
         except Exception as e:
             LOGGER.error(f"{step_name}Error {action} folder: {e}")
             return False
+
 
 
 def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], step_name="", log_level=None):
@@ -790,9 +825,17 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
         exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
         subfolders = os.listdir(input_folder)
         subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == FOLDERNAME_NO_ALBUMS]
-        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
+
+        # for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Moving Albums in '{input_folder}' to Subfolder '{albums_subfolder}'", unit=" albums"):
+        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Moving Albums in '{os.path.basename(input_folder)}' to Subfolder '{os.path.basename(albums_subfolder)}'", unit=" albums"):
             folder_path = os.path.join(input_folder, subfolder)
-            if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
+            # if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
+            if (
+                    os.path.isdir(folder_path)
+                    and subfolder != albums_subfolder
+                    and os.path.abspath(folder_path) != os.path.abspath(input_folder)
+                    and os.path.abspath(folder_path) not in exclude_subfolder_paths
+            ):
                 LOGGER.debug(f"{step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
                 os.makedirs(albums_path, exist_ok=True)
                 safe_move(folder_path, albums_path)

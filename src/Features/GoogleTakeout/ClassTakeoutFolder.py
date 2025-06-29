@@ -419,14 +419,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
                 # Determine if manual copy/move is needed (for step 4)
                 manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
-
-#                # if manual copy is detected, don't delete the input folder yet, will do it in next step
-#                if not self.ARGS['google-keep-takeout-folder'] and not manual_copy_move_needed:
-#                    removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
-#                    if removed:
-#                        LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
-#                    else:
-#                        LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
                 LOGGER.info(f"")
@@ -453,19 +445,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.info(f"{step_name}Moving files from Takeout folder to Output folder...")
                 else:
                     LOGGER.info(f"{step_name}Copying files from Takeout folder to Output folder...")
-
                 copy_move_folder(input_folder, output_folder, ignore_patterns=['*.json', '*.j'], move=not self.ARGS['google-keep-takeout-folder'], step_name=step_name, log_level=LOG_LEVEL)
-                if not self.ARGS['google-keep-takeout-folder']:
-                    removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
-                    if removed:
-                        LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
-                    else:
-                        LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
 
             # Step 5: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------
@@ -484,6 +470,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
 
             # Step 6: Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
@@ -524,6 +511,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
+
             # Step 7: Move albums
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-move-albums']:
@@ -535,7 +523,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{self.step}. MOVING ALBUMS FOLDER...")
                 LOGGER.info(f"====================================")
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Moving All your albums into f'{FOLDERNAME_ALBUMS}' folder for a better organization...")
+                LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
                 move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 step_end_time = datetime.now()
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
@@ -543,6 +531,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
 
             # Step 8: Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
@@ -589,6 +578,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
+
             # Step 9: Fix Broken Symbolic Links
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-no-symbolic-albums']:
@@ -608,6 +598,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
 
             # Step 10: Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
@@ -631,6 +622,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
+
             # Step 11: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
@@ -649,6 +641,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
+
             # Step 12: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Count Files & Albums] : '
@@ -661,11 +654,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
 
             # 1. First count all Files in output Folder
-
-            # New function to count all file types and extract also date info
-            # output_counters = count_files_and_extract_dates(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
-
-            # New function to count all file types and extract also date info
             output_counters, dates = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
