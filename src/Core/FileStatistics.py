@@ -224,8 +224,8 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     break
 
             total_files = len(all_file_paths)
-            LOGGER.info(f"{step_name}{total_files} files selected")
-
+            total_non_json = sum(1 for f in all_file_paths if Path(f).suffix.lower() != ".json")
+            LOGGER.info(f"{step_name}{total_files} files selected ({total_non_json} excluding .json)")
             if total_files == 0:
                 return init_count_files_counters(), {}
 
