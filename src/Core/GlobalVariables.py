@@ -31,7 +31,7 @@ FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  
 FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_FOLDERS
 FOLDERNAME_EXIFTOOL_OUTPUT      = "Exiftool_outputs"                            # To be Changed in set_FOLDERS
 FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_FOLDERS
-LOG_FOLDER_FILENAME             = "PhotoMigrator.log"                           # To be Changed in set_LOGGER
+LOG_FILENAME                    = "PhotoMigrator.log"                           # To be Changed in set_LOGGER
 LOG_LEVEL                       = logging.INFO                                  # To be Changed in set_LOGGER
 
 VERBOSE_LEVEL_NUM               = 5

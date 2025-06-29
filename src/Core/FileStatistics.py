@@ -14,7 +14,7 @@ from dateutil import parser
 
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT, FOLDERNAME_EXIFTOOL
+from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT, FOLDERNAME_EXIFTOOL, LOG_FILENAME
 from Features.GoogleTakeout.MetadataFixers import get_exif_tool_path
 
 
@@ -110,7 +110,8 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
             # If exiftool is found, extract date with exiftool
             if Path(exif_tool_path).exists():
                 # Path to error_log in current directory
-                error_log_path = get_unique_path(os.path.abspath(os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool_log.log")))
+                # error_log_path = get_unique_path(os.path.abspath(os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool.log")))
+                error_log_path = LOG_FILENAME
 
                 # Prepare exiftool command
                 command = [

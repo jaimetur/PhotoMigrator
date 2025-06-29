@@ -150,7 +150,7 @@ def main():
     GV.LOGGER.info(f"  - Folder for Exiftool Outputs   : {GV.FOLDERNAME_EXIFTOOL_OUTPUT}")
     if not GV.ARGS['no-log-file']:
         GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
-        GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FOLDER_FILENAME+'.log'}")
+        GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FILENAME + '.log'}")
         GV.LOGGER.info(f"  - Log Level                     : {logging.getLevelName(GV.LOG_LEVEL)} ({str(GV.LOG_LEVEL).upper()})")
     GV.LOGGER.info(f"")
     GV.LOGGER.info(f"  - SubFolder for Albums          : <OUTPUT_FOLDER>/{GV.FOLDERNAME_ALBUMS}")
