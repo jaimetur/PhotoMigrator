@@ -18,23 +18,54 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ## 🌟 Main Features
-### 🚀 Automatic Migration Feature
-The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.
-- [**Automatic Migration Feature**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
+### 🚀 Automatic Migration
+The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
+
+[**Automatic Migration Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 
 Apart from the 'Automatic Migration Feature', you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Included per each Supported Photo Cloud Service are:
-- [**Google Photos Takeout**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
-  - Unpack your Takeout Zip files.
+
+### 🚀 Google Photos Takeout Metadata Fixing
+Other important feature included in the tool is the Google Photos Takeout Metadata Fixing. 
+
+This feature have been designed to automatically analyze your Google Photo Takeout, extract all the information from the sidecar JSON files (or guess some missing information using heuristics algorithms) and embeds all the extracted info into each asset file using EXIF tags.  
+
+In this way your Media Library will be ready to be migrated to any other Cloud Photo services without lossing any important info such as, Albums info, Original date, GPS location, Camera info, etc...
+
+But this feature also helps you to organize and clean your Media Library removing duplicates, creating Year/Month folder structure, creating symbolic links for Albums assets, Auto renaming Albums to clean their names and include a prefix with the date of its assets, etc...
+
+The whole process is done in an automatic way and is divided in different steps (some of them are optionals).
+
+Below you can see the different steps of this feature:
+
+#### 1. Pre Checks steps
+  - Unpack your Takeout Zip files if needed. 
+  - Create a backup of your original Takeout if needed. 
+  - Calculate statistics of your original Takeout. 
+#### 2. Pre Process steps
   - Merge Live picture with separate files (.HEIC and .MP4).
-  - Process .json files to fix metadata (including creation date and time, GPS data, etc...) of all your assets.
+  - Fix  Truncations on sidecar JSON names and media files to complete truncated suffixes or extensions when the filename length is high. 
+#### 3. Process steps
+  - Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
   - Separate your assets per Albums (if belong to any album).
-  - Organize your assets in a year/month structure for a better organization.
   - Create Symbolic Links for assets within any Album (to save disk space).
+#### 4. Post Process steps
+  - Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
+  - Organize your assets in a year/month structure for a better organization.
+  - Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. 
+  - Fix broken Symbolic Links. 
   - Detect and remove duplicates.
   - Auto rename Albums folders to homogenize all names based on content dates. 
+  - Remove empty folders. 
+  - Clean Final Media Library. 
+  - Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics. 
 
-- [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [**Immich Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
+
+[**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
+
+### 🚀 Synology Photos & Immich Photos Management
+In the table below you can find the current supported features for each Photo Cloud Service:
 
   | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                |
   |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
@@ -51,6 +82,10 @@ Currently, the Features Included per each Supported Photo Cloud Service are:
   | Merge Duplicates Albums         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         |
   | Remove Orphans Assets           | No Available                                                                                                                              | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           |
 
+[**Synology Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)  
+[**Immich Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)
+
+### 🚀 Apple Photos & Google Photos Management
 - **Apple Photos**  
   (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
@@ -58,7 +93,7 @@ Currently, the Features Included per each Supported Photo Cloud Service are:
   (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
 
-- [**Other Useful Features**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
+### 🚀 Other Standalone Features
 Apart from Manage the different Photo Cloud Services and the 'Automatic Migration Mode', the Tool also contains Other Useful Features such as:
   - **Metadata fixing** of any Photo Library in your local drive (not necessarily needs to be a Google Takeout folder)
   - **Library Organization** features:
@@ -69,6 +104,7 @@ Apart from Manage the different Photo Cloud Services and the 'Automatic Migratio
     - Fix Symbolic Links Broken
   - **Homogenize Albums folders name based on content**
 
+[**Other Standalone Features Documebtation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
 
 ## 💾 Download
 Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
