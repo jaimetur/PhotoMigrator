@@ -24,6 +24,7 @@ The main use case is the **Automatic Migration Feature** to migrate all your pho
 
 Apart from the 'Automatic Migration Feature', you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Included per each Supported Photo Cloud Service are:
+
 ### 🚀 Google Photos Takeout Metadata Fixing
 Other important feature included in the tool is the Google Photos Takeout Metadata Fixing. 
 
@@ -37,17 +38,17 @@ The whole process is done in an automatic way and is divided in different steps 
 
 Below you can see the different steps of this feature:
 
-1. Pre Checks
+#### 1. Pre Checks steps
   - Unpack your Takeout Zip files if needed. 
   - Create a backup of your original Takeout if needed. 
   - Calculate statistics of your original Takeout. 
-2. Pre Process
+#### 2. Pre Process steps
   - Merge Live picture with separate files (.HEIC and .MP4).
   - Fix sidecar JSON names and media files to comolete truncated suffixes or extensions when the filename length is high. 
-3. Process
+#### 3. Process steps
   - Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
   - Separate your assets per Albums (if belong to any album).
-4. Post Process
+#### 4. Post Process steps
   - Organize your assets in a year/month structure for a better organization.
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
@@ -55,7 +56,8 @@ Below you can see the different steps of this feature:
 
 - [**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
-- [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [**Immich Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
+### 🚀 Synology Photos & Immich Photos Management
+#### [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [**Immich Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
 
   | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                |
   |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
