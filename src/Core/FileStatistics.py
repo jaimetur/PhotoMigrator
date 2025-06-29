@@ -112,6 +112,9 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                 # Path to error_log in current directory
                 # error_log_path = get_unique_path(os.path.abspath(os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool.log")))
                 error_log_path = LOG_FILENAME
+                print(error_log_path)
+                with open(error_log_path, "a", encoding="utf-8") as f:
+                    f.write(f"{step_name}\n")
 
                 # Prepare exiftool command
                 command = [
