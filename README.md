@@ -19,22 +19,41 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 
 ## 🌟 Main Features
 ### 🚀 Automatic Migration
-- [**Automatic Migration Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.
-
+- [**Automatic Migration Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 
 Apart from the 'Automatic Migration Feature', you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Included per each Supported Photo Cloud Service are:
 ### 🚀 Google Photos Takeout Metadata Fixing
-- [**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
-  - Unpack your Takeout Zip files.
+Other important feature included in the tool is the Google Photos Takeout Metadata Fixing. 
+
+This feature have been designed to automatically analyze your Google Photo Takeout, extract all the information from the sidecar JSON files (or guess some missing information using heuristics algorithms) and embeds all the extracted info into each asset file using EXIF tags.  
+
+In this way your Media Library will be ready to be migrated to any other Cloud Photo services without lossing any important info such as, Albums info, Original date, GPS location, Camera info, etc...
+
+But this feature also helps you to organize and clean your Media Library removing duplicates, creating Year/Month folder structure, creating symbolic links for Albums assets, Auto renaming Albums to clean their names and include a prefix with the date of its assets, etc...
+
+The whole process is done in an automatic way and is divided in different steps (some of them are optionals).
+
+Below you can see the different steps of this feature:
+
+1. Pre Checks
+  - Unpack your Takeout Zip files if needed. 
+  - Create a backup of your original Takeout if needed. 
+  - Calculate statistics of your original Takeout. 
+2. Pre Process
   - Merge Live picture with separate files (.HEIC and .MP4).
-  - Process .json files to fix metadata (including creation date and time, GPS data, etc...) of all your assets.
+  - Fix sidecar JSON names and media files to comolete truncated suffixes or extensions when the filename length is high. 
+3. Process
+  - Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
   - Separate your assets per Albums (if belong to any album).
+4. Post Process
   - Organize your assets in a year/month structure for a better organization.
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
   - Auto rename Albums folders to homogenize all names based on content dates. 
+
+- [**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
 - [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [**Immich Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
 
