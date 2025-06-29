@@ -74,14 +74,18 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
     # Aux: process a list of files, extract EXIF-date and count types
     # ------------------------------------------------------------------
     def process_block(file_paths, block_index, temporary_directory, extract_dates, step_name):
+        def normalize_datetime_utc(dt):
+            if dt.tzinfo is None:
+                return dt.replace(tzinfo=timezone.utc)  # naive → UTC
+            else:
+                return dt.astimezone(timezone.utc)      # aware → UTC
+
         block_index += 1
         candidate_date_tags = [
             'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
             'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
         ]
-        supported_extensions = set(PHOTO_EXT + VIDEO_EXT)
-        reference_timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
-
+        reference_timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
         counters = init_count_files_counters()
         dates_by_path = {}
 
@@ -102,6 +106,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
         if extract_dates:
             # Get exiftool complete path
             exif_tool_path = get_exif_tool_path(FOLDERNAME_EXIFTOOL)
+            # If exiftool is found, extract date with exiftool
             if Path(exif_tool_path).exists():
                 # Prepare exiftool command
                 command = [
@@ -129,14 +134,13 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                         raw = entry.get(tag)
                         if isinstance(raw, str):
                             try:
-                                found.append(parser.parse(raw.strip()))
+                                # Convert everything to offset-aware UTC
+                                dt = normalize_datetime_utc(parser.parse(raw.strip()))
+                                found.append(dt)
                             except (ValueError, OverflowError):
                                 continue
-
-                    # Normaliza todos a timezone.utc (offset-aware)
-                    normalized = [dt.astimezone(timezone.utc) if dt.tzinfo else dt.replace(tzinfo=timezone.utc) for dt in found]
-                    metadata_map[norm] = min(normalized) if normalized else None
-
+                    metadata_map[norm] = min(found) if found else None
+            # If exiftool is not found, extract date with PIL
             else:
                 LOGGER.warning(f"{step_name}📅 [Block {block_index}] exiftool not found at {exif_tool_path}, falling back to PIL")
                 for p in file_paths:
@@ -149,7 +153,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                             tag_id = next((tid for tid, name in ExifTags.TAGS.items() if name == tag_name), None)
                             raw = exif_data.get(tag_id)
                             if isinstance(raw, str):
-                                dt_found = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S")
+                                dt_found = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=timezone.utc)
                                 break
                         metadata_map[norm] = dt_found
                     except Exception as e:
@@ -169,8 +173,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
             if not media_category:
                 continue
-
-            counters[media_category]['total'] += 1
 
             file_date = metadata_map.get(norm_filepath) if extract_dates else None
             dates_by_path[norm_filepath] = file_date
