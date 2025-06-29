@@ -54,10 +54,9 @@ Below you can see the different steps of this feature:
   - Detect and remove duplicates.
   - Auto rename Albums folders to homogenize all names based on content dates. 
 
-- [**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
+[**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
 ### 🚀 Synology Photos & Immich Photos Management
-#### [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [**Immich Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
 
   | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                |
   |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
@@ -74,6 +73,9 @@ Below you can see the different steps of this feature:
   | Merge Duplicates Albums         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         |
   | Remove Orphans Assets           | No Available                                                                                                                              | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           |
 
+[**Synology Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [**Immich Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
+
+### 🚀 Apple Photos & Google Photos Management
 - **Apple Photos**  
   (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
@@ -81,7 +83,7 @@ Below you can see the different steps of this feature:
   (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
 
-- [**Other Useful Features**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
+### 🚀 Other Standalone Features
 Apart from Manage the different Photo Cloud Services and the 'Automatic Migration Mode', the Tool also contains Other Useful Features such as:
   - **Metadata fixing** of any Photo Library in your local drive (not necessarily needs to be a Google Takeout folder)
   - **Library Organization** features:
@@ -92,6 +94,7 @@ Apart from Manage the different Photo Cloud Services and the 'Automatic Migratio
     - Fix Symbolic Links Broken
   - **Homogenize Albums folders name based on content**
 
+[**Other Standalone Features Documebtation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
 
 ## 💾 Download
 Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
