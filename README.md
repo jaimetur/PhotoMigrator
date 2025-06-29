@@ -104,7 +104,7 @@ Apart from Manage the different Photo Cloud Services and the 'Automatic Migratio
     - Fix Symbolic Links Broken
   - **Homogenize Albums folders name based on content**
 
-[**Other Standalone Features Documebtation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
+[**Other Standalone Features Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
 
 ## 💾 Download
 Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
