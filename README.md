@@ -49,11 +49,18 @@ Below you can see the different steps of this feature:
 #### 3. Process steps
   - Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
   - Separate your assets per Albums (if belong to any album).
-#### 4. Post Process steps
-  - Organize your assets in a year/month structure for a better organization.
   - Create Symbolic Links for assets within any Album (to save disk space).
+#### 4. Post Process steps
+  - Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
+  - Organize your assets in a year/month structure for a better organization.
+  - Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. 
+  - Fix broken Symbolic Links. 
   - Detect and remove duplicates.
   - Auto rename Albums folders to homogenize all names based on content dates. 
+  - Remove empty folders. 
+  - Clean Final Media Library. 
+  - Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics. 
+
 
 [**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
