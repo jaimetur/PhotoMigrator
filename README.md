@@ -45,7 +45,7 @@ Below you can see the different steps of this feature:
   - Calculate statistics of your original Takeout. 
 #### 2. Pre Process steps
   - Merge Live picture with separate files (.HEIC and .MP4).
-  - Fix sidecar JSON names and media files to comolete truncated suffixes or extensions when the filename length is high. 
+  - Fix  Truncations on sidecar JSON names and media files to complete truncated suffixes or extensions when the filename length is high. 
 #### 3. Process steps
   - Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
   - Separate your assets per Albums (if belong to any album).
