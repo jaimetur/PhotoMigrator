@@ -20,7 +20,7 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 ## 🌟 Main Features
 ### 🚀 Automatic Migration
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.
-- [**Automatic Migration Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
+[**Automatic Migration Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 
 Apart from the 'Automatic Migration Feature', you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Included per each Supported Photo Cloud Service are:
