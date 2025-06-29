@@ -57,6 +57,7 @@ Below you can see the different steps of this feature:
 [**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
 ### 🚀 Synology Photos & Immich Photos Management
+In the table below you can find the current supported features for each Photo Cloud Service:
 
   | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                |
   |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
@@ -73,7 +74,8 @@ Below you can see the different steps of this feature:
   | Merge Duplicates Albums         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         |
   | Remove Orphans Assets           | No Available                                                                                                                              | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           |
 
-[**Synology Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [**Immich Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
+[**Synology Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)
+[**Immich Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)
 
 ### 🚀 Apple Photos & Google Photos Management
 - **Apple Photos**  
