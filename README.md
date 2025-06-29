@@ -18,13 +18,15 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ## 🌟 Main Features
-### 🚀 Automatic Migration Feature
+### 🚀 Automatic Migration
+- [**Automatic Migration Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.
-- [**Automatic Migration Feature**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
+
 
 Apart from the 'Automatic Migration Feature', you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Included per each Supported Photo Cloud Service are:
-- [**Google Photos Takeout**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
+### 🚀 Google Photos Takeout Metadata Fixing
+- [**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Merge Live picture with separate files (.HEIC and .MP4).
   - Process .json files to fix metadata (including creation date and time, GPS data, etc...) of all your assets.
