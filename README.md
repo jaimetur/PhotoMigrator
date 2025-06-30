@@ -61,7 +61,7 @@ Below you can see the different steps of this feature:
 
 [**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
-## 🖼️ 3. Synology, Immich, Apple, Google & NextCloud Management
+## 🖼️ 3. Synology / Immich / Apple / Google / NextCloud Management
 Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Supported per each Photo Cloud Service are:
 
