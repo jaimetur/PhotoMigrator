@@ -61,7 +61,7 @@ Below you can see the different steps of this feature:
   - Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics. 
 
 
-### 📷 Synology Photos & Immich Photos, Apple Photos, Google Photos & NextCloud Memories Management
+### 🖼️ Synology, Immich, Apple, Google & NextCloud Management
 In the table below you can find the current supported features for each Photo Cloud Service:
 
   | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                | Apple             | Google            | Nextcloud         |
