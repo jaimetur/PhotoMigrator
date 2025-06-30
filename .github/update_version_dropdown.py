@@ -12,6 +12,7 @@ MAX_RELEASES = 50
 YAML_FILES = [
     Path(".github/ISSUE_TEMPLATE/bug_form.yml"),
     Path(".github/ISSUE_TEMPLATE/feature_request.yml"),
+    Path(".github/ISSUE_TEMPLATE/improvement_request.yml"),
 ]
 
 def get_releases(repo):
