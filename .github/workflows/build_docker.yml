@@ -218,7 +218,7 @@ jobs:
           name: v${{ env.SCRIPT_VERSION }}
           draft: false
           generate_release_notes: true
-          body_path: CURRENT-RELEASE.md
+          body_path: RELEASE-NOTES.md
           files: |
             PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
         env:
