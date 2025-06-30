@@ -2,26 +2,6 @@
 [Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for the following releases
 [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) for the past releases
 
----
-
-## Release: v3.4.0  
-- ### Release Date: 2025-06-30
-  - Alpha version    : 2025-06-18
-  - Beta version     : 2025-06-23
-  - Release Candidate: 2025-06-27
-  - Official Release : 2025-06-30
-
-- ### Main Changes:
-  - #### 🚨 Breaking Changes:
-    
-  - #### 🌟 New Features:
-
-  - #### 🚀 Enhancements:
-
-  - #### 🐛 Bug fixes:
-    - [ ] Investigate Performance on Automatic Migration when target=`synology`.
-
-  - #### 📚 Documentation:
     
 ---
 
