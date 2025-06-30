@@ -37,7 +37,9 @@ jobs:
           if git diff --quiet; then
             echo "No changes to commit."
           else
-            git add .github/ISSUE_TEMPLATE/bug_report.yml .github/ISSUE_TEMPLATE/improvement_request.yml
+            git add .github/ISSUE_TEMPLATE/bug_form.yml
+            git add .github/ISSUE_TEMPLATE/improvement_request.yml
             git commit -m "🔁 Update version dropdowns after new release"
             git push
           fi
+      
