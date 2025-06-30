@@ -15,6 +15,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main  # o la rama principal que uses
+          persist-credentials: true
+          fetch-depth: 0  # necesario para permitir commits y push
 
       - name: Set up Python
         uses: actions/setup-python@v5
