@@ -61,7 +61,7 @@ Below you can see the different steps of this feature:
   - Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics. 
 
 
-### 📷 Synology Photos & Immich Photos, Apple Photos, Google Photos & NextCloud Memories Management
+### 🖼️ Synology, Immich, Apple, Google & NextCloud Management
 In the table below you can find the current supported features for each Photo Cloud Service:
 
   | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                | Apple             | Google            | Nextcloud         |
@@ -77,7 +77,7 @@ In the table below you can find the current supported features for each Photo Cl
   | Remove Empty Albums             | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-empty-albums-from-synology-photos)             | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-empty-albums-from-immich-photos)             | Not supported yet | Not supported yet | Not supported yet |
   | Remove Duplicates Albums        | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-duplicates-albums-from-synology-photos)        | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-duplicates-albums-from-immich-photos)        | Not supported yet | Not supported yet | Not supported yet |
   | Merge Duplicates Albums         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | Not supported yet | Not supported yet | Not supported yet |
-  | Remove Orphans Assets           | No Available                                                                                                                              | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported yet | Not supported yet | Not supported yet |
+  | Remove Orphans Assets           | Not supported yet                                                                                                                         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported yet | Not supported yet | Not supported yet |
 
 [**Synology Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)   
 
