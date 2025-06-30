@@ -18,20 +18,19 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ## 🌟 Main Features
-### 🚀 Automatic Migration
+### 🚀 Automatic Migration [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
-[**Automatic Migration Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 
 Apart from the 'Automatic Migration Feature', you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Included per each Supported Photo Cloud Service are:
 
-### 🚀 Google Photos Takeout Metadata Fixing
-Other important feature included in the tool is the Google Photos Takeout Metadata Fixing. 
+### 🛠️ Google Photos Takeout  Fixing [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md))
+Other important feature included in the tool is the Google Photos Takeout Fixing. 
 
 This feature have been designed to automatically analyze your Google Photo Takeout, extract all the information from the sidecar JSON files (or guess some missing information using heuristics algorithms) and embeds all the extracted info into each asset file using EXIF tags.  
 
-In this way your Media Library will be ready to be migrated to any other Cloud Photo services without lossing any important info such as, Albums info, Original date, GPS location, Camera info, etc...
+In this way your Media Library will be ready to be migrated to any other Cloud Photo services without losing any important info such as, Albums info, Original date, GPS location, Camera info, etc...
 
 But this feature also helps you to organize and clean your Media Library removing duplicates, creating Year/Month folder structure, creating symbolic links for Albums assets, Auto renaming Albums to clean their names and include a prefix with the date of its assets, etc...
 
@@ -62,38 +61,40 @@ Below you can see the different steps of this feature:
   - Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics. 
 
 
-[**Google Photos Takeout Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
-
-### 🚀 Synology Photos & Immich Photos Management
+### 📷 Synology Photos & Immich Photos, Apple Photos, Google Photos & NextCloud Memories Management
 In the table below you can find the current supported features for each Photo Cloud Service:
 
-  | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                |
-  |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-  | Upload Album(s) (from folder)   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#upload-albums-from-local-folder-into-synology-photos) | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#upload-albums-from-local-folder-into-immich-photos) |
-  | Download Album(s) (into folder) | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#download-albums-from-synology-photos)                 | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#download-albums-from-immich-photos)                 |
-  | Upload ALL (from folder)        | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#upload-all-from-local-folder-into-synology-photos)    | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#upload-all-from-local-folder-into-immich-photos)    |
-  | Download ALL (into folder)      | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#download-all-from-synology-photos)                    | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#download-all-from-immich-photos)                    |
-  | Remove ALL Assets               | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-all-assets-from-synology-photos)               | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-all-assets-from-immich-photos)               |
-  | Remove ALL Albums               | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-all-albums-from-synology-photos)               | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-all-albums-from-immich-photos)               |
-  | Remove Albums by Name Pattern   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)   |
-  | Rename Albums by Name Pattern   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)   |
-  | Remove Empty Albums             | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-empty-albums-from-synology-photos)             | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-empty-albums-from-immich-photos)             |
-  | Remove Duplicates Albums        | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-duplicates-albums-from-synology-photos)        | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-duplicates-albums-from-immich-photos)        |
-  | Merge Duplicates Albums         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         |
-  | Remove Orphans Assets           | No Available                                                                                                                              | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           |
+  | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                | Apple             | Google            | Nextcloud         |
+  |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-------------------|-------------------|-------------------|
+  | Upload Album(s) (from folder)   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#upload-albums-from-local-folder-into-synology-photos) | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#upload-albums-from-local-folder-into-immich-photos) | Not supported yet | Not supported yet | Not supported yet |
+  | Download Album(s) (into folder) | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#download-albums-from-synology-photos)                 | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#download-albums-from-immich-photos)                 | Not supported yet | Not supported yet | Not supported yet |
+  | Upload ALL (from folder)        | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#upload-all-from-local-folder-into-synology-photos)    | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#upload-all-from-local-folder-into-immich-photos)    | Not supported yet | Not supported yet | Not supported yet |
+  | Download ALL (into folder)      | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#download-all-from-synology-photos)                    | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#download-all-from-immich-photos)                    | Not supported yet | Not supported yet | Not supported yet |
+  | Remove ALL Assets               | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-all-assets-from-synology-photos)               | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-all-assets-from-immich-photos)               | Not supported yet | Not supported yet | Not supported yet |
+  | Remove ALL Albums               | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-all-albums-from-synology-photos)               | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-all-albums-from-immich-photos)               | Not supported yet | Not supported yet | Not supported yet |
+  | Remove Albums by Name Pattern   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)   | Not supported yet | Not supported yet | Not supported yet |
+  | Rename Albums by Name Pattern   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)   | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)   | Not supported yet | Not supported yet | Not supported yet |
+  | Remove Empty Albums             | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-empty-albums-from-synology-photos)             | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-empty-albums-from-immich-photos)             | Not supported yet | Not supported yet | Not supported yet |
+  | Remove Duplicates Albums        | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-duplicates-albums-from-synology-photos)        | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-duplicates-albums-from-immich-photos)        | Not supported yet | Not supported yet | Not supported yet |
+  | Merge Duplicates Albums         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | Not supported yet | Not supported yet | Not supported yet |
+  | Remove Orphans Assets           | No Available                                                                                                                              | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported yet | Not supported yet | Not supported yet |
 
-[**Synology Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)  
+[**Synology Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)   
+
 [**Immich Photos Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)
 
-### 🚀 Apple Photos & Google Photos Management
-- **Apple Photos**  
-  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+> [NOTE!]
+>- **Apple Photos**  
+>  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+>
+>- **Google Photos**  
+>  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+>
+>- **NextCloud Memories**  
+>  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
-- **Google Photos**  
-  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
-
-### 🚀 Other Standalone Features
+### 🧩 Other Standalone Features
 Apart from Manage the different Photo Cloud Services and the 'Automatic Migration Mode', the Tool also contains Other Useful Features such as:
   - **Metadata fixing** of any Photo Library in your local drive (not necessarily needs to be a Google Takeout folder)
   - **Library Organization** features:
