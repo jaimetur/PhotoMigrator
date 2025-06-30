@@ -25,7 +25,7 @@ The main use case is the **Automatic Migration Feature** to migrate all your pho
 Apart from the 'Automatic Migration Feature', you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Included per each Supported Photo Cloud Service are:
 
-### 🛠️ Google Photos Takeout  Fixing [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md))
+### 🛠️ Google Photos Takeout  Fixing [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 Other important feature included in the tool is the Google Photos Takeout Fixing. 
 
 This feature have been designed to automatically analyze your Google Photo Takeout, extract all the information from the sidecar JSON files (or guess some missing information using heuristics algorithms) and embeds all the extracted info into each asset file using EXIF tags.  
