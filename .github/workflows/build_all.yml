@@ -407,13 +407,13 @@ jobs:
           name: ${{ env.ARCHIVE_NAME }}
           path: ${{ env.ARCHIVE_PATH }}
 
-      - name: ⬆️ Upload CURRENT-RELEASE.md as artifact
+      - name: ⬆️ Upload RELEASE-NOTES.md as artifact
         uses: actions/upload-artifact@v4
         if: always()
         continue-on-error: true
         with:
-          name: CURRENT-RELEASE.md
-          path: CURRENT-RELEASE.md
+          name: RELEASE-NOTES.md
+          path: RELEASE-NOTES.md
           overwrite: true
 
       - name: 🧹 Cleanup
@@ -547,17 +547,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
-      - name: 📥 Download Artifacts (CURRENT-RELEASE.md, Binaries and Docker Zips)
+      - name: 📥 Download Artifacts (RELEASE-NOTES.md, Binaries and Docker Zips)
         uses: actions/download-artifact@v4
         with:
           pattern: PhotoMigrator*.zip
           path: ./release_files
           merge-multiple: true
 
-      - name: 📝 Download CURRENT-RELEASE.md
+      - name: 📝 Download RELEASE-NOTES.md
         uses: actions/download-artifact@v4
         with:
-          name: CURRENT-RELEASE.md
+          name: RELEASE-NOTES.md
           path: .
 
       # Confirmar contenido descargado
@@ -579,7 +579,7 @@ jobs:
           prerelease: false
           make_latest: true
           generate_release_notes: true
-          body_path: CURRENT-RELEASE.md
+          body_path: RELEASE-NOTES.md
           files: |
             ./release_files/*
         env:
@@ -597,7 +597,7 @@ jobs:
           draft: false
           prerelease: true
           generate_release_notes: true
-          body_path: CURRENT-RELEASE.md
+          body_path: RELEASE-NOTES.md
           files: |
             ./release_files/*
         env:

@@ -23,7 +23,7 @@ Logs/
 src/Logs/
 
 # Temporary files created during build process
-CURRENT-RELEASE.md
+RELEASE-NOTES.md
 build_info.txt
 
 # Byte-compiled / optimized / DLL files
