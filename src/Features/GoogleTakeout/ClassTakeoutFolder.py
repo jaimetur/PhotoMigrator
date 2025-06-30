@@ -715,9 +715,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # PRINT RESULTS
             # ----------------------------------------------------------------------------------------------------------------------
             result = self.result
-            if LOG_LEVEL <= logging.DEBUG:
-                LOGGER.debug (f"Process Output:")
-                print_dict_pretty(result, log_level=LOG_LEVEL)
+            if LOG_LEVEL == logging.VERBOSE:
+                LOGGER.verbose (f"Process Output:")
+                print_dict_pretty(result, log_level=logging.VERBOSE)
 
             # Extract percentages of totals
             output_perc_photos_with_date = result['output_counters']['photos']['pct_with_date']
@@ -781,7 +781,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"")
                 LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
-                LOGGER.info(f"Total Size of Takeout folder                : {result['input_counters']['total_size_mb']} MB")
+                LOGGER.info(f"Total Size of Takeout folder                : {result['input_counters']['total_size_mb']:.1f} MB")
                 LOGGER.info(f"Total Files in Takeout folder               : {result['input_counters']['total_files']:<7}")
                 LOGGER.info(f"Total Non-Supported files in Takeout folder : {result['input_counters']['unsupported_files']:<7}")
                 LOGGER.info(f"Total Supported files in Takeout folder     : {result['input_counters']['supported_files']:<7}")
@@ -798,7 +798,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"      - Incorrect Date                      : {result['input_counters']['videos']['without_date']:<7}  ({result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
-                LOGGER.info(f"Total Size of Output folder                 : {result['output_counters']['total_size_mb']} MB")
+                LOGGER.info(f"Total Size of Output folder                 : {result['output_counters']['total_size_mb']:.1f} MB")
                 LOGGER.info(f"Total Files in Output folder                : {result['output_counters']['total_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_files:>7})  |  ({perc_of_input_total_files:>5.1f}% of input) ")
                 LOGGER.info(f"Total Non-Supported files in Output folder  : {result['output_counters']['unsupported_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_unsupported_files:>7})  |  ({perc_of_input_total_unsupported_files:>5.1f}% of input) ")
                 LOGGER.info(f"Total Supported files in Output folder      : {result['output_counters']['supported_files']:<7} {''.ljust(28)}  |  (diff: {diff_output_input_total_supported_files:>7})  |  ({perc_of_input_total_supported_files:>5.1f}% of input) ")
