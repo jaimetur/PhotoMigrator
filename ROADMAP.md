@@ -15,8 +15,6 @@
   - #### 🚨 Breaking Changes:
     
   - #### 🌟 New Features:
-    - [x] Created GitHub Forms on New Issues.
-      - [ ] Auto-Update Issues Templates with new published releases.
 
   - #### 🚀 Enhancements:
 
@@ -24,7 +22,6 @@
     - [ ] Investigate Performance on Automatic Migration when target=`synology`.
 
   - #### 📚 Documentation:
-    - [ ] Updated documentation with all changes.
     
 ---
 
