@@ -16,8 +16,7 @@ YAML_FILES = [
 
 def get_releases(repo):
     url = f"https://api.github.com/repos/{repo}/releases"
-    headers = {"Authorization": f"Bearer {os.environ.get('GITHUB_TOKEN', '')}"}
-    response = requests.get(url, headers=headers)
+    response = requests.get(url)
     response.raise_for_status()
     return response.json()[:MAX_RELEASES]
 
