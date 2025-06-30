@@ -17,15 +17,15 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 ## 🖥️ Live Dashboard Preview
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
-## 🌟 Main Features
-### 🚀 Automatic Migration [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
+## 🌟 Main Modules Included:
+### 🚀 1. Automatic Migration [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
 
 Apart from the 'Automatic Migration Feature', you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Included per each Supported Photo Cloud Service are:
 
-### 🛠️ Google Photos Takeout  Fixing [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
+### 🛠️ 2. Google Photos Takeout  Fixing [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 Other important feature included in the tool is the Google Photos Takeout Fixing. 
 
 This feature have been designed to automatically analyze your Google Photo Takeout, extract all the information from the sidecar JSON files (or guess some missing information using heuristics algorithms) and embeds all the extracted info into each asset file using EXIF tags.  
@@ -61,7 +61,7 @@ Below you can see the different steps of this feature:
   - Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics. 
 
 
-### 🖼️ Synology, Immich, Apple, Google & NextCloud Management
+### 🖼️ 3. Synology, Immich, Apple, Google & NextCloud Management
 In the table below you can find the current supported features for each Photo Cloud Service:
 
   | Feature                         | Synology                                                                                                                                  | Immich                                                                                                                                | Apple             | Google            | Nextcloud         |
@@ -94,7 +94,7 @@ In the table below you can find the current supported features for each Photo Cl
 >  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
 
-### 🧩 Other Standalone Features
+### 🧩 4. Other Standalone Features [**(Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md) 
 Apart from Manage the different Photo Cloud Services and the 'Automatic Migration Mode', the Tool also contains Other Useful Features such as:
   - **Metadata fixing** of any Photo Library in your local drive (not necessarily needs to be a Google Takeout folder)
   - **Library Organization** features:
@@ -103,9 +103,8 @@ Apart from Manage the different Photo Cloud Services and the 'Automatic Migratio
     - Folder Structure (customizable) for 'Albums' and 'No Albums' folders
   - **Symbolic Links Support** for Albums folders
     - Fix Symbolic Links Broken
-  - **Homogenize Albums folders name based on content**
-
-[**Other Standalone Features Documentation**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
+  - **Homogenize Albums folder's name based on content**
+ 
 
 ## 💾 Download
 Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
