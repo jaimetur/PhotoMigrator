@@ -96,8 +96,8 @@ def get_clean_version(version: str):
     clean_version = version.lstrip('v')
     return clean_version
 
-def extract_release_body(download_file, input_file, output_file):
-    """Extracts two specific sections from the release notes file, modifies a header, and appends them along with additional content from another file."""
+def extract_release_body(input_file, output_file, download_file):
+    """Extracts two specific sections from the changelog file, modifies a header, and appends them along with additional content from another file."""
     # Open the file and read its content into a list
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
@@ -233,19 +233,19 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     else:
         print("Caanot find SCRIPT_VERSION.")
 
-    # Extraer el cuerpo de la CURRENT-RELEASE-NOTES y añadir ROADMAP al fichero README.md
-    # print("Extracting body of CURRENT-RELEASE-NOTES and adding ROADMAP to file README.md...")
-    print("Extracting body of CURRENT-RELEASE-NOTES...")
+    # Extraer el cuerpo de la RELEASE-NOTES y añadir ROADMAP al fichero README.md
+    # print("Extracting body of RELEASE-NOTES and adding ROADMAP to file README.md...")
+    print("Extracting body of RELEASE-NOTES...")
 
-    # Ruta de los archivos CHANGELOG.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
+    # Ruta de los archivos CHANGELOG.md, RELEASE-NOTES.md, README.md y ROADMAP.md
     download_filepath = os.path.join(root_dir, 'DOWNLOAD.md')
-    releases_filepath = os.path.join(root_dir, 'CHANGELOG.md')
-    current_release_filepath = os.path.join(root_dir, 'CURRENT-RELEASE.md')
+    changelog_filepath = os.path.join(root_dir, 'CHANGELOG.md')
+    current_release_filepath = os.path.join(root_dir, 'RELEASE-NOTES.md')
     roadmap_filepath = os.path.join(root_dir, 'ROADMAP.md')
     readme_filepath = os.path.join(root_dir, 'README.md')
 
     # Extraer el cuerpo de la Release actual de CHANGELOG.md
-    extract_release_body(download_filepath, releases_filepath, current_release_filepath)
+    extract_release_body(input_file=changelog_filepath, output_file=current_release_filepath, download_file=download_filepath)
     print(f"File '{current_release_filepath}' created successfully!.")
 
     # Añadimos el ROADMAP en el fichero README
