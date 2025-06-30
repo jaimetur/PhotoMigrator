@@ -24,10 +24,10 @@ The main use case is the **Automatic Migration Feature** to migrate all your pho
 [**(Automatic Migration Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)
 
 
-## 🛠️ 2. Google Photos Takeout Fixing 
-Other important feature included in the tool is the Google Photos Takeout Fixing. 
+## 🛠️ 2. Google Takeout Fixing 
+Other important feature included in the tool is the Google Takeout Fixing. 
 
-This feature have been designed to automatically analyze your Google Photo Takeout, extract all the information from the sidecar JSON files (or guess some missing information using heuristics algorithms) and embeds all the extracted info into each asset file using EXIF tags.  
+This feature has been designed to automatically analyze your Google Photos Takeout, extract all the information from the sidecar JSON files (or guess some missing information using heuristics algorithms) and embeds all the extracted info into each asset file using EXIF tags.  
 
 In this way your Media Library will be ready to be migrated to any other Cloud Photo services without losing any important info such as, Albums info, Original date, GPS location, Camera info, etc...
 
