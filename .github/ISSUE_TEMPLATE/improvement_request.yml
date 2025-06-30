@@ -37,13 +37,14 @@ body:
         - Global (all features will be affected)
         - Logging / Text Messages
         - Documentation
-        - Google Takeout Processing
+        - Google Takeout Fixing
         - Synology Photos
         - Immich Photos
         - Album Auto-Renaming
         - Find Duplicates
         - Fix Symbolic Links
         - Docker Running
+        - Other
       default: 0
     validations:
       required: true

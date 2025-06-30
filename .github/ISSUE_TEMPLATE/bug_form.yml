@@ -55,13 +55,14 @@ body:
         - Logging / Text Messages
         - Documentation
         - Automatic Migration
-        - Google Takeout Processing
+        - Google Takeout Fixing
         - Synology Photos
         - Immich Photos
         - Album Auto-Renaming
         - Find Duplicates
         - Fix Symbolic Links
         - Docker Running
+        - Other
       default: 0
     validations:
       required: true
