@@ -5,7 +5,7 @@ import yaml
 from pathlib import Path
 
 # CONFIGURACIÓN
-REPO = "jaimeturg/photomigrator"
+REPO = "jaimetur/PhotoMigrator"
 DROPDOWN_ID = "version"
 MAX_RELEASES = 50
 
@@ -16,7 +16,8 @@ YAML_FILES = [
 
 def get_releases(repo):
     url = f"https://api.github.com/repos/{repo}/releases"
-    response = requests.get(url)
+    headers = {"Authorization": f"Bearer {os.environ.get('GITHUB_TOKEN', '')}"}
+    response = requests.get(url, headers=headers)
     response.raise_for_status()
     return response.json()[:MAX_RELEASES]
 
