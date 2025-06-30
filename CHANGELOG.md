@@ -8,7 +8,7 @@
 - ### Release Date: 2025-06-30
   - Alpha version    : 2025-06-18 (launched on time)
   - Beta version     : 2025-06-23 (launched on time)
-  - Release Candidate: 2025-06-27
+  - Release Candidate: 2025-06-27 (launched on time)
   - Official Release : 2025-06-30
 
 - ### Main Changes:
@@ -20,9 +20,9 @@
     
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
-      - [ ] Auto-Update Issues Templates with new published releases.
+      - [x] Auto-Update Issues Templates with new published releases.
     - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
-    - [x] Implemented logic for `-gKeepTkout, --google-keep-takeout-folder` feature.
+    - [x] Implemented logic for `-gKeepTkout, --google-keep-takeout-folder` feature including an ultra fast and smart clonning folder algorithm. 
     - [x] Call GPTH with `--verbose` argument when PhotoMigrator logLevel is VERBOSE.
     - [x] Added new `VERBOSE` value for `-logLevel` argument.
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.

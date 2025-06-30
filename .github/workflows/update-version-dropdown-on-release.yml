@@ -1,0 +1,41 @@
+name: Update Version Dropdowns
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  update-version-dropdowns:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install Python dependencies
+        run: pip install requests pyyaml
+
+      - name: Run version dropdown updater
+        run: python .github/update_version_dropdown.py
+
+      - name: Commit changes if any
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No changes to commit."
+          else
+            git add .github/ISSUE_TEMPLATE/bug_report.yml .github/ISSUE_TEMPLATE/improvement_request.yml
+            git commit -m "🔁 Update version dropdowns after new release"
+            git push
+          fi

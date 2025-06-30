@@ -15,18 +15,13 @@
   - #### 🚨 Breaking Changes:
     
   - #### 🌟 New Features:
-    - [x] Created GitHub Forms on New Issues.
-      - [ ] Auto-Update Issues Templates with new published releases.
 
   - #### 🚀 Enhancements:
-    - [ ] Update GPTH to 4.1.0 to include latest improvements. 
 
   - #### 🐛 Bug fixes:
     - [ ] Investigate Performance on Automatic Migration when target=`synology`.
-    - [ ] Fix FileStatistics module (and other if there are more modules affected) when using windows shortcuts instead of real symlinks.
 
   - #### 📚 Documentation:
-    - [ ] Updated documentation with all changes.
     
 ---
 
