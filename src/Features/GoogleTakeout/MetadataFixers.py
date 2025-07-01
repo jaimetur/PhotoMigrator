@@ -1,4 +1,4 @@
-import logging
+import os
 import os
 import platform
 import subprocess
@@ -7,11 +7,12 @@ from pathlib import Path
 
 from packaging.version import Version
 
-from Core.CustomLogger import set_log_level, custom_print
+from ClassTakeoutFolder import run_command
+from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, GPTH_VERSION, ARGS, FOLDERNAME_NO_ALBUMS, FOLDERNAME_GPTH
-from Features.GoogleTakeout.GoogleTakeoutFunctions import run_command
 from Utils.FileUtils import resource_path
 from Utils.GeneralUtils import get_os, get_arch, ensure_executable, print_arguments_pretty
+
 
 def get_gpth_tool_path(base_path: str, exec_name: str) -> str:
     """
@@ -187,7 +188,6 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
 def fix_metadata_with_exif_tool(output_folder, log_level=None):
     """Runs the EXIF Tool command to fix photo metadata."""
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Fixing EXIF metadata in '{output_folder}'...")
         # Detect the operating system
@@ -216,7 +216,7 @@ def fix_metadata_with_exif_tool(output_folder, log_level=None):
             output_folder
         ]
         try:
-            # custom_print(" ".join(exif_command))
+            print_arguments_pretty(exif_command, title='EXIFTOOL Command', step_name="", use_logger=True)
             result = subprocess.run(exif_command, check=False)
             LOGGER.info(f"EXIF Tool fixing completed successfully.")
         except subprocess.CalledProcessError as e:

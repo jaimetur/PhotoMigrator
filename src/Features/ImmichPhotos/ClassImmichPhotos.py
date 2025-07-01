@@ -17,7 +17,7 @@ from tabulate import tabulate
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
-from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
+from Features.GoogleTakeout.ClassTakeoutFolder import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.StandaloneUtils import change_working_dir
 from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue

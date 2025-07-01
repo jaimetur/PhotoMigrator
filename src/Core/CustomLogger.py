@@ -11,6 +11,7 @@ from Core import GlobalVariables as GV
 from Core.GlobalVariables import VERBOSE_LEVEL_NUM, MSG_TAGS_COLORED
 from Utils.StandaloneUtils import resolve_path
 
+
 #------------------------------------------------------------------
 def enable_verbose_level(level_num=GV.VERBOSE_LEVEL_NUM):
     """

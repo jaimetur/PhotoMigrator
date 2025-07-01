@@ -19,6 +19,7 @@ from tqdm import tqdm as original_tqdm
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, VIDEO_EXT, PHOTO_EXT, MSG_TAGS, VERBOSE_LEVEL_NUM
 
+
 # ------------------------------------------------------------------
 # Integrar tqdm con el logger
 class TqdmLoggerConsole:

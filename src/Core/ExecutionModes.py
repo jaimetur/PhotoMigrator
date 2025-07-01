@@ -14,7 +14,7 @@ from Features.StandAlone.Duplicates import find_duplicates, process_duplicates_a
 from Features.StandAlone.FixSymLinks import fix_symlinks_broken
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import dir_exists, contains_zip_files
-from Utils.GeneralUtils import confirm_continue, capitalize_first_letter, print_dict_pretty, profile_and_print
+from Utils.GeneralUtils import confirm_continue, capitalize_first_letter, profile_and_print
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"

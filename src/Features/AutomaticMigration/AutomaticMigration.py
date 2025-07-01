@@ -1,3 +1,4 @@
+import functools
 import logging
 import os
 import shutil
@@ -9,18 +10,15 @@ from collections import deque
 from datetime import datetime, timedelta
 from pathlib import Path
 from queue import Queue
-import functools
-import logging
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
 from Core.GlobalVariables import SCRIPT_NAME_VERSION, SCRIPT_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS
-from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder
-from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure
+from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import remove_empty_dirs, contains_zip_files, normalize_path
-from Utils.StandaloneUtils import resolve_path, change_working_dir
 from Utils.GeneralUtils import confirm_continue
+from Utils.StandaloneUtils import resolve_path, change_working_dir
 
 terminal_width = shutil.get_terminal_size().columns
 

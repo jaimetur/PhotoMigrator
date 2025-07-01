@@ -1,8 +1,9 @@
 # src/PhotoMigrator.py
 
-import os, sys
 import importlib
 import logging
+import os
+import sys
 
 from Core.CustomLogger import custom_log
 from Core.GlobalFunctions import set_FOLDERS
