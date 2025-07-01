@@ -45,7 +45,6 @@ body:
     default: 0
   validations:
     required: true
-
 - type: dropdown
   id: feature-affected
   attributes:
@@ -68,7 +67,6 @@ body:
     default: 0
   validations:
     required: true
-
 - type: textarea
   id: improvement-description
   attributes:
@@ -78,7 +76,6 @@ body:
     value: Improvement description
   validations:
     required: true
-
 - type: checkboxes
   id: terms
   attributes:
