@@ -21,9 +21,9 @@ from Core.CustomLogger import set_log_level
 from Core.FileStatistics import count_files_and_extract_dates
 from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
-from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
-from Features.StandAlone.Duplicates import find_duplicates
-from Features.StandAlone.FixSymLinks import fix_symlinks_broken
+from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
+from Features.StandAloneFeatures.Duplicates import find_duplicates
+from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resource_path, custom_print
