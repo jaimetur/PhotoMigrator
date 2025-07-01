@@ -7,9 +7,9 @@ from pathlib import Path
 
 from packaging.version import Version
 
-from ClassTakeoutFolder import run_command
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, GPTH_VERSION, ARGS, FOLDERNAME_NO_ALBUMS, FOLDERNAME_GPTH
+from Features.GoogleTakeout.ClassTakeoutFolder import run_command
 from Utils.FileUtils import resource_path
 from Utils.GeneralUtils import get_os, get_arch, ensure_executable, print_arguments_pretty
 
