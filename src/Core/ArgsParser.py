@@ -368,8 +368,8 @@ def checkArgs(ARGS, PARSER):
                      'exec-exif-tool',
                      'foldername-exiftool-output',
                      'foldername-duplicates-output',
-                     # 'foldername-albums',       # Do not include this because it will depend on the <OUTPUT_FOLDER>
-                     # 'foldername-no-albums',    # Do not include this because it will depend on the <OUTPUT_FOLDER>
+                     # 'foldername-albums',             # Do not include this because it will depend on the <OUTPUT_FOLDER>
+                     # 'foldername-no-albums',          # Do not include this because it will depend on the <OUTPUT_FOLDER>
                      'foldername-logs',
                      ]
     resolve_all_possible_paths(args_dict=ARGS, keys_to_check=keys_to_check)
@@ -508,26 +508,6 @@ def create_global_variable_from_args(args):
     """
     ARGS = {arg_name.replace("_", "-"): arg_value for arg_name, arg_value in vars(args).items()}
     return ARGS
-
-# def fix_path(path: str) -> str:
-#     """Limpia una ruta:
-#     - Quita barras finales / o \
-#     - Corrige comillas sueltas al final
-#     - Respeta las comillas exteriores si están correctamente cerradas
-#     """
-#     path = path.strip()
-#
-#     if path.endswith('"') and not path.startswith('"'):
-#         # Caso especial: comilla final suelta por error (escapada)
-#         path = path.rstrip('"')
-#
-#     if (path.startswith('"') and path.endswith('"')) or path.startswith("'") and path.endswith("'"):
-#         # Ruta correctamente entre comillas
-#         inner_path = path[1:-1]
-#         inner_path = inner_path.rstrip('/\\')
-#         return f'"{inner_path}"'
-#     else:
-#         return path.rstrip('/\\')
 
 def fix_path(path: str) -> str:
     """

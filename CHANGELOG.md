@@ -17,6 +17,7 @@
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
       - [x] Auto-Update Issues Templates with new published releases.
+      - [x] Auto-Label Issues with selected Tool Version.
     - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
     - [x] Implemented logic for `-gKeepTkout, --google-keep-takeout-folder` feature including an ultra fast and smart clonning folder algorithm. 
     - [x] Call GPTH with `--verbose` argument when PhotoMigrator logLevel is VERBOSE.
@@ -107,6 +108,7 @@
     - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
     - [x] Fixed a bug in `Auto Rename Albums content based` when an Albums only contains Videos because the list of TAGS where search dates didn't include valid TAGs for Video files.
     - [x] Fixed issue in MP4/Live Pictures Fixers when the original picture's json has .supplemental-metadata suffix.
+    - [x] Fixed issue with GPTH/EXIFTOOL paths when running the tool from docker
 
   - #### 📚 Documentation:
     - [x] Modified 'Execution from Source' documentation to support the new package structure.

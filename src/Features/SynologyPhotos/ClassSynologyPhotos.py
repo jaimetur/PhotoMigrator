@@ -15,7 +15,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
-from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
+from Features.GoogleTakeout.ClassTakeoutFolder import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
 

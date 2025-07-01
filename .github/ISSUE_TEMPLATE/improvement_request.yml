@@ -45,6 +45,7 @@ body:
     default: 0
   validations:
     required: true
+
 - type: dropdown
   id: feature-affected
   attributes:
@@ -54,9 +55,11 @@ body:
     - Global (all features will be affected)
     - Logging / Text Messages
     - Documentation
+    - Automatic Migration
     - Google Takeout Fixing
     - Synology Photos
     - Immich Photos
+    - Local Folder Class
     - Album Auto-Renaming
     - Find Duplicates
     - Fix Symbolic Links
@@ -65,6 +68,7 @@ body:
     default: 0
   validations:
     required: true
+
 - type: textarea
   id: improvement-description
   attributes:
@@ -74,6 +78,7 @@ body:
     value: Improvement description
   validations:
     required: true
+
 - type: checkboxes
   id: terms
   attributes:

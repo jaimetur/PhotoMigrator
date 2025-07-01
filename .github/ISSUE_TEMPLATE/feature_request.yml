@@ -12,6 +12,38 @@ body:
         Thanks for taking the time to fill out this feature request!
 
   - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version of our software are you running?
+      options:
+        - v3.4.0 (latest-stable)
+        - v3.3.2
+        - v3.3.1
+        - v3.3.0
+        - v3.2.0
+        - v3.1.0
+        - v3.0.0
+        - v2.3.0
+        - v2.2.1
+        - v2.2.0
+        - v2.1.0
+        - v2.0.0
+        - v1.6.0
+        - v1.5.1
+        - v1.5.0
+        - v1.4.1
+        - v1.4.0
+        - v1.3.1
+        - v1.3.0
+        - v1.2.2
+        - v1.2.1
+        - v1.2.0
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
     id: feature-affected
     attributes:
       label: Feature Affected
@@ -21,13 +53,15 @@ body:
         - Logging / Text Messages
         - Documentation
         - Automatic Migration
-        - Google Takeout Processing
+        - Google Takeout Fixing
         - Synology Photos
         - Immich Photos
+        - Local Folder Class
         - Album Auto-Renaming
         - Find Duplicates
         - Fix Symbolic Links
         - Docker Running
+        - Other
       default: 0
     validations:
       required: true
