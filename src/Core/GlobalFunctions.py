@@ -23,8 +23,8 @@ def set_ARGS_PARSER():
 def set_FOLDERS():
     GV.FOLDERNAME_ALBUMS            = GV.ARGS.get('foldername-albums')                          or GV.FOLDERNAME_ALBUMS
     GV.FOLDERNAME_NO_ALBUMS         = GV.ARGS.get('foldername-no-albums')                       or GV.FOLDERNAME_NO_ALBUMS
-    GV.FOLDERNAME_GPTH              = os.path.abspath(GV.ARGS.get('exec-gpth-tool')             or GV.FOLDERNAME_GPTH)
-    GV.FOLDERNAME_EXIFTOOL          = os.path.abspath(GV.ARGS.get('exec-exif-tool')             or GV.FOLDERNAME_EXIFTOOL)
+    GV.FOLDERNAME_GPTH              = os.path.abspath(GV.ARGS.get('exec-gpth-tool')             or GV.FOLDERNAME_GPTH)                  # This allows users to select a GPTH binary outside /docker folder when running from docker
+    GV.FOLDERNAME_EXIFTOOL          = os.path.abspath(GV.ARGS.get('exec-exif-tool')             or GV.FOLDERNAME_EXIFTOOL)              # This allows users to select a GPTH binary outside /docker folder when running from docker
     # GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('exec-gpth-tool')                or GV.FOLDERNAME_GPTH)
     # GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('exec-exif-tool')                or GV.FOLDERNAME_EXIFTOOL)
     GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('configuration-file')            or GV.CONFIGURATION_FILE)
