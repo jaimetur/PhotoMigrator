@@ -17,6 +17,7 @@
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
       - [x] Auto-Update Issues Templates with new published releases.
+      - [x] Auto-Label Issues with selected Tool Version.
     - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
     - [x] Implemented logic for `-gKeepTkout, --google-keep-takeout-folder` feature including an ultra fast and smart clonning folder algorithm. 
     - [x] Call GPTH with `--verbose` argument when PhotoMigrator logLevel is VERBOSE.
