@@ -775,9 +775,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"============================================================================================================================")
                 LOGGER.info(f"✅ PROCESS COMPLETED SUCCESSFULLY!")
                 LOGGER.info(f"")
-                LOGGER.info(f"All the Photos/Videos Fixed can be found on folder                    : '{output_folder}'")
+                LOGGER.info(f"Processed Takeout have been saved to folder : '{output_folder}'")
                 if self.ARGS.get('google-keep-takeout-folder'):
-                    LOGGER.info(f"Your original Takeout files have been safely preserved in the folder  : '{self.backup_takeout_folder}' ")
+                    LOGGER.info(f"Original Takeout is safely preserved in     : '{self.backup_takeout_folder}' ")
+                else:
+                    LOGGER.info(f"")
                 LOGGER.info(f"")
                 LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
