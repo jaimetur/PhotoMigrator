@@ -19,7 +19,7 @@ def is_inside_docker():
     return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
 
 
-def resolve_path(user_path):
+def     resolve_path(user_path):
     """
     Converts a user_path into a valid absolute path.
 

@@ -364,12 +364,12 @@ def checkArgs(ARGS, PARSER):
                      'fix-symlinks-broken',
                      'rename-folders-content-based',
                      'configuration-file',
-                     # 'exec-gpth-tool',
-                     # 'exec-exif-tool',
+                     'exec-gpth-tool',
+                     'exec-exif-tool',
                      'foldername-exiftool-output',
                      'foldername-duplicates-output',
-                     # 'foldername-albums',       # Do not include this because it will depend on the <OUTPUT_FOLDER>
-                     # 'foldername-no-albums',    # Do not include this because it will depend on the <OUTPUT_FOLDER>
+                     # 'foldername-albums',             # Do not include this because it will depend on the <OUTPUT_FOLDER>
+                     # 'foldername-no-albums',          # Do not include this because it will depend on the <OUTPUT_FOLDER>
                      'foldername-logs',
                      ]
     resolve_all_possible_paths(args_dict=ARGS, keys_to_check=keys_to_check)
