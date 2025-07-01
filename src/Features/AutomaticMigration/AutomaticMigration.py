@@ -18,7 +18,7 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import remove_empty_dirs, contains_zip_files, normalize_path
 from Utils.GeneralUtils import confirm_continue
-from Utils.StandaloneUtils import resolve_path, change_working_dir
+from Utils.StandaloneUtils import change_working_dir, resolve_path
 
 terminal_width = shutil.get_terminal_size().columns
 

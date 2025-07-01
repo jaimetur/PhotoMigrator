@@ -23,12 +23,12 @@ def set_ARGS_PARSER():
 def set_FOLDERS():
     GV.FOLDERNAME_ALBUMS            = GV.ARGS.get('foldername-albums')                          or GV.FOLDERNAME_ALBUMS
     GV.FOLDERNAME_NO_ALBUMS         = GV.ARGS.get('foldername-no-albums')                       or GV.FOLDERNAME_NO_ALBUMS
-    GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('exec-gpth-tool')                or GV.FOLDERNAME_GPTH)
-    GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('exec-exif-tool')                or GV.FOLDERNAME_EXIFTOOL)
-    GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('configuration-file')            or GV.CONFIGURATION_FILE)
-    GV.FOLDERNAME_EXIFTOOL_OUTPUT   = resolve_path(GV.ARGS.get('foldername-exiftool-output')    or GV.FOLDERNAME_EXIFTOOL_OUTPUT)
-    GV.FOLDERNAME_DUPLICATES_OUTPUT = resolve_path(GV.ARGS.get('foldername-duplicates-output')  or GV.FOLDERNAME_DUPLICATES_OUTPUT)
-    GV.FOLDERNAME_LOGS              = resolve_path(GV.ARGS.get('foldername-logs')               or GV.FOLDERNAME_LOGS)
+    GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('exec-gpth-tool') or GV.FOLDERNAME_GPTH)
+    GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('exec-exif-tool') or GV.FOLDERNAME_EXIFTOOL)
+    GV.CONFIGURATION_FILE           = resolve_path(GV.ARGS.get('configuration-file') or GV.CONFIGURATION_FILE)
+    GV.FOLDERNAME_EXIFTOOL_OUTPUT   = resolve_path(GV.ARGS.get('foldername-exiftool-output') or GV.FOLDERNAME_EXIFTOOL_OUTPUT)
+    GV.FOLDERNAME_DUPLICATES_OUTPUT = resolve_path(GV.ARGS.get('foldername-duplicates-output') or GV.FOLDERNAME_DUPLICATES_OUTPUT)
+    GV.FOLDERNAME_LOGS              = resolve_path(GV.ARGS.get('foldername-logs') or GV.FOLDERNAME_LOGS)
 
 
 def set_LOGGER():
@@ -75,17 +75,5 @@ def set_LOGGER():
 
 def set_HELP_TEXTS():
     GV.HELP_TEXTS  = set_help_texts()
-
-
-
-
-
-
-
-
-
-
-
-
 
 

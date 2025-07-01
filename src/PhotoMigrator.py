@@ -13,7 +13,9 @@ src_path = os.path.dirname(__file__)
 sys.path.insert(0, src_path)            # Now src is the root for imports
 
 from Core import GlobalVariables as GV
-from Utils.StandaloneUtils import change_working_dir
+from Utils.StandaloneUtils import change_working_dir, custom_print
+
+
 # -------------------------------------------------------------
 # MAIN FUNCTION
 # -------------------------------------------------------------
@@ -59,7 +61,6 @@ def main():
 
     # Now we can safety import any other tool's module
     from Utils.GeneralUtils import check_OS_and_Terminal
-    from Core.CustomLogger import custom_print
     from Core.ExecutionModes import detect_and_run_execution_mode
 
     # Check OS and Terminal before to import GlobalVariables or other Modules that depends on it

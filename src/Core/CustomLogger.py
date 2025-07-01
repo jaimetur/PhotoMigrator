@@ -8,8 +8,8 @@ from contextlib import contextmanager
 from colorama import Fore, Style
 
 from Core import GlobalVariables as GV
-from Core.GlobalVariables import VERBOSE_LEVEL_NUM, MSG_TAGS_COLORED
-from Utils.StandaloneUtils import resolve_path
+from Core.GlobalVariables import VERBOSE_LEVEL_NUM
+from Utils.StandaloneUtils import resolve_path, custom_print
 
 
 #------------------------------------------------------------------
@@ -45,13 +45,6 @@ enable_verbose_level()
 def custom_log(*args, log_level=logging.INFO, **kwargs):
     message = " ".join(str(a) for a in args)
     GV.LOGGER.log(log_level, message, **kwargs)
-#------------------------------------------------------------------
-# Replace original print to use the same GV.LOGGER formatter
-def custom_print(*args, log_level=logging.INFO, **kwargs):
-    message = " ".join(str(a) for a in args)
-    log_level_name = logging.getLevelName(log_level)
-    colortag = MSG_TAGS_COLORED.get(log_level_name, MSG_TAGS_COLORED['INFO'])
-    print(f"{colortag}{message}{Style.RESET_ALL}", **kwargs)
 #------------------------------------------------------------------
 # Class to Downgrade from INFO to DEBUG/WARNING/ERROR when certain chain is detected
 class ChangeLevelFilter(logging.Filter):
@@ -251,7 +244,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
             GV.LOGGER.addHandler(file_handler_plain)
         else:
             # print (f"{GV.TAG_INFO}Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
-            custom_print (f"Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].", log_level=logging.INFO)
+            custom_print(f"Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].", log_level=logging.INFO)
 
     # Set the log level for the root logger
     GV.LOGGER.setLevel(log_level)

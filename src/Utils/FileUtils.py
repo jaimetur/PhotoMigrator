@@ -1,15 +1,13 @@
 import fnmatch
-import logging
 import os
 import re
 import shutil
-import sys
 import tempfile
 import zipfile
 from pathlib import Path
 
-from Core.CustomLogger import set_log_level, custom_print
-from Core.GlobalVariables import LOGGER, MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, FOLDERNAME_ALBUMS
+from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_ALBUMS
 from Utils.GeneralUtils import tqdm
 
 
@@ -283,65 +281,6 @@ def remove_folder(folder, step_name='', log_level=None):
         except Exception as e:
             LOGGER.critical(f"{step_name}Unexpected error while removing '{folder_path}': {e}")
             return False
-
-
-def resource_path(relative_path):
-    """
-    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
-    - PyInstaller (onefile o standalone)
-    - Nuitka (onefile o standalone)
-    - Python directo (desde cwd o desde dirname(__file__))
-    """
-    # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
-    compiled_source = globals().get("__compiled__")
-    DEBUG_MODE = False  # Cambia a False para silenciar
-    if DEBUG_MODE:
-        custom_print(f"---DEBUG INFO", log_level=logging.DEBUG)
-        custom_print(f"RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}", log_level=logging.DEBUG)
-        custom_print(f"sys.frozen                  : {getattr(sys, 'frozen', False)}", log_level=logging.DEBUG)
-        custom_print(f"NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}", log_level=logging.DEBUG)
-        custom_print(f"sys.argv[0]                 : {sys.argv[0]}", log_level=logging.DEBUG)
-        custom_print(f"sys.executable              : {sys.executable}", log_level=logging.DEBUG)
-        custom_print(f"os.getcwd()                 : {os.getcwd()}", log_level=logging.DEBUG)
-        custom_print(f"__file__                    : {globals().get('__file__', 'NO __file__')}", log_level=logging.DEBUG)
-        try:
-            custom_print(f"__compiled__.containing_dir : {compiled_source.containing_dir}", log_level=logging.DEBUG)
-        except NameError:
-            custom_print(f"__compiled__ not defined", log_level=logging.DEBUG)
-        if hasattr(sys, '_MEIPASS'):
-            custom_print(f"_MEIPASS                    : {sys._MEIPASS}", log_level=logging.DEBUG)
-        else:
-            custom_print(f"_MEIPASS not defined", log_level=logging.DEBUG)
-        print("")
-    # PyInstaller
-    if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-        if DEBUG_MODE: custom_print(f"Entra en modo PyInstaller -> (sys._MEIPASS)", log_level=logging.DEBUG)
-    # Nuitka onefile
-    elif "NUITKA_ONEFILE_PARENT" in os.environ:
-        base_path = os.path.dirname(os.path.abspath(__file__))
-        if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --onefile -> (__file__)", log_level=logging.DEBUG)
-    # Nuitka standalone
-    elif compiled_source:
-    # elif "__compiled__" in globals():
-        base_path = os.path.join(compiled_source.containing_dir, SCRIPT_NAME+'.dist')
-        # base_path = compiled_source
-        if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)", log_level=logging.DEBUG)
-    # Python normal
-    elif "__file__" in globals():
-        if RESOURCES_IN_CURRENT_FOLDER:
-            base_path = os.getcwd()
-            if DEBUG_MODE: custom_print(f"Entra en Python .py -> (cwd)", log_level=logging.DEBUG)
-        else:
-            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if DEBUG_MODE: custom_print(f"Entra en Python .py -> (dirname(dirname(__file__)))", log_level=logging.DEBUG)
-    else:
-        base_path = os.getcwd()
-        if DEBUG_MODE: custom_print(f"Entra en fallback final -> os.getcwd()", log_level=logging.DEBUG)
-    if DEBUG_MODE:
-        custom_print(f"return path                 : {os.path.join(base_path, relative_path)}", log_level=logging.DEBUG)
-        custom_print(f"--- END DEBUG INFO", log_level=logging.DEBUG)
-    return os.path.join(base_path, relative_path)
 
 
 def contains_zip_files(input_folder, log_level=None):

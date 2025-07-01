@@ -10,7 +10,7 @@ import piexif
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT, FOLDERNAME_EXIFTOOL
-from Features.GoogleTakeout.MetadataFixers import get_exif_tool_path
+from Utils.StandaloneUtils import get_exif_tool_path
 from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions
 
 
