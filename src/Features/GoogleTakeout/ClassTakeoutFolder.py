@@ -476,6 +476,45 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
+            # Step 12: Count Files
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🔢 [POST-PROCESS]-[Count Files] : '
+            step_start_time = datetime.now()
+            self.step += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"==========================================")
+            LOGGER.info(f"{self.step}. COUNTING OUTPUT FILES... ")
+            LOGGER.info(f"==========================================")
+            LOGGER.info(f"")
+            # Count all Files in output Folder
+            output_counters, dates = count_files_and_extract_dates(input_folder=output_folder, output_file=f"intermediate_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            # Clean input dict
+            self.result['output_counters'].clear()
+            # Assign all pairs key-value from output_counters to counter['output_counters'] dict
+            self.result['output_counters'].update(output_counters)
+            LOGGER.info(f"{step_name}Counting Files finished!")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
+            LOGGER.info(f"{step_name}Total Files in Output folder                     : {self.result['output_counters']['total_files']:<7}")
+            LOGGER.info(f"{step_name}Total Non-Supported files in Takeout folder      : {self.result['output_counters']['unsupported_files']:<7}")
+            LOGGER.info(f"{step_name}Total Supported files in Takeout folder          : {self.result['output_counters']['supported_files']:<7}")
+            LOGGER.info(f"{step_name}  - Total Non-Media files in Takeout folder      : {self.result['output_counters']['non_media_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Metadata in Takeout folder           : {self.result['output_counters']['metadata_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Sidecars in Takeout folder           : {self.result['output_counters']['sidecar_files']:<7}")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
+            LOGGER.info(f"{step_name}  - Total Media files in Takeout folder          : {self.result['output_counters']['media_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Photos in Takeout folder             : {self.result['output_counters']['photo_files']:<7}")
+            LOGGER.info(f"{step_name}      - Correct Date                             : {self.result['output_counters']['photos']['with_date']:<7} ({self.result['output_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"{step_name}      - Incorrect Date                           : {self.result['output_counters']['photos']['without_date']:<7} ({self.result['output_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"{step_name}    - Total Videos in Takeout folder             : {self.result['output_counters']['video_files']:<7}")
+            LOGGER.info(f"{step_name}      - Correct Date                             : {self.result['output_counters']['videos']['with_date']:<7} ({self.result['output_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"{step_name}      - Incorrect Date                           : {self.result['output_counters']['videos']['without_date']:<7} ({self.result['output_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
+            step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
 
             # Step 6: Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
@@ -494,7 +533,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     basedir = output_folder
                     type_structure = self.ARGS['google-albums-folders-structure']
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
-                    organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, step_name=step_name, log_level=LOG_LEVEL)
+                    organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=dates, step_name=step_name, log_level=LOG_LEVEL)
 
                 # For No-Albums
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
@@ -503,7 +542,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     basedir = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
                     type_structure = self.ARGS['google-no-albums-folders-structure']
                     exclude_subfolders = []
-                    organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, step_name=step_name, log_level=LOG_LEVEL)
+                    organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=dates, step_name=step_name, log_level=LOG_LEVEL)
 
                 # If flatten
                 if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
@@ -1781,7 +1820,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
             return False
 
 
-def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], step_name="", log_level=None):
+def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exif_dates={}, step_name="", log_level=None):
     """
     Organizes files into subfolders based on their EXIF or modification date.
 
@@ -1828,21 +1867,26 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
                         continue
                     mod_time = None
                     ext = os.path.splitext(file)[1].lower()
-                    # Intentar obtener fecha EXIF si es imagen
-                    if ext in PHOTO_EXT:
+                    # 1.) Intenta extraer la fecha del diccionario exif_dates si ha sido pasado como argumento
+                    mod_time = exif_dates.get(file_path)
+                    # LOGGER.verbose(f"{step_name}Date found in exif_dates dict: {mod_time} for file: {file_path}")
+                    # 2.) Intentar obtener la fecha EXIF si es imagen
+                    if mod_time is None and ext in PHOTO_EXT:
                         try:
+                            LOGGER.verbose(f"{step_name}Date NOT found in EXIF for file: {file_path}. trying to retrieve EXIF date using PIL...")
                             mod_time = get_exif_date(file_path)
                         except Exception as e:
-                            LOGGER.warning(f"{step_name}Error reading EXIF from {file_path}: {e}")
-                    # Si no hay EXIF o no es imagen, usar fecha de sistema
+                            LOGGER.warning(f"{step_name}Error reading EXIF for file: {file_path}: {e}")
+                    # 3.) Si no hay EXIF o no es imagen, usar fecha de sistema
                     if not mod_time:
                         try:
+                            LOGGER.verbose(f"{step_name}Date NOT found in EXIF for file: {file_path}. Getting mtime date...")
                             mtime = os.path.getmtime(file_path)
                             mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)
                         except Exception as e:
                             LOGGER.warning(f"{step_name}Error reading mtime for {file_path}: {e}")
                             mod_time = datetime(1970, 1, 1)
-                    LOGGER.verbose(f"{step_name}Using date {mod_time} for file {file_path}")
+                    LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
                     # Determinar carpeta destino
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
