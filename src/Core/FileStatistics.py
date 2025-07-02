@@ -32,9 +32,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
         merges JSON outputs and counters, then computes final percentages.
     """
 
-    # ====================
-    # AUX FUNCTIONS
-    # ====================
     # Ensure output_file has an extension; default to .json
     if not os.path.splitext(output_file)[1]:
         output_file = output_file + '.json'
@@ -43,6 +40,11 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
     # Add TIMESTAMP to output_file
     output_filename = f"{TIMESTAMP}_{output_filename}"
     output_file = f"{output_filename}{output_ext}"
+    output_filepath = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file)
+
+    # ====================
+    # AUX FUNCTIONS
+    # ====================
     # ------------------------------------------------------------------
     # Aux: merge counters from multiple blocks
     # ------------------------------------------------------------------
@@ -118,9 +120,9 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
                 # Prepare exiftool command
                 command = [
-                    exif_tool_path,
-                    "-j", "-n", "-time:all", "-fast", "-fast2", "-s"
-                ] + file_paths
+                              exif_tool_path,
+                              "-j", "-n", "-time:all", "-fast", "-fast2", "-s"
+                          ] + file_paths
                 try:
                     with open(chunk_json_path, "w", encoding="utf-8") as out_json, \
                             open(error_log_path, "a", encoding="utf-8") as out_err:
@@ -396,7 +398,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                 if extract_dates:
                     os.makedirs(FOLDERNAME_EXIFTOOL_OUTPUT, exist_ok=True)
                     LOGGER.info(f"{step_name}🧪 Total chunks to merge: {len(chunk_paths)}")
-                    merge_json_files(chunk_paths, os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file))
+                    merge_json_files(chunk_paths, output_filepath)
 
             # --- 6) Merge all block counters and compute final percentages
             blocks_merged = merge_counters(merged_counters_list)
@@ -412,8 +414,8 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     final_counters[media_category]['pct_with_date'] = 0
                     final_counters[media_category]['pct_without_date'] = 0
 
-            return final_counters, merged_dates
-    
-    
+            return final_counters, merged_dates, output_filepath
+
+
     # Call to main() function
     return main()

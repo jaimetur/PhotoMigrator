@@ -11,10 +11,10 @@ import piexif
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT, FOLDERNAME_EXIFTOOL
 from Utils.StandaloneUtils import get_exif_tool_path
-from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions
+from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions, batch_replace_sourcefiles_in_json
 
 
-def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', step_name="", log_level=None):
+def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', update_json=None, step_name="", log_level=None):
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
@@ -279,6 +279,9 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         info_messages = []
         warning_messages = []
 
+        # Create replacements list to update output metadata JSON with the new paths
+        replacements = []
+
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
 
@@ -327,6 +330,8 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                                     debug_messages.append(f"{step_name}Deleted duplicate file: '{src}'")
                             else:
                                 shutil.move(src, dst)
+                                # Update replacements list
+                                replacements.append((str(src), str(dst)))
                                 debug_messages.append(f"{step_name}Moved '{src}' → '{dst}'")
                         # Check if the folder is empty before removing it
                         if not os.listdir(item_path):
@@ -339,8 +344,13 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     else:
                         if item_path != new_folder_path:
                             os.rename(item_path, new_folder_path)
+                            # Update replacements list
+                            replacements.append((str(item_path), str(new_folder_path)))
                             debug_messages.append(f"{step_name}Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
                             renamed_album_folders += 1
+
+        if update_json and os.path.isfile(update_json):
+            batch_replace_sourcefiles_in_json(json_path=update_json, replacements=replacements, step_name=step_name, log_level=log_level)
 
         # Finally we log all the messages captured during the process
         for verbose_message in verbose_messages:
