@@ -606,6 +606,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         basedir = os.path.join(output_folder, FOLDERNAME_ALBUMS)
                     type_structure = self.ARGS['google-albums-folders-structure']
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
+                    # TODO: El problema es que uso dates para extraer fechas, pero dates es una lista que no ha sido actualizada al renombrar albumes en el paso previo. La solucion es o bien actualizar dates al mismo tiempo que el json, o bien usar directamente el json como entrada
                     replacements += organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=dates, step_name=step_name, log_level=LOG_LEVEL)
                 # For No-Albums
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
@@ -1888,22 +1889,26 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
 
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def get_file_date(file_path, exif_dates, step_name):
+        
         # 1. Try to get date from pre-parsed EXIF dictionary
         mod_time = exif_dates.get(file_path)
         if mod_time:
             return mod_time
-        # 2. Try to extract EXIF date directly if it's a photo
-        ext = Path(file_path).suffix.lower()
-        if ext in PHOTO_EXT:
-            try:
-                exif_dict = piexif.load(file_path)
-                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-                    tag_id = piexif.ExifIFD.__dict__.get(tag)
-                    value = exif_dict["Exif"].get(tag_id)
-                    if value:
-                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-            except Exception as e:
-                LOGGER.warning(f"{step_name}Error reading EXIF for {file_path}: {e}")
+
+        # # 2. Try to extract EXIF date directly if it's a photo
+        # ext = Path(file_path).suffix.lower()
+        # if ext in PHOTO_EXT:
+        #     try:
+        #         LOGGER.verbose(f"{step_name}Falling back to read EXIF with PIL for: {file_path}")
+        #         exif_dict = piexif.load(file_path)
+        #         for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+        #             tag_id = piexif.ExifIFD.__dict__.get(tag)
+        #             value = exif_dict["Exif"].get(tag_id)
+        #             if value:
+        #                 return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+        #     except Exception as e:
+        #         LOGGER.warning(f"{step_name}Error reading EXIF for {file_path}: {e}")
+
         # 3. Fallback to mtime
         try:
             LOGGER.verbose(f"{step_name}Falling back to mtime for: {file_path}")
