@@ -93,7 +93,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-graf`,<br>`--google-rename-albums-folders`       | Renames albums folders based on content dates.                                                                         |
 | `-gsef`,<br>`--google-skip-extras-files`           | Skips extra Google photos like edited/effects.                                                                         |
 | `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                                                                                |
-| `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                                                                       |
+| `-gSkipGpth`,<br>`--google-skip-gpth-tool`         | Skip processing with GPTH Tool (not recommended)                                                                       |
 | `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).                                                             |
 | `-gKeepTkout`,<br>`--google-keep-takeout-folder`   | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                                                                            |

@@ -187,7 +187,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
     """
 
     if not log_filename:
-        log_filename=GV.SCRIPT_NAME
+        log_filename=GV.TOOL_NAME
 
     # Crear la carpeta de logs si no existe
     # Resolver log_folder a ruta absoluta

@@ -9,7 +9,7 @@ from colorama import Style
 from Core import GlobalVariables as GV
 from Core.CustomHelpFormatter import CustomHelpFormatter
 from Core.CustomPager import PagedParser
-from Core.GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+from Core.GlobalVariables import TOOL_DESCRIPTION, TOOL_NAME, TOOL_VERSION, TOOL_DATE
 from Utils.DateUtils import parse_text_to_iso8601
 from Utils.StandaloneUtils import resolve_path
 
@@ -27,14 +27,14 @@ valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photo
 def parse_arguments():
     # Parser with Pagination:
     PARSER = PagedParser(
-        description=f"\n{SCRIPT_DESCRIPTION}",
+        description=f"\n{TOOL_DESCRIPTION}",
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )
 
     # Acción personalizada para --version
     class VersionAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
-            print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
+            print(f"\n{TOOL_NAME} {TOOL_VERSION} {TOOL_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
@@ -184,7 +184,7 @@ def parse_arguments():
     PARSER.add_argument("-graf", "--google-rename-albums-folders", action="store_true", help="Renames Albums Folders in <OUTPUT_TAKEOUT_FOLDER> based on content date of each album after fixing them.")
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skips processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skips moving albums to '<ALBUMS_FOLDER>'.")
-    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skips processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposes.")
+    PARSER.add_argument("-gSkipGpth", "--google-skip-gpth-tool", action="store_true", help="Skips processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposes.")
     PARSER.add_argument("-gSkipPrep", "--google-skip-preprocess", action="store_true",
                         help="Skip Pre-process Google Takeout which has following steps:"
                              "\n  1.Clean Takeout Folder"

@@ -181,7 +181,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
         if ARGS['google-no-albums-folders-structure'].lower()!='year/month':
             LOGGER.warning(f"Flag detected '-gnaf, --google-no-albums-folders-structure'. Folder structure '{ARGS['google-no-albums-folders-structure']}' will be applied on '<NO_ALBUMS_FOLDER>' (Photos without Albums)...")
         if ARGS['google-skip-gpth-tool']:
-            LOGGER.warning(f"Flag detected '-gsgt, --google-skip-gpth-tool'. Skipping Processing photos with GPTH Tool...")
+            LOGGER.warning(f"Flag detected '-gSkipGpth, --google-skip-gpth-tool'. Skipping Processing photos with GPTH Tool...")
         if ARGS['google-skip-extras-files']:
             LOGGER.warning(f"Flag detected '-gsef, --google-skip-extras-files'. Skipping Processing extra Photos from Google Photos such as -effects, -editted, etc...")
         if ARGS['google-skip-move-albums']:

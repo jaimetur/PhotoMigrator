@@ -117,7 +117,6 @@ def main():
             custom_print(f"No valid folder selected. Exiting.", log_level=logging.ERROR)
             sys.exit(1)
 
-
     # Test different LOG_LEVELS
     custom_print("Testing Custom Print Function for all different logLevels.")
     custom_print("All logLevel should be displayed on console:")
@@ -140,10 +139,11 @@ def main():
     custom_log("", log_level=logging.INFO)
 
     # Print the Header (common for all modules)
+    GV.LOGGER.info(f"\n{GV.BANNER}\n{GV.TOOL_DESCRIPTION}")
+    # GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
     GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(f"Starting {GV.SCRIPT_NAME} Tool...")
+    GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
     GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
     GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
@@ -154,7 +154,6 @@ def main():
         GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
         GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FILENAME + '.log'}")
         GV.LOGGER.info(f"  - Log Level                     : {logging.getLevelName(GV.LOG_LEVEL)} ({str(GV.LOG_LEVEL).upper()})")
-    GV.LOGGER.info(f"")
     GV.LOGGER.info(f"  - SubFolder for Albums          : <OUTPUT_FOLDER>/{GV.FOLDERNAME_ALBUMS}")
     GV.LOGGER.info(f"  - SubFolder for No-Albums       : <OUTPUT_FOLDER>/{GV.FOLDERNAME_NO_ALBUMS}")
     GV.LOGGER.info(f"")
