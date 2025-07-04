@@ -97,7 +97,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
         metadata_map = {}
         reference_timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
         counters = init_count_files_counters()
-        dates_by_path = {}
+
         # Path to chunk_json in temporary directory (this variable should exists even if extract_dates=False or Fallback to PIL
         chunk_json_path = get_unique_path(os.path.join(temporary_directory, f"{output_filename}_{block_index}{output_ext}"))
         LOGGER.debug(f"{step_name}📃 [Block {block_index}]: chunk_json_path: {chunk_json_path}")
@@ -109,16 +109,12 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
         ]
 
         if extract_dates:
-            # Get exiftool complete path
             exif_tool_path = get_exif_tool_path(FOLDERNAME_EXIFTOOL)
-            # If exiftool is found, extract date with exiftool
             if Path(exif_tool_path).exists():
-                # Make error_log_path the same file as our current logger.
                 error_log_path = f"{GV.LOG_FILENAME}.log"
                 LOGGER.info(f"{step_name}🔎 [Block {block_index}]: Running block {block_index} with exiftool...")
                 LOGGER.debug(f"{step_name}📃 [Block {block_index}]: error_log_path: {error_log_path}")
 
-                # Prepare exiftool command
                 command = [
                               exif_tool_path,
                               "-j", "-n", "-time:all", "-fast", "-fast2", "-s"
@@ -130,7 +126,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                 except Exception:
                     LOGGER.debug(f"{step_name}❗ [Block {block_index}]: exiftool failed to extract some files")
 
-                # Parse exiftool output
                 with open(chunk_json_path, "r", encoding="utf-8") as out_json:
                     metadata_list = json.load(out_json)
 
@@ -139,11 +134,11 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     if not src:
                         continue
                     norm = Path(src).resolve().as_posix()
-                    # norm = os.path.abspath(src).replace("\\", "/")
 
                     dates_found = []
                     valid_dates = []
-                    LOGGER.debug(f"")
+                    valid_dates_with_tags = []
+                    LOGGER.debug("")
                     LOGGER.debug(f"{step_name}🔎 [Block {block_index}]: Inspecting EXIF metadata for: {src}")
                     for tag in candidate_date_tags:
                         if tag in entry:
@@ -166,24 +161,33 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                                 dates_found.append(dt)
                                 if is_date_valid(dt, reference_timestamp):
                                     valid_dates.append(dt)
+                                    valid_dates_with_tags.append((dt, tag))
                                     LOGGER.debug(f"{step_name}✅ [Block {block_index}]: Accepted date: {dt.isoformat()}")
                                 else:
                                     LOGGER.debug(f"{step_name}❌ [Block {block_index}]: Rejected date: {dt.isoformat()} (later than reference date: {(reference_timestamp - timedelta(days=1)).isoformat()})")
                             except (ValueError, OverflowError):
                                 continue
 
-                    # Guardamos la mínima de las fechas válidas (si hay)
-                    metadata_map[norm] = min(valid_dates) if valid_dates else None
+                    selected_date = min(valid_dates) if valid_dates else None
+                    selected_source = ""
+                    if valid_dates_with_tags:
+                        selected_date, selected_tag = min(valid_dates_with_tags, key=lambda x: x[0])
+                        selected_source = f"🕒 EXIF date used: {selected_date.isoformat()} (tag: {selected_tag})"
+
+                    entry["SelectedDate"] = selected_date.isoformat() if selected_date else None
+                    entry["Source"] = selected_source
+                    metadata_map[norm] = selected_date
                     LOGGER.debug(f"{step_name}📅 [Block {block_index}]: Found dates: {[dt.isoformat() for dt in dates_found]}")
                     LOGGER.debug(f"{step_name}📅 [Block {block_index}]: Valid dates: {[dt.isoformat() for dt in valid_dates]}")
-                    LOGGER.debug(f"{step_name}📦 [Block {block_index}]: Keeping oldest valid date extracted from EXIF: {min(valid_dates).isoformat() if valid_dates else 'None'} for file: {Path(norm).name}")
+                    LOGGER.debug(f"{step_name}📦 [Block {block_index}]: Keeping oldest valid date extracted from EXIF: {selected_date.isoformat() if selected_date else 'None'} for file: {Path(norm).name}")
 
-            # If exiftool is not found, extract date with PIL
+                with open(chunk_json_path, "w", encoding="utf-8") as out_json:
+                    json.dump(metadata_list, out_json, ensure_ascii=False, indent=2)
+
             else:
                 LOGGER.warning(f"{step_name}❗ [Block {block_index}]: exiftool not found at {exif_tool_path}, falling back to PIL")
                 for p in file_paths:
                     norm = Path(p).resolve().as_posix()
-                    # norm = os.path.abspath(p).replace("\\", "/")
                     try:
                         img = Image.open(p)
                         exif_data = img._getexif() or {}
@@ -198,7 +202,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     except Exception as e:
                         LOGGER.debug(f"{step_name}❌ [Block {block_index}]: PIL failed on {p}: {e}")
                         metadata_map[norm] = None
-                # Guardar metadata_map en chunk_json_path (simulando salida de exiftool)
                 try:
                     with open(chunk_json_path, "w", encoding="utf-8") as f:
                         json.dump(
@@ -213,9 +216,8 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
         # 2) Count only per-media category with/without date
         for file_path in file_paths:
             norm = Path(file_path).resolve().as_posix()
-            # norm = os.path.abspath(file_path).replace("\\", "/")
             if extract_dates:
-                LOGGER.debug(f"")
+                LOGGER.debug("")
                 if norm not in metadata_map:
                     LOGGER.debug(f"{step_name}🧪 [Block {block_index}]: File Not Found in EXIF metadata_map → {norm}")
                 else:
@@ -227,12 +229,10 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
             else:
                 LOGGER.debug(f"{step_name}🧪 [Block {block_index}]: No date in EXIF metadata_map")
 
-            dates_by_path[norm] = file_date
             if norm not in metadata_map:
                 LOGGER.warning(f"{step_name}❗ No EXIF date found for {norm}")
 
             ext = Path(file_path).suffix.lower()
-
             media_category = None
             if ext in PHOTO_EXT:
                 media_category = 'photos'
@@ -244,8 +244,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
             # Determine effective date
             effective_date = file_date
-
-            # Solo aceptar EXIF si es al menos 1 día anterior al TIMESTAMP
             if is_date_valid(file_date, reference_timestamp):
                 source = f"🕒 EXIF date used: {file_date.isoformat()}"
             else:
@@ -268,7 +266,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
             else:
                 counters[media_category]['without_date'] += 1
 
-        return counters, dates_by_path, chunk_json_path
+        return counters, chunk_json_path
 
     # ====================
     # END OF AUX FUNCTIONS
@@ -365,7 +363,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
             start_time = time.time()
             completed_blocks = 0
             merged_counters_list = []
-            merged_dates = {}
             chunk_paths = []
 
             with TemporaryDirectory() as temp_dir:
@@ -379,7 +376,8 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                         for idx, block in enumerate(file_blocks)
                     }
                     for future in as_completed(future_to_block):
-                        block_counters, block_dates, chunk_path = future.result()
+                        block_counters, chunk_path = future.result()
+
                         completed_blocks += 1
                         LOGGER.debug(f"{step_name}📦 Added chunk path: {chunk_path}")
 
@@ -391,7 +389,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                         LOGGER.info(f"{step_name}📊 Block {completed_blocks}/{num_blocks} done • Elapsed: {int(elapsed // 60)}m • Estimated Total: {int(estimated_total // 60)}m • Estimated Remaining: {int(estimated_remaining // 60)}m")
 
                         merged_counters_list.append(block_counters)
-                        merged_dates.update(block_dates)
                         chunk_paths.append(chunk_path)
 
                 # Merge JSON outputs if we extracted dates
@@ -399,6 +396,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     os.makedirs(FOLDERNAME_EXIFTOOL_OUTPUT, exist_ok=True)
                     LOGGER.info(f"{step_name}🧪 Total chunks to merge: {len(chunk_paths)}")
                     merge_json_files(chunk_paths, output_filepath)
+
 
             # --- 6) Merge all block counters and compute final percentages
             blocks_merged = merge_counters(merged_counters_list)
@@ -414,8 +412,22 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     final_counters[media_category]['pct_with_date'] = 0
                     final_counters[media_category]['pct_without_date'] = 0
 
-            return final_counters, merged_dates, output_filepath
+            # Cargar el JSON final combinado como diccionario indexado por ruta para devolverlo en lugar de merged_dates
+            exif_data_by_path = {}
+            if extract_dates:
+                try:
+                    with open(output_filepath, "r", encoding="utf-8") as f:
+                        combined_json_data = json.load(f)
+                    for entry in combined_json_data:
+                        src = entry.get("SourceFile")
+                        if src:
+                            norm = Path(src).resolve().as_posix()
+                            exif_data_by_path[norm] = entry
+                except Exception as e:
+                    LOGGER.warning(f"{step_name}⚠️ Error loading merged JSON file at {output_filepath}: {e}")
+                    exif_data_by_path = {}
 
+            return final_counters, exif_data_by_path, output_filepath
 
     # Call to main() function
     return main()

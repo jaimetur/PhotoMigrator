@@ -17,12 +17,14 @@ from pathlib import Path
 
 import piexif
 from colorama import init
+from dateutil.parser import parser
 from packaging.version import Version
 
 from Core.CustomLogger import set_log_level
 from Core.CustomLogger import suppress_console_output_temporarily
 from Core.FileStatistics import count_files_and_extract_dates
-from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH
+from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, \
+    PIL_SUPPORTED_EXTENSIONS
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
@@ -207,7 +209,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Analyze files in Takeout Folder: {input_folder}...")
             # New function to count all file types and extract also date info
-            initial_takeout_counters, dates, input_json = count_files_and_extract_dates(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            initial_takeout_counters, exif_dates, input_json = count_files_and_extract_dates(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
             # Clean input dict
             self.result['input_counters'].clear()
             # Assign all pairs key-value from initial_takeout_counters to counter['input_counters'] dict
@@ -525,7 +527,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Count all Files in output Folder
-            output_counters, dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            output_counters, exif_dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
             # Clean input dict
             self.result['output_counters'].clear()
             # Assign all pairs key-value from output_counters to counter['output_counters'] dict
@@ -607,7 +609,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     type_structure = self.ARGS['google-albums-folders-structure']
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
                     # TODO: El problema es que uso dates para extraer fechas, pero dates es una lista que no ha sido actualizada al renombrar albumes en el paso previo. La solucion es o bien actualizar dates al mismo tiempo que el json, o bien usar directamente el json como entrada
-                    replacements += organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=dates, step_name=step_name, log_level=LOG_LEVEL)
+                    replacements += organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    # Now modify the output_json with all the files changed during this step
+                    batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
                 # For No-Albums
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info(f"")
@@ -615,17 +619,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     basedir = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
                     type_structure = self.ARGS['google-no-albums-folders-structure']
                     exclude_subfolders = []
-                    replacements += organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=dates, step_name=step_name, log_level=LOG_LEVEL)
-
+                    replacements += organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    # Now modify the output_json with all the files changed during this step
+                    batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
                 # If flatten
                 if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                     LOGGER.info(f"")
                     LOGGER.warning(f"{step_name}No argument '-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure' detected. All photos and videos will be flattened in their folders.")
 
                 if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
-                    # Now modify the output_json with all the files changed during this step
-                    batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
-
                     # Step 10.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                     # ----------------------------------------------------------------------------------------------------------------------
                     if not self.ARGS['google-no-symbolic-albums']:
@@ -1889,25 +1891,40 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
 
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def get_file_date(file_path, exif_dates, step_name):
-        
-        # 1. Try to get date from pre-parsed EXIF dictionary
-        mod_time = exif_dates.get(file_path)
-        if mod_time:
-            return mod_time
+        norm_path = Path(file_path).resolve().as_posix()
 
-        # # 2. Try to extract EXIF date directly if it's a photo
-        # ext = Path(file_path).suffix.lower()
-        # if ext in PHOTO_EXT:
-        #     try:
-        #         LOGGER.verbose(f"{step_name}Falling back to read EXIF with PIL for: {file_path}")
-        #         exif_dict = piexif.load(file_path)
-        #         for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-        #             tag_id = piexif.ExifIFD.__dict__.get(tag)
-        #             value = exif_dict["Exif"].get(tag_id)
-        #             if value:
-        #                 return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-        #     except Exception as e:
-        #         LOGGER.warning(f"{step_name}Error reading EXIF for {file_path}: {e}")
+        # 1. Try to get SelectedDate from exif_dates if available
+        exif_entry = exif_dates.get(norm_path) if exif_dates else None
+        if isinstance(exif_entry, dict):
+            selected_date = exif_entry.get("SelectedDate")
+            if selected_date:
+                return selected_date if isinstance(selected_date, datetime) else parser.parse(selected_date)
+
+            # If no SelectedDate, try to use the minimum date among all EXIF tags
+            all_dates = []
+            for k, v in exif_entry.items():
+                if k in ["SelectedDate", "Source"] or not v:
+                    continue
+                try:
+                    all_dates.append(v if isinstance(v, datetime) else parser.parse(v))
+                except Exception:
+                    continue
+            if all_dates:
+                return min(all_dates)
+
+        # 2. Try to extract EXIF date directly if it's a photo
+        ext = Path(file_path).suffix.lower()
+        if ext in PIL_SUPPORTED_EXTENSIONS:
+            try:
+                LOGGER.verbose(f"{step_name}Falling back to read EXIF with PIL for: {file_path}")
+                exif_dict = piexif.load(file_path)
+                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                    tag_id = piexif.ExifIFD.__dict__.get(tag)
+                    value = exif_dict["Exif"].get(tag_id)
+                    if value:
+                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+            except Exception as e:
+                LOGGER.warning(f"{step_name}Error reading EXIF for {file_path}: {e}")
 
         # 3. Fallback to mtime
         try:
@@ -1928,7 +1945,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
                 dirs[:] = [d for d in dirs if d not in exclude_subfolders]
                 for file in files:
                     file_path = os.path.join(path, file)
-                    if not os.path.isfile(file_path):
+                    if not os.path.isfile(file_path) or file_path.lower().endswith(".json"):
                         continue
                     pbar.update(1)
                     # Get file date
@@ -1951,6 +1968,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
             batch_replace_sourcefiles_in_json(json_path=update_json, replacements=replacements, step_name=step_name, log_level=log_level)
         LOGGER.info(f"{step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
         return replacements
+
 
 
 def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_subfolder=None, step_name="", log_level=None):

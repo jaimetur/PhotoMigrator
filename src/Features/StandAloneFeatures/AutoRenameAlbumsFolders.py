@@ -349,6 +349,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                             debug_messages.append(f"{step_name}Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
                             renamed_album_folders += 1
 
+        # Now modify the output_json with all the files changed during this step
         if update_json and os.path.isfile(update_json):
             batch_replace_sourcefiles_in_json(json_path=update_json, replacements=replacements, step_name=step_name, log_level=log_level)
 

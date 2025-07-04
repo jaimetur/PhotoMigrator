@@ -514,7 +514,7 @@ def fix_path(path: str) -> str:
     Limpia una ruta:
     - Quita comillas exteriores (si están cerradas)
     - Quita comilla final suelta (si está escapada)
-    - Elimina barra final (/ o \), excepto si la ruta es raíz
+    - Elimina barra final, excepto si la ruta es raíz
     """
     path = path.strip()
     # Caso especial: comilla final suelta escapada
