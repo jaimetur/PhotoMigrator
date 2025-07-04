@@ -4,7 +4,7 @@ import platform
 import re
 import sys
 
-from Core.GlobalVariables import SCRIPT_NAME_VERSION, LOGGER
+from Core.GlobalVariables import TOOL_NAME_VERSION, LOGGER
 
 if platform.system() == "Windows":
     try:
@@ -39,8 +39,8 @@ class PagedParser(argparse.ArgumentParser):
             clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
             if 'usage' in clean_line.lower() and usage_first_line == -1:  # Detectar la primera línea con usage
                 usage_first_line = i
-            if SCRIPT_NAME_VERSION in clean_line:  # Detectar la última línea de usage (pero NO pintarla en verde)
-                usage_last_line = i - 1  # Detener una línea antes de SCRIPT_NAME_VERSION
+            if TOOL_NAME_VERSION in clean_line:  # Detectar la última línea de usage (pero NO pintarla en verde)
+                usage_last_line = i - 1  # Detener una línea antes de TOOL_NAME_VERSION
                 break  # No hace falta seguir buscando
 
         # Determinar todos los bloques de "CAUTION:"
@@ -96,7 +96,7 @@ class PagedParser(argparse.ArgumentParser):
                         clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
                         line_number = index + i  # Línea absoluta en el texto
                         if color_support:
-                            # Pintar todas las líneas dentro del bloque usage en verde (excepto la línea con SCRIPT_NAME_VERSION)
+                            # Pintar todas las líneas dentro del bloque usage en verde (excepto la línea con TOOL_NAME_VERSION)
                             if usage_first_line <= line_number <= usage_last_line:
                                 stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
                             # Pintar todas las líneas dentro de cualquier bloque “CAUTION:” en rojo

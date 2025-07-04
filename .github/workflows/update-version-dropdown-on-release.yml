@@ -43,6 +43,7 @@ jobs:
           else
             git add .github/ISSUE_TEMPLATE/bug_form.yml
             git add .github/ISSUE_TEMPLATE/improvement_request.yml
+            git add .github/ISSUE_TEMPLATE/feature_request.yml
             git commit -m "🔁 Update version dropdowns after new release"
             git push
           fi

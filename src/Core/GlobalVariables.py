@@ -8,11 +8,11 @@ from colorama import Fore
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
 #---------------------------------------
 COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
-SCRIPT_NAME                     = "PhotoMigrator"
-SCRIPT_VERSION_WITHOUT_V        = "3.4.0"
-SCRIPT_VERSION                  = f"v{SCRIPT_VERSION_WITHOUT_V}"
-SCRIPT_DATE                     = "2025-06-30"
-SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
+TOOL_NAME                       = "PhotoMigrator"
+TOOL_VERSION_WITHOUT_V          = "3.4.1"
+TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
+TOOL_DATE                       = "2025-07-05"
+TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
 GPTH_VERSION                    = "4.0.9"
 EXIF_VERSION                    = "13.30"
@@ -21,6 +21,7 @@ COMPILE_IN_ONE_FILE             = True
 RESOURCES_IN_CURRENT_FOLDER     = True
 START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
+
 
 # Customizable DIR Folders
 CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_FOLDERS
@@ -94,24 +95,32 @@ EDITTED_SUFFIXES = [
 # List of Folder to Deprioritize when looking for duplicates.
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
 
-# Script description
-SCRIPT_DESCRIPTION              = textwrap.dedent(f"""{SCRIPT_NAME_VERSION} - {SCRIPT_DATE}
-                                
-          Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
-          such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
-         
-          ©️ 2024-2025 by Jaime Tur (@jaimetur)
-          """
-          )
-
+# Supported Extensions Lists
+PIL_SUPPORTED_EXTENSIONS        = ['.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tif', '.tiff', '.webp']
 PHOTO_EXT                       = ['.3fr', '.ari', '.arw', '.cap', '.cin', '.cr2', '.cr3', '.crw', '.dcr', '.dng', '.erf', '.fff', '.iiq', '.k25', '.kdc', '.mrw', '.nef', '.nrw', '.orf', '.ori', '.pef', '.psd', '.raf', '.raw', '.rw2', '.rwl', '.sr2', '.srf', '.srw', '.x3f', '.avif', '.bmp', '.gif', '.heic', '.heif', '.hif', '.insp', '.jp2', '.jpe', '.jpeg', '.jpg', '.jxl', '.png', '.svg', '.tif', '.tiff', '.webp']
 VIDEO_EXT                       = ['.3gp', '.3gpp', '.avi', '.flv', '.insv', '.m2t', '.m2ts', '.m4v', '.mkv', '.mov', '.mp4', '.mpe', '.mpeg', '.mpg', '.mts', '.vob', '.webm', '.wmv']
 METADATA_EXT                    = ['.json']
 SIDECAR_EXT                     = ['.xmp']
 
+# Tool Banner
+BANNER = textwrap.dedent(rf"""
+         ____  _           _        __  __ _                 _
+        |  _ \| |__   ___ | |_ ___ |  \/  (_) __ _ _ __ __ _| |_ ___  _ __
+        | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
+        |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
+        |_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
+                                             |___/ {TOOL_VERSION} ({TOOL_DATE})
+        """).lstrip("\n")  # Elimina solo la primera línea en blanco
 
+# Tool description
+TOOL_DESCRIPTION = textwrap.dedent(f"""{TOOL_NAME_VERSION} - {TOOL_DATE}
 
+          Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
+          such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
+          ©️ 2024-2025 by Jaime Tur (@jaimetur)
+          """
+                                   )
 
 
 

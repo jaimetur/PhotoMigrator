@@ -27,12 +27,12 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
-    curl -L -o PhotoMigrator_v3.4.0-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.4.0-alpha/PhotoMigrator_v3.4.0-alpha_docker.zip
+    curl -L -o PhotoMigrator_v3.4.1-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.4.1-alpha/PhotoMigrator_v3.4.1-alpha_docker.zip
     ```
   
 - **Windows (PowerShell):**
     ```bash
-    curl.exe -L -o PhotoMigrator_v3.4.0-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.4.0-alpha/PhotoMigrator_v3.4.0-alpha_docker.zip
+    curl.exe -L -o PhotoMigrator_v3.4.1-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.4.1-alpha/PhotoMigrator_v3.4.1-alpha_docker.zip
     ```
 
 
@@ -41,13 +41,13 @@ Download the latest version of the Docker package from the [Releases page](https
 - **Linux/macOS:**
     ```bash
     sudo apt install 7zip
-    7z x PhotoMigrator_v3.4.0-alpha_docker.zip
+    7z x PhotoMigrator_v3.4.1-alpha_docker.zip
     cd PhotoMigrator/docker
     ```
 
 - **Windows (PowerShell):**
     ```bash
-    powershell -Command "Expand-Archive -Path PhotoMigrator_v3.4.0-alpha_docker.zip -DestinationPath ./"
+    powershell -Command "Expand-Archive -Path PhotoMigrator_v3.4.1-alpha_docker.zip -DestinationPath ./"
     cd PhotoMigrator\docker
     ```
 

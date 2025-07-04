@@ -40,7 +40,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                      [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                      [-gnas ['flatten', 'year', 'year/month', 'year-month']] [-gics] [-gnsa] [-grdf] [-graf] [-gsef]
-                     [-gsma] [-gsgt] [-gSkipPrep] [-gKeepTkout]
+                     [-gsma] [-gSkipGpth] [-gSkipPrep] [-gKeepTkout]
                      [-gpthInfo [= [true,false]]] [-gpthError [= [true,false]]]
                      [-uAlb <ALBUMS_FOLDER>] [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                      [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>]
@@ -50,7 +50,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
 
-PhotoMigrator v3.4.0 - 2025-06-30
+PhotoMigrator v3.4.1 - 2025-07-05
 
           Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
           such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -209,7 +209,7 @@ for the rest of the arguments for this extra mode.
               Skips processing extra photos such as  -edited, -effects photos.
 -gsma       ; --google-skip-move-albums
               Skips moving albums to '<ALBUMS_FOLDER>'.
--gsgt       ; --google-skip-gpth-tool
+-gSkipGpth       ; --google-skip-gpth-tool
               Skips processing files with GPTH Tool.
               CAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use
               this flag only for testing purposes.

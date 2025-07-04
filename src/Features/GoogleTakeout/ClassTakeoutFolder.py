@@ -10,22 +10,27 @@ import stat
 import subprocess
 import sys
 import zipfile
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from os.path import dirname, basename
 from pathlib import Path
 
+import piexif
 from colorama import init
+from dateutil import parser
 from packaging.version import Version
 
 from Core.CustomLogger import set_log_level
+from Core.CustomLogger import suppress_console_output_temporarily
 from Core.FileStatistics import count_files_and_extract_dates
-from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH
+from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, \
+    PIL_SUPPORTED_EXTENSIONS
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
-from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty
+from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resource_path, custom_print
 
 
@@ -133,15 +138,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.substep = 0
             step_start_time = datetime.now()
             LOGGER.info(f"")
-            LOGGER.info(f"=============================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"{self.step}. PRE-CHECKING TAKEOUT FOLDER...  ")
-            LOGGER.info(f"=============================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
 
             # Sub-Step 1: Extraction Process
             # ----------------------------------------------------------------------------------------------------------------------
             if self.needs_unzip:
-                step_name = '🔍 [PRE-CHECKS]-[Unzip Takeout] : '
+                step_name = '🔍 [PRE-CHECKS]-[Unzip Takeout  ] : '
                 self.substep += 1
                 sub_step_start_time = datetime.now()
                 LOGGER.info(f"")
@@ -170,7 +175,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if self.ARGS.get('google-keep-takeout-folder'):
                 # Determine the input_folder depending if the Takeout have been unzipped or not
                 input_folder = self.get_input_folder()
-                step_name = '🔍 [PRE-CHECKS]-[Clone Takeout] : '
+                step_name = '🔍 [PRE-CHECKS]-[Clone Takeout  ] : '
                 self.substep += 1
                 sub_step_start_time = datetime.now()
                 LOGGER.info(f"")
@@ -194,22 +199,22 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Sub-Step 3: Count initial files in Takeout Folder before to process with GPTH and modify any original file
+            # Sub-Step 3: Analyze initial files in Takeout Folder before to process with GPTH and modify any original file
             # ----------------------------------------------------------------------------------------------------------------------
-            # Determine the input_folder depending if the Takeout have been unzipped or not
+            # Determine the input_folder depending on if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
-            step_name = '🔍 [PRE-CHECKS]-[Count Files  ] : '
+            step_name = '🔍 [PRE-CHECKS]-[Analyze Takeout] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Counting files in Takeout Folder: {input_folder}...")
+            LOGGER.info(f"{step_name}Analyze files in Takeout Folder: {input_folder}...")
             # New function to count all file types and extract also date info
-            initial_takeout_counters, dates = count_files_and_extract_dates(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            initial_takeout_counters, exif_dates, input_json = count_files_and_extract_dates(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
             # Clean input dict
             self.result['input_counters'].clear()
             # Assign all pairs key-value from initial_takeout_counters to counter['input_counters'] dict
             self.result['input_counters'].update(initial_takeout_counters)
-            LOGGER.info(f"{step_name}Counting Files finished!")
+            LOGGER.info(f"{step_name}Analyzing Takeout files completed")
             LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
             LOGGER.info(f"{step_name}Total Files in Takeout folder                    : {self.result['input_counters']['total_files']:<7}")
             LOGGER.info(f"{step_name}Total Non-Supported files in Takeout folder      : {self.result['input_counters']['unsupported_files']:<7}")
@@ -246,7 +251,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             idx = len(self.steps_duration) - self.substep
             if idx < 0:  idx = 0  # si la lista tiene menos de self.substep elementos, lo ponemos al inicio
             # Insertamos ahí el nuevo registro (sin sobrescribir ninguno)
-            self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '- TOTAL DURATION', 'duration': formatted_duration})
+            self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
 
 
     def preprocess(self, log_level=None):
@@ -256,9 +261,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.substep = 0
             step_start_time = datetime.now()
             LOGGER.info(f"")
-            LOGGER.info(f"=============================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"{self.step}. PRE-PROCESSING TAKEOUT FOLDER...")
-            LOGGER.info(f"=============================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
 
             # Determine the input_folder deppending if the Takeout have been unzipped or not
@@ -341,7 +346,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             idx = len(self.steps_duration) - self.substep
             if idx < 0:  idx = 0  # si la lista tiene menos de self.substep elementos, lo ponemos al inicio
             # Insertamos ahí el nuevo registro (sin sobrescribir ninguno)
-            self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '- TOTAL DURATION', 'duration': formatted_duration})
+            self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
+
 
     def process(self, output_folder=None, capture_output=True, capture_errors=True, print_messages=True, create_localfolder_object=True, log_level=None):
         """
@@ -351,9 +357,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Start the Process
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
             LOGGER.info(f"")
-            LOGGER.info(f"==========================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"🔢 TAKEOUT PROCESSING STARTED...")
-            LOGGER.info(f"==========================================")
+            LOGGER.info(f"================================================================================================================================================")
             processing_start_time = datetime.now()
 
             if capture_output is None: capture_output=self.ARGS['show-gpth-info']
@@ -369,6 +375,22 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # Call preprocess() with the same log_level as process()
                 self.preprocess(log_level=log_level)
 
+
+            # --------------------------------------------------------------------------------------------------------------------------------------------------------
+            # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
+            # This need to be done after Pre-checks because if takeout folders have been unzipped, the input_folder, output_folder and albums_folder need to be updated
+            # --------------------------------------------------------------------------------------------------------------------------------------------------------
+            # If the user have passed an output_folder directly to the process() method, then update the object with this output_folder
+            if output_folder:
+                self.output_folder = output_folder
+            # Determine the output_folder if it has not been given in the call to process() method
+            output_folder = self.get_output_folder()
+            # Determine the input_folder depending on if the Takeout have been unzipped or not
+            input_folder = self.get_input_folder()
+            # Determine where the Albums will be located
+            albums_folder = self.get_albums_folder()
+
+
             # Step 3: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-gpth-tool']:
@@ -376,9 +398,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
-                LOGGER.info(f"=====================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}. FIXING PHOTOS METADATA WITH GPTH TOOL...")
-                LOGGER.info(f"=====================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
 
@@ -388,20 +410,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     if not self.needs_process:
                         LOGGER.warning(f"{step_name}No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
-
-                # --------------------------------------------------------------------------------------------------------------------------------------------------------
-                # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
-                # This need to be done after Pre-checks because if takeout folders have been unzipped, the input_folder, output_folder and albums_folder need to be updated
-                # --------------------------------------------------------------------------------------------------------------------------------------------------------
-                # If the user have passed an output_folder directly to the process() method, then update the object with this output_folder
-                if output_folder:
-                    self.output_folder = output_folder
-                # Determine the output_folder if it has not been given in the call to process() method
-                output_folder = self.get_output_folder()
-                # Determine the input_folder depending on if the Takeout have been unzipped or not
-                input_folder = self.get_input_folder()
-                # Determine where the Albums will be located
-                albums_folder = self.get_albums_folder()
 
                 # Now Call GPTH Tool
                 ok = fix_metadata_with_gpth_tool(
@@ -422,8 +430,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning(f"{step_name}If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                     return self.result
 
-                # Determine if manual copy/move is needed (for step 4)
-                manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
                 LOGGER.info(f"")
@@ -431,19 +437,22 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 4: Copy/Move files to output folder manually
+            # Determine if manual copy/move is needed (for step 4)
+            manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
+
+            # Step 4: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
             # ----------------------------------------------------------------------------------------------------------------------
             if manual_copy_move_needed:
                 step_name = '📁 [POST-PROCESS]-[Copy/Move] : '
                 step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
-                LOGGER.info(f"======================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
-                LOGGER.info(f"======================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
                 if self.ARGS['google-skip-gpth-tool']:
-                    LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag). step {self.step} is needed to copy files manually to output folder.")
+                    LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gSkipGpth, --google-skip-gpth-tool' flag). step {self.step} is needed to copy files manually to output folder.")
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning(f"{step_name}Flag to Ignore Google Takeout Structure detected. step {self.step} is needed to copy/move files manually to output folder.")
                 if not self.ARGS['google-keep-takeout-folder']:
@@ -464,9 +473,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '🕒 [POST-PROCESS]-[MP4 Timestamp Synch] : '
             step_start_time = datetime.now()
             LOGGER.info(f"")
-            LOGGER.info(f"========================================================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"{self.step}. SYNC TIMESTAMPS OF .MP4 with IMAGES (.HEIC, .JPG, .JPEG)...")
-            LOGGER.info(f"========================================================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Timestamps of '.MP4' file with Live pictures files (.HEIC, .JPG, .JPEG) if both files have the same name and are in the same folder...")
             sync_mp4_timestamps_with_images(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
@@ -477,25 +486,129 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 6: Create Folders Year/Month or Year only structure
+            # Step 6.1: [OPTIONAL] [Enabled by Default] - Move albums
+            # ----------------------------------------------------------------------------------------------------------------------
+            if not self.ARGS['google-skip-move-albums']:
+                step_name = '📚 [POST-PROCESS]-[Move Albums] : '
+                step_start_time = datetime.now()
+                self.step += 1
+                LOGGER.info(f"")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"{self.step}. MOVING ALBUMS FOLDER...")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
+                move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                step_end_time = datetime.now()
+                LOGGER.info(f"{step_name}All your albums have been moved successfully!")
+                # Step 6.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # ----------------------------------------------------------------------------------------------------------------------
+                if not self.ARGS['google-no-symbolic-albums']:
+                    LOGGER.info(f"")
+                    LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
+                    self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+                    LOGGER.info(f"{step_name}Fixed symbolic links after moving Albums folders!")
+
+                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
+
+            # Step 7.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
+            # ----------------------------------------------------------------------------------------------------------------------
+            if self.ARGS['google-rename-albums-folders']:
+                step_name = '📝 [POST-PROCESS]-[Album Renaming] : '
+                step_start_time = datetime.now()
+                self.step += 1
+                LOGGER.info(f"")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"{self.step}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
+                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                # Merge all counts from rename_output into self.result in one go
+                self.result.update(rename_output)
+                # Step 7.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # ----------------------------------------------------------------------------------------------------------------------
+                if not self.ARGS['google-no-symbolic-albums']:
+                    LOGGER.info(f"")
+                    LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
+                    self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+                    LOGGER.info(f"{step_name}Fixed symbolic links after moving Albums renaming!")
+
+                step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
+
+            # Step 8: Analyze Output Files
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🔢 [POST-PROCESS]-[Analyze Output Files] : '
+            step_start_time = datetime.now()
+            self.step += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. ANALYZING OUTPUT FILES... ")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            # Count all Files in output Folder
+            output_counters, exif_dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            # Clean input dict
+            self.result['output_counters'].clear()
+            # Assign all pairs key-value from output_counters to counter['output_counters'] dict
+            self.result['output_counters'].update(output_counters)
+            LOGGER.info(f"{step_name}Analyzing output files completed!")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
+            LOGGER.info(f"{step_name}Total Files in Output folder                     : {self.result['output_counters']['total_files']:<7}")
+            LOGGER.info(f"{step_name}Total Non-Supported files in Takeout folder      : {self.result['output_counters']['unsupported_files']:<7}")
+            LOGGER.info(f"{step_name}Total Supported files in Takeout folder          : {self.result['output_counters']['supported_files']:<7}")
+            LOGGER.info(f"{step_name}  - Total Non-Media files in Takeout folder      : {self.result['output_counters']['non_media_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Metadata in Takeout folder           : {self.result['output_counters']['metadata_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Sidecars in Takeout folder           : {self.result['output_counters']['sidecar_files']:<7}")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
+            LOGGER.info(f"{step_name}  - Total Media files in Takeout folder          : {self.result['output_counters']['media_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Photos in Takeout folder             : {self.result['output_counters']['photo_files']:<7}")
+            LOGGER.info(f"{step_name}      - Correct Date                             : {self.result['output_counters']['photos']['with_date']:<7} ({self.result['output_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"{step_name}      - Incorrect Date                           : {self.result['output_counters']['photos']['without_date']:<7} ({self.result['output_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"{step_name}    - Total Videos in Takeout folder             : {self.result['output_counters']['video_files']:<7}")
+            LOGGER.info(f"{step_name}      - Correct Date                             : {self.result['output_counters']['videos']['with_date']:<7} ({self.result['output_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"{step_name}      - Incorrect Date                           : {self.result['output_counters']['videos']['without_date']:<7} ({self.result['output_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
+            step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
+
+            # Step 9: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                 step_name = '📁 [POST-PROCESS]-[Create year/month struct] : '
                 step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
-                LOGGER.info(f"====================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
-                LOGGER.info(f"====================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 # For Albums
                 if self.ARGS['google-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info(f"")
                     LOGGER.info(f"{step_name}Creating Folder structure '{self.ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
-                    basedir = output_folder
+                    if self.ARGS['google-skip-move-albums']:
+                        basedir = output_folder
+                    else:
+                        basedir = os.path.join(output_folder, FOLDERNAME_ALBUMS)
                     type_structure = self.ARGS['google-albums-folders-structure']
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
-                    organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, step_name=step_name, log_level=LOG_LEVEL)
-
+                    # TODO: El problema es que uso dates para extraer fechas, pero dates es una lista que no ha sido actualizada al renombrar albumes en el paso previo. La solucion es o bien actualizar dates al mismo tiempo que el json, o bien usar directamente el json como entrada
+                    replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    # Now modify the output_json with all the files changed during this step
+                    batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
                 # For No-Albums
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info(f"")
@@ -503,13 +616,23 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     basedir = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
                     type_structure = self.ARGS['google-no-albums-folders-structure']
                     exclude_subfolders = []
-                    organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, step_name=step_name, log_level=LOG_LEVEL)
-
+                    replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    # Now modify the output_json with all the files changed during this step
+                    batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
                 # If flatten
                 if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                     LOGGER.info(f"")
                     LOGGER.warning(f"{step_name}No argument '-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure' detected. All photos and videos will be flattened in their folders.")
 
+                if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
+                    # Step 10.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                    # ----------------------------------------------------------------------------------------------------------------------
+                    if not self.ARGS['google-no-symbolic-albums']:
+                        LOGGER.info(f"")
+                        LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
+                        self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+                        LOGGER.info(f"{step_name}Fixed symbolic links after Created Year/Month structure in output folders!!")
+
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
                 LOGGER.info(f"")
@@ -517,37 +640,37 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 7: Move albums
-            # ----------------------------------------------------------------------------------------------------------------------
-            if not self.ARGS['google-skip-move-albums']:
-                step_name = '📚 [POST-PROCESS]-[Move Albums] : '
-                step_start_time = datetime.now()
-                self.step += 1
-                LOGGER.info(f"")
-                LOGGER.info(f"====================================")
-                LOGGER.info(f"{self.step}. MOVING ALBUMS FOLDER...")
-                LOGGER.info(f"====================================")
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
-                move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
-                step_end_time = datetime.now()
-                LOGGER.info(f"{step_name}All your albums have been moved successfully!")
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+            # # Step 11: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+            # # ----------------------------------------------------------------------------------------------------------------------
+            # if not self.ARGS['google-no-symbolic-albums']:
+            #     step_name = '🔗 [POST-PROCESS]-[Fix Symlinks] : '
+            #     step_start_time = datetime.now()
+            #     self.step += 1
+            #     LOGGER.info(f"")
+            #     LOGGER.info(f"================================================================================================================================================")
+            #     LOGGER.info(f"{self.step}. FIXING BROKEN SYMBOLIC LINKS AFTER MOVING...")
+            #     LOGGER.info(f"================================================================================================================================================")
+            #     LOGGER.info(f"")
+            #     LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
+            #     self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+            #
+            #     step_end_time = datetime.now()
+            #     formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            #     LOGGER.info(f"")
+            #     LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+            #     self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 8: Remove Duplicates
+            # Step 10: [OPTIONAL] [Disabled by Default] - Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-remove-duplicates-files']:
                 step_name = '👥 [POST-PROCESS]-[Remove Duplicates] : '
                 step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
-                LOGGER.info(f"==============================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}. REMOVING DUPLICATES IN <OUTPUT_TAKEOUT_FOLDER>...")
-                LOGGER.info(f"==============================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
 
                 # First Remove Duplicates from OUTPUT_TAKEOUT_FOLDER (excluding '<NO_ALBUMS_FOLDER>' folder)
@@ -584,59 +707,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 9: Fix Broken Symbolic Links
-            # ----------------------------------------------------------------------------------------------------------------------
-            if not self.ARGS['google-no-symbolic-albums']:
-                step_name = '🔗 [POST-PROCESS]-[Fix Symlinks] : '
-                step_start_time = datetime.now()
-                self.step += 1
-                LOGGER.info(f"")
-                LOGGER.info(f"=========================================================")
-                LOGGER.info(f"{self.step}. FIXING BROKEN SYMBOLIC LINKS AFTER MOVING...")
-                LOGGER.info(f"=========================================================")
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
-                self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
-
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
-
-
-            # Step 10: Rename Albums Folders based on content date
-            # ----------------------------------------------------------------------------------------------------------------------
-            if self.ARGS['google-rename-albums-folders']:
-                step_name = '📝 [POST-PROCESS]-[Album Renaming] : '
-                step_start_time = datetime.now()
-                self.step += 1
-                LOGGER.info(f"")
-                LOGGER.info(f"============================================================")
-                LOGGER.info(f"{self.step}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
-                LOGGER.info(f"============================================================")
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
-                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
-                # Merge all counts from rename_output into self.result in one go
-                self.result.update(rename_output)
-
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
-
-
             # Step 11: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
             step_start_time = datetime.now()
             self.step += 1
             LOGGER.info(f"")
-            LOGGER.info(f"======================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"{self.step}. REMOVING EMPTY FOLDERS...")
-            LOGGER.info(f"======================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Removing empty folders in <OUTPUT_TAKEOUT_FOLDER>...")
             remove_empty_dirs(input_folder=output_folder, log_level=LOG_LEVEL)
@@ -649,27 +728,20 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 12: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🔢 [POST-PROCESS]-[Count Files & Albums] : '
+            step_name = '🔢 [POST-PROCESS]-[Count Albums] : '
             step_start_time = datetime.now()
             self.step += 1
             LOGGER.info(f"")
-            LOGGER.info(f"==========================================")
-            LOGGER.info(f"{self.step}. COUNTING FILES AND ALBUMS... ")
-            LOGGER.info(f"==========================================")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. COUNTING ALBUMS... ")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
 
-            # 1. First count all Files in output Folder
-            output_counters, dates = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
-
-            # Clean input dict
-            self.result['output_counters'].clear()
-            # Assign all pairs key-value from output_counters to counter['output_counters'] dict
-            self.result['output_counters'].update(output_counters)
-
-            # 2. Now count the Albums in output Folder
+            # Count the Albums in output Folder
             if os.path.isdir(albums_folder):
                 excluded_folders = [FOLDERNAME_NO_ALBUMS, "ALL_PHOTOS"]
-                self.result['valid_albums_found'] = count_valid_albums(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
+                # self.result['valid_albums_found'] = count_valid_albums(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
+                self.result['valid_albums_found'] = count_valid_albums_in_first_level(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
             LOGGER.info(f"{step_name}Valid Albums Found {self.result['valid_albums_found']}.")
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
@@ -677,15 +749,16 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
+
             # Step 13: FINAL CLEANING
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [FINAL-CLEANING] : '
             step_start_time = datetime.now()
             self.step += 1
             LOGGER.info(f"")
-            LOGGER.info(f"==========================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"{self.step}. FINAL CLEANING... ")
-            LOGGER.info(f"==========================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
             removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
@@ -699,12 +772,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
+
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((processing_end_time - processing_start_time).total_seconds())))
             LOGGER.info(f"")
-            LOGGER.info(f"============================================================================================================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"✅ TAKEOUT PROCESSING FINISHED!!!")
             LOGGER.info(f"{'Takeout Precessed Folder'.ljust(55)}  : '{output_folder}'.")
             LOGGER.info(f"")
@@ -715,7 +789,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_id_and_label.ljust(55)} : {entry['duration'].rjust(8)}")
             LOGGER.info(f"")
             LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(55)}  : {formatted_duration.rjust(8)}")
-            LOGGER.info(f"============================================================================================================================")
+            LOGGER.info(f"================================================================================================================================================")
 
             # PRINT RESULTS
             # ----------------------------------------------------------------------------------------------------------------------
@@ -765,19 +839,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if result['output_counters']['total_files'] == 0:
                 # FINAL SUMMARY
                 LOGGER.info(f"")
-                LOGGER.error(f"=====================================================")
+                LOGGER.error(f"================================================================================================================================================")
                 LOGGER.error(f"❌ PROCESS COMPLETED WITH ERRORS!           ")
-                LOGGER.error(f"=====================================================")
+                LOGGER.error(f"================================================================================================================================================")
                 LOGGER.info(f"")
                 LOGGER.error(f"No files found in Output Folder  : '{output_folder}'")
                 LOGGER.info(f"")
                 LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
-                LOGGER.info(f"============================================================================================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
             else:
                 # FINAL SUMMARY
                 LOGGER.info(f"")
-                LOGGER.info(f"============================================================================================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"✅ PROCESS COMPLETED SUCCESSFULLY!")
                 LOGGER.info(f"")
                 LOGGER.info(f"Processed Takeout have been saved to folder : '{output_folder}'")
@@ -787,6 +861,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.info(f"")
                 LOGGER.info(f"")
                 LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
                 LOGGER.info(f"Total Size of Takeout folder                : {result['input_counters']['total_size_mb']:.1f} MB")
                 LOGGER.info(f"Total Files in Takeout folder               : {result['input_counters']['total_files']:<7}")
@@ -840,7 +915,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"")
                 LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
                 LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
-                LOGGER.info(f"============================================================================================================================")
+                LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
 
 
@@ -1072,13 +1147,26 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
           - special_suffixes_fixed: count of special-suffix completions
           - edited_suffixes_fixed: count of edited-suffix completions
     """
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def repl(m):
         tail = m.group(0)[len(sub):-len(ext)]
         return suf + tail + ext
 
-    # 1) Pre-count all files for reporting
-    total_files = sum(len(files) for _, _, files in os.walk(input_folder))
+    # Build a combined regex for ANY truncated prefix of any special or edited suffix
+    def make_variant_pattern(suffix_list):
+        variants = set(suffix_list)
+        for s in suffix_list:
+            for i in range(2, len(s)):
+                variants.add(s[:i])
+        # sort longest first so regex matches the largest truncation before smaller ones
+        return '|'.join(sorted(map(re.escape, variants), key=len, reverse=True))
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
 
+    # Pre-count all files for reporting
+    total_files = sum(len(files) for _, _, files in os.walk(input_folder))
+    variants_specials_pattern = make_variant_pattern(SPECIAL_SUFFIXES)
+    variants_editted_pattern = make_variant_pattern(EDITTED_SUFFIXES)
+    optional_counter = r'(?:\(\d+\))?'  # allow "(n)" counters
     counters = {
         "total_files": total_files,
         "total_files_fixed": 0,
@@ -1089,19 +1177,6 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
         "special_suffixes_fixed": 0,
         "edited_suffixes_fixed": 0,
     }
-
-    # 2) Build a combined regex for ANY truncated prefix of any special or edited suffix
-    def make_variant_pattern(suffix_list):
-        variants = set(suffix_list)
-        for s in suffix_list:
-            for i in range(2, len(s)):
-                variants.add(s[:i])
-        # sort longest first so regex matches the largest truncation before smaller ones
-        return '|'.join(sorted(map(re.escape, variants), key=len, reverse=True))
-
-    variants_specials_pattern = make_variant_pattern(SPECIAL_SUFFIXES)
-    variants_editted_pattern = make_variant_pattern(EDITTED_SUFFIXES)
-    optional_counter = r'(?:\(\d+\))?'  # allow "(n)" counters
     with set_log_level(LOGGER, log_level):
         # --------------------------
         # --- Case A: JSON files ---
@@ -1286,8 +1361,7 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
     Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
     Loguea solo líneas distintas a las de progreso. Corrige pegado de líneas en consola.
     """
-    from Core.CustomLogger import suppress_console_output_temporarily
-    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def handle_stream(stream, is_error=False):
         init(autoreset=True)
 
@@ -1409,8 +1483,8 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
         # 5) Al cerrar stream, si quedó un progreso vivo, cerramos línea
         if last_was_progress and print_messages:
             print()
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
 
-    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
     with suppress_console_output_temporarily(LOGGER):
         if not capture_output and not capture_errors:
             return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
@@ -1567,15 +1641,15 @@ def fix_metadata_with_exif_tool(output_folder, log_level=None):
         # Detect the operating system
         current_os = platform.system()
         # Determine the Tool name based on the OS
-        script_name = ""
+        tool_name = ""
         if current_os == "Linux":
-            script_name = "exiftool"
+            tool_name = "exiftool"
         elif current_os == "Darwin":
-            script_name = "exiftool"
+            tool_name = "exiftool"
         elif current_os == "Windows":
-            script_name = "exiftool.exe"
+            tool_name = "exiftool.exe"
         # Usar resource_path para acceder a archivos o directorios:
-        exif_tool_path = resource_path(os.path.join("exif_tool", script_name))
+        exif_tool_path = resource_path(os.path.join("exif_tool", tool_name))
 
         # Ensure exec permissions for the binary file
         ensure_executable(exif_tool_path)
@@ -1658,10 +1732,13 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
 
 
 def force_remove_directory(folder, step_name='', log_level=None):
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def onerror(func, path, exc_info):
         # Cambia los permisos y vuelve a intentar
         os.chmod(path, stat.S_IWRITE)
         func(path)
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
+
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if os.path.exists(folder):
@@ -1686,6 +1763,18 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
     :param move: If True, moves the files instead of copying them.
     :return: None
     """
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
+    def ignore_function(files, ignore_patterns):
+        if ignore_patterns:
+            # Convert to a list if a single pattern is provided
+            patterns = ignore_patterns if isinstance(ignore_patterns, list) else [ignore_patterns]
+            ignored = []
+            for pattern in patterns:
+                ignored.extend(fnmatch.filter(files, pattern))
+            return set(ignored)
+        return set()
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
+
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Ignore function
         action = 'Moving' if move else 'Copying'
@@ -1696,16 +1785,6 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
             if not is_valid_path(dst):
                 LOGGER.error(f"{step_name}The path '{dst}' is not valid for the execution platform. Cannot copy/move folders to it.")
                 return False
-
-            def ignore_function(files, ignore_patterns):
-                if ignore_patterns:
-                    # Convert to a list if a single pattern is provided
-                    patterns = ignore_patterns if isinstance(ignore_patterns, list) else [ignore_patterns]
-                    ignored = []
-                    for pattern in patterns:
-                        ignored.extend(fnmatch.filter(files, pattern))
-                    return set(ignored)
-                return set()
 
             # Ensure the source folder exists
             if not os.path.exists(src):
@@ -1781,69 +1860,101 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
             return False
 
 
-def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], step_name="", log_level=None):
+def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exif_dates={}, update_json=None, step_name="", log_level=None):
     """
-    Organizes files into subfolders based on their EXIF or modification date.
+    Organizes files into subfolders based on their EXIF date or, if unavailable, their modification date.
+
+    The organization structure can be by year, by nested year/month folders, or by flat year-month folders.
 
     Args:
-        input_folder (str, Path): The base directory containing the files.
-        type: 'year' to organize by year, or 'year-month' to organize by year and month.
-        exclude_subfolders (str, Path or list): A list of subfolder names to exclude from processing.
+        input_folder (str or Path): The root directory containing the files to organize.
+        type (str): The structure used to organize files. Must be one of:
+            - 'year' → creates folders like '2024'
+            - 'year/month' → creates nested folders like '2024/07'
+            - 'year-month' → creates folders like '2024-07'
+        exclude_subfolders (list): A list of folder names (not paths) to exclude from processing.
+        exif_dates (dict): Optional dictionary with file paths as keys and `datetime` objects as values.
+                           Used to avoid reprocessing EXIF metadata.
+        update_json (str or Path): Path to a JSON file whose "source_file" entries will be updated with new paths.
+        step_name (str): Optional prefix to include in all log messages for context tracking.
+        log_level (int or None): Optional logging level to use during execution.
+
+    Returns:
+        list: A list of tuples (original_path, new_path) representing all moved files.
 
     Raises:
-        ValueError: If the value of `type` is invalid.
-        :param step_name:
-        :param log_level:
+        ValueError: If `type` is not one of 'year', 'year/month', or 'year-month'.
     """
-    import os
-    import shutil
-    from datetime import datetime
-    import piexif
-    def get_exif_date(image_path):
+
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
+    def get_file_date(file_path, exif_dates, step_name):
+        norm_path = Path(file_path).resolve().as_posix()
+
+        # 1. Try to get SelectedDate from exif_dates if available
+        exif_entry = exif_dates.get(norm_path) if exif_dates else None
+        if isinstance(exif_entry, dict):
+            selected_date = exif_entry.get("SelectedDate")
+            if isinstance(selected_date, datetime):
+                return selected_date
+            elif isinstance(selected_date, str) and selected_date.strip():
+                try:
+                    return parser.parse(selected_date.strip())
+                except Exception as e:
+                    LOGGER.verbose(f"{step_name}❌ Error parsing SelectedDate '{selected_date}' for {norm_path}: {e}")
+
+            # If no SelectedDate, try to use the minimum date among all EXIF tags
+            all_dates = []
+            for k, v in exif_entry.items():
+                if k in ["SelectedDate", "Source"] or not v:
+                    continue
+                try:
+                    dt = v if isinstance(v, datetime) else parser.parse(str(v).strip())
+                    all_dates.append(dt)
+                except Exception:
+                    continue
+            if all_dates:
+                return min(all_dates)
+
+        # 2. Try to extract EXIF date directly if it's a photo
+        ext = Path(file_path).suffix.lower()
+        if ext in PIL_SUPPORTED_EXTENSIONS:
+            try:
+                LOGGER.verbose(f"{step_name}Falling back to read EXIF with PIL for: {file_path}")
+                exif_dict = piexif.load(file_path)
+                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                    tag_id = piexif.ExifIFD.__dict__.get(tag)
+                    value = exif_dict["Exif"].get(tag_id)
+                    if value:
+                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+            except Exception as e:
+                LOGGER.warning(f"{step_name}Error reading EXIF for {file_path}: {e}")
+
+        # 3. Fallback to mtime
         try:
-            exif_dict = piexif.load(image_path)
-            for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-                tag_id = piexif.ExifIFD.__dict__.get(tag)
-                value = exif_dict["Exif"].get(tag_id)
-                if value:
-                    return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-        except Exception:
-            pass
-        return None
+            LOGGER.verbose(f"{step_name}Falling back to mtime for: {file_path}")
+            mtime = os.path.getmtime(file_path)
+            return datetime.fromtimestamp(mtime if mtime > 0 else 0)
+        except Exception as e:
+            LOGGER.warning(f"{step_name}Error reading mtime for {file_path}: {e}")
+            return datetime(1970, 1, 1)
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
 
     with set_log_level(LOGGER, log_level):
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError(f"{step_name}The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
-        total_files = 0
-        for _, dirs, files in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d not in exclude_subfolders]
-            total_files += len(files)
-        with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
+        replacements = []
+        with tqdm(smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files", dynamic_ncols=True) as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
                 dirs[:] = [d for d in dirs if d not in exclude_subfolders]
                 for file in files:
-                    pbar.update(1)
                     file_path = os.path.join(path, file)
-                    if not os.path.isfile(file_path):
+                    if not os.path.isfile(file_path) or file_path.lower().endswith(".json"):
                         continue
-                    mod_time = None
-                    ext = os.path.splitext(file)[1].lower()
-                    # Intentar obtener fecha EXIF si es imagen
-                    if ext in PHOTO_EXT:
-                        try:
-                            mod_time = get_exif_date(file_path)
-                        except Exception as e:
-                            LOGGER.warning(f"{step_name}Error reading EXIF from {file_path}: {e}")
-                    # Si no hay EXIF o no es imagen, usar fecha de sistema
-                    if not mod_time:
-                        try:
-                            mtime = os.path.getmtime(file_path)
-                            mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)
-                        except Exception as e:
-                            LOGGER.warning(f"{step_name}Error reading mtime for {file_path}: {e}")
-                            mod_time = datetime(1970, 1, 1)
-                    LOGGER.verbose(f"{step_name}Using date {mod_time} for file {file_path}")
-                    # Determinar carpeta destino
+                    pbar.update(1)
+                    # Get file date
+                    mod_time = get_file_date(file_path, exif_dates, step_name)
+                    LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
+                    # Determine target folder
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
                     elif type == 'year/month':
@@ -1851,8 +1962,16 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
                     elif type == 'year-month':
                         target_dir = os.path.join(path, mod_time.strftime('%Y-%m'))
                     os.makedirs(target_dir, exist_ok=True)
-                    shutil.move(file_path, os.path.join(target_dir, file))
+                    dest_path = os.path.join(target_dir, file)
+                    # Moves file_path to new dest_path
+                    shutil.move(file_path, dest_path)
+                    # Update replacements list
+                    replacements.append((str(file_path), str(dest_path)))
+        if update_json and os.path.isfile(update_json):
+            batch_replace_sourcefiles_in_json(json_path=update_json, replacements=replacements, step_name=step_name, log_level=log_level)
         LOGGER.info(f"{step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
+        return replacements
+
 
 
 def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_subfolder=None, step_name="", log_level=None):
@@ -1866,17 +1985,20 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
         :param step_name:
         :param log_level:
     """
+
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
+    def safe_move(folder_path, albums_path):
+        destination = os.path.join(albums_path, os.path.basename(folder_path))
+        if os.path.exists(destination):
+            if os.path.isdir(destination):
+                shutil.rmtree(destination)
+            else:
+                os.remove(destination)
+        shutil.move(folder_path, albums_path)
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
+
     # Ensure exclude_subfolder is a list, even if a single string is passed
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        def safe_move(folder_path, albums_path):
-            destination = os.path.join(albums_path, os.path.basename(folder_path))
-            if os.path.exists(destination):
-                if os.path.isdir(destination):
-                    shutil.rmtree(destination)
-                else:
-                    os.remove(destination)
-            shutil.move(folder_path, albums_path)
-
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
         albums_path = os.path.join(input_folder, albums_subfolder)
@@ -1897,6 +2019,7 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
                 LOGGER.debug(f"{step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
                 os.makedirs(albums_path, exist_ok=True)
                 safe_move(folder_path, albums_path)
+
         # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
         move_albums_to_root(albums_path, step_name=step_name, log_level=logging.INFO)
 
@@ -1954,59 +2077,107 @@ def count_valid_albums(folder_path, excluded_folders=None, step_name="", log_lev
     """
     if excluded_folders is None:
         excluded_folders = ()
-
     YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
     MEDIA_EXT = set(PHOTO_EXT) | set(VIDEO_EXT)         # union once → O(1) lookup
-
     valid_albums = 0
     visited_dirs = set()
-
     with set_log_level(LOGGER, log_level):
         for root, dirs, files in os.walk(folder_path, followlinks=True):
             real_root = os.path.realpath(root)
             if real_root in visited_dirs:               # avoid loops with symlinked dirs
                 continue
             visited_dirs.add(real_root)
-
             folder_name = os.path.basename(root)
-
             # ── skip folders by name ────────────────────────────────────────────
             if folder_name in excluded_folders or YEAR_PATTERN.fullmatch(folder_name):
                 dirs.clear()
                 continue
-
             dirs[:] = [
                 d for d in dirs
                 if d not in excluded_folders and not YEAR_PATTERN.fullmatch(d)
             ]
-
             # ── inspect files inside this folder ───────────────────────────────
             for fname in files:
                 fpath = Path(root) / fname
                 link_ext = fpath.suffix.lower()                 # ext of the file itself
                 target_ext = ''                                 # will be filled below
-
                 try:
                     if fpath.is_symlink():                      # POSIX / NTFS symlink
                         target_ext = fpath.resolve(strict=False).suffix.lower()
-
                     elif os.name == 'nt' and link_ext == '.lnk':
                         # Windows shortcut (.lnk): try to infer inner extension from its stem
                         target_ext = Path(fpath.stem).suffix.lower()
                         # NOTE: we don't parse the .lnk binary; good enough if names keep the ext.
-
                     else:
                         target_ext = link_ext                   # normal file (no link)
-
                     if link_ext in MEDIA_EXT or target_ext in MEDIA_EXT:
                         valid_albums += 1
                         LOGGER.debug(f"{step_name}✅ Valid album at: {root}")
                         break                                   # next folder
-
                 except Exception as exc:
                     LOGGER.warning(f"{step_name}⚠️ Cannot inspect {fpath}: {exc}")
-
     return valid_albums
+
+
+def count_valid_albums_in_first_level(folder_path, excluded_folders=None, step_name="", log_level=None):
+    """
+    Count subfolders directly under `folder_path` that contain at least one media file (including via symlink),
+    either in the folder itself or any of its nested subfolders.
+
+    Args:
+        folder_path: Root folder where direct subfolders are scanned.
+        excluded_folders: Set of folder names to skip.
+        step_name: Optional step name to prefix log messages.
+        log_level: Optional logging level override.
+    """
+    with set_log_level(LOGGER, log_level):
+        if excluded_folders is None:
+            excluded_folders = ()
+        YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
+        MEDIA_EXT = set(PHOTO_EXT) | set(VIDEO_EXT)  # union once → O(1) lookup
+        valid_albums = 0
+        folder_path = Path(folder_path)
+        if not folder_path.is_dir():
+            LOGGER.warning(f"{step_name}⚠️ Provided path is not a folder: {folder_path}")
+            return valid_albums
+
+        for subfolder in folder_path.iterdir():
+            if not subfolder.is_dir():
+                continue
+            folder_name = subfolder.name
+            if folder_name in excluded_folders or YEAR_PATTERN.fullmatch(folder_name):
+                continue
+
+            visited_dirs = set()
+            found = False  # flag to break both loops
+            for root, dirs, files in os.walk(subfolder, followlinks=True):
+                real_root = os.path.realpath(root)
+                if real_root in visited_dirs:
+                    continue
+                visited_dirs.add(real_root)
+                for fname in files:
+                    fpath = Path(root) / fname
+                    link_ext = fpath.suffix.lower()
+                    target_ext = ''
+                    try:
+                        if fpath.is_symlink():
+                            target_ext = fpath.resolve(strict=False).suffix.lower()
+                        elif os.name == 'nt' and link_ext == '.lnk':
+                            target_ext = Path(fpath.stem).suffix.lower()
+                        else:
+                            target_ext = link_ext
+                        if link_ext in MEDIA_EXT or target_ext in MEDIA_EXT:
+                            valid_albums += 1
+                            LOGGER.debug(f"{step_name}✅ Valid album at: {subfolder}")
+                            found = True
+                            break
+                    except Exception as exc:
+                        LOGGER.warning(f"{step_name}⚠️ Cannot inspect {fpath}: {repr(exc)}")
+                if found:
+                    break
+        return valid_albums
+
+
 
 
 def clone_folder_fast(input_folder, cloned_folder, step_name="", log_level=None):

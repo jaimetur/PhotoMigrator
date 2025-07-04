@@ -11,7 +11,7 @@ import piexif
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT, FOLDERNAME_EXIFTOOL
 from Utils.StandaloneUtils import get_exif_tool_path
-from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions
+from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions, batch_replace_sourcefiles_in_json
 
 
 def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', step_name="", log_level=None):

@@ -32,10 +32,10 @@ def set_FOLDERS():
 
 
 def set_LOGGER():
-    script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+    tool_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
     log_folder = resolve_path(GV.FOLDERNAME_LOGS)
-    log_filename = f"{GV.SCRIPT_NAME}_{GV.SCRIPT_VERSION}_{GV.TIMESTAMP}"
+    log_filename = f"{GV.TOOL_NAME}_{GV.TOOL_VERSION}_{GV.TIMESTAMP}"
     GV.LOG_FILENAME = os.path.join(current_directory, log_folder, log_filename)
 
     # 1) Inicializas el logger con el nivel por defecto
