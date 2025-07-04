@@ -665,10 +665,13 @@ def replace_dict_key(dictionary, old_key, new_key, step_name="", log_level=None)
 
 def batch_replace_sourcefiles_in_json(json_path, replacements, step_name="", log_level=None):
     """
-    Perform replacements of 'SourceFile' keys and values in a JSON file, supporting exact and prefix-based matches.
+    Perform replacements of 'SourceFile' keys and values in a JSON file.
+    Works with two formats:
+      1. List of dicts:     [ { "SourceFile": ..., ... }, ... ]
+      2. Dict of entries:   { "path": { "SourceFile": ..., ... }, ... }
 
     Args:
-        json_path: Path to the JSON file containing a dict {source_path: metadata_dict}.
+        json_path: Path to the JSON file.
         replacements: List of (old_path, new_path) tuples. Supports both exact and prefix replacement.
         step_name: Optional step name for log messages.
         log_level: Optional logging level to override the default.
@@ -677,44 +680,60 @@ def batch_replace_sourcefiles_in_json(json_path, replacements, step_name="", log
         try:
             with open(json_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            if not isinstance(data, dict):
-                LOGGER.warning(f"{step_name}⚠️ JSON does not contain a dictionary of entries: {json_path}")
-                return
-            new_data = {}
-            changes = 0
-            for old_key, value in data.items():
-                new_key = old_key
-                # Apply replacements to the key
-                for old, new in replacements:
-                    if old_key == old:
-                        new_key = new
-                        break
-                    elif old_key.startswith(old + os.sep):
-                        new_key = new + old_key[len(old):]
-                        break
-                # Apply replacements to the 'SourceFile' inside the value
-                sourcefile = value.get("SourceFile")
-                if isinstance(sourcefile, str):
-                    for old, new in replacements:
-                        if sourcefile == old:
-                            value["SourceFile"] = new
-                            changes += 1
-                            break
-                        elif sourcefile.startswith(old + os.sep):
-                            value["SourceFile"] = new + sourcefile[len(old):]
-                            changes += 1
-                            break
-                # If key changed, count it as change
-                if new_key != old_key:
-                    changes += 1
-                new_data[new_key] = value
 
-            LOGGER.info(f"{step_name}🔁 Total replacements performed (keys + values): {changes}")
+            changes = 0
+
+            # Case 1: List of dicts
+            if isinstance(data, list):
+                for entry in data:
+                    source = entry.get("SourceFile")
+                    if not isinstance(source, str):
+                        continue
+                    for old, new in replacements:
+                        if source == old:
+                            entry["SourceFile"] = new
+                            changes += 1
+                            break
+                        elif source.startswith(old + os.sep):
+                            entry["SourceFile"] = new + source[len(old):]
+                            changes += 1
+                            break
+
+            # Case 2: Dict of entries
+            elif isinstance(data, dict):
+                new_data = {}
+                for old_key, value in data.items():
+                    new_key = old_key
+                    for old, new in replacements:
+                        if old_key == old:
+                            new_key = new
+                            break
+                        elif old_key.startswith(old + os.sep):
+                            new_key = new + old_key[len(old):]
+                            break
+                    sourcefile = value.get("SourceFile")
+                    if isinstance(sourcefile, str):
+                        for old, new in replacements:
+                            if sourcefile == old:
+                                value["SourceFile"] = new
+                                changes += 1
+                                break
+                            elif sourcefile.startswith(old + os.sep):
+                                value["SourceFile"] = new + sourcefile[len(old):]
+                                changes += 1
+                                break
+                    if new_key != old_key:
+                        changes += 1
+                    new_data[new_key] = value
+                data = new_data
+
+            else:
+                LOGGER.warning(f"{step_name}⚠️ JSON format not supported (must be list or dict): {json_path}")
+                return
+
+            LOGGER.info(f"{step_name}🔁 Total replacements performed: {changes}")
             with open(json_path, "w", encoding="utf-8") as f:
-                json.dump(new_data, f, indent=2, ensure_ascii=False)
+                json.dump(data, f, indent=2, ensure_ascii=False)
+
         except Exception as e:
             LOGGER.warning(f"{step_name}❌ Error processing {json_path}: {e}")
-
-
-
-

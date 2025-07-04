@@ -59,7 +59,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
     # ------------------------------------------------------------------
     # Aux: merge JSON outputs from each block into one file
     # ------------------------------------------------------------------
-    def merge_json_files(chunk_files, final_output_path):
+    def     merge_json_files(chunk_files, final_output_path):
         combined_metadata = []
         for chunk_file in chunk_files:
             try:

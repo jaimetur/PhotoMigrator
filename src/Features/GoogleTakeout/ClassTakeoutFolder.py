@@ -17,7 +17,7 @@ from pathlib import Path
 
 import piexif
 from colorama import init
-from dateutil.parser import parser
+from dateutil import parser
 from packaging.version import Version
 
 from Core.CustomLogger import set_log_level
@@ -501,7 +501,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 step_end_time = datetime.now()
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
-
                 # Step 6.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                 # ----------------------------------------------------------------------------------------------------------------------
                 if not self.ARGS['google-no-symbolic-albums']:
@@ -516,7 +515,37 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 7: Analyze Output Files
+            # Step 7.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
+            # ----------------------------------------------------------------------------------------------------------------------
+            if self.ARGS['google-rename-albums-folders']:
+                step_name = '📝 [POST-PROCESS]-[Album Renaming] : '
+                step_start_time = datetime.now()
+                self.step += 1
+                LOGGER.info(f"")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"{self.step}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
+                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                # Merge all counts from rename_output into self.result in one go
+                self.result.update(rename_output)
+                # Step 7.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # ----------------------------------------------------------------------------------------------------------------------
+                if not self.ARGS['google-no-symbolic-albums']:
+                    LOGGER.info(f"")
+                    LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
+                    self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+                    LOGGER.info(f"{step_name}Fixed symbolic links after moving Albums renaming!")
+
+                step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
+
+            # Step 8: Analyze Output Files
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Analyze Output Files] : '
             step_start_time = datetime.now()
@@ -556,38 +585,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 8.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
-            # ----------------------------------------------------------------------------------------------------------------------
-            if self.ARGS['google-rename-albums-folders']:
-                step_name = '📝 [POST-PROCESS]-[Album Renaming] : '
-                step_start_time = datetime.now()
-                self.step += 1
-                LOGGER.info(f"")
-                LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"{self.step}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
-                LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
-                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], update_json=output_json, step_name=step_name, log_level=LOG_LEVEL)
-                # Merge all counts from rename_output into self.result in one go
-                self.result.update(rename_output)
-
-                # Step 8.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
-                # ----------------------------------------------------------------------------------------------------------------------
-                if not self.ARGS['google-no-symbolic-albums']:
-                    LOGGER.info(f"")
-                    LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
-                    self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
-                    LOGGER.info(f"{step_name}Fixed symbolic links after moving Albums renaming!")
-
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
-
-
-            # Step 10: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
+            # Step 9: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                 step_name = '📁 [POST-PROCESS]-[Create year/month struct] : '
@@ -597,7 +595,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
                 LOGGER.info(f"================================================================================================================================================")
-                replacements = []
                 # For Albums
                 if self.ARGS['google-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info(f"")
@@ -609,7 +606,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     type_structure = self.ARGS['google-albums-folders-structure']
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
                     # TODO: El problema es que uso dates para extraer fechas, pero dates es una lista que no ha sido actualizada al renombrar albumes en el paso previo. La solucion es o bien actualizar dates al mismo tiempo que el json, o bien usar directamente el json como entrada
-                    replacements += organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the output_json with all the files changed during this step
                     batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
                 # For No-Albums
@@ -619,7 +616,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     basedir = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
                     type_structure = self.ARGS['google-no-albums-folders-structure']
                     exclude_subfolders = []
-                    replacements += organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the output_json with all the files changed during this step
                     batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
                 # If flatten
@@ -664,7 +661,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             #     self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 11: [OPTIONAL] [Disabled by Default] - Remove Duplicates
+            # Step 10: [OPTIONAL] [Disabled by Default] - Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-remove-duplicates-files']:
                 step_name = '👥 [POST-PROCESS]-[Remove Duplicates] : '
@@ -710,7 +707,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 12: Remove Empty Folders
+            # Step 11: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
             step_start_time = datetime.now()
@@ -729,7 +726,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 13: Count Albums
+            # Step 12: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Count Albums] : '
             step_start_time = datetime.now()
@@ -753,7 +750,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 14: FINAL CLEANING
+            # Step 13: FINAL CLEANING
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [FINAL-CLEANING] : '
             step_start_time = datetime.now()
@@ -1897,8 +1894,13 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
         exif_entry = exif_dates.get(norm_path) if exif_dates else None
         if isinstance(exif_entry, dict):
             selected_date = exif_entry.get("SelectedDate")
-            if selected_date:
-                return selected_date if isinstance(selected_date, datetime) else parser.parse(selected_date)
+            if isinstance(selected_date, datetime):
+                return selected_date
+            elif isinstance(selected_date, str) and selected_date.strip():
+                try:
+                    return parser.parse(selected_date.strip())
+                except Exception as e:
+                    LOGGER.verbose(f"{step_name}❌ Error parsing SelectedDate '{selected_date}' for {norm_path}: {e}")
 
             # If no SelectedDate, try to use the minimum date among all EXIF tags
             all_dates = []
@@ -1906,7 +1908,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
                 if k in ["SelectedDate", "Source"] or not v:
                     continue
                 try:
-                    all_dates.append(v if isinstance(v, datetime) else parser.parse(v))
+                    dt = v if isinstance(v, datetime) else parser.parse(str(v).strip())
+                    all_dates.append(dt)
                 except Exception:
                     continue
             if all_dates:
