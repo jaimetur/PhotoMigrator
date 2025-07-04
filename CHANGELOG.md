@@ -4,6 +4,18 @@
 
 ---
 
+## Release: v3.4.1  
+- ### Release Date: 2025-07-05
+
+- ### Main Changes:
+  - #### 🚀 Enhancements:
+    - [x] Banner included when loading Tool.
+    - [x] Renamed `Script` by `Tool` in all internal variables.
+    - [x] Changed order of Post-Process function in `Goolge Takeout Fixing` feature. Now Organize output folder by year/month structure have been moved to the end (after Analyze Output). In this way the date of each file can be loaded from the cached date dict generated during Analysys Phase).
+    
+
+---
+
 ## Release: v3.4.0  
 - ### Release Date: 2025-06-30
 

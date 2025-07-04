@@ -12,7 +12,7 @@ from pathlib import Path
 from queue import Queue
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
-from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS
+from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
@@ -1128,9 +1128,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
         | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
         |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
         |_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
-                                             |___/ {TOOL_VERSION}
+                                             |___/ {TOOL_VERSION} ({TOOL_DATE})
         """).lstrip("\n")  # Elimina solo la primera línea en blanco
-        # header =  textwrap.dedent(rf"""
 
         layout["header_panel"].update(Panel(f"[gold1]{header}[/gold1]", border_style="gold1", expand=True))
 
