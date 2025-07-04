@@ -489,7 +489,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Step 6.1: [OPTIONAL] [Enabled by Default] - Move albums
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-move-albums']:
-                step_name = '📚 [POST-PROCESS]-[Move Albums] : '
+                step_name = '📚 [POST-PROCESS]-[Albums Moving] : '
                 step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
@@ -518,7 +518,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Step 7.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-rename-albums-folders']:
-                step_name = '📝 [POST-PROCESS]-[Album Renaming] : '
+                step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
                 step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
@@ -547,7 +547,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 8: Analyze Output Files
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🔢 [POST-PROCESS]-[Analyze Output Files] : '
+            step_name = '🔢 [POST-PROCESS]-[Analyze Output] : '
             step_start_time = datetime.now()
             self.step += 1
             LOGGER.info(f"")
