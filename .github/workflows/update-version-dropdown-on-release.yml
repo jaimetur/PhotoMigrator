@@ -1,4 +1,4 @@
-name: 🔃 Update Version Dropdowns
+name: 🔃 Update Version Dropdowns on Release
 
 on:
   release:
