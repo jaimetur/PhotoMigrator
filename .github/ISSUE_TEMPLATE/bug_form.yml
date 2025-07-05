@@ -20,7 +20,8 @@ body:
     label: Version
     description: What version of our software are you running?
     options:
-    - v3.4.1 (latest-stable)
+    - v3.4.1 (latest)
+    - v3.4.0 (latest-stable)
     - v3.3.2
     - v3.3.1
     - v3.3.0
@@ -45,7 +46,6 @@ body:
     default: 0
   validations:
     required: true
-
 - type: dropdown
   id: os-arch
   attributes:
@@ -62,7 +62,6 @@ body:
     default: 0
   validations:
     required: true
-
 - type: dropdown
   id: feature-affected
   attributes:
@@ -85,7 +84,6 @@ body:
     default: 0
   validations:
     required: true
-
 - type: textarea
   id: what-happened
   attributes:
@@ -95,7 +93,6 @@ body:
     value: A bug happened!
   validations:
     required: true
-
 - type: textarea
   id: logs
   attributes:
@@ -103,7 +100,6 @@ body:
     description: Please copy and paste any relevant log output. This will be automatically
       formatted into code, so no need for backticks.
     render: shell
-
 - type: checkboxes
   id: terms
   attributes:

@@ -20,6 +20,7 @@ body:
     label: Version
     description: What version of our software are you running?
     options:
+    - v3.4.1 (latest)
     - v3.4.0 (latest-stable)
     - v3.3.2
     - v3.3.1
@@ -45,7 +46,6 @@ body:
     default: 0
   validations:
     required: true
-
 - type: dropdown
   id: feature-affected
   attributes:
@@ -68,7 +68,6 @@ body:
     default: 0
   validations:
     required: true
-
 - type: textarea
   id: improvement-description
   attributes:
@@ -78,7 +77,6 @@ body:
     value: Improvement description
   validations:
     required: true
-
 - type: checkboxes
   id: terms
   attributes:
