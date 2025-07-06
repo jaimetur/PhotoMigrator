@@ -16,6 +16,7 @@ import Core.GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT, FOLDERNAME_EXIFTOOL
+from Utils.DateUtils import normalize_datetime_utc, is_date_valid
 from Utils.StandaloneUtils import get_exif_tool_path
 
 
@@ -75,11 +76,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
     # Aux: process a list of files, extract EXIF-date and count types
     # ------------------------------------------------------------------
     def process_block(file_paths, block_index, temporary_directory, extract_dates, step_name):
-        def normalize_datetime_utc(dt):
-            if dt.tzinfo is None:
-                return dt.replace(tzinfo=timezone.utc)  # naive → UTC
-            else:
-                return dt.astimezone(timezone.utc)      # aware → UTC
         def get_unique_path(path):
             base = Path(path)
             counter = 1
@@ -88,10 +84,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                 base = base.with_name(new_name)
                 counter += 1
             return str(base)
-        def is_date_valid(file_date, reference_timestamp, min_days=1):
-            if file_date is None:
-                return False
-            return file_date < (reference_timestamp - timedelta(days=min_days))
 
         block_index += 1
         metadata_map = {}

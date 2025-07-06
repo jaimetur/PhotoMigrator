@@ -29,6 +29,7 @@ from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import Cla
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
+from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resource_path, custom_print
@@ -1909,6 +1910,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
                     continue
                 try:
                     dt = v if isinstance(v, datetime) else parser.parse(str(v).strip())
+                    dt = normalize_datetime_utc(dt) # Converts datetime to datetime UTC aware if it is datetime naive
                     all_dates.append(dt)
                 except Exception:
                     continue
