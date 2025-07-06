@@ -7,7 +7,7 @@ from pathlib import Path
 
 from colorama import Style
 
-from Core.GlobalVariables import MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, MSG_TAGS_COLORED
+from Core.GlobalVariables import MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, MSG_TAGS_COLORED, PROJECT_ROOT
 
 
 def change_working_dir(change_dir=None):
@@ -98,12 +98,13 @@ def resource_path(relative_path):
         if DEBUG_MODE: custom_print(f"Entra en modo PyInstaller -> (sys._MEIPASS)", log_level=logging.DEBUG)
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
-        base_path = os.path.dirname(os.path.abspath(__file__))
+        # base_path = os.path.dirname(os.path.abspath(__file__))
+        base_path = os.path.dirname(sys.executable)
         if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --onefile -> (__file__)", log_level=logging.DEBUG)
     # Nuitka standalone
     elif compiled_source:
     # elif "__compiled__" in globals():
-        base_path = os.path.join(compiled_source.containing_dir, SCRIPT_NAME+'.dist')
+        base_path = os.path.join(compiled_source.containing_dir, SCRIPT_NAME + '.dist')
         # base_path = compiled_source
         if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)", log_level=logging.DEBUG)
     # Python normal
@@ -112,7 +113,8 @@ def resource_path(relative_path):
             base_path = os.getcwd()
             if DEBUG_MODE: custom_print(f"Entra en Python .py -> (cwd)", log_level=logging.DEBUG)
         else:
-            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            # base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            base_path = PROJECT_ROOT
             if DEBUG_MODE: custom_print(f"Entra en Python .py -> (dirname(dirname(__file__)))", log_level=logging.DEBUG)
     else:
         base_path = os.getcwd()
