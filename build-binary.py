@@ -16,7 +16,8 @@ from pathlib import Path
 
 from Core.GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
 from Utils.GeneralUtils import clear_screen, print_arguments_pretty, get_os, get_arch, ensure_executable
-from Utils.FileUtils import unzip_to_temp, zip_folder, resource_path
+from Utils.FileUtils import unzip_to_temp, zip_folder
+from Utils.StandaloneUtils import resource_path
 
 global OPERATING_SYSTEM
 global ARCHITECTURE

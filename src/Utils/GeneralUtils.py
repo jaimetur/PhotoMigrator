@@ -19,6 +19,7 @@ from tqdm import tqdm as original_tqdm
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, VIDEO_EXT, PHOTO_EXT, MSG_TAGS, VERBOSE_LEVEL_NUM
 
+
 # ------------------------------------------------------------------
 # Integrar tqdm con el logger
 class TqdmLoggerConsole:
@@ -162,7 +163,7 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
                 i += 1
     else:
         if use_custom_print:
-            from Core.CustomLogger import custom_print
+            from Utils.StandaloneUtils import custom_print
             custom_print(f"{title}:")
             while i < len(arguments):
                 arg = arguments[i]

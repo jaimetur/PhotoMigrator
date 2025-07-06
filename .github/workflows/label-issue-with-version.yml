@@ -1,0 +1,79 @@
+name: 🏷️ Label Issue with Version
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  label-issue-with-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync version label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = context.issue.number;
+            const issueBody = context.payload.issue.body;
+
+            const versionMatch = issueBody.match(/### Version\s*\n(.+?)\n/);
+            if (!versionMatch) {
+              console.log("❌ No version found in issue body.");
+              return;
+            }
+
+            let rawVersion = versionMatch[1].trim();
+            const cleanVersion = rawVersion.match(/^v?[\d\.]+/)?.[0];
+            if (!cleanVersion) {
+              console.log(`❌ Could not extract a clean version from: ${rawVersion}`);
+              return;
+            }
+
+            // Obtener etiquetas actuales del issue
+            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            // Quitar etiquetas que tengan forma de versión (vX.Y.Z)
+            for (const label of currentLabels) {
+              if (/^v\d+\.\d+(\.\d+)?$/.test(label.name) && label.name !== cleanVersion) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: label.name
+                });
+                console.log(`🗑️ Removed old version label: ${label.name}`);
+              }
+            }
+
+            // Comprobar si la etiqueta ya existe en el repo
+            const { data: allLabels } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            const labelExists = allLabels.some(label => label.name === cleanVersion);
+            if (!labelExists) {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: cleanVersion,
+                color: 'ededed',
+                description: `Version ${cleanVersion}`
+              });
+              console.log(`✅ Created new label: ${cleanVersion}`);
+            }
+
+            // Añadir la nueva versión como etiqueta
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: [cleanVersion]
+            });
+            console.log(`🏷️ Label "${cleanVersion}" added to issue #${issueNumber}`);

@@ -15,9 +15,8 @@ from dateutil import parser
 import Core.GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT, FOLDERNAME_EXIFTOOL, LOG_FILENAME
-
-from Features.GoogleTakeout.MetadataFixers import get_exif_tool_path
+from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT, FOLDERNAME_EXIFTOOL
+from Utils.StandaloneUtils import get_exif_tool_path
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
