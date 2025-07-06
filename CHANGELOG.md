@@ -12,11 +12,13 @@
     - [x] Banner included when loading Tool.
     - [x] Renamed `Script` by `Tool` in all internal variables.
     - [x] Changed order of Post-Process function in `Goolge Takeout Fixing` feature. Now Organize output folder by year/month structure have been moved to the end (after Analyze Output). In this way the date of each file can be loaded from the cached date dict generated during Analysys Phase).
-    
-- #### 🐛 Bug fixes:
-    - [x] Fixed bug in resource_path function that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
-    - [x] Fixed a bug in get_file_date function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
-  
+    - [x] Separate GPTH Tool folder from EXIF Tool folder.    
+
+  - #### 🐛 Bug fixes:
+    - [x] Fixed a bug in function get_file_date() function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
+    - [x] Fixed a bug [#649](https://github.com/jaimetur/PhotoMigrator/issues/649) in function resource_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
+    - [x] Fixed a bug [#663](https://github.com/jaimetur/PhotoMigrator/issues/663) in function is_date_outside_range() when no date filters have been provided.
+
 ---
 
 ## Release: v3.4.0  
@@ -163,6 +165,8 @@
     - [x] Fixed 'Rename Albums' Feature when no date range is found in its name. Before it removed any date found, now, if is not possible to extract a date range, just keep the cleaned name (without date range prefix). 
     - [x] Fixed Docker Version to include EXIF Tool.
     - [x] Fixed an issue in `Google Takeout Processing` feature creating output folder when automatically switch to `--google-ignore-check-structure` when no detecting a valid Takeout Structure.
+    - [x] Fixed a bug [#649](https://github.com/jaimetur/PhotoMigrator/issues/649) in function resource_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
+    - [x] Fixed a bug [#663](https://github.com/jaimetur/PhotoMigrator/issues/663) in function is_date_outside_range() when no date filters have been provided.
 
   - #### 📚 Documentation:
     - [x] Improved Google Takeout Feature documentation.

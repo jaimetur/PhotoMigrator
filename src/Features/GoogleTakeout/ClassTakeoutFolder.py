@@ -428,7 +428,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 )
                 if not ok:
                     LOGGER.warning(f"{step_name}Metadata fixing didn't finish properly due to GPTH error.")
-                    LOGGER.warning(f"{step_name}If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
+                    LOGGER.warning(f"{step_name}If your Takeout does not contain Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                     return self.result
 
                 step_end_time = datetime.now()

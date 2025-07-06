@@ -29,7 +29,7 @@ PROJECT_ROOT                    = os.path.abspath(os.path.join(os.path.dirname(_
 # Customizable DIR Folders
 CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_FOLDERS
 FOLDERNAME_GPTH                 = 'gpth_tool'                                   # To be Changed in set_FOLDERS
-FOLDERNAME_EXIFTOOL             = 'gpth_tool/exif_tool'                         # To be Changed in set_FOLDERS
+FOLDERNAME_EXIFTOOL             = 'exif_tool'                                   # To be Changed in set_FOLDERS
 FOLDERNAME_ALBUMS               = "Albums"                                      # To be Changed in set_FOLDERS
 FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  # To be Changed in set_FOLDERS
 FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_FOLDERS

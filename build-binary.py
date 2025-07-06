@@ -14,7 +14,7 @@ import subprocess
 import glob
 from pathlib import Path
 
-from Core.GlobalVariables import TOOL_NAME, TOOL_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from Core.GlobalVariables import TOOL_NAME, TOOL_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE, FOLDERNAME_GPTH, FOLDERNAME_EXIFTOOL
 from Utils.GeneralUtils import clear_screen, print_arguments_pretty, get_os, get_arch, ensure_executable
 from Utils.FileUtils import unzip_to_temp, zip_folder
 from Utils.StandaloneUtils import resource_path
@@ -289,12 +289,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # Inicializamos variables
     TOOL_NAME_WITH_VERSION_OS_ARCH    = f"{TOOL_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
     splash_image                        = "assets/logos/logo.png" # Splash image for windows
-    gpth_folder                         = "gpth_tool"
-    exif_folder                         = "exif_tool"
+    gpth_folder                         = FOLDERNAME_GPTH
+    exif_folder                         = FOLDERNAME_EXIFTOOL
     gpth_tool                           = os.path.join(gpth_folder, f"gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext")
     exif_tool                           = os.path.join(exif_folder, "<ZIP_NAME>.zip")
-    exif_folder_dest                    = gpth_folder
-    # exif_tool                         = f"{exif_folder}/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
+    exif_folder_dest                    = exif_folder
     if OPERATING_SYSTEM == 'windows':
         script_compiled = f'{TOOL_NAME}.exe'
         script_compiled_with_version_os_arch_extension = f"{TOOL_NAME_WITH_VERSION_OS_ARCH}.exe"
