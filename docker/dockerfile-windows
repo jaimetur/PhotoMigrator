@@ -28,7 +28,8 @@ RUN mkdir -p ./docs
 # Copiar carpetas del proyecto
 COPY src/ ./src/
 COPY help/ ./help/
-COPY gpth_tool/ ./gpth_tool/exif_tool/
+COPY gpth_tool/ ./gpth_tool/
+COPY exif_tool/others.zip ./exif_tool/others.zip
 COPY Config.ini ./default_config.ini
 COPY docker/docker.conf ./default_docker.conf
 COPY README.md ./docs/README.md
@@ -41,9 +42,9 @@ COPY LICENSE ./docs/LICENSE
 COPY docker/docker-entrypoint.ps1 C:/docker-entrypoint.ps1
 
 # (Opcional) descomprimir gpth_tool/exif_tool/others.zip si existe
-RUN if (Test-Path 'gpth_tool/exif_tool/others.zip') { \
-        Expand-Archive -Path 'gpth_tool/exif_tool/others.zip' -DestinationPath 'gpth_tool/exif_tool' ; \
-        Remove-Item 'gpth_tool/exif_tool/others.zip' \
+RUN if (Test-Path 'exif_tool/others.zip') { \
+        Expand-Archive -Path 'exif_tool/others.zip' -DestinationPath 'exif_tool' ; \
+        Remove-Item 'exif_tool/others.zip' \
     }
 
 # Dar permisos de ejecución (en Windows, solo relevante si invocas scripts)
