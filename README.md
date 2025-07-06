@@ -8,7 +8,7 @@
 
 # 📸 **PhotoMigrator**
 <p align="center">
-  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo.png?raw=true" alt="PhotoMigrator Logo" width="600" height="400" />
+  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo.png?raw=true" alt="PhotoMigrator Logo" width="400" height="400" />
 </p>
 
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automatic Migration**</span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
