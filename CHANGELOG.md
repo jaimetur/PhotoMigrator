@@ -109,7 +109,7 @@
     - [x] Fixed a bug in `Auto Rename Albums content based` when an Albums only contains Videos because the list of TAGS where search dates didn't include valid TAGs for Video files.
     - [x] Fixed issue in MP4/Live Pictures Fixers when the original picture's json has .supplemental-metadata suffix.
     - [x] Fixed issue with GPTH/EXIFTOOL paths when running the tool from docker
-    - [x] Fixed bug [#649](https://github.com/jaimetur/PhotoMigrator/issues/649) in resource_path function that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
+    - [x] Fixed a bug [#649](https://github.com/jaimetur/PhotoMigrator/issues/649) in resource_path function that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
 
 
   - #### 📚 Documentation:
