@@ -1,8 +1,8 @@
 name: Improvement Request
 description: Create an Improvement Request to help us improve
-title: '[IMPROVEMENT]: '
+title: '[ENHANCEMENT]: '
 labels:
-- IMPROVEMENT-request
+- enhancement
 - public
 projects:
 - jaimetur/PhotoMigrator
