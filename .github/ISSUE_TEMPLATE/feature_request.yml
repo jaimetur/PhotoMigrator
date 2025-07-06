@@ -46,6 +46,7 @@ body:
     default: 0
   validations:
     required: true
+
 - type: dropdown
   id: feature-affected
   attributes:
@@ -68,6 +69,7 @@ body:
     default: 0
   validations:
     required: true
+
 - type: textarea
   id: feature-description
   attributes:
@@ -77,6 +79,7 @@ body:
     value: Feature description
   validations:
     required: true
+
 - type: checkboxes
   id: terms
   attributes:
