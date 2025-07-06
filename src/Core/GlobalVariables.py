@@ -1,4 +1,5 @@
 import logging
+import os
 import textwrap
 from datetime import datetime
 
@@ -22,6 +23,8 @@ RESOURCES_IN_CURRENT_FOLDER     = True
 START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
 
+# Define Project root folder
+PROJECT_ROOT                    = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Customizable DIR Folders
 CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_FOLDERS

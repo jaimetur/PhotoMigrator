@@ -13,7 +13,9 @@
     - [x] Renamed `Script` by `Tool` in all internal variables.
     - [x] Changed order of Post-Process function in `Goolge Takeout Fixing` feature. Now Organize output folder by year/month structure have been moved to the end (after Analyze Output). In this way the date of each file can be loaded from the cached date dict generated during Analysys Phase).
     
-
+- #### 🐛 Bug fixes:
+    - [x] Fixed bug in resource_path function that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
+  
 ---
 
 ## Release: v3.4.0  
