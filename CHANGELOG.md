@@ -15,6 +15,7 @@
     
 - #### 🐛 Bug fixes:
     - [x] Fixed bug in resource_path function that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
+    - [x] Fixed a bug in get_file_date function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
   
 ---
 
