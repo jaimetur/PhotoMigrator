@@ -12,13 +12,14 @@
 </p>
 
 # 📸 **PhotoMigrator**
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automatic Migration**</span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
+This tool has been designed to Interact and Manage different Photo Services such as Google Photos, Synology Photos, Immich Photos, Apple Photos & NextCloud, and allow users to do an <span style="color:green">**Automatic Migration**</span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
+The Tool supports multiple accounts for the same service, so you can migrate your assets between different accounts of the same service.
 
-## 🖥️ Live Dashboard Preview
+# 🖥️ Live Dashboard Preview
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
-## 🌟 Main Modules Included:
+# 🌟 Main Modules Included:
 ## 🚀 1. Automatic Migration   
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
