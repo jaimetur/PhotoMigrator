@@ -3,15 +3,15 @@ from datetime import datetime, timezone
 
 from dateutil import parser as date_parser
 
-from Core.GlobalVariables import ARGS
+import Core.GlobalVariables as GV
 
 
 # ==============================================================================
 #                               DATE FUNCTIONS
 # ==============================================================================
 def is_date_outside_range(date_to_check):
-    from_date = parse_text_datetime_to_epoch(ARGS.get('filter-from-date'))
-    to_date = parse_text_datetime_to_epoch(ARGS.get('filter-to-date'))
+    from_date = parse_text_datetime_to_epoch(GV.ARGS.get('filter-from-date'))
+    to_date = parse_text_datetime_to_epoch(GV.ARGS.get('filter-to-date'))
     date_to_check = parse_text_datetime_to_epoch(date_to_check)
     if from_date is not None and date_to_check < from_date:
         return True
