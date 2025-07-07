@@ -10,7 +10,7 @@ within the project.
 
 ## Reporting
 
-All incidents should be reported creating one issue per incidents (avoid include more than one incident per issue).
+All incidents should be reported creating one issue per incident (avoid include more than one incident per issue).
 
 [Python Packaging Authority]: https://github.com/pypa/
 [PSF Code of Conduct]: https://policies.python.org/python.org/code-of-conduct/
