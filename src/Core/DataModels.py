@@ -22,17 +22,23 @@ def init_process_results ():
 def init_count_files_counters ():
     return {
         'total_files': 0,
+        'total_symlinks': 0,
         'total_size_mb': 0,
         'unsupported_files': 0,
         'supported_files': 0,
+        'supported_symlinks': 0,
         'media_files': 0,
+        'media_symlinks': 0,
         'photo_files': 0,
+        'photo_symlinks': 0,
         'video_files': 0,
+        'video_symlinks': 0,
         'non_media_files': 0,
         'metadata_files': 0,
         'sidecar_files': 0,
         'photos': {
             'total': 0,
+            'symlinks': 0,
             'with_date': 0,
             'without_date': 0,
             'pct_with_date': 100,
@@ -40,6 +46,7 @@ def init_count_files_counters ():
         },
         'videos': {
             'total': 0,
+            'symlinks': 0,
             'with_date': 0,
             'without_date': 0,
             'pct_with_date': 100,

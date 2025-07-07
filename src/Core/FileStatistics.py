@@ -281,7 +281,15 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                 for filename in files:
                     full_path = os.path.join(root, filename)
                     if os.path.islink(full_path):
-                        continue
+                        try:
+                            link_target = os.readlink(full_path)
+                            resolved_target = os.path.abspath(os.path.join(os.path.dirname(full_path), link_target))
+                            if not os.path.exists(resolved_target):
+                                LOGGER.info(f"{step_name}Excluded broken symlink: {full_path}")
+                                continue  # Exclude broken symlinks only
+                        except OSError as e:
+                            LOGGER.warning(f"{step_name}⚠️ Failed to read symlink {full_path}: {e}")
+                            continue
                     extension = Path(filename).suffix.lower()
                     if excluded_extensions and extension in excluded_extensions:
                         continue
@@ -306,30 +314,38 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
             supported_extensions = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
 
             for file_path in all_file_paths:
+                is_symlink = os.path.islink(file_path)
                 final_counters['total_files'] += 1
+                if is_symlink:
+                    final_counters['total_symlinks'] += 1
                 ext = Path(file_path).suffix.lower()
 
                 if ext in supported_extensions:
                     final_counters['supported_files'] += 1
+                    if is_symlink:
+                        final_counters['supported_symlinks'] += 1
                 else:
                     final_counters['unsupported_files'] += 1
 
-                try:
-                    total_bytes += os.path.getsize(file_path)
-                except:
-                    pass
-
                 media_category = None
                 if ext in PHOTO_EXT:
+                    media_category = 'photos'
                     final_counters['photo_files'] += 1
                     final_counters['media_files'] += 1
                     final_counters['photos']['total'] += 1
-                    media_category = 'photos'
+                    if is_symlink:
+                        final_counters['media_symlinks'] += 1
+                        final_counters['photo_symlinks'] += 1
+                        final_counters[media_category]['symlinks'] += 1
                 elif ext in VIDEO_EXT:
+                    media_category = 'videos'
                     final_counters['video_files'] += 1
                     final_counters['media_files'] += 1
                     final_counters['videos']['total'] += 1
-                    media_category = 'videos'
+                    if is_symlink:
+                        final_counters['media_symlinks'] += 1
+                        final_counters['video_symlinks'] += 1
+                        final_counters[media_category]['symlinks'] += 1
                 if ext in METADATA_EXT:
                     final_counters['metadata_files'] += 1
                 if ext in SIDECAR_EXT:
@@ -339,6 +355,13 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
                 if media_category:
                     media_file_paths.append(file_path)
+
+                # Exclude symlinks for the total_bytes count
+                if not is_symlink:
+                    try:
+                        total_bytes += os.path.getsize(file_path)
+                    except:
+                        pass
 
             final_counters['total_size_mb'] = round(total_bytes / (1024 * 1024), 1)
 
