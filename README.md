@@ -206,7 +206,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 
 ---
 
-## Related Projects
+## 🤝 Related Projects
 
 - [Immich](https://github.com/immich-app/immich)
 - [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper)
