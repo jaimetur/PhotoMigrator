@@ -63,7 +63,7 @@ Below you can see the different steps of this feature:
 
 [**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
-## 🖼️ 3. Synology Photos / Immich Photos / Apple Photos / Google Photos / NextCloud Memories Management
+## 🖼️ 3. Synology Photos / Immich Photos / Apple Photos / Google Photos / NextCloud Photos Management
 Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Supported per each Photo Cloud Service are:
 
@@ -208,8 +208,8 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 
 ## 🤝 Related Projects
 
-- [Immich](https://github.com/immich-app/immich) High performance self-hosted photo and video management solution.
-- [NextCloud](
+- [Immich Photos](https://github.com/immich-app/immich) High performance self-hosted photo and video management solution.
+- [NextCloud Photos](https://github.com/nextcloud/photos)
 - [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) Script that organizes the Google Takeout archive into one big chronological folder. 
 - [Exiftool](https://github.com/exiftool/exiftool) Metadata information reader/writer. 
 
