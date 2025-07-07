@@ -19,7 +19,7 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 # 🖥️ Live Dashboard Preview
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
-# 🌟 Main Modules Included:
+# 🌟 Main Modules:
 ## 🚀 1. Automatic Migration   
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
