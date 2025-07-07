@@ -210,7 +210,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 
 - [Immich](https://github.com/immich-app/immich)
 - [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper)
-- [Exiftool]()
+- [Exiftool](https://github.com/exiftool/exiftool)
 
 ---
 
