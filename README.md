@@ -8,7 +8,7 @@
 
 
 <p align="center">
-  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo.png?raw=true" alt="PhotoMigrator Logo" width="400" height="400" />
+  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo.png?raw=true" alt="PhotoMigrator Logo" />
 </p>
 
 # 📸 **PhotoMigrator**
