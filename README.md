@@ -207,7 +207,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 ---
 
 ## 🤝 Related Projects
-
+- [Synology Photos](https://www.synology.com/es-mx/dsm/feature/photos) Create albums full of precious moments, share your perfectly framed photos, and store them securely on your Synology NAS. 
 - [Immich Photos](https://github.com/immich-app/immich) High performance self-hosted photo and video management solution.
 - [NextCloud Photos](https://github.com/nextcloud/photos) Your memories under your control. 
 - [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) Script that organizes the Google Takeout archive into one big chronological folder. 
