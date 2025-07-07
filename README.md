@@ -208,7 +208,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 
 ## 🤝 Related Projects
 
-- [Immich](https://github.com/immich-app/immich)
+- [Immich](https://github.com/immich-app/immich) High performance self-hosted photo and video management solution.
 - [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper)
 - [Exiftool](https://github.com/exiftool/exiftool)
 
