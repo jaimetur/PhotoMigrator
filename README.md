@@ -209,7 +209,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 ## 🤝 Related Projects
 
 - [Immich Photos](https://github.com/immich-app/immich) High performance self-hosted photo and video management solution.
-- [NextCloud Photos](https://github.com/nextcloud/photos)
+- [NextCloud Photos](https://github.com/nextcloud/photos) Your memories under your control. 
 - [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) Script that organizes the Google Takeout archive into one big chronological folder. 
 - [Exiftool](https://github.com/exiftool/exiftool) Metadata information reader/writer. 
 
