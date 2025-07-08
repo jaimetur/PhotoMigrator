@@ -225,6 +225,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             COL3_WIDTH = 34  # Symlinks / % of photos and videos
             TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
             SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
+            PCT_DIGITS = max(1, len(str(result[sub_dict]['photos']['pct_with_date'])), len(str(result[sub_dict]['photos']['pct_without_date'])), len(str(result[sub_dict]['videos']['pct_with_date'])), len(str(result[sub_dict]['videos']['pct_without_date'])) )
 
             LOGGER.info(f"{step_name}Analyzing {folder} completed!")
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
@@ -238,11 +239,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
             LOGGER.info(f"{step_name}{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-            LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>5.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
-            LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>5.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+            LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+            LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-            LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>5.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
-            LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>5.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+            LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+            LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
 
             sub_step_end_time = datetime.now()
@@ -587,6 +588,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             COL3_WIDTH = 34  # Symlinks / % of photos and videos
             TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
             SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
+            PCT_DIGITS = max(1, len(str(result[sub_dict]['photos']['pct_with_date'])), len(str(result[sub_dict]['photos']['pct_without_date'])), len(str(result[sub_dict]['videos']['pct_with_date'])), len(str(result[sub_dict]['videos']['pct_without_date'])) )
 
             LOGGER.info(f"{step_name}Analyzing {folder} completed!")
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
@@ -600,11 +602,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
             LOGGER.info(f"{step_name}{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-            LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>5.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
-            LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>5.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+            LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+            LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-            LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>5.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
-            LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>5.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+            LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+            LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
 
             step_end_time = datetime.now()
@@ -898,6 +900,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 COL5_WIDTH = 20  # % of input
                 TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH + COL5_WIDTH
                 SYMLINK_DIGITS = max(1, len(str(result['input_counters']['total_symlinks'])), len(str(result['output_counters']['total_symlinks'])))
+                PCT_DIGITS = max(1,
+                                 len(str(result['input_counters']['photos']['pct_with_date'])), len(str(result['input_counters']['photos']['pct_without_date'])), len(str(result['input_counters']['videos']['pct_with_date'])), len(str(result['input_counters']['videos']['pct_without_date'])),
+                                 len(str(result['output_counters']['photos']['pct_with_date'])), len(str(result['output_counters']['photos']['pct_without_date'])), len(str(result['output_counters']['videos']['pct_with_date'])), len(str(result['output_counters']['videos']['pct_without_date']))
+                                 )
 
                 # Primera parte: resumen de Takeout
                 folder = 'Takeout folder'
@@ -913,11 +919,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
                 LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>5.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>5.1f}%)".ljust(TOTAL_WIDTH))
+                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
+                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
                 LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>5.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>5.1f}%)".ljust(TOTAL_WIDTH))
+                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
+                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
 
                 # Segunda parte: resumen de Output con diferencias respecto a Takeout
@@ -934,11 +940,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_media:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_media:>5.1f}% of input)")
                 LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_images:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_images:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({output_perc_photos_with_date:>5.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_with_date:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({output_perc_photos_without_date:>5.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_without_date:>5.1f}% of input)")
+                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({output_perc_photos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_with_date:>5.1f}% of input)")
+                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({output_perc_photos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_without_date:>5.1f}% of input)")
                 LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({output_perc_videos_with_date:>5.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_with_date:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({output_perc_videos_without_date:>5.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_without_date:>5.1f}% of input)")
+                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({output_perc_videos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_with_date:>5.1f}% of input)")
+                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({output_perc_videos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_without_date:>5.1f}% of input)")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
 
                 LOGGER.info(f"")
