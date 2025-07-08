@@ -88,18 +88,20 @@ Below you can see the different steps of this feature:
 > 
 > Step 3    : 🧠 [PROCESS]-[Metadata Processing]           : 13:49:15  
 > 
-> Step 4    : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:15  
-> Step 5    : 📚 [POST-PROCESS]-[Albums Moving]            :  0:00:03  
-> Step 6    : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:33  
-> Step 7    : 🔢 [POST-PROCESS]-[Analyze Output]           :  0:35:16  
-> Step 8    : 📁 [POST-PROCESS]-[Create year/month struct] :  3:11:35  
-> Step 9    : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:06  
-> Step 10   : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:02  
-> Step 11   : 🧹 [FINAL-CLEANING]                          :  0:45:47  
+> Step 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  4:33:37  
+> Step 4.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:15  
+> Step 4.2  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:00:03  
+> Step 4.3  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:33  
+> Step 4.4  : 🔢 [POST-PROCESS]-[Analyze Output]           :  0:35:16  
+> Step 4.5  : 📁 [POST-PROCESS]-[Create year/month struct] :  3:11:35  
+> Step 4.6  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:06  
+> Step 4.7  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:02  
+> Step 4.8  : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:45:47  
 > 
 > TOTAL PROCESSING TIME                                    : 21:17:17
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
+
 
 ### Output of Takeout Processing:
 The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by default. 
