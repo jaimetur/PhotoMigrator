@@ -19,7 +19,7 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 
 <p align="center"> 
   <br/>
-  <a href="https://discord.gg/wTJ62qh5UC" target="_blank">
+  <a href="https://discord.gg/wTJ62qh5UC">
     <img src="https://img.shields.io/discord/1391921771770286110.svg?label=Discord&logo=Discord&style=for-the-badge&logoColor=ffffff&labelColor=5865F2" alt="Discord"/>
   </a>
   <br/>
