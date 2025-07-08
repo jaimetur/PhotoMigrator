@@ -636,7 +636,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         basedir = os.path.join(output_folder, FOLDERNAME_ALBUMS)
                     type_structure = self.ARGS['google-albums-folders-structure']
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
-                    # TODO: El problema es que uso dates para extraer fechas, pero dates es una lista que no ha sido actualizada al renombrar albumes en el paso previo. La solucion es o bien actualizar dates al mismo tiempo que el json, o bien usar directamente el json como entrada
                     replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the output_json with all the files changed during this step
                     batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
