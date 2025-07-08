@@ -227,7 +227,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             LOGGER.info(f"{step_name}Analyzing {folder} completed!")
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
-            LOGGER.info(f"{step_name}{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']:>{COL2_WIDTH}.1f} (MB)")
+            LOGGER.info(f"{step_name}{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.1f} (GB)")
             LOGGER.info(f"{step_name}{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} (0 of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
@@ -588,7 +588,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             LOGGER.info(f"{step_name}Analyzing {folder} completed!")
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
-            LOGGER.info(f"{step_name}{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']:>{COL2_WIDTH}.1f} (MB)")
+            LOGGER.info(f"{step_name}{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.1f} (GB)")
             LOGGER.info(f"{step_name}{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} (0 of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
@@ -900,7 +900,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 folder = 'Takeout folder'
                 sub_dict = 'input_counters'
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']:>{COL2_WIDTH}.1f} (MB)")
+                LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.1f} (GB)")
                 LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']} of them are Symlinks)".ljust(TOTAL_WIDTH))
                 LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} (0 of them are Symlinks)".ljust(TOTAL_WIDTH))
                 LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']} of them are Symlinks)".ljust(TOTAL_WIDTH))
@@ -921,7 +921,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 folder = 'Output folder'
                 sub_dict = 'output_counters'
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']:>{COL2_WIDTH}.1f} (MB)")
+                LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.1f} (GB)")
                 LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_files:>5.1f}% of input)")
                 LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} (0 of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_unsupported_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_unsupported_files:>5.1f}% of input)")
                 LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_supported_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_supported_files:>5.1f}% of input)")
