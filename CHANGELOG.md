@@ -13,15 +13,17 @@
     - [x] Renamed `Script` by `Tool` in all internal variables.
     - [x] Changed order of Post-Process function in `Goolge Takeout Fixing` feature. Now Organize output folder by year/month structure have been moved to the end (after Analyze Output). In this way the date of each file can be loaded from the cached date dict generated during Analysys Phase).
     - [x] Separate GPTH Tool folder from EXIF Tool folder.    
-    - [x] New logo design (thanks to @mbarbero).
     - [x] Improvement in Analysis Summary info (now it shows the number of Symbolic Links detected in Input/Output folders)
-    - [x] Enhancement in README.md file to include Disclaimer, Repository Activity, Star History, Contributors and Related Projects.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed a bug in function get_file_date() function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
     - [x] Fixed a bug [#649](https://github.com/jaimetur/PhotoMigrator/issues/649) in function resource_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
     - [x] Fixed a bug [#663](https://github.com/jaimetur/PhotoMigrator/issues/663) in function is_date_outside_range() when no date filters have been provided.
 
+  - #### 📚 Documentation:
+    - [x] New logo design (thanks to @mbarbero).
+    - [x] Enhancement in README.md file to include Disclaimer, Repository Activity, Star History, Contributors and Related Projects.
+  - 
 ---
 
 ## Release: v3.4.0  
