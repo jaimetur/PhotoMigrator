@@ -132,7 +132,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         return self.output_folder
 
 
-    def precheck_takeout_and_calculate_initial_counters(self, log_level=None):
+    def pre_checks(self, log_level=None):
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
             # Start Pre-Checking
             self.step += 1
@@ -269,7 +269,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
 
 
-    def preprocess(self, log_level=None):
+    def pre_process(self, log_level=None):
         # Start Pre-Process
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
             self.step += 1
@@ -382,14 +382,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 1: Pre-check the object with skip_process=True to just unzip files in case they are zipped
             # ----------------------------------------------------------------------------------------------------------------------
-            self.precheck_takeout_and_calculate_initial_counters(log_level=log_level)
+            self.pre_checks(log_level=log_level)
 
             # Step 2: Pre-Process Takeout folder
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-preprocess']:
-                # Call preprocess() with the same log_level as process()
-                self.preprocess(log_level=log_level)
-
+                # Call pre_process() with the same log_level as process()
+                self.pre_process(log_level=log_level)
 
             # --------------------------------------------------------------------------------------------------------------------------------------------------------
             # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
@@ -404,7 +403,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             input_folder = self.get_input_folder()
             # Determine where the Albums will be located
             albums_folder = self.get_albums_folder()
-
 
             # Step 3: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
@@ -452,18 +450,213 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
+                # Step 4: Post Process Output folder
+                # ----------------------------------------------------------------------------------------------------------------------
+                # Now call the post_process() function
+                self.post_process(input_folder=input_folder, output_folder=output_folder, albums_folder=albums_folder, log_level=log_level)
+
+
+                # FINISH
+                # ----------------------------------------------------------------------------------------------------------------------
+                processing_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((processing_end_time - processing_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"✅ TAKEOUT PROCESSING FINISHED!!!")
+                LOGGER.info(f"{'Takeout Precessed Folder'.ljust(55)}  : '{output_folder}'.")
+                LOGGER.info(f"")
+                LOGGER.info(f"Processing Time per Step:")
+                for entry in self.steps_duration:
+                    label_cleaned = ' '.join(entry['step_name'].replace(' : ', '').split()).replace(' ]', ']')
+                    step_id_and_label = f"Step {(str(entry['step_id'])).ljust(4)} : {label_cleaned}"
+                    LOGGER.info(f"{step_id_and_label.ljust(55)} : {entry['duration'].rjust(8)}")
+                LOGGER.info(f"")
+                LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(55)}  : {formatted_duration.rjust(8)}")
+                LOGGER.info(f"================================================================================================================================================")
+
+                # PRINT RESULTS
+                # ----------------------------------------------------------------------------------------------------------------------
+                result = self.result
+                if LOG_LEVEL == logging.VERBOSE:
+                    LOGGER.verbose (f"Process Output:")
+                    print_dict_pretty(result, log_level=logging.VERBOSE)
+
+                # Extract percentages of totals
+                output_perc_photos_with_date = result['output_counters']['photos']['pct_with_date']
+                output_perc_photos_without_date = result['output_counters']['photos']['pct_without_date']
+                output_perc_videos_with_date = result['output_counters']['videos']['pct_with_date']
+                output_perc_videos_without_date = result['output_counters']['videos']['pct_without_date']
+
+                # Calculate percentages from output vs input
+                perc_of_input_total_files               = 100 * result['output_counters']['total_files']           / result['input_counters']['total_files']             if result['input_counters']['total_files']           != 0 else 100
+                perc_of_input_total_unsupported_files   = 100 * result['output_counters']['unsupported_files']     / result['input_counters']['unsupported_files']       if result['input_counters']['unsupported_files']     != 0 else 100
+                perc_of_input_total_supported_files     = 100 * result['output_counters']['supported_files']       / result['input_counters']['supported_files']         if result['input_counters']['supported_files']       != 0 else 100
+                perc_of_input_total_media               = 100 * result['output_counters']['media_files']           / result['input_counters']['media_files']             if result['input_counters']['media_files']           != 0 else 100
+                perc_of_input_total_images              = 100 * result['output_counters']['photo_files']           / result['input_counters']['photo_files']             if result['input_counters']['photo_files']           != 0 else 100
+                perc_of_input_total_photos_with_date    = 100 * result['output_counters']['photos']['with_date']   / result['input_counters']['photos']['with_date']     if result['input_counters']['photos']['with_date']   != 0 else 100
+                perc_of_input_total_photos_without_date = 100 * result['output_counters']['photos']['without_date']/ result['input_counters']['photos']['without_date']  if result['input_counters']['photos']['without_date']!= 0 else 100
+                perc_of_input_total_videos              = 100 * result['output_counters']['video_files']           / result['input_counters']['video_files']             if result['input_counters']['video_files']           != 0 else 100
+                perc_of_input_total_videos_with_date    = 100 * result['output_counters']['videos']['with_date']   / result['input_counters']['videos']['with_date']     if result['input_counters']['videos']['with_date']   != 0 else 100
+                perc_of_input_total_videos_without_date = 100 * result['output_counters']['videos']['without_date']/ result['input_counters']['videos']['without_date']  if result['input_counters']['videos']['without_date']!= 0 else 100
+                perc_of_input_total_non_media           = 100 * result['output_counters']['non_media_files']       / result['input_counters']['non_media_files']         if result['input_counters']['non_media_files']       != 0 else 100
+                perc_of_input_total_metadata            = 100 * result['output_counters']['metadata_files']        / result['input_counters']['metadata_files']          if result['input_counters']['metadata_files']        != 0 else 100
+                perc_of_input_total_sidecars            = 100 * result['output_counters']['sidecar_files']         / result['input_counters']['sidecar_files']           if result['input_counters']['sidecar_files']         != 0 else 100
+
+                # Calculate differences from output vs input
+                diff_output_input_total_files               = result['output_counters']['total_files']           - result['input_counters']['total_files']
+                diff_output_input_total_unsupported_files   = result['output_counters']['unsupported_files']     - result['input_counters']['unsupported_files']
+                diff_output_input_total_supported_files     = result['output_counters']['supported_files']       - result['input_counters']['supported_files']
+                diff_output_input_total_media               = result['output_counters']['media_files']           - result['input_counters']['media_files']
+                diff_output_input_total_images              = result['output_counters']['photo_files']           - result['input_counters']['photo_files']
+                diff_output_input_total_photos_with_date    = result['output_counters']['photos']['with_date']   - result['input_counters']['photos']['with_date']
+                diff_output_input_total_photos_without_date = result['output_counters']['photos']['without_date']- result['input_counters']['photos']['without_date']
+                diff_output_input_total_videos              = result['output_counters']['video_files']           - result['input_counters']['video_files']
+                diff_output_input_total_videos_with_date    = result['output_counters']['videos']['with_date']   - result['input_counters']['videos']['with_date']
+                diff_output_input_total_videos_without_date = result['output_counters']['videos']['without_date']- result['input_counters']['videos']['without_date']
+                diff_output_input_total_non_media           = result['output_counters']['non_media_files']       - result['input_counters']['non_media_files']
+                diff_output_input_total_metadata            = result['output_counters']['metadata_files']        - result['input_counters']['metadata_files']
+                diff_output_input_total_sidecars            = result['output_counters']['sidecar_files']         - result['input_counters']['sidecar_files']
+
+                end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
+                if result['output_counters']['total_files'] == 0:
+                    # FINAL SUMMARY
+                    LOGGER.info(f"")
+                    LOGGER.error(f"================================================================================================================================================")
+                    LOGGER.error(f"❌ PROCESS COMPLETED WITH ERRORS!           ")
+                    LOGGER.error(f"================================================================================================================================================")
+                    LOGGER.info(f"")
+                    LOGGER.error(f"No files found in Output Folder  : '{output_folder}'")
+                    LOGGER.info(f"")
+                    LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
+                    LOGGER.info(f"================================================================================================================================================")
+                    LOGGER.info(f"")
+                else:
+                    # FINAL SUMMARY
+                    LOGGER.info(f"")
+                    LOGGER.info(f"================================================================================================================================================")
+                    LOGGER.info(f"✅ PROCESS COMPLETED SUCCESSFULLY!")
+                    LOGGER.info(f"")
+                    LOGGER.info(f"Processed Takeout have been saved to folder : '{output_folder}'")
+                    if self.ARGS.get('google-keep-takeout-folder'):
+                        LOGGER.info(f"Original Takeout is safely preserved in     : '{self.backup_takeout_folder}' ")
+                    else:
+                        LOGGER.info(f"")
+
+                    LOGGER.info(f"")
+                    LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
+                    COL1_WIDTH = 44  # Description
+                    COL2_WIDTH = 7  # Counters
+                    COL3_WIDTH = 34  # Symlinks / % of photos and videos
+                    COL4_WIDTH = 18  # diff
+                    COL5_WIDTH = 20  # % of input
+                    TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH + COL5_WIDTH
+                    SYMLINK_DIGITS = max(1, len(str(result['input_counters']['total_symlinks'])), len(str(result['output_counters']['total_symlinks'])))
+                    PCT_DIGITS = max(1,
+                                     len(str(int(result['input_counters']['photos']['pct_with_date']))), len(str(int(result['input_counters']['photos']['pct_without_date']))), len(str(int(result['input_counters']['videos']['pct_with_date']))), len(str(int(result['input_counters']['videos']['pct_without_date']))),
+                                     len(str(int(result['output_counters']['photos']['pct_with_date']))), len(str(int(result['output_counters']['photos']['pct_without_date']))), len(str(int(result['output_counters']['videos']['pct_with_date']))), len(str(int(result['output_counters']['videos']['pct_without_date'])))
+                                     ) + 2
+
+                    # Primera parte: resumen de Takeout
+                    folder = 'Takeout folder'
+                    sub_dict = 'input_counters'
+                    LOGGER.info(f"{'-' * TOTAL_WIDTH}")
+                    LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.2f} (GB)")
+                    LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'-' * TOTAL_WIDTH}")
+                    LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
+                    LOGGER.info(f"{'-' * TOTAL_WIDTH}")
+
+                    # Segunda parte: resumen de Output con diferencias respecto a Takeout
+                    folder = 'Output folder'
+                    sub_dict = 'output_counters'
+                    LOGGER.info(f"{'-' * TOTAL_WIDTH}")
+                    LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.2f} (GB)")
+                    LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_files:>5.1f}% of input)")
+                    LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_unsupported_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_unsupported_files:>5.1f}% of input)")
+                    LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_supported_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_supported_files:>5.1f}% of input)")
+                    LOGGER.info(f"{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_non_media:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_non_media:>5.1f}% of input)")
+                    LOGGER.info(f"{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_metadata:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_metadata:>5.1f}% of input)")
+                    LOGGER.info(f"{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_sidecars:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_sidecars:>5.1f}% of input)")
+                    LOGGER.info(f"{'-' * TOTAL_WIDTH}")
+                    LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_media:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_media:>5.1f}% of input)")
+                    LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_images:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_images:>5.1f}% of input)")
+                    LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({output_perc_photos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_with_date:>5.1f}% of input)")
+                    LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({output_perc_photos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_without_date:>5.1f}% of input)")
+                    LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos:>5.1f}% of input)")
+                    LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({output_perc_videos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_with_date:>5.1f}% of input)")
+                    LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({output_perc_videos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_without_date:>5.1f}% of input)")
+                    LOGGER.info(f"{'-' * TOTAL_WIDTH}")
+
+                    LOGGER.info(f"")
+                    LOGGER.info(f"{'-' * TOTAL_WIDTH}")
+                    LOGGER.info(f"Total Albums folders found in Output folder : {result['valid_albums_found']}")
+                    if ARGS['google-rename-albums-folders']:
+                        LOGGER.info(f"Total Albums Renamed                        : {result['renamed_album_folders']}")
+                        LOGGER.info(f"Total Albums Duplicated                     : {result['duplicates_album_folders']}")
+                        LOGGER.info(f"   - Total Albums Fully Merged              : {result['duplicates_albums_fully_merged']}")
+                        LOGGER.info(f"   - Total Albums Not Fully Merged          : {result['duplicates_albums_not_fully_merged']}")
+                    if not ARGS['google-no-symbolic-albums']:
+                        LOGGER.info(f"")
+                        LOGGER.info(f"Total Symlinks Fixed                        : {result['symlink_fixed']}")
+                        LOGGER.info(f"Total Symlinks Not Fixed                    : {result['symlink_not_fixed']}")
+                    if ARGS['google-remove-duplicates-files']:
+                        LOGGER.info(f"")
+                        LOGGER.info(f"Total Duplicates Removed                    : {result['duplicates_found']}")
+                        LOGGER.info(f"Total Empty Folders Removed                 : {result['removed_empty_folders']}")
+                    LOGGER.info(f"")
+                    LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
+                    LOGGER.info(f"{'-' * TOTAL_WIDTH}")
+                    LOGGER.info(f"================================================================================================================================================")
+                    LOGGER.info(f"")
+
+
+
+                # At the end of the process, we call the super() to make this objet a sub-instance of the class ClassLocalFolder to create the same folder structure
+                if create_localfolder_object:
+                    super().__init__(output_folder)
+
+                return self.result
+
+    def post_process(self, input_folder=None, output_folder=None, albums_folder=None, log_level=None):
+        # Start the Post Process
+        with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
+            # --------------------------------------------- POST PROCESS -----------------------------------------------------------
             # Determine if manual copy/move is needed (for step 4)
             manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
+
+            # Increment self.step for the Post Process Steps
+            self.step += 1
+            step_start_time = datetime.now()
+
+            # Initialize self.substep counter for the Post Process Steps
+            self.substep = 0
+
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. POST-PROCESSING OUTPUT FOLDER...")
+            LOGGER.info(f"================================================================================================================================================")
 
             # Step 4.1: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
             # ----------------------------------------------------------------------------------------------------------------------
             if manual_copy_move_needed:
                 step_name = '📁 [POST-PROCESS]-[Copy/Move] : '
-                step_start_time = datetime.now()
-                self.step += 1
+                sub_step_start_time = datetime.now()
+                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"{self.step}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
+                LOGGER.info(f"{self.step}.{self.substep}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
                 if self.ARGS['google-skip-gpth-tool']:
@@ -475,46 +668,47 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 else:
                     LOGGER.info(f"{step_name}Copying files from Takeout folder to Output folder...")
                 copy_move_folder(input_folder, output_folder, ignore_patterns=['*.json', '*.j'], move=not self.ARGS['google-keep-takeout-folder'], step_name=step_name, log_level=LOG_LEVEL)
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.2: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------
-            self.step += 1
             step_name = '🕒 [POST-PROCESS]-[MP4 Timestamp Synch] : '
-            step_start_time = datetime.now()
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}. SYNC TIMESTAMPS OF .MP4 with IMAGES (.HEIC, .JPG, .JPEG)...")
+            LOGGER.info(f"{self.step}.{self.substep}. SYNC TIMESTAMPS OF .MP4 with IMAGES (.HEIC, .JPG, .JPEG)...")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Timestamps of '.MP4' file with Live pictures files (.HEIC, .JPG, .JPEG) if both files have the same name and are in the same folder...")
             sync_mp4_timestamps_with_images(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
-            step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.3.1: [OPTIONAL] [Enabled by Default] - Move albums
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-move-albums']:
                 step_name = '📚 [POST-PROCESS]-[Albums Moving] : '
-                step_start_time = datetime.now()
-                self.step += 1
+                sub_step_start_time = datetime.now()
+                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"{self.step}. MOVING ALBUMS FOLDER...")
+                LOGGER.info(f"{self.step}.{self.substep}. MOVING ALBUMS FOLDER...")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
                 move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
-                step_end_time = datetime.now()
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
                 # Step 4.3.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                 # ----------------------------------------------------------------------------------------------------------------------
@@ -523,22 +717,23 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
                     self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
                     LOGGER.info(f"{step_name}Fixed symbolic links after moving Albums folders!")
-
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.4.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-rename-albums-folders']:
                 step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
-                step_start_time = datetime.now()
-                self.step += 1
+                sub_step_start_time = datetime.now()
+                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"{self.step}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
+                LOGGER.info(f"{self.step}.{self.substep}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
@@ -552,22 +747,22 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
                     self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
                     LOGGER.info(f"{step_name}Fixed symbolic links after moving Albums renaming!")
-
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.5: Analyze Output Files
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Analyze Output] : '
-            step_start_time = datetime.now()
-            self.step += 1
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}. ANALYZING OUTPUT FILES... ")
+            LOGGER.info(f"{self.step}.{self.substep}. ANALYZING OUTPUT FILES... ")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Count all Files in output Folder
@@ -609,22 +804,23 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
 
-            step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.6: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                 step_name = '📁 [POST-PROCESS]-[Create year/month struct] : '
-                step_start_time = datetime.now()
-                self.step += 1
+                sub_step_start_time = datetime.now()
+                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"{self.step}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
+                LOGGER.info(f"{self.step}.{self.substep}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
                 LOGGER.info(f"================================================================================================================================================")
                 # For Albums
                 if self.ARGS['google-albums-folders-structure'].lower() != 'flatten':
@@ -663,22 +859,23 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
                         LOGGER.info(f"{step_name}Fixed symbolic links after Created Year/Month structure in output folders!!")
 
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.7: [OPTIONAL] [Disabled by Default] - Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-remove-duplicates-files']:
                 step_name = '👥 [POST-PROCESS]-[Remove Duplicates] : '
-                step_start_time = datetime.now()
-                self.step += 1
+                sub_step_start_time = datetime.now()
+                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"{self.step}. REMOVING DUPLICATES IN <OUTPUT_TAKEOUT_FOLDER>...")
+                LOGGER.info(f"{self.step}.{self.substep}. REMOVING DUPLICATES IN <OUTPUT_TAKEOUT_FOLDER>...")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
 
@@ -709,40 +906,42 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.result['duplicates_found'] += duplicates_found
                 self.result['removed_empty_folders'] += removed_empty_folders
 
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.8: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
-            step_start_time = datetime.now()
-            self.step += 1
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}. REMOVING EMPTY FOLDERS...")
+            LOGGER.info(f"{self.step}.{self.substep}. REMOVING EMPTY FOLDERS...")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Removing empty folders in <OUTPUT_TAKEOUT_FOLDER>...")
             remove_empty_dirs(input_folder=output_folder, log_level=LOG_LEVEL)
-            step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.9: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Count Albums] : '
-            step_start_time = datetime.now()
-            self.step += 1
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}. COUNTING ALBUMS... ")
+            LOGGER.info(f"{self.step}.{self.substep}. COUNTING ALBUMS... ")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
 
@@ -752,21 +951,22 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # self.result['valid_albums_found'] = count_valid_albums(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
                 self.result['valid_albums_found'] = count_valid_albums_in_first_level(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
             LOGGER.info(f"{step_name}Valid Albums Found {self.result['valid_albums_found']}.")
-            step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.10: FINAL CLEANING
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧹 [FINAL-CLEANING] : '
-            step_start_time = datetime.now()
-            self.step += 1
+            step_name = '🧹 [POST-PROCESS]-[Final Cleaning] : '
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}. FINAL CLEANING... ")
+            LOGGER.info(f"{self.step}.{self.substep}. FINAL CLEANING... ")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
@@ -775,186 +975,24 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
             else:
                 LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+            LOGGER.info(f"")
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+            # Finally show TOTAL DURATION OF PRE-PROCESS PHASE
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            step_name = '✅ [POST-PROCESS] : '
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
-
-
-            # FINISH
-            # ----------------------------------------------------------------------------------------------------------------------
-            processing_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((processing_end_time - processing_start_time).total_seconds())))
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"✅ TAKEOUT PROCESSING FINISHED!!!")
-            LOGGER.info(f"{'Takeout Precessed Folder'.ljust(55)}  : '{output_folder}'.")
-            LOGGER.info(f"")
-            LOGGER.info(f"Processing Time per Step:")
-            for entry in self.steps_duration:
-                label_cleaned = ' '.join(entry['step_name'].replace(' : ', '').split()).replace(' ]', ']')
-                step_id_and_label = f"Step {(str(entry['step_id'])).ljust(4)} : {label_cleaned}"
-                LOGGER.info(f"{step_id_and_label.ljust(55)} : {entry['duration'].rjust(8)}")
-            LOGGER.info(f"")
-            LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(55)}  : {formatted_duration.rjust(8)}")
-            LOGGER.info(f"================================================================================================================================================")
-
-            # PRINT RESULTS
-            # ----------------------------------------------------------------------------------------------------------------------
-            result = self.result
-            if LOG_LEVEL == logging.VERBOSE:
-                LOGGER.verbose (f"Process Output:")
-                print_dict_pretty(result, log_level=logging.VERBOSE)
-
-            # Extract percentages of totals
-            output_perc_photos_with_date = result['output_counters']['photos']['pct_with_date']
-            output_perc_photos_without_date = result['output_counters']['photos']['pct_without_date']
-            output_perc_videos_with_date = result['output_counters']['videos']['pct_with_date']
-            output_perc_videos_without_date = result['output_counters']['videos']['pct_without_date']
-
-            # Calculate percentages from output vs input
-            perc_of_input_total_files               = 100 * result['output_counters']['total_files']           / result['input_counters']['total_files']             if result['input_counters']['total_files']           != 0 else 100
-            perc_of_input_total_unsupported_files   = 100 * result['output_counters']['unsupported_files']     / result['input_counters']['unsupported_files']       if result['input_counters']['unsupported_files']     != 0 else 100
-            perc_of_input_total_supported_files     = 100 * result['output_counters']['supported_files']       / result['input_counters']['supported_files']         if result['input_counters']['supported_files']       != 0 else 100
-            perc_of_input_total_media               = 100 * result['output_counters']['media_files']           / result['input_counters']['media_files']             if result['input_counters']['media_files']           != 0 else 100
-            perc_of_input_total_images              = 100 * result['output_counters']['photo_files']           / result['input_counters']['photo_files']             if result['input_counters']['photo_files']           != 0 else 100
-            perc_of_input_total_photos_with_date    = 100 * result['output_counters']['photos']['with_date']   / result['input_counters']['photos']['with_date']     if result['input_counters']['photos']['with_date']   != 0 else 100
-            perc_of_input_total_photos_without_date = 100 * result['output_counters']['photos']['without_date']/ result['input_counters']['photos']['without_date']  if result['input_counters']['photos']['without_date']!= 0 else 100
-            perc_of_input_total_videos              = 100 * result['output_counters']['video_files']           / result['input_counters']['video_files']             if result['input_counters']['video_files']           != 0 else 100
-            perc_of_input_total_videos_with_date    = 100 * result['output_counters']['videos']['with_date']   / result['input_counters']['videos']['with_date']     if result['input_counters']['videos']['with_date']   != 0 else 100
-            perc_of_input_total_videos_without_date = 100 * result['output_counters']['videos']['without_date']/ result['input_counters']['videos']['without_date']  if result['input_counters']['videos']['without_date']!= 0 else 100
-            perc_of_input_total_non_media           = 100 * result['output_counters']['non_media_files']       / result['input_counters']['non_media_files']         if result['input_counters']['non_media_files']       != 0 else 100
-            perc_of_input_total_metadata            = 100 * result['output_counters']['metadata_files']        / result['input_counters']['metadata_files']          if result['input_counters']['metadata_files']        != 0 else 100
-            perc_of_input_total_sidecars            = 100 * result['output_counters']['sidecar_files']         / result['input_counters']['sidecar_files']           if result['input_counters']['sidecar_files']         != 0 else 100
-
-            # Calculate differences from output vs input
-            diff_output_input_total_files               = result['output_counters']['total_files']           - result['input_counters']['total_files']
-            diff_output_input_total_unsupported_files   = result['output_counters']['unsupported_files']     - result['input_counters']['unsupported_files']
-            diff_output_input_total_supported_files     = result['output_counters']['supported_files']       - result['input_counters']['supported_files']          
-            diff_output_input_total_media               = result['output_counters']['media_files']           - result['input_counters']['media_files']
-            diff_output_input_total_images              = result['output_counters']['photo_files']           - result['input_counters']['photo_files']
-            diff_output_input_total_photos_with_date    = result['output_counters']['photos']['with_date']   - result['input_counters']['photos']['with_date']
-            diff_output_input_total_photos_without_date = result['output_counters']['photos']['without_date']- result['input_counters']['photos']['without_date']   
-            diff_output_input_total_videos              = result['output_counters']['video_files']           - result['input_counters']['video_files']
-            diff_output_input_total_videos_with_date    = result['output_counters']['videos']['with_date']   - result['input_counters']['videos']['with_date']
-            diff_output_input_total_videos_without_date = result['output_counters']['videos']['without_date']- result['input_counters']['videos']['without_date']
-            diff_output_input_total_non_media           = result['output_counters']['non_media_files']       - result['input_counters']['non_media_files']
-            diff_output_input_total_metadata            = result['output_counters']['metadata_files']        - result['input_counters']['metadata_files']
-            diff_output_input_total_sidecars            = result['output_counters']['sidecar_files']         - result['input_counters']['sidecar_files']
-
-            end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
-            if result['output_counters']['total_files'] == 0:
-                # FINAL SUMMARY
-                LOGGER.info(f"")
-                LOGGER.error(f"================================================================================================================================================")
-                LOGGER.error(f"❌ PROCESS COMPLETED WITH ERRORS!           ")
-                LOGGER.error(f"================================================================================================================================================")
-                LOGGER.info(f"")
-                LOGGER.error(f"No files found in Output Folder  : '{output_folder}'")
-                LOGGER.info(f"")
-                LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
-                LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"")
-            else:
-                # FINAL SUMMARY
-                LOGGER.info(f"")
-                LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"✅ PROCESS COMPLETED SUCCESSFULLY!")
-                LOGGER.info(f"")
-                LOGGER.info(f"Processed Takeout have been saved to folder : '{output_folder}'")
-                if self.ARGS.get('google-keep-takeout-folder'):
-                    LOGGER.info(f"Original Takeout is safely preserved in     : '{self.backup_takeout_folder}' ")
-                else:
-                    LOGGER.info(f"")
-
-                LOGGER.info(f"")
-                LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
-                COL1_WIDTH = 44  # Description
-                COL2_WIDTH = 7  # Counters
-                COL3_WIDTH = 34  # Symlinks / % of photos and videos
-                COL4_WIDTH = 18  # diff
-                COL5_WIDTH = 20  # % of input
-                TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH + COL5_WIDTH
-                SYMLINK_DIGITS = max(1, len(str(result['input_counters']['total_symlinks'])), len(str(result['output_counters']['total_symlinks'])))
-                PCT_DIGITS = max(1,
-                                 len(str(int(result['input_counters']['photos']['pct_with_date']))), len(str(int(result['input_counters']['photos']['pct_without_date']))), len(str(int(result['input_counters']['videos']['pct_with_date']))), len(str(int(result['input_counters']['videos']['pct_without_date']))),
-                                 len(str(int(result['output_counters']['photos']['pct_with_date']))), len(str(int(result['output_counters']['photos']['pct_without_date']))), len(str(int(result['output_counters']['videos']['pct_with_date']))), len(str(int(result['output_counters']['videos']['pct_without_date'])))
-                                 ) + 2
-
-                # Primera parte: resumen de Takeout
-                folder = 'Takeout folder'
-                sub_dict = 'input_counters'
-                LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.2f} (GB)")
-                LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-
-                # Segunda parte: resumen de Output con diferencias respecto a Takeout
-                folder = 'Output folder'
-                sub_dict = 'output_counters'
-                LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.2f} (GB)")
-                LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_files:>5.1f}% of input)")
-                LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_unsupported_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_unsupported_files:>5.1f}% of input)")
-                LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_supported_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_supported_files:>5.1f}% of input)")
-                LOGGER.info(f"{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_non_media:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_non_media:>5.1f}% of input)")
-                LOGGER.info(f"{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_metadata:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_metadata:>5.1f}% of input)")
-                LOGGER.info(f"{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_sidecars:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_sidecars:>5.1f}% of input)")
-                LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_media:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_media:>5.1f}% of input)")
-                LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_images:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_images:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({output_perc_photos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_with_date:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({output_perc_photos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_without_date:>5.1f}% of input)")
-                LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({output_perc_videos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_with_date:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({output_perc_videos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_without_date:>5.1f}% of input)")
-                LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-
-                LOGGER.info(f"")
-                LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"Total Albums folders found in Output folder : {result['valid_albums_found']}")
-                if ARGS['google-rename-albums-folders']:
-                    LOGGER.info(f"Total Albums Renamed                        : {result['renamed_album_folders']}")
-                    LOGGER.info(f"Total Albums Duplicated                     : {result['duplicates_album_folders']}")
-                    LOGGER.info(f"   - Total Albums Fully Merged              : {result['duplicates_albums_fully_merged']}")
-                    LOGGER.info(f"   - Total Albums Not Fully Merged          : {result['duplicates_albums_not_fully_merged']}")
-                if not ARGS['google-no-symbolic-albums']:
-                    LOGGER.info(f"")
-                    LOGGER.info(f"Total Symlinks Fixed                        : {result['symlink_fixed']}")
-                    LOGGER.info(f"Total Symlinks Not Fixed                    : {result['symlink_not_fixed']}")
-                if ARGS['google-remove-duplicates-files']:
-                    LOGGER.info(f"")
-                    LOGGER.info(f"Total Duplicates Removed                    : {result['duplicates_found']}")
-                    LOGGER.info(f"Total Empty Folders Removed                 : {result['removed_empty_folders']}")
-                LOGGER.info(f"")
-                LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
-                LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"")
-
-
-
-            # At the end of the process, we call the super() to make this objet a sub-instance of the class ClassLocalFolder to create the same folder structure
-            if create_localfolder_object:
-                super().__init__(output_folder)
-
-            return self.result
-
+            # Índice self.substep posiciones antes del final
+            idx = len(self.steps_duration) - self.substep
+            if idx < 0:  idx = 0  # si la lista tiene menos de self.substep elementos, lo ponemos al inicio
+            # Insertamos ahí el nuevo registro (sin sobrescribir ninguno)
+            self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
 
 
     # sobreescribimos el método get_takeout_assets_by_filters() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
