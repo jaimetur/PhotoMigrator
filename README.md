@@ -223,8 +223,6 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 ## 📊 Repository activity
 ![Alt](https://repobeats.axiom.co/api/embed/b3021f0fd0db11466b473e34c9de04cc5d85f110.svg "Repobeats analytics image")
 
----
-
 ## 📈 Star History
 <a href="https://www.star-history.com/#jaimetur/PhotoMigrator&Date">
  <picture>
@@ -233,8 +231,6 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=jaimetur/PhotoMigrator&type=Date" />
  </picture>
 </a>
-
----
 
 ## 👥 Contributors
 <a href="https://github.com/jaimetur/PhotoMigrator/graphs/contributors">
