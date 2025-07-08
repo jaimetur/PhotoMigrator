@@ -225,7 +225,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             COL3_WIDTH = 34  # Symlinks / % of photos and videos
             TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
             SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
-            PCT_DIGITS = max(1, len(str(result[sub_dict]['photos']['pct_with_date'])), len(str(result[sub_dict]['photos']['pct_without_date'])), len(str(result[sub_dict]['videos']['pct_with_date'])), len(str(result[sub_dict]['videos']['pct_without_date'])) )
+            PCT_DIGITS = max(1, len(str(int(result[sub_dict]['photos']['pct_with_date']))), len(str(int(result[sub_dict]['photos']['pct_without_date']))), len(str(int(result[sub_dict]['videos']['pct_with_date']))), len(str(int(result[sub_dict]['videos']['pct_without_date']))))
 
             LOGGER.info(f"{step_name}Analyzing {folder} completed!")
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
@@ -588,7 +588,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             COL3_WIDTH = 34  # Symlinks / % of photos and videos
             TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
             SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
-            PCT_DIGITS = max(1, len(str(result[sub_dict]['photos']['pct_with_date'])), len(str(result[sub_dict]['photos']['pct_without_date'])), len(str(result[sub_dict]['videos']['pct_with_date'])), len(str(result[sub_dict]['videos']['pct_without_date'])) )
+            PCT_DIGITS = max(1, len(str(int(result[sub_dict]['photos']['pct_with_date']))), len(str(int(result[sub_dict]['photos']['pct_without_date']))), len(str(int(result[sub_dict]['videos']['pct_with_date']))), len(str(int(result[sub_dict]['videos']['pct_without_date']))))
 
             LOGGER.info(f"{step_name}Analyzing {folder} completed!")
             LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
@@ -901,8 +901,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH + COL5_WIDTH
                 SYMLINK_DIGITS = max(1, len(str(result['input_counters']['total_symlinks'])), len(str(result['output_counters']['total_symlinks'])))
                 PCT_DIGITS = max(1,
-                                 len(str(result['input_counters']['photos']['pct_with_date'])), len(str(result['input_counters']['photos']['pct_without_date'])), len(str(result['input_counters']['videos']['pct_with_date'])), len(str(result['input_counters']['videos']['pct_without_date'])),
-                                 len(str(result['output_counters']['photos']['pct_with_date'])), len(str(result['output_counters']['photos']['pct_without_date'])), len(str(result['output_counters']['videos']['pct_with_date'])), len(str(result['output_counters']['videos']['pct_without_date']))
+                                 len(str(int(result['input_counters']['photos']['pct_with_date']))), len(str(int(result['input_counters']['photos']['pct_without_date']))), len(str(int(result['input_counters']['videos']['pct_with_date']))), len(str(int(result['input_counters']['videos']['pct_without_date']))),
+                                 len(str(int(result['output_counters']['photos']['pct_with_date']))), len(str(int(result['output_counters']['photos']['pct_without_date']))), len(str(int(result['output_counters']['videos']['pct_with_date']))), len(str(int(result['output_counters']['videos']['pct_without_date'])))
                                  )
 
                 # Primera parte: resumen de Takeout
