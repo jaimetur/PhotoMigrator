@@ -223,6 +223,13 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 - [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) Script that organizes the Google Takeout archive into one big chronological folder. 
 - [Exiftool](https://github.com/exiftool/exiftool) Metadata information reader/writer. 
 
+
+---
+## 📢 Disclaimer
+
+- ⚠️ The project is under **very active** development.
+- ⚠️ Expect bugs and breaking changes.
+  
 ---
 
 ## 🎖️ Credits
@@ -230,7 +237,8 @@ I hope this can be useful for any of you. Enjoy it!
 
 <span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
 Part of this Tool is based on [GPTH Tool](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)/[Wacheee](https://github.com/Wacheee) and v4.x.x by [Xentraxx](https://github.com/Xentraxx)
-
+  
+---
 
 ## 🙏 Donation / Sponsor
 If you consider that this Tool has helped you, you can also consider donating me with a ☕  
