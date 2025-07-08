@@ -49,34 +49,6 @@ But this feature also helps you to organize and clean your Media Library removin
 
 The whole process is done in an automatic way and is divided in different steps (some of them are optionals).
 
-Below you can see the different steps of this feature:
-
-#### 🔍 1. Pre Checks steps
-  - 1.1. 📦 Unpack your Takeout Zip files if needed.  
-  - 1.2. 🗃️ Create a backup of your original Takeout if needed.  
-  - 1.3. 🔢 Calculate statistics of your original Takeout.  
-#### 🪛 2. Pre Process steps `(default=enabled. Can be disabled using flag '-gSkipPrep; --google-skip-preprocess')`
-  - 2.1. 🧹 Clean Input folder to delete `@eaDir` subfolders (Synology metadata subfolders with miniatures).
-  - 2.2. 🧬 Merge Live pictures (.heic, .jpg, .jpeg) with the associated video (.mp4).
-  - 2.3. ✂️ Fix Truncations on sidecar JSON names and media files to complete truncated suffixes or extensions when the filename length is high. 
-#### 🧠 3. Process steps `(default=enabled. Can be disabled using flag 'gSkipGpth, --google-skip-gpth-tool')`
-  - 3.1 🧾 Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
-  - 3.2. 📚 Separate your assets per Albums (if belong to any album).
-  - 3.3. 🔗 Create Symbolic Links for assets within any Album (to save disk space). `(default=enabled. Can be disabled using flag '-gnsa, --google-no-symbolic-albums')`
-#### ✅ 4. Post Process steps
-  - 4.1. ➡️ <span style="color:grey">Copy/Move files to Output folder manually. `(default=disabled. It is automatically enabled if detect that Step 3 has been skipped)`</span>
-  - 4.2. 🕒 Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
-  - 4.3. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
-  - 4.4. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates. (`default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders'`)</span>
-  - 4.5. 🔗 Fix broken Symbolic Links. `(default=enabled. Can be disabled using flag '-gnsa, --google-no-symbolic-albums')`
-  - 4.6. 🔢 Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics.
-  - 4.7. 📁 Organize your assets in a year/month structure for a better organization. `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`
-         - Can customize it using flags: `'-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure'`
-  - 4.8. 👥 <span style="color:grey">Detect and remove duplicates. `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`</span>
-  - 4.9. 🧹 Remove empty folders. 
-  - 4.10. 🔢 Count Albums.
-  - 4.11. 🧹 Clean Final Media Library. 
-
 > [!NOTE]
 > [**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
