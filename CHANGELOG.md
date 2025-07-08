@@ -32,7 +32,7 @@
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - [x] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTkout, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.  
+    - [x] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTakeout, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.  
            **NOTE: Now the tool moves assets from `TAKEOUT_FOLDER` to `<OUTPUT_FOLDER` by default.**
     - [x] Replaced argument `-gcsa, --google-create-symbolic-albums` by `-gnsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.  
            **NOTE: Now the tool creates Albums as symlinks/shortcuts to the original assets in `ALL_PHOTOS` folder by default.**
@@ -42,7 +42,7 @@
       - [x] Auto-Update Issues Templates with new published releases.
       - [x] Auto-Label Issues with selected Tool Version.
     - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
-    - [x] Implemented logic for `-gKeepTkout, --google-keep-takeout-folder` feature including an ultra fast and smart clonning folder algorithm. 
+    - [x] Implemented logic for `-gKeepTakeout, --google-keep-takeout-folder` feature including an ultra fast and smart clonning folder algorithm. 
     - [x] Call GPTH with `--verbose` argument when PhotoMigrator logLevel is VERBOSE.
     - [x] Added new `VERBOSE` value for `-logLevel` argument.
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
@@ -68,7 +68,7 @@
     - [x] Improved Logging messages and screen messages prefixes using Global Variables instead of hardcoded strings.
     - [x] Improved Logging messages type detection when running GPTH (automatically detects warning messages and log them as warnings instead of info).
     - [x] Inserted Profiler support to Profile any function and optimize it.
-    - [x] Removed `input_folder` after successfully completion of `Google Takeout Processing` if the user didn't use the flag `-gKeepTkout, --google-keep-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
+    - [x] Removed `input_folder` after successfully completion of `Google Takeout Processing` if the user didn't use the flag `-gKeepTakeout, --google-keep-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
     - [x] Increased the number of threads to 2 * number of cpu cores in all multi-threads processing. 
     - [x] Renamed argument `-loglevel` to `-logLevel`.
     - [x] Renamed argument `-dashb` to `-dashboard`.

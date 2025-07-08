@@ -180,7 +180,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.substep += 1
                 sub_step_start_time = datetime.now()
                 LOGGER.info(f"")
-                LOGGER.warning(f"{step_name}Flag '-gKeepTkout, --google-keep-takeout-folder' detected. Cloning Takeout Folder...")
+                LOGGER.warning(f"{step_name}Flag '-gKeepTakeout, --google-keep-takeout-folder' detected. Cloning Takeout Folder...")
                 # Generate the target temporary folder path
                 parent_dir = dirname(self.takeout_folder)
                 folder_name = basename(self.takeout_folder)
@@ -455,7 +455,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Determine if manual copy/move is needed (for step 4)
             manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
 
-            # Step 4: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
+            # Step 4.1: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
             # ----------------------------------------------------------------------------------------------------------------------
             if manual_copy_move_needed:
                 step_name = '📁 [POST-PROCESS]-[Copy/Move] : '
@@ -482,7 +482,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 5: Sync .MP4 live pictures timestamp
+            # Step 4.2: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
             step_name = '🕒 [POST-PROCESS]-[MP4 Timestamp Synch] : '
@@ -501,7 +501,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 6.1: [OPTIONAL] [Enabled by Default] - Move albums
+            # Step 4.3.1: [OPTIONAL] [Enabled by Default] - Move albums
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-move-albums']:
                 step_name = '📚 [POST-PROCESS]-[Albums Moving] : '
@@ -516,7 +516,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 step_end_time = datetime.now()
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
-                # Step 6.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # Step 4.3.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                 # ----------------------------------------------------------------------------------------------------------------------
                 if not self.ARGS['google-no-symbolic-albums']:
                     LOGGER.info(f"")
@@ -530,7 +530,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 7.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
+            # Step 4.4.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-rename-albums-folders']:
                 step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
@@ -545,7 +545,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 # Merge all counts from rename_output into self.result in one go
                 self.result.update(rename_output)
-                # Step 7.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # Step 4.4.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                 # ----------------------------------------------------------------------------------------------------------------------
                 if not self.ARGS['google-no-symbolic-albums']:
                     LOGGER.info(f"")
@@ -560,7 +560,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 8: Analyze Output Files
+            # Step 4.5: Analyze Output Files
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Analyze Output] : '
             step_start_time = datetime.now()
@@ -616,7 +616,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 9: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
+            # Step 4.6: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                 step_name = '📁 [POST-PROCESS]-[Create year/month struct] : '
@@ -670,28 +670,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # # Step 11: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
-            # # ----------------------------------------------------------------------------------------------------------------------
-            # if not self.ARGS['google-no-symbolic-albums']:
-            #     step_name = '🔗 [POST-PROCESS]-[Fix Symlinks] : '
-            #     step_start_time = datetime.now()
-            #     self.step += 1
-            #     LOGGER.info(f"")
-            #     LOGGER.info(f"================================================================================================================================================")
-            #     LOGGER.info(f"{self.step}. FIXING BROKEN SYMBOLIC LINKS AFTER MOVING...")
-            #     LOGGER.info(f"================================================================================================================================================")
-            #     LOGGER.info(f"")
-            #     LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
-            #     self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
-            #
-            #     step_end_time = datetime.now()
-            #     formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-            #     LOGGER.info(f"")
-            #     LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-            #     self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
-
-
-            # Step 10: [OPTIONAL] [Disabled by Default] - Remove Duplicates
+            # Step 4.7: [OPTIONAL] [Disabled by Default] - Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-remove-duplicates-files']:
                 step_name = '👥 [POST-PROCESS]-[Remove Duplicates] : '
@@ -737,7 +716,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 11: Remove Empty Folders
+            # Step 4.8: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
             step_start_time = datetime.now()
@@ -756,7 +735,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 12: Count Albums
+            # Step 4.9: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Count Albums] : '
             step_start_time = datetime.now()
@@ -780,7 +759,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 13: FINAL CLEANING
+            # Step 4.10: FINAL CLEANING
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [FINAL-CLEANING] : '
             step_start_time = datetime.now()
