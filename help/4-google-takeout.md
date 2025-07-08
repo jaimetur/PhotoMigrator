@@ -40,11 +40,13 @@ Below you can see the different steps of this feature:
   - 1.1. 📦 Unpack your Takeout Zip files if needed.  
   - 1.2. 🗃️ Create a backup of your original Takeout if needed.  
   - 1.3. 🔢 Calculate statistics of your original Takeout.  
-#### 🪛 2. Pre Process steps `(default=enabled. Can be disabled using flag '-gSkipPrep; --google-skip-preprocess')`
+#### 🪛 2. Pre Process steps 
+  `(default=enabled. Can be disabled using flag '-gSkipPrep; --google-skip-preprocess')`
   - 2.1. 🧹 Clean Input folder to delete `@eaDir` subfolders (Synology metadata subfolders with miniatures).
   - 2.2. 🧬 Merge Live pictures (.heic, .jpg, .jpeg) with the associated video (.mp4).
   - 2.3. ✂️ Fix Truncations on sidecar JSON names and media files to complete truncated suffixes or extensions when the filename length is high. 
-#### 🧠 3. Process steps `(default=enabled. Can be disabled using flag 'gSkipGpth, --google-skip-gpth-tool')`
+#### 🧠 3. Process steps 
+  `(default=enabled. Can be disabled using flag 'gSkipGpth, --google-skip-gpth-tool')`
   - 3.1 🧾 Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
   - 3.2. 📚 Separate your assets per Albums (if belong to any album).
   - 3.3. 🔗 Create Symbolic Links for assets within any Album (to save disk space). `(default=enabled. Can be disabled using flag '-gnsa, --google-no-symbolic-albums')`
