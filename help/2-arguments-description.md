@@ -92,7 +92,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsma`,<br>`--google-skip-move-albums`            |                    |  flag  |                                                                                    | Skips moving albums to `<ALBUMS_FOLDER>`.                                                                              |
 | `-gSkipGpth`,<br>`--google-skip-gpth-tool`         |                    |  flag  |                                                                                    | Skips GPTH tool processing (not recommended).                                                                          |
 | `-gSkipPrep`,<br>`--google-skip-preprocess`        |                    |  flag  |                                                                                    | Skips Pre-process Google Takeout folder (not recommended).                                                             |
-| `-gKeepTkout`,<br>`--google-keep-takeout-folder`   |                    |  flag  |                                                                                    | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
+| `-gKeepTakeout`,<br>`--google-keep-takeout-folder` |                    |  flag  |                                                                                    | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH progress messages.                                                                                           |
 | `-gpthError`,<br>`--show-gpth-errors`              | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                                                                              |
 
@@ -106,7 +106,7 @@ PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-albums-folders-
 or using short arguments, 
 PhotoMigrator.run -gTakeout="/home/user/Takeout" -gafs="year/month" -grdf -gsef
 PhotoMigrator.run -gTakeout="/home/user/Takeout" -gnsa -gofs="cleaned"
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTkout=true
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTakeout=true
 ```
 
 ---

@@ -46,9 +46,9 @@ PARSER                          = None                                          
 LOGGER                          = None                                          # To be Changed in set_LOGGER
 
 # Configure parameters for CustomHelpFormatter & CustomPager
-MAX_SHORT_ARGUMENT_LENGTH       = 12
+MAX_SHORT_ARGUMENT_LENGTH       = 13
 MAX_HELP_POSITION               = 120
-IDENT_ARGUMENT_DESCRIPTION      = 14
+IDENT_ARGUMENT_DESCRIPTION      = MAX_SHORT_ARGUMENT_LENGTH + 2
 IDENT_USAGE_DESCRIPTION         = 24
 SHORT_LONG_ARGUMENTS_SEPARATOR  = ';'
 
