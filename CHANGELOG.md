@@ -22,6 +22,7 @@
 
   - #### 📚 Documentation:
     - [x] New logo design (thanks to @mbarbero).
+    - [x] Updated `Google Takeout Management` documentation to update Steps names and new times per steps based on latest changes.
     - [x] Enhancement in README.md file to include Disclaimer, Repository Activity, Star History, Contributors and Related Projects.
     - [x] Added CONTRIBUTING.md to the project.
 
