@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo_17_1024x1024.png?raw=true" alt="PhotoMigrator Logo" style="width:300px;height:300px;">
+  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo_17_1280x640.png?raw=true" alt="PhotoMigrator Logo">
 </p>
+
 
 # 📈 Repo Statistics
 [![Commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/PhotoMigrator?label=Commit%20activity)](https://github.com/jaimetur/PhotoMigrator/graphs/contributors)
