@@ -5,7 +5,7 @@
 ---
 
 ## Release: v3.4.1  
-- ### Release Date: 2025-07-06
+- ### Release Date: 2025-07-08
 
 - ### Main Changes:
   - #### 🚀 Enhancements:
@@ -23,7 +23,7 @@
   - #### 📚 Documentation:
     - [x] New logo design (thanks to @mbarbero).
     - [x] Enhancement in README.md file to include Disclaimer, Repository Activity, Star History, Contributors and Related Projects.
-  - 
+
 ---
 
 ## Release: v3.4.0  
