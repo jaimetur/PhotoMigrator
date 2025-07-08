@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo_17_1024x1024.png?raw=true" alt="PhotoMigrator Logo" style="width:400px;height:400px;">
+  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo_17_1024x1024.png?raw=true" alt="PhotoMigrator Logo" style="width:640px;height:640px;">
 </p>
 
 
