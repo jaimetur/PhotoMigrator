@@ -220,8 +220,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.result[sub_dict].update(initial_takeout_counters)
             result = self.result
 
-            COL1_WIDTH = 45  # Description
-            COL2_WIDTH = 12  # Counters
+            COL1_WIDTH = 44  # Description
+            COL2_WIDTH = 7  # Counters
             COL3_WIDTH = 34  # Symlinks / % of photos and videos
             TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
             SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
@@ -582,8 +582,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.result[sub_dict].update(output_counters)
             result = self.result
 
-            COL1_WIDTH = 45  # Description
-            COL2_WIDTH = 12  # Counters
+            COL1_WIDTH = 44  # Description
+            COL2_WIDTH = 7  # Counters
             COL3_WIDTH = 34  # Symlinks / % of photos and videos
             TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
             SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
@@ -891,8 +891,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
                 LOGGER.info(f"")
                 LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
-                COL1_WIDTH = 45  # Description
-                COL2_WIDTH = 12  # Counters
+                COL1_WIDTH = 44  # Description
+                COL2_WIDTH = 7  # Counters
                 COL3_WIDTH = 34  # Symlinks / % of photos and videos
                 COL4_WIDTH = 18  # diff
                 COL5_WIDTH = 20  # % of input
