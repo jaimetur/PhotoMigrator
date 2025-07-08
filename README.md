@@ -33,7 +33,8 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ## 🚀 1. Automatic Migration   
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
-[**(Automatic Migration Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)
+> [!NOTE]
+> [**(Automatic Migration Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)
 
 
 ## 🛠️ 2. Google Takeout Fixing 
@@ -71,7 +72,8 @@ Below you can see the different steps of this feature:
   - Clean Final Media Library. 
   - Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics. 
 
-[**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
+> [!NOTE]
+> [**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
 ## 🖼️ 3. Synology Photos / Immich Photos / Apple Photos / Google Photos / NextCloud Photos Management
 Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can use the tool also to manage different Photo Cloud Services. 
@@ -92,19 +94,17 @@ Currently, the Features Supported per each Photo Cloud Service are:
   | Merge Duplicates Albums         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | Not supported yet | Not supported yet | Not supported yet |
   | Remove Orphans Assets           | Not supported yet                                                                                                                         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported yet | Not supported yet | Not supported yet |
 
-[**(Synology Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)   
+> [!NOTE]
+>- [**(Synology Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)
+> 
+>- [**(Immich Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)
 
-[**(Immich Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)
-
-> [!NOTE] 
->- **Apple Photos**  
->  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+> [!IMPORTANT]  
+>- **Apple Photos**  is not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release.
 >
->- **Google Photos**  
->  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+>- **Google Photos** is not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release.
 >
->- **NextCloud Memories**  
->  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+>- **NextCloud Photos**  is not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release.
 
 
 ## 🧩 4. Other Standalone Features  
@@ -118,11 +118,13 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
     - Fix Symbolic Links Broken
   - **Homogenize Albums folder's name based on content**
 
-[**(Other Standalone Features Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)
+> [!NOTE]
+> [**(Other Standalone Features Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)
 
 
 ## 💾 Download
 Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
+
 - [Latest Stable Release](https://github.com/jaimetur/PhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
@@ -235,7 +237,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 
 ## 👥 Contributors
 <a href="https://github.com/jaimetur/PhotoMigrator/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=jaimetur/PhotoMigrator" width="20%"/>
+  <img src="https://contrib.rocks/image?repo=jaimetur/PhotoMigrator" width="15%"/>
 </a>
 
 ---
