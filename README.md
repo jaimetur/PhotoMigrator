@@ -16,6 +16,16 @@ This tool has been designed to Interact and Manage different Photo Services such
 
 The Tool supports multiple accounts for the same service, so you can migrate your assets between different accounts of the same service.
 
+<p align="center"> 
+  <br/>
+  <a href="https://discord.gg/wTJ62qh5UC" target="_blank">
+    <img src="https://img.shields.io/discord/1391921771770286110.svg?label=Discord&logo=Discord&style=for-the-badge&logoColor=ffffff&labelColor=5865F2" alt="Discord"/>
+  </a>
+  <br/>
+  <br/>
+</p>
+
+
 # 🖥️ Live Dashboard Preview
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
