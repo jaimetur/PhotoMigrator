@@ -95,7 +95,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                                                                                |
 | `-gSkipGpth`,<br>`--google-skip-gpth-tool`         | Skip processing with GPTH Tool (not recommended)                                                                       |
 | `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).                                                             |
-| `-gKeepTkout`,<br>`--google-keep-takeout-folder`   | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
+| `-gKeepTakeout`,<br>`--google-keep-takeout-folder` | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                                                                            |
 | `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true)                                                                               |
 
@@ -108,7 +108,7 @@ PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-albums-folders-
 or using short arguments, 
 PhotoMigrator.run -gTakeout="/home/user/Takeout" -gafs="year/month" -grdf -gsef
 PhotoMigrator.run -gTakeout="/home/user/Takeout" -gnsa -gofs="cleaned"
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTkout=true
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTakeout=true
 ```
 
 ---

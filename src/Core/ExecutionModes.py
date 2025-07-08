@@ -191,7 +191,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
         if ARGS['google-ignore-check-structure']:
             LOGGER.warning(f"Flag detected '-gics, --google-ignore-check-structure'. All files in <TAKEOUT_FOLDER> will be processed ignoring Google Takeout Structure...")
         if ARGS['google-keep-takeout-folder']:
-            LOGGER.warning(f"Flag detected '-gKeepTkout, --google-keep-takeout-folder'. Your <TAKEOUT_FOLDER> will be Kept, but take into account that it will be Fixed (modified) by Pre-Processing actions...")
+            LOGGER.warning(f"Flag detected '-gKeepTakeout, --google-keep-takeout-folder'. Your <TAKEOUT_FOLDER> will be Kept, but take into account that it will be Fixed (modified) by Pre-Processing actions...")
         if ARGS['google-remove-duplicates-files']:
             LOGGER.warning(f"Flag detected '-grdf, --google-remove-duplicates-files'. All duplicates files within OUTPUT_TAKEOUT_FOLDER will be removed after fixing them...")
         if ARGS['google-rename-albums-folders']:
