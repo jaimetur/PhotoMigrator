@@ -15,6 +15,7 @@
     - [x] Separate GPTH Tool folder from EXIF Tool folder.    
     - [x] New logo design (thanks to @mbarbero).
     - [x] Improvement in Analysis Summary info (now it shows the number of Symbolic Links detected in Input/Output folders)
+    - [x] Enhancement in README.md file to include Disclaimer, Repository Activity, Star History, Contributors and Related Projects.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed a bug in function get_file_date() function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
