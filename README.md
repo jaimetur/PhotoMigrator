@@ -203,16 +203,40 @@ The below tables show the pros and cons of each method together with a comparati
 The Historical Change Log can be checked in the following link:
 [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md)
 
----
-
 ## 📅 ROADMAP
 The Planned Roadmap for futures releases can be checked in the following link:
 [Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md)
 
----
-
 ## 🛡️ CODE OF CONDUCT
 By participating in this project, you agree to abide by our [Code of Conduct](https://github.com/jaimetur/PhotoMigrator/blob/main/CODE_OF_CONDUCT.md).
+
+## 📢 Disclaimer
+
+- ⚠️ The project is under **very active** development.
+- ⚠️ Expect bugs and breaking changes.
+  
+---
+
+## 📊 Repository activity
+![Alt](https://repobeats.axiom.co/api/embed/b3021f0fd0db11466b473e34c9de04cc5d85f110.svg "Repobeats analytics image")
+
+---
+
+## 📈 Star History
+<a href="https://www.star-history.com/#jaimetur/PhotoMigrator&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=jaimetur/PhotoMigrator&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=jaimetur/PhotoMigrator&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=jaimetur/PhotoMigrator&type=Date" />
+ </picture>
+</a>
+
+---
+
+## 👥 Contributors
+<a href="https://github.com/jaimetur/PhotoMigrator/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jaimetur/PhotoMigrator" width="20%"/>
+</a>
 
 ---
 
@@ -222,14 +246,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 - [NextCloud Photos](https://github.com/nextcloud/photos) Your memories under your control. 
 - [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) Script that organizes the Google Takeout archive into one big chronological folder. 
 - [Exiftool](https://github.com/exiftool/exiftool) Metadata information reader/writer. 
-
-
----
-## 📢 Disclaimer
-
-- ⚠️ The project is under **very active** development.
-- ⚠️ Expect bugs and breaking changes.
-  
+    
 ---
 
 ## 🎖️ Credits
