@@ -23,6 +23,7 @@
   - #### 📚 Documentation:
     - [x] New logo design (thanks to @mbarbero).
     - [x] Enhancement in README.md file to include Disclaimer, Repository Activity, Star History, Contributors and Related Projects.
+    - [x] Added CONTRIBUTING.md to the project.
 
 ---
 
