@@ -2,7 +2,7 @@
   <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo_17_1024x1024.png?raw=true" alt="PhotoMigrator Logo" width="600" height="400" />
 </p>
 <p align="center">
-  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo_17_1024x1024.png?raw=true" alt="PhotoMigrator Logo" width="800" height="600" />
+  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo_17_1024x1024.png?raw=true" alt="PhotoMigrator Logo" width="600" height="600" />
 </p>
 <p align="center">
   <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo_17_1024x1024.png?raw=true" alt="PhotoMigrator Logo" />
