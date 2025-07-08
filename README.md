@@ -237,6 +237,8 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
   <img src="https://contrib.rocks/image?repo=jaimetur/PhotoMigrator" width="15%"/>
 </a>
 
+If you want to Contribute to this project please, first read the file [CONTRIBUTING.md](https://github.com/jaimetur/PhotoMigrator/blob/main/CONTRIBUTING.md)
+
 ---
 
 ## 🤝 Related Projects
