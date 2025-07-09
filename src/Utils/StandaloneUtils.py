@@ -140,7 +140,7 @@ def resolve_internal_path(path_to_resolve, step_name=''):
     return resolved_path
 
 
-def resolve_docker_path(user_path, step_name=''):
+def resolve_external_path(user_path, step_name=''):
     """
     Converts a user_path into a valid absolute path.
 

@@ -310,8 +310,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         exif_tool = exif_tool.replace('<ZIP_NAME>', 'others')
 
     # Usar resolve_internal_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
-    # gpth_tool_path = resolve_internal_path(gpth_tool)
-    gpth_tool_path = get_gpth_tool_path(base_path=FOLDERNAME_GPTH, exec_name=gpth_tool, step_name='')
+    gpth_tool_path = resolve_internal_path(gpth_tool)
 
     # Ensure exec permissions for gpth binary file
     ensure_executable(gpth_tool_path)
