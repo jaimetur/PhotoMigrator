@@ -36,6 +36,7 @@ The main use case is the **Automatic Migration Feature** to migrate all your pho
 
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
+>
 > [**(Automatic Migration Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)
 
 
@@ -52,6 +53,7 @@ The whole process is done in an automatic way and is divided in different steps 
 
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
+>
 > [**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
 ## 🖼️ 3. Synology Photos / Immich Photos / Apple Photos / Google Photos / NextCloud Photos Management
@@ -101,6 +103,7 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
 
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
+>
 > [**(Other Standalone Features Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)
 
 
