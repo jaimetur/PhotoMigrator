@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 
 # ------------------------------------------------------------
 # Add 'src/' folder to path to import any module from 'src/'.
