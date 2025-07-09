@@ -9,7 +9,7 @@ from colorama import Fore, Style
 
 from Core import GlobalVariables as GV
 from Core.GlobalVariables import VERBOSE_LEVEL_NUM
-from Utils.StandaloneUtils import resolve_docker_path, custom_print
+from Utils.StandaloneUtils import resolve_external_path, custom_print
 
 
 #------------------------------------------------------------------
@@ -191,7 +191,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
 
     # Crear la carpeta de logs si no existe
     # Resolver log_folder a ruta absoluta
-    log_folder = resolve_docker_path(log_folder)
+    log_folder = resolve_external_path(log_folder)
     os.makedirs(log_folder, exist_ok=True)
 
     # Clear existing handlers to avoid duplicate logs

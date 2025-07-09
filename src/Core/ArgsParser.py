@@ -11,7 +11,7 @@ from Core.CustomHelpFormatter import CustomHelpFormatter
 from Core.CustomPager import PagedParser
 from Core.GlobalVariables import TOOL_DESCRIPTION, TOOL_NAME, TOOL_VERSION, TOOL_DATE
 from Utils.DateUtils import parse_text_to_iso8601
-from Utils.StandaloneUtils import resolve_docker_path
+from Utils.StandaloneUtils import resolve_external_path
 
 choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
 choices_for_log_formats             = ['log', 'txt', 'all']
@@ -571,7 +571,7 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
                     if item_clean == "" or item_clean in skip_values:
                         resolved_list.append(item_clean)
                     else:
-                        resolved_list.append(resolve_docker_path(item_clean))
+                        resolved_list.append(resolve_external_path(item_clean))
                 else:
                     resolved_list.append(item)
             args_dict[key] = resolved_list
@@ -586,7 +586,7 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
                 if part in skip_values:
                     resolved_parts.append(part)
                 else:
-                    resolved_parts.append(resolve_docker_path(part))
+                    resolved_parts.append(resolve_external_path(part))
             args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
 
 
