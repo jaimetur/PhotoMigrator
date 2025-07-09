@@ -56,7 +56,7 @@ Below you can see the different steps of this feature:
   - 4.3. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
   - 4.4. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates. (`default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders'`)</span>
   - 4.5. 🔢 Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics.
-  - 4.6. 📁 Organize your assets in a year/month structure for a better organization. `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`
+  - 4.6. 📁 Organize your assets in a year/month structure for a better organization. `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
          - Can customize it using flags: `'-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure'`
   - 4.7. 👥 <span style="color:grey">Detect and remove duplicates. `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`</span>
   - 4.8. 🧹 Remove empty folders. 
