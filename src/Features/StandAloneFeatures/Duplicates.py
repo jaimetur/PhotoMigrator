@@ -12,7 +12,7 @@ from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_DUPLICATES_OUTPUT
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs
 from Utils.GeneralUtils import tqdm
-from Utils.StandaloneUtils import resolve_path
+from Utils.StandaloneUtils import resolve_external_path
 
 
 # ========================
@@ -178,7 +178,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
         LOGGER.debug(f"{step_name} Exclusiones absolutas: {exclusion_folders}")
 
         if not duplicates_folders:
-            duplicates_folders = [resolve_path('../../../../../../../../../')]
+            duplicates_folders = [resolve_external_path('../../../../../../../../../')]
         LOGGER.debug(f"{step_name}Checking folder existence")
         for folder in duplicates_folders:
             if not os.path.isdir(folder):
@@ -347,7 +347,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                 # CSV WRITING
                 # ===========================
                 LOGGER.info(f"{step_name}Creating duplicates directories")
-                duplicates_root = resolve_path(FOLDERNAME_DUPLICATES_OUTPUT)
+                duplicates_root = resolve_external_path(FOLDERNAME_DUPLICATES_OUTPUT)
                 timestamp_dir = os.path.join(duplicates_root, 'Duplicates_' + timestamp)
                 os.makedirs(timestamp_dir, exist_ok=True)
                 LOGGER.info(f"{step_name}Results in {timestamp_dir}")

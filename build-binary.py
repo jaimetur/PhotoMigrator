@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 
 # ------------------------------------------------------------
 # Add 'src/' folder to path to import any module from 'src/'.
@@ -17,7 +18,7 @@ from pathlib import Path
 from Core.GlobalVariables import TOOL_NAME, TOOL_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE, FOLDERNAME_GPTH, FOLDERNAME_EXIFTOOL
 from Utils.GeneralUtils import clear_screen, print_arguments_pretty, get_os, get_arch, ensure_executable
 from Utils.FileUtils import unzip_to_temp, zip_folder
-from Utils.StandaloneUtils import resource_path
+from Utils.StandaloneUtils import resolve_internal_path
 
 global OPERATING_SYSTEM
 global ARCHITECTURE
@@ -42,7 +43,7 @@ def include_extrafiles_and_zip(input_file, output_file):
         },
         {
             'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
-            'files': ["./README.md", "./CHANGELOG.md", "./ROADMAP.md", "./DOWNLOAD.md", "./CODE_OF_CONDUCT.md", "./LICENSE"]
+            'files': ["./README.md", "./CHANGELOG.md", "./ROADMAP.md", "./DOWNLOAD.md", "./CONTRIBUTING.md", "./CODE_OF_CONDUCT.md", "./LICENSE"]
         },
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'help'
@@ -309,8 +310,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         gpth_tool = gpth_tool.replace(".ext", ".bin")
         exif_tool = exif_tool.replace('<ZIP_NAME>', 'others')
 
-    # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
-    gpth_tool_path = resource_path(gpth_tool)
+    # Usar resolve_internal_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
+    gpth_tool_path = resolve_internal_path(gpth_tool)
 
     # Ensure exec permissions for gpth binary file
     ensure_executable(gpth_tool_path)

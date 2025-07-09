@@ -4,7 +4,7 @@ import sys
 from configparser import ConfigParser
 
 from Core.GlobalVariables import LOGGER, FOLDERNAME_LOGS, CONFIGURATION_FILE
-from Utils.StandaloneUtils import resolve_path
+from Utils.StandaloneUtils import resolve_external_path
 
 CONFIG = None
 
@@ -22,7 +22,7 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
         CONFIG = {}
         
     # Resolver correctamente la ruta al archivo de configuración
-    config_file = resolve_path(config_file)
+    config_file = resolve_external_path(config_file)
 
     LOGGER.info(f"Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
     if not os.path.exists(config_file):
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
-    log_folder = resolve_path(FOLDERNAME_LOGS)
+    log_folder = resolve_external_path(FOLDERNAME_LOGS)
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
     LOGGER = log_setup(
         log_folder=log_folder,
