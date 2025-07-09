@@ -286,7 +286,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 1: Delete hidden subfolders '@eaDir'
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🛠️ [PRE-PROCESS]-[Clean Takeout Folder] : '
+            step_name = '🔧 [PRE-PROCESS]-[Clean Takeout Folder] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -301,7 +301,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 2: Fix .MP4 JSON
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🛠️ [PRE-PROCESS]-[MP4/Live Pics. Fixer] : '
+            step_name = '🔧 [PRE-PROCESS]-[MP4/Live Pics. Fixer] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -318,7 +318,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 3: Fix truncated suffixes (such as '-ha edit.jpg' or '-ha e.jpg', or '-effec', or '-supplemen',...)
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🛠️ [PRE-PROCESS]-[Truncations Fixer   ] : '
+            step_name = '🔧 [PRE-PROCESS]-[Truncations Fixer   ] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -354,7 +354,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Finally show TOTAL DURATION OF PRE-PROCESS PHASE
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-            step_name = '🛠️ [PRE-PROCESS] : '
+            step_name = '🔧️ [PRE-PROCESS] : '
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             # Índice self.substep posiciones antes del final
