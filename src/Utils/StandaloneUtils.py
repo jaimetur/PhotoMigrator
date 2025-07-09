@@ -8,6 +8,7 @@ from pathlib import Path
 from colorama import Style
 
 from Core.GlobalVariables import MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, TOOL_NAME, MSG_TAGS_COLORED, PROJECT_ROOT
+import Core.GlobalVariables as GV
 
 
 def change_working_dir(change_dir=None):
@@ -21,7 +22,7 @@ def change_working_dir(change_dir=None):
             print(f"{MSG_TAGS['INFO']}Directorio cambiado a: {os.getcwd()}")
 
 
-def get_gpth_tool_path(base_path: str, exec_name: str) -> str:
+def get_gpth_tool_path(base_path: str, exec_name: str, step_name='') -> str:
     """
     Devuelve la ruta al ejecutable GPTH.
 
@@ -36,14 +37,14 @@ def get_gpth_tool_path(base_path: str, exec_name: str) -> str:
     # `exists()` evita falsos positivos con rutas de carpetas inexistentes
     # `os.access(..., os.X_OK)` asegura que sea realmente ejecutable (opcional pero útil)
     if p.exists() and p.is_file() and os.access(p, os.X_OK):
-        return resource_path(str(p))
+        return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
     # --------- Caso 2: directorio (o ruta aún no creada) ----------
-    # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
-    return resource_path(str(p / exec_name))
+    # Usar resolve_internal_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
+    return resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
 
 
-def get_exif_tool_path(base_path: str) -> str:
+def get_exif_tool_path(base_path: str, step_name='') -> str:
     """
     Devuelve la ruta al ejecutable de ExifTool.
 
@@ -57,14 +58,14 @@ def get_exif_tool_path(base_path: str) -> str:
 
     # --------- Caso 1: ya es un ejecutable válido ----------
     if p.exists() and p.is_file() and os.access(p, os.X_OK):
-        return resource_path(str(p))
+        return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
     # --------- Caso 2: es (o será) un directorio ----------
     exec_name = "exiftool.exe" if platform.system().lower() == "windows" else "exiftool"
-    return resource_path(str(p / exec_name))
+    return resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
 
 
-def resource_path(relative_path):
+def resolve_internal_path(path_to_resolve, step_name=''):
     """
     Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
     - PyInstaller (onefile o standalone)
@@ -73,60 +74,73 @@ def resource_path(relative_path):
     """
     # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
     compiled_source = globals().get("__compiled__")
-    DEBUG_MODE = False  # Cambia a False para silenciar
+    DEBUG_MODE = GV.LOG_LEVEL <= logging.DEBUG  # Cambia a False para silenciar
     if DEBUG_MODE:
-        custom_print(f"---DEBUG INFO", log_level=logging.DEBUG)
-        custom_print(f"RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}", log_level=logging.DEBUG)
-        custom_print(f"sys.frozen                  : {getattr(sys, 'frozen', False)}", log_level=logging.DEBUG)
-        custom_print(f"NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}", log_level=logging.DEBUG)
-        custom_print(f"sys.argv[0]                 : {sys.argv[0]}", log_level=logging.DEBUG)
-        custom_print(f"sys.executable              : {sys.executable}", log_level=logging.DEBUG)
-        custom_print(f"os.getcwd()                 : {os.getcwd()}", log_level=logging.DEBUG)
-        custom_print(f"__file__                    : {globals().get('__file__', 'NO __file__')}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}DEBUG_MODE = {DEBUG_MODE}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}---RESOURCE_PATH DEBUG INFO", log_level=logging.DEBUG)
+        custom_print(f"{step_name}PATH TO RESOLVE             : {path_to_resolve}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}sys.frozen                  : {getattr(sys, 'frozen', False)}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}PROJECT_ROOT                : {PROJECT_ROOT}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}sys.argv[0]                 : {sys.argv[0]}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}sys.executable              : {sys.executable}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}os.getcwd()                 : {os.getcwd()}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}__file__                    : {globals().get('__file__', 'NO __file__')}", log_level=logging.DEBUG)
         try:
-            custom_print(f"__compiled__.containing_dir : {compiled_source.containing_dir}", log_level=logging.DEBUG)
+            if compiled_source:
+                custom_print(f"{step_name}__compiled__.containing_dir : {compiled_source.containing_dir}", log_level=logging.DEBUG)
+            else:
+                custom_print(f"{step_name}__compiled__ not defined", log_level=logging.DEBUG)
         except NameError:
-            custom_print(f"__compiled__ not defined", log_level=logging.DEBUG)
+            custom_print(f"{step_name}__compiled__ not defined", log_level=logging.DEBUG)
         if hasattr(sys, '_MEIPASS'):
             custom_print(f"_MEIPASS                    : {sys._MEIPASS}", log_level=logging.DEBUG)
         else:
-            custom_print(f"_MEIPASS not defined", log_level=logging.DEBUG)
+            custom_print(f"{step_name}_MEIPASS not defined", log_level=logging.DEBUG)
         print("")
+
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
-        if DEBUG_MODE: custom_print(f"Entra en modo PyInstaller -> (sys._MEIPASS)", log_level=logging.DEBUG)
+        if DEBUG_MODE: custom_print(f"{step_name}Entra en modo PyInstaller     -> base_path={base_path} (sys._MEIPASS)", log_level=logging.DEBUG)
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         # base_path = os.path.dirname(os.path.abspath(__file__))
-        # base_path = os.path.dirname(sys.executable)
-        base_path = PROJECT_ROOT
-        if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --onefile -> (__file__)", log_level=logging.DEBUG)
+        base_path = os.path.dirname(sys.executable)
+        # base_path = PROJECT_ROOT
+        if DEBUG_MODE: custom_print(f"{step_name}Entra en modo Nuitka --onefile    -> base_path={base_path} (sys.executable)", log_level=logging.DEBUG)
     # Nuitka standalone
     elif compiled_source:
     # elif "__compiled__" in globals():
         base_path = os.path.join(compiled_source.containing_dir, TOOL_NAME + '.dist')
         # base_path = compiled_source
-        if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)", log_level=logging.DEBUG)
+        if DEBUG_MODE: custom_print(f"{step_name}Entra en modo Nuitka --standalone     -> base_path={base_path} (__compiled__.containing_dir)", log_level=logging.DEBUG)
     # Python normal
     elif "__file__" in globals():
         if RESOURCES_IN_CURRENT_FOLDER:
             base_path = os.getcwd()
-            if DEBUG_MODE: custom_print(f"Entra en Python .py -> (cwd)", log_level=logging.DEBUG)
+            if DEBUG_MODE: custom_print(f"{step_name}Entra en modo Python (con RESOURCES_IN_CURRENT_FOLDER={RESOURCES_IN_CURRENT_FOLDER})  -> base_path={base_path} (os.getcwd())", log_level=logging.DEBUG)
         else:
             # base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             base_path = PROJECT_ROOT
-            if DEBUG_MODE: custom_print(f"Entra en Python .py -> (dirname(dirname(__file__)))", log_level=logging.DEBUG)
+            if DEBUG_MODE: custom_print(f"{step_name}Entra en modo Python (con RESOURCES_IN_CURRENT_FOLDER={RESOURCES_IN_CURRENT_FOLDER})  -> base_path={base_path} (PROJECT_ROOT)", log_level=logging.DEBUG)
     else:
         base_path = os.getcwd()
-        if DEBUG_MODE: custom_print(f"Entra en fallback final -> os.getcwd()", log_level=logging.DEBUG)
+        if DEBUG_MODE: custom_print(f"{step_name}Entra en fallback final   -> base_path={base_path} (os.getcwd())", log_level=logging.DEBUG)
+
+    # ✅ Si la ruta ya existe (absoluta o relativa), devuélvela directamente
+    if path_to_resolve and os.path.exists(path_to_resolve):
+        resolved_path = path_to_resolve
+    else:
+        resolved_path = os.path.join(base_path, path_to_resolve)
     if DEBUG_MODE:
-        custom_print(f"return path                 : {os.path.join(base_path, relative_path)}", log_level=logging.DEBUG)
-        custom_print(f"--- END DEBUG INFO", log_level=logging.DEBUG)
-    return os.path.join(base_path, relative_path)
+        custom_print(f"{step_name}return path                 : {resolved_path}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}--- END RESOURCE_PATH DEBUG INFO", log_level=logging.DEBUG)
+    return resolved_path
 
 
-def resolve_path(user_path):
+def resolve_external_path(user_path, step_name=''):
     """
     Converts a user_path into a valid absolute path.
 
@@ -197,6 +211,7 @@ def resolve_path(user_path):
     else:
         # Outside Docker, return absolute path on the local system
         return os.path.abspath(path_clean)
+        # return resolve_internal_path(path_to_resolve=path_clean, step_name=step_name)
 
 
 def is_inside_docker():
