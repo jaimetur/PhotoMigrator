@@ -10,23 +10,29 @@ import stat
 import subprocess
 import sys
 import zipfile
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from os.path import dirname, basename
 from pathlib import Path
 
+import piexif
 from colorama import init
+from dateutil import parser
 from packaging.version import Version
 
 from Core.CustomLogger import set_log_level
+from Core.CustomLogger import suppress_console_output_temporarily
 from Core.FileStatistics import count_files_and_extract_dates
-from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH
+from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, \
+    PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
+from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
-from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty
-from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resource_path, custom_print
+from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json
+from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resolve_external_path, custom_print, get_exif_tool_path
 
 
 ##############################################################################
@@ -126,7 +132,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         return self.output_folder
 
 
-    def precheck_takeout_and_calculate_initial_counters(self, log_level=None):
+    def pre_checks(self, log_level=None):
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
             # Start Pre-Checking
             self.step += 1
@@ -361,7 +367,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 1: Pre-check the object with skip_process=True to just unzip files in case they are zipped
             # ----------------------------------------------------------------------------------------------------------------------
-            self.precheck_takeout_and_calculate_initial_counters(log_level=log_level)
+            self.pre_checks(log_level=log_level)
 
             # Step 2: Pre-Process Takeout folder
             # ----------------------------------------------------------------------------------------------------------------------
@@ -419,7 +425,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 )
                 if not ok:
                     LOGGER.warning(f"{step_name}Metadata fixing didn't finish properly due to GPTH error.")
-                    LOGGER.warning(f"{step_name}If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
+                    LOGGER.warning(f"{step_name}If your Takeout does not contain Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                     return self.result
 
                 # Determine if manual copy/move is needed (for step 4)
@@ -1286,8 +1292,7 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
     Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
     Loguea solo líneas distintas a las de progreso. Corrige pegado de líneas en consola.
     """
-    from Core.CustomLogger import suppress_console_output_temporarily
-    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def handle_stream(stream, is_error=False):
         init(autoreset=True)
 
@@ -1409,8 +1414,8 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
         # 5) Al cerrar stream, si quedó un progreso vivo, cerramos línea
         if last_was_progress and print_messages:
             print()
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
 
-    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
     with suppress_console_output_temporarily(LOGGER):
         if not capture_output and not capture_errors:
             return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
@@ -1456,7 +1461,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             sys.exit(-1)
 
         # Get gpth_tool_path
-        gpth_tool_path = get_gpth_tool_path(FOLDERNAME_GPTH, tool_name)
+        gpth_tool_path = get_gpth_tool_path(base_path=FOLDERNAME_GPTH, exec_name=tool_name, step_name=step_name)
         LOGGER.info(f"{step_name}Using GPTH Tool file: '{gpth_tool_path}'...")
 
         # Check if the file exists
@@ -1560,22 +1565,23 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             return False
 
 
-def fix_metadata_with_exif_tool(output_folder, log_level=None):
+def fix_metadata_with_exif_tool(output_folder, step_name='', log_level=None):
     """Runs the EXIF Tool command to fix photo metadata."""
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Fixing EXIF metadata in '{output_folder}'...")
         # Detect the operating system
         current_os = platform.system()
         # Determine the Tool name based on the OS
-        script_name = ""
+        tool_name = ""
         if current_os == "Linux":
-            script_name = "exiftool"
+            tool_name = "exiftool"
         elif current_os == "Darwin":
-            script_name = "exiftool"
+            tool_name = "exiftool"
         elif current_os == "Windows":
-            script_name = "exiftool.exe"
-        # Usar resource_path para acceder a archivos o directorios:
-        exif_tool_path = resource_path(os.path.join("exif_tool", script_name))
+            tool_name = "exiftool.exe"
+        # Usar resolve_external_path para acceder a archivos o directorios:
+        # exif_tool_path = resolve_external_path(os.path.join("exif_tool", tool_name))
+        exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
 
         # Ensure exec permissions for the binary file
         ensure_executable(exif_tool_path)
@@ -1658,10 +1664,13 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
 
 
 def force_remove_directory(folder, step_name='', log_level=None):
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def onerror(func, path, exc_info):
         # Cambia los permisos y vuelve a intentar
         os.chmod(path, stat.S_IWRITE)
         func(path)
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
+
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if os.path.exists(folder):
@@ -1686,6 +1695,18 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
     :param move: If True, moves the files instead of copying them.
     :return: None
     """
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
+    def ignore_function(files, ignore_patterns):
+        if ignore_patterns:
+            # Convert to a list if a single pattern is provided
+            patterns = ignore_patterns if isinstance(ignore_patterns, list) else [ignore_patterns]
+            ignored = []
+            for pattern in patterns:
+                ignored.extend(fnmatch.filter(files, pattern))
+            return set(ignored)
+        return set()
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
+
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Ignore function
         action = 'Moving' if move else 'Copying'
@@ -1696,16 +1717,6 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
             if not is_valid_path(dst):
                 LOGGER.error(f"{step_name}The path '{dst}' is not valid for the execution platform. Cannot copy/move folders to it.")
                 return False
-
-            def ignore_function(files, ignore_patterns):
-                if ignore_patterns:
-                    # Convert to a list if a single pattern is provided
-                    patterns = ignore_patterns if isinstance(ignore_patterns, list) else [ignore_patterns]
-                    ignored = []
-                    for pattern in patterns:
-                        ignored.extend(fnmatch.filter(files, pattern))
-                    return set(ignored)
-                return set()
 
             # Ensure the source folder exists
             if not os.path.exists(src):
@@ -1866,17 +1877,20 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
         :param step_name:
         :param log_level:
     """
+
+    # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
+    def safe_move(folder_path, albums_path):
+        destination = os.path.join(albums_path, os.path.basename(folder_path))
+        if os.path.exists(destination):
+            if os.path.isdir(destination):
+                shutil.rmtree(destination)
+            else:
+                os.remove(destination)
+        shutil.move(folder_path, albums_path)
+    # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
+
     # Ensure exclude_subfolder is a list, even if a single string is passed
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        def safe_move(folder_path, albums_path):
-            destination = os.path.join(albums_path, os.path.basename(folder_path))
-            if os.path.exists(destination):
-                if os.path.isdir(destination):
-                    shutil.rmtree(destination)
-                else:
-                    os.remove(destination)
-            shutil.move(folder_path, albums_path)
-
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
         albums_path = os.path.join(input_folder, albums_subfolder)
@@ -1897,6 +1911,7 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
                 LOGGER.debug(f"{step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
                 os.makedirs(albums_path, exist_ok=True)
                 safe_move(folder_path, albums_path)
+
         # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
         move_albums_to_root(albums_path, step_name=step_name, log_level=logging.INFO)
 
@@ -1954,59 +1969,107 @@ def count_valid_albums(folder_path, excluded_folders=None, step_name="", log_lev
     """
     if excluded_folders is None:
         excluded_folders = ()
-
     YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
     MEDIA_EXT = set(PHOTO_EXT) | set(VIDEO_EXT)         # union once → O(1) lookup
-
     valid_albums = 0
     visited_dirs = set()
-
     with set_log_level(LOGGER, log_level):
         for root, dirs, files in os.walk(folder_path, followlinks=True):
             real_root = os.path.realpath(root)
             if real_root in visited_dirs:               # avoid loops with symlinked dirs
                 continue
             visited_dirs.add(real_root)
-
             folder_name = os.path.basename(root)
-
             # ── skip folders by name ────────────────────────────────────────────
             if folder_name in excluded_folders or YEAR_PATTERN.fullmatch(folder_name):
                 dirs.clear()
                 continue
-
             dirs[:] = [
                 d for d in dirs
                 if d not in excluded_folders and not YEAR_PATTERN.fullmatch(d)
             ]
-
             # ── inspect files inside this folder ───────────────────────────────
             for fname in files:
                 fpath = Path(root) / fname
                 link_ext = fpath.suffix.lower()                 # ext of the file itself
                 target_ext = ''                                 # will be filled below
-
                 try:
                     if fpath.is_symlink():                      # POSIX / NTFS symlink
                         target_ext = fpath.resolve(strict=False).suffix.lower()
-
                     elif os.name == 'nt' and link_ext == '.lnk':
                         # Windows shortcut (.lnk): try to infer inner extension from its stem
                         target_ext = Path(fpath.stem).suffix.lower()
                         # NOTE: we don't parse the .lnk binary; good enough if names keep the ext.
-
                     else:
                         target_ext = link_ext                   # normal file (no link)
-
                     if link_ext in MEDIA_EXT or target_ext in MEDIA_EXT:
                         valid_albums += 1
                         LOGGER.debug(f"{step_name}✅ Valid album at: {root}")
                         break                                   # next folder
-
                 except Exception as exc:
                     LOGGER.warning(f"{step_name}⚠️ Cannot inspect {fpath}: {exc}")
-
     return valid_albums
+
+
+def count_valid_albums_in_first_level(folder_path, excluded_folders=None, step_name="", log_level=None):
+    """
+    Count subfolders directly under `folder_path` that contain at least one media file (including via symlink),
+    either in the folder itself or any of its nested subfolders.
+
+    Args:
+        folder_path: Root folder where direct subfolders are scanned.
+        excluded_folders: Set of folder names to skip.
+        step_name: Optional step name to prefix log messages.
+        log_level: Optional logging level override.
+    """
+    with set_log_level(LOGGER, log_level):
+        if excluded_folders is None:
+            excluded_folders = ()
+        YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
+        MEDIA_EXT = set(PHOTO_EXT) | set(VIDEO_EXT)  # union once → O(1) lookup
+        valid_albums = 0
+        folder_path = Path(folder_path)
+        if not folder_path.is_dir():
+            LOGGER.warning(f"{step_name}⚠️ Provided path is not a folder: {folder_path}")
+            return valid_albums
+
+        for subfolder in folder_path.iterdir():
+            if not subfolder.is_dir():
+                continue
+            folder_name = subfolder.name
+            if folder_name in excluded_folders or YEAR_PATTERN.fullmatch(folder_name):
+                continue
+
+            visited_dirs = set()
+            found = False  # flag to break both loops
+            for root, dirs, files in os.walk(subfolder, followlinks=True):
+                real_root = os.path.realpath(root)
+                if real_root in visited_dirs:
+                    continue
+                visited_dirs.add(real_root)
+                for fname in files:
+                    fpath = Path(root) / fname
+                    link_ext = fpath.suffix.lower()
+                    target_ext = ''
+                    try:
+                        if fpath.is_symlink():
+                            target_ext = fpath.resolve(strict=False).suffix.lower()
+                        elif os.name == 'nt' and link_ext == '.lnk':
+                            target_ext = Path(fpath.stem).suffix.lower()
+                        else:
+                            target_ext = link_ext
+                        if link_ext in MEDIA_EXT or target_ext in MEDIA_EXT:
+                            valid_albums += 1
+                            LOGGER.debug(f"{step_name}✅ Valid album at: {subfolder}")
+                            found = True
+                            break
+                    except Exception as exc:
+                        LOGGER.warning(f"{step_name}⚠️ Cannot inspect {fpath}: {repr(exc)}")
+                if found:
+                    break
+        return valid_albums
+
+
 
 
 def clone_folder_fast(input_folder, cloned_folder, step_name="", log_level=None):

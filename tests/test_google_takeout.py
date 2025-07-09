@@ -9,6 +9,6 @@ class TestGoogleTakeoutProcessor(unittest.TestCase):
         self.processor = ClassTakeoutFolder(self.zip_path)
 
     def test_precheck_takeout_and_calculate_initial_counters(self):
-        self.processor.precheck_takeout_and_calculate_initial_counters()
+        self.processor.pre_checks()
         output_path = os.path.join(os.path.dirname(self.zip_path), "unpacked")
         self.assertTrue(os.path.exists(output_path))

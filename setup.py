@@ -12,11 +12,11 @@ version_file_path = os.path.join(here, "src", "Core", "GlobalVariables.py") # Pa
 with open(version_file_path, encoding="utf-8") as f:
     file_contents = f.read()
 
-# Use a regular expression to find SCRIPT_VERSION_WITHOUT_V
-match = re.search(r"^SCRIPT_VERSION_WITHOUT_V\s*=\s*['\"]([^'\"]+)['\"]", file_contents, re.MULTILINE)
+# Use a regular expression to find TOOL_VERSION_WITHOUT_V
+match = re.search(r"^TOOL_VERSION_WITHOUT_V\s*=\s*['\"]([^'\"]+)['\"]", file_contents, re.MULTILINE)
 if not match:
     raise RuntimeError(
-        "SCRIPT_VERSION_WITHOUT_V not found in GlobalVariables.py"
+        "TOOL_VERSION_WITHOUT_V not found in GlobalVariables.py"
     )
 version = match.group(1) # The version is captured in the first group
 

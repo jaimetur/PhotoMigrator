@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from dateutil import parser as date_parser
 
@@ -186,4 +186,16 @@ def epoch_to_iso8601(epoch):
         return ""
 
 
+def normalize_datetime_utc(dt):
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)  # naive → UTC
+    else:
+        return dt.astimezone(timezone.utc)      # aware → UTC
 
+
+def is_date_valid(file_date, reference_timestamp, min_days=1):
+    if file_date is None:
+        return False
+    if reference_timestamp.tzinfo is None:
+        reference_timestamp = reference_timestamp.replace(tzinfo=timezone.utc)
+    return file_date < (reference_timestamp - timedelta(days=min_days))

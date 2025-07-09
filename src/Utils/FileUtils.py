@@ -1,15 +1,13 @@
 import fnmatch
-import logging
 import os
 import re
 import shutil
-import sys
 import tempfile
 import zipfile
 from pathlib import Path
 
-from Core.CustomLogger import set_log_level, custom_print
-from Core.GlobalVariables import LOGGER, MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, FOLDERNAME_ALBUMS, PROJECT_ROOT
+from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_ALBUMS
 from Utils.GeneralUtils import tqdm
 
 

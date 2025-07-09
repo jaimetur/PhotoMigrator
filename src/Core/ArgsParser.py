@@ -9,9 +9,9 @@ from colorama import Style
 from Core import GlobalVariables as GV
 from Core.CustomHelpFormatter import CustomHelpFormatter
 from Core.CustomPager import PagedParser
-from Core.GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+from Core.GlobalVariables import TOOL_DESCRIPTION, TOOL_NAME, TOOL_VERSION, TOOL_DATE
 from Utils.DateUtils import parse_text_to_iso8601
-from Utils.StandaloneUtils import resolve_path
+from Utils.StandaloneUtils import resolve_docker_path
 
 choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
 choices_for_log_formats             = ['log', 'txt', 'all']
@@ -27,14 +27,14 @@ valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photo
 def parse_arguments():
     # Parser with Pagination:
     PARSER = PagedParser(
-        description=f"\n{SCRIPT_DESCRIPTION}",
+        description=f"\n{TOOL_DESCRIPTION}",
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )
 
     # Acción personalizada para --version
     class VersionAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
-            print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
+            print(f"\n{TOOL_NAME} {TOOL_VERSION} {TOOL_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
@@ -514,7 +514,7 @@ def fix_path(path: str) -> str:
     Limpia una ruta:
     - Quita comillas exteriores (si están cerradas)
     - Quita comilla final suelta (si está escapada)
-    - Elimina barra final (/ o \), excepto si la ruta es raíz
+    - Elimina barra final, excepto si la ruta es raíz
     """
     path = path.strip()
     # Caso especial: comilla final suelta escapada
@@ -571,7 +571,7 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
                     if item_clean == "" or item_clean in skip_values:
                         resolved_list.append(item_clean)
                     else:
-                        resolved_list.append(resolve_path(item_clean))
+                        resolved_list.append(resolve_docker_path(item_clean))
                 else:
                     resolved_list.append(item)
             args_dict[key] = resolved_list
@@ -586,7 +586,7 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
                 if part in skip_values:
                     resolved_parts.append(part)
                 else:
-                    resolved_parts.append(resolve_path(part))
+                    resolved_parts.append(resolve_docker_path(part))
             args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
 
 

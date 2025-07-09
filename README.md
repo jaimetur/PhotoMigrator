@@ -7,21 +7,31 @@
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/v3.4.0/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # 📸 **PhotoMigrator**
-<p align="center">
-  <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo.jpg?raw=true" alt="PhotoMigrator Logo" width="600" height="400" />
+This tool has been designed to Interact and Manage different Photo Services such as Google Photos, Synology Photos, Immich Photos, Apple Photos & NextCloud, and allow users to do an <span style="color:green">**Automatic Migration**</span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
+
+The Tool supports multiple accounts for the same service, so you can migrate your assets between different accounts of the same service.
+
+<p align="center"> 
+  <br/>
+  <a href="https://discord.gg/wTJ62qh5UC" target="_blank">
+    <img src="https://img.shields.io/discord/1391921771770286110.svg?label=Discord&logo=Discord&style=for-the-badge&logoColor=ffffff&labelColor=5865F2" alt="Discord"/>
+  </a>
+  <br/>
+  <br/>
 </p>
 
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automatic Migration**</span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
 
-
-## 🖥️ Live Dashboard Preview
+# 🖥️ Live Dashboard Preview
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
-## 🌟 Main Modules Included:
+# 🌟 Main Modules:
 ## 🚀 1. Automatic Migration   
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
-[**(Automatic Migration Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)
+> [!NOTE]
+> For more info you can check the feature documentation in below link:
+>
+> [**(Automatic Migration Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)
 
 
 ## 🛠️ 2. Google Takeout Fixing 
@@ -31,37 +41,16 @@ This feature has been designed to automatically analyze your Google Photos Takeo
 
 In this way your Media Library will be ready to be migrated to any other Cloud Photo services without losing any important info such as, Albums info, Original date, GPS location, Camera info, etc...
 
-But this feature also helps you to organize and clean your Media Library removing duplicates, creating Year/Month folder structure, creating symbolic links for Albums assets, Auto renaming Albums to clean their names and include a prefix with the date of its assets, etc...
+But this feature also helps you to organize and clean your Media Library removing duplicates, creating Year/Month folder structure, creating symbolic links for Albums assets, Auto renaming Albums to clean their names and include a prefix with the date of its assets, Process Motion/Live Pictures, etc...
 
 The whole process is done in an automatic way and is divided in different steps (some of them are optionals).
 
-Below you can see the different steps of this feature:
+> [!NOTE]
+> For more info you can check the feature documentation in below link:
+>
+> [**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
-#### 1. Pre Checks steps
-  - Unpack your Takeout Zip files if needed. 
-  - Create a backup of your original Takeout if needed. 
-  - Calculate statistics of your original Takeout. 
-#### 2. Pre Process steps
-  - Merge Live picture with separate files (.HEIC and .MP4).
-  - Fix  Truncations on sidecar JSON names and media files to complete truncated suffixes or extensions when the filename length is high. 
-#### 3. Process steps
-  - Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
-  - Separate your assets per Albums (if belong to any album).
-  - Create Symbolic Links for assets within any Album (to save disk space).
-#### 4. Post Process steps
-  - Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
-  - Organize your assets in a year/month structure for a better organization.
-  - Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. 
-  - Fix broken Symbolic Links. 
-  - Detect and remove duplicates.
-  - Auto rename Albums folders to homogenize all names based on content dates. 
-  - Remove empty folders. 
-  - Clean Final Media Library. 
-  - Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics. 
-
-[**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
-
-## 🖼️ 3. Synology Photos / Immich Photos / Apple Photos / Google Photos / NextCloud Memories Management
+## 🖼️ 3. Synology Photos / Immich Photos / Apple Photos / Google Photos / NextCloud Photos Management
 Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can use the tool also to manage different Photo Cloud Services. 
 Currently, the Features Supported per each Photo Cloud Service are:
 
@@ -80,19 +69,19 @@ Currently, the Features Supported per each Photo Cloud Service are:
   | Merge Duplicates Albums         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | Not supported yet | Not supported yet | Not supported yet |
   | Remove Orphans Assets           | Not supported yet                                                                                                                         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported yet | Not supported yet | Not supported yet |
 
-[**(Synology Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)   
-
-[**(Immich Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)
-
-> [!NOTE] 
->- **Apple Photos**  
->  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+> [!NOTE]
+> For more info you can check the feature documentation in below links:
 >
->- **Google Photos**  
->  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+>- [**(Synology Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)
+> 
+>- [**(Immich Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)
+
+> [!IMPORTANT]  
+>- **Apple Photos**  is not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release.
 >
->- **NextCloud Memories**  
->  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
+>- **Google Photos** is not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release.
+>
+>- **NextCloud Photos**  is not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release.
 
 
 ## 🧩 4. Other Standalone Features  
@@ -106,11 +95,15 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
     - Fix Symbolic Links Broken
   - **Homogenize Albums folder's name based on content**
 
-[**(Other Standalone Features Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)
+> [!NOTE]
+> For more info you can check the feature documentation in below link:
+>
+> [**(Other Standalone Features Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)
 
 
 ## 💾 Download
 Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
+
 - [Latest Stable Release](https://github.com/jaimetur/PhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
@@ -191,17 +184,48 @@ The below tables show the pros and cons of each method together with a comparati
 The Historical Change Log can be checked in the following link:
 [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md)
 
----
-
 ## 📅 ROADMAP
 The Planned Roadmap for futures releases can be checked in the following link:
 [Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md)
 
----
-
 ## 🛡️ CODE OF CONDUCT
 By participating in this project, you agree to abide by our [Code of Conduct](https://github.com/jaimetur/PhotoMigrator/blob/main/CODE_OF_CONDUCT.md).
 
+## 📢 Disclaimer
+
+- ⚠️ The project is under **very active** development.
+- ⚠️ Expect bugs and breaking changes.
+  
+---
+
+## 📊 Repository activity
+![Alt](https://repobeats.axiom.co/api/embed/b3021f0fd0db11466b473e34c9de04cc5d85f110.svg "Repobeats analytics image")
+
+## 📈 Star History
+<a href="https://www.star-history.com/#jaimetur/PhotoMigrator&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=jaimetur/PhotoMigrator&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=jaimetur/PhotoMigrator&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=jaimetur/PhotoMigrator&type=Date" />
+ </picture>
+</a>
+
+## 👥 Contributors
+<a href="https://github.com/jaimetur/PhotoMigrator/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jaimetur/PhotoMigrator" width="15%"/>
+</a>
+
+If you want to Contribute to this project please, first read the file [CONTRIBUTING.md](https://github.com/jaimetur/PhotoMigrator/blob/main/CONTRIBUTING.md)
+
+---
+
+## 🤝 Related Projects
+- [Synology Photos](https://www.synology.com/es-mx/dsm/feature/photos) Create albums full of precious moments, share your perfectly framed photos, and store them securely on your Synology NAS. 
+- [Immich Photos](https://github.com/immich-app/immich) High performance self-hosted photo and video management solution.
+- [NextCloud Photos](https://github.com/nextcloud/photos) Your memories under your control. 
+- [Google Photos Takeout Helper (GPTH)](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) Script that organizes the Google Takeout archive into one big chronological folder. 
+- [Exiftool](https://github.com/exiftool/exiftool) Metadata information reader/writer. 
+    
 ---
 
 ## 🎖️ Credits
@@ -209,7 +233,8 @@ I hope this can be useful for any of you. Enjoy it!
 
 <span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
 Part of this Tool is based on [GPTH Tool](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)/[Wacheee](https://github.com/Wacheee) and v4.x.x by [Xentraxx](https://github.com/Xentraxx)
-
+  
+---
 
 ## 🙏 Donation / Sponsor
 If you consider that this Tool has helped you, you can also consider donating me with a ☕  

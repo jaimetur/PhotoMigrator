@@ -32,9 +32,6 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
         merges JSON outputs and counters, then computes final percentages.
     """
 
-    # ====================
-    # AUX FUNCTIONS
-    # ====================
     # Ensure output_file has an extension; default to .json
     if not os.path.splitext(output_file)[1]:
         output_file = output_file + '.json'
@@ -43,6 +40,11 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
     # Add TIMESTAMP to output_file
     output_filename = f"{TIMESTAMP}_{output_filename}"
     output_file = f"{output_filename}{output_ext}"
+    output_filepath = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file)
+
+    # ====================
+    # AUX FUNCTIONS
+    # ====================
     # ------------------------------------------------------------------
     # Aux: merge counters from multiple blocks
     # ------------------------------------------------------------------
@@ -108,7 +110,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
         if extract_dates:
             # Get exiftool complete path
-            exif_tool_path = get_exif_tool_path(FOLDERNAME_EXIFTOOL)
+            exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
             # If exiftool is found, extract date with exiftool
             if Path(exif_tool_path).exists():
                 # Make error_log_path the same file as our current logger.
@@ -118,9 +120,9 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
                 # Prepare exiftool command
                 command = [
-                    exif_tool_path,
-                    "-j", "-n", "-time:all", "-fast", "-fast2", "-s"
-                ] + file_paths
+                              exif_tool_path,
+                              "-j", "-n", "-time:all", "-fast", "-fast2", "-s"
+                          ] + file_paths
                 try:
                     with open(chunk_json_path, "w", encoding="utf-8") as out_json, \
                             open(error_log_path, "a", encoding="utf-8") as out_err:

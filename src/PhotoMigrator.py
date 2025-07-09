@@ -49,14 +49,18 @@ def main():
             os.unlink(splash_filename)
     print("Tool loaded!")
     print("")
-        
+
     # Initialize ARGS_PARSER, LOGGER and HELP_TEXT
     # IMPORTANT: DO NOT IMPORT ANY TOOL's MODULE (except Utils.StandaloneUtils or Core.GlobalVariables) BEFORE TO RUN set_ARGS_PARSER AND set_LOGGER
     #            otherwise the ARGS, PARSER, LOGGER and HELP_TEXTS variables will be None on those imported modules.
     from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXTS
+    custom_print(f"Setting ARGS...", log_level=logging.INFO)
     set_ARGS_PARSER()   # Need to be called first of all
+    custom_print(f"Setting Global Folders...", log_level=logging.INFO)
     set_FOLDERS()       # Need to be called after set_ARGS_PARSER() but before set_LOGGER()
+    custom_print(f"Setting Global LOGGER...", log_level=logging.INFO)
     set_LOGGER()        # Need to be called after set_FOLDERS()
+    custom_print(f"Setting Global HELP_TEXTS...", log_level=logging.INFO)
     set_HELP_TEXTS()
 
     # Now we can safety import any other tool's module
@@ -117,7 +121,6 @@ def main():
             custom_print(f"No valid folder selected. Exiting.", log_level=logging.ERROR)
             sys.exit(1)
 
-
     # Test different LOG_LEVELS
     custom_print("Testing Custom Print Function for all different logLevels.")
     custom_print("All logLevel should be displayed on console:")
@@ -140,11 +143,13 @@ def main():
     custom_log("", log_level=logging.INFO)
 
     # Print the Header (common for all modules)
+    GV.LOGGER.info(f"\n{GV.BANNER}\n{GV.TOOL_DESCRIPTION}")
+    custom_log(f"Running {sys.argv[0]}...", log_level=logging.INFO)
     GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(f"Starting {GV.SCRIPT_NAME} Tool...")
+    GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
+    GV.LOGGER.info(f"  - Project Root                  : {GV.PROJECT_ROOT}")
     GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
     GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
     GV.LOGGER.info(f"  - Folder/Binary for EXIF TOOL   : {GV.FOLDERNAME_EXIFTOOL}")
@@ -154,7 +159,6 @@ def main():
         GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
         GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FILENAME + '.log'}")
         GV.LOGGER.info(f"  - Log Level                     : {logging.getLevelName(GV.LOG_LEVEL)} ({str(GV.LOG_LEVEL).upper()})")
-    GV.LOGGER.info(f"")
     GV.LOGGER.info(f"  - SubFolder for Albums          : <OUTPUT_FOLDER>/{GV.FOLDERNAME_ALBUMS}")
     GV.LOGGER.info(f"  - SubFolder for No-Albums       : <OUTPUT_FOLDER>/{GV.FOLDERNAME_NO_ALBUMS}")
     GV.LOGGER.info(f"")
