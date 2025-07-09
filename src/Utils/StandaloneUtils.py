@@ -81,6 +81,7 @@ def resource_path(relative_path):
         custom_print(f"NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}", log_level=logging.DEBUG)
         custom_print(f"sys.argv[0]                 : {sys.argv[0]}", log_level=logging.DEBUG)
         custom_print(f"sys.executable              : {sys.executable}", log_level=logging.DEBUG)
+        custom_print(f"PROJECT_ROOT                : {PROJECT_ROOT}", log_level=logging.DEBUG)
         custom_print(f"os.getcwd()                 : {os.getcwd()}", log_level=logging.DEBUG)
         custom_print(f"__file__                    : {globals().get('__file__', 'NO __file__')}", log_level=logging.DEBUG)
         try:
