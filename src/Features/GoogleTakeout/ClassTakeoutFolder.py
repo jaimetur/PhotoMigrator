@@ -146,10 +146,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 1: Extraction Process
             # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🔍 [PRE-CHECKS]-[Unzip Takeout  ] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            self.substep += 1
+            sub_step_start_time = datetime.now()
             if self.needs_unzip:
-                step_name = '🔍 [PRE-CHECKS]-[Unzip Takeout  ] : '
-                self.substep += 1
-                sub_step_start_time = datetime.now()
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}📦 Input Folder contains ZIP files and needs to be unzipped first.")
                 LOGGER.info(f"{step_name}📦 This process might take long time, depending on how big is your Takeout.")
@@ -166,19 +167,22 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+            else:
+                formatted_duration = f"Skipped"
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Sub-Step 2: create_backup_if_needed
             # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🔍 [PRE-CHECKS]-[Clone Takeout  ] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            self.substep += 1
+            sub_step_start_time = datetime.now()
             if self.ARGS.get('google-keep-takeout-folder'):
                 # Determine the input_folder depending if the Takeout have been unzipped or not
                 input_folder = self.get_input_folder()
-                step_name = '🔍 [PRE-CHECKS]-[Clone Takeout  ] : '
-                self.substep += 1
-                sub_step_start_time = datetime.now()
                 LOGGER.info(f"")
                 LOGGER.warning(f"{step_name}Flag '-gKeepTakeout, --google-keep-takeout-folder' detected. Cloning Takeout Folder...")
                 # Generate the target temporary folder path
@@ -196,9 +200,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+            else:
+                formatted_duration = f"Skipped"
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
 
             # Sub-Step 3: Analyze initial files in Takeout Folder before to process with GPTH and modify any original file
             # ----------------------------------------------------------------------------------------------------------------------
@@ -390,7 +397,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # Call pre_process() with the same log_level as process()
                 self.pre_process(log_level=log_level)
             else:
-                step_name = '🛠️ [PRE-PROCESS] : '
+                step_name = '🪛 [PRE-PROCESS] : '
                 self.step += 1
                 formatted_duration = f"Skipped"
                 LOGGER.info(f"{step_name}Skipped!")
