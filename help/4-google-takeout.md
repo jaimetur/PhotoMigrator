@@ -40,7 +40,7 @@ Below you can see the different steps of this feature:
   - 1.1. 📦 Unpack your Takeout Zip files if needed.  
   - 1.2. 🗃️ Create a backup of your original Takeout if needed.  
   - 1.3. 🔢 Calculate statistics of your original Takeout.  
-#### 2. 🪛 Pre Process steps 
+#### 2. 🛠️ Pre Process steps 
 `(default=enabled. Can be disabled using flag '-gSkipPrep; --google-skip-preprocess')`
   - 2.1. 🧹 Clean Input folder to delete `@eaDir` subfolders (Synology metadata subfolders with miniatures).
   - 2.2. 🧬 Merge Live pictures (.heic, .jpg, .jpeg) with the associated video (.mp4).
