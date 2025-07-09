@@ -1,6 +1,20 @@
 # 🗓️ CHANGELOG
 [Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for the following releases
 [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) for the past releases
+---
+
+## Release: v3.4.2  
+- ### Release Date: 2025-07-09
+
+- ### Main Changes:
+  - #### 🚀 Enhancements:
+    - [x] Show skipped steps in 'Total Duration Summary' within 'Google Takeout Processing'. 
+    - [x] Maintain Step ids in 'Google Takeout Processing'.
+    
+  - #### 🐛 Bug fixes:
+    - [x] Fixed a bug in function get_file_date() function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
+    - [x] Fixed a bug [#730](https://github.com/jaimetur/PhotoMigrator/issues/730) when the tool was executed without arguments and the input folder was selected using windows dialog pop-up.
+    - [x] Fixed a bug [#739](https://github.com/jaimetur/PhotoMigrator/issues/739) in function resource_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
 
 ---
 
@@ -12,6 +26,8 @@
     - [x] Banner included when loading Tool.
     - [x] Renamed `Script` by `Tool` in all internal variables.
     - [x] Changed order of Post-Process function in `Goolge Takeout Fixing` feature. Now Organize output folder by year/month structure have been moved to the end (after Analyze Output). In this way the date of each file can be loaded from the cached date dict generated during Analysys Phase).
+    - [x] Show skipped steps in 'Total Durarion Summary' within 'Google Takeout Processing'. 
+    - [x] Maintain Step ids in 'Google Takeout Processing'.
     - [x] Separate GPTH Tool folder from EXIF Tool folder.    
     - [x] Improvement in Analysis Summary info (now it shows the number of Symbolic Links detected in Input/Output folders)
 

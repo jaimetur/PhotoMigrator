@@ -99,7 +99,8 @@ def resource_path(relative_path):
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         # base_path = os.path.dirname(os.path.abspath(__file__))
-        base_path = os.path.dirname(sys.executable)
+        # base_path = os.path.dirname(sys.executable)
+        base_path = PROJECT_ROOT
         if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --onefile -> (__file__)", log_level=logging.DEBUG)
     # Nuitka standalone
     elif compiled_source:
