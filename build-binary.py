@@ -18,7 +18,7 @@ from pathlib import Path
 from Core.GlobalVariables import TOOL_NAME, TOOL_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE, FOLDERNAME_GPTH, FOLDERNAME_EXIFTOOL
 from Utils.GeneralUtils import clear_screen, print_arguments_pretty, get_os, get_arch, ensure_executable
 from Utils.FileUtils import unzip_to_temp, zip_folder
-from Utils.StandaloneUtils import resolve_external_path
+from Utils.StandaloneUtils import resolve_internal_path
 
 global OPERATING_SYSTEM
 global ARCHITECTURE
@@ -311,7 +311,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         exif_tool = exif_tool.replace('<ZIP_NAME>', 'others')
 
     # Usar resolve_external_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
-    gpth_tool_path = resolve_external_path(gpth_tool)
+    gpth_tool_path = resolve_internal_path(gpth_tool)
 
     # Ensure exec permissions for gpth binary file
     ensure_executable(gpth_tool_path)
