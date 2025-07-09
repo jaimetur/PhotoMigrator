@@ -482,12 +482,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{'Takeout Precessed Folder'.ljust(55)}  : '{output_folder}'.")
             LOGGER.info(f"")
             LOGGER.info(f"Processing Time per Step:")
+            LOGGER.info(f"-" * 67)
             for entry in self.steps_duration:
                 label_cleaned = ' '.join(entry['step_name'].replace(' : ', '').split()).replace(' ]', ']')
-                step_id_and_label = f"Step {(str(entry['step_id'])).ljust(4)} : {label_cleaned}"
-                # Línea en blanco antes de cada paso principal
+                # step_id_and_label = f"Step {(str(entry['step_id'])).ljust(4)} : {label_cleaned}"
+                # If it is a principal Step, add new line
                 if '.' not in str(entry['step_id']):
                     LOGGER.info("")
+                    step_id_and_label = f"{('STEP ' + str(entry['step_id'])).ljust(9)} : {label_cleaned}"
+                else:
+                    step_id_and_label = f"{('Step ' + str(entry['step_id'])).ljust(9)} : {label_cleaned}"
+
                 LOGGER.info(f"{step_id_and_label.ljust(55)} : {entry['duration'].rjust(8)}")
             LOGGER.info(f"")
             LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(55)}  : {formatted_duration.rjust(8)}")

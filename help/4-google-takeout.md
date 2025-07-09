@@ -76,27 +76,30 @@ Below you can see the different steps of this feature:
 > The whole process took around **~15-20 hours** (depending on how many optional steps are enabled) and this is the time split per steps:  
 > 
 > Processing Time per Step:  
-> 
-> Step 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]             :  2:30:32  
+> -------------------------------------------------------------------
+> STEP 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]             :  2:30:32  
 > Step 1.1  : 🔍 [PRE-CHECKS]-[Unzip Takeout]              :  1:52:06  
-> Step 1.2  : 🔍 [PRE-CHECKS]-[Analyze Takeout]            :  0:38:26  
+> Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]              :  Skipped  
+> Step 1.3  : 🔍 [PRE-CHECKS]-[Analyze Takeout]            :  0:38:26  
 > 
-> Step 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:22:55  
+> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:22:55  
 > Step 2.1  : 🪛 [PRE-PROCESS]-[Clean Takeout Folder]      :  0:00:08  
 > Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]      :  0:02:58  
 > Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]         :  0:19:49  
 > 
-> Step 3    : 🧠 [PROCESS]-[Metadata Processing]           : 13:49:15  
+> STEP 3    : 🧠 [PROCESS]-[Metadata Processing]           : 13:49:15  
 > 
-> Step 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  4:33:37  
-> Step 4.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:15  
-> Step 4.2  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:00:03  
-> Step 4.3  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:33  
-> Step 4.4  : 🔢 [POST-PROCESS]-[Analyze Output]           :  0:35:16  
-> Step 4.5  : 📁 [POST-PROCESS]-[Create year/month struct] :  3:11:35  
-> Step 4.6  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:06  
-> Step 4.7  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:02  
-> Step 4.8  : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:45:47  
+> STEP 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  4:33:37  
+> Step 4.1  : 📁 [POST-PROCESS]-[Copy/Move]                :  Skipped  
+> Step 4.2  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:15  
+> Step 4.3  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:00:03  
+> Step 4.4  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:33  
+> Step 4.5  : 🔢 [POST-PROCESS]-[Analyze Output]           :  0:35:16  
+> Step 4.6  : 📁 [POST-PROCESS]-[Create year/month struct] :  3:11:35  
+> Step 4.7  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped  
+> Step 4.8  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:06  
+> Step 4.9  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:02  
+> Step 4.10 : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:45:47  
 > 
 > TOTAL PROCESSING TIME                                    : 21:17:17
 >
