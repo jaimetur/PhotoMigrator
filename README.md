@@ -35,6 +35,7 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
 > [!NOTE]
+> For more info you can check the feature documentation in below link:
 > [**(Automatic Migration Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)
 
 
@@ -50,6 +51,7 @@ But this feature also helps you to organize and clean your Media Library removin
 The whole process is done in an automatic way and is divided in different steps (some of them are optionals).
 
 > [!NOTE]
+> For more info you can check the feature documentation in below link:
 > [**(Google Takeout Fixing Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
 
 ## 🖼️ 3. Synology Photos / Immich Photos / Apple Photos / Google Photos / NextCloud Photos Management
@@ -72,6 +74,8 @@ Currently, the Features Supported per each Photo Cloud Service are:
   | Remove Orphans Assets           | Not supported yet                                                                                                                         | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported yet | Not supported yet | Not supported yet |
 
 > [!NOTE]
+> For more info you can check the feature documentation in below links:
+>
 >- [**(Synology Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)
 > 
 >- [**(Immich Photos Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)
@@ -96,6 +100,7 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
   - **Homogenize Albums folder's name based on content**
 
 > [!NOTE]
+> For more info you can check the feature documentation in below link:
 > [**(Other Standalone Features Documentation)**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)
 
 
