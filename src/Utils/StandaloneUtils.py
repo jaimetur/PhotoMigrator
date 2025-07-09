@@ -73,7 +73,7 @@ def resource_path(relative_path):
     """
     # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
     compiled_source = globals().get("__compiled__")
-    DEBUG_MODE = False  # Cambia a False para silenciar
+    DEBUG_MODE = True  # Cambia a False para silenciar
     if DEBUG_MODE:
         custom_print(f"---DEBUG INFO", log_level=logging.DEBUG)
         custom_print(f"RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}", log_level=logging.DEBUG)
@@ -101,7 +101,7 @@ def resource_path(relative_path):
         # base_path = os.path.dirname(os.path.abspath(__file__))
         # base_path = os.path.dirname(sys.executable)
         base_path = PROJECT_ROOT
-        if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --onefile -> (__file__)", log_level=logging.DEBUG)
+        if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --onefile -> (PROJECT_ROOT={PROJECT_ROOT})", log_level=logging.DEBUG)
     # Nuitka standalone
     elif compiled_source:
     # elif "__compiled__" in globals():
