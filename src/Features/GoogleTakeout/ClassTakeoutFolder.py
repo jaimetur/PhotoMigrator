@@ -653,10 +653,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 4.1: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
             # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '📁 [POST-PROCESS]-[Copy/Move] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             if manual_copy_move_needed:
-                step_name = '📁 [POST-PROCESS]-[Copy/Move] : '
-                sub_step_start_time = datetime.now()
-                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}.{self.substep}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
@@ -674,14 +675,16 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+            else:
+                formatted_duration = f"Skipped"
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.2: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🕒 [POST-PROCESS]-[MP4 Timestamp Synch] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             sub_step_start_time = datetime.now()
             self.substep += 1
             LOGGER.info(f"")
@@ -694,17 +697,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.3.1: [OPTIONAL] [Enabled by Default] - Move albums
             # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '📚 [POST-PROCESS]-[Albums Moving] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             if not self.ARGS['google-skip-move-albums']:
-                step_name = '📚 [POST-PROCESS]-[Albums Moving] : '
-                sub_step_start_time = datetime.now()
-                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}.{self.substep}. MOVING ALBUMS FOLDER...")
@@ -723,17 +726,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+            else:
+                formatted_duration = f"Skipped"
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.4.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             if self.ARGS['google-rename-albums-folders']:
-                step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
-                sub_step_start_time = datetime.now()
-                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}.{self.substep}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
@@ -753,14 +758,16 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+            else:
+                formatted_duration = f"Skipped"
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.5: Analyze Output Files
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Analyze Output] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             sub_step_start_time = datetime.now()
             self.substep += 1
             LOGGER.info(f"")
@@ -810,17 +817,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.6: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '📁 [POST-PROCESS]-[Create year/month struct] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
-                step_name = '📁 [POST-PROCESS]-[Create year/month struct] : '
-                sub_step_start_time = datetime.now()
-                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}.{self.substep}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
@@ -865,17 +872,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+            else:
+                formatted_duration = f"Skipped"
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.7: [OPTIONAL] [Disabled by Default] - Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '👥 [POST-PROCESS]-[Remove Duplicates] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
             if self.ARGS['google-remove-duplicates-files']:
-                step_name = '👥 [POST-PROCESS]-[Remove Duplicates] : '
-                sub_step_start_time = datetime.now()
-                self.substep += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"{self.step}.{self.substep}. REMOVING DUPLICATES IN <OUTPUT_TAKEOUT_FOLDER>...")
@@ -908,18 +917,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 )
                 self.result['duplicates_found'] += duplicates_found
                 self.result['removed_empty_folders'] += removed_empty_folders
-
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+            else:
+                formatted_duration = f"Skipped"
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # Step 4.8: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             sub_step_start_time = datetime.now()
             self.substep += 1
             LOGGER.info(f"")
@@ -932,7 +942,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
@@ -940,6 +949,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Step 4.9: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Count Albums] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             sub_step_start_time = datetime.now()
             self.substep += 1
             LOGGER.info(f"")
@@ -957,7 +967,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
@@ -965,6 +974,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Step 4.10: FINAL CLEANING
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Final Cleaning] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             sub_step_start_time = datetime.now()
             self.substep += 1
             LOGGER.info(f"")
@@ -981,11 +991,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Finally show TOTAL DURATION OF PRE-PROCESS PHASE
+
+            # Finally show TOTAL DURATION OF POST-PROCESS PHASE
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
             step_name = '✅ [POST-PROCESS] : '
