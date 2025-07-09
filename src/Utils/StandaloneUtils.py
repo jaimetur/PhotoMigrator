@@ -85,7 +85,10 @@ def resource_path(relative_path):
         custom_print(f"os.getcwd()                 : {os.getcwd()}", log_level=logging.DEBUG)
         custom_print(f"__file__                    : {globals().get('__file__', 'NO __file__')}", log_level=logging.DEBUG)
         try:
-            custom_print(f"__compiled__.containing_dir : {compiled_source.containing_dir}", log_level=logging.DEBUG)
+            if compiled_source:
+                custom_print(f"__compiled__.containing_dir : {compiled_source.containing_dir}", log_level=logging.DEBUG)
+            else:
+                custom_print(f"__compiled__ not defined", log_level=logging.DEBUG)
         except NameError:
             custom_print(f"__compiled__ not defined", log_level=logging.DEBUG)
         if hasattr(sys, '_MEIPASS'):
