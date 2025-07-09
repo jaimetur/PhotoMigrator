@@ -170,7 +170,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+                LOGGER.info(f"{step_name}Skipped!")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -203,7 +203,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+                LOGGER.info(f"{step_name}Skipped!")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -279,14 +279,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
     def pre_process(self, log_level=None):
         # Start Pre-Process
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
-            self.step += 1
             self.substep = 0
             step_start_time = datetime.now()
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}. PRE-PROCESSING TAKEOUT FOLDER...")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
 
             # Determine the input_folder deppending if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
@@ -393,12 +387,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 2: Pre-Process Takeout folder
             # ----------------------------------------------------------------------------------------------------------------------
+            self.step += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. PRE-PROCESSING TAKEOUT FOLDER...")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
             if not self.ARGS['google-skip-preprocess']:
                 # Call pre_process() with the same log_level as process()
                 self.pre_process(log_level=log_level)
             else:
                 step_name = '🪛 [PRE-PROCESS] : '
-                self.step += 1
                 formatted_duration = f"Skipped"
                 LOGGER.info(f"{step_name}Skipped!")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
@@ -479,6 +478,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"✅ TAKEOUT PROCESSING FINISHED!!!")
+            LOGGER.info(f"")
             LOGGER.info(f"{'Takeout Precessed Folder'.ljust(55)}  : '{output_folder}'.")
             LOGGER.info(f"")
             LOGGER.info(f"Processing Time per Step:")
@@ -694,7 +694,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+                LOGGER.info(f"{step_name}Skipped!")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -746,7 +746,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+                LOGGER.info(f"{step_name}Skipped!")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -779,7 +779,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+                LOGGER.info(f"{step_name}Skipped!")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -894,7 +894,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+                LOGGER.info(f"{step_name}Skipped!")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -942,7 +942,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} Skipped!")
+                LOGGER.info(f"{step_name}Skipped!")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
