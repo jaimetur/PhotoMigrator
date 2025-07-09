@@ -12,6 +12,8 @@
     - [x] Banner included when loading Tool.
     - [x] Renamed `Script` by `Tool` in all internal variables.
     - [x] Changed order of Post-Process function in `Goolge Takeout Fixing` feature. Now Organize output folder by year/month structure have been moved to the end (after Analyze Output). In this way the date of each file can be loaded from the cached date dict generated during Analysys Phase).
+    - [x] Show skipped steps in 'Total Durarion Summary' within 'Google Takeout Processing'. 
+    - [x] Maintain Step ids in 'Google Takeout Processing'.
     - [x] Separate GPTH Tool folder from EXIF Tool folder.    
     - [x] Improvement in Analysis Summary info (now it shows the number of Symbolic Links detected in Input/Output folders)
 
