@@ -18,7 +18,7 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import remove_empty_dirs, contains_zip_files, normalize_path
 from Utils.GeneralUtils import confirm_continue
-from Utils.StandaloneUtils import change_working_dir, resolve_path
+from Utils.StandaloneUtils import change_working_dir, resolve_docker_path
 
 terminal_width = shutil.get_terminal_size().columns
 
@@ -118,7 +118,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
         # Define the INTERMEDIATE_FOLDER
-        INTERMEDIATE_FOLDER = resolve_path(f'./Temp_folder_{TIMESTAMP}')
+        INTERMEDIATE_FOLDER = resolve_docker_path(f'./Temp_folder_{TIMESTAMP}')
 
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target

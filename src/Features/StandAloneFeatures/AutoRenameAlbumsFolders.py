@@ -82,7 +82,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             try:
                 LOGGER.debug(f"{step_name} Executing exiftool for {image_path}")
                 # Get exiftool complete path
-                exif_tool_path = get_exif_tool_path(FOLDERNAME_EXIFTOOL)
+                exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
                 # Llama a exiftool con todos los flags recomendados
                 result = subprocess.check_output([
                     f"{exif_tool_path}",

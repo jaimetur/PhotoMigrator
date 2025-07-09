@@ -101,7 +101,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
         ]
 
         if extract_dates:
-            exif_tool_path = get_exif_tool_path(FOLDERNAME_EXIFTOOL)
+            exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
             if Path(exif_tool_path).exists():
                 error_log_path = f"{GV.LOG_FILENAME}.log"
                 LOGGER.info(f"{step_name}🔎 [Block {block_index}]: Running block {block_index} with exiftool...")
@@ -305,7 +305,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
             total_non_json = sum(1 for f in all_file_paths if Path(f).suffix.lower() != ".json")
             LOGGER.info(f"{step_name}{total_files} files selected ({total_non_json} excluding .json)")
             if total_files == 0:
-                return init_count_files_counters(), {}
+                return init_count_files_counters(), {}, ""
 
             # --- 3) Perform global count of file types before block processing
             final_counters = init_count_files_counters()

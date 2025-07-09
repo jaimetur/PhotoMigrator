@@ -24,7 +24,7 @@ from Core.CustomLogger import set_log_level
 from Core.CustomLogger import suppress_console_output_temporarily
 from Core.FileStatistics import count_files_and_extract_dates
 from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, \
-    PIL_SUPPORTED_EXTENSIONS
+    PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
@@ -32,7 +32,7 @@ from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json
-from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resource_path, custom_print
+from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resolve_external_path, custom_print, get_exif_tool_path
 
 
 ##############################################################################
@@ -882,7 +882,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
 
-                # First Remove Duplicates from OUTPUT_TAKEOUT_FOLDER (excluding '<NO_ALBUMS_FOLDER>' folder)
+                # 1) Remove Duplicates from OUTPUT_TAKEOUT_FOLDER (excluding '<NO_ALBUMS_FOLDER>' folder)
                 LOGGER.info(f"{step_name}1. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>', excluding '<NO_ALBUMS_FOLDER>' folder...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
@@ -896,7 +896,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.result['duplicates_found'] += duplicates_found
                 self.result['removed_empty_folders'] += removed_empty_folders
 
-                # Second Remove Duplicates from <OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER> (excluding any other folder outside it).
+                # 2) Remove Duplicates from <OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER> (excluding any other folder outside it).
                 LOGGER.info(f"{step_name}2. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER>', excluding any other folders outside it...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
@@ -1600,7 +1600,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             sys.exit(-1)
 
         # Get gpth_tool_path
-        gpth_tool_path = get_gpth_tool_path(FOLDERNAME_GPTH, tool_name)
+        gpth_tool_path = get_gpth_tool_path(base_path=FOLDERNAME_GPTH, exec_name=tool_name, step_name=step_name)
         LOGGER.info(f"{step_name}Using GPTH Tool file: '{gpth_tool_path}'...")
 
         # Check if the file exists
@@ -1704,7 +1704,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             return False
 
 
-def fix_metadata_with_exif_tool(output_folder, log_level=None):
+def fix_metadata_with_exif_tool(output_folder, step_name='', log_level=None):
     """Runs the EXIF Tool command to fix photo metadata."""
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Fixing EXIF metadata in '{output_folder}'...")
@@ -1718,8 +1718,9 @@ def fix_metadata_with_exif_tool(output_folder, log_level=None):
             tool_name = "exiftool"
         elif current_os == "Windows":
             tool_name = "exiftool.exe"
-        # Usar resource_path para acceder a archivos o directorios:
-        exif_tool_path = resource_path(os.path.join("exif_tool", tool_name))
+        # Usar resolve_external_path para acceder a archivos o directorios:
+        # exif_tool_path = resolve_external_path(os.path.join("exif_tool", tool_name))
+        exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
 
         # Ensure exec permissions for the binary file
         ensure_executable(exif_tool_path)

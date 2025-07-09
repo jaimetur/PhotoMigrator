@@ -36,28 +36,28 @@ In the following link you can find the [Complete Pipeline and features of GPTH T
 ### Steps during Takeout Processing:
 Below you can see the different steps of this feature:
 
-#### 🔍 1. Pre Checks steps
+#### 1. 🔍 Pre Checks steps
   - 1.1. 📦 Unpack your Takeout Zip files if needed.  
   - 1.2. 🗃️ Create a backup of your original Takeout if needed.  
   - 1.3. 🔢 Calculate statistics of your original Takeout.  
-#### 🪛 2. Pre Process steps 
+#### 2. 🪛 Pre Process steps 
 `(default=enabled. Can be disabled using flag '-gSkipPrep; --google-skip-preprocess')`
   - 2.1. 🧹 Clean Input folder to delete `@eaDir` subfolders (Synology metadata subfolders with miniatures).
   - 2.2. 🧬 Merge Live pictures (.heic, .jpg, .jpeg) with the associated video (.mp4).
   - 2.3. ✂️ Fix Truncations on sidecar JSON names and media files to complete truncated suffixes or extensions when the filename length is high. 
-#### 🧠 3. Process steps 
+#### 3. 🧠 Process steps 
 `(default=enabled. Can be disabled using flag 'gSkipGpth, --google-skip-gpth-tool')`
-  - 3.1 🧾 Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
+  - 3.1. 🧾 Process .json files to fix metadata (including creation date and time, GPS data, Albums info extraction, etc...) of all your assets.
   - 3.2. 📚 Separate your assets per Albums (if belong to any album).
   - 3.3. 🔗 Create Symbolic Links for assets within any Album (to save disk space). `(default=enabled. Can be disabled using flag '-gnsa, --google-no-symbolic-albums')`
-#### ✅ 4. Post Process steps
+#### 4. ✅ Post Process steps
   - 4.1. ➡️ <span style="color:grey">Copy/Move files to Output folder manually. `(default=disabled. It is automatically enabled if detect that Step 3 has been skipped)`</span>
   - 4.2. 🕒 Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
   - 4.3. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
   - 4.4. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates. `(default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders')`</span>
   - 4.5. 🔢 Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics.
-  - 4.6. 📁 Organize your assets in a year/month structure for a better organization. `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`
-         - Can customize it using flags: `'-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure'`
+  - 4.6. 📁 Organize your assets in a year/month structure for a better organization. `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
+         - Can be customized using the flags: `'-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure'`
   - 4.7. 👥 <span style="color:grey">Detect and remove duplicates. `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`</span>
   - 4.8. 🧹 Remove empty folders. 
   - 4.9. 🔢 Count Albums.
@@ -76,27 +76,30 @@ Below you can see the different steps of this feature:
 > The whole process took around **~15-20 hours** (depending on how many optional steps are enabled) and this is the time split per steps:  
 > 
 > Processing Time per Step:  
-> 
-> Step 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]             :  2:30:32  
+> -------------------------------------------------------------------
+> STEP 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]             :  2:30:32  
 > Step 1.1  : 🔍 [PRE-CHECKS]-[Unzip Takeout]              :  1:52:06  
-> Step 1.2  : 🔍 [PRE-CHECKS]-[Analyze Takeout]            :  0:38:26  
+> Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]              :  Skipped  
+> Step 1.3  : 🔍 [PRE-CHECKS]-[Analyze Takeout]            :  0:38:26  
 > 
-> Step 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:22:55  
+> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:22:55  
 > Step 2.1  : 🪛 [PRE-PROCESS]-[Clean Takeout Folder]      :  0:00:08  
 > Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]      :  0:02:58  
 > Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]         :  0:19:49  
 > 
-> Step 3    : 🧠 [PROCESS]-[Metadata Processing]           : 13:49:15  
+> STEP 3    : 🧠 [PROCESS]-[Metadata Processing]           : 13:49:15  
 > 
-> Step 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  4:33:37  
-> Step 4.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:15  
-> Step 4.2  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:00:03  
-> Step 4.3  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:33  
-> Step 4.4  : 🔢 [POST-PROCESS]-[Analyze Output]           :  0:35:16  
-> Step 4.5  : 📁 [POST-PROCESS]-[Create year/month struct] :  3:11:35  
-> Step 4.6  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:06  
-> Step 4.7  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:02  
-> Step 4.8  : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:45:47  
+> STEP 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  4:33:37  
+> Step 4.1  : 📁 [POST-PROCESS]-[Copy/Move]                :  Skipped  
+> Step 4.2  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:15  
+> Step 4.3  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:00:03  
+> Step 4.4  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:33  
+> Step 4.5  : 🔢 [POST-PROCESS]-[Analyze Output]           :  0:35:16  
+> Step 4.6  : 📁 [POST-PROCESS]-[Create year/month struct] :  3:11:35  
+> Step 4.7  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped  
+> Step 4.8  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:06  
+> Step 4.9  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:02  
+> Step 4.10 : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:45:47  
 > 
 > TOTAL PROCESSING TIME                                    : 21:17:17
 >

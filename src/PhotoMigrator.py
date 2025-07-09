@@ -49,14 +49,18 @@ def main():
             os.unlink(splash_filename)
     print("Tool loaded!")
     print("")
-        
+
     # Initialize ARGS_PARSER, LOGGER and HELP_TEXT
     # IMPORTANT: DO NOT IMPORT ANY TOOL's MODULE (except Utils.StandaloneUtils or Core.GlobalVariables) BEFORE TO RUN set_ARGS_PARSER AND set_LOGGER
     #            otherwise the ARGS, PARSER, LOGGER and HELP_TEXTS variables will be None on those imported modules.
     from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXTS
+    custom_print(f"Setting ARGS...", log_level=logging.INFO)
     set_ARGS_PARSER()   # Need to be called first of all
+    custom_print(f"Setting Global Folders...", log_level=logging.INFO)
     set_FOLDERS()       # Need to be called after set_ARGS_PARSER() but before set_LOGGER()
+    custom_print(f"Setting Global LOGGER...", log_level=logging.INFO)
     set_LOGGER()        # Need to be called after set_FOLDERS()
+    custom_print(f"Setting Global HELP_TEXTS...", log_level=logging.INFO)
     set_HELP_TEXTS()
 
     # Now we can safety import any other tool's module
@@ -140,11 +144,12 @@ def main():
 
     # Print the Header (common for all modules)
     GV.LOGGER.info(f"\n{GV.BANNER}\n{GV.TOOL_DESCRIPTION}")
-    # GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
+    custom_log(f"Running {sys.argv[0]}...", log_level=logging.INFO)
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
+    GV.LOGGER.info(f"  - Project Root                  : {GV.PROJECT_ROOT}")
     GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
     GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
     GV.LOGGER.info(f"  - Folder/Binary for EXIF TOOL   : {GV.FOLDERNAME_EXIFTOOL}")
