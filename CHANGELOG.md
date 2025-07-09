@@ -154,7 +154,7 @@
     - [x] Modified 'Execution from Source' documentation to support the new package structure.
     - [x] Renamed RELEASES-NOTES.md by CHANGELOG.md
     - [x] Included CODE_OF_CONDUCT.md
-    - [x] Moved CHANGELOG.md, ROADMAP.md, DOWNLOADS.md, README.md, and CODE_OF_CONDUCT.md to the root of the repository for more visibility.
+    - [x] Moved CHANGELOG.md, ROADMAP.md, DOWNLOADS.md, README.md and CODE_OF_CONDUCT.md to the root of the repository for more visibility.
     - [x] Updated documentation with all changes.
 
 ---
