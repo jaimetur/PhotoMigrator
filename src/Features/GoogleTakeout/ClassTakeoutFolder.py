@@ -32,7 +32,7 @@ from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json
-from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resolve_external_path, custom_print, get_exif_tool_path
+from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resolve_internal_path, custom_print, get_exif_tool_path
 
 
 ##############################################################################
@@ -1753,8 +1753,8 @@ def fix_metadata_with_exif_tool(output_folder, step_name='', log_level=None):
             tool_name = "exiftool"
         elif current_os == "Windows":
             tool_name = "exiftool.exe"
-        # Usar resolve_external_path para acceder a archivos o directorios:
-        # exif_tool_path = resolve_external_path(os.path.join("exif_tool", tool_name))
+        # Usar resolve_internal_path para acceder a archivos o directorios:
+        # exif_tool_path = resolve_internal_path(os.path.join("exif_tool", tool_name))
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
 
         # Ensure exec permissions for the binary file

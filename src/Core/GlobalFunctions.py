@@ -7,7 +7,7 @@ import Core.GlobalVariables as GV
 from Core.ArgsParser import parse_arguments, checkArgs
 from Core.CustomLogger import log_setup
 from Core.HelpTexts import set_help_texts
-from Utils.StandaloneUtils import resolve_docker_path, resolve_external_path
+from Utils.StandaloneUtils import resolve_docker_path, resolve_internal_path
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -24,11 +24,18 @@ def set_FOLDERS():
     GV.FOLDERNAME_ALBUMS            = GV.ARGS.get('foldername-albums')                                  or GV.FOLDERNAME_ALBUMS
     GV.FOLDERNAME_NO_ALBUMS         = GV.ARGS.get('foldername-no-albums')                               or GV.FOLDERNAME_NO_ALBUMS
     GV.CONFIGURATION_FILE           = resolve_docker_path(GV.ARGS.get('configuration-file')             or GV.CONFIGURATION_FILE)
-    GV.FOLDERNAME_GPTH              = resolve_docker_path(GV.ARGS.get('exec-gpth-tool'))                or resolve_external_path(GV.FOLDERNAME_GPTH)
-    GV.FOLDERNAME_EXIFTOOL          = resolve_docker_path(GV.ARGS.get('exec-exif-tool'))                or resolve_external_path(GV.FOLDERNAME_EXIFTOOL)
     GV.FOLDERNAME_EXIFTOOL_OUTPUT   = resolve_docker_path(GV.ARGS.get('foldername-exiftool-output')     or GV.FOLDERNAME_EXIFTOOL_OUTPUT)
     GV.FOLDERNAME_DUPLICATES_OUTPUT = resolve_docker_path(GV.ARGS.get('foldername-duplicates-output')   or GV.FOLDERNAME_DUPLICATES_OUTPUT)
     GV.FOLDERNAME_LOGS              = resolve_docker_path(GV.ARGS.get('foldername-logs')                or GV.FOLDERNAME_LOGS)
+    # GV.FOLDERNAME_GPTH              = resolve_docker_path(GV.ARGS.get('exec-gpth-tool'))                or resolve_internal_path(GV.FOLDERNAME_GPTH)
+    # GV.FOLDERNAME_EXIFTOOL          = resolve_docker_path(GV.ARGS.get('exec-exif-tool'))                or resolve_internal_path(GV.FOLDERNAME_EXIFTOOL)
+    # Now resolve GV.FOLDERNAME_GPTH and GV.FOLDERNAME_EXIFTOOL depending on if the user passed them as argument or not. If not we need to resolve using resolve_internal_path to find it within the binary file.
+    gpth_arg = GV.ARGS.get('exec-gpth-tool') or ''
+    exif_arg = GV.ARGS.get('exec-exif-tool') or ''
+    gpth_resolved = resolve_docker_path(gpth_arg) if gpth_arg.strip() else None
+    exif_resolved = resolve_docker_path(exif_arg) if exif_arg.strip() else None
+    GV.FOLDERNAME_GPTH = gpth_resolved if gpth_resolved and os.path.exists(gpth_resolved) else resolve_internal_path(GV.FOLDERNAME_GPTH)
+    GV.FOLDERNAME_EXIFTOOL = exif_resolved if exif_resolved and os.path.exists(exif_resolved) else resolve_internal_path(GV.FOLDERNAME_EXIFTOOL)
 
 
 def set_LOGGER():

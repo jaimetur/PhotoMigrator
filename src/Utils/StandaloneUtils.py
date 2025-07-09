@@ -37,11 +37,11 @@ def get_gpth_tool_path(base_path: str, exec_name: str, step_name='') -> str:
     # `exists()` evita falsos positivos con rutas de carpetas inexistentes
     # `os.access(..., os.X_OK)` asegura que sea realmente ejecutable (opcional pero útil)
     if p.exists() and p.is_file() and os.access(p, os.X_OK):
-        return resolve_external_path(path_to_resolve=str(p), step_name=step_name)
+        return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
     # --------- Caso 2: directorio (o ruta aún no creada) ----------
-    # Usar resolve_external_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
-    return resolve_external_path(path_to_resolve=str(p / exec_name), step_name=step_name)
+    # Usar resolve_internal_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
+    return resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
 
 
 def get_exif_tool_path(base_path: str, step_name='') -> str:
@@ -58,14 +58,14 @@ def get_exif_tool_path(base_path: str, step_name='') -> str:
 
     # --------- Caso 1: ya es un ejecutable válido ----------
     if p.exists() and p.is_file() and os.access(p, os.X_OK):
-        return resolve_external_path(path_to_resolve=str(p), step_name=step_name)
+        return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
     # --------- Caso 2: es (o será) un directorio ----------
     exec_name = "exiftool.exe" if platform.system().lower() == "windows" else "exiftool"
-    return resolve_external_path(path_to_resolve=str(p / exec_name), step_name=step_name)
+    return resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
 
 
-def resolve_external_path(path_to_resolve, step_name=''):
+def resolve_internal_path(path_to_resolve, step_name=''):
     """
     Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
     - PyInstaller (onefile o standalone)
@@ -99,6 +99,7 @@ def resolve_external_path(path_to_resolve, step_name=''):
         else:
             custom_print(f"{step_name}_MEIPASS not defined", log_level=logging.DEBUG)
         print("")
+
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
@@ -127,10 +128,16 @@ def resolve_external_path(path_to_resolve, step_name=''):
     else:
         base_path = os.getcwd()
         if DEBUG_MODE: custom_print(f"{step_name}Entra en fallback final   -> base_path={base_path} (os.getcwd())", log_level=logging.DEBUG)
+
+    # ✅ Si la ruta ya existe (absoluta o relativa), devuélvela directamente
+    if path_to_resolve and os.path.exists(path_to_resolve):
+        resolved_path = path_to_resolve
+    else:
+        resolved_path = os.path.join(base_path, path_to_resolve)
     if DEBUG_MODE:
-        custom_print(f"{step_name}return path                 : {os.path.join(base_path, path_to_resolve)}", log_level=logging.DEBUG)
+        custom_print(f"{step_name}return path                 : {resolved_path}", log_level=logging.DEBUG)
         custom_print(f"{step_name}--- END RESOURCE_PATH DEBUG INFO", log_level=logging.DEBUG)
-    return os.path.join(base_path, path_to_resolve)
+    return resolved_path
 
 
 def resolve_docker_path(user_path, step_name=''):
@@ -203,8 +210,8 @@ def resolve_docker_path(user_path, step_name=''):
             return final_path
     else:
         # Outside Docker, return absolute path on the local system
-        # return os.path.abspath(path_clean)
-        return resolve_external_path(path_to_resolve=path_clean, step_name=step_name)
+        return os.path.abspath(path_clean)
+        # return resolve_internal_path(path_to_resolve=path_clean, step_name=step_name)
 
 
 def is_inside_docker():
