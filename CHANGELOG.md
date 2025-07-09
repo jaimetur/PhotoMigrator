@@ -12,7 +12,6 @@
     - [x] Maintain Step ids in 'Google Takeout Processing'.
     
   - #### 🐛 Bug fixes:
-    - [x] Fixed a bug in function get_file_date() function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
     - [ ] Fixed bug #730 when the tool was executed without arguments and the input folder was selected using windows dialog pop-up.
     - [x] Fixed bug #739 in function resolve_internal_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
 
