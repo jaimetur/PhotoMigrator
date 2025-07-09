@@ -42,7 +42,7 @@ def include_extrafiles_and_zip(input_file, output_file):
         },
         {
             'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
-            'files': ["./README.md", "./CHANGELOG.md", "./ROADMAP.md", "./DOWNLOAD.md", "./CODE_OF_CONDUCT.md", "./LICENSE"]
+            'files': ["./README.md", "./CHANGELOG.md", "./ROADMAP.md", "./DOWNLOAD.md", "./CONTRIBUTING.md", "./CODE_OF_CONDUCT.md", "./LICENSE"]
         },
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'help'

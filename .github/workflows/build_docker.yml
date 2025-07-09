@@ -194,6 +194,7 @@ jobs:
           cp CHANGELOG.md PhotoMigrator/docker/docs/CHANGELOG.md
           cp ROADMAP.md PhotoMigrator/docker/docs/ROADMAP.md
           cp DOWNLOAD.md PhotoMigrator/docker/docs/DOWNLOAD.md
+          cp CONTRIBUTING.md PhotoMigrator/docker/docs/CONTRIBUTING.md
           cp CODE_OF_CONDUCT.md PhotoMigrator/docker/docs/CODE_OF_CONDUCT.md
           cp LICENSE PhotoMigrator/docker/docs/LICENSE
           zip -r PhotoMigrator_v${{ env.TOOL_VERSION }}_docker.zip PhotoMigrator
