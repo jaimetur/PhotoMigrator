@@ -15,9 +15,9 @@ import subprocess
 import glob
 from pathlib import Path
 
-from Core.GlobalVariables import TOOL_NAME, TOOL_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE, FOLDERNAME_GPTH, FOLDERNAME_EXIFTOOL
+from Core.GlobalVariables import TOOL_NAME, TOOL_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE, FOLDERNAME_GPTH, FOLDERNAME_EXIFTOOL, TOOL_DESCRIPTION
 from Utils.GeneralUtils import clear_screen, print_arguments_pretty, get_os, get_arch, ensure_executable
-from Utils.FileUtils import unzip_to_temp, zip_folder
+from Utils.FileUtils import unzip_to_temp, zip_folder, unzip
 from Utils.StandaloneUtils import resolve_internal_path
 
 global OPERATING_SYSTEM
@@ -377,7 +377,10 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         if INCLUDE_EXIF_TOOL:
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
-            exif_folder_tmp = unzip_to_temp(exif_tool)
+            # exif_folder_tmp = unzip_to_temp(exif_tool)
+            # Better avoid use of unzip_to_temp() function to reduce the prob of anti-virus detection
+            exif_folder_tmp = f"exif_tool_extracted"
+            unzip(exif_tool, exif_folder_tmp)
 
             # Dar permiso de ejecución a exiftool
             exiftool_bin = Path(exif_folder_tmp) / "exiftool"
@@ -468,18 +471,29 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             '--lto=yes',
             '--nofollow-imports',
             '--nofollow-import-to=unused_module',
+
             # '--remove-output',
             f'--output-dir={dist_path}',
-            f"--file-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
-            f'--copyright={COPYRIGHT_TEXT}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
+
+            f'--copyright=/assets/ico/PhotoMigrator.ico',
+            f'--copyright={COPYRIGHT_TEXT}',
+            f"--company-name={TOOL_NAME}",
+            f"--product-name={TOOL_NAME}",
+            f"--file-description={TOOL_DESCRIPTION}",
+            f"--file-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
+            f"--product-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
+
         ])
 
         # If INCLUDE_EXIF_TOOL flag is True, then Unzip, Change Permissions and Add Exif Tool files to the binary file
         if INCLUDE_EXIF_TOOL:
             # Unzip Exif_tool and include it to compiled binary with Nuitka
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
-            exif_folder_tmp = unzip_to_temp(exif_tool)
+            # exif_folder_tmp = unzip_to_temp(exif_tool)
+            # Better avoid use of unzip_to_temp() function to reduce the prob of anti-virus detection
+            exif_folder_tmp = f"exif_tool_extracted"
+            unzip(exif_tool, exif_folder_tmp)
 
             # Dar permiso de ejecución a exiftool
             exiftool_bin = Path(exif_folder_tmp) / "exiftool"
@@ -491,9 +505,12 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend([f'--include-data-dir={exif_folder_tmp}={exif_folder_dest}'])
             # nuitka_command.extend(['--include-data-dir=../exif_tool=exif_tool'])
 
-        # In linux set runtime tmp dir to /var/tmp for Synology compatibility (/tmp does not have access rights in Synology NAS)
-        if OPERATING_SYSTEM == 'linux':
+        # Now set runtime tmp dir to an specific folder within /var/tmp or %TEMP% to reduce the prob of anti-virus detection.
+        if OPERATING_SYSTEM != 'windows':
+            # In linux set runtime tmp dir to /var/tmp for Synology compatibility (/tmp does not have access rights in Synology NAS)
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{TOOL_NAME_WITH_VERSION_OS_ARCH}'])
+        else:
+            nuitka_command.extend([rf'--onefile-tempdir-spec=%TEMP%\{TOOL_NAME_WITH_VERSION_OS_ARCH}'])
 
         # Now Run Nuitka with previous settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_logger=False, use_custom_print=False)
