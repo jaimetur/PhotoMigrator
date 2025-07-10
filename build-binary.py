@@ -476,11 +476,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             f'--output-dir={dist_path}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
 
-            f'--copyright=/assets/ico/PhotoMigrator.ico',
+            f'--windows-icon-from-ico=./assets/ico/PhotoMigrator.ico',
             f'--copyright={COPYRIGHT_TEXT}',
             f"--company-name={TOOL_NAME}",
             f"--product-name={TOOL_NAME}",
-            f"--file-description={TOOL_DESCRIPTION}",
+            f"--file-description={TOOL_NAME_VERSION} by Jaime Tur",
             f"--file-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
             f"--product-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
 
