@@ -50,6 +50,10 @@ def main():
     print("Tool loaded!")
     print("")
 
+    # Check if the tool was executed with only a valid path as argument or without arguments
+    # IMPORTANT: This need to be done before call set_ARGS_PARSER().
+    pre_parse_args()
+
     # Initialize ARGS_PARSER, LOGGER and HELP_TEXT
     # IMPORTANT: DO NOT IMPORT ANY TOOL's MODULE (except Utils.StandaloneUtils or Core.GlobalVariables) BEFORE TO RUN set_ARGS_PARSER AND set_LOGGER
     #            otherwise the ARGS, PARSER, LOGGER and HELP_TEXTS variables will be None on those imported modules.
@@ -69,57 +73,6 @@ def main():
 
     # Check OS and Terminal before to import GlobalVariables or other Modules that depends on it
     check_OS_and_Terminal()
-
-    # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
-    if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
-        # print(f"{GV.TAG_INFO}Valid folder detected as input: '{sys.argv[1]}'")
-        # print(f"{GV.TAG_INFO}Executing Google Takeout Photos Processor Feature with the provided input folder...")
-        custom_print(f"Valid folder detected as input: '{sys.argv[1]}'", log_level=logging.INFO)
-        custom_print(f"Executing Google Takeout Photos Processor Feature with the provided input folder...", log_level=logging.INFO)
-        sys.argv.insert(1, "--google-takeout")
-
-    # Verificar si el script se ejecutó sin argumentos, en ese caso se pedira al usuario queue introduzca la ruta de la caroeta que contiene el Takeout a procesar
-    elif len(sys.argv) == 1:
-        def select_folder_gui():
-            root = tk.Tk()
-            root.withdraw()
-            return filedialog.askdirectory(title="Select the Google Takeout folder to process")
-        try:
-            import tkinter as tk
-            from tkinter import filedialog
-            TKINTER_AVAILABLE = True
-        except ImportError:
-            TKINTER_AVAILABLE = False
-
-        # print(f"{GV.TAG_INFO}No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.")
-        custom_print(f"No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.", log_level=logging.INFO)
-        has_display = os.environ.get("DISPLAY") is not None or sys.platform == "win32"
-        selected_folder = None
-
-        if has_display and TKINTER_AVAILABLE:
-            # print(f"{GV.TAG_INFO}GUI environment detected. Opening folder selection dialog...")
-            custom_print(f"GUI environment detected. Opening folder selection dialog...", log_level=logging.INFO)
-            selected_folder = select_folder_gui()
-        else:
-            if not TKINTER_AVAILABLE and has_display:
-                # print(f"{GV.TAG_WARNING}Tkinter is not installed. Falling back to console input.")
-                custom_print(f"Tkinter is not installed. Falling back to console input.", log_level=logging.WARNING)
-            else:
-                # print(f"{GV.TAG_INFO}No GUI detected. Using console input.")
-                custom_print(f"No GUI detected. Using console input.", log_level=logging.INFO)
-            # print(f"Please type the full path to the Takeout folder:")
-            custom_print(f"Please type the full path to the Takeout folder:", log_level=logging.WARNING)
-            selected_folder = input("Folder path: ").strip()
-
-        if selected_folder and os.path.isdir(selected_folder):
-            # print(f"{GV.TAG_INFO}Folder selected: '{selected_folder}'")
-            custom_print(f"Folder selected: '{selected_folder}'", log_level=logging.INFO)
-            sys.argv.append("--google-takeout")
-            sys.argv.append(selected_folder)
-        else:
-            # print(f"{GV.TAG_ERROR}No valid folder selected. Exiting.")
-            custom_print(f"No valid folder selected. Exiting.", log_level=logging.ERROR)
-            sys.exit(1)
 
     # Test different LOG_LEVELS
     custom_print("Testing Custom Print Function for all different logLevels.")
@@ -170,6 +123,60 @@ def main():
 
     # Get the execution mode and run it.
     detect_and_run_execution_mode()
+
+
+def pre_parse_args():
+    # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
+    if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
+        # print(f"{GV.TAG_INFO}Valid folder detected as input: '{sys.argv[1]}'")
+        # print(f"{GV.TAG_INFO}Executing Google Takeout Photos Processor Feature with the provided input folder...")
+        custom_print(f"Valid folder detected as input: '{sys.argv[1]}'", log_level=logging.INFO)
+        custom_print(f"Executing Google Takeout Photos Processor Feature with the provided input folder...", log_level=logging.INFO)
+        sys.argv.insert(1, "--google-takeout")
+
+    # Verificar si el script se ejecutó sin argumentos, en ese caso se pedirá al usuario queue introduzca la ruta de la carpeta que contiene el Takeout a procesar
+    elif len(sys.argv) == 1:
+        def select_folder_gui():
+            root = tk.Tk()
+            root.withdraw()
+            return filedialog.askdirectory(title="Select the Google Takeout folder to process")
+
+        try:
+            import tkinter as tk
+            from tkinter import filedialog
+            TKINTER_AVAILABLE = True
+        except ImportError:
+            TKINTER_AVAILABLE = False
+
+        # print(f"{GV.TAG_INFO}No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.")
+        custom_print(f"No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.", log_level=logging.INFO)
+        has_display = os.environ.get("DISPLAY") is not None or sys.platform == "win32"
+        selected_folder = None
+
+        if has_display and TKINTER_AVAILABLE:
+            # print(f"{GV.TAG_INFO}GUI environment detected. Opening folder selection dialog...")
+            custom_print(f"GUI environment detected. Opening folder selection dialog...", log_level=logging.INFO)
+            selected_folder = select_folder_gui()
+        else:
+            if not TKINTER_AVAILABLE and has_display:
+                # print(f"{GV.TAG_WARNING}Tkinter is not installed. Falling back to console input.")
+                custom_print(f"Tkinter is not installed. Falling back to console input.", log_level=logging.WARNING)
+            else:
+                # print(f"{GV.TAG_INFO}No GUI detected. Using console input.")
+                custom_print(f"No GUI detected. Using console input.", log_level=logging.INFO)
+            # print(f"Please type the full path to the Takeout folder:")
+            custom_print(f"Please type the full path to the Takeout folder:", log_level=logging.WARNING)
+            selected_folder = input("Folder path: ").strip()
+
+        if selected_folder and os.path.isdir(selected_folder):
+            # print(f"{GV.TAG_INFO}Folder selected: '{selected_folder}'")
+            custom_print(f"Folder selected: '{selected_folder}'", log_level=logging.INFO)
+            sys.argv.append("--google-takeout")
+            sys.argv.append(selected_folder)
+        else:
+            # print(f"{GV.TAG_ERROR}No valid folder selected. Exiting.")
+            custom_print(f"No valid folder selected. Exiting.", log_level=logging.ERROR)
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()
