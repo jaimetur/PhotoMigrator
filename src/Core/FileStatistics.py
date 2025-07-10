@@ -92,20 +92,19 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
         # Path to chunk_json in temporary directory (this variable should exists even if extract_dates=False or Fallback to PIL
         chunk_json_path = get_unique_path(os.path.join(temporary_directory, f"{output_filename}_{block_index}{output_ext}"))
-        LOGGER.debug(f"{step_name}📃 [Block {block_index}]: chunk_json_path: {chunk_json_path}")
+        LOGGER.verbose(f"{step_name}📃 [Block {block_index}]: chunk_json_path: {chunk_json_path}")
 
         # 1) Extract dates If extract_dates is enabled --> run exiftool and load metadata (or fallback to PIL)
-        candidate_date_tags = [
-            'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
-            'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
-        ]
-
         if extract_dates:
+            candidate_date_tags = [
+                'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
+                'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
+            ]
             exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
             if Path(exif_tool_path).exists():
                 error_log_path = f"{GV.LOG_FILENAME}.log"
                 LOGGER.info(f"{step_name}🔎 [Block {block_index}]: Running block {block_index} with exiftool...")
-                LOGGER.debug(f"{step_name}📃 [Block {block_index}]: error_log_path: {error_log_path}")
+                LOGGER.verbose(f"{step_name}📃 [Block {block_index}]: error_log_path: {error_log_path}")
 
                 command = [
                               exif_tool_path,
@@ -130,8 +129,8 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     dates_found = []
                     valid_dates = []
                     valid_dates_with_tags = []
-                    LOGGER.debug("")
-                    LOGGER.debug(f"{step_name}🔎 [Block {block_index}]: Inspecting EXIF metadata for: {src}")
+                    LOGGER.verbose("")
+                    LOGGER.verbose(f"{step_name}🔎 [Block {block_index}]: Inspecting EXIF metadata for: {src}")
                     for tag in candidate_date_tags:
                         if tag in entry:
                             LOGGER.verbose(f"{step_name}🧾 [Block {block_index}]: {Path(src).name} → {tag} = {entry[tag]}")
@@ -147,16 +146,16 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                                     else:
                                         dt = normalize_datetime_utc(parser.parse(raw_clean))
                                 except Exception as e:
-                                    LOGGER.debug(f"{step_name}❌ [Block {block_index}]: Error parsing date '{raw_clean}' from tag '{tag}': {e}")
+                                    LOGGER.verbose(f"{step_name}❌ [Block {block_index}]: Error parsing date '{raw_clean}' from tag '{tag}': {e}")
                                     continue
-                                LOGGER.debug(f"{step_name}🧪 [Block {block_index}]: Parsed date from tag '{tag}': {dt.isoformat()} vs reference: {(reference_timestamp - timedelta(days=1)).isoformat()}")
+                                LOGGER.verbose(f"{step_name}🧪 [Block {block_index}]: Parsed date from tag '{tag}': {dt.isoformat()} vs reference: {(reference_timestamp - timedelta(days=1)).isoformat()}")
                                 dates_found.append(dt)
                                 if is_date_valid(dt, reference_timestamp):
                                     valid_dates.append(dt)
                                     valid_dates_with_tags.append((dt, tag))
-                                    LOGGER.debug(f"{step_name}✅ [Block {block_index}]: Accepted date: {dt.isoformat()}")
+                                    LOGGER.verbose(f"{step_name}✅ [Block {block_index}]: Accepted date: {dt.isoformat()}")
                                 else:
-                                    LOGGER.debug(f"{step_name}❌ [Block {block_index}]: Rejected date: {dt.isoformat()} (later than reference date: {(reference_timestamp - timedelta(days=1)).isoformat()})")
+                                    LOGGER.verbose(f"{step_name}❌ [Block {block_index}]: Rejected date: {dt.isoformat()} (later than reference date: {(reference_timestamp - timedelta(days=1)).isoformat()})")
                             except (ValueError, OverflowError):
                                 continue
 
@@ -169,9 +168,9 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                     entry["SelectedDate"] = selected_date.isoformat() if selected_date else None
                     entry["Source"] = selected_source
                     metadata_map[norm] = selected_date
-                    LOGGER.debug(f"{step_name}📅 [Block {block_index}]: Found dates: {[dt.isoformat() for dt in dates_found]}")
-                    LOGGER.debug(f"{step_name}📅 [Block {block_index}]: Valid dates: {[dt.isoformat() for dt in valid_dates]}")
-                    LOGGER.debug(f"{step_name}📦 [Block {block_index}]: Keeping oldest valid date extracted from EXIF: {selected_date.isoformat() if selected_date else 'None'} for file: {Path(norm).name}")
+                    LOGGER.verbose(f"{step_name}📅 [Block {block_index}]: Found dates: {[dt.isoformat() for dt in dates_found]}")
+                    LOGGER.verbose(f"{step_name}📅 [Block {block_index}]: Valid dates: {[dt.isoformat() for dt in valid_dates]}")
+                    LOGGER.verbose(f"{step_name}📦 [Block {block_index}]: Keeping oldest valid date extracted from EXIF: {selected_date.isoformat() if selected_date else 'None'} for file: {Path(norm).name}")
 
                 with open(chunk_json_path, "w", encoding="utf-8") as out_json:
                     json.dump(metadata_list, out_json, ensure_ascii=False, indent=2)
@@ -192,7 +191,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                                 break
                         metadata_map[norm] = dt_found
                     except Exception as e:
-                        LOGGER.debug(f"{step_name}❌ [Block {block_index}]: PIL failed on {p}: {e}")
+                        LOGGER.verbose(f"{step_name}❌ [Block {block_index}]: PIL failed on {p}: {e}")
                         metadata_map[norm] = None
                 try:
                     with open(chunk_json_path, "w", encoding="utf-8") as f:
@@ -203,23 +202,23 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                             indent=2
                         )
                 except Exception as e:
-                    LOGGER.debug(f"{step_name}❌ [Block {block_index}]: Failed to write fallback PIL JSON: {e}")
+                    LOGGER.verbose(f"{step_name}❌ [Block {block_index}]: Failed to write fallback PIL JSON: {e}")
 
         # 2) Count only per-media category with/without date
         for file_path in file_paths:
             norm = Path(file_path).resolve().as_posix()
             if extract_dates:
-                LOGGER.debug("")
+                LOGGER.verbose("")
                 if norm not in metadata_map:
-                    LOGGER.debug(f"{step_name}🧪 [Block {block_index}]: File Not Found in EXIF metadata_map → {norm}")
+                    LOGGER.verbose(f"{step_name}🧪 [Block {block_index}]: File Not Found in EXIF metadata_map → {norm}")
                 else:
-                    LOGGER.debug(f"{step_name}🧪 [Block {block_index}]: File Found in EXIF metadata_map → {norm}")
+                    LOGGER.verbose(f"{step_name}🧪 [Block {block_index}]: File Found in EXIF metadata_map → {norm}")
 
             file_date = metadata_map.get(norm) if extract_dates else None
             if file_date:
-                LOGGER.debug(f"{step_name}🧪 [Block {block_index}]: Retrieved file_date from EXIF metadata_map: {file_date.isoformat()}")
+                LOGGER.verbose(f"{step_name}🧪 [Block {block_index}]: Retrieved file_date from EXIF metadata_map: {file_date.isoformat()}")
             else:
-                LOGGER.debug(f"{step_name}🧪 [Block {block_index}]: No date in EXIF metadata_map")
+                LOGGER.verbose(f"{step_name}🧪 [Block {block_index}]: No date in EXIF metadata_map")
 
             if norm not in metadata_map:
                 LOGGER.warning(f"{step_name}❗ No EXIF date found for {norm}")

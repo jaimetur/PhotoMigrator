@@ -5,15 +5,16 @@
 ---
 
 ## Release: v3.4.2  
-- ### Release Date: 2025-07-09
+- ### Release Date: 2025-07-10
 
 - ### Main Changes:
   - #### 🚀 Enhancements:
     - [x] Show skipped steps in 'Total Duration Summary' within 'Google Takeout Processing'. 
     - [x] Maintain Step ids in 'Google Takeout Processing'.
+    - [x] Improvements in 'Create year/month folder structure' function. Execution time reduced more than 90%.
     
   - #### 🐛 Bug fixes:
-    - [ ] Fixed bug #730 when the tool was executed without arguments and the input folder was selected using windows dialog pop-up.
+    - [x] Fixed bug #730 when the tool was executed without arguments and the input folder was selected using windows dialog pop-up.
     - [x] Fixed bug #739 in function resolve_internal_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
 
 ---

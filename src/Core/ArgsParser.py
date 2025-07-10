@@ -191,6 +191,21 @@ def parse_arguments():
                              "\n  2.Fix MP4/Live Picture associations"
                              "\n  3.Fix Truncated filenames/extensions." 
                            "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing in a previous execution using the flag '-gKeepTakeout,--google-keep-takeout-folder' then you can skip it for that <TAKEOUT_FOLDER>.")
+
+    PARSER.add_argument("-gSkipPost", "--google-skip-postprocess", action="store_true",
+                        help="Skip Post-process Google Takeout which has following steps:"
+                             "\n  1.Copy/Move files to Output folder manually."
+                             "\n  2.Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file."
+                             "\n  3.Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder."
+                             "\n  4.Auto rename Albums folders to homogenize all names based on content dates. "
+                             "\n  5.Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics."
+                             "\n  6.Organize your assets in a year/month structure for a better organization. "
+                             "\n  7.Detect and remove duplicates."
+                             "\n  8. Remove empty folders."
+                             "\n  9.Count Albums."
+                             "\n  10.Clean Final Media Library."
+                             "\nThis Post-process is very important for a better Output. We don't recommend to skip those steps.")
+
     PARSER.add_argument("-gKeepTakeout", "--google-keep-takeout-folder", action="store_true", help=f"Keeps a untouched copy of your original Takeout folder. (requires double HDD space).  \nTIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files, \nyou will always conserve the original Zips and don't need to use this flag.")
     PARSER.add_argument("-gpthInfo", "--show-gpth-info",
                         metavar="= [true,false]",
