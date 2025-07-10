@@ -95,12 +95,11 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
         LOGGER.debug(f"{step_name}📃 [Block {block_index}]: chunk_json_path: {chunk_json_path}")
 
         # 1) Extract dates If extract_dates is enabled --> run exiftool and load metadata (or fallback to PIL)
-        candidate_date_tags = [
-            'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
-            'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
-        ]
-
         if extract_dates:
+            candidate_date_tags = [
+                'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
+                'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
+            ]
             exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
             if Path(exif_tool_path).exists():
                 error_log_path = f"{GV.LOG_FILENAME}.log"
