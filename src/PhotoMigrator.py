@@ -142,9 +142,14 @@ def main():
     custom_log("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
     custom_log("", log_level=logging.INFO)
 
+    # Print the command used to run the tool
+    command = ' '.join(sys.argv)
+    custom_log(f"▶️ Command used to run this tool:", log_level=logging.INFO)
+    custom_log(f"▶️ {command}", log_level=logging.INFO)
+
     # Print the Header (common for all modules)
     GV.LOGGER.info(f"\n{GV.BANNER}\n{GV.TOOL_DESCRIPTION}")
-    custom_log(f"Running {sys.argv[0]}...", log_level=logging.INFO)
+
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
