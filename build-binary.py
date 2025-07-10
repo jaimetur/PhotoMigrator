@@ -480,7 +480,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             f'--copyright={COPYRIGHT_TEXT}',
             f"--company-name={TOOL_NAME}",
             f"--product-name={TOOL_NAME}",
-            f"--file-description={TOOL_NAME_VERSION} by Jaime Tur",
+            f"--file-description={TOOL_NAME_VERSION}",
             f"--file-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
             f"--product-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
 
