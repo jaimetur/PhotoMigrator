@@ -466,6 +466,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             '--enable-plugin=tk-inter',
             '--disable-cache=ccache',
             '--lto=yes',
+            '--nofollow-imports',
+            '--nofollow-import-to=unused_module',
             # '--remove-output',
             f'--output-dir={dist_path}',
             f"--file-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
