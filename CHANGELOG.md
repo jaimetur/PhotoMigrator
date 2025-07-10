@@ -9,7 +9,7 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
-    - [x] Added new argument `-gSkipPost, --google-skip-postprocess` to Skipp Posteprocess steps during Google Takeout Processing feature.
+    - [x] Added new argument `-gSkipPost, --google-skip-postprocess` to Skip Postprocess steps during Google Takeout Processing feature.
 
   - #### 🚀 Enhancements:
     - [x] Show skipped steps in 'Total Duration Summary' within 'Google Takeout Processing'. 
