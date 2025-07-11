@@ -50,6 +50,10 @@ def main():
     print("Tool loaded!")
     print("")
 
+    # Check if the tool was executed with only a valid path as argument or without arguments
+    # IMPORTANT: This need to be done before call set_ARGS_PARSER().
+    pre_parse_args()
+
     # Initialize ARGS_PARSER, LOGGER and HELP_TEXT
     # IMPORTANT: DO NOT IMPORT ANY TOOL's MODULE (except Utils.StandaloneUtils or Core.GlobalVariables) BEFORE TO RUN set_ARGS_PARSER AND set_LOGGER
     #            otherwise the ARGS, PARSER, LOGGER and HELP_TEXTS variables will be None on those imported modules.
@@ -70,6 +74,58 @@ def main():
     # Check OS and Terminal before to import GlobalVariables or other Modules that depends on it
     check_OS_and_Terminal()
 
+    # Test different LOG_LEVELS
+    custom_print("Testing Custom Print Function for all different logLevels.")
+    custom_print("All logLevel should be displayed on console:")
+    custom_print("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
+    custom_print("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
+    custom_print("This is a test message with logLevel: INFO", log_level=logging.INFO)
+    custom_print("This is a test message with logLevel: WARNING", log_level=logging.WARNING)
+    custom_print("This is a test message with logLevel: ERROR", log_level=logging.ERROR)
+    custom_print("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
+    custom_print("", log_level=logging.INFO)
+
+    custom_log("Testing Custom Log Function for all different logLevels. ")
+    custom_log("Only logLevel Higher or Equal than given by '-logLevel, --log-level' should be displayed on console and Log file:")
+    custom_log("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
+    custom_log("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
+    custom_log("This is a test message with logLevel: INFO", log_level=logging.INFO)
+    custom_log("This is a test message with logLevel: WARNING", log_level=logging.WARNING)
+    custom_log("This is a test message with logLevel: ERROR", log_level=logging.ERROR)
+    custom_log("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
+    custom_log("", log_level=logging.INFO)
+
+    # Print the command used to run the tool
+    command = ' '.join(sys.argv)
+    custom_log(f"▶️ Command used to run this tool:", log_level=logging.INFO)
+    custom_log(f"▶️ {command}", log_level=logging.INFO)
+
+    # Print the Header (common for all modules)
+    GV.LOGGER.info(f"\n{GV.BANNER}\n{GV.TOOL_DESCRIPTION}")
+
+    GV.LOGGER.info(f"==========================================")
+    GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
+    GV.LOGGER.info(f"==========================================")
+    GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
+    GV.LOGGER.info(f"  - Project Root                  : {GV.PROJECT_ROOT}")
+    GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
+    GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
+    GV.LOGGER.info(f"  - Folder/Binary for EXIF TOOL   : {GV.FOLDERNAME_EXIFTOOL}")
+    GV.LOGGER.info(f"  - Folder for Duplicates Outputs : {GV.FOLDERNAME_DUPLICATES_OUTPUT}")
+    GV.LOGGER.info(f"  - Folder for Exiftool Outputs   : {GV.FOLDERNAME_EXIFTOOL_OUTPUT}")
+    if not GV.ARGS['no-log-file']:
+        GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
+        GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FILENAME + '.log'}")
+        GV.LOGGER.info(f"  - Log Level                     : {logging.getLevelName(GV.LOG_LEVEL)} ({str(GV.LOG_LEVEL).upper()})")
+    GV.LOGGER.info(f"  - SubFolder for Albums          : <OUTPUT_FOLDER>/{GV.FOLDERNAME_ALBUMS}")
+    GV.LOGGER.info(f"  - SubFolder for No-Albums       : <OUTPUT_FOLDER>/{GV.FOLDERNAME_NO_ALBUMS}")
+    GV.LOGGER.info(f"")
+
+    # Get the execution mode and run it.
+    detect_and_run_execution_mode()
+
+
+def pre_parse_args():
     # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
     if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
         # print(f"{GV.TAG_INFO}Valid folder detected as input: '{sys.argv[1]}'")
@@ -78,12 +134,13 @@ def main():
         custom_print(f"Executing Google Takeout Photos Processor Feature with the provided input folder...", log_level=logging.INFO)
         sys.argv.insert(1, "--google-takeout")
 
-    # Verificar si el script se ejecutó sin argumentos, en ese caso se pedira al usuario queue introduzca la ruta de la caroeta que contiene el Takeout a procesar
+    # Verificar si el script se ejecutó sin argumentos, en ese caso se pedirá al usuario queue introduzca la ruta de la carpeta que contiene el Takeout a procesar
     elif len(sys.argv) == 1:
         def select_folder_gui():
             root = tk.Tk()
             root.withdraw()
             return filedialog.askdirectory(title="Select the Google Takeout folder to process")
+
         try:
             import tkinter as tk
             from tkinter import filedialog
@@ -120,51 +177,6 @@ def main():
             # print(f"{GV.TAG_ERROR}No valid folder selected. Exiting.")
             custom_print(f"No valid folder selected. Exiting.", log_level=logging.ERROR)
             sys.exit(1)
-
-    # Test different LOG_LEVELS
-    custom_print("Testing Custom Print Function for all different logLevels.")
-    custom_print("All logLevel should be displayed on console:")
-    custom_print("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
-    custom_print("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
-    custom_print("This is a test message with logLevel: INFO", log_level=logging.INFO)
-    custom_print("This is a test message with logLevel: WARNING", log_level=logging.WARNING)
-    custom_print("This is a test message with logLevel: ERROR", log_level=logging.ERROR)
-    custom_print("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
-    custom_print("", log_level=logging.INFO)
-
-    custom_log("Testing Custom Log Function for all different logLevels. ")
-    custom_log("Only logLevel Higher or Equal than given by '-logLevel, --log-level' should be displayed on console and Log file:")
-    custom_log("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
-    custom_log("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
-    custom_log("This is a test message with logLevel: INFO", log_level=logging.INFO)
-    custom_log("This is a test message with logLevel: WARNING", log_level=logging.WARNING)
-    custom_log("This is a test message with logLevel: ERROR", log_level=logging.ERROR)
-    custom_log("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
-    custom_log("", log_level=logging.INFO)
-
-    # Print the Header (common for all modules)
-    GV.LOGGER.info(f"\n{GV.BANNER}\n{GV.TOOL_DESCRIPTION}")
-    custom_log(f"Running {sys.argv[0]}...", log_level=logging.INFO)
-    GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
-    GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
-    GV.LOGGER.info(f"  - Project Root                  : {GV.PROJECT_ROOT}")
-    GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
-    GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
-    GV.LOGGER.info(f"  - Folder/Binary for EXIF TOOL   : {GV.FOLDERNAME_EXIFTOOL}")
-    GV.LOGGER.info(f"  - Folder for Duplicates Outputs : {GV.FOLDERNAME_DUPLICATES_OUTPUT}")
-    GV.LOGGER.info(f"  - Folder for Exiftool Outputs   : {GV.FOLDERNAME_EXIFTOOL_OUTPUT}")
-    if not GV.ARGS['no-log-file']:
-        GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
-        GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FILENAME + '.log'}")
-        GV.LOGGER.info(f"  - Log Level                     : {logging.getLevelName(GV.LOG_LEVEL)} ({str(GV.LOG_LEVEL).upper()})")
-    GV.LOGGER.info(f"  - SubFolder for Albums          : <OUTPUT_FOLDER>/{GV.FOLDERNAME_ALBUMS}")
-    GV.LOGGER.info(f"  - SubFolder for No-Albums       : <OUTPUT_FOLDER>/{GV.FOLDERNAME_NO_ALBUMS}")
-    GV.LOGGER.info(f"")
-
-    # Get the execution mode and run it.
-    detect_and_run_execution_mode()
 
 if __name__ == "__main__":
     main()

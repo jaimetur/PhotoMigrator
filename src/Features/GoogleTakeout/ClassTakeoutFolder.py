@@ -31,7 +31,7 @@ from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
-from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json
+from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json, profile_and_print
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resolve_internal_path, custom_print, get_exif_tool_path
 
 
@@ -170,7 +170,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -203,7 +203,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -399,7 +399,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             else:
                 step_name = '🪛 [PRE-PROCESS] : '
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
@@ -461,14 +461,72 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
             # Step 4: Post Process Output folder
             # ----------------------------------------------------------------------------------------------------------------------
-            # Now call the post_process() function
-            self.post_process(input_folder=input_folder, output_folder=output_folder, albums_folder=albums_folder, log_level=log_level)
+            if not self.ARGS['google-skip-postprocess']:
+                # Now call the post_process() function
+                self.post_process(input_folder=input_folder, output_folder=output_folder, albums_folder=albums_folder, log_level=log_level)
+            else:
+                # TODO: Sacar este paso del Post-Process porque se tiene que ejecutar siempre.
+                # Step 4.5: Analyze Output Files
+                # ----------------------------------------------------------------------------------------------------------------------
+                step_name = '🔢 [POST-PROCESS]-[Analyze Output] : '
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                sub_step_start_time = datetime.now()
+                self.substep += 1
+                LOGGER.info(f"")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"{self.step}.{self.substep}. ANALYZING OUTPUT FILES... ")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"")
+                # Count all Files in output Folder
+                output_counters, exif_dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+
+                # Define folder and sub_dict counters
+                folder = 'Output folder'
+                sub_dict = 'output_counters'
+
+                # Clean input dict
+                self.result[sub_dict].clear()
+                # Assign all pairs key-value from output_counters to counter['output_counters'] dict
+                self.result[sub_dict].update(output_counters)
+                result = self.result
+
+                COL1_WIDTH = 44  # Description
+                COL2_WIDTH = 7  # Counters
+                COL3_WIDTH = 34  # Symlinks / % of photos and videos
+                TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
+                SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
+                PCT_DIGITS = max(1, len(str(int(result[sub_dict]['photos']['pct_with_date']))), len(str(int(result[sub_dict]['photos']['pct_without_date']))), len(str(int(result[sub_dict]['videos']['pct_with_date']))), len(str(int(result[sub_dict]['videos']['pct_without_date'])))) + 2
+
+                LOGGER.info(f"{step_name}Analyzing {folder} completed!")
+                LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
+                LOGGER.info(f"{step_name}{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.2f} (GB)")
+                LOGGER.info(f"{step_name}{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
+                LOGGER.info(f"{step_name}{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+                LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
+
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
             # FINISH
@@ -699,7 +757,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -751,7 +809,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -784,7 +842,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -866,7 +924,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         basedir = os.path.join(output_folder, FOLDERNAME_ALBUMS)
                     type_structure = self.ARGS['google-albums-folders-structure']
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
-                    replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the output_json with all the files changed during this step
                     batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
                 # For No-Albums
@@ -876,7 +935,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     basedir = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
                     type_structure = self.ARGS['google-no-albums-folders-structure']
                     exclude_subfolders = []
-                    replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
+                    replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the output_json with all the files changed during this step
                     batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
                 # If flatten
@@ -899,7 +959,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -947,7 +1007,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
                 formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Skipped!")
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
@@ -2006,7 +2066,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
                 try:
                     return parser.parse(selected_date.strip())
                 except Exception as e:
-                    LOGGER.verbose(f"{step_name}❌ Error parsing SelectedDate '{selected_date}' for {norm_path}: {e}")
+                    if LOGGER.isEnabledFor(logging.VERBOSE):
+                        LOGGER.verbose(f"{step_name}❌ Error parsing SelectedDate '{selected_date}' for {norm_path}: {e}")
 
             # If no SelectedDate, try to use the minimum date among all EXIF tags
             all_dates = []
@@ -2026,7 +2087,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
         ext = Path(file_path).suffix.lower()
         if ext in PIL_SUPPORTED_EXTENSIONS:
             try:
-                LOGGER.verbose(f"{step_name}Falling back to read EXIF with PIL for: {file_path}")
+                if LOGGER.isEnabledFor(logging.VERBOSE):
+                    LOGGER.verbose(f"{step_name}Falling back to read EXIF with PIL for: {file_path}")
                 exif_dict = piexif.load(file_path)
                 for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
                     tag_id = piexif.ExifIFD.__dict__.get(tag)
@@ -2038,7 +2100,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
 
         # 3. Fallback to mtime
         try:
-            LOGGER.verbose(f"{step_name}Falling back to mtime for: {file_path}")
+            if LOGGER.isEnabledFor(logging.VERBOSE):
+                LOGGER.verbose(f"{step_name}Falling back to mtime for: {file_path}")
             mtime = os.path.getmtime(file_path)
             return datetime.fromtimestamp(mtime if mtime > 0 else 0)
         except Exception as e:
@@ -2049,6 +2112,17 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
     with set_log_level(LOGGER, log_level):
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError(f"{step_name}The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
+
+        # ⏩ Preparsear SelectedDate si es un string
+        for key, value in exif_dates.items():
+            if isinstance(value, dict):
+                selected_date = value.get("SelectedDate")
+                if isinstance(selected_date, str):
+                    try:
+                        value["SelectedDate"] = parser.parse(selected_date.strip())
+                    except Exception:
+                        continue
+
         replacements = []
         with tqdm(smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files", dynamic_ncols=True) as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
@@ -2060,7 +2134,9 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
                     pbar.update(1)
                     # Get file date
                     mod_time = get_file_date(file_path, exif_dates, step_name)
-                    LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
+                    if LOGGER.isEnabledFor(logging.DEBUG):
+                        # LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
+                        pass
                     # Determine target folder
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
@@ -2071,7 +2147,9 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exi
                     os.makedirs(target_dir, exist_ok=True)
                     dest_path = os.path.join(target_dir, file)
                     # Moves file_path to new dest_path
-                    shutil.move(file_path, dest_path)
+                    if os.path.abspath(file_path) != os.path.abspath(dest_path):
+                        # shutil.move(file_path, dest_path)     # Safer but slower. Can be used to move files between different disks.
+                        Path(file_path).rename(dest_path)       # Faster but only valid if src and dst are in the same disk,
                     # Update replacements list
                     replacements.append((str(file_path), str(dest_path)))
         if update_json and os.path.isfile(update_json):

@@ -1,20 +1,24 @@
 # 🗓️ CHANGELOG
-[Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for the following releases
-[Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) for the past releases
+- [Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for the following releases  
+- [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) for the past releases
+
 ---
 
 ## Release: v3.4.2  
-- ### Release Date: 2025-07-09
+- ### Release Date: 2025-07-10
 
 - ### Main Changes:
+  - #### 🌟 New Features:
+    - [x] Added new argument `-gSkipPost, --google-skip-postprocess` to Skip Postprocess steps during Google Takeout Processing feature.
+
   - #### 🚀 Enhancements:
     - [x] Show skipped steps in 'Total Duration Summary' within 'Google Takeout Processing'. 
     - [x] Maintain Step ids in 'Google Takeout Processing'.
+    - [x] Improvements in 'Create year/month folder structure' function. Execution time reduced more than 90%.
     
   - #### 🐛 Bug fixes:
-    - [x] Fixed a bug in function get_file_date() function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
-    - [x] Fixed a bug [#730](https://github.com/jaimetur/PhotoMigrator/issues/730) when the tool was executed without arguments and the input folder was selected using windows dialog pop-up.
-    - [x] Fixed a bug [#739](https://github.com/jaimetur/PhotoMigrator/issues/739) in function resolve_internal_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
+    - [x] Fixed bug #730 when the tool was executed without arguments and the input folder was selected using windows dialog pop-up.
+    - [x] Fixed bug #739 in function resolve_internal_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
 
 ---
 
@@ -31,8 +35,8 @@
 
   - #### 🐛 Bug fixes:
     - [x] Fixed a bug in function get_file_date() function affecting files with EXIF tags in different format (UTC naive and UTC aware). Now all EXIF date tags are converted to UTC aware before extracting the oldest date.
-    - [x] Fixed a bug [#649](https://github.com/jaimetur/PhotoMigrator/issues/649) in function resolve_internal_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
-    - [x] Fixed a bug [#663](https://github.com/jaimetur/PhotoMigrator/issues/663) in function is_date_outside_range() when no date filters have been provided.
+    - [x] Fixed bug #649 in function resolve_internal_path() that after code refactoring on v3.4.0, the function was not resolving properly the paths when te tool were executed from compiled binary file.
+    - [x] Fixed bug #663 in function is_date_outside_range() when no date filters have been provided.
 
   - #### 📚 Documentation:
     - [x] New logo design (thanks to @mbarbero).
