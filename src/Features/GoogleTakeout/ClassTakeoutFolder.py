@@ -10,8 +10,8 @@ import stat
 import subprocess
 import sys
 import zipfile
-from datetime import datetime
-from datetime import timedelta
+from contextlib import suppress
+from datetime import datetime, timedelta
 from os.path import dirname, basename
 from pathlib import Path
 
@@ -32,7 +32,7 @@ from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json, profile_and_print
-from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, resolve_internal_path, custom_print, get_exif_tool_path
+from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, custom_print, get_exif_tool_path
 
 
 ##############################################################################
@@ -1068,7 +1068,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
-            removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
+            # removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
+            removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
             if removed:
                 LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
             else:
@@ -1904,8 +1905,6 @@ def force_remove_directory(folder, step_name='', log_level=None):
         os.chmod(path, stat.S_IWRITE)
         func(path)
     # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
-
-
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if os.path.exists(folder):
             shutil.rmtree(folder, onerror=onerror)
@@ -1915,6 +1914,37 @@ def force_remove_directory(folder, step_name='', log_level=None):
             LOGGER.info(f"{step_name}Cannot delete the folder '{folder}'.")
             return False
 
+
+def force_remove_directory_faster(folder, step_name='', log_level=None):
+    def onerror(func, path, exc_info):
+        with suppress(Exception):
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+    def delete_contents(path):
+        for entry in os.scandir(path):
+            try:
+                full_path = entry.path
+                if entry.is_dir(follow_symlinks=False):
+                    delete_contents(full_path)
+                    os.rmdir(full_path)
+                else:
+                    os.chmod(full_path, stat.S_IWRITE)
+                    os.remove(full_path)
+            except Exception:
+                onerror(os.remove if entry.is_file() else os.rmdir, full_path, None)
+    with set_log_level(LOGGER, log_level):
+        if os.path.exists(folder):
+            try:
+                delete_contents(folder)
+                os.rmdir(folder)
+                LOGGER.info(f"{step_name}The folder '{folder}' and all its content have been deleted.")
+                return True
+            except Exception as e:
+                LOGGER.warning(f"{step_name}Failed to delete folder '{folder}' completely: {e}")
+                return False
+        else:
+            LOGGER.info(f"{step_name}The folder '{folder}' does not exist.")
+            return False
 
 def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", log_level=None):
     """
