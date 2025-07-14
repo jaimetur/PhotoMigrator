@@ -56,11 +56,11 @@ Below you can see the different steps of this feature:
     - 🧾 Extract Metadata (Process .json files to extract metadata, including creation date and time, GPS data, Albums info extraction, etc... of all your assets.)
     - ✍️ Write EXIF
     - 📚 Find Albums (Separate your assets per Albums).
-    - 🔗 Create Symbolic Links for assets within any Album (to save disk space).  
+    - 🔗 Create Symbolic Links for assets within any Album (to save disk space).   
        `(default=enabled. Can be disabled using flag '-gnsa, --google-no-symbolic-albums')`
     - 📁 Move Files
     - 🕒 Update Creation Time
-  - 3.2. ➡️ <span style="color:grey">Copy/Move files to Output folder manually.  
+  - 3.2. ➡️ <span style="color:grey">Copy/Move files to Output folder manually.   
          `(default=disabled. It is automatically enabled if detect that Step 3.1 has been skipped)`</span>
   - 3.3. 🔢 Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics.
 
