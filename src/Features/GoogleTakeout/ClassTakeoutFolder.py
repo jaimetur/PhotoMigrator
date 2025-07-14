@@ -1090,6 +1090,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{self.step}.{self.substep}. FINAL CLEANING... ")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
+            # Save the final output_dates_metadata.json
+            output_folder_analyzer.save_to_json(f"output_dates_metadata_final.json")
             # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
             # removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
             removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
