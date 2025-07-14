@@ -199,6 +199,7 @@ class FolderAnalyzer:
         output_filename = f"{TIMESTAMP}_{output_filename}"
         output_file = f"{output_filename}{output_ext}"
         output_filepath = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file)
+        os.makedirs(FOLDERNAME_EXIFTOOL_OUTPUT, exist_ok=True)
 
         with open(output_filepath, "w", encoding="utf-8") as f:
             json.dump(self.file_dates, f, ensure_ascii=False, indent=2)
@@ -217,7 +218,7 @@ class FolderAnalyzer:
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
         if max_workers is None:
-            max_workers = cpu_count() * 8
+            max_workers = cpu_count() * 16
         self.file_dates = {}
         candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
@@ -357,7 +358,7 @@ class FolderAnalyzer:
                 avg_block_time = None
 
                 # Parallel execution using ThreadPoolExecutor
-                workers = max(1, min(total_blocks, max_workers, 32))    # Ensure at least 1 worker and maximum max_workers (satured to 32 workers)
+                workers = max(1, min(total_blocks, max_workers, 64))    # Ensure at least 1 worker and maximum max_workers (saturated to 64 workers)
                 self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:
@@ -366,7 +367,7 @@ class FolderAnalyzer:
                         for idx, block in enumerate(file_blocks, 1)
                     }
 
-                    with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", dynamic_ncols=True, leave=True) as pbar:
+                    with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True) as pbar:
                         for future in as_completed(future_to_index):
                             result = future.result()
                             self.file_dates.update(result)
@@ -383,34 +384,7 @@ class FolderAnalyzer:
                             })
                             pbar.update(1)
 
-                    # for future in as_completed(future_to_index):
-                    #     result = future.result()
-                    #     self.file_dates.update(result)
-                    #
-                    #     # 📊 Progress reporting with optional smoothing
-                    #     completed_blocks += 1
-                    #     elapsed = time.time() - start_time
-                    #     current_block_time = elapsed / completed_blocks
-                    #     if avg_block_time is None:
-                    #         avg_block_time = current_block_time
-                    #     else:
-                    #         avg_block_time = (avg_block_time + current_block_time) / 2  # simple moving average
-                    #
-                    #     if completed_blocks >= 5:
-                    #         est_total = avg_block_time * total_blocks
-                    #         est_remain = est_total - elapsed
-                    #         self.logger.info(
-                    #             f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
-                    #             f"Elapsed: {int(elapsed // 60)}m • "
-                    #             f"Estimated Total: {int(est_total // 60)}m • "
-                    #             f"Estimated Remaining: {int(est_remain // 60)}m"
-                    #         )
-                    #     else:
-                    #         self.logger.info(
-                    #             f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
-                    #             f"Elapsed: {int(elapsed // 60)}m (estimating remaining time...)"
-                    #         )
-
+        # Call the main function to start the process
         main()
 
     def count_files(self, exclude_ext=None, include_ext=None, step_name='', log_level=None):
@@ -587,7 +561,7 @@ if __name__ == "__main__":
     input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/Zip_files_50GB_2025_processed_20250710-180016"
 
     # Lista de valores a probar
-    worker_values = [cpu_count()*8, cpu_count()*6, cpu_count()*4, cpu_count()*2, cpu_count()*1]
+    worker_values = [cpu_count()*16, cpu_count()*8, cpu_count()*6, cpu_count()*4, cpu_count()*2, cpu_count()*1]
 
     for workers in worker_values:
         print(f"\n🚀 Running pipeline with max_workers = {workers}")
