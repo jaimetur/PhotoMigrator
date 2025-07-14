@@ -25,6 +25,7 @@
     - [x] Enhancements in `build.py` module to reduce the Anti-Virus warning probability on Windows systems.
     
   - #### 🐛 Bug fixes:
+    - [x] Fixed minor issues in Logger module. 
 
 ---
 
