@@ -169,7 +169,7 @@ class FolderAnalyzer:
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
         # Filter the file list to only include supported photo and video extensions
-        media_files = [f for f in self.file_list if Path(f).suffix.lower() in PHOTO_EXT.union(VIDEO_EXT)]
+        media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(set(VIDEO_EXT))]
 
         # Split into blocks of 10,000 files each
         file_blocks = [media_files[i:i + 10_000] for i in range(0, len(media_files), 10_000)]
