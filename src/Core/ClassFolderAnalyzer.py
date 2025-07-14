@@ -209,7 +209,7 @@ class FolderAnalyzer:
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
         if max_workers is None:
-            max_workers = cpu_count() * 2
+            max_workers = cpu_count() * 4
         self.file_dates = {}
         candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
@@ -242,7 +242,7 @@ class FolderAnalyzer:
                                     if tag in entry:
                                         filtered_entry[tag] = entry[tag]
                                 metadata_list.append(filtered_entry)
-                            self.logger.info(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}.")
+                            self.logger.debug(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}.")
                         except json.JSONDecodeError as e:
                             self.logger.debug(f"{step_name}⚠️ [Block {block_index}]: JSON error: {e}")
                             self.logger.debug(f"{step_name}🔴 STDOUT:\n{result.stdout}")
@@ -342,7 +342,7 @@ class FolderAnalyzer:
                 media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
-                self.logger.info(f"{step_name}Launching {total_blocks} blocks of ~{block_size} files")
+                self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
 
                 # ⏱️ Start timing
                 start_time = time.time()
@@ -350,7 +350,9 @@ class FolderAnalyzer:
                 avg_block_time = None
 
                 # Parallel execution using ThreadPoolExecutor
-                with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                workers = min(cpu_count() * 4, total_blocks, max_workers)
+                self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
+                with ThreadPoolExecutor(max_workers=workers) as executor:
                     future_to_index = {
                         executor.submit(_process_block, idx, block): idx
                         for idx, block in enumerate(file_blocks, 1)
@@ -560,7 +562,7 @@ if __name__ == "__main__":
     input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/Zip_files_50GB_2025_processed_20250710-180016"
 
     # Lista de valores a probar
-    worker_values = [cpu_count()*1, cpu_count() * 2, cpu_count() * 4]
+    worker_values = [cpu_count() * 2, cpu_count() * 4, cpu_count() * 6, cpu_count()*8]
 
     for workers in worker_values:
         print(f"\n🚀 Running pipeline with max_workers = {workers}")
