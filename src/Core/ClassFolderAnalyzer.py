@@ -200,7 +200,12 @@ class FolderAnalyzer:
                 if Path(exif_tool_path).exists():
                     command = [exif_tool_path, "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + file_block
                     try:
-                        self.logger.debug(f"{step_name}⏳ Running: {' '.join(command)}")
+                        if len(file_block) <= 10:
+                            files_preview = ' '.join(file_block)
+                        else:
+                            files_preview = ' '.join(file_block[:10]) + ' ...'
+                        base_cmd = ' '.join(command[:7])  # exiftool path + flags
+                        self.logger.debug(f"{step_name}⏳ Running: {base_cmd} {files_preview}")
                         result = run(command, capture_output=True, text=True, check=False)
 
                         if result.stdout.strip():
