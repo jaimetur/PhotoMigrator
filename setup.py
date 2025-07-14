@@ -1,4 +1,6 @@
 ### setup.py
+### This file is used to create photomigrator as a python package that can be checked using pip list and executed using photomigrator from the command line.
+### Use pip install -e . from command line to create photomigrator package
 
 import os
 import re
