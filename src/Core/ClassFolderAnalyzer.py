@@ -199,6 +199,7 @@ class FolderAnalyzer:
         output_filename = f"{TIMESTAMP}_{output_filename}"
         output_file = f"{output_filename}{output_ext}"
         output_filepath = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file)
+        os.makedirs(FOLDERNAME_EXIFTOOL_OUTPUT, exist_ok=True)
 
         with open(output_filepath, "w", encoding="utf-8") as f:
             json.dump(self.file_dates, f, ensure_ascii=False, indent=2)
