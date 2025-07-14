@@ -5,14 +5,24 @@
 ---
 
 ## Release: v3.4.3  
-- ### Release Date: 2025-07-11
+- ### Release Date: 2025-07-15
 
 - ### Main Changes:
   - #### 🌟 New Features:
 
   - #### 🚀 Enhancements:
-    - [x] Improvements in 'Cleanning Step' within 'Google Photos Takeout Process'. Now the final clean is faster.
-    - [x] Improvements in 'Create year/month folder structure' function. Execution time reduced more than 90%.
+    - [x] Enhancements in 'Google Takeout Processing' feature to improve the performance.
+      - [x] Created a new Class `FolderAnalyzer` to analyze any folder to:
+        - Extract dates of all media files found using Exiftool if is found, or PIL library as fallback or filesystem date as final fallback if any of both previous method is able to find dates in any media file.
+        - Get the oldest date between all date tags found in EXIF metadate of the media file.
+        - Keep the analyzer object in memory for faster date extraction during the code
+        - Save extracted dates into a JSON file when finished the process
+        - Update the index of the extracted dates when any file is moved/renamed to other folder
+        - Update the index of the extracted dates when any folder is renamed
+        - Count the files per type (supported/non-supported/media/photos/videos, etc...) and also count which files has valid/invalid dates
+      - [x] Enhancements in 'Create year/month folder structure' function. Execution time reduced more than 90% using the new object of Class `FolderAnalyzer` just once after GPTH processing has finished.
+      - [x] Enhancements in 'Cleaning Step' within 'Google Photos Takeout Process'. Now the final clean is faster.
+    - [x] Enhancements in `build.py` module to reduce the Anti-Virus warning probability on Windows systems.
     
   - #### 🐛 Bug fixes:
 

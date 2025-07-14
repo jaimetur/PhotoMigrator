@@ -436,10 +436,9 @@ class FolderAnalyzer:
                             result = future.result()
                             self.file_dates.update(result)
 
+                            # Calcular tiempo promedio con media móvil simple
                             completed_blocks += 1
                             elapsed = time.time() - start_time
-
-                            # Calcular tiempo promedio con media móvil simple
                             current_block_time = elapsed / completed_blocks
                             if avg_block_time is None:
                                 avg_block_time = current_block_time
