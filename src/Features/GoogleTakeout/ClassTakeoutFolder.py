@@ -2059,6 +2059,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
         ValueError: If `type` is not one of 'year', 'year/month', or 'year-month'.
     """
 
+    # TODO: Mejorar el Performance de esta función haciendo uso del objeto folder_analyzer que se le pasa como argumento.
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def get_file_date(file_path, exif_dates, step_name):
         norm_path = Path(file_path).resolve().as_posix()
