@@ -357,7 +357,7 @@ class FolderAnalyzer:
                 avg_block_time = None
 
                 # Parallel execution using ThreadPoolExecutor
-                workers = max(1, min(total_blocks, max_workers))    # Ensure at least 1 worker and maximum max_workers
+                workers = max(1, min(total_blocks, max_workers, 32))    # Ensure at least 1 worker and maximum max_workers (satured to 32 workers)
                 self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:
@@ -587,7 +587,7 @@ if __name__ == "__main__":
     input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/Zip_files_50GB_2025_processed_20250710-180016"
 
     # Lista de valores a probar
-    worker_values = [cpu_count()*12, cpu_count()*8, cpu_count()*6, cpu_count()*4, cpu_count()*2, cpu_count()*1]
+    worker_values = [cpu_count()*8, cpu_count()*6, cpu_count()*4, cpu_count()*2, cpu_count()*1]
 
     for workers in worker_values:
         print(f"\n🚀 Running pipeline with max_workers = {workers}")
