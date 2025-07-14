@@ -1,28 +1,28 @@
 # ========================
 # 📦 IMPORTS
 # ========================
-import os, sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import os
+import sys
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import multiprocessing
 import json
-from concurrent.futures import as_completed
-from concurrent.futures.thread import ThreadPoolExecutor
 from pathlib import Path
 from datetime import datetime, timezone
 from subprocess import run
-from collections import defaultdict
 from tempfile import TemporaryDirectory
 import logging
 
 from PIL import Image, ExifTags
 from dateutil import parser
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from multiprocessing import cpu_count
 from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, FOLDERNAME_EXIFTOOL_OUTPUT, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, LOG_FILENAME
+from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT
 from Utils.DateUtils import normalize_datetime_utc, is_date_valid
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
@@ -159,7 +159,7 @@ class FolderAnalyzer:
             self.file_dates = json.load(f)
         self.logger.info(f"Dates loaded from JSON: {input_path}")
 
-    def extract_dates(self, step_name='', log_level=None):
+    def extract_dates_old(self, step_name='', block_size=10_000, log_level=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
@@ -172,29 +172,15 @@ class FolderAnalyzer:
         media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(set(VIDEO_EXT))]
 
         # Split into blocks of 10,000 files each
-        file_blocks = [media_files[i:i + 10_000] for i in range(0, len(media_files), 10_000)]
+        file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
 
         with set_log_level(self.logger, log_level):
             self.logger.info(f"{step_name}⏳ Extracting Dates for '{self.folder_path}'...")
+            num_blocks = len(file_blocks)
+            self.logger.info(f"{step_name}Launching {num_blocks} blocks of maximum ~{block_size} files")
             for block_index, file_block in enumerate(file_blocks, 1):
+                self.logger.info(f"{step_name}🔎 [Block {block_index}]: Running block {block_index} with exiftool...")
                 metadata_map = {}
-
-                # # --- Try ExifTool
-                # if Path(exif_tool_path).exists():
-                #     error_log_path = f"{LOG_FILENAME}.log"
-                #     chunk_json_path = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_block_{block_index}.json")
-                #     command = [exif_tool_path, "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + file_block
-                #     try:
-                #         with open(chunk_json_path, "w", encoding="utf-8") as out_json, \
-                #                 open(error_log_path, "a", encoding="utf-8") as out_err:
-                #             run(command, stdout=out_json, stderr=out_err, check=True)
-                #     except Exception:
-                #         self.logger.debug(f"{step_name}❗ [Block {block_index}]: exiftool failed to extract some files")
-                #
-                #     with open(chunk_json_path, "r", encoding="utf-8") as out_json:
-                #         metadata_list = json.load(out_json)
-                # else:
-                #     metadata_list = []
 
                 # --- Try ExifTool (sin uso de archivos)
                 if Path(exif_tool_path).exists():
@@ -211,7 +197,7 @@ class FolderAnalyzer:
                         if result.stdout.strip():
                             try:
                                 metadata_list = json.loads(result.stdout)
-                                self.logger.info(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries.")
+                                self.logger.info(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}.")
                             except json.JSONDecodeError as e:
                                 self.logger.debug(f"{step_name}⚠️ [Block {block_index}]: exiftool failed to extract some files. Error: {e}")
                                 self.logger.debug(f"{step_name}🔴 STDOUT:\n{result.stdout}")
@@ -247,7 +233,7 @@ class FolderAnalyzer:
                     dt_final = None
                     source = ""
 
-                    # Buscar la mejor fecha de entre las claves del EXIF
+                    # Buscar la fecha más antigua entre las claves del EXIF
                     for tag, value in entry.items():
                         if isinstance(value, str):
                             try:
@@ -300,6 +286,155 @@ class FolderAnalyzer:
                     full_info["Source"] = source or "None"
 
                     self.file_dates[file_path] = full_info
+
+    def extract_dates(self, step_name='', block_size=10_000, log_level=None):
+        """
+        Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
+        """
+        self.file_dates = {}
+        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate']
+        exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
+        reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
+
+        # --- Internal function to process a single block
+        def _process_block(block_index, file_block, total_blocks, start_time):
+            local_metadata = {}
+
+            # --- Try ExifTool
+            if Path(exif_tool_path).exists():
+                command = [exif_tool_path, "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + file_block
+                try:
+                    if len(file_block) <= 10:
+                        files_preview = ' '.join(file_block)
+                    else:
+                        files_preview = ' '.join(file_block[:10]) + ' ...'
+                    base_cmd = ' '.join(command[:7])
+                    self.logger.debug(f"{step_name}⏳ Running: {base_cmd} {files_preview}")
+                    result = run(command, capture_output=True, text=True, check=False)
+
+                    if result.stdout.strip():
+                        try:
+                            metadata_list = json.loads(result.stdout)
+                            self.logger.info(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}.")
+                        except json.JSONDecodeError as e:
+                            self.logger.debug(f"{step_name}⚠️ [Block {block_index}]: JSON error: {e}")
+                            self.logger.debug(f"{step_name}🔴 STDOUT:\n{result.stdout}")
+                            metadata_list = []
+                    else:
+                        self.logger.warning(f"{step_name}❌ [Block {block_index}]: No output from Exiftool.")
+                        self.logger.debug(f"{step_name}🔴 STDERR:\n{result.stderr}")
+                        metadata_list = []
+                except Exception as e:
+                    self.logger.exception(f"{step_name}❌ Error running Exiftool: {e}")
+                    metadata_list = []
+
+            # If Exiftool is not found, then fallback to PIL or filesystem
+            else:
+                self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
+                metadata_list = [{"SourceFile": f} for f in file_block]
+
+            for entry in metadata_list:
+                src = entry.get("SourceFile")
+                if not src:
+                    continue
+                file_path = Path(src).resolve().as_posix()
+
+                # Creamos full_info con SourceFile y TargetFile al principio
+                full_info = {
+                    "SourceFile": file_path,
+                    "TargetFile": file_path,
+                }
+                # Ahora añadimos el resto de claves originales que estén en candidate_tags
+                for tag in candidate_tags:
+                    if tag in entry:
+                        full_info[tag] = entry[tag]
+
+                dt_final = None
+                source = ""
+
+                # Buscar la fecha más antigua entre las claves del EXIF
+                for tag, value in entry.items():
+                    if isinstance(value, str):
+                        try:
+                            raw_clean = value.strip()
+                            if raw_clean[:10].count(":") == 2 and "+" in raw_clean:
+                                dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
+                            elif raw_clean[:10].count(":") == 2:
+                                dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
+                            else:
+                                dt = normalize_datetime_utc(parser.parse(raw_clean))
+                            if is_date_valid(dt, reference):
+                                if not dt_final or dt < dt_final:
+                                    dt_final = dt
+                                    source = f"EXIF:{tag}"
+                        except:
+                            continue
+
+                # Fallback a PIL solo si aún no se tiene una fecha válida
+                if not dt_final:
+                    try:
+                        img = Image.open(file_path)
+                        exif_data = img._getexif() or {}
+                        for tag_name in ("DateTimeOriginal", "DateTime"):
+                            tag_id = next((tid for tid, name in ExifTags.TAGS.items() if name == tag_name), None)
+                            raw = exif_data.get(tag_id)
+                            if isinstance(raw, str):
+                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                                if is_date_valid(dt, reference):
+                                    full_info[f"PIL:{tag_name}"] = dt.isoformat()
+                                    if not dt_final or dt < dt_final:
+                                        dt_final = dt
+                                        source = f"PIL:{tag_name}"
+                                    break
+                    except:
+                        pass
+
+                # Fallback a fecha del sistema si aún no hay ninguna
+                if not dt_final:
+                    try:
+                        fs_ctime = datetime.fromtimestamp(os.path.getctime(file_path)).replace(tzinfo=timezone.utc)
+                        if is_date_valid(fs_ctime, reference):
+                            full_info["FileSystem:CTime"] = fs_ctime.isoformat()
+                            dt_final = fs_ctime
+                            source = "FileSystem:CTime"
+                    except:
+                        pass
+
+                # Añadir OldestDate y Source al diccionario
+                full_info["OldestDate"] = dt_final.isoformat() if dt_final else None
+                full_info["Source"] = source or "None"
+
+                local_metadata[file_path] = full_info
+
+            elapsed = time.time() - start_time
+            avg_block_time = elapsed / block_index
+            est_total = avg_block_time * total_blocks
+            est_remain = est_total - elapsed
+            self.logger.info(f"{step_name}📊 Block {block_index}/{total_blocks} done • Elapsed: {int(elapsed // 60)}m • Estimated Total: {int(est_total // 60)}m • Estimated Remaining: {int(est_remain // 60)}m")
+
+            return local_metadata
+
+        # --- Main execution
+        def main():
+            with set_log_level(self.logger, log_level):
+                self.logger.info(f"{step_name}⏳ Extracting Dates for '{self.folder_path}'...")
+                # Filter the file list to only include supported photo and video extensions
+                media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
+                file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
+                total_blocks = len(file_blocks)
+                self.logger.info(f"{step_name}Launching {total_blocks} blocks of ~{block_size} files")
+
+                futures = []
+                start_time = time.time()
+                with ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
+                    for idx, block in enumerate(file_blocks, 1):
+                        futures.append(executor.submit(_process_block, idx, block, total_blocks, start_time))
+
+                    for future in as_completed(futures):
+                        result = future.result()
+                        self.file_dates.update(result)
+
+        main()
 
     def count_files(self, exclude_ext=None, include_ext=None, step_name='', log_level=None):
         """
@@ -393,7 +528,7 @@ class FolderAnalyzer:
 
             counters['total_size_mb'] = round(total_bytes / (1024 * 1024), 1)
 
-            # If we have extracted_dates, count valid/invalid per media type
+            # If we have extracted dates, count valid/invalid per media type
             if self.file_dates:
                 for path, entry in self.file_dates.items():
                     oldest_date = entry.get("OldestDate")
