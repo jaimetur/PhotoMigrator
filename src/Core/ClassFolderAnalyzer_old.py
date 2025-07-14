@@ -27,6 +27,7 @@ from Utils.DateUtils import normalize_datetime_utc, is_date_valid
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
 
+
 # ========================
 # 📂 FolderAnalyzer CLASS
 # ========================
@@ -43,8 +44,12 @@ class FolderAnalyzer:
         self.folder_path = Path(folder_path).resolve().as_posix() if folder_path else None
         self.file_dates = extracted_dates or {}
         self.file_list = []
+        self.date_index = {}
 
-        if self.folder_path:
+        if self.file_dates:
+            self._build_index(step_name=step_name)
+
+        elif self.folder_path:
             self._build_file_list(step_name=step_name)
 
     def _build_file_list(self, step_name=''):
@@ -54,10 +59,16 @@ class FolderAnalyzer:
         """
         if not os.path.isdir(self.folder_path):
             message = f"❌ Folder does not exist: {self.folder_path}"
-            self.logger.error(message)
+            if self.logger:
+                self.logger.error(message)
+            else:
+                print(message)
             self.file_list = []
             return
-        self.logger.info(f"{step_name}Building File List for '{self.folder_path}'...")
+        if self.logger:
+            self.logger.info(f"{step_name}Building File List for '{self.folder_path}'...")
+        else:
+            custom_print(f"{step_name}Building File List for '{self.folder_path}'...", log_level=logging.INFO)
         self.file_list = []
         for root, _, files in os.walk(self.folder_path):
             for name in files:
@@ -65,14 +76,37 @@ class FolderAnalyzer:
                 if not os.path.islink(full_path):
                     self.file_list.append(Path(full_path).resolve().as_posix())
 
+    def _build_index(self, step_name=''):
+        """
+        Construye el índice para búsquedas rápidas.
+        Si existe 'TargetFile', se prioriza sobre 'SourceFile'.
+        """
+        self.date_index.clear()
+        if self.logger:
+            self.logger.info(f"{step_name}Building Index for '{self.folder_path}'...")
+        else:
+            custom_print(f"{step_name}Building Index for '{self.folder_path}'...", log_level=logging.INFO)
+        for item in self.file_dates:
+            source = item.get("SourceFile")
+            target = item.get("TargetFile")
+
+            if target:
+                self.date_index[target] = item
+            elif source:
+                self.date_index[source] = item
+
+        if self.logger:
+            self.logger.debug(f"Índice creado con {len(self.date_index)} elementos.")
+
     def get_attribute(self, file_path, attr="SelectedDate", step_name=""):
         """
         Return one or more attributes from extracted_dates by TargetFile.
         """
         path = Path(file_path).resolve().as_posix()
-        item = self.file_dates.get(path)
+        item = self.date_index.get(path)
         if not item:
-            self.logger.debug(f"{step_name}No se encontró '{file_path}' en los datos.")
+            if self.logger:
+                self.logger.debug(f"{step_name}No se encontró '{file_path}' en el índice.")
             return None
 
         if isinstance(attr, list):
@@ -80,7 +114,8 @@ class FolderAnalyzer:
         else:
             result = item.get(attr)
 
-        self.logger.debug(f"{step_name}Atributo(s) '{attr}' para '{file_path}': {result}")
+        if self.logger:
+            self.logger.debug(f"{step_name}Atributo(s) '{attr}' para '{file_path}': {result}")
         return result
 
     def get_date(self, file_path, step_name=""):
@@ -93,55 +128,62 @@ class FolderAnalyzer:
         """
         Update the TargetFile of a single file after moving/renaming.
         """
-        current_path = Path(current_path).resolve().as_posix()
-        new_target_path = Path(new_target_path).resolve().as_posix()
-
-        # Elimina la ruta antigua de si existía
-        item = self.file_dates.pop(current_path, None)
+        item = self.date_index.get(current_path)
         if not item:
-            self.logger.warning(f"{step_name}No se encontró el archivo por '{current_path}'")
+            if self.logger:
+                self.logger.warning(f"{step_name}No se encontró el archivo por '{current_path}'")
             return False
 
-        # Asigna el nuevo TargetFile como índice
-        item["TargetFile"] = new_target_path
-        self.file_dates[new_target_path] = item
+        # Elimina la ruta antigua de TargetFile si existía
+        old_target = item.get("TargetFile")
+        if old_target and old_target in self.date_index:
+            del self.date_index[old_target]
 
-        self.logger.info(f"{step_name}TargetFile actualizado: {current_path} → {new_target_path}")
+        # Asigna el nuevo TargetFile y actualiza el índice
+        item["TargetFile"] = new_target_path
+        self.date_index[new_target_path] = item
+
+        if self.logger:
+            self.logger.info(f"{step_name}TargetFile actualizado: {current_path} → {new_target_path}")
         return True
 
     def update_folder(self, old_folder: str, new_folder: str, step_name: str = ""):
         """
         Actualiza en bloque todos los archivos cuyo 'TargetFile' o 'SourceFile' empiece por old_folder.
         """
-        old_folder = Path(old_folder).resolve().as_posix()
-        new_folder = Path(new_folder).resolve().as_posix()
-        updated = {}
         count = 0
-        for key, item in list(self.file_dates.items()):
-            tgt = item.get("TargetFile", item.get("SourceFile"))
-            if tgt and tgt.startswith(old_folder):
-                new_tgt = tgt.replace(old_folder, new_folder, 1)
-                item["TargetFile"] = new_tgt
-                updated[new_tgt] = item
+        for item in self.file_dates:
+            current_path = item.get("TargetFile") or item.get("SourceFile")
+            if current_path and current_path.startswith(old_folder):
+                new_target = current_path.replace(old_folder, new_folder, 1)
+                if current_path in self.date_index:
+                    del self.date_index[current_path]
+                item["TargetFile"] = new_target
+                self.date_index[new_target] = item
                 count += 1
-        self.file_dates = updated
-
-        self.logger.info(f"{step_name}Se actualizaron {count} rutas TargetFile: {old_folder} → {new_folder}")
+        if self.logger:
+            self.logger.info(f"{step_name}Se actualizaron {count} rutas TargetFile: {old_folder} → {new_folder}")
         return count
 
     def update_target_file_bulk(self, old_folder, new_folder):
         """
         Update all TargetFile entries when an entire folder has been renamed/moved.
         """
-        self.update_folder(old_folder, new_folder)
+        old = Path(old_folder).resolve().as_posix()
+        new = Path(new_folder).resolve().as_posix()
+        for src, data in self.file_dates.items():
+            tgt = data.get("TargetFile", src)
+            if tgt.startswith(old):
+                new_tgt = tgt.replace(old, new, 1)
+                data["TargetFile"] = new_tgt
+                self.date_index[new_tgt] = src
 
     def has_been_renamed(self, file_path: str) -> bool:
         """
-        Devuelve True si el archivo fue renombrado (tiene 'TargetFile' distinta de 'SourceFile').
+        Devuelve True si el archivo fue renombrado (tiene 'TargetFile').
         """
-        file_path = Path(file_path).resolve().as_posix()
-        entry = self.file_dates.get(file_path)
-        return bool(entry and entry.get("TargetFile") != entry.get("SourceFile"))
+        item = self.date_index.get(file_path)
+        return bool(item and "TargetFile" in item)
 
     def save_to_json(self, output_path):
         """
@@ -149,7 +191,9 @@ class FolderAnalyzer:
         """
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(self.file_dates, f, ensure_ascii=False, indent=2)
-        self.logger.info(f"Dates saved into JSON: {output_path}")
+
+        if self.logger:
+            self.logger.info(f"Guardado en JSON: {output_path}")
 
     def load_from_json(self, input_path):
         """
@@ -157,71 +201,52 @@ class FolderAnalyzer:
         """
         with open(input_path, 'r', encoding='utf-8') as f:
             self.file_dates = json.load(f)
-        self.logger.info(f"Dates loaded from JSON: {input_path}")
+
+        self._build_index()
+
+        if self.logger:
+            self.logger.info(f"Cargado desde JSON: {input_path}")
 
     def extract_dates(self, step_name='', log_level=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
         self.file_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate','TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate']
+        self.date_index = {}
+
+        candidate_tags = [
+            'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
+            'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
+        ]
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
+        file_blocks = [self.file_list[i:i + 10_000] for i in range(0, len(self.file_list), 10_000)]
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
-        # Filter the file list to only include supported photo and video extensions
-        media_files = [f for f in self.file_list if Path(f).suffix.lower() in PHOTO_EXT.union(VIDEO_EXT)]
-
-        # Split into blocks of 10,000 files each
-        file_blocks = [media_files[i:i + 10_000] for i in range(0, len(media_files), 10_000)]
-
         with set_log_level(self.logger, log_level):
-            self.logger.info(f"{step_name}⏳ Extracting Dates for '{self.folder_path}'...")
+            if self.logger:
+                self.logger.info(f"{step_name}Extracting Dates for '{self.folder_path}'...")
+            else:
+                custom_print(f"{step_name}Extracting Dates for '{self.folder_path}'...", log_level=logging.INFO)
+
             for block_index, file_block in enumerate(file_blocks, 1):
                 metadata_map = {}
 
-                # # --- Try ExifTool
-                # if Path(exif_tool_path).exists():
-                #     error_log_path = f"{LOG_FILENAME}.log"
-                #     chunk_json_path = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_block_{block_index}.json")
-                #     command = [exif_tool_path, "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + file_block
-                #     try:
-                #         with open(chunk_json_path, "w", encoding="utf-8") as out_json, \
-                #                 open(error_log_path, "a", encoding="utf-8") as out_err:
-                #             run(command, stdout=out_json, stderr=out_err, check=True)
-                #     except Exception:
-                #         self.logger.debug(f"{step_name}❗ [Block {block_index}]: exiftool failed to extract some files")
-                #
-                #     with open(chunk_json_path, "r", encoding="utf-8") as out_json:
-                #         metadata_list = json.load(out_json)
-                # else:
-                #     metadata_list = []
-
-                # --- Try ExifTool (sin uso de archivos)
+                # --- Try ExifTool
                 if Path(exif_tool_path).exists():
+                    error_log_path = f"{LOG_FILENAME}.log"
+                    chunk_json_path = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_block_{block_index}.json")
                     command = [exif_tool_path, "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + file_block
                     try:
-                        self.logger.debug(f"{step_name}⏳ Running: {' '.join(command)}")
-                        result = run(command, capture_output=True, text=True, check=False)
+                        with open(chunk_json_path, "w", encoding="utf-8") as out_json, \
+                                open(error_log_path, "a", encoding="utf-8") as out_err:
+                            run(command, stdout=out_json, stderr=out_err, check=True)
+                    except Exception:
+                        self.logger.debug(f"{step_name}❗ [Block {block_index}]: exiftool failed to extract some files")
 
-                        if result.stdout.strip():
-                            try:
-                                metadata_list = json.loads(result.stdout)
-                                self.logger.info(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries.")
-                            except json.JSONDecodeError as e:
-                                self.logger.debug(f"{step_name}⚠️ [Block {block_index}]: exiftool failed to extract some files. Error: {e}")
-                                self.logger.debug(f"{step_name}🔴 STDOUT:\n{result.stdout}")
-                                metadata_list = []
-                        else:
-                            self.logger.warning(f"{step_name}❌ [Block {block_index}]: Exiftool did not return any output.")
-                            self.logger.debug(f"{step_name}🔴 STDERR:\n{result.stderr}")
-                            metadata_list = []
-                    except Exception as e:
-                        self.logger.exception(f"{step_name}❌ Error running exiftool: {e}")
-                        metadata_list = []
-                # If Exiftool is not found, then fallback to PIL or filesystem
+                    with open(chunk_json_path, "r", encoding="utf-8") as out_json:
+                        metadata_list = json.load(out_json)
                 else:
-                    self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem as fallback.")
-                    metadata_list = [{"SourceFile": f} for f in file_block]  # Solo contiene la ruta de los archivos para procesar en el bucle
+                    metadata_list = []
 
                 for entry in metadata_list:
                     src = entry.get("SourceFile")
@@ -229,18 +254,14 @@ class FolderAnalyzer:
                         continue
                     file_path = Path(src).resolve().as_posix()
 
-                    # Creamos full_info con SourceFile y TargetFile al principio
-                    full_info = {
-                        "SourceFile": file_path,
-                        "TargetFile": file_path,
-                    }
-                    # Ahora añadimos el resto de claves originales que estén en candidate_tags
-                    for tag in candidate_tags:
-                        if tag in entry:
-                            full_info[tag] = entry[tag]
+                    # Clonamos todos los datos del JSON original
+                    full_info = entry.copy()
+                    full_info["SourceFile"] = file_path
+                    full_info["TargetFile"] = file_path
 
                     dt_final = None
                     source = ""
+                    reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
                     # Buscar la mejor fecha de entre las claves del EXIF
                     for tag, value in entry.items():
@@ -290,11 +311,12 @@ class FolderAnalyzer:
                         except:
                             pass
 
-                    # Añadir OldestDate y Source al diccionario
-                    full_info["OldestDate"] = dt_final.isoformat() if dt_final else None
+                    # Añadir SelectedDate y Source al diccionario
+                    full_info["SelectedDate"] = dt_final.isoformat() if dt_final else None
                     full_info["Source"] = source or "None"
 
                     self.file_dates[file_path] = full_info
+                    self.date_index[file_path] = file_path
 
     def count_files(self, exclude_ext=None, include_ext=None, step_name='', log_level=None):
         """
@@ -303,7 +325,11 @@ class FolderAnalyzer:
         if available to count media files with/without valid dates.
         """
         with set_log_level(self.logger, log_level):
-            self.logger.info(f"{step_name}📊Counting Files for '{self.folder_path}'...")
+            if self.logger:
+                self.logger.info(f"{step_name}Counting Files for '{self.folder_path}'...")
+            else:
+                custom_print(f"{step_name}Counting Files for '{self.folder_path}'...", log_level=logging.INFO)
+
             counters = init_count_files_counters()
 
             # Normalize extensions
@@ -391,7 +417,7 @@ class FolderAnalyzer:
             # If we have extracted_dates, count valid/invalid per media type
             if self.file_dates:
                 for path, entry in self.file_dates.items():
-                    oldest_date = entry.get("OldestDate")
+                    selected_date = entry.get("SelectedDate")
                     media_type = None
                     ext = Path(path).suffix.lower()
                     if ext in PHOTO_EXT:
@@ -399,7 +425,7 @@ class FolderAnalyzer:
                     elif ext in VIDEO_EXT:
                         media_type = 'videos'
                     if media_type:
-                        if oldest_date:
+                        if selected_date:
                             counters[media_type]['with_date'] += 1
                         else:
                             counters[media_type]['without_date'] += 1
@@ -423,11 +449,10 @@ class FolderAnalyzer:
 
             return counters
 
-
 def extract_dates_from_files(self, file_paths, step_name="", log_level=None):
     """
     Extrae fechas desde EXIF usando ExifTool (fallback: PIL y FS) en paralelo.
-    Añade 'OldestDate' y 'Source' a cada entrada de self.data.
+    Añade 'SelectedDate' y 'Source' a cada entrada de self.data.
     Si el archivo no existía en self.data, se crea una nueva entrada.
     """
     def process_block(block_files, block_index, temp_dir):
@@ -469,7 +494,7 @@ def extract_dates_from_files(self, file_paths, step_name="", log_level=None):
         for entry in metadata_list:
             src = entry.get("SourceFile")
             norm = Path(src).resolve().as_posix()
-            oldest_date = None
+            selected_date = None
             selected_source = ""
             candidate_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate', 'DateTime']
 
@@ -493,20 +518,20 @@ def extract_dates_from_files(self, file_paths, step_name="", log_level=None):
                         continue
 
             if valid_dates:
-                oldest_date, tag = min(valid_dates, key=lambda x: x[0])
-                selected_source = f"🕒 EXIF date used: {oldest_date.isoformat()} (tag: {tag})"
+                selected_date, tag = min(valid_dates, key=lambda x: x[0])
+                selected_source = f"🕒 EXIF date used: {selected_date.isoformat()} (tag: {tag})"
             else:
                 try:
                     fs_ctime = datetime.fromtimestamp(os.path.getctime(norm)).replace(tzinfo=timezone.utc)
                     if is_date_valid(fs_ctime, ref_timestamp):
-                        oldest_date = fs_ctime
+                        selected_date = fs_ctime
                         selected_source = f"📂 FS date used: {fs_ctime.isoformat()}"
                 except:
                     pass
 
             results.append({
                 "SourceFile": norm,
-                "OldestDate": oldest_date.isoformat() if oldest_date else None,
+                "SelectedDate": selected_date.isoformat() if selected_date else None,
                 "Source": selected_source
             })
 
@@ -534,29 +559,26 @@ def extract_dates_from_files(self, file_paths, step_name="", log_level=None):
             if not entry:
                 entry = {"SourceFile": src}
                 self.file_dates.append(entry)
-            entry["OldestDate"] = result["OldestDate"]
+            entry["SelectedDate"] = result["SelectedDate"]
             entry["Source"] = result["Source"]
             self.date_index[src] = entry
             updated += 1
 
-        self.logger.info(f"{step_name}🧪 Fechas extraídas y aplicadas a {updated} archivos.")
+        if self.logger:
+            self.logger.info(f"{step_name}🧪 Fechas extraídas y aplicadas a {updated} archivos.")
 ##############################################################################
 #                            MAIN TESTS FUNCTION                             #
 ##############################################################################
 if __name__ == "__main__":
-    import time
-    from datetime import timedelta
-    start_time = time.time()  # ⏱️ Start timing
-
     change_working_dir(change_dir=True)
 
     custom_print(f"Setting Global LOGGER...", log_level=logging.INFO)
-    # logger = set_LOGGER('debug')
-    logger = set_LOGGER('info')
+    logger = set_LOGGER()  # Need to be called after set_FOLDERS()
+
 
     # Ruta con tus fotos y vídeos
-    input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/Zip_files_50GB_2025_processed_20250710-180016"
-    # input_folder = r"c:\Temp_Unsync\Takeout"
+    # input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/LocalFolderFromTakeout"
+    input_folder = r"c:\Temp_Unsync\Takeout"
 
     # Crear el analizador
     analyzer = FolderAnalyzer(folder_path=input_folder, logger=logger)
@@ -565,17 +587,8 @@ if __name__ == "__main__":
     analyzer.extract_dates(step_name="🕒 [STEP]-[Extract Dates] : ")
 
     # Contar ficheros con y sin fechas válidas
-    counters = analyzer.count_files(step_name="📊 [STEP]-[Count Files  ] : ")
-    print("📋 Counting Results:")
+    counters = analyzer.count_files(step_name="📊 [STEP]-[Count Files] : ")
+    print("📋 Resultados de conteo:")
     print_dict_pretty(counters)
 
-    # Guardar resultados en JSON
     analyzer.save_to_json(r'r:\jaimetur\PhotoMigrator\Exiftool_outputs\extracted_dates.json')
-
-    # ⏱️ Mostrar duración total formateada
-    elapsed_seconds = time.time() - start_time
-    elapsed_time = timedelta(seconds=round(elapsed_seconds))
-
-    print(f"✅ Total execution time: {elapsed_time}")
-    logger.info(f"✅ Total execution time: {elapsed_time}")
-

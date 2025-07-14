@@ -38,7 +38,7 @@ def set_FOLDERS():
     GV.FOLDERNAME_EXIFTOOL = exif_resolved if exif_resolved and os.path.exists(exif_resolved) else resolve_internal_path(GV.FOLDERNAME_EXIFTOOL)
 
 
-def set_LOGGER():
+def set_LOGGER(level_str=None):
     tool_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
     log_folder = resolve_external_path(GV.FOLDERNAME_LOGS)
@@ -52,11 +52,15 @@ def set_LOGGER():
         log_level=GV.LOG_LEVEL_MIN,
         skip_logfile=False,
         skip_console=False,
-        format=GV.ARGS['log-format']
+        format=(GV.ARGS.get('log-format') if GV.ARGS else 'log')
     )
 
+    # Determina el nivel de log: prioridad al argumento recibido
+    if level_str is None:
+        level_str = GV.ARGS.get('log-level', 'info') if GV.ARGS else 'info'
+    level_str = level_str.lower()
+
     # 2) Mapeo explícito de niveles soportados
-    level_str = GV.ARGS['log-level'].lower()
     level_mapping = {
         'verbose'   : GV.VERBOSE_LEVEL_NUM,
         'debug'     : logging.DEBUG,
@@ -75,10 +79,10 @@ def set_LOGGER():
         # Y de cada handler
         for handler in GV.LOGGER.handlers:
             handler.setLevel(new_level)
-
         GV.LOGGER.info(f"Logging level changed to {level_str.upper()}")
     else:
         GV.LOGGER.warning(f"Unknown Logging level: {GV.ARGS['log-level']}")
+    return GV.LOGGER
 
 def set_HELP_TEXTS():
     GV.HELP_TEXTS  = set_help_texts()
