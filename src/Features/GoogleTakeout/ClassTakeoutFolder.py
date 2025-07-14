@@ -224,7 +224,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=input_folder, logger=LOGGER, step_name=step_name)
             initial_takeout_folder_analyzer.extract_dates(step_name=step_name)
             initial_takeout_counters = initial_takeout_folder_analyzer.count_files(step_name=step_name)
-            initial_takeout_folder_analyzer.save_to_json(f"input_dates_metadata.json")
+            initial_takeout_folder_analyzer.save_to_json(f"input_dates_metadata.json", step_name=step_name)
 
             # Define folder and sub_dict counters
             folder = 'Takeout folder'
@@ -498,7 +498,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 output_folder_analyzer = FolderAnalyzer(folder_path=output_folder, logger=LOGGER, step_name=step_name)
                 output_folder_analyzer.extract_dates(step_name=step_name)
                 output_counters = output_folder_analyzer.count_files(step_name=step_name)
-                output_folder_analyzer.save_to_json(f"output_dates_metadata.json")
+                output_folder_analyzer.save_to_json(f"output_dates_metadata.json", step_name=step_name)
 
                 # Define folder and sub_dict counters
                 folder = 'Output folder'
@@ -878,7 +878,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             output_folder_analyzer = FolderAnalyzer(folder_path=output_folder, logger=LOGGER, step_name=step_name)
             output_folder_analyzer.extract_dates(step_name=step_name)
             output_counters = output_folder_analyzer.count_files(step_name=step_name)
-            output_folder_analyzer.save_to_json(f"output_dates_metadata.json")
+            output_folder_analyzer.save_to_json(f"output_dates_metadata.json", step_name=step_name)
             exif_dates = output_folder_analyzer.file_dates
 
             # Define folder and sub_dict counters
@@ -1091,7 +1091,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Save the final output_dates_metadata.json
-            output_folder_analyzer.save_to_json(f"output_dates_metadata_final.json")
+            output_folder_analyzer.save_to_json(f"output_dates_metadata_final.json", step_name=step_name)
             # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
             # removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
             removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
