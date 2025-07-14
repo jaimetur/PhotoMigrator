@@ -337,7 +337,7 @@ class FolderAnalyzer:
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
         self.file_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate']
+        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
@@ -762,35 +762,30 @@ def run_full_pipeline(input_folder, logger, max_workers=None):
     t0 = time.time()
     analyzer = FolderAnalyzer(folder_path=input_folder, logger=logger)
     elapsed = timedelta(seconds=round(time.time() - t0))
-    print(f"🕒 FolderAnalyzer initialized in {elapsed}")
     logger.info(f"🕒 FolderAnalyzer initialized in {elapsed}")
 
     # 🕒 Extraer fechas
     t0 = time.time()
     analyzer.extract_dates(step_name=f"🕒 [Extract Dates | workers={max_workers}] : ", max_workers=max_workers)
     elapsed = timedelta(seconds=round(time.time() - t0))
-    print(f"🕒 Dates extracted in {elapsed}")
     logger.info(f"🕒 Dates extracted in {elapsed}")
 
     # 🕒 Contar ficheros
     t0 = time.time()
     counters = analyzer.count_files(step_name="📊 [STEP]-[Count Files  ] : ")
-    print("📋 Counting Results:")
+    logger.info("📋 Counting Results:")
     print_dict_pretty(counters)
     elapsed = timedelta(seconds=round(time.time() - t0))
-    print(f"🕒 Files counted in {elapsed}")
     logger.info(f"🕒 Files counted in {elapsed}")
 
     # 🕒 Guardar JSON
     t0 = time.time()
-    analyzer.save_to_json(rf'r:\jaimetur\PhotoMigrator\Exiftool_outputs\extracted_dates_{str(max_workers)}_workers.json')
+    analyzer.save_to_json(rf'extracted_dates_{str(max_workers)}_workers.json')
     elapsed = timedelta(seconds=round(time.time() - t0))
-    print(f"💾 JSON saved in {elapsed}")
     logger.info(f"💾 JSON saved in {elapsed}")
 
     # 🕒 Mostrar duración total
     total_elapsed = timedelta(seconds=round(time.time() - start_time))
-    print(f"✅ Total execution time: {total_elapsed}")
     logger.info(f"✅ Total execution time: {total_elapsed}")
 
 
