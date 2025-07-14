@@ -136,7 +136,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         self.get_albums_folder()
         return self.output_folder
 
-    def analyze_folder(self, folder_to_analyze, folder_type='output', step_name=''):
+    def analyze_folder(self, folder_to_analyze, folder_type='output', step_name='', save_json=True):
         # Analyze Folder
         # ----------------------------------------------------------------------------------------------------------------------
         step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -150,7 +150,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, logger=LOGGER, step_name=step_name)
             self.initial_takeout_folder_analyzer.extract_dates(step_name=step_name)
             counters = self.initial_takeout_folder_analyzer.count_files(step_name=step_name)
-            self.initial_takeout_folder_analyzer.save_to_json(f"output_dates_metadata.json", step_name=step_name)
+            if save_json:
+                self.initial_takeout_folder_analyzer.save_to_json(f"input_dates_metadata.json", step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Takeout folder'
             sub_dict = 'input_counters'
@@ -159,7 +160,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.output_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, logger=LOGGER, step_name=step_name)
             self.output_folder_analyzer.extract_dates(step_name=step_name)
             counters = self.output_folder_analyzer.count_files(step_name=step_name)
-            self.output_folder_analyzer.save_to_json(f"output_dates_metadata.json", step_name=step_name)
+            if save_json:
+                self.output_folder_analyzer.save_to_json(f"output_dates_metadata.json", step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Output folder'
             sub_dict = 'output_counters'
@@ -214,7 +216,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"{self.step}. PRE-CHECKING TAKEOUT FOLDER...  ")
             LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
 
             # Sub-Step 1: Extraction Process
             # ----------------------------------------------------------------------------------------------------------------------
@@ -222,8 +223,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             self.substep += 1
             sub_step_start_time = datetime.now()
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. UNZIP TAKEOUT (IF NEEDED)... ")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
             if self.needs_unzip:
-                LOGGER.info(f"")
                 LOGGER.info(f"{step_name}📦 Input Folder contains ZIP files and needs to be unzipped first.")
                 LOGGER.info(f"{step_name}📦 This process might take long time, depending on how big is your Takeout.")
                 LOGGER.info(f"{step_name}📦 Unzipping Takeout Folder...Be patient... 🙂")
@@ -252,6 +257,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             self.substep += 1
             sub_step_start_time = datetime.now()
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. CLONE ORIGINAL TAKEOUT TO KEEP A BACKUP (IF ADDED '-gKeepTakeout' OPTION)... ")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
             if self.ARGS.get('google-keep-takeout-folder'):
                 # Determine the input_folder depending if the Takeout have been unzipped or not
                 input_folder = self.get_input_folder()
@@ -277,7 +287,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = f"Skipped"
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-
 
             # Sub-Step 3: Analyze initial files in Takeout Folder before to process with GPTH and modify any original file
             # ----------------------------------------------------------------------------------------------------------------------
@@ -321,6 +330,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '🪛 [PRE-PROCESS]-[Clean Takeout Folder] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. CLEAN TAKEOUT FOLDER... ")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Cleaning hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
             delete_subfolders(input_folder=input_folder, folder_name_to_delete="@eaDir", step_name=step_name, log_level=LOG_LEVEL)
@@ -336,6 +348,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. FIX LIVE/MOTION PICTURES WITH ASSOCIATED MP$ FILES... ")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
             total_mp4_files_fixed = fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
@@ -353,6 +369,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '🪛 [PRE-PROCESS]-[Truncations Fixer   ] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. FIX TRUNCATIONS ON MEDIA EXTENSIONS OR JSON SPECIAL SUFFIXES (like '.supplemental-metadata', '-editted', '-effects', etc)... ")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Fixing Truncated Special Suffixes from Google Photos and rename files to include complete special suffix...")
             fix_truncations_output = fix_truncations(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
@@ -433,7 +453,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
-
+            # Step 3: Process Input Takeout folder
+            # ----------------------------------------------------------------------------------------------------------------------
+            self.step += 1
+            self.substep = 0
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. PROCESS INPUT TAKEOUT FOLDER...")
+            LOGGER.info(f"================================================================================================================================================")
             # --------------------------------------------------------------------------------------------------------------------------------------------------------
             # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
             # This need to be done after Pre-checks because if takeout folders have been unzipped, the input_folder, output_folder and albums_folder need to be updated
@@ -450,11 +477,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 3.1: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
-            self.substep = 0
             step_name = '🧠 [PROCESS]-[Metadata Processing] : '
-            self.step += 1
             self.substep += 1
-            LOGGER.info(f"")
             step_start_time = datetime.now()
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -497,7 +521,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             else:
                 formatted_duration = f"Skipped"
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
-            # self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
@@ -515,7 +538,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{self.step}.{self.substep}. ANALYZING OUTPUT FILES... ")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
-            self.analyze_folder(folder_to_analyze=output_folder, folder_type='output', step_name=step_name)
+            self.analyze_folder(folder_to_analyze=output_folder, folder_type='output', step_name=step_name, save_json=False)
 
             # Finally show TOTAL DURATION OF PRE-PROCESS PHASE
             step_end_time = datetime.now()
@@ -537,7 +560,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.post_process(input_folder=input_folder, output_folder=output_folder, albums_folder=albums_folder, log_level=log_level)
 
 
-            # FINISH
+            # FINISH & PRINT RESULTS
             # ----------------------------------------------------------------------------------------------------------------------
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((processing_end_time - processing_start_time).total_seconds())))
