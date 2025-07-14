@@ -407,12 +407,6 @@ class FolderAnalyzer:
 
                 local_metadata[file_path] = full_info
 
-            elapsed = time.time() - start_time
-            avg_block_time = elapsed / block_index
-            est_total = avg_block_time * total_blocks
-            est_remain = est_total - elapsed
-            self.logger.info(f"{step_name}📊 Block {block_index}/{total_blocks} done • Elapsed: {int(elapsed // 60)}m • Estimated Total: {int(est_total // 60)}m • Estimated Remaining: {int(est_remain // 60)}m")
-
             return local_metadata
 
         # --- Main execution
@@ -431,9 +425,41 @@ class FolderAnalyzer:
                     for idx, block in enumerate(file_blocks, 1):
                         futures.append(executor.submit(_process_block, idx, block, total_blocks, start_time))
 
-                    for future in as_completed(futures):
-                        result = future.result()
-                        self.file_dates.update(result)
+                    completed_blocks = 0
+                    avg_block_time = None
+
+                    with ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
+                        future_to_index = {executor.submit(_process_block, idx, block, total_blocks, start_time): idx
+                                           for idx, block in enumerate(file_blocks, 1)}
+
+                        for future in as_completed(future_to_index):
+                            result = future.result()
+                            self.file_dates.update(result)
+
+                            completed_blocks += 1
+                            elapsed = time.time() - start_time
+
+                            # Calcular tiempo promedio con media móvil simple
+                            current_block_time = elapsed / completed_blocks
+                            if avg_block_time is None:
+                                avg_block_time = current_block_time
+                            else:
+                                avg_block_time = (avg_block_time + current_block_time) / 2  # media móvil simple
+
+                            if completed_blocks >= 3:
+                                est_total = avg_block_time * total_blocks
+                                est_remain = est_total - elapsed
+                                self.logger.info(
+                                    f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
+                                    f"Elapsed: {int(elapsed // 60)}m • "
+                                    f"Estimated Total: {int(est_total // 60)}m • "
+                                    f"Estimated Remaining: {int(est_remain // 60)}m"
+                                )
+                            else:
+                                self.logger.info(
+                                    f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
+                                    f"Elapsed: {int(elapsed // 60)}m (estimating...)"
+                                )
 
         main()
 
@@ -714,7 +740,7 @@ def run_full_pipeline(input_folder, logger, max_workers=None):
 
     # 🕒 Guardar JSON
     t0 = time.time()
-    analyzer.save_to_json(r'r:\jaimetur\PhotoMigrator\Exiftool_outputs\extracted_dates.json')
+    analyzer.save_to_json(rf'r:\jaimetur\PhotoMigrator\Exiftool_outputs\extracted_dates_{str(max_workers)}_workers.json')
     elapsed = timedelta(seconds=round(time.time() - t0))
     print(f"💾 JSON saved in {elapsed}")
     logger.info(f"💾 JSON saved in {elapsed}")
