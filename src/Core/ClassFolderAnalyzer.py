@@ -495,14 +495,19 @@ class FolderAnalyzer:
                             counters[media_type]['without_date'] += 1
 
                 for media_type in ['photos', 'videos']:
-                    total = counters[media_type]['total']
-                    with_date = counters[media_type]['with_date']
-                    if total > 0:
-                        counters[media_type]['pct_with_date'] = (with_date / total) * 100
-                        counters[media_type]['pct_without_date'] = ((total - with_date) / total) * 100
+                    total = counters[media_type].get('total', 0)
+                    symlinks = counters[media_type].get('symlinks', 0)
+                    with_date = counters[media_type].get('with_date', 0)
+                    without_date = counters[media_type].get('without_date', 0)
+
+                    real_total = total - symlinks
+                    if real_total > 0:
+                        counters[media_type]['pct_with_date'] = (with_date / real_total) * 100
+                        counters[media_type]['pct_without_date'] = (without_date / real_total) * 100
                     else:
-                        counters[media_type]['pct_with_date'] = 0
-                        counters[media_type]['pct_without_date'] = 0
+                        counters[media_type]['pct_with_date'] = 0.0
+                        counters[media_type]['pct_without_date'] = 0.0
+
             return counters
 
 def run_full_pipeline(input_folder, logger, max_workers=None):
