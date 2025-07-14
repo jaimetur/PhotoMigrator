@@ -546,36 +546,46 @@ def extract_dates_from_files(self, file_paths, step_name="", log_level=None):
 if __name__ == "__main__":
     import time
     from datetime import timedelta
-    start_time = time.time()  # ⏱️ Start timing
+
+    total_start = time.time()  # ⏱️ Global timer
 
     change_working_dir(change_dir=True)
 
     custom_print(f"Setting Global LOGGER...", log_level=logging.INFO)
-    # logger = set_LOGGER('debug')
-    logger = set_LOGGER('info')
+    logger = set_LOGGER('debug')  # Need to be called after set_FOLDERS()
 
     # Ruta con tus fotos y vídeos
-    input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/Zip_files_50GB_2025_processed_20250710-180016"
-    # input_folder = r"c:\Temp_Unsync\Takeout"
+    input_folder = r"c:\Temp_Unsync\Takeout"
 
     # Crear el analizador
+    step_start = time.time()
     analyzer = FolderAnalyzer(folder_path=input_folder, logger=logger)
+    step_elapsed = timedelta(seconds=round(time.time() - step_start))
+    logger.info(f"⏱️ FolderAnalyzer initialized in {step_elapsed}")
 
-    # Extraer fechas de los ficheros
+    # Extraer fechas
+    step_start = time.time()
     analyzer.extract_dates(step_name="🕒 [STEP]-[Extract Dates] : ")
+    step_elapsed = timedelta(seconds=round(time.time() - step_start))
+    logger.info(f"⏱️ Dates extracted in {step_elapsed}")
 
-    # Contar ficheros con y sin fechas válidas
+    # Contar ficheros
+    step_start = time.time()
     counters = analyzer.count_files(step_name="📊 [STEP]-[Count Files  ] : ")
     print("📋 Counting Results:")
     print_dict_pretty(counters)
+    step_elapsed = timedelta(seconds=round(time.time() - step_start))
+    logger.info(f"⏱️ Files counted in {step_elapsed}")
 
-    # Guardar resultados en JSON
+    # Guardar JSON
+    step_start = time.time()
     analyzer.save_to_json(r'r:\jaimetur\PhotoMigrator\Exiftool_outputs\extracted_dates.json')
+    step_elapsed = timedelta(seconds=round(time.time() - step_start))
+    logger.info(f"💾 JSON saved in {step_elapsed}")
 
-    # ⏱️ Mostrar duración total formateada
-    elapsed_seconds = time.time() - start_time
-    elapsed_time = timedelta(seconds=round(elapsed_seconds))
+    # ⏱️ Tiempo total
+    total_elapsed = timedelta(seconds=round(time.time() - total_start))
+    print(f"✅ Total execution time: {total_elapsed}")
+    logger.info(f"✅ Total execution time: {total_elapsed}")
 
-    print(f"✅ Total execution time: {elapsed_time}")
-    logger.info(f"✅ Total execution time: {elapsed_time}")
 
