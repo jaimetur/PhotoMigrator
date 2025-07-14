@@ -10,9 +10,9 @@ from colorama import Fore
 #---------------------------------------
 COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 TOOL_NAME                       = "PhotoMigrator"
-TOOL_VERSION_WITHOUT_V          = "3.4.2"
+TOOL_VERSION_WITHOUT_V          = "3.4.3"
 TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
-TOOL_DATE                       = "2025-07-10"
+TOOL_DATE                       = "2025-07-15"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
 GPTH_VERSION                    = "4.0.9"
@@ -35,7 +35,7 @@ FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  
 FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_FOLDERS
 FOLDERNAME_EXIFTOOL_OUTPUT      = "Exiftool_outputs"                            # To be Changed in set_FOLDERS
 FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_FOLDERS
-LOG_FILENAME                    = "PhotoMigrator.log"                           # To be Changed in set_LOGGER
+LOG_FILENAME                    = "PhotoMigrator"                               # To be Changed in set_LOGGER
 LOG_LEVEL                       = logging.INFO                                  # To be Changed in set_LOGGER
 
 VERBOSE_LEVEL_NUM               = 5

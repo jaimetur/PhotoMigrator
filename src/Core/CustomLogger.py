@@ -373,6 +373,10 @@ def set_log_level(logger, level):
         - It only affects log messages emitted from the thread executing this context.
         - After exiting the context, the original logging behavior is restored automatically.
     """
+    if logger is None:
+        yield  # do nothing if logger is None
+        return
+
     # If no level have been passed, or level=None, assign the GlovalVariable level defined by user arguments
     if not level:
         level = GV.LOG_LEVEL

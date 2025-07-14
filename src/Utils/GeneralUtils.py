@@ -617,18 +617,29 @@ def print_dict_pretty(result, log_level=logging.INFO):
     # Compruebo que ahora sea un dict
     if not isinstance(result, dict):
         raise TypeError(f"Se esperaba dict o dataclass, pero recibí {type(result).__name__}")
-    # Imprimo cada par clave:valor de forma alineada
+
+    # Intentar obtener el logger
+    logger = getattr(GV, "LOGGER", None)
+
+    # Si no hay logger, imprimir por pantalla
+    if logger is None:
+        for key, value in result.items():
+            print(f"{key:35}: {value}")
+        return
+
+    # Imprimir usando el nivel de log correspondiente
     for key, value in result.items():
         if log_level == VERBOSE_LEVEL_NUM:
-            GV.LOGGER.verbose(f"{key:35}: {value}")
+            logger.verbose(f"{key:35}: {value}")
         elif log_level == logging.DEBUG:
-            GV.LOGGER.debug(f"{key:35}: {value}")
+            logger.debug(f"{key:35}: {value}")
         elif log_level == logging.INFO:
-            GV.LOGGER.info(f"{key:35}: {value}")
+            logger.info(f"{key:35}: {value}")
         elif log_level == logging.WARNING:
-            GV.LOGGER.warning(f"{key:35}: {value}")
+            logger.warning(f"{key:35}: {value}")
         elif log_level == logging.ERROR:
-            GV.LOGGER.error(f"{key:35}: {value}")
+            logger.error(f"{key:35}: {value}")
+
 
 
 def timed_subprocess(cmd, step_name=""):
