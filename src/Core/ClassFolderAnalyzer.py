@@ -6,24 +6,22 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import multiprocessing
 import json
 from pathlib import Path
 from datetime import datetime, timezone
 from subprocess import run
-from tempfile import TemporaryDirectory
 import logging
 
 from PIL import Image, ExifTags
 from dateutil import parser
 import time
-
+from Utils.GeneralUtils import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from multiprocessing import cpu_count
 from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXIFTOOL_OUTPUT
+from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXIFTOOL_OUTPUT, MSG_TAGS
 from Utils.DateUtils import normalize_datetime_utc, is_date_valid
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
@@ -65,6 +63,16 @@ class FolderAnalyzer:
                 full_path = os.path.join(root, name)
                 if not os.path.islink(full_path):
                     self.file_list.append(Path(full_path).resolve().as_posix())
+
+    def get_file_dates(self):
+        """
+        Return the full dictionary of extracted date metadata for all files.
+
+        Returns:
+            dict: A dictionary where each key is a file path (TargetFile) and each value
+                  is a dictionary containing metadata such as SelectedDate and Source.
+        """
+        return self.file_dates
 
     def get_attribute(self, file_path, attr="SelectedDate", step_name=""):
         """
@@ -209,7 +217,7 @@ class FolderAnalyzer:
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
         if max_workers is None:
-            max_workers = cpu_count() * 4
+            max_workers = cpu_count() * 8
         self.file_dates = {}
         candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
@@ -342,7 +350,6 @@ class FolderAnalyzer:
                 media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
-                self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
 
                 # ⏱️ Start timing
                 start_time = time.time()
@@ -351,6 +358,7 @@ class FolderAnalyzer:
 
                 # Parallel execution using ThreadPoolExecutor
                 workers = min(total_blocks, max_workers)
+                self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:
                     future_to_index = {
@@ -358,33 +366,50 @@ class FolderAnalyzer:
                         for idx, block in enumerate(file_blocks, 1)
                     }
 
-                    for future in as_completed(future_to_index):
-                        result = future.result()
-                        self.file_dates.update(result)
+                    # for future in as_completed(future_to_index):
+                    #     result = future.result()
+                    #     self.file_dates.update(result)
+                    #
+                    #     # 📊 Progress reporting with optional smoothing
+                    #     completed_blocks += 1
+                    #     elapsed = time.time() - start_time
+                    #     current_block_time = elapsed / completed_blocks
+                    #     if avg_block_time is None:
+                    #         avg_block_time = current_block_time
+                    #     else:
+                    #         avg_block_time = (avg_block_time + current_block_time) / 2  # simple moving average
+                    #
+                    #     if completed_blocks >= 5:
+                    #         est_total = avg_block_time * total_blocks
+                    #         est_remain = est_total - elapsed
+                    #         self.logger.info(
+                    #             f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
+                    #             f"Elapsed: {int(elapsed // 60)}m • "
+                    #             f"Estimated Total: {int(est_total // 60)}m • "
+                    #             f"Estimated Remaining: {int(est_remain // 60)}m"
+                    #         )
+                    #     else:
+                    #         self.logger.info(
+                    #             f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
+                    #             f"Elapsed: {int(elapsed // 60)}m (estimating remaining time...)"
+                    #         )
 
-                        # 📊 Progress reporting with optional smoothing
-                        completed_blocks += 1
-                        elapsed = time.time() - start_time
-                        current_block_time = elapsed / completed_blocks
-                        if avg_block_time is None:
-                            avg_block_time = current_block_time
-                        else:
-                            avg_block_time = (avg_block_time + current_block_time) / 2  # simple moving average
-
-                        if completed_blocks >= 5:
+                    with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", dynamic_ncols=True, leave=True) as pbar:
+                        for future in as_completed(future_to_index):
+                            result = future.result()
+                            self.file_dates.update(result)
+                            completed_blocks += 1
+                            elapsed = time.time() - start_time
+                            current_block_time = elapsed / completed_blocks
+                            avg_block_time = current_block_time if avg_block_time is None else (avg_block_time + current_block_time) / 2
                             est_total = avg_block_time * total_blocks
                             est_remain = est_total - elapsed
-                            self.logger.info(
-                                f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
-                                f"Elapsed: {int(elapsed // 60)}m • "
-                                f"Estimated Total: {int(est_total // 60)}m • "
-                                f"Estimated Remaining: {int(est_remain // 60)}m"
-                            )
-                        else:
-                            self.logger.info(
-                                f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
-                                f"Elapsed: {int(elapsed // 60)}m (estimating remaining time...)"
-                            )
+                            pbar.set_postfix({
+                                "Elapsed": f"{int(elapsed // 60)}m",
+                                "ETA": f"{int(est_remain // 60)}m",
+                                "Total": f"{int(est_total // 60)}m"
+                            })
+                            pbar.update(1)
 
         main()
 
