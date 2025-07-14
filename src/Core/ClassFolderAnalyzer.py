@@ -204,7 +204,7 @@ class FolderAnalyzer:
             self.file_dates = json.load(f)
         self.logger.info(f"{step_name}EXIF Dates loaded from JSON: {input_file}")
 
-    def extract_dates(self, step_name='', block_size=10_000, log_level=None, max_workers=None):
+    def extract_dates(self, step_name='', block_size=1_000, log_level=None, max_workers=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
@@ -350,7 +350,7 @@ class FolderAnalyzer:
                 avg_block_time = None
 
                 # Parallel execution using ThreadPoolExecutor
-                workers = min(cpu_count() * 4, total_blocks, max_workers)
+                workers = min(total_blocks, max_workers)
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:
                     future_to_index = {
@@ -562,7 +562,7 @@ if __name__ == "__main__":
     input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/Zip_files_50GB_2025_processed_20250710-180016"
 
     # Lista de valores a probar
-    worker_values = [cpu_count() * 2, cpu_count() * 4, cpu_count() * 6, cpu_count()*8]
+    worker_values = [cpu_count()*16, cpu_count()*8, cpu_count()*6, cpu_count()*4, cpu_count()*2, cpu_count()*1]
 
     for workers in worker_values:
         print(f"\n🚀 Running pipeline with max_workers = {workers}")
