@@ -29,6 +29,7 @@ from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import Cla
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
+from Core.ClassFolderAnalyzer import FolderAnalyzer
 from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json, profile_and_print
@@ -217,7 +218,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Analyze files in Takeout Folder: {input_folder}...")
             # New function to count all file types and extract also date info
-            initial_takeout_counters, exif_dates, input_json = count_files_and_extract_dates(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            # initial_takeout_counters, exif_dates, input_json = count_files_and_extract_dates(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+
+            # New Class to count all file types and extract also date info
+            initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=input_folder, logger=LOGGER, step_name=step_name)
+            initial_takeout_folder_analyzer.extract_dates(step_name=step_name)
+            initial_takeout_counters = initial_takeout_folder_analyzer.count_files(step_name=step_name)
+            initial_takeout_folder_analyzer.save_to_json(f"input_dates_metadata.json")
+
             # Define folder and sub_dict counters
             folder = 'Takeout folder'
             sub_dict = 'input_counters'
@@ -484,7 +492,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
                 # Count all Files in output Folder
-                output_counters, exif_dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+                # output_counters, exif_dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+
+                # New Class to count all file types and extract also date info
+                output_folder_analyzer = FolderAnalyzer(folder_path=output_folder, logger=LOGGER, step_name=step_name)
+                output_folder_analyzer.extract_dates(step_name=step_name)
+                output_counters = output_folder_analyzer.count_files(step_name=step_name)
+                output_folder_analyzer.save_to_json(f"output_dates_metadata.json")
 
                 # Define folder and sub_dict counters
                 folder = 'Output folder'
@@ -858,7 +872,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Count all Files in output Folder
-            output_counters, exif_dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            # output_counters, exif_dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+
+            # New Class to count all file types and extract also date info
+            output_folder_analyzer = FolderAnalyzer(folder_path=output_folder, logger=LOGGER, step_name=step_name)
+            output_folder_analyzer.extract_dates(step_name=step_name)
+            output_counters = output_folder_analyzer.count_files(step_name=step_name)
+            output_folder_analyzer.save_to_json(f"output_dates_metadata.json")
+            exif_dates = output_folder_analyzer.file_dates
 
             # Define folder and sub_dict counters
             folder = 'Output folder'
@@ -927,7 +948,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the output_json with all the files changed during this step
-                    batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
+                    # batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
+                    output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # For No-Albums
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info(f"")
@@ -938,7 +960,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, exif_dates=exif_dates, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the output_json with all the files changed during this step
-                    batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
+                    # batch_replace_sourcefiles_in_json(json_path=output_json, replacements=replacements, step_name=step_name, log_level=log_level)
+                    output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # If flatten
                 if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                     LOGGER.info(f"")
@@ -2056,7 +2079,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
             return False
 
 
-def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], exif_dates={}, update_json=None, step_name="", log_level=None):
+def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], output_folder_analyzer=None, exif_dates={}, update_json=None, step_name="", log_level=None):
     """
     Organizes files into subfolders based on their EXIF date or, if unavailable, their modification date.
 

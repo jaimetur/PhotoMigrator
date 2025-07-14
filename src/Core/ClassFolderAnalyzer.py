@@ -23,7 +23,7 @@ from multiprocessing import cpu_count
 from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT
+from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXIFTOOL_OUTPUT
 from Utils.DateUtils import normalize_datetime_utc, is_date_valid
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
@@ -110,6 +110,12 @@ class FolderAnalyzer:
         self.logger.info(f"{step_name}TargetFile actualizado: {current_path} → {new_target_path}")
         return True
 
+    def update_target_file_bulk(self, old_folder, new_folder):
+        """
+        Update all TargetFile entries when an entire folder has been renamed/moved.
+        """
+        self.update_folder(old_folder, new_folder)
+
     def update_folder(self, old_folder: str, new_folder: str, step_name: str = ""):
         """
         Actualiza en bloque todos los archivos cuyo 'TargetFile' o 'SourceFile' empiece por old_folder.
@@ -130,11 +136,39 @@ class FolderAnalyzer:
         self.logger.info(f"{step_name}Se actualizaron {count} rutas TargetFile: {old_folder} → {new_folder}")
         return count
 
-    def update_target_file_bulk(self, old_folder, new_folder):
+    def apply_replacements(self, replacements=None, step_name=""):
         """
-        Update all TargetFile entries when an entire folder has been renamed/moved.
+        Aplica una lista de reemplazos en bloque, actualizando las rutas TargetFile
+        tanto en la clave del diccionario como en el valor de 'TargetFile'.
+
+        Parámetros:
+            replacements (list of tuples): lista de pares (source_path, new_target_path).
         """
-        self.update_folder(old_folder, new_folder)
+        if not replacements:
+            self.logger.info(f"{step_name}No replacements found in 'replacements' list.")
+            return 0
+
+        updated_count = 0
+        new_file_dates = {}
+
+        for old_path, new_path in replacements:
+            old_path = Path(old_path).resolve().as_posix()
+            new_path = Path(new_path).resolve().as_posix()
+
+            item = self.file_dates.pop(old_path, None)
+            if item:
+                item["TargetFile"] = new_path
+                new_file_dates[new_path] = item
+                updated_count += 1
+                self.logger.debug(f"{step_name}✔️ Replaced: {old_path} → {new_path}")
+            else:
+                self.logger.warning(f"{step_name}⚠️ Not found: {old_path}")
+
+        # Añadir los elementos actualizados de nuevo
+        self.file_dates.update(new_file_dates)
+
+        self.logger.info(f"{step_name}✅ {updated_count} rutas TargetFile actualizadas con apply_replacements().")
+        return updated_count
 
     def has_been_renamed(self, file_path: str) -> bool:
         """
@@ -144,21 +178,31 @@ class FolderAnalyzer:
         entry = self.file_dates.get(file_path)
         return bool(entry and entry.get("TargetFile") != entry.get("SourceFile"))
 
-    def save_to_json(self, output_path):
+    def save_to_json(self, output_file):
         """
         Export extracted_dates to a JSON file.
         """
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(self.file_dates, f, ensure_ascii=False, indent=2)
-        self.logger.info(f"Dates saved into JSON: {output_path}")
+        # Ensure output_file has an extension; default to .json
+        if not os.path.splitext(output_file)[1]:
+            output_file = output_file + '.json'
+        # Separate output_filename and output_ext
+        output_filename, output_ext = os.path.splitext(output_file)
+        # Add TIMESTAMP to output_file
+        output_filename = f"{TIMESTAMP}_{output_filename}"
+        output_file = f"{output_filename}{output_ext}"
+        output_filepath = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file)
 
-    def load_from_json(self, input_path):
+        with open(output_filepath, "w", encoding="utf-8") as f:
+            json.dump(self.file_dates, f, ensure_ascii=False, indent=2)
+        self.logger.info(f"Dates saved into JSON: {output_filepath}")
+
+    def load_from_json(self, input_file):
         """
         Load extracted_dates from a JSON file.
         """
-        with open(input_path, 'r', encoding='utf-8') as f:
+        with open(input_file, 'r', encoding='utf-8') as f:
             self.file_dates = json.load(f)
-        self.logger.info(f"Dates loaded from JSON: {input_path}")
+        self.logger.info(f"Dates loaded from JSON: {input_file}")
 
     def extract_dates_old(self, step_name='', block_size=10_000, log_level=None):
         """
@@ -445,7 +489,7 @@ class FolderAnalyzer:
                         else:
                             avg_block_time = (avg_block_time + current_block_time) / 2  # simple moving average
 
-                        if completed_blocks >= 3:
+                        if completed_blocks >= 5:
                             est_total = avg_block_time * total_blocks
                             est_remain = est_total - elapsed
                             self.logger.info(
@@ -457,7 +501,7 @@ class FolderAnalyzer:
                         else:
                             self.logger.info(
                                 f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
-                                f"Elapsed: {int(elapsed // 60)}m (estimating...)"
+                                f"Elapsed: {int(elapsed // 60)}m (estimating remaining time...)"
                             )
 
         main()
