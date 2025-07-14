@@ -544,48 +544,55 @@ def extract_dates_from_files(self, file_paths, step_name="", log_level=None):
 #                            MAIN TESTS FUNCTION                             #
 ##############################################################################
 if __name__ == "__main__":
-    import time
-    from datetime import timedelta
+    if __name__ == "__main__":
+        import time
+        from datetime import timedelta
 
-    total_start = time.time()  # ⏱️ Global timer
+        # ⏱️ Start total timing
+        start_time = time.time()
 
-    change_working_dir(change_dir=True)
+        change_working_dir(change_dir=True)
 
-    custom_print(f"Setting Global LOGGER...", log_level=logging.INFO)
-    logger = set_LOGGER('debug')  # Need to be called after set_FOLDERS()
+        custom_print(f"Setting Global LOGGER...", log_level=logging.INFO)
+        logger = set_LOGGER('info')
 
-    # Ruta con tus fotos y vídeos
-    input_folder = r"c:\Temp_Unsync\Takeout"
+        # Ruta con tus fotos y vídeos
+        input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/Zip_files_50GB_2025_processed_20250710-180016"
+        # input_folder = r"c:\Temp_Unsync\Takeout"
 
-    # Crear el analizador
-    step_start = time.time()
-    analyzer = FolderAnalyzer(folder_path=input_folder, logger=logger)
-    step_elapsed = timedelta(seconds=round(time.time() - step_start))
-    logger.info(f"⏱️ FolderAnalyzer initialized in {step_elapsed}")
+        # ⏱️ Inicializar FolderAnalyzer
+        t0 = time.time()
+        analyzer = FolderAnalyzer(folder_path=input_folder, logger=logger)
+        elapsed = timedelta(seconds=round(time.time() - t0))
+        print(f"⏱️ FolderAnalyzer initialized in {elapsed}")
+        logger.info(f"⏱️ FolderAnalyzer initialized in {elapsed}")
 
-    # Extraer fechas
-    step_start = time.time()
-    analyzer.extract_dates(step_name="🕒 [STEP]-[Extract Dates] : ")
-    step_elapsed = timedelta(seconds=round(time.time() - step_start))
-    logger.info(f"⏱️ Dates extracted in {step_elapsed}")
+        # ⏱️ Extraer fechas
+        t0 = time.time()
+        analyzer.extract_dates(step_name="🕒 [STEP]-[Extract Dates] : ")
+        elapsed = timedelta(seconds=round(time.time() - t0))
+        print(f"⏱️ Dates extracted in {elapsed}")
+        logger.info(f"⏱️ Dates extracted in {elapsed}")
 
-    # Contar ficheros
-    step_start = time.time()
-    counters = analyzer.count_files(step_name="📊 [STEP]-[Count Files  ] : ")
-    print("📋 Counting Results:")
-    print_dict_pretty(counters)
-    step_elapsed = timedelta(seconds=round(time.time() - step_start))
-    logger.info(f"⏱️ Files counted in {step_elapsed}")
+        # ⏱️ Contar ficheros
+        t0 = time.time()
+        counters = analyzer.count_files(step_name="📊 [STEP]-[Count Files  ] : ")
+        print("📋 Counting Results:")
+        print_dict_pretty(counters)
+        elapsed = timedelta(seconds=round(time.time() - t0))
+        print(f"⏱️ Files counted in {elapsed}")
+        logger.info(f"⏱️ Files counted in {elapsed}")
 
-    # Guardar JSON
-    step_start = time.time()
-    analyzer.save_to_json(r'r:\jaimetur\PhotoMigrator\Exiftool_outputs\extracted_dates.json')
-    step_elapsed = timedelta(seconds=round(time.time() - step_start))
-    logger.info(f"💾 JSON saved in {step_elapsed}")
+        # ⏱️ Guardar JSON
+        t0 = time.time()
+        analyzer.save_to_json(r'r:\jaimetur\PhotoMigrator\Exiftool_outputs\extracted_dates.json')
+        elapsed = timedelta(seconds=round(time.time() - t0))
+        print(f"💾 JSON saved in {elapsed}")
+        logger.info(f"💾 JSON saved in {elapsed}")
 
-    # ⏱️ Tiempo total
-    total_elapsed = timedelta(seconds=round(time.time() - total_start))
-    print(f"✅ Total execution time: {total_elapsed}")
-    logger.info(f"✅ Total execution time: {total_elapsed}")
+        # ⏱️ Mostrar duración total
+        total_elapsed = timedelta(seconds=round(time.time() - start_time))
+        print(f"✅ Total execution time: {total_elapsed}")
+        logger.info(f"✅ Total execution time: {total_elapsed}")
 
 
