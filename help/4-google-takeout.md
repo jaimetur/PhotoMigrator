@@ -59,26 +59,26 @@ Below you can see the different steps of this feature:
     - 🔗 Create Symbolic Links for assets within any Album (to save disk space). `(default=enabled. Can be disabled using flag '-gnsa, --google-no-symbolic-albums')`
     - 📁 Move Files
     - 🕒 Update Creation Time
-  - 3.2. 🔢 Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics.
+  - 3.2. ➡️ <span style="color:grey">Copy/Move files to Output folder manually. `(default=disabled. It is automatically enabled if detect that Step 3.1 has been skipped)`</span>
+  - 3.3. 🔢 Calculate statistics of your Final processed Media Library and compare it with your original Takeout statistics.
 
 #### 4. ✅ Post Process steps
-  - 4.1. ➡️ <span style="color:grey">Copy/Move files to Output folder manually. `(default=disabled. It is automatically enabled if detect that Step 3 has been skipped)`</span>
-  - 4.2. 🕒 Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
-  - 4.3. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
-  - 4.4. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates. `(default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders')`</span>
-  - 4.5. 📁 Organize your assets in a year/month structure for a better organization. `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
+  - 4.1. 🕒 Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
+  - 4.2. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
+  - 4.3. 📁 Organize your assets in a year/month structure for a better organization. `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
          - Can be customized using the flags: `'-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure'`
-  - 4.6. 👥 <span style="color:grey">Detect and remove duplicates. `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`</span>
+  - 4.4. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates. `(default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders')`</span>
+  - 4.5. 👥 <span style="color:grey">Detect and remove duplicates. `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`</span>
+  - 4.6. 🔢 Count Albums.
   - 4.7. 🧹 Remove empty folders. 
-  - 4.8. 🔢 Count Albums.
-  - 4.9. 🧹 Clean Final Media Library. 
+  - 4.8. 🧹 Clean Final Media Library. 
 
 > [!NOTE]  
-> Step 4.1 is disabled by default, but It is automatically enabled if detect that Step 3 has been skipped.
+> Step 3.2 is disabled by default, but It is automatically enabled if detect that Step 3.1 has been skipped.
 > 
 > Step 4.4 is disabled by default, but it is very usefully if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md#-folder-rename-content-based-extra-feature).
 >
-> Step 4.6 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
+> Step 4.5 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
 
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (423807 files zipped, 220224 photos/video files, 900 albums) and moved it into Synology Photos.  
@@ -97,20 +97,20 @@ Below you can see the different steps of this feature:
 > Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]      :  0:02:58  
 > Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]         :  0:19:49  
 >
-> STEP 3    : 🧠 [PROCESS]-[TOTAL DURATION]                :  14:24:31
+> STEP 3    : 🧠 [PROCESS]-[TOTAL DURATION]                :  14:24:31  
 > Step 3.1  : 🧠 [PROCESS]-[Metadata Processing]           :  13:49:15  
-> Step 3.2  : 🔢 [PROCESS]-[Analyzing Output]              :  0:35:16  
+> Step 3.2  : 📁 [PROCESS]-[Copy/Move]                     :  Skipped  
+> Step 3.3  : 🔢 [PROCESS]-[Analyzing Output]              :  0:35:16  
 > 
 > STEP 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  3:58:21  
-> Step 4.1  : 📁 [POST-PROCESS]-[Copy/Move]                :  Skipped  
-> Step 4.2  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:15  
-> Step 4.3  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:00:03  
+> Step 4.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:15  
+> Step 4.2  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:00:03  
+> Step 4.3  : 📁 [POST-PROCESS]-[Create year/month struct] :  3:11:35  
 > Step 4.4  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:33  
-> Step 4.6  : 📁 [POST-PROCESS]-[Create year/month struct] :  3:11:35  
-> Step 4.7  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped  
-> Step 4.8  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:06  
-> Step 4.9  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:02  
-> Step 4.10 : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:45:47  
+> Step 4.5  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped  
+> Step 4.6  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:02  
+> Step 4.7  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:06  
+> Step 4.8  : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:45:47  
 > 
 > TOTAL PROCESSING TIME                                    : 21:16:19
 >

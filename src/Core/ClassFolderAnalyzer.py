@@ -357,7 +357,7 @@ class FolderAnalyzer:
                 avg_block_time = None
 
                 # Parallel execution using ThreadPoolExecutor
-                workers = min(total_blocks, max_workers)
+                workers = max(1, min(total_blocks, max_workers))    # Ensure at least 1 worker and maximum max_workers
                 self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:

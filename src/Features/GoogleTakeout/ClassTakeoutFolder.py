@@ -478,6 +478,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Step 3.1: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧠 [PROCESS]-[Metadata Processing] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             self.substep += 1
             step_start_time = datetime.now()
             sub_step_start_time = datetime.now()
@@ -513,23 +514,50 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning(f"{step_name}Metadata fixing didn't finish properly due to GPTH error.")
                     LOGGER.warning(f"{step_name}If your Takeout does not contain Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                     return self.result
-
-                step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
             else:
                 formatted_duration = f"Skipped"
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            sub_step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-            LOGGER.info(f"")
+            # Step 3.2: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '📁 [PROCESS]-[Copy/Move] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
-            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            sub_step_start_time = datetime.now()
+            self.substep += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            # Determine if manual copy/move is needed (for step 4)
+            manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
+            if manual_copy_move_needed:
+                if self.ARGS['google-skip-gpth-tool']:
+                    LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gSkipGpth, --google-skip-gpth-tool' flag). step {self.step}.{self.substep} is needed to copy files manually to output folder.")
+                if self.ARGS['google-ignore-check-structure']:
+                    LOGGER.warning(f"{step_name}Flag to Ignore Google Takeout Structure detected. step {self.step} is needed to copy/move files manually to output folder.")
+                if not self.ARGS['google-keep-takeout-folder']:
+                    LOGGER.info(f"{step_name}Moving files from Takeout folder to Output folder...")
+                else:
+                    LOGGER.info(f"{step_name}Copying files from Takeout folder to Output folder...")
+                copy_move_folder(input_folder, output_folder, ignore_patterns=['*.json', '*.j'], move=not self.ARGS['google-keep-takeout-folder'], step_name=step_name, log_level=LOG_LEVEL)
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            else:
+                formatted_duration = f"Skipped"
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[') + 1: step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 3.2: Analyze Output
+            # Step 3.3: Analyze Output
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [PROCESS]-[Analyzing Output   ] : '
             self.substep += 1
@@ -555,9 +583,21 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 4: Post Process Output folder
             # ----------------------------------------------------------------------------------------------------------------------
+            # Increment self.step for the Post Process Steps
+            self.step += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. POST-PROCESSING OUTPUT FOLDER...")
+            LOGGER.info(f"================================================================================================================================================")
             if not self.ARGS['google-skip-postprocess']:
                 # Now call the post_process() function
                 self.post_process(input_folder=input_folder, output_folder=output_folder, albums_folder=albums_folder, log_level=log_level)
+            else:
+                LOGGER.info(f"")
+                step_name = '✅ [POST-PROCESS] : '
+                formatted_duration = f"Skipped"
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
             # FINISH & PRINT RESULTS
@@ -746,53 +786,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Start the Post Process
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
             # --------------------------------------------- POST PROCESS -----------------------------------------------------------
-            # Determine if manual copy/move is needed (for step 4)
-            manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
-
-            # Increment self.step for the Post Process Steps
-            self.step += 1
+            # Initialize Step timer
             step_start_time = datetime.now()
 
             # Initialize self.substep counter for the Post Process Steps
             self.substep = 0
 
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}. POST-PROCESSING OUTPUT FOLDER...")
-            LOGGER.info(f"================================================================================================================================================")
 
-            # Step 4.1: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
-            # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '📁 [POST-PROCESS]-[Copy/Move] : '
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
-            sub_step_start_time = datetime.now()
-            self.substep += 1
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
-            if manual_copy_move_needed:
-                if self.ARGS['google-skip-gpth-tool']:
-                    LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gSkipGpth, --google-skip-gpth-tool' flag). step {self.step} is needed to copy files manually to output folder.")
-                if self.ARGS['google-ignore-check-structure']:
-                    LOGGER.warning(f"{step_name}Flag to Ignore Google Takeout Structure detected. step {self.step} is needed to copy/move files manually to output folder.")
-                if not self.ARGS['google-keep-takeout-folder']:
-                    LOGGER.info(f"{step_name}Moving files from Takeout folder to Output folder...")
-                else:
-                    LOGGER.info(f"{step_name}Copying files from Takeout folder to Output folder...")
-                copy_move_folder(input_folder, output_folder, ignore_patterns=['*.json', '*.j'], move=not self.ARGS['google-keep-takeout-folder'], step_name=step_name, log_level=LOG_LEVEL)
-                sub_step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-            else:
-                formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
-            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-
-
-            # Step 4.2: Sync .MP4 live pictures timestamp
+            # Step 4.1: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🕒 [POST-PROCESS]-[MP4 Timestamp Synch] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -812,7 +813,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.3.1: [OPTIONAL] [Enabled by Default] - Move albums
+            # Step 4.2.1: [OPTIONAL] [Enabled by Default] - Move albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '📚 [POST-PROCESS]-[Albums Moving] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -827,7 +828,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
                 move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
-                # Step 4.3.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # Step 4.2.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                 # ----------------------------------------------------------------------------------------------------------------------
                 if not self.ARGS['google-no-symbolic-albums']:
                     LOGGER.info(f"")
@@ -844,40 +845,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.4.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
-            # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
-            sub_step_start_time = datetime.now()
-            self.substep += 1
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
-            if self.ARGS['google-rename-albums-folders']:
-                LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
-                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
-                # Merge all counts from rename_output into self.result in one go
-                self.result.update(rename_output)
-                # Step 4.4.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
-                # ----------------------------------------------------------------------------------------------------------------------
-                if not self.ARGS['google-no-symbolic-albums']:
-                    LOGGER.info(f"")
-                    LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
-                    self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
-                    LOGGER.info(f"{step_name}Fixed symbolic links after moving Albums renaming!")
-                sub_step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-            else:
-                formatted_duration = f"Skipped"
-                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
-            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-
-
-            # Step 4.5: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
+            # Step 4.3: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '📁 [POST-PROCESS]-[Create year/month struct] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -936,8 +904,40 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
+            # Step 4.4.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            if self.ARGS['google-rename-albums-folders']:
+                LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
+                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                # Merge all counts from rename_output into self.result in one go
+                self.result.update(rename_output)
+                # Step 4.4.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # ----------------------------------------------------------------------------------------------------------------------
+                if not self.ARGS['google-no-symbolic-albums']:
+                    LOGGER.info(f"")
+                    LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
+                    self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+                    LOGGER.info(f"{step_name}Fixed symbolic links after moving Albums renaming!")
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            else:
+                formatted_duration = f"Skipped"
+                LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 4.6: [OPTIONAL] [Disabled by Default] - Remove Duplicates
+
+            # Step 4.5: [OPTIONAL] [Disabled by Default] - Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '👥 [POST-PROCESS]-[Remove Duplicates] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -985,27 +985,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.7: Remove Empty Folders
-            # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
-            sub_step_start_time = datetime.now()
-            self.substep += 1
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. REMOVING EMPTY FOLDERS...")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Removing empty folders in <OUTPUT_TAKEOUT_FOLDER>...")
-            remove_empty_dirs(input_folder=output_folder, log_level=LOG_LEVEL)
-            sub_step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-            LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-
-
-            # Step 4.8: Count Albums
+            # Step 4.6: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Count Albums] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -1029,7 +1009,27 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.9: FINAL CLEANING
+            # Step 4.7: Remove Empty Folders
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. REMOVING EMPTY FOLDERS...")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Removing empty folders in <OUTPUT_TAKEOUT_FOLDER>...")
+            remove_empty_dirs(input_folder=output_folder, log_level=LOG_LEVEL)
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+
+            # Step 4.8: FINAL CLEANING
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Final Cleaning] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -1987,6 +1987,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                                 src_file = os.path.join(path, file)
                                 dst_file = os.path.join(dest_path, file)
                                 shutil.move(src_file, dst_file)
+                    print(f"")
                     LOGGER.info(f"{step_name}Folder moved successfully from {src} to {dst}")
             else:
                 system = platform.system()
