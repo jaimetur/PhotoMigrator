@@ -366,6 +366,23 @@ class FolderAnalyzer:
                         for idx, block in enumerate(file_blocks, 1)
                     }
 
+                    with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", dynamic_ncols=True, leave=True) as pbar:
+                        for future in as_completed(future_to_index):
+                            result = future.result()
+                            self.file_dates.update(result)
+                            completed_blocks += 1
+                            elapsed = time.time() - start_time
+                            current_block_time = elapsed / completed_blocks
+                            avg_block_time = current_block_time if avg_block_time is None else (avg_block_time + current_block_time) / 2
+                            est_total = avg_block_time * total_blocks
+                            est_remain = est_total - elapsed
+                            pbar.set_postfix({
+                                "Elapsed": f"{int(elapsed // 60)}m",
+                                "ETA": f"{int(est_remain // 60)}m",
+                                "Total": f"{int(est_total // 60)}m"
+                            })
+                            pbar.update(1)
+
                     # for future in as_completed(future_to_index):
                     #     result = future.result()
                     #     self.file_dates.update(result)
@@ -393,23 +410,6 @@ class FolderAnalyzer:
                     #             f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
                     #             f"Elapsed: {int(elapsed // 60)}m (estimating remaining time...)"
                     #         )
-
-                    with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", dynamic_ncols=True, leave=True) as pbar:
-                        for future in as_completed(future_to_index):
-                            result = future.result()
-                            self.file_dates.update(result)
-                            completed_blocks += 1
-                            elapsed = time.time() - start_time
-                            current_block_time = elapsed / completed_blocks
-                            avg_block_time = current_block_time if avg_block_time is None else (avg_block_time + current_block_time) / 2
-                            est_total = avg_block_time * total_blocks
-                            est_remain = est_total - elapsed
-                            pbar.set_postfix({
-                                "Elapsed": f"{int(elapsed // 60)}m",
-                                "ETA": f"{int(est_remain // 60)}m",
-                                "Total": f"{int(est_total // 60)}m"
-                            })
-                            pbar.update(1)
 
         main()
 
