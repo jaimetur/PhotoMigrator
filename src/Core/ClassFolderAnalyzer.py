@@ -336,30 +336,40 @@ class FolderAnalyzer:
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
+        if max_workers is None:
+            max_workers = cpu_count() * 2
         self.file_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
+        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
         # --- Internal function to process a single block
-        def _process_block(block_index, file_block, total_blocks, start_time):
+        def _process_block(block_index, block_files):
             local_metadata = {}
 
             # --- Try ExifTool
             if Path(exif_tool_path).exists():
-                command = [exif_tool_path, "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + file_block
+                command = [exif_tool_path, "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + block_files
                 try:
-                    if len(file_block) <= 10:
-                        files_preview = ' '.join(file_block)
+                    if len(block_files) <= 10:
+                        files_preview = ' '.join(block_files)
                     else:
-                        files_preview = ' '.join(file_block[:10]) + ' ...'
+                        files_preview = ' '.join(block_files[:10]) + ' ...'
                     base_cmd = ' '.join(command[:7])
                     self.logger.debug(f"{step_name}⏳ Running: {base_cmd} {files_preview}")
                     result = run(command, capture_output=True, text=True, check=False)
 
                     if result.stdout.strip():
                         try:
-                            metadata_list = json.loads(result.stdout)
+                            raw_metadata_list = json.loads(result.stdout)
+                            metadata_list = []
+                            # Filter raw_metadata_list to include only the tags in candidate_tags
+                            for entry in raw_metadata_list:
+                                filtered_entry = {"SourceFile": entry.get("SourceFile")}
+                                for tag in candidate_tags:
+                                    if tag in entry:
+                                        filtered_entry[tag] = entry[tag]
+                                metadata_list.append(filtered_entry)
                             self.logger.info(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}.")
                         except json.JSONDecodeError as e:
                             self.logger.debug(f"{step_name}⚠️ [Block {block_index}]: JSON error: {e}")
@@ -376,7 +386,7 @@ class FolderAnalyzer:
             # If Exiftool is not found, then fallback to PIL or filesystem
             else:
                 self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
-                metadata_list = [{"SourceFile": f} for f in file_block]
+                metadata_list = [{"SourceFile": f} for f in block_files]
 
             for entry in metadata_list:
                 src = entry.get("SourceFile")
@@ -390,9 +400,7 @@ class FolderAnalyzer:
                     "TargetFile": file_path,
                 }
                 # Ahora añadimos el resto de claves originales que estén en candidate_tags
-                for tag in candidate_tags:
-                    if tag in entry:
-                        full_info[tag] = entry[tag]
+                full_info.update(entry)
 
                 dt_final = None
                 source = ""
@@ -470,9 +478,9 @@ class FolderAnalyzer:
                 avg_block_time = None
 
                 # Parallel execution using ThreadPoolExecutor
-                with ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
+                with ThreadPoolExecutor(max_workers=max_workers) as executor:
                     future_to_index = {
-                        executor.submit(_process_block, idx, block, total_blocks, start_time): idx
+                        executor.submit(_process_block, idx, block): idx
                         for idx, block in enumerate(file_blocks, 1)
                     }
 
@@ -802,7 +810,7 @@ if __name__ == "__main__":
     input_folder = "/mnt/homes/jaimetur/PhotoMigrator/data/Zip_files_50GB_2025_processed_20250710-180016"
 
     # Lista de valores a probar
-    worker_values = [cpu_count()*2, cpu_count() * 4, cpu_count() * 8]
+    worker_values = [cpu_count()*1, cpu_count() * 2, cpu_count() * 4]
 
     for workers in worker_values:
         print(f"\n🚀 Running pipeline with max_workers = {workers}")
