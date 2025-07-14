@@ -413,52 +413,52 @@ class FolderAnalyzer:
         def main():
             with set_log_level(self.logger, log_level):
                 self.logger.info(f"{step_name}⏳ Extracting Dates for '{self.folder_path}'...")
+
                 # Filter the file list to only include supported photo and video extensions
                 media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
                 self.logger.info(f"{step_name}Launching {total_blocks} blocks of ~{block_size} files")
 
-                futures = []
+                # ⏱️ Start timing
                 start_time = time.time()
+                completed_blocks = 0
+                avg_block_time = None
+
+                # Parallel execution using ThreadPoolExecutor
                 with ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
-                    for idx, block in enumerate(file_blocks, 1):
-                        futures.append(executor.submit(_process_block, idx, block, total_blocks, start_time))
+                    future_to_index = {
+                        executor.submit(_process_block, idx, block, total_blocks, start_time): idx
+                        for idx, block in enumerate(file_blocks, 1)
+                    }
 
-                    completed_blocks = 0
-                    avg_block_time = None
+                    for future in as_completed(future_to_index):
+                        result = future.result()
+                        self.file_dates.update(result)
 
-                    with ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
-                        future_to_index = {executor.submit(_process_block, idx, block, total_blocks, start_time): idx
-                                           for idx, block in enumerate(file_blocks, 1)}
+                        # 📊 Progress reporting with optional smoothing
+                        completed_blocks += 1
+                        elapsed = time.time() - start_time
+                        current_block_time = elapsed / completed_blocks
+                        if avg_block_time is None:
+                            avg_block_time = current_block_time
+                        else:
+                            avg_block_time = (avg_block_time + current_block_time) / 2  # simple moving average
 
-                        for future in as_completed(future_to_index):
-                            result = future.result()
-                            self.file_dates.update(result)
-
-                            # Calcular tiempo promedio con media móvil simple
-                            completed_blocks += 1
-                            elapsed = time.time() - start_time
-                            current_block_time = elapsed / completed_blocks
-                            if avg_block_time is None:
-                                avg_block_time = current_block_time
-                            else:
-                                avg_block_time = (avg_block_time + current_block_time) / 2  # media móvil simple
-
-                            if completed_blocks >= 3:
-                                est_total = avg_block_time * total_blocks
-                                est_remain = est_total - elapsed
-                                self.logger.info(
-                                    f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
-                                    f"Elapsed: {int(elapsed // 60)}m • "
-                                    f"Estimated Total: {int(est_total // 60)}m • "
-                                    f"Estimated Remaining: {int(est_remain // 60)}m"
-                                )
-                            else:
-                                self.logger.info(
-                                    f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
-                                    f"Elapsed: {int(elapsed // 60)}m (estimating...)"
-                                )
+                        if completed_blocks >= 3:
+                            est_total = avg_block_time * total_blocks
+                            est_remain = est_total - elapsed
+                            self.logger.info(
+                                f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
+                                f"Elapsed: {int(elapsed // 60)}m • "
+                                f"Estimated Total: {int(est_total // 60)}m • "
+                                f"Estimated Remaining: {int(est_remain // 60)}m"
+                            )
+                        else:
+                            self.logger.info(
+                                f"{step_name}📊 Block {completed_blocks}/{total_blocks} done • "
+                                f"Elapsed: {int(elapsed // 60)}m (estimating...)"
+                            )
 
         main()
 

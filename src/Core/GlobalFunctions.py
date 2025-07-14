@@ -45,6 +45,11 @@ def set_LOGGER(level_str=None):
     log_filename = f"{GV.TOOL_NAME}_{GV.TOOL_VERSION}_{GV.TIMESTAMP}"
     GV.LOG_FILENAME = os.path.join(current_directory, log_folder, log_filename)
 
+    # 🔁 Evitar duplicación de mensajes eliminando handlers previos
+    root_logger = logging.getLogger()
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
+
     # 1) Inicializas el logger con el nivel por defecto
     GV.LOGGER = log_setup(
         log_folder=log_folder,
