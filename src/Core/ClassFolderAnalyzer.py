@@ -252,7 +252,7 @@ class FolderAnalyzer:
             for rel_path in files_with_missing_dates:
                 self.logger.info(f"{step_name}📋 File with missing Date: {rel_path}")
 
-    def extract_dates(self, step_name='', block_size=1_000, log_level=None, max_workers=None):
+    def extract_dates(self, step_name='', block_size=1_000, use_filename=True, log_level=None, max_workers=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
@@ -363,7 +363,7 @@ class FolderAnalyzer:
                         pass
 
                 # Fallback al nombre del fichero o path si aún no hay ninguna
-                if not dt_final:
+                if not dt_final and use_filename:
                     try:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
