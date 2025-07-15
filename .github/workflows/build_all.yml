@@ -647,7 +647,7 @@ jobs:
           VERSION="${{ env.TOOL_VERSION }}"
           FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
-            | jq -r '.[] | select(.content | test("$VERSION"))')
+            | jq -r --arg VERSION "$VERSION" '.[] | select(.content | test($VERSION))'
 
           if [ -n "$FOUND" ]; then
             echo "✅ Message already exists"
@@ -683,11 +683,11 @@ jobs:
       - name: 🔍 Check if thread already exists in #releases-discussion
         id: check_discussion
         run: |
-          THREAD_NAME="Release ${{ env.TOOL_VERSION }}"
+          THREAD_NAME="Release v${{ env.TOOL_VERSION }}"
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads")
-          
-          if echo "$RESPONSE" | jq -e ".[] | select(.name == \"$THREAD_NAME\")" > /dev/null; then
+      
+          if echo "$RESPONSE" | jq -e --arg THREAD_NAME "$THREAD_NAME" '.[] | select(.name == $THREAD_NAME)' > /dev/null; then
             echo "✅ Thread already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
           else
