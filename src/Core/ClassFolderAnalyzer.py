@@ -213,6 +213,35 @@ class FolderAnalyzer:
             self.file_dates = json.load(f)
         self.logger.info(f"{step_name}EXIF Dates loaded from JSON: {input_file}")
 
+    def show_files_without_dates(self, relative_folder, step_name=""):
+        """
+        Displays a summary of files that do not have a valid OldestDate field in self.file_dates.
+
+        Args:
+            relative_folder: Base path to which file paths will be shown relatively.
+            step_name (str): Optional prefix for log messages.
+        """
+        # ❔ Show Files without dates
+        if self.logger.isEnabledFor(logging.INFO):
+            W1 = 15  # step_name
+            W2 = 25  # date
+            W3 = 25  # source
+            self.logger.info(f"{step_name}📋 Files with missing Date:")
+            for file_path, info in self.file_dates.items():
+                oldest_date = info.get("OldestDate")
+                if oldest_date is None:
+                    source = info.get("Source", "N/A")
+                    try:
+                        file_name = str(Path(file_path).resolve().relative_to(Path(relative_folder).resolve()))
+                    except ValueError:
+                        file_name = Path(file_path).name
+                    self.logger.info(
+                        f"{step_name:<{W1}} "
+                        f"OldestDate: {'None':<{W2}} | "
+                        f"Source: {source:<{W3}} | "
+                        f"File: {file_name}"
+                    )
+
     def extract_dates(self, step_name='', block_size=1_000, log_level=None, max_workers=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
@@ -345,14 +374,20 @@ class FolderAnalyzer:
         # --- Main execution
         def main():
             with set_log_level(self.logger, log_level):
-                self.logger.info(f"{step_name}⏳ Extracting Dates for '{self.folder_path}'...")
+                self.logger.info(f"{step_name}📅 Extracting Dates for '{self.folder_path}'...")
 
                 # Filter the file list to only include supported photo and video extensions
                 media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
+                json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
                 total_files = len(self.file_list)
                 total_media_files = len(media_files)
+                total_json_files = len(json_files)
+
+                # Clean memory
+                del media_files
+                del json_files
 
                 # ⏱️ Start timing
                 start_time = time.time()
@@ -361,7 +396,7 @@ class FolderAnalyzer:
 
                 # Parallel execution using ThreadPoolExecutor
                 workers = max(1, min(total_blocks, max_workers, 64))    # Ensure at least 1 worker and maximum max_workers (saturated to 64 workers)
-                self.logger.info(f"{step_name}🧵 {total_files} files selected | {total_media_files} media files")
+                self.logger.info(f"{step_name}🧵 {total_files} files found | {total_media_files} media files | {total_json_files} JSON files")
                 self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:
@@ -426,10 +461,10 @@ class FolderAnalyzer:
                             link_target = os.readlink(full_path)
                             resolved_target = os.path.abspath(os.path.join(os.path.dirname(full_path), link_target))
                             if not os.path.exists(resolved_target):
-                                LOGGER.info(f"{step_name}Excluded broken symlink: {full_path}")
+                                self.logger.info(f"{step_name}Excluded broken symlink: {full_path}")
                                 continue
                         except OSError as e:
-                            LOGGER.warning(f"{step_name}⚠️ Failed to read symlink {full_path}: {e}")
+                            self.logger.warning(f"{step_name}⚠️ Failed to read symlink {full_path}: {e}")
                             continue
 
                     counters['total_files'] += 1
