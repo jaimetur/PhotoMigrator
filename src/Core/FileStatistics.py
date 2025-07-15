@@ -165,7 +165,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                         selected_date, selected_tag = min(valid_dates_with_tags, key=lambda x: x[0])
                         selected_source = f"🕒 EXIF date used: {selected_date.isoformat()} (tag: {selected_tag})"
 
-                    entry["SelectedDate"] = selected_date.isoformat() if selected_date else None
+                    entry["OldestDate"] = selected_date.isoformat() if selected_date else None
                     entry["Source"] = selected_source
                     metadata_map[norm] = selected_date
                     LOGGER.verbose(f"{step_name}📅 [Block {block_index}]: Found dates: {[dt.isoformat() for dt in dates_found]}")

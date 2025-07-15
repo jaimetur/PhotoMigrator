@@ -2074,7 +2074,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
             return False
 
 
-def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], folder_analyzer: FolderAnalyzer = None, update_json=None, step_name="", log_level=None):
+def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], folder_analyzer: FolderAnalyzer = None, step_name="", log_level=None):
     """
     Organizes files into subfolders based on their EXIF date or, if unavailable, their modification date.
 
@@ -2100,28 +2100,27 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
         ValueError: If `type` is not one of 'year', 'year/month', or 'year-month'.
     """
 
-    # TODO: Mejorar el Performance de esta función haciendo uso del objeto folder_analyzer que se le pasa como argumento.
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
-    def get_file_date(file_path, exif_dates, step_name):
+    def get_file_date(file_path, file_dates, step_name):
         norm_path = Path(file_path).resolve().as_posix()
 
-        # 1. Try to get SelectedDate from exif_dates if available
-        exif_entry = exif_dates.get(norm_path) if exif_dates else None
-        if isinstance(exif_entry, dict):
-            selected_date = exif_entry.get("SelectedDate")
-            if isinstance(selected_date, datetime):
-                return selected_date
-            elif isinstance(selected_date, str) and selected_date.strip():
+        # 1. Try to get OldestDate from file_dates if available
+        file_entry = file_dates.get(norm_path) if file_dates else None
+        if isinstance(file_entry, dict):
+            oldest_date = file_entry.get("OldestDate")
+            if isinstance(oldest_date, datetime):
+                return oldest_date
+            elif isinstance(oldest_date, str) and oldest_date.strip():
                 try:
-                    return parser.parse(selected_date.strip())
+                    return parser.parse(oldest_date.strip())
                 except Exception as e:
                     if LOGGER.isEnabledFor(logging.VERBOSE):
-                        LOGGER.verbose(f"{step_name}❌ Error parsing SelectedDate '{selected_date}' for {norm_path}: {e}")
+                        LOGGER.verbose(f"{step_name}❌ Error parsing OldestDate '{oldest_date}' for {norm_path}: {e}")
 
-            # If no SelectedDate, try to use the minimum date among all EXIF tags
+            # If no OldestDate, try to use the minimum date among all EXIF tags
             all_dates = []
-            for k, v in exif_entry.items():
-                if k in ["SelectedDate", "Source"] or not v:
+            for k, v in file_entry.items():
+                if k in ["OldestDate", "Source"] or not v:
                     continue
                 try:
                     dt = v if isinstance(v, datetime) else parser.parse(str(v).strip())
@@ -2162,16 +2161,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError(f"{step_name}The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
 
-        # ⏩ Preparsear SelectedDate si es un string
-        exif_dates = folder_analyzer.get_file_dates() if folder_analyzer else {}
-        for key, value in exif_dates.items():
-            if isinstance(value, dict):
-                selected_date = value.get("SelectedDate")
-                if isinstance(selected_date, str):
-                    try:
-                        value["SelectedDate"] = parser.parse(selected_date.strip())
-                    except Exception:
-                        continue
+        # ⏩ Extract file_dates dict from folder_analyzer object
+        file_dates = folder_analyzer.get_file_dates() if folder_analyzer else {}
 
         replacements = []
         with tqdm(smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files", dynamic_ncols=True) as pbar:
@@ -2183,10 +2174,9 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
                         continue
                     pbar.update(1)
                     # Get file date
-                    mod_time = get_file_date(file_path, exif_dates, step_name)
+                    mod_time = get_file_date(file_path, file_dates, step_name)
                     if LOGGER.isEnabledFor(logging.DEBUG):
-                        # LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
-                        pass
+                        LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
                     # Determine target folder
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
