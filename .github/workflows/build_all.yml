@@ -670,7 +670,7 @@ jobs:
                  \"username\": \"GitHub Bot\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/v$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
                    \"color\": 15105570
                  }]
                }" \
@@ -709,7 +709,7 @@ jobs:
                  \"thread_name\": \"Release $VERSION\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/v$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
                    \"color\": 3447003
                  }]
                }" \
