@@ -689,22 +689,22 @@ jobs:
       - name: 🔍 Check if thread already exists in #releases-discussion
         id: check_discussion
         run: |
-          THREAD_NAME="Release v${{ env.TOOL_VERSION }}"
-          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
-            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads")
-
+          VERSION="v${{ env.TOOL_VERSION }}"
+          THREAD_NAME="Release $VERSION"
           echo "🔎 Searching for thread: $THREAD_NAME"
-          echo "$RESPONSE" | jq -r '.threads[].name' || true
 
-          MATCH=$(echo "$RESPONSE" | jq -e --arg THREAD_NAME "$THREAD_NAME" '.threads[] | select(.name == $THREAD_NAME)' || true)
-          if [ -n "$MATCH" ]; then
+          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads/archived/public")
+
+          echo "📦 Raw API response: $RESPONSE"
+
+          if echo "$RESPONSE" | jq -e --arg thread "$THREAD_NAME" 'select(.threads != null) | .threads[] | select(.name == $thread)' > /dev/null; then
             echo "✅ Thread already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
           else
             echo "🆕 Thread does not exist yet"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
-      
 
       # ──────────────────────────────────────────────────────────────────────
       # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
