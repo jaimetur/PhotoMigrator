@@ -706,19 +706,21 @@ jobs:
           echo "🔎 Searching for thread: $THREAD_NAME"
 
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
-            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads")
+            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads/active")
 
-          echo "📦 Raw API response: $RESPONSE"
+          echo "📦 Raw API response:"
+          echo "$RESPONSE"
 
-          FOUND=$(echo "$RESPONSE" | jq -e --arg name "$THREAD_NAME" '.threads[]? | select(.name == $name)' || true)
+          MATCH=$(echo "$RESPONSE" | jq -e --arg THREAD_NAME "$THREAD_NAME" '.threads[] | select(.name == $THREAD_NAME)' || true)
 
-          if [ -n "$FOUND" ]; then
+          if [ -n "$MATCH" ]; then
             echo "✅ Thread already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
           else
             echo "🆕 Thread does not exist yet"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
+      
 
       # ──────────────────────────────────────────────────────────────────────
       # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
