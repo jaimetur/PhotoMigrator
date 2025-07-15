@@ -259,7 +259,7 @@ class FolderAnalyzer:
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.file_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
+        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate', 'FilenameDate', 'FilepathDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
@@ -362,16 +362,20 @@ class FolderAnalyzer:
                     except:
                         pass
 
-                # Fallback al nombre del fichero si aún no hay ninguna
+                # Fallback al nombre del fichero o path si aún no hay ninguna
                 if not dt_final:
                     try:
-                        guessed = guess_date_from_filename(file_path, step_name=step_name)
-                        if guessed:
-                            dt = parser.isoparse(guessed)
+                        guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
+                        if guessed_date:
+                            dt = parser.isoparse(guessed_date)
                             if is_date_valid(dt, reference):
-                                full_info["FilenameDate"] = dt.isoformat()
+                                if guessed_source == "filename":
+                                    full_info["FilenameDate"] = dt.isoformat()
+                                    source = "FILENAME"
+                                elif guessed_source == "filepath":
+                                    full_info["FilepathDate"] = dt.isoformat()
+                                    source = "FILEPATH"
                                 dt_final = dt
-                                source = f"FILENAME: {str(file_path)}"
                     except:
                         pass
 

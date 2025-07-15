@@ -207,7 +207,7 @@ def is_date_valid(file_date, reference_timestamp, min_days=1):
 
 def guess_date_from_filename(path, step_name="", log_level=None):
     """
-    Try to guess a date from a filename (first from basename, then full path) and return it in ISO 8601 format with local timezone.
+    Try to guess a date from a filename (first from filename, then full filepath) and return it in ISO 8601 format with local timezone.
     If only year/month/day is found, missing parts are filled with 01.
     If no time is found, it defaults to 00:00:00.
     Timezone is set to the system's local timezone.
@@ -218,17 +218,16 @@ def guess_date_from_filename(path, step_name="", log_level=None):
         log_level: Optional logging level override.
 
     Returns:
-        A string with date in format 'YYYY-MM-DDTHH:MM:SS±HH:MM', or None if not found.
+        Tuple: (ISO date string or None, source: 'filename' | 'filepath' | None)
     """
     import re
     from pathlib import Path
     from datetime import datetime
-    import tzlocal
 
-    with set_log_level(GV.LOGGER, log_level):
-        tz = tzlocal.get_localzone()
+    with set_log_level(LOGGER, log_level):
+        tz = datetime.now().astimezone().tzinfo
         path = Path(path)
-        candidates = [path.name, str(path)]
+        candidates = [(path.name, "filename"), (str(path), "filepath")]
 
         patterns = [
             r'(?P<year>20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?',   # 20230715_123456
@@ -237,7 +236,7 @@ def guess_date_from_filename(path, step_name="", log_level=None):
             r'(?P<year>\d{4})',  # only year
         ]
 
-        for text in candidates:
+        for text, source in candidates:
             for pattern in patterns:
                 match = re.search(pattern, text)
                 if match:
@@ -252,12 +251,13 @@ def guess_date_from_filename(path, step_name="", log_level=None):
 
                         dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
                         iso_str = dt.isoformat()
-                        GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from text: {text}")
-                        return iso_str
+                        LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from {source}: {text}")
+                        return iso_str, source
                     except Exception as e:
-                        GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from text '{text}': {e}")
+                        LOGGER.warning(f"{step_name}⚠️ Error parsing date from {source} '{text}': {e}")
                         continue
 
-        GV.LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
-        return None
+        LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
+        return None, None
+
 

@@ -627,6 +627,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
+          sudo apt-get install -y fonts-noto
 
       - name: 🧩 Create LaTeX preamble to allow deep nesting
         run: |
@@ -639,12 +640,30 @@ jobs:
 
       - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis and custom preamble
         run: |
-          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="DejaVu Sans" -H preamble.tex
-
+          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="Noto Sans" -H preamble.tex
 
       # ──────────────────────────────────────────────────────────────────────
       # 🔍 CHECK: if message already exists in #new_releases
       # ──────────────────────────────────────────────────────────────────────
+      - name: 🔍 Check if message already exists in #new_releases
+        id: check_text
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
+
+          echo "🔍 RAW RESPONSE:"
+          echo "$RESPONSE"
+
+          FOUND=$(echo "$RESPONSE" | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
+
+          if [ -n "$FOUND" ]; then
+            echo "✅ Message already exists"
+            echo "already_sent=true" >> $GITHUB_OUTPUT
+          else
+            echo "🆕 No matching message found"
+            echo "already_sent=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: 🔍 Check if message already exists in #new_releases
         id: check_text
         run: |
