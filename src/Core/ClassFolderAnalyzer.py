@@ -371,7 +371,7 @@ class FolderAnalyzer:
                             if is_date_valid(dt, reference):
                                 full_info["FilenameDate"] = dt.isoformat()
                                 dt_final = dt
-                                source = "Filename"
+                                source = f"FILENAME: {str(file_path)}"
                     except:
                         pass
 

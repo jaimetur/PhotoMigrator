@@ -225,7 +225,7 @@ def guess_date_from_filename(path, step_name="", log_level=None):
     from datetime import datetime
     import tzlocal
 
-    with set_log_level(LOGGER, log_level):
+    with set_log_level(GV.LOGGER, log_level):
         tz = tzlocal.get_localzone()
         path = Path(path)
         candidates = [path.name, str(path)]
@@ -252,12 +252,12 @@ def guess_date_from_filename(path, step_name="", log_level=None):
 
                         dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
                         iso_str = dt.isoformat()
-                        LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from text: {text}")
+                        GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from text: {text}")
                         return iso_str
                     except Exception as e:
-                        LOGGER.warning(f"{step_name}⚠️ Error parsing date from text '{text}': {e}")
+                        GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from text '{text}': {e}")
                         continue
 
-        LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
+        GV.LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
         return None
 
