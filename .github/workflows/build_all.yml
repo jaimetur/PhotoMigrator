@@ -703,4 +703,4 @@ jobs:
                  }]
                }' \
                -F "file1=@RELEASE-NOTES.pdf" \
-               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES }}
+               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
