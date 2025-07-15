@@ -620,52 +620,23 @@ jobs:
       TOOL_VERSION: ${{ needs.create-release.outputs.tool_version }}
 
     steps:
-      - name: 🔍 Check TOOL_VERSION is set
-        run: |
-          echo "📦 Verifying version..."
-          echo "✅ TOOL_VERSION is: $TOOL_VERSION"
-      
-
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
+
+      - name: 🏷️ Extract Tool Version
+        run: |
+          # 1️⃣ Obtenemos el valor sin la “v”
+          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
+
+          # 3️⃣ Lo exportamos para los siguientes steps
+          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
+          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       - name: 📥 Download RELEASE-NOTES.md from artifacts
         uses: actions/download-artifact@v4
         with:
           name: RELEASE-NOTES.md
           path: .
-
-#      - name: 📄 Install pandoc and XeLaTeX (for emoji-compatible PDF)
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
-#          sudo apt-get install -y fonts-noto fonts-noto-core fonts-noto-extra fonts-noto-color-emoji fonts-noto-mono
-#
-#      - name: 🧩 Create LaTeX preamble to allow deep nesting
-#        run: |
-#          cat <<EOF > preamble.tex
-#          \\usepackage{enumitem}
-#          \\setlistdepth{15}
-#          \\renewlist{itemize}{itemize}{15}
-#          \\setlist[itemize]{label=--}
-#          EOF
-#
-#      - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis and custom preamble
-#        run: |
-#          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="Noto Sans" -V emojifont="Noto Color Emoji" -H preamble.tex
-
-      - name: 🌐 Convert RELEASE-NOTES.md to HTML
-        run: |
-          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.html
-
-#      - name: 🏷️ Extract Tool Version
-#        run: |
-#          # 1️⃣ Obtenemos el valor sin la “v”
-#          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
-#
-#          # 3️⃣ Lo exportamos para los siguientes steps
-#          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
-#          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       # ──────────────────────────────────────────────────────────────────────
       # 🔍 CHECK: if message already exists in #new_releases
@@ -689,7 +660,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #new_releases (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in #new_releases channel (with HTML)
+      - name: 📣 Notify in #new_releases channel
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
           VERSION="${{ env.TOOL_VERSION }}"
@@ -699,11 +670,11 @@ jobs:
                  \"username\": \"GitHub Bot\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as HTML.\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/v$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
                    \"color\": 15105570
                  }]
                }" \
-               -F "file1=@RELEASE-NOTES.html" \
+               -F "file1=@RELEASE-NOTES.md" \
                ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
 
       # ──────────────────────────────────────────────────────────────────────
@@ -727,7 +698,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in #releases-discussion channel (with HTML)
+      - name: 📣 Notify in #releases-discussion channel
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
           VERSION="${{ env.TOOL_VERSION }}"
@@ -738,10 +709,10 @@ jobs:
                  \"thread_name\": \"Release $VERSION\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as HTML.\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/v$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
                    \"color\": 3447003
                  }]
                }" \
-               -F "file1=@RELEASE-NOTES.html" \
+               -F "file1=@RELEASE-NOTES.md" \
                ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
 
