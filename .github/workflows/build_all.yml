@@ -621,8 +621,10 @@ jobs:
 
     steps:
       - name: 🔍 Check TOOL_VERSION is set
-        run:
+        run: |
+          echo "📦 Verifying version..."
           echo "✅ TOOL_VERSION is: $TOOL_VERSION"
+      
 
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
