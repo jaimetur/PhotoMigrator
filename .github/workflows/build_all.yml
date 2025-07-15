@@ -671,9 +671,10 @@ jobs:
       - name: 🔍 Check if message already exists in #new_releases
         id: check_text
         run: |
+          VERSION="${{ env.TOOL_VERSION }}"
           FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
-            | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
+            | jq -r '.[] | select(.content | test("$VERSION"))')
 
           if [ -n "$FOUND" ]; then
             echo "✅ Message already exists"
