@@ -248,9 +248,9 @@ class FolderAnalyzer:
                     except ValueError:
                         rel_path = str(Path(file_path).resolve())
                     files_with_missing_dates.append(rel_path)
-            self.logger.info(f"{step_name}📋 Total Files with missing Date: {len(files_with_missing_dates)}")
+            self.logger.info(f"{step_name}📋 Total Files Without Date in Output folder: {len(files_with_missing_dates)}")
             for rel_path in files_with_missing_dates:
-                self.logger.info(f"{step_name}📋 File with missing Date: {rel_path}")
+                self.logger.info(f"{step_name}📋 File Without Date: {rel_path}")
 
     def extract_dates(self, step_name='', block_size=1_000, use_filename=True, log_level=None, max_workers=None):
         """
