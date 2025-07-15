@@ -634,9 +634,7 @@ jobs:
           \\usepackage{enumitem}
           \\setlistdepth{15}
           \\renewlist{itemize}{itemize}{15}
-          \\setlist[itemize,1]{label=\\textbullet}
-          \\setlist[itemize,2]{label=--}
-          \\setlist[itemize,3]{label=*}
+          \\setlist[itemize]{label=--}
           EOF
 
       - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis and custom preamble
