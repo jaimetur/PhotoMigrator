@@ -645,13 +645,14 @@ jobs:
         id: check_text
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
+          FOOTER_TEXT="ReleaseID: $VERSION"
+          echo "🔎 Searching for footer: $FOOTER_TEXT"
+
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
 
-          echo "🔎 Searching for VERSION: $VERSION"
-          echo "$RESPONSE" | jq -r '.[] | .embeds[]?.footer?.text' || true
+          MATCH=$(echo "$RESPONSE" | jq -e --arg footer "$FOOTER_TEXT" '.[] | select(.embeds[0].footer.text == $footer)' || true)
 
-          MATCH=$(echo "$RESPONSE" | jq -r --arg VERSION "$VERSION" '.[] | select(.embeds[]?.footer?.text == $VERSION)')
           if [ -n "$MATCH" ]; then
             echo "✅ Message already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
@@ -659,6 +660,7 @@ jobs:
             echo "🆕 No matching message found"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
+      
 
       # ──────────────────────────────────────────────────────────────────────
       # 2. 📣 NOTIFY: in #new_releases (if not already sent)
@@ -692,15 +694,17 @@ jobs:
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads")
 
           echo "🔎 Searching for thread: $THREAD_NAME"
-          echo "$RESPONSE" | jq -r '.[].name' || true
+          echo "$RESPONSE" | jq -r '.threads[].name' || true
 
-          if echo "$RESPONSE" | jq -e --arg THREAD_NAME "$THREAD_NAME" '.[] | select(.name == $THREAD_NAME)' > /dev/null; then
+          MATCH=$(echo "$RESPONSE" | jq -e --arg THREAD_NAME "$THREAD_NAME" '.threads[] | select(.name == $THREAD_NAME)' || true)
+          if [ -n "$MATCH" ]; then
             echo "✅ Thread already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
           else
             echo "🆕 Thread does not exist yet"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
+      
 
       # ──────────────────────────────────────────────────────────────────────
       # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
