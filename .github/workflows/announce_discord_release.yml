@@ -9,8 +9,17 @@ jobs:
   notify-discord:
     runs-on: ubuntu-latest
     steps:
+      - name: 📦 Install pandoc and LaTeX (for PDF conversion)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-fonts-extra
+
+      - name: 📝 Convert RELEASE-NOTES.md to PDF
+        run: |
+          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=pdflatex
+
       # Send a notification to the #releases channel
-      - name: Notify in #releases-forum channel (create thread)
+      - name: 📣 Notify in #releases-forum channel (create thread)
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
@@ -18,7 +27,7 @@ jobs:
                      "username": "GitHub Bot",
                      "thread_name": "Release ${{ github.event.release.tag_name }}",
                      "embeds": [{
-                       "title": "🚀 New Release Published",
+                       "title": "📣 New Release Published",
                        "description": "**${{ github.repository }}** has published version **${{ github.event.release.tag_name }}**.\n[View release](${{ github.event.release.html_url }})",
                        "color": 3447003
                      }]
@@ -27,14 +36,14 @@ jobs:
       
 
       # Send a notification to the #new_releases channel
-      - name: Notify in #new_releases channel
+      - name: 📣 Notify in #new_releases channel
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
                -d '{
                      "username": "GitHub Bot",
                      "embeds": [{
-                       "title": "🚀 New Release Published",
+                       "title": "📣 New Release Published",
                        "description": "Version **${{ github.event.release.tag_name }}** is now available!\n[Details here](${{ github.event.release.html_url }})",
                        "color": 15105570
                      }]

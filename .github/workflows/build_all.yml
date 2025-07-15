@@ -661,3 +661,105 @@ jobs:
 #          git commit -m "README.md updated by Github Actions (build_all.yml)"
 #          git push origin ${{ github.ref_name }}
 
+  # ==========================================================================================================================
+  # JOB Notify Release on Discord Channels
+  # ==========================================================================================================================
+  notify-discord:
+    name: 📣 Notify Discord (only once per channel)
+    needs: create-release
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📥 Download RELEASE-NOTES.md from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: RELEASE-NOTES.md
+          path: .
+
+      - name: 📄 Install pandoc and LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-fonts-extra
+
+      - name: 📝 Convert RELEASE-NOTES.md to PDF
+        run: |
+          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=pdflatex
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 📡 CHECK: if thread already exists in #releases-forum
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 🔍 Check if thread already exists in #releases-forum
+        id: check_forum
+        run: |
+          THREAD_NAME="Release v${{ env.TOOL_VERSION }}"
+          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_FORUM_CHANNEL_ID }}/threads")
+          
+          if echo "$RESPONSE" | jq -e ".[] | select(.name == \"$THREAD_NAME\")" > /dev/null; then
+            echo "✅ Thread already exists"
+            echo "already_sent=true" >> $GITHUB_OUTPUT
+          else
+            echo "🆕 Thread does not exist yet"
+            echo "already_sent=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 📣 NOTIFY: in #releases-forum (if not already sent)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 📣 Notify in #releases-forum channel (with PDF)
+        if: steps.check_forum.outputs.already_sent == 'false'
+        run: |
+          curl -X POST \
+               -F 'payload_json={
+                 "username": "GitHub Bot",
+                 "thread_name": "Release v${{ env.TOOL_VERSION }}",
+                 "embeds": [{
+                   "title": "📣 New Release Published",
+                   "description": "**${{ github.repository }}** has published version **v${{ env.TOOL_VERSION }}**.\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n📄 Changelog attached as PDF.",
+                   "color": 3447003
+                 }]
+               }' \
+               -F "file1=@RELEASE-NOTES.pdf" \
+               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES }}
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 🔍 CHECK: if message already exists in #new_releases
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 🔍 Check if message already exists in #new_releases
+        id: check_text
+        run: |
+          FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
+            | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
+          
+          if [ -n "$FOUND" ]; then
+            echo "✅ Message already exists"
+            echo "already_sent=true" >> $GITHUB_OUTPUT
+          else
+            echo "🆕 No matching message found"
+            echo "already_sent=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 📣 NOTIFY: in #new_releases (if not already sent)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 📣 Notify in #new_releases channel (with PDF)
+        if: steps.check_text.outputs.already_sent == 'false'
+        run: |
+          curl -X POST \
+               -F 'payload_json={
+                 "username": "GitHub Bot",
+                 "embeds": [{
+                   "title": "📣 New Release Published",
+                   "description": "Version **v${{ env.TOOL_VERSION }}** is now available!\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n📄 Changelog attached as PDF.",
+                   "color": 15105570
+                 }]
+               }' \
+               -F "file1=@RELEASE-NOTES.pdf" \
+               ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
+ 
+  
