@@ -447,6 +447,9 @@ jobs:
 
     runs-on: ubuntu-22.04
 
+    outputs:
+      tool_version: ${{ steps.extract_version.outputs.tool_version }}
+
     steps:
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
@@ -462,6 +465,7 @@ jobs:
 
           # 3️⃣ Lo exportamos para los siguientes steps
           echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
+          echo "tool_version=${TOOL_VERSION}" >> "$GITHUB_OUTPUT"
           echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
@@ -609,7 +613,7 @@ jobs:
   # JOB Notify Release on Discord Channels (#new_releases & #releases-discussion)
   # ==========================================================================================================================
   notify-discord:
-    name: 📣 Notify Discord (both channels)
+    name: 📣 Notify on Discord
     needs: create-release
     runs-on: ubuntu-latest
     env:
