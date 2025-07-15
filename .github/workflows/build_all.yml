@@ -608,7 +608,7 @@ jobs:
   # JOB Notify Release on Discord Channels (#new_releases & #releases-discussion)
   # ==========================================================================================================================
   notify-discord:
-    name: 📣 Notify Discord (only once per channel)
+    name: 📣 Notify Discord (both channels)
     needs: create-release
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
