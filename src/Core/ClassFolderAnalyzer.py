@@ -22,7 +22,7 @@ from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXIFTOOL_OUTPUT, MSG_TAGS
-from Utils.DateUtils import normalize_datetime_utc, is_date_valid
+from Utils.DateUtils import normalize_datetime_utc, is_date_valid, guess_date_from_filename
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
 
@@ -248,18 +248,18 @@ class FolderAnalyzer:
                     except ValueError:
                         rel_path = str(Path(file_path).resolve())
                     files_with_missing_dates.append(rel_path)
-            self.logger.info(f"{step_name}📋 Total Files with missing Date: {len(files_with_missing_dates)}")
+            self.logger.info(f"{step_name}📋 Total Files Without Date in Output folder: {len(files_with_missing_dates)}")
             for rel_path in files_with_missing_dates:
-                self.logger.info(f"{step_name}📋 File with missing Date: {rel_path}")
+                self.logger.info(f"{step_name}📋 File Without Date: {rel_path}")
 
-    def extract_dates(self, step_name='', block_size=1_000, log_level=None, max_workers=None):
+    def extract_dates(self, step_name='', block_size=1_000, use_filename=True, log_level=None, max_workers=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.file_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
+        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate', 'FileNameDate', 'FilePathDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
@@ -359,6 +359,24 @@ class FolderAnalyzer:
                                         dt_final = dt
                                         source = f"PIL:{tag_name}"
                                     break
+                    except:
+                        pass
+
+                # Fallback al nombre del fichero o path si aún no hay ninguna
+                if not dt_final and use_filename:
+                    try:
+                        guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
+                        if guessed_date:
+                            dt = parser.isoparse(guessed_date)
+                            if is_date_valid(dt, reference):
+                                file_path_obj = Path(file_path)
+                                if guessed_source == "filename":
+                                    full_info["FileNameDate"] = dt.isoformat()
+                                    source = f"FILENAME:{file_path_obj.name}"
+                                elif guessed_source == "filepath":
+                                    full_info["FilePathDate"] = dt.isoformat()
+                                    source = f"FILEPATH:{file_path_obj.parent}"
+                                dt_final = dt
                     except:
                         pass
 

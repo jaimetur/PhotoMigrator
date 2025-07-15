@@ -201,6 +201,7 @@ jobs:
   build-binaries:
     name: ▶️ Build Binaries
     # Different VM images to compile in all SO and all Archs according to:
+    # https://github.com/actions/runner-images
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     needs: set-input-matrix
     strategy:
@@ -446,6 +447,9 @@ jobs:
 
     runs-on: ubuntu-22.04
 
+    outputs:
+      tool_version: ${{ steps.extract_version.outputs.tool_version }}
+
     steps:
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
@@ -461,6 +465,7 @@ jobs:
 
           # 3️⃣ Lo exportamos para los siguientes steps
           echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
+          echo "tool_version=${TOOL_VERSION}" >> $GITHUB_OUTPUT
           echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
@@ -608,12 +613,19 @@ jobs:
   # JOB Notify Release on Discord Channels (#new_releases & #releases-discussion)
   # ==========================================================================================================================
   notify-discord:
-    name: 📣 Notify Discord (both channels)
+    name: 📣 Notify on Discord
     needs: create-release
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    env:
+      TOOL_VERSION: ${{ needs.create-release.outputs.tool_version }}
 
     steps:
+      - name: 🔍 Check TOOL_VERSION is set
+        run: |
+          echo "📦 Verifying version..."
+          echo "✅ TOOL_VERSION is: $TOOL_VERSION"
+      
+
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
 
@@ -623,14 +635,37 @@ jobs:
           name: RELEASE-NOTES.md
           path: .
 
-      - name: 📄 Install pandoc and XeLaTeX (for emoji-compatible PDF)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
+#      - name: 📄 Install pandoc and XeLaTeX (for emoji-compatible PDF)
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
+#          sudo apt-get install -y fonts-noto fonts-noto-core fonts-noto-extra fonts-noto-color-emoji fonts-noto-mono
+#
+#      - name: 🧩 Create LaTeX preamble to allow deep nesting
+#        run: |
+#          cat <<EOF > preamble.tex
+#          \\usepackage{enumitem}
+#          \\setlistdepth{15}
+#          \\renewlist{itemize}{itemize}{15}
+#          \\setlist[itemize]{label=--}
+#          EOF
+#
+#      - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis and custom preamble
+#        run: |
+#          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="Noto Sans" -V emojifont="Noto Color Emoji" -H preamble.tex
 
-      - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis
+      - name: 🌐 Convert RELEASE-NOTES.md to HTML
         run: |
-          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex
+          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.html
+
+#      - name: 🏷️ Extract Tool Version
+#        run: |
+#          # 1️⃣ Obtenemos el valor sin la “v”
+#          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
+#
+#          # 3️⃣ Lo exportamos para los siguientes steps
+#          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
+#          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       # ──────────────────────────────────────────────────────────────────────
       # 🔍 CHECK: if message already exists in #new_releases
@@ -638,10 +673,11 @@ jobs:
       - name: 🔍 Check if message already exists in #new_releases
         id: check_text
         run: |
+          VERSION="${{ env.TOOL_VERSION }}"
           FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
-            | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
-          
+            | jq -r '.[] | select(.content | test("$VERSION"))')
+
           if [ -n "$FOUND" ]; then
             echo "✅ Message already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
@@ -653,28 +689,30 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #new_releases (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in #new_releases channel (with PDF)
+      - name: 📣 Notify in #new_releases channel (with HTML)
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
+          VERSION="${{ env.TOOL_VERSION }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
           curl -X POST \
-               -F 'payload_json={
-                 "username": "GitHub Bot",
-                 "embeds": [{
-                   "title": "📣 New Release Published",
-                   "description": "Version **v${{ env.TOOL_VERSION }}** is now available!\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n📄 Changelog attached as PDF.",
-                   "color": 15105570
+               -F "payload_json={
+                 \"username\": \"GitHub Bot\",
+                 \"embeds\": [{
+                   \"title\": \"📣 New Release Published\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as HTML.\",
+                   \"color\": 15105570
                  }]
-               }' \
-               -F "file1=@RELEASE-NOTES.pdf" \
+               }" \
+               -F "file1=@RELEASE-NOTES.html" \
                ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
 
       # ──────────────────────────────────────────────────────────────────────
       # 📡 CHECK: if thread already exists in #releases-discussion
       # ──────────────────────────────────────────────────────────────────────
       - name: 🔍 Check if thread already exists in #releases-discussion
-        id: check_forum
+        id: check_discussion
         run: |
-          THREAD_NAME="Release v${{ env.TOOL_VERSION }}"
+          THREAD_NAME="Release ${{ env.TOOL_VERSION }}"
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads")
           
@@ -689,18 +727,21 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in #releases-discussion channel (with PDF)
-        if: steps.check_forum.outputs.already_sent == 'false'
+      - name: 📣 Notify in #releases-discussion channel (with HTML)
+        if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
+          VERSION="${{ env.TOOL_VERSION }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
           curl -X POST \
-               -F 'payload_json={
-                 "username": "GitHub Bot",
-                 "thread_name": "Release v${{ env.TOOL_VERSION }}",
-                 "embeds": [{
-                   "title": "📣 New Release Published",
-                   "description": "**${{ github.repository }}** has published version **v${{ env.TOOL_VERSION }}**.\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n📄 Changelog attached as PDF.",
-                   "color": 3447003
+               -F "payload_json={
+                 \"username\": \"GitHub Bot\",
+                 \"thread_name\": \"Release $VERSION\",
+                 \"embeds\": [{
+                   \"title\": \"📣 New Release Published\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as HTML.\",
+                   \"color\": 3447003
                  }]
-               }' \
-               -F "file1=@RELEASE-NOTES.pdf" \
+               }" \
+               -F "file1=@RELEASE-NOTES.html" \
                ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
+

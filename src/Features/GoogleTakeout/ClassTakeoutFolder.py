@@ -143,7 +143,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         sub_step_start_time = datetime.now()
         if folder_type.lower() == 'input':
             self.initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, logger=LOGGER, step_name=step_name)
-            self.initial_takeout_folder_analyzer.extract_dates(step_name=step_name)
+            self.initial_takeout_folder_analyzer.extract_dates(use_filename=False, step_name=step_name) # Avoud to use_filename to guess dates from filename to do a fair comparisson between pre/post
             counters = self.initial_takeout_folder_analyzer.count_files(step_name=step_name)
             if save_json:
                 self.initial_takeout_folder_analyzer.save_to_json(f"input_dates_metadata.json", step_name=step_name)
