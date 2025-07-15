@@ -22,7 +22,7 @@ from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXIFTOOL_OUTPUT, MSG_TAGS
-from Utils.DateUtils import normalize_datetime_utc, is_date_valid
+from Utils.DateUtils import normalize_datetime_utc, is_date_valid, guess_date_from_filename
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
 
@@ -359,6 +359,19 @@ class FolderAnalyzer:
                                         dt_final = dt
                                         source = f"PIL:{tag_name}"
                                     break
+                    except:
+                        pass
+
+                # Fallback al nombre del fichero si aún no hay ninguna
+                if not dt_final:
+                    try:
+                        guessed = guess_date_from_filename(file_path, step_name=step_name)
+                        if guessed:
+                            dt = parser.isoparse(guessed)
+                            if is_date_valid(dt, reference):
+                                full_info["FilenameDate"] = dt.isoformat()
+                                dt_final = dt
+                                source = "Filename"
                     except:
                         pass
 

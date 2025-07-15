@@ -10,6 +10,7 @@
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Added a new step `Files without dates` in 'Google Takeout Processing' to show a summary of files without associated date found.
+    - [x] Added heuristic function to try to guess file date from filename (and also filepath) when is not possible to extract any date from EXIF and before to fallback to extract system date.
     - [x] Added Feature to Automatically Publish New Release Announcement on Discord Channels.
     
   - #### 🚀 Enhancements:

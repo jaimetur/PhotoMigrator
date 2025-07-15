@@ -205,24 +205,30 @@ def is_date_valid(file_date, reference_timestamp, min_days=1):
     return file_date < (reference_timestamp - timedelta(days=min_days))
 
 
-def guess_date_from_filename(filename, step_name="", log_level=None):
+def guess_date_from_filename(path, step_name="", log_level=None):
     """
-    Try to guess a date from a filename and return it in ISO 8601 format with local timezone.
+    Try to guess a date from a filename (first from basename, then full path) and return it in ISO 8601 format with local timezone.
     If only year/month/day is found, missing parts are filled with 01.
     If no time is found, it defaults to 00:00:00.
     Timezone is set to the system's local timezone.
 
     Args:
-        filename: File name (with or without extension).
+        path: Full path or filename.
         step_name: Optional prefix for log messages.
         log_level: Optional logging level override.
 
     Returns:
         A string with date in format 'YYYY-MM-DDTHH:MM:SS±HH:MM', or None if not found.
     """
-    with set_log_level(GV.LOGGER, log_level):
-        name = Path(filename).stem  # remove extension
+    import re
+    from pathlib import Path
+    from datetime import datetime
+    import tzlocal
+
+    with set_log_level(LOGGER, log_level):
         tz = tzlocal.get_localzone()
+        path = Path(path)
+        candidates = [path.name, str(path)]
 
         patterns = [
             r'(?P<year>20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?',   # 20230715_123456
@@ -231,25 +237,27 @@ def guess_date_from_filename(filename, step_name="", log_level=None):
             r'(?P<year>\d{4})',  # only year
         ]
 
-        for pattern in patterns:
-            match = re.search(pattern, name)
-            if match:
-                try:
-                    parts = match.groupdict()
-                    year = int(parts.get("year"))
-                    month = int(parts.get("month") or 1)
-                    day = int(parts.get("day") or 1)
-                    hour = int(parts.get("hour") or 0)
-                    minute = int(parts.get("minute") or 0)
-                    second = int(parts.get("second") or 0)
+        for text in candidates:
+            for pattern in patterns:
+                match = re.search(pattern, text)
+                if match:
+                    try:
+                        parts = match.groupdict()
+                        year = int(parts.get("year"))
+                        month = int(parts.get("month") or 1)
+                        day = int(parts.get("day") or 1)
+                        hour = int(parts.get("hour") or 0)
+                        minute = int(parts.get("minute") or 0)
+                        second = int(parts.get("second") or 0)
 
-                    dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
-                    iso_str = dt.isoformat()
-                    GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from filename: {filename}")
-                    return iso_str
-                except Exception as e:
-                    GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from {filename}: {e}")
-                    continue
+                        dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
+                        iso_str = dt.isoformat()
+                        LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from text: {text}")
+                        return iso_str
+                    except Exception as e:
+                        LOGGER.warning(f"{step_name}⚠️ Error parsing date from text '{text}': {e}")
+                        continue
 
-        GV.LOGGER.debug(f"{step_name}❌ No date found in filename: {filename}")
+        LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
         return None
+
