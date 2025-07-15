@@ -10,6 +10,7 @@
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Added a new step `Files without dates` in 'Google Takeout Processing' to show a summary of files without associated date found.
+    - [x] Added Feature to Automatically Publish New Release Announcement on Discord Channels.
     
   - #### 🚀 Enhancements:
     - [x] Enhancements in 'Google Takeout Processing' feature to improve the performance.

@@ -1,4 +1,4 @@
-name: Notify Discord on Release
+name: 📣 Notify Discord on Release
 
 # This workflow triggers when a new GitHub release is published
 on:
