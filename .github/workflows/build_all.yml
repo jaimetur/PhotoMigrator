@@ -660,7 +660,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #new_releases (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in #new_releases channel (with HTML)
+      - name: 📣 Notify in #new_releases channel
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
           VERSION="${{ env.TOOL_VERSION }}"
@@ -670,7 +670,7 @@ jobs:
                  \"username\": \"GitHub Bot\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as HTML.\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
                    \"color\": 15105570
                  }]
                }" \
@@ -698,7 +698,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in #releases-discussion channel (with HTML)
+      - name: 📣 Notify in #releases-discussion channel
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
           VERSION="${{ env.TOOL_VERSION }}"
@@ -709,7 +709,7 @@ jobs:
                  \"thread_name\": \"Release $VERSION\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as HTML.\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
                    \"color\": 3447003
                  }]
                }" \
