@@ -644,11 +644,11 @@ jobs:
       - name: 🔍 Check if message already exists in #new_releases
         id: check_text
         run: |
-          VERSION="${{ env.TOOL_VERSION }}"
+          VERSION="v${{ env.TOOL_VERSION }}"
           FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
             | jq -r --arg VERSION "$VERSION" '.[] | select(.content | test($VERSION))')
-      
+
           if [ -n "$FOUND" ]; then
             echo "✅ Message already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
@@ -657,14 +657,13 @@ jobs:
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
 
-
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #new_releases (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
       - name: 📣 Notify in #new_releases channel
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
-          VERSION="${{ env.TOOL_VERSION }}"
+          VERSION="v${{ env.TOOL_VERSION }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}"
           curl -X POST \
                -F "payload_json={
@@ -687,7 +686,7 @@ jobs:
           THREAD_NAME="Release v${{ env.TOOL_VERSION }}"
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads")
-      
+
           if echo "$RESPONSE" | jq -e --arg THREAD_NAME "$THREAD_NAME" '.[] | select(.name == $THREAD_NAME)' > /dev/null; then
             echo "✅ Thread already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
@@ -696,18 +695,20 @@ jobs:
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
 
+
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
       - name: 📣 Notify in #releases-discussion channel
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
-          VERSION="${{ env.TOOL_VERSION }}"
+          VERSION="v${{ env.TOOL_VERSION }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          THREAD_NAME="Release $VERSION"
           curl -X POST \
                -F "payload_json={
                  \"username\": \"GitHub Bot\",
-                 \"thread_name\": \"Release $VERSION\",
+                 \"thread_name\": \"$THREAD_NAME\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
                    \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/v$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
@@ -716,4 +717,5 @@ jobs:
                }" \
                -F "file1=@RELEASE-NOTES.md" \
                ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
+
 
