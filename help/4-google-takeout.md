@@ -76,7 +76,10 @@ Below you can see the different steps of this feature:
          `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`
   - 4.6. 🔢 Count Albums.
   - 4.7. 🧹 Remove empty folders. 
-  - 4.8. 🧹 Clean Final Media Library. 
+
+#### 5. ✅ Final steps
+  - 5.1. 🧹 Clean Final Media Library.
+  - 5.2. ❔ Show Files Without Dates.
 
 > [!NOTE]  
 > Step 3.2 is disabled by default, but It is automatically enabled if detect that Step 3.1 has been skipped.
@@ -108,7 +111,7 @@ Below you can see the different steps of this feature:
 > Step 3.2  : 📁 [PROCESS]-[Copy/Move]                     :  Skipped
 > Step 3.3  : 🔢 [PROCESS]-[Analyzing Output]              :  0:23:40
 > 
-> STEP 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  0:43:16
+> STEP 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  0:30:31
 > Step 4.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:12
 > Step 4.2  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:02:11
 > Step 4.3  : 📁 [POST-PROCESS]-[Create year/month struct] :  0:27:19
@@ -116,9 +119,12 @@ Below you can see the different steps of this feature:
 > Step 4.5  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped
 > Step 4.6  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:03
 > Step 4.7  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:03
-> Step 4.8  : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:12:45
+>
+> STEP 5    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]            :  0:13:45
+> Step 5.1  : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:12:45
+> Step 5.2  : ❔ [FINAL-STEPS]-[Files without dates]       :  0:01:00  
 > 
-> TOTAL PROCESSING TIME                                    : 10:50:41
+> TOTAL PROCESSING TIME                                    : 10:51:41
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 

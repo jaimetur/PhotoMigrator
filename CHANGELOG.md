@@ -8,6 +8,9 @@
 - ### Release Date: 2025-07-15
 
 - ### Main Changes:
+  - #### 🌟 New Features:
+    - [x] Added a new step `Files without dates` in 'Google Takeout Processing' to show a summary of files without associated date found.
+    
   - #### 🚀 Enhancements:
     - [x] Enhancements in 'Google Takeout Processing' feature to improve the performance.
       - [x] Created a new Class `FolderAnalyzer` to analyze any folder and:
@@ -18,8 +21,11 @@
         - Update the index of the extracted dates when any file is moved/renamed to other folder
         - Update the index of the extracted dates when any folder is renamed
         - Count the files per type (supported/non-supported/media/photos/videos, etc...) and also count which files has valid/invalid dates
-      - [x] Enhancements in 'Create year/month folder structure' function. Execution time reduced more than 90% using the new object of Class `FolderAnalyzer` just once after GPTH processing has finished.
-      - [x] Enhancements in 'Cleaning Step' within 'Google Photos Takeout Process'. Now the final clean is faster.
+      - [x] Enhancements in 'Analyze Folder' function. Execution time reduced more than **65%** using the new object of Class `FolderAnalyzer`.
+      - [x] Enhancements in 'Create year/month folder structure' function. Execution time reduced more than **95%** using the new object of Class `FolderAnalyzer`.
+      - [x] Enhancements in 'Album renaming' function. Execution time reduced more than **85%** using the new object of Class `FolderAnalyzer`.
+      - [x] Enhancements in 'Cleaning Step' within 'Google Photos Takeout Process'. Now the final clean is **75%** faster.
+      - [x] Enhancements in Overall pipeline execution of feature 'Google Takeout Processing'. Execution time reduced more than **50%** thanks to above enhancements.
       - [x] Enhancements in Steps execution order and logger messages. Now is clearer to follow the process pipeline.
     - [x] Enhancements in `build.py` module to reduce the Anti-Virus warning probability on Windows systems.
     
