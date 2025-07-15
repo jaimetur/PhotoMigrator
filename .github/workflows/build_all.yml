@@ -648,19 +648,32 @@ jobs:
           FOOTER_TEXT="$VERSION"
           echo "🔎 Searching for footer: $FOOTER_TEXT"
 
+          # Obtener últimos mensajes del canal
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
 
-          FOUND=$(echo "$RESPONSE" | jq -e --arg footer "$FOOTER_TEXT" '
-            .[] | select(.embeds != null) | .embeds[]? | select(.footer?.text == $footer)' || true)
+          # DEBUG opcional: descomentar si necesitas ver el JSON entero
+          echo "📦 Raw API response (truncado):"
+          echo "$RESPONSE" | head -n 20
 
-          if [ -n "$FOUND" ]; then
-            echo "✅ Message already exists"
+          # Buscar mensaje con footer que coincida
+          MATCH=$(echo "$RESPONSE" | jq -e --arg footer "$FOOTER_TEXT" '
+            .[] | select(
+              .embeds != null and
+              any(.embeds[]?; .footer?.text == $footer)
+            )
+          ' || true)
+
+          # Mostrar resultado parcial del match
+          if [ -n "$MATCH" ]; then
+            echo "✅ Message with matching footer found:"
+            echo "$MATCH" | jq '.id, .embeds[0].footer.text'
             echo "already_sent=true" >> $GITHUB_OUTPUT
           else
             echo "🆕 No matching message found"
             echo "already_sent=false" >> $GITHUB_OUTPUT
-          fi     
+          fi
+      
 
       # ──────────────────────────────────────────────────────────────────────
       # 2. 📣 NOTIFY: in #new_releases (if not already sent)
@@ -689,16 +702,17 @@ jobs:
       - name: 🔍 Check if thread already exists in #releases-discussion
         id: check_discussion
         run: |
-          VERSION="v${{ env.TOOL_VERSION }}"
-          THREAD_NAME="Release $VERSION"
+          THREAD_NAME="Release v${{ env.TOOL_VERSION }}"
           echo "🔎 Searching for thread: $THREAD_NAME"
 
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
-            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads/archived/public")
+            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads")
 
           echo "📦 Raw API response: $RESPONSE"
 
-          if echo "$RESPONSE" | jq -e --arg thread "$THREAD_NAME" 'select(.threads != null) | .threads[] | select(.name == $thread)' > /dev/null; then
+          FOUND=$(echo "$RESPONSE" | jq -e --arg name "$THREAD_NAME" '.threads[]? | select(.name == $name)' || true)
+
+          if [ -n "$FOUND" ]; then
             echo "✅ Thread already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
           else
