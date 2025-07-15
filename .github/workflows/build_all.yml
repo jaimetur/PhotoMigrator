@@ -651,16 +651,16 @@ jobs:
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
 
-          MATCH=$(echo "$RESPONSE" | jq -e --arg footer "$FOOTER_TEXT" '.[] | select(.embeds[0].footer.text == $footer)' || true)
+          FOUND=$(echo "$RESPONSE" | jq -e --arg footer "$FOOTER_TEXT" '
+            .[] | select(.embeds != null) | .embeds[]? | select(.footer?.text == $footer)' || true)
 
-          if [ -n "$MATCH" ]; then
+          if [ -n "$FOUND" ]; then
             echo "✅ Message already exists"
             echo "already_sent=true" >> $GITHUB_OUTPUT
           else
             echo "🆕 No matching message found"
             echo "already_sent=false" >> $GITHUB_OUTPUT
-          fi
-      
+          fi     
 
       # ──────────────────────────────────────────────────────────────────────
       # 2. 📣 NOTIFY: in #new_releases (if not already sent)
