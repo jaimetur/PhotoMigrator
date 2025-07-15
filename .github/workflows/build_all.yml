@@ -639,7 +639,7 @@ jobs:
           path: .
 
       # ──────────────────────────────────────────────────────────────────────
-      # 🔍 CHECK: if message already exists in #new_releases
+      # 1. 🔍 CHECK: if message already exists in #new_releases
       # ──────────────────────────────────────────────────────────────────────
       - name: 🔍 Check if message already exists in #new_releases
         id: check_text
@@ -647,7 +647,7 @@ jobs:
           VERSION="v${{ env.TOOL_VERSION }}"
           FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
-            | jq -r --arg VERSION "$VERSION" '.[] | select(.content | test($VERSION))')
+            | jq -r --arg VERSION "$VERSION" '.[] | select(.embeds[0].footer.text == $VERSION)')
 
           if [ -n "$FOUND" ]; then
             echo "✅ Message already exists"
@@ -658,7 +658,7 @@ jobs:
           fi
 
       # ──────────────────────────────────────────────────────────────────────
-      # 📣 NOTIFY: in #new_releases (if not already sent)
+      # 2. 📣 NOTIFY: in #new_releases (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
       - name: 📣 Notify in #new_releases channel
         if: steps.check_text.outputs.already_sent == 'false'
@@ -670,15 +670,16 @@ jobs:
                  \"username\": \"GitHub Bot\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/v$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
-                   \"color\": 15105570
+                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+                   \"color\": 15105570,
+                   \"footer\": {\"text\": \"$VERSION\"}
                  }]
                }" \
                -F "file1=@RELEASE-NOTES.md" \
                ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
 
       # ──────────────────────────────────────────────────────────────────────
-      # 📡 CHECK: if thread already exists in #releases-discussion
+      # 3. 📡 CHECK: if thread already exists in #releases-discussion
       # ──────────────────────────────────────────────────────────────────────
       - name: 🔍 Check if thread already exists in #releases-discussion
         id: check_discussion
@@ -695,27 +696,24 @@ jobs:
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
 
-
       # ──────────────────────────────────────────────────────────────────────
-      # 📣 NOTIFY: in #releases-discussion (if not already sent)
+      # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
       - name: 📣 Notify in #releases-discussion channel
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}"
-          THREAD_NAME="Release $VERSION"
           curl -X POST \
                -F "payload_json={
                  \"username\": \"GitHub Bot\",
-                 \"thread_name\": \"$THREAD_NAME\",
+                 \"thread_name\": \"Release $VERSION\",
                  \"embeds\": [{
                    \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/v$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
-                   \"color\": 3447003
+                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+                   \"color\": 3447003,
+                   \"footer\": {\"text\": \"$VERSION\"}
                  }]
                }" \
                -F "file1=@RELEASE-NOTES.md" \
                ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
-
-
