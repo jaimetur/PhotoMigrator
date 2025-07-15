@@ -620,6 +620,9 @@ jobs:
       TOOL_VERSION: ${{ needs.create-release.outputs.tool_version }}
 
     steps:
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
+
       - name: 🏷️ Extract Tool Version
         run: |
           # 1️⃣ Obtenemos el valor sin la “v”
@@ -633,9 +636,6 @@ jobs:
         run: |
           echo "📦 Verifying version..."
           echo "✅ TOOL_VERSION is: $TOOL_VERSION"
-
-      - name: 🧾 Checkout Repository
-        uses: actions/checkout@v4
 
       - name: 📥 Download RELEASE-NOTES.md from artifacts
         uses: actions/download-artifact@v4
