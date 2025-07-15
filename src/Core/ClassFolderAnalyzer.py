@@ -259,7 +259,7 @@ class FolderAnalyzer:
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.file_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate', 'FilenameDate', 'FilepathDate']
+        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate', 'FileNameDate', 'FilePathDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
@@ -371,10 +371,10 @@ class FolderAnalyzer:
                             if is_date_valid(dt, reference):
                                 file_path_obj = Path(file_path)
                                 if guessed_source == "filename":
-                                    full_info["FilenameDate"] = dt.isoformat()
+                                    full_info["FileNameDate"] = dt.isoformat()
                                     source = f"FILENAME:{file_path_obj.name}"
                                 elif guessed_source == "filepath":
-                                    full_info["FilepathDate"] = dt.isoformat()
+                                    full_info["FilePathDate"] = dt.isoformat()
                                     source = f"FILEPATH:{file_path_obj.parent}"
                                 dt_final = dt
                     except:

@@ -664,20 +664,20 @@ jobs:
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: 🔍 Check if message already exists in #new_releases
-        id: check_text
-        run: |
-          FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
-            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
-            | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
-          
-          if [ -n "$FOUND" ]; then
-            echo "✅ Message already exists"
-            echo "already_sent=true" >> $GITHUB_OUTPUT
-          else
-            echo "🆕 No matching message found"
-            echo "already_sent=false" >> $GITHUB_OUTPUT
-          fi
+#      - name: 🔍 Check if message already exists in #new_releases
+#        id: check_text
+#        run: |
+#          FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+#            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
+#            | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
+#
+#          if [ -n "$FOUND" ]; then
+#            echo "✅ Message already exists"
+#            echo "already_sent=true" >> $GITHUB_OUTPUT
+#          else
+#            echo "🆕 No matching message found"
+#            echo "already_sent=false" >> $GITHUB_OUTPUT
+#          fi
 
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #new_releases (if not already sent)
