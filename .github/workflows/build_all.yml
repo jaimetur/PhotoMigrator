@@ -620,11 +620,19 @@ jobs:
       TOOL_VERSION: ${{ needs.create-release.outputs.tool_version }}
 
     steps:
+      - name: 🏷️ Extract Tool Version
+        run: |
+          # 1️⃣ Obtenemos el valor sin la “v”
+          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
+
+          # 3️⃣ Lo exportamos para los siguientes steps
+          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
+          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
+
       - name: 🔍 Check TOOL_VERSION is set
         run: |
           echo "📦 Verifying version..."
           echo "✅ TOOL_VERSION is: $TOOL_VERSION"
-      
 
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
@@ -634,6 +642,15 @@ jobs:
         with:
           name: RELEASE-NOTES.md
           path: .
+
+      - name: 📄 Install pandoc (for HTML conversion)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: 🌐 Convert RELEASE-NOTES.md to HTML
+        run: |
+          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.html
 
 #      - name: 📄 Install pandoc and XeLaTeX (for emoji-compatible PDF)
 #        run: |
@@ -653,19 +670,6 @@ jobs:
 #      - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis and custom preamble
 #        run: |
 #          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="Noto Sans" -V emojifont="Noto Color Emoji" -H preamble.tex
-
-      - name: 🌐 Convert RELEASE-NOTES.md to HTML
-        run: |
-          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.html
-
-#      - name: 🏷️ Extract Tool Version
-#        run: |
-#          # 1️⃣ Obtenemos el valor sin la “v”
-#          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
-#
-#          # 3️⃣ Lo exportamos para los siguientes steps
-#          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
-#          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       # ──────────────────────────────────────────────────────────────────────
       # 🔍 CHECK: if message already exists in #new_releases
