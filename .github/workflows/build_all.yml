@@ -633,7 +633,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
-          sudo apt-get install -y fonts-noto fonts-noto-color-emoji fonts-noto-core fonts-noto-ui fonts-noto-unhinted
+          sudo apt-get install -y fonts-noto fonts-noto-core fonts-noto-extra fonts-noto-color-emoji fonts-noto-mono
+
 
       - name: 🧩 Create LaTeX preamble to allow deep nesting
         run: |
