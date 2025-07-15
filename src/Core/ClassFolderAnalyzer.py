@@ -369,12 +369,13 @@ class FolderAnalyzer:
                         if guessed_date:
                             dt = parser.isoparse(guessed_date)
                             if is_date_valid(dt, reference):
+                                file_path_obj = Path(file_path)
                                 if guessed_source == "filename":
                                     full_info["FilenameDate"] = dt.isoformat()
-                                    source = "FILENAME"
+                                    source = f"FILENAME:{file_path_obj.name}"
                                 elif guessed_source == "filepath":
                                     full_info["FilepathDate"] = dt.isoformat()
-                                    source = "FILEPATH"
+                                    source = f"FILEPATH:{file_path_obj.parent}"
                                 dt_final = dt
                     except:
                         pass
