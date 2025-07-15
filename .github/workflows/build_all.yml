@@ -645,7 +645,7 @@ jobs:
         id: check_text
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
-          FOOTER_TEXT="ReleaseID: $VERSION"
+          FOOTER_TEXT="$VERSION"
           echo "🔎 Searching for footer: $FOOTER_TEXT"
 
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
