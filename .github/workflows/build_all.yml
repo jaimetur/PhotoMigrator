@@ -201,6 +201,7 @@ jobs:
   build-binaries:
     name: ▶️ Build Binaries
     # Different VM images to compile in all SO and all Archs according to:
+    # https://github.com/actions/runner-images
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     needs: set-input-matrix
     strategy:
@@ -610,8 +611,9 @@ jobs:
   notify-discord:
     name: 📣 Notify Discord (both channels)
     needs: create-release
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    env:
+      TOOL_VERSION: ${{ needs.create-release.outputs.tool_version }}
 
     steps:
       - name: 🧾 Checkout Repository
@@ -627,7 +629,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
-          sudo apt-get install -y fonts-noto
+          sudo apt-get install -y fonts-noto fonts-noto-color-emoji fonts-noto-core fonts-noto-ui fonts-noto-unhinted
 
       - name: 🧩 Create LaTeX preamble to allow deep nesting
         run: |
@@ -640,7 +642,16 @@ jobs:
 
       - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis and custom preamble
         run: |
-          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="Noto Sans" -H preamble.tex
+          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="Noto Sans" -V emojifont="Noto Color Emoji" -H preamble.tex
+
+      - name: 🏷️ Extract Tool Version
+        run: |
+          # 1️⃣ Obtenemos el valor sin la “v”
+          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
+          
+          # 3️⃣ Lo exportamos para los siguientes steps
+          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
+          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       # ──────────────────────────────────────────────────────────────────────
       # 🔍 CHECK: if message already exists in #new_releases
@@ -648,13 +659,9 @@ jobs:
       - name: 🔍 Check if message already exists in #new_releases
         id: check_text
         run: |
-          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
-            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
-
-          echo "🔍 RAW RESPONSE:"
-          echo "$RESPONSE"
-
-          FOUND=$(echo "$RESPONSE" | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
+          FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
+            | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
 
           if [ -n "$FOUND" ]; then
             echo "✅ Message already exists"
@@ -663,21 +670,6 @@ jobs:
             echo "🆕 No matching message found"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
-
-#      - name: 🔍 Check if message already exists in #new_releases
-#        id: check_text
-#        run: |
-#          FOUND=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
-#            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50" \
-#            | jq -r '.[] | select(.content | test("v${{ env.TOOL_VERSION }}"))')
-#
-#          if [ -n "$FOUND" ]; then
-#            echo "✅ Message already exists"
-#            echo "already_sent=true" >> $GITHUB_OUTPUT
-#          else
-#            echo "🆕 No matching message found"
-#            echo "already_sent=false" >> $GITHUB_OUTPUT
-#          fi
 
       # ──────────────────────────────────────────────────────────────────────
       # 📣 NOTIFY: in #new_releases (if not already sent)
@@ -690,7 +682,7 @@ jobs:
                  "username": "GitHub Bot",
                  "embeds": [{
                    "title": "📣 New Release Published",
-                   "description": "Version **v${{ env.TOOL_VERSION }}** is now available!\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n📄 Changelog attached as PDF.",
+                   "description": "Version **v${{ env.TOOL_VERSION }}** is now available!\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n\n📄 Release-Notes attached as PDF.",
                    "color": 15105570
                  }]
                }' \
@@ -727,7 +719,7 @@ jobs:
                  "thread_name": "Release v${{ env.TOOL_VERSION }}",
                  "embeds": [{
                    "title": "📣 New Release Published",
-                   "description": "**${{ github.repository }}** has published version **v${{ env.TOOL_VERSION }}**.\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n📄 Changelog attached as PDF.",
+                   "description": "**${{ github.repository }}** has published version **v${{ env.TOOL_VERSION }}**.\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n\n📄 Release-Notes attached as PDF.",
                    "color": 3447003
                  }]
                }' \
