@@ -689,7 +689,7 @@ jobs:
       - name: 📣 Notify in #new_releases channel (with PDF)
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
-          VERSION="v${{ env.TOOL_VERSION }}"
+          VERSION="${{ env.TOOL_VERSION }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}"
           curl -X POST \
                -F "payload_json={
@@ -727,7 +727,7 @@ jobs:
       - name: 📣 Notify in #releases-discussion channel (with PDF)
         if: steps.check_forum.outputs.already_sent == 'false'
         run: |
-          VERSION="v${{ env.TOOL_VERSION }}"
+          VERSION="${{ env.TOOL_VERSION }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}"
           curl -X POST \
                -F "payload_json={
