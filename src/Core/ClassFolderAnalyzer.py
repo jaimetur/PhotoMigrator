@@ -237,26 +237,20 @@ class FolderAnalyzer:
             relative_folder: Base path to which file paths will be shown relatively.
             step_name (str): Optional prefix for log messages.
         """
-        # ❔ Show Files without dates
         if self.logger.isEnabledFor(logging.INFO):
-            W1 = 15  # step_name
-            W2 = 25  # date
-            W3 = 25  # source
-            self.logger.info(f"{step_name}📋 Files with missing Date:")
+            files_with_missing_dates = []
+            relative_base = Path(relative_folder).resolve()
             for file_path, info in self.file_dates.items():
                 oldest_date = info.get("OldestDate")
                 if oldest_date is None:
-                    source = info.get("Source", "N/A")
                     try:
-                        file_name = str(Path(file_path).resolve().relative_to(Path(relative_folder).resolve()))
+                        rel_path = str(Path(file_path).resolve().relative_to(relative_base))
                     except ValueError:
-                        file_name = Path(file_path).name
-                    self.logger.info(
-                        f"{step_name:<{W1}} "
-                        f"OldestDate: {'None':<{W2}} | "
-                        f"Source: {source:<{W3}} | "
-                        f"File: {file_name}"
-                    )
+                        rel_path = str(Path(file_path).resolve())
+                    files_with_missing_dates.append(rel_path)
+            self.logger.info(f"{step_name}📋 Total Files with missing Date: {len(files_with_missing_dates)}")
+            for rel_path in files_with_missing_dates:
+                self.logger.info(f"{step_name}📋 File with missing Date: {rel_path}")
 
     def extract_dates(self, step_name='', block_size=1_000, log_level=None, max_workers=None):
         """

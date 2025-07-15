@@ -1,8 +1,8 @@
 name: ♻️ Update Version Dropdowns on Release
 
 on:
-  release:
-    types: [published]
+#  release:
+#    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -13,22 +13,22 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repository
+      - name: 🧾 Checkout repository
         uses: actions/checkout@v4
         with:
           ref: main  # o la rama principal que uses
           persist-credentials: true
           fetch-depth: 0  # necesario para permitir commits y push
 
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: 3.11
 
-      - name: Install Python dependencies
+      - name: 📦 Install Python dependencies
         run: pip install requests pyyaml
 
-      - name: Run version dropdown updater
+      - name: ♻️ Run version dropdown updater
         run: python .github/update_version_dropdown.py
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
