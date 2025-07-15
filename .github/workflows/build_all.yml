@@ -465,7 +465,7 @@ jobs:
 
           # 3️⃣ Lo exportamos para los siguientes steps
           echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
-          echo "tool_version=${TOOL_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tool_version=${TOOL_VERSION}" >> $GITHUB_OUTPUT
           echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
@@ -620,6 +620,10 @@ jobs:
       TOOL_VERSION: ${{ needs.create-release.outputs.tool_version }}
 
     steps:
+      - name: 🔍 Check TOOL_VERSION is set
+        run:
+          echo "✅ TOOL_VERSION is: $TOOL_VERSION"
+
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
 
@@ -629,25 +633,28 @@ jobs:
           name: RELEASE-NOTES.md
           path: .
 
-      - name: 📄 Install pandoc and XeLaTeX (for emoji-compatible PDF)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
-          sudo apt-get install -y fonts-noto fonts-noto-core fonts-noto-extra fonts-noto-color-emoji fonts-noto-mono
+#      - name: 📄 Install pandoc and XeLaTeX (for emoji-compatible PDF)
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
+#          sudo apt-get install -y fonts-noto fonts-noto-core fonts-noto-extra fonts-noto-color-emoji fonts-noto-mono
+#
+#      - name: 🧩 Create LaTeX preamble to allow deep nesting
+#        run: |
+#          cat <<EOF > preamble.tex
+#          \\usepackage{enumitem}
+#          \\setlistdepth{15}
+#          \\renewlist{itemize}{itemize}{15}
+#          \\setlist[itemize]{label=--}
+#          EOF
+#
+#      - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis and custom preamble
+#        run: |
+#          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="Noto Sans" -V emojifont="Noto Color Emoji" -H preamble.tex
 
-
-      - name: 🧩 Create LaTeX preamble to allow deep nesting
+      - name: 🌐 Convert RELEASE-NOTES.md to HTML
         run: |
-          cat <<EOF > preamble.tex
-          \\usepackage{enumitem}
-          \\setlistdepth{15}
-          \\renewlist{itemize}{itemize}{15}
-          \\setlist[itemize]{label=--}
-          EOF
-
-      - name: 📝 Convert RELEASE-NOTES.md to PDF with emojis and custom preamble
-        run: |
-          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.pdf --pdf-engine=xelatex -V mainfont="Noto Sans" -V emojifont="Noto Color Emoji" -H preamble.tex
+          pandoc RELEASE-NOTES.md -o RELEASE-NOTES.html
 
 #      - name: 🏷️ Extract Tool Version
 #        run: |
@@ -682,16 +689,18 @@ jobs:
       - name: 📣 Notify in #new_releases channel (with PDF)
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
           curl -X POST \
-               -F 'payload_json={
-                 "username": "GitHub Bot",
-                 "embeds": [{
-                   "title": "📣 New Release Published",
-                   "description": "Version **v${{ env.TOOL_VERSION }}** is now available!\n[View release](${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ env.TOOL_VERSION }})\n\n📄 Release-Notes attached as PDF.",
-                   "color": 15105570
+               -F "payload_json={
+                 \"username\": \"GitHub Bot\",
+                 \"embeds\": [{
+                   \"title\": \"📣 New Release Published\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as PDF.\",
+                   \"color\": 15105570
                  }]
-               }' \
-               -F "file1=@RELEASE-NOTES.pdf" \
+               }" \
+               -F "file1=@RELEASE-NOTES.html" \
                ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
 
       # ──────────────────────────────────────────────────────────────────────
@@ -718,6 +727,25 @@ jobs:
       - name: 📣 Notify in #releases-discussion channel (with PDF)
         if: steps.check_forum.outputs.already_sent == 'false'
         run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          curl -X POST \
+               -F "payload_json={
+                 \"username\": \"GitHub Bot\",
+                 \"thread_name\": \"Release $VERSION\",
+                 \"embeds\": [{
+                   \"title\": \"📣 New Release Published\",
+                   \"description\": \"Version **$VERSION** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as PDF.\",
+                   \"color\": 3447003
+                 }]
+               }" \
+               -F "file1=@RELEASE-NOTES.html" \
+               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
+
+      - name: 📣 Notify in #releases-discussion channel (with PDF)
+        if: steps.check_forum.outputs.already_sent == 'false'
+        run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
           curl -X POST \
                -F 'payload_json={
                  "username": "GitHub Bot",
@@ -728,5 +756,5 @@ jobs:
                    "color": 3447003
                  }]
                }' \
-               -F "file1=@RELEASE-NOTES.pdf" \
+               -F "file1=@RELEASE-NOTES.html" \
                ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
