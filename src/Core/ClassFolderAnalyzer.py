@@ -70,11 +70,11 @@ class FolderAnalyzer:
 
         Returns:
             dict: A dictionary where each key is a file path (TargetFile) and each value
-                  is a dictionary containing metadata such as SelectedDate and Source.
+                  is a dictionary containing metadata such as OldestDate and Source.
         """
         return self.file_dates
 
-    def get_attribute(self, file_path, attr="SelectedDate", step_name=""):
+    def get_attribute(self, file_path, attr="OldestDate", step_name=""):
         """
         Return one or more attributes from extracted_dates by TargetFile.
         """
@@ -94,9 +94,25 @@ class FolderAnalyzer:
 
     def get_date(self, file_path, step_name=""):
         """
-        Return only the SelectedDate for the given file.
+        Return the OldestDate as a datetime object for the given file.
+        If the stored value is a string, it will be parsed.
+        If the value is missing or invalid, returns None.
         """
-        return self.get_attribute(file_path, attr="SelectedDate", step_name=step_name)
+        raw_date = self.get_attribute(file_path, attr="OldestDate", step_name=step_name)
+        if isinstance(raw_date, datetime):
+            return raw_date
+        if isinstance(raw_date, str) and raw_date.strip():
+            try:
+                return parser.parse(raw_date.strip())
+            except Exception as e:
+                self.logger.warning(f"{step_name}⚠️ Could not parse OldestDate for {file_path}: {e}")
+        return None
+
+    def get_date_as_str(self, file_path, step_name=""):
+        """
+        Return only the OldestDate for the given file.
+        """
+        return self.get_attribute(file_path, attr="OldestDate", step_name=step_name)
 
     def update_target_file(self, current_path, new_target_path, step_name=""):
         """
