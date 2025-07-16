@@ -731,13 +731,27 @@ jobs:
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
           REPO_URL="https://github.com/${{ github.repository }}/releases/tag/$VERSION"
-          # Pedimos la respuesta completa para extraer el message_id
-          RESPONSE=$(curl -s -H "Content-Type: multipart/form-data" \
+          # POST multipart without forcing Content-Type header
+          RESPONSE=$(curl -s \
             -F "payload_json={\"username\":\"GitHub Bot\",\"thread_name\":\"Release $VERSION\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":3447003,\"footer\":{\"text\":\"$VERSION\"}}]}" \
             -F "file1=@RELEASE-NOTES.md" \
             "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}?wait=true")
-          # Save the message ID for later updates
-          echo "thread_msg_id=$(echo \"$RESPONSE\" | jq -r .id)" >> $GITHUB_OUTPUT
+          echo "🔍 RESPONSE: $RESPONSE"
+          echo "thread_msg_id=$(echo "$RESPONSE" | jq -r .id)" >> $GITHUB_OUTPUT
+
+#      - name: "5. 📣 Create thread in '#releases-discussion'"
+#        if: steps.check_discussion.outputs.already_sent == 'false'
+#        id: create_thread
+#        run: |
+#          VERSION="v${{ env.TOOL_VERSION }}"
+#          REPO_URL="https://github.com/${{ github.repository }}/releases/tag/$VERSION"
+#          # Pedimos la respuesta completa para extraer el message_id
+#          RESPONSE=$(curl -s -H "Content-Type: multipart/form-data" \
+#            -F "payload_json={\"username\":\"GitHub Bot\",\"thread_name\":\"Release $VERSION\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":3447003,\"footer\":{\"text\":\"$VERSION\"}}]}" \
+#            -F "file1=@RELEASE-NOTES.md" \
+#            "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}?wait=true")
+#          # Save the message ID for later updates
+#          echo "thread_msg_id=$(echo \"$RESPONSE\" | jq -r .id)" >> $GITHUB_OUTPUT
 
       # ──────────────────────────────────────────────────────────────────────
       # 6. ✏️ UPDATE: thread root message in '#releases-discussion' if exists
