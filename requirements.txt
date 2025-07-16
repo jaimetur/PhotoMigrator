@@ -24,5 +24,6 @@ python-dateutil~=2.9.0.post0
 colorama~=0.4.6
 rich
 pyyaml
+tzlocal
 #windows-curses; sys_platform == "win32"
 windows-curses; platform_system == "Windows" and platform_machine == "AMD64"

@@ -22,7 +22,7 @@ from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXIFTOOL_OUTPUT, MSG_TAGS
-from Utils.DateUtils import normalize_datetime_utc, is_date_valid
+from Utils.DateUtils import normalize_datetime_utc, is_date_valid, guess_date_from_filename
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
 
@@ -70,11 +70,11 @@ class FolderAnalyzer:
 
         Returns:
             dict: A dictionary where each key is a file path (TargetFile) and each value
-                  is a dictionary containing metadata such as SelectedDate and Source.
+                  is a dictionary containing metadata such as OldestDate and Source.
         """
         return self.file_dates
 
-    def get_attribute(self, file_path, attr="SelectedDate", step_name=""):
+    def get_attribute(self, file_path, attr="OldestDate", step_name=""):
         """
         Return one or more attributes from extracted_dates by TargetFile.
         """
@@ -94,9 +94,25 @@ class FolderAnalyzer:
 
     def get_date(self, file_path, step_name=""):
         """
-        Return only the SelectedDate for the given file.
+        Return the OldestDate as a datetime object for the given file.
+        If the stored value is a string, it will be parsed.
+        If the value is missing or invalid, returns None.
         """
-        return self.get_attribute(file_path, attr="SelectedDate", step_name=step_name)
+        raw_date = self.get_attribute(file_path, attr="OldestDate", step_name=step_name)
+        if isinstance(raw_date, datetime):
+            return raw_date
+        if isinstance(raw_date, str) and raw_date.strip():
+            try:
+                return parser.parse(raw_date.strip())
+            except Exception as e:
+                self.logger.warning(f"{step_name}⚠️ Could not parse OldestDate for {file_path}: {e}")
+        return None
+
+    def get_date_as_str(self, file_path, step_name=""):
+        """
+        Return only the OldestDate for the given file.
+        """
+        return self.get_attribute(file_path, attr="OldestDate", step_name=step_name)
 
     def update_target_file(self, current_path, new_target_path, step_name=""):
         """
@@ -213,14 +229,37 @@ class FolderAnalyzer:
             self.file_dates = json.load(f)
         self.logger.info(f"{step_name}EXIF Dates loaded from JSON: {input_file}")
 
-    def extract_dates(self, step_name='', block_size=1_000, log_level=None, max_workers=None):
+    def show_files_without_dates(self, relative_folder, step_name=""):
+        """
+        Displays a summary of files that do not have a valid OldestDate field in self.file_dates.
+
+        Args:
+            relative_folder: Base path to which file paths will be shown relatively.
+            step_name (str): Optional prefix for log messages.
+        """
+        if self.logger.isEnabledFor(logging.INFO):
+            files_with_missing_dates = []
+            relative_base = Path(relative_folder).resolve()
+            for file_path, info in self.file_dates.items():
+                oldest_date = info.get("OldestDate")
+                if oldest_date is None:
+                    try:
+                        rel_path = str(Path(file_path).resolve().relative_to(relative_base))
+                    except ValueError:
+                        rel_path = str(Path(file_path).resolve())
+                    files_with_missing_dates.append(rel_path)
+            self.logger.info(f"{step_name}📋 Total Files Without Date in Output folder: {len(files_with_missing_dates)}")
+            for rel_path in files_with_missing_dates:
+                self.logger.info(f"{step_name}📋 File Without Date: {rel_path}")
+
+    def extract_dates(self, step_name='', block_size=1_000, use_filename=True, log_level=None, max_workers=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.file_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
+        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate', 'FileNameDate', 'FilePathDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
@@ -323,6 +362,24 @@ class FolderAnalyzer:
                     except:
                         pass
 
+                # Fallback al nombre del fichero o path si aún no hay ninguna
+                if not dt_final and use_filename:
+                    try:
+                        guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
+                        if guessed_date:
+                            dt = parser.isoparse(guessed_date)
+                            if is_date_valid(dt, reference):
+                                file_path_obj = Path(file_path)
+                                if guessed_source == "filename":
+                                    full_info["FileNameDate"] = dt.isoformat()
+                                    source = f"FILENAME:{file_path_obj.name}"
+                                elif guessed_source == "filepath":
+                                    full_info["FilePathDate"] = dt.isoformat()
+                                    source = f"FILEPATH:{file_path_obj.parent}"
+                                dt_final = dt
+                    except:
+                        pass
+
                 # Fallback a fecha del sistema si aún no hay ninguna
                 if not dt_final:
                     try:
@@ -345,12 +402,20 @@ class FolderAnalyzer:
         # --- Main execution
         def main():
             with set_log_level(self.logger, log_level):
-                self.logger.info(f"{step_name}⏳ Extracting Dates for '{self.folder_path}'...")
+                self.logger.info(f"{step_name}📅 Extracting Dates for '{self.folder_path}'...")
 
                 # Filter the file list to only include supported photo and video extensions
                 media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
+                json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
+                total_files = len(self.file_list)
+                total_media_files = len(media_files)
+                total_json_files = len(json_files)
+
+                # Clean memory
+                del media_files
+                del json_files
 
                 # ⏱️ Start timing
                 start_time = time.time()
@@ -359,6 +424,7 @@ class FolderAnalyzer:
 
                 # Parallel execution using ThreadPoolExecutor
                 workers = max(1, min(total_blocks, max_workers, 64))    # Ensure at least 1 worker and maximum max_workers (saturated to 64 workers)
+                self.logger.info(f"{step_name}🧵 {total_files} files found ({total_media_files} media files | {total_json_files} JSON files)")
                 self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:
@@ -423,10 +489,10 @@ class FolderAnalyzer:
                             link_target = os.readlink(full_path)
                             resolved_target = os.path.abspath(os.path.join(os.path.dirname(full_path), link_target))
                             if not os.path.exists(resolved_target):
-                                LOGGER.info(f"{step_name}Excluded broken symlink: {full_path}")
+                                self.logger.info(f"{step_name}Excluded broken symlink: {full_path}")
                                 continue
                         except OSError as e:
-                            LOGGER.warning(f"{step_name}⚠️ Failed to read symlink {full_path}: {e}")
+                            self.logger.warning(f"{step_name}⚠️ Failed to read symlink {full_path}: {e}")
                             continue
 
                     counters['total_files'] += 1

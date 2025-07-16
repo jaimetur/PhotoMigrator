@@ -137,18 +137,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
         return self.output_folder
 
     def analyze_folder(self, folder_to_analyze, folder_type='output', step_name='', save_json=True):
-        # Analyze Folder
+        # Analyze Folder using the New Class FolderAnalyzer to extract files dates and to count all file types from a given folder
         # ----------------------------------------------------------------------------------------------------------------------
         step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
         sub_step_start_time = datetime.now()
-
-        # Count all Files in output Folder
-        # counters, exif_dates, output_json = count_files_and_extract_dates(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
-
         if folder_type.lower() == 'input':
-            # New Class to count all file types and extract also date info
             self.initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, logger=LOGGER, step_name=step_name)
-            self.initial_takeout_folder_analyzer.extract_dates(step_name=step_name)
+            self.initial_takeout_folder_analyzer.extract_dates(use_filename=False, step_name=step_name) # Avoud to use_filename to guess dates from filename to do a fair comparisson between pre/post
             counters = self.initial_takeout_folder_analyzer.count_files(step_name=step_name)
             if save_json:
                 self.initial_takeout_folder_analyzer.save_to_json(f"input_dates_metadata.json", step_name=step_name)
@@ -156,7 +151,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             folder = 'Takeout folder'
             sub_dict = 'input_counters'
         elif folder_type.lower() == 'output':
-            # New Class to count all file types and extract also date info
             self.output_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, logger=LOGGER, step_name=step_name)
             self.output_folder_analyzer.extract_dates(step_name=step_name)
             counters = self.output_folder_analyzer.count_files(step_name=step_name)
@@ -172,21 +166,21 @@ class ClassTakeoutFolder(ClassLocalFolder):
         self.result[sub_dict].update(counters)
         result = self.result
 
+        # Present Results
+        # ----------------------------------------------------------------------------------------------------------------------
         COL1_WIDTH = 44  # Description
         COL2_WIDTH = 7  # Counters
         COL3_WIDTH = 34  # Symlinks / % of photos and videos
         TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
         SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
-        PCT_DIGITS = max(1, len(str(int(result[sub_dict]['photos']['pct_with_date']))), len(str(int(result[sub_dict]['photos']['pct_without_date']))), len(str(int(result[sub_dict]['videos']['pct_with_date']))),
-                         len(str(int(result[sub_dict]['videos']['pct_without_date'])))) + 2
+        PCT_DIGITS = max(1, len(str(int(result[sub_dict]['photos']['pct_with_date']))), len(str(int(result[sub_dict]['photos']['pct_without_date']))), len(str(int(result[sub_dict]['videos']['pct_with_date']))), len(str(int(result[sub_dict]['videos']['pct_without_date'])))) + 2
 
         LOGGER.info(f"{step_name}Analyzing {folder} completed!")
         LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
         LOGGER.info(f"{step_name}{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb'] / 1024:>{COL2_WIDTH}.2f} (GB)")
         LOGGER.info(f"{step_name}{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
         LOGGER.info(f"{step_name}{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(
-            f"{step_name}{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+        LOGGER.info(f"{step_name}{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
         LOGGER.info(f"{step_name}{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
         LOGGER.info(f"{step_name}{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
         LOGGER.info(f"{step_name}{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
@@ -566,6 +560,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{self.step}.{self.substep}. ANALYZING OUTPUT FILES... ")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
+            # Call analyze_folder to invoke FolderAnalyzer class with the selected folder_to_analyze
             self.analyze_folder(folder_to_analyze=output_folder, folder_type='output', step_name=step_name, save_json=False)
 
             # Finally show TOTAL DURATION OF PRE-PROCESS PHASE
@@ -600,6 +595,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
+            # Step 5: Final Steps
+            # ----------------------------------------------------------------------------------------------------------------------
+            # Increment self.step for the Post Process Steps
+            self.step += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. FINAL STEPS...")
+            LOGGER.info(f"================================================================================================================================================")
+            self.final_steps(input_folder=input_folder, output_folder=output_folder)
+
+
             # FINISH & PRINT RESULTS
             # ----------------------------------------------------------------------------------------------------------------------
             processing_end_time = datetime.now()
@@ -614,7 +620,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"-" * 67)
             for entry in self.steps_duration:
                 label_cleaned = ' '.join(entry['step_name'].replace(' : ', '').split()).replace(' ]', ']')
-                # step_id_and_label = f"Step {(str(entry['step_id'])).ljust(4)} : {label_cleaned}"
                 # If it is a principal Step, add new line
                 if '.' not in str(entry['step_id']):
                     LOGGER.info("")
@@ -773,8 +778,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
-
-
 
             # At the end of the process, we call the super() to make this objet a sub-instance of the class ClassLocalFolder to create the same folder structure
             if create_localfolder_object:
@@ -1028,34 +1031,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-
-            # Step 4.8: FINAL CLEANING
-            # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧹 [POST-PROCESS]-[Final Cleaning] : '
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
-            sub_step_start_time = datetime.now()
-            self.substep += 1
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. FINAL CLEANING... ")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
-            # Save the final output_dates_metadata.json
-            self.output_folder_analyzer.save_to_json(f"output_dates_metadata_final.json", step_name=step_name)
-            # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
-            # removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
-            removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
-            if removed:
-                LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
-            else:
-                LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
-            sub_step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-            LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-
-
             # Finally show TOTAL DURATION OF POST-PROCESS PHASE
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
@@ -1067,6 +1042,72 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if idx < 0:  idx = 0  # si la lista tiene menos de self.substep elementos, lo ponemos al inicio
             # Insertamos ahí el nuevo registro (sin sobrescribir ninguno)
             self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
+
+
+    def final_steps(self, input_folder=None, output_folder=None):
+        # ---------------------------------------------- FINAL STEPS ------------------------------------------------------------
+        # Initialize Step timer
+        step_start_time = datetime.now()
+
+        # Initialize self.substep counter for the Post Process Steps
+        self.substep = 0
+
+        # Step 5.1: FINAL CLEANING
+        # ----------------------------------------------------------------------------------------------------------------------
+        step_name = '🧹 [FINAL-STEPS]-[Final Cleaning] : '
+        step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+        sub_step_start_time = datetime.now()
+        self.substep += 1
+        LOGGER.info(f"")
+        LOGGER.info(f"================================================================================================================================================")
+        LOGGER.info(f"{self.step}.{self.substep}. FINAL CLEANING... ")
+        LOGGER.info(f"================================================================================================================================================")
+        LOGGER.info(f"")
+        # Save the final output_dates_metadata.json
+        self.output_folder_analyzer.save_to_json(f"output_dates_metadata_final.json", step_name=step_name)
+        # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
+        removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
+        if removed:
+            LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
+        else:
+            LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
+        sub_step_end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+        LOGGER.info(f"")
+        LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+        self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+
+        # Step 5.2: FINAL CLEANING
+        # ----------------------------------------------------------------------------------------------------------------------
+        step_name = '❔ [FINAL-STEPS]-[Files without dates] : '
+        step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+        sub_step_start_time = datetime.now()
+        self.substep += 1
+        LOGGER.info(f"")
+        LOGGER.info(f"================================================================================================================================================")
+        LOGGER.info(f"{self.step}.{self.substep}. FILES WITHOUT DATES... ")
+        LOGGER.info(f"================================================================================================================================================")
+        LOGGER.info(f"")
+        # Now, after Post-Processing (if have been executed), show the files without dates
+        self.output_folder_analyzer.show_files_without_dates(relative_folder=output_folder, step_name=step_name)
+        sub_step_end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+        LOGGER.info(f"")
+        LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+        self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+        # Finally show TOTAL DURATION OF FINAL-STEPS PHASE
+        step_end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+        step_name = '🏁 [FINAL-STEPS] : '
+        LOGGER.info(f"")
+        LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+        # Índice self.substep posiciones antes del final
+        idx = len(self.steps_duration) - self.substep
+        if idx < 0:  idx = 0  # si la lista tiene menos de self.substep elementos, lo ponemos al inicio
+        # Insertamos ahí el nuevo registro (sin sobrescribir ninguno)
+        self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
 
 
     # sobreescribimos el método get_takeout_assets_by_filters() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
@@ -2033,7 +2074,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
             return False
 
 
-def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], folder_analyzer: FolderAnalyzer = None, update_json=None, step_name="", log_level=None):
+def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], folder_analyzer: FolderAnalyzer = None, step_name="", log_level=None):
     """
     Organizes files into subfolders based on their EXIF date or, if unavailable, their modification date.
 
@@ -2059,28 +2100,27 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
         ValueError: If `type` is not one of 'year', 'year/month', or 'year-month'.
     """
 
-    # TODO: Mejorar el Performance de esta función haciendo uso del objeto folder_analyzer que se le pasa como argumento.
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
-    def get_file_date(file_path, exif_dates, step_name):
+    def get_file_date(file_path, file_dates, step_name):
         norm_path = Path(file_path).resolve().as_posix()
 
-        # 1. Try to get SelectedDate from exif_dates if available
-        exif_entry = exif_dates.get(norm_path) if exif_dates else None
-        if isinstance(exif_entry, dict):
-            selected_date = exif_entry.get("SelectedDate")
-            if isinstance(selected_date, datetime):
-                return selected_date
-            elif isinstance(selected_date, str) and selected_date.strip():
+        # 1. Try to get OldestDate from file_dates if available
+        file_entry = file_dates.get(norm_path) if file_dates else None
+        if isinstance(file_entry, dict):
+            oldest_date = file_entry.get("OldestDate")
+            if isinstance(oldest_date, datetime):
+                return oldest_date
+            elif isinstance(oldest_date, str) and oldest_date.strip():
                 try:
-                    return parser.parse(selected_date.strip())
+                    return parser.parse(oldest_date.strip())
                 except Exception as e:
                     if LOGGER.isEnabledFor(logging.VERBOSE):
-                        LOGGER.verbose(f"{step_name}❌ Error parsing SelectedDate '{selected_date}' for {norm_path}: {e}")
+                        LOGGER.verbose(f"{step_name}❌ Error parsing OldestDate '{oldest_date}' for {norm_path}: {e}")
 
-            # If no SelectedDate, try to use the minimum date among all EXIF tags
+            # If no OldestDate, try to use the minimum date among all EXIF tags
             all_dates = []
-            for k, v in exif_entry.items():
-                if k in ["SelectedDate", "Source"] or not v:
+            for k, v in file_entry.items():
+                if k in ["OldestDate", "Source"] or not v:
                     continue
                 try:
                     dt = v if isinstance(v, datetime) else parser.parse(str(v).strip())
@@ -2121,16 +2161,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError(f"{step_name}The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
 
-        # ⏩ Preparsear SelectedDate si es un string
-        exif_dates = folder_analyzer.get_file_dates() if folder_analyzer else {}
-        for key, value in exif_dates.items():
-            if isinstance(value, dict):
-                selected_date = value.get("SelectedDate")
-                if isinstance(selected_date, str):
-                    try:
-                        value["SelectedDate"] = parser.parse(selected_date.strip())
-                    except Exception:
-                        continue
+        # ⏩ Extract file_dates dict from folder_analyzer object
+        file_dates = folder_analyzer.get_file_dates() if folder_analyzer else {}
 
         replacements = []
         with tqdm(smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files", dynamic_ncols=True) as pbar:
@@ -2142,10 +2174,9 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
                         continue
                     pbar.update(1)
                     # Get file date
-                    mod_time = get_file_date(file_path, exif_dates, step_name)
+                    mod_time = get_file_date(file_path, file_dates, step_name)
                     if LOGGER.isEnabledFor(logging.DEBUG):
-                        # LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
-                        pass
+                        LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
                     # Determine target folder
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))

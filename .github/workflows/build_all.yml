@@ -201,6 +201,7 @@ jobs:
   build-binaries:
     name: ▶️ Build Binaries
     # Different VM images to compile in all SO and all Archs according to:
+    # https://github.com/actions/runner-images
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     needs: set-input-matrix
     strategy:
@@ -446,6 +447,9 @@ jobs:
 
     runs-on: ubuntu-22.04
 
+    outputs:
+      tool_version: ${{ steps.extract_version.outputs.tool_version }}
+
     steps:
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
@@ -455,12 +459,17 @@ jobs:
           echo "Final-Release: ${{ inputs.final_release }}"
 
       - name: 🏷️ Extract TOOL_VERSION from GlobalVariables.py
+        id: extract_version                   # Importante añadir el ID para que outputs pueda encontrar la variable
         run: |
           # 1️⃣ Obtenemos el valor sin la “v”
           TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
-
-          # 3️⃣ Lo exportamos para los siguientes steps
+          
+          # 2️⃣ Lo ponemos en el entorno de los siguientes steps (opcional)
           echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
+          
+          # 3️⃣ Creamos la salida del step
+          echo "tool_version=${TOOL_VERSION}" >> "$GITHUB_OUTPUT"
+          
           echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
@@ -604,60 +613,139 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
 
-#      - name: 🔧 Patch release after creation
-#        if: ${{ inputs.final_release == true }}
-#        run: |
-#          TAG="v${{ env.TOOL_VERSION }}"
-#          REPO="${{ github.repository }}"
-#
-#          echo "🔍 Fetching release ID for tag $TAG..."
-#          RELEASE_ID=$(gh api "repos/$REPO/releases/tags/$TAG" --jq .id 2>/dev/null || echo "")
-#
-#          echo "🛠️ Patching release $RELEASE_ID to force draft=false, final_release=true and make_latest=true..."
-#          gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
-#            -H "Accept: application/vnd.github+json" \
-#            -f "target_commitish=main" \
-#            -F "draft=false" \
-#            -F "prerelease=false" \
-#            -f "make_latest=true"
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+  # ==========================================================================================================================
+  # JOB Notify Release on Discord Channels (#new_releases & #releases-discussion)
+  # ==========================================================================================================================
+  notify-discord:
+    if: ${{ github.event.inputs.final_release == 'true' }}
+    name: 📣 Notify on Discord
+    needs: create-release
+    runs-on: ubuntu-latest
+    env:
+      TOOL_VERSION: ${{ needs.create-release.outputs.tool_version }}
 
+    steps:
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
 
-#      # Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
-#      - name: ✅ Commit & push README.md if changed
-#        run: |
-#          git config --global user.name "github-actions[bot]"
-#          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-#
-#          # Añadir solo README.md, evitando archivos no deseados
-#          git add README.md
-#
-#          # Si NO hay cambios en README.md, salir sin error
-#          if git diff --cached --quiet; then
-#            echo "No hay cambios en README.md"
-#            exit 0
-#          fi
-#
-#          # Guardar cambios en stash antes de pull --rebase
-#          git stash push -m "Pre-rebase stash"
-#
-#          # Actualizar la rama
-#          git pull --rebase origin ${{ github.ref_name }}
-#
-#          # Restaurar cambios del stash si existen
-#          git stash pop || echo "No hay stash para aplicar"
-#
-#          # Asegurar que README.md está agregado después del pop
-#          git add README.md
-#
-#          # Verificar nuevamente si hay cambios antes de hacer commit
-#          if git diff --cached --quiet; then
-#            echo "No hay cambios después del stash pop"
-#            exit 0
-#          fi
-#
-#          # Realizar commit y push
-#          git commit -m "README.md updated by Github Actions (build_all.yml)"
-#          git push origin ${{ github.ref_name }}
+      - name: 🔍 Check TOOL_VERSION env var
+        run: |
+          echo "🔍 TOOL_VERSION en este job es: '$TOOL_VERSION'"
+          if [ -z "$TOOL_VERSION" ]; then
+            echo "❌ ERROR: TOOL_VERSION está vacío o no se importó correctamente"
+            exit 1
+          fi
 
+      - name: 📥 Download RELEASE-NOTES.md from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: RELEASE-NOTES.md
+          path: .
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 1. 🔍 CHECK: if message already exists in #new_releases
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 🔍 Check if message already exists in '#new_releases'
+        id: check_text
+        run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
+          FOOTER_TEXT="$VERSION"
+          echo "🔎 Searching for footer: $FOOTER_TEXT"
+
+          # Obtener últimos mensajes del canal
+          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
+
+          # DEBUG opcional: descomentar si necesitas ver el JSON entero
+          echo "📦 Raw API response (truncado):"
+          echo "$RESPONSE" | head -n 20
+
+          # Buscar mensaje con footer que coincida
+          MATCH=$(echo "$RESPONSE" | jq -e --arg footer "$FOOTER_TEXT" '
+            .[] | select(
+              .embeds != null and
+              any(.embeds[]?; .footer?.text == $footer)
+            )
+          ' || true)
+
+          # Mostrar resultado parcial del match
+          if [ -n "$MATCH" ]; then
+            echo "✅ Message with matching footer found:"
+            echo "$MATCH" | jq '.id, .embeds[0].footer.text'
+            echo "already_sent=true" >> $GITHUB_OUTPUT
+          else
+            echo "🆕 No matching message found"
+            echo "already_sent=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 2. 📣 NOTIFY: in #new_releases (if not already sent)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 📣 Notify in '#new_releases' channel
+        if: steps.check_text.outputs.already_sent == 'false'
+        run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          curl -X POST \
+               -F "payload_json={
+                 \"username\": \"GitHub Bot\",
+                 \"embeds\": [{
+                   \"title\": \"📣 New Release Published\",
+                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+                   \"color\": 15105570,
+                   \"footer\": {\"text\": \"$VERSION\"}
+                 }]
+               }" \
+               -F "file1=@RELEASE-NOTES.md" \
+               ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 3. 📡 CHECK: if thread already exists in #releases-discussion
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 🔍 Check if thread already exists in '#releases-discussion'
+        id: check_discussion
+        run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
+          THREAD_NAME="Release $VERSION"
+          PARENT_ID="${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}"
+          echo "🔎 Searching for thread: $THREAD_NAME under parent $PARENT_ID"
+
+          # List all active threads in the guild...
+          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+            "https://discord.com/api/v10/guilds/${{ secrets.DISCORD_GUILD_ID }}/threads/active")
+
+          # ...and filter by parent_id + thread name
+          MATCH=$(echo "$RESPONSE" | jq -e --arg NAME "$THREAD_NAME" --arg PARENT "$PARENT_ID" '
+            .threads[]
+            | select(.parent_id == $PARENT and .name == $NAME)
+          ' || true)
+
+          if [ -n "$MATCH" ]; then
+            echo "✅ Thread already exists"
+            echo "already_sent=true" >> $GITHUB_OUTPUT
+          else
+            echo "🆕 Thread does not exist yet"
+            echo "already_sent=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: 📣 Notify in '#releases-discussion' channel
+        if: steps.check_discussion.outputs.already_sent == 'false'
+        run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          curl -X POST \
+               -F "payload_json={
+                 \"username\": \"GitHub Bot\",
+                 \"thread_name\": \"Release $VERSION\",
+                 \"embeds\": [{
+                   \"title\": \"📣 New Release Published\",
+                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+                   \"color\": 3447003,
+                   \"footer\": {\"text\": \"$VERSION\"}
+                 }]
+               }" \
+               -F "file1=@RELEASE-NOTES.md" \
+               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
