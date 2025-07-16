@@ -746,13 +746,15 @@ jobs:
         if: steps.check_discussion.outputs.already_sent == 'true'
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
+          THREAD_ID="${{ steps.check_discussion.outputs.thread_id }}"
           MSG_ID="${{ steps.check_discussion.outputs.thread_msg_id }}"
           REPO_URL="https://github.com/${{ github.repository }}/releases/tag/$VERSION"
-          echo "✏️ Editing thread message $MSG_ID..."
+
           curl -X PATCH \
             -F "payload_json={\"username\":\"GitHub Bot\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":3447003,\"footer\":{\"text\":\"$VERSION\"}}],\"attachments\":[]}" \
             -F "file1=@RELEASE-NOTES.md" \
-            "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}/messages/$MSG_ID"
+            "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}/messages/$MSG_ID?thread_id=$THREAD_ID"
+
 
 #  notify-discord:
 #    if: ${{ github.event.inputs.final_release == 'true' }}
