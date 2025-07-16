@@ -686,14 +686,24 @@ jobs:
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
           set -e
-
           VERSION="v${{ env.TOOL_VERSION }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
 
-          # 1) Partimos el MD en chunks de ≤3800 chars sin romper palabras
-          mapfile -t chunks < <(fold -w3800 -s RELEASE-NOTES.md)
+          # 1) Calcula longitud total y tamaño de chunk para máximo 10 embeds
+          TOTAL_CHARS=$(wc -m < RELEASE-NOTES.md)
+          MAX_EMBEDS=10
+          CHUNK_SIZE=$(( (TOTAL_CHARS + MAX_EMBEDS - 1) / MAX_EMBEDS ))
 
-          # 2) Montamos el array de embeds
+          # 2) Parte en trozos de ≤CHUNK_SIZE caracteres
+          mapfile -t chunks < <(fold -w"$CHUNK_SIZE" -s RELEASE-NOTES.md)
+
+          # 3) Si hay más de 10 trozos, fusiona el resto en el último
+          if [ "${#chunks[@]}" -gt "$MAX_EMBEDS" ]; then
+            extra="$(printf "%s\n" "${chunks[@]:$((MAX_EMBEDS-1))}" | tr '\n' ' ')"
+            chunks=( "${chunks[@]:0:$((MAX_EMBEDS-1))}" "$extra" )
+          fi
+
+          # 4) Monta el array de embeds
           embeds_json="["
           for idx in "${!chunks[@]}"; do
             esc="${chunks[$idx]//\"/\\\"}"
@@ -705,21 +715,20 @@ jobs:
           done
           embeds_json="${embeds_json%,}]"
 
-          # 3) Payload final
+          # 5) Construye y envía el payload
           payload=$(
             jq -nc --arg user "GitHub Bot" \
                   --argjson embeds "$embeds_json" \
-              '{ username: $user, embeds: $embeds }'
+                '{ username: $user, embeds: $embeds }'
           )
-
-          # 4) Envío y debug
           HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
             -H "Content-Type: application/json" \
             -d "$payload" \
             "${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}")
           echo "🛰️ HTTP status: $HTTP_CODE"
           cat /tmp/resp.json
-          if [[ "${HTTP_CODE:0:1}" != "2" ]]; then exit 1; fi
+          [[ "${HTTP_CODE:0:1}" == "2" ]]
+      
 
 #      - name: 📣 Notify in '#new_releases channel'
 #        if: steps.check_text.outputs.already_sent == 'false'
@@ -775,15 +784,25 @@ jobs:
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
           set -e
-
           VERSION="v${{ env.TOOL_VERSION }}"
           THREAD_NAME="Release ${VERSION}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
 
-          # 1) Partimos el MD en chunks de ≤3800 chars sin romper palabras
-          mapfile -t chunks < <(fold -w3800 -s RELEASE-NOTES.md)
+          # 1) Calcula longitud total y tamaño de chunk para máximo 10 embeds
+          TOTAL_CHARS=$(wc -m < RELEASE-NOTES.md)
+          MAX_EMBEDS=10
+          CHUNK_SIZE=$(( (TOTAL_CHARS + MAX_EMBEDS - 1) / MAX_EMBEDS ))
 
-          # 2) Montamos el array de embeds
+          # 2) Parte en trozos de ≤CHUNK_SIZE caracteres
+          mapfile -t chunks < <(fold -w"$CHUNK_SIZE" -s RELEASE-NOTES.md)
+
+          # 3) Si hay más de 10 trozos, fusiona el resto en el último
+          if [ "${#chunks[@]}" -gt "$MAX_EMBEDS" ]; then
+            extra="$(printf "%s\n" "${chunks[@]:$((MAX_EMBEDS-1))}" | tr '\n' ' ')"
+            chunks=( "${chunks[@]:0:$((MAX_EMBEDS-1))}" "$extra" )
+          fi
+
+          # 4) Monta el array de embeds
           embeds_json="["
           for idx in "${!chunks[@]}"; do
             esc="${chunks[$idx]//\"/\\\"}"
@@ -795,22 +814,20 @@ jobs:
           done
           embeds_json="${embeds_json%,}]"
 
-          # 3) Payload final
+          # 5) Construye y envía el payload
           payload=$(
             jq -nc --arg user "GitHub Bot" \
                   --arg thread_name "$THREAD_NAME" \
                   --argjson embeds "$embeds_json" \
                 '{ username: $user, thread_name: $thread_name, embeds: $embeds }'
           )
-
-          # 4) Envío y debug
           HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
             -H "Content-Type: application/json" \
             -d "$payload" \
             "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}")
           echo "🛰️ HTTP status: $HTTP_CODE"
           cat /tmp/resp.json
-          if [[ "${HTTP_CODE:0:1}" != "2" ]]; then exit 1; fi
+          [[ "${HTTP_CODE:0:1}" == "2" ]]
       
       
 
