@@ -702,16 +702,20 @@ jobs:
       - name: 🔍 Check if thread already exists in #releases-discussion
         id: check_discussion
         run: |
-          THREAD_NAME="Release v${{ env.TOOL_VERSION }}"
-          echo "🔎 Searching for thread: $THREAD_NAME"
+          VERSION="v${{ env.TOOL_VERSION }}"
+          THREAD_NAME="Release $VERSION"
+          PARENT_ID="${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}"
+          echo "🔎 Searching for thread: $THREAD_NAME under parent $PARENT_ID"
 
+          # List all active threads in the guild...
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
-            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}/threads/active")
+            "https://discord.com/api/v10/guilds/${{ secrets.DISCORD_GUILD_ID }}/threads/active")
 
-          echo "📦 Raw API response:"
-          echo "$RESPONSE"
-
-          MATCH=$(echo "$RESPONSE" | jq -e --arg THREAD_NAME "$THREAD_NAME" '.threads[] | select(.name == $THREAD_NAME)' || true)
+          # ...and filter by parent_id + thread name
+          MATCH=$(echo "$RESPONSE" | jq -e --arg NAME "$THREAD_NAME" --arg PARENT "$PARENT_ID" '
+            .threads[]
+            | select(.parent_id == $PARENT and .name == $NAME)
+          ' || true)
 
           if [ -n "$MATCH" ]; then
             echo "✅ Thread already exists"
@@ -720,6 +724,7 @@ jobs:
             echo "🆕 Thread does not exist yet"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
+      
       
 
       # ──────────────────────────────────────────────────────────────────────
