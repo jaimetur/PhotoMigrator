@@ -459,13 +459,17 @@ jobs:
           echo "Final-Release: ${{ inputs.final_release }}"
 
       - name: 🏷️ Extract TOOL_VERSION from GlobalVariables.py
+        id: extract_version                   # Importante añadir el ID para que outputs pueda encontrar la variable
         run: |
           # 1️⃣ Obtenemos el valor sin la “v”
           TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
-
-          # 3️⃣ Lo exportamos para los siguientes steps
+          
+          # 2️⃣ Lo ponemos en el entorno de los siguientes steps (opcional)
           echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
-          echo "tool_version=${TOOL_VERSION}" >> $GITHUB_OUTPUT
+          
+          # 3️⃣ Creamos la salida del step
+          echo "tool_version=${TOOL_VERSION}" >> "$GITHUB_OUTPUT"
+          
           echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
@@ -613,6 +617,7 @@ jobs:
   # JOB Notify Release on Discord Channels (#new_releases & #releases-discussion)
   # ==========================================================================================================================
   notify-discord:
+    if: ${{ github.event.inputs.final_release == 'true' }}
     name: 📣 Notify on Discord
     needs: create-release
     runs-on: ubuntu-latest
@@ -623,14 +628,22 @@ jobs:
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🏷️ Extract Tool Version
-        run: |
-          # 1️⃣ Obtenemos el valor sin la “v”
-          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
+#      - name: 🏷️ Extract Tool Version
+#        run: |
+#          # 1️⃣ Obtenemos el valor sin la “v”
+#          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
+#
+#          # 3️⃣ Lo exportamos para los siguientes steps
+#          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
+#          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
 
-          # 3️⃣ Lo exportamos para los siguientes steps
-          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
-          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
+      - name: 🔍 Check TOOL_VERSION env var
+        run: |
+          echo "🔍 TOOL_VERSION en este job es: '$TOOL_VERSION'"
+          if [ -z "$TOOL_VERSION" ]; then
+            echo "❌ ERROR: TOOL_VERSION está vacío o no se importó correctamente"
+            exit 1
+          fi
 
       - name: 📥 Download RELEASE-NOTES.md from artifacts
         uses: actions/download-artifact@v4
@@ -641,7 +654,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 1. 🔍 CHECK: if message already exists in #new_releases
       # ──────────────────────────────────────────────────────────────────────
-      - name: 🔍 Check if message already exists in #new_releases
+      - name: 🔍 Check if message already exists in '#new_releases'
         id: check_text
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
@@ -678,7 +691,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 2. 📣 NOTIFY: in #new_releases (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in #new_releases channel
+      - name: 📣 Notify in '#new_releases channel'
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
@@ -699,7 +712,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 3. 📡 CHECK: if thread already exists in #releases-discussion
       # ──────────────────────────────────────────────────────────────────────
-      - name: 🔍 Check if thread already exists in #releases-discussion
+      - name: 🔍 Check if thread already exists in '#releases-discussion'
         id: check_discussion
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
@@ -728,7 +741,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in #releases-discussion channel
+      - name: 📣 Notify in '#releases-discussion channel'
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
