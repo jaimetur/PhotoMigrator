@@ -28,7 +28,7 @@ Below you can find the list of all commands that the Tool can receive to execute
 usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noLog]
                      [-logLevel =[VERBOSE, DEBUG, INFO, WARNING, ERROR]] [-logFormat =[LOG, TXT, ALL]]
                      [-fnAlbums <ALBUMS_FOLDER>] [-fnNoAlbums <NO_ALBUMS_FOLDER>] [-fnLogs <LOG_FOLDER>]
-                     [-fnDuplicat <DUPLICATES_OUTPUT_FOLDER>] [-fnExiftool <EXIFTOOL_OUTPUT_FOLDER>]
+                     [-fnDuplicat <DUPLICATES_OUTPUT_FOLDER>] [-fnExtDates <EXTRACTED_DATES_FOLDER>]
                      [-exeGpthTool <GPTH_PATH>] [-exeExifTool <EXIFTOOL_PATH>]
                      [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>] [-client = ['google-takeout', 'synology', 'immich']]
                      [-id [= [1-3]]]
@@ -81,7 +81,7 @@ optional arguments:
                Specify the folder name to save the execution Logs.
 -fnDuplicat  ; --foldername-duplicates-output <DUPLICATES_OUTPUT_FOLDER>
                Specify the folder name to save the outputs of 'Find Duplicates' Feature.
--fnExiftool  ; --foldername-exiftool-output <EXIFTOOL_OUTPUT_FOLDER>
+-fnExtDates  ; --foldername-extracted_dates <EXTRACTED_DATES_FOLDER>
                Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.
 -exeGpthTool ; --exec-gpth-tool <GPTH_PATH>
                Specify an external version of GPTH Tool binary.

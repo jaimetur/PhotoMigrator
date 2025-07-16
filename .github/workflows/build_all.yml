@@ -628,81 +628,73 @@ jobs:
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🔍 Check TOOL_VERSION env var
-        run: |
-          echo "🔍 TOOL_VERSION en este job es: '$TOOL_VERSION'"
-          if [ -z "$TOOL_VERSION" ]; then
-            echo "❌ ERROR: TOOL_VERSION está vacío o no se importó correctamente"
-            exit 1
-          fi
-
-      - name: 📥 Download RELEASE-NOTES.md from artifacts
+      - name: 📥 Download RELEASE-NOTES.md
         uses: actions/download-artifact@v4
         with:
           name: RELEASE-NOTES.md
           path: .
 
       # ──────────────────────────────────────────────────────────────────────
-      # 1. 🔍 CHECK: if message already exists in #new_releases
+      # CHANNEL: '#new_releases'
       # ──────────────────────────────────────────────────────────────────────
-      - name: 🔍 Check if message already exists in '#new_releases'
+      # ──────────────────────────────────────────────────────────────────────
+      # 1. 🔍 CHECK: if message already exists in '#new_releases'
+      # ──────────────────────────────────────────────────────────────────────
+      - name: "1. 🔍 Check if message exists in '#new_releases'"
         id: check_text
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
-          FOOTER_TEXT="$VERSION"
-          echo "🔎 Searching for footer: $FOOTER_TEXT"
-
-          # Obtener últimos mensajes del canal
-          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+          echo "🔎 Searching for footer: $VERSION"
+          RESP=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
-
-          # DEBUG opcional: descomentar si necesitas ver el JSON entero
           echo "📦 Raw API response (truncado):"
-          echo "$RESPONSE" | head -n 20
-
-          # Buscar mensaje con footer que coincida
-          MATCH=$(echo "$RESPONSE" | jq -e --arg footer "$FOOTER_TEXT" '
-            .[] | select(
-              .embeds != null and
-              any(.embeds[]?; .footer?.text == $footer)
-            )
-          ' || true)
-
-          # Mostrar resultado parcial del match
+          echo "$RESP" | head -n 20
+          MATCH=$(echo "$RESP" | jq -e --arg f "$VERSION" \
+            '.[] | select(.embeds[]?.footer?.text == $f)' || true)
           if [ -n "$MATCH" ]; then
-            echo "✅ Message with matching footer found:"
-            echo "$MATCH" | jq '.id, .embeds[0].footer.text'
+            echo "✅ Found existing message:"
+            echo "$MATCH" | jq -r '.id, .embeds[0].footer.text'
             echo "already_sent=true" >> $GITHUB_OUTPUT
+            echo "message_id=$(echo "$MATCH" | jq -r .id)" >> $GITHUB_OUTPUT
           else
             echo "🆕 No matching message found"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
 
       # ──────────────────────────────────────────────────────────────────────
-      # 2. 📣 NOTIFY: in #new_releases (if not already sent)
+      # 2. 📣 CREATE: announcement in '#new_releases' if not exists
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in '#new_releases' channel
+      - name: "2. 📣 Create announcement in '#new_releases'"
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
-          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          REPO_URL="https://github.com/${{ github.repository }}/releases/tag/$VERSION"
           curl -X POST \
-               -F "payload_json={
-                 \"username\": \"GitHub Bot\",
-                 \"embeds\": [{
-                   \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
-                   \"color\": 15105570,
-                   \"footer\": {\"text\": \"$VERSION\"}
-                 }]
-               }" \
-               -F "file1=@RELEASE-NOTES.md" \
-               ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
+            -F "payload_json={\"username\":\"GitHub Bot\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":15105570,\"footer\":{\"text\":\"$VERSION\"}}]}" \
+            -F "file1=@RELEASE-NOTES.md" \
+            "${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}"
 
       # ──────────────────────────────────────────────────────────────────────
-      # 3. 📡 CHECK: if thread already exists in #releases-discussion
+      # 3. ✏️ UPDATE: announcement in '#new_releases' if exists
       # ──────────────────────────────────────────────────────────────────────
-      - name: 🔍 Check if thread already exists in '#releases-discussion'
+      - name: "3. ✏️ Update announcement in '#new_releases'"
+        if: steps.check_text.outputs.already_sent == 'true'
+        run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
+          MSG_ID="${{ steps.check_text.outputs.message_id }}"
+          REPO_URL="https://github.com/${{ github.repository }}/releases/tag/$VERSION"
+          curl -X PATCH \
+            -F "payload_json={\"username\":\"GitHub Bot\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":15105570,\"footer\":{\"text\":\"$VERSION\"}}],\"attachments\":[]}" \
+            -F "file1=@RELEASE-NOTES.md" \
+            "${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}/messages/$MSG_ID"
+
+      # ──────────────────────────────────────────────────────────────────────
+      # CHANNEL: '#releases-discussion'
+      # ──────────────────────────────────────────────────────────────────────
+      # ──────────────────────────────────────────────────────────────────────
+      # 4. 🔍 CHECK: if thread already exists in '#releases-discussion'
+      # ──────────────────────────────────────────────────────────────────────
+      - name: "4. 🔍 Check if thread exists in '#releases-discussion'"
         id: check_discussion
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
@@ -710,42 +702,190 @@ jobs:
           PARENT_ID="${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}"
           echo "🔎 Searching for thread: $THREAD_NAME under parent $PARENT_ID"
 
-          # List all active threads in the guild...
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/guilds/${{ secrets.DISCORD_GUILD_ID }}/threads/active")
+          echo "📦 Raw API response (truncado):"
+          echo "$RESPONSE" | head -n 5
 
-          # ...and filter by parent_id + thread name
-          MATCH=$(echo "$RESPONSE" | jq -e --arg NAME "$THREAD_NAME" --arg PARENT "$PARENT_ID" '
-            .threads[]
-            | select(.parent_id == $PARENT and .name == $NAME)
-          ' || true)
+          THREAD_ID=$(echo "$RESPONSE" | jq -r --arg n "$THREAD_NAME" --arg p "$PARENT_ID" \
+            '.threads[] | select(.parent_id==$p and .name==$n) | .id')
+          THREAD_MSG_ID=$(echo "$RESPONSE" | jq -r --arg n "$THREAD_NAME" --arg p "$PARENT_ID" \
+            '.threads[] | select(.parent_id==$p and .name==$n) | .last_message_id')
 
-          if [ -n "$MATCH" ]; then
-            echo "✅ Thread already exists"
-            echo "already_sent=true" >> $GITHUB_OUTPUT
+          if [[ -n "$THREAD_ID" && -n "$THREAD_MSG_ID" ]]; then
+            echo "✅ Found existing thread $THREAD_ID with message $THREAD_MSG_ID"
+            echo "already_sent=true"        >> $GITHUB_OUTPUT
+            echo "thread_id=$THREAD_ID"     >> $GITHUB_OUTPUT
+            echo "thread_msg_id=$THREAD_MSG_ID" >> $GITHUB_OUTPUT
           else
             echo "🆕 Thread does not exist yet"
-            echo "already_sent=false" >> $GITHUB_OUTPUT
+            echo "already_sent=false"       >> $GITHUB_OUTPUT
           fi
 
       # ──────────────────────────────────────────────────────────────────────
-      # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
+      # 5. 📣 CREATE: thread in '#releases-discussion' if not exists
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in '#releases-discussion' channel
+      - name: "5. 📣 Create thread in '#releases-discussion'"
         if: steps.check_discussion.outputs.already_sent == 'false'
+        id: create_thread
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
-          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
-          curl -X POST \
-               -F "payload_json={
-                 \"username\": \"GitHub Bot\",
-                 \"thread_name\": \"Release $VERSION\",
-                 \"embeds\": [{
-                   \"title\": \"📣 New Release Published\",
-                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
-                   \"color\": 3447003,
-                   \"footer\": {\"text\": \"$VERSION\"}
-                 }]
-               }" \
-               -F "file1=@RELEASE-NOTES.md" \
-               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
+          REPO_URL="https://github.com/${{ github.repository }}/releases/tag/$VERSION"
+          # Pedimos la respuesta completa para extraer el message_id
+          RESPONSE=$(curl -s -H "Content-Type: multipart/form-data" \
+            -F "payload_json={\"username\":\"GitHub Bot\",\"thread_name\":\"Release $VERSION\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":3447003,\"footer\":{\"text\":\"$VERSION\"}}]}" \
+            -F "file1=@RELEASE-NOTES.md" \
+            "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}?wait=true")
+          # Save the message ID for later updates
+          echo "thread_msg_id=$(echo \"$RESPONSE\" | jq -r .id)" >> $GITHUB_OUTPUT
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 6. ✏️ UPDATE: thread root message in '#releases-discussion' if exists
+      # ──────────────────────────────────────────────────────────────────────
+      - name: "6. ✏️ Update thread in '#releases-discussion'"
+        if: steps.check_discussion.outputs.already_sent == 'true'
+        run: |
+          VERSION="v${{ env.TOOL_VERSION }}"
+          THREAD_ID="${{ steps.check_discussion.outputs.thread_id }}"
+          MSG_ID="${{ steps.check_discussion.outputs.thread_msg_id }}"
+          REPO_URL="https://github.com/${{ github.repository }}/releases/tag/$VERSION"
+
+          curl -X PATCH \
+            -F "payload_json={\"username\":\"GitHub Bot\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":3447003,\"footer\":{\"text\":\"$VERSION\"}}],\"attachments\":[]}" \
+            -F "file1=@RELEASE-NOTES.md" \
+            "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}/messages/$MSG_ID?thread_id=$THREAD_ID"
+
+
+#  notify-discord:
+#    if: ${{ github.event.inputs.final_release == 'true' }}
+#    name: 📣 Notify on Discord
+#    needs: create-release
+#    runs-on: ubuntu-latest
+#    env:
+#      TOOL_VERSION: ${{ needs.create-release.outputs.tool_version }}
+#
+#    steps:
+#      - name: 🧾 Checkout Repository
+#        uses: actions/checkout@v4
+#
+#      - name: 🔍 Check TOOL_VERSION env var
+#        run: |
+#          echo "🔍 TOOL_VERSION en este job es: '$TOOL_VERSION'"
+#          if [ -z "$TOOL_VERSION" ]; then
+#            echo "❌ ERROR: TOOL_VERSION está vacío o no se importó correctamente"
+#            exit 1
+#          fi
+#
+#      - name: 📥 Download RELEASE-NOTES.md from artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: RELEASE-NOTES.md
+#          path: .
+#
+#      # ──────────────────────────────────────────────────────────────────────
+#      # 1. 🔍 CHECK: if message already exists in #new_releases
+#      # ──────────────────────────────────────────────────────────────────────
+#      - name: 🔍 Check if message already exists in '#new_releases'
+#        id: check_text
+#        run: |
+#          VERSION="v${{ env.TOOL_VERSION }}"
+#          FOOTER_TEXT="$VERSION"
+#          echo "🔎 Searching for footer: $FOOTER_TEXT"
+#
+#          # Obtener últimos mensajes del canal
+#          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+#            "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
+#
+#          # DEBUG opcional: descomentar si necesitas ver el JSON entero
+#          echo "📦 Raw API response (truncado):"
+#          echo "$RESPONSE" | head -n 20
+#
+#          # Buscar mensaje con footer que coincida
+#          MATCH=$(echo "$RESPONSE" | jq -e --arg footer "$FOOTER_TEXT" '
+#            .[] | select(
+#              .embeds != null and
+#              any(.embeds[]?; .footer?.text == $footer)
+#            )
+#          ' || true)
+#
+#          # Mostrar resultado parcial del match
+#          if [ -n "$MATCH" ]; then
+#            echo "✅ Message with matching footer found:"
+#            echo "$MATCH" | jq '.id, .embeds[0].footer.text'
+#            echo "already_sent=true" >> $GITHUB_OUTPUT
+#          else
+#            echo "🆕 No matching message found"
+#            echo "already_sent=false" >> $GITHUB_OUTPUT
+#          fi
+#
+#      # ──────────────────────────────────────────────────────────────────────
+#      # 2. 📣 NOTIFY: in #new_releases (if not already sent)
+#      # ──────────────────────────────────────────────────────────────────────
+#      - name: 📣 Notify in '#new_releases' channel
+#        if: steps.check_text.outputs.already_sent == 'false'
+#        run: |
+#          VERSION="v${{ env.TOOL_VERSION }}"
+#          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+#          curl -X POST \
+#               -F "payload_json={
+#                 \"username\": \"GitHub Bot\",
+#                 \"embeds\": [{
+#                   \"title\": \"📣 New Release Published\",
+#                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+#                   \"color\": 15105570,
+#                   \"footer\": {\"text\": \"$VERSION\"}
+#                 }]
+#               }" \
+#               -F "file1=@RELEASE-NOTES.md" \
+#               ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
+#
+#      # ──────────────────────────────────────────────────────────────────────
+#      # 3. 📡 CHECK: if thread already exists in #releases-discussion
+#      # ──────────────────────────────────────────────────────────────────────
+#      - name: 🔍 Check if thread already exists in '#releases-discussion'
+#        id: check_discussion
+#        run: |
+#          VERSION="v${{ env.TOOL_VERSION }}"
+#          THREAD_NAME="Release $VERSION"
+#          PARENT_ID="${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}"
+#          echo "🔎 Searching for thread: $THREAD_NAME under parent $PARENT_ID"
+#
+#          # List all active threads in the guild...
+#          RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+#            "https://discord.com/api/v10/guilds/${{ secrets.DISCORD_GUILD_ID }}/threads/active")
+#
+#          # ...and filter by parent_id + thread name
+#          MATCH=$(echo "$RESPONSE" | jq -e --arg NAME "$THREAD_NAME" --arg PARENT "$PARENT_ID" '
+#            .threads[]
+#            | select(.parent_id == $PARENT and .name == $NAME)
+#          ' || true)
+#
+#          if [ -n "$MATCH" ]; then
+#            echo "✅ Thread already exists"
+#            echo "already_sent=true" >> $GITHUB_OUTPUT
+#          else
+#            echo "🆕 Thread does not exist yet"
+#            echo "already_sent=false" >> $GITHUB_OUTPUT
+#          fi
+#
+#      # ──────────────────────────────────────────────────────────────────────
+#      # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
+#      # ──────────────────────────────────────────────────────────────────────
+#      - name: 📣 Notify in '#releases-discussion' channel
+#        if: steps.check_discussion.outputs.already_sent == 'false'
+#        run: |
+#          VERSION="v${{ env.TOOL_VERSION }}"
+#          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+#          curl -X POST \
+#               -F "payload_json={
+#                 \"username\": \"GitHub Bot\",
+#                 \"thread_name\": \"Release $VERSION\",
+#                 \"embeds\": [{
+#                   \"title\": \"📣 New Release Published\",
+#                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+#                   \"color\": 3447003,
+#                   \"footer\": {\"text\": \"$VERSION\"}
+#                 }]
+#               }" \
+#               -F "file1=@RELEASE-NOTES.md" \
+#               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
