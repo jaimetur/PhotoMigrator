@@ -704,25 +704,23 @@ jobs:
 
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/guilds/${{ secrets.DISCORD_GUILD_ID }}/threads/active")
+          echo "📦 Raw API response (truncado):"
           echo "$RESPONSE" | head -n 5
 
-          MATCH=$(echo "$RESPONSE" | jq -e \
-            --arg name "$THREAD_NAME" \
-            --arg parent "$PARENT_ID" \
-            '.threads[] | select(.parent_id==$parent and .name==$name)' \
-          || true)
+          THREAD_ID=$(echo "$RESPONSE" | jq -r --arg n "$THREAD_NAME" --arg p "$PARENT_ID" \
+            '.threads[] | select(.parent_id==$p and .name==$n) | .id')
+          THREAD_MSG_ID=$(echo "$RESPONSE" | jq -r --arg n "$THREAD_NAME" --arg p "$PARENT_ID" \
+            '.threads[] | select(.parent_id==$p and .name==$n) | .last_message_id')
 
-          if [ -n "$MATCH" ]; then
-            echo "✅ Found existing thread:"
-            echo "$MATCH" | jq -r '.id, .last_message_id'
+          if [[ -n "$THREAD_ID" && -n "$THREAD_MSG_ID" ]]; then
+            echo "✅ Found existing thread $THREAD_ID with message $THREAD_MSG_ID"
             echo "already_sent=true"        >> $GITHUB_OUTPUT
-            echo "thread_id=$(echo \"$MATCH\" | jq -r .id)"              >> $GITHUB_OUTPUT
-            echo "thread_msg_id=$(echo \"$MATCH\" | jq -r .last_message_id)" >> $GITHUB_OUTPUT
+            echo "thread_id=$THREAD_ID"     >> $GITHUB_OUTPUT
+            echo "thread_msg_id=$THREAD_MSG_ID" >> $GITHUB_OUTPUT
           else
             echo "🆕 Thread does not exist yet"
             echo "already_sent=false"       >> $GITHUB_OUTPUT
           fi
-
 
       # ──────────────────────────────────────────────────────────────────────
       # 5. 📣 CREATE: thread in '#releases-discussion' if not exists
@@ -750,6 +748,7 @@ jobs:
           VERSION="v${{ env.TOOL_VERSION }}"
           MSG_ID="${{ steps.check_discussion.outputs.thread_msg_id }}"
           REPO_URL="https://github.com/${{ github.repository }}/releases/tag/$VERSION"
+          echo "✏️ Editing thread message $MSG_ID..."
           curl -X PATCH \
             -F "payload_json={\"username\":\"GitHub Bot\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":3447003,\"footer\":{\"text\":\"$VERSION\"}}],\"attachments\":[]}" \
             -F "file1=@RELEASE-NOTES.md" \
