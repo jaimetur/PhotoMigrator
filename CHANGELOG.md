@@ -4,8 +4,6 @@
 
 ---
 
-
-
 ## Release: v3.4.3  
 - ### Release Date: 2025-07-15
 
@@ -104,7 +102,7 @@
     - [x] Added new argument `-fnNoAlbums, --foldername-no/albums` to Allow user to define folder name for 'No-Albums'.
     - [x] Added new argument `-fnLogs, --foldername-logs` to Allow user to define folder name for 'Logs'.
     - [x] Added new argument `-fnDuplicat, --foldername-duplicates-output` to Allow user to define folder name for 'Duplicates Outputs'.
-    - [x] Added new argument `-fnExiftool, --foldername-exiftool-output` to Allow user to define folder name for 'Exiftool Outputs'.
+    - [x] Added new argument `-fnExtDates, --foldername-extracted_dates` to Allow user to define folder name for 'Exiftool Outputs'.
     - [x] Added new argument `-exeGpthTool, --exec-gpth-tool` to Allow user to specify an external version of GPTH Tool binary.
     - [x] Added new argument `-exeExifTool, --exec-exif-tool` to Allow user to specify an external version of EXIF Tool binary.
     - [x] Added new argument `-gSkipPrep, --google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
