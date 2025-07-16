@@ -641,14 +641,20 @@ jobs:
         id: check_text
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
+          echo "🔎 Searching for footer: $VERSION"
           RESP=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/channels/${{ secrets.DISCORD_NEW_RELEASES_CHANNEL_ID }}/messages?limit=50")
+          echo "📦 Raw API response (truncado):"
+          echo "$RESP" | head -n 20
           MATCH=$(echo "$RESP" | jq -e --arg footer "$VERSION" \
             '.[] | select(.embeds[]?.footer?.text == $footer)' || true)
           if [ -n "$MATCH" ]; then
+            echo "✅ Found existing message:"
+            echo "$MATCH" | jq -r '.id, .embeds[0].footer.text'
             echo "already_sent=true" >> $GITHUB_OUTPUT
             echo "message_id=$(echo "$MATCH" | jq -r .id)" >> $GITHUB_OUTPUT
           else
+            echo "🆕 No matching message found"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
 
@@ -687,14 +693,21 @@ jobs:
         run: |
           VERSION="v${{ env.TOOL_VERSION }}"
           THREAD_NAME="Release $VERSION"
+          PARENT_ID="${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}"
+          echo "🔎 Searching for thread: $THREAD_NAME under parent $PARENT_ID"
           RESPONSE=$(curl -s -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
             "https://discord.com/api/v10/guilds/${{ secrets.DISCORD_GUILD_ID }}/threads/active")
-          MATCH=$(echo "$RESPONSE" | jq -e --arg name "$THREAD_NAME" --arg parent "${{ secrets.DISCORD_RELEASES_DISCUSSION_CHANNEL_ID }}" \
-            '.threads[] | select(.parent_id==$parent and .name==$name)' || true)
+          echo "📦 Raw API response (truncado):"
+          echo "$RESPONSE" | head -n 20
+          MATCH=$(echo "$RESPONSE" | jq -e --arg name "$THREAD_NAME" --arg parent "$PARENT_ID" \
+            '.threads[] | select(.parent_id == $parent and .name == $name)' || true)
           if [ -n "$MATCH" ]; then
+            echo "✅ Found existing thread:"
+            echo "$MATCH" | jq -r '.id, .name'
             echo "already_sent=true" >> $GITHUB_OUTPUT
             echo "thread_id=$(echo "$MATCH" | jq -r .id)" >> $GITHUB_OUTPUT
           else
+            echo "🆕 Thread does not exist yet"
             echo "already_sent=false" >> $GITHUB_OUTPUT
           fi
 
@@ -727,6 +740,7 @@ jobs:
             -F "payload_json={\"username\":\"GitHub Bot\",\"embeds\":[{\"title\":\"📣 New Release — $VERSION\",\"url\":\"$REPO_URL\",\"description\":\"Version **$VERSION** is now available!\",\"color\":3447003,\"footer\":{\"text\":\"$VERSION\"}}]}" \
             -F "file1=@RELEASE-NOTES.md" \
             "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}/messages/$ROOT_ID"
+
 
 
 #  notify-discord:
