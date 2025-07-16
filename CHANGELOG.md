@@ -16,7 +16,7 @@
   - #### 🚀 Enhancements:
     - [x] Enhancements in 'Google Takeout Processing' feature to improve the performance.
       - [x] Created a new Class `FolderAnalyzer` to analyze any folder and:
-        - Extract dates of all media files found using Exiftool if is found, or PIL library as fallback or Guess from filename as second fallback or filesystem date as final fallback if any of both previous method is able to find dates in any media file.
+        - Extract dates of all media files found using Exiftool if is found, or PIL library as fallback or guess from filename as second fallback or filesystem date as final fallback if any of previous method is able to find dates in foe each media file.
         - Get the oldest date between all date tags found in EXIF metadata of the media file.
         - Keep the analyzer object in memory for faster date extraction during the code.
         - Save extracted dates into a JSON file when finished the process.
