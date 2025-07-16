@@ -682,7 +682,7 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 2. 📣 NOTIFY: in #new_releases (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: "📣 Notify in '#new_releases' channel (full MD in embed fields)"
+      - name: "📣 Notify in '#new_releases' channel (full MD in multi-embeds)"
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
           set -e
@@ -690,58 +690,38 @@ jobs:
           VERSION="v${{ env.TOOL_VERSION }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
 
-          # 1) Partimos el Markdown en líneas ≤1000 chars sin romper palabras
-          mapfile -t chunks < <(fold -w1000 -s RELEASE-NOTES.md)
+          # 1) Partimos el MD en chunks de ≤3800 chars sin romper palabras
+          mapfile -t chunks < <(fold -w3800 -s RELEASE-NOTES.md)
 
-          # 2) Montamos el JSON de fields, pero solo con trozos no vacíos
-          fields_json="["
-          for part in "${chunks[@]}"; do
-            # quitamos espacios al principio/fin para comprobar si está realmente vacío
-            trimmed=$(echo "$part" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            if [[ -z "$trimmed" ]]; then
-              continue
+          # 2) Montamos el array de embeds
+          embeds_json="["
+          for idx in "${!chunks[@]}"; do
+            esc="${chunks[$idx]//\"/\\\"}"
+            if [ "$idx" -eq 0 ]; then
+              embeds_json+="{\"title\":\"📣 New Release Published — ${VERSION}\",\"url\":\"${REPO_URL}\",\"color\":15105570,\"description\":\"${esc}\"},"
+            else
+              embeds_json+="{\"description\":\"${esc}\"},"
             fi
-
-            # escapamos comillas y añadimos el campo
-            esc="${part//\"/\\\"}"
-            fields_json+="{\"name\":\"\u200B\",\"value\":\"$esc\"},"
           done
-          # si quedó coma final, la quitamos
-          fields_json="${fields_json%,}]"
+          embeds_json="${embeds_json%,}]"
 
-          # 3) Construimos el payload con jq
+          # 3) Payload final
           payload=$(
-            jq -nc \
-              --arg username "GitHub Bot" \
-              --arg title "📣 New Release Published — ${VERSION}" \
-              --arg url   "$REPO_URL" \
-              --argjson fields "$fields_json" \
-              '{
-                 username: $username,
-                 embeds: [
-                   {
-                     title: $title,
-                     url: $url,
-                     color: 15105570,
-                     fields: $fields
-                   }
-                 ]
-               }'
+            jq -nc --arg user "GitHub Bot" \
+                  --argjson embeds "$embeds_json" \
+              '{ username: $user, embeds: $embeds }'
           )
 
-          # 4) Enviamos y comprobamos
+          # 4) Envío y debug
           HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
             -H "Content-Type: application/json" \
             -d "$payload" \
             "${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}")
-
           echo "🛰️ HTTP status: $HTTP_CODE"
           cat /tmp/resp.json
           if [[ "${HTTP_CODE:0:1}" != "2" ]]; then exit 1; fi
-      
-      
 
-      #      - name: 📣 Notify in '#new_releases channel'
+#      - name: 📣 Notify in '#new_releases channel'
 #        if: steps.check_text.outputs.already_sent == 'false'
 #        run: |
 #          VERSION="v${{ env.TOOL_VERSION }}"
@@ -791,63 +771,50 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: "📣 Notify in '#releases-discussion' channel (full MD in embed fields)"
+      - name: "📣 Notify in '#releases-discussion' channel (full MD in multi-embeds)"
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
           set -e
 
           VERSION="v${{ env.TOOL_VERSION }}"
-          THREAD_NAME="Release $VERSION"
+          THREAD_NAME="Release ${VERSION}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
 
-          mapfile -t chunks < <(fold -w1000 -s RELEASE-NOTES.md)
+          # 1) Partimos el MD en chunks de ≤3800 chars sin romper palabras
+          mapfile -t chunks < <(fold -w3800 -s RELEASE-NOTES.md)
 
-          fields_json="["
-          for part in "${chunks[@]}"; do
-            trimmed=$(echo "$part" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            if [[ -z "$trimmed" ]]; then
-              continue
+          # 2) Montamos el array de embeds
+          embeds_json="["
+          for idx in "${!chunks[@]}"; do
+            esc="${chunks[$idx]//\"/\\\"}"
+            if [ "$idx" -eq 0 ]; then
+              embeds_json+="{\"title\":\"📣 New Release Published — ${VERSION}\",\"url\":\"${REPO_URL}\",\"color\":3447003,\"footer\":{\"text\":\"${VERSION}\"},\"description\":\"${esc}\"},"
+            else
+              embeds_json+="{\"description\":\"${esc}\"},"
             fi
-            esc="${part//\"/\\\"}"
-            fields_json+="{\"name\":\"\u200B\",\"value\":\"$esc\"},"
           done
-          fields_json="${fields_json%,}]"
+          embeds_json="${embeds_json%,}]"
 
+          # 3) Payload final
           payload=$(
-            jq -nc \
-              --arg username    "GitHub Bot" \
-              --arg thread_name "$THREAD_NAME" \
-              --arg title       "📣 New Release Published — ${VERSION}" \
-              --arg url         "$REPO_URL" \
-              --arg footer      "$VERSION" \
-              --argjson fields  "$fields_json" \
-              '{
-                 username: $username,
-                 thread_name: $thread_name,
-                 embeds: [
-                   {
-                     title: $title,
-                     url: $url,
-                     color: 3447003,
-                     footer: { text: $footer },
-                     fields: $fields
-                   }
-                 ]
-               }'
+            jq -nc --arg user "GitHub Bot" \
+                  --arg thread_name "$THREAD_NAME" \
+                  --argjson embeds "$embeds_json" \
+                '{ username: $user, thread_name: $thread_name, embeds: $embeds }'
           )
 
+          # 4) Envío y debug
           HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
             -H "Content-Type: application/json" \
             -d "$payload" \
             "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}")
-
           echo "🛰️ HTTP status: $HTTP_CODE"
           cat /tmp/resp.json
           if [[ "${HTTP_CODE:0:1}" != "2" ]]; then exit 1; fi
       
       
 
-      #      - name: 📣 Notify in '#releases-discussion channel'
+#      - name: 📣 Notify in '#releases-discussion channel'
 #        if: steps.check_discussion.outputs.already_sent == 'false'
 #        run: |
 #          VERSION="v${{ env.TOOL_VERSION }}"
