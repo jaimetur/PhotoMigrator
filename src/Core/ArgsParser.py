@@ -60,7 +60,7 @@ def parse_arguments():
     PARSER.add_argument("-fnNoAlbums", "--foldername-no-albums", metavar="<NO_ALBUMS_FOLDER>", default="", help="Specify the folder name to store all your processed photos (including those associated to Albums).")
     PARSER.add_argument("-fnLogs", "--foldername-logs", metavar="<LOG_FOLDER>", default="", help="Specify the folder name to save the execution Logs.")
     PARSER.add_argument("-fnDuplicat", "--foldername-duplicates-output", metavar="<DUPLICATES_OUTPUT_FOLDER>", default="", help="Specify the folder name to save the outputs of 'Find Duplicates' Feature.")
-    PARSER.add_argument("-fnExtDates", "--foldername-extracted_dates", metavar="<EXTRACTED_DATES_FOLDER>", default="", help="Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.")
+    PARSER.add_argument("-fnExtDates", "--foldername-extracted_dates", metavar="<EXTRACTED_DATES_FOLDER>", default="", help="Specify the folder name to save the Metadata outputs of 'Extracted Dates'.")
     PARSER.add_argument("-exeGpthTool", "--exec-gpth-tool", metavar="<GPTH_PATH>", default="", help="Specify an external version of GPTH Tool binary. \nPhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument.")
     PARSER.add_argument("-exeExifTool", "--exec-exif-tool", metavar="<EXIFTOOL_PATH>", default="", help="Specify an external version of EXIF Tool binary. \nPhotoMigrator contains an embedded version of EXIF Tool, but if you want to use a different version, you can use this argument.")
 

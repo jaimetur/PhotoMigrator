@@ -19,7 +19,7 @@ There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blo
 | `-fnNoAlbums`,<br>`--foldername-no-albums`         | Specify the folder name to store all your processed photos (including those associated to Albums). |
 | `-fnLogs`,<br>`--foldername-logs`                  | Specify the folder name to save the execution Logs.                                                |
 | `-fnDuplicat`,<br>`--foldername-duplicates-output` | Specify the folder name to save the outputs of 'Find Duplicates' Feature.                          |
-| `-fnExtDates`,<br>`--foldername-extracted_dates`   | Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.                          |
+| `-fnExtDates`,<br>`--foldername-extracted_dates`   | Specify the folder name to save the Metadata outputs of 'Extracted Dates'.                         |
 | `-exeGpthTool`,<br>`--exec-gpth-tool`              | Specify an external version of GPTH Tool binary.                                                   |
 | `-exeExifTool`,<br>`--exec-exif-tool`              | Specify an external version of GPTH Tool binary.                                                   |
 

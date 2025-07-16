@@ -82,7 +82,7 @@ optional arguments:
 -fnDuplicat  ; --foldername-duplicates-output <DUPLICATES_OUTPUT_FOLDER>
                Specify the folder name to save the outputs of 'Find Duplicates' Feature.
 -fnExtDates  ; --foldername-extracted_dates <EXTRACTED_DATES_FOLDER>
-               Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.
+               Specify the folder name to save the Metadata outputs of 'Extracted Dates'.
 -exeGpthTool ; --exec-gpth-tool <GPTH_PATH>
                Specify an external version of GPTH Tool binary.
                PhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you
