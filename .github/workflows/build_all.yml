@@ -682,71 +682,23 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 2. 📣 NOTIFY: in #new_releases (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: "📣 Notify in '#new_releases' channel (full MD in multi-embeds)"
+      - name: 📣 Notify in '#new_releases' channel
         if: steps.check_text.outputs.already_sent == 'false'
         run: |
-          set -e
           VERSION="v${{ env.TOOL_VERSION }}"
-          REPO_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
-
-          # 1) Calcula longitud total y tamaño de chunk para máximo 10 embeds
-          TOTAL_CHARS=$(wc -m < RELEASE-NOTES.md)
-          MAX_EMBEDS=10
-          CHUNK_SIZE=$(( (TOTAL_CHARS + MAX_EMBEDS - 1) / MAX_EMBEDS ))
-
-          # 2) Parte en trozos de ≤CHUNK_SIZE caracteres
-          mapfile -t chunks < <(fold -w"$CHUNK_SIZE" -s RELEASE-NOTES.md)
-
-          # 3) Si hay más de 10 trozos, fusiona el resto en el último
-          if [ "${#chunks[@]}" -gt "$MAX_EMBEDS" ]; then
-            extra="$(printf "%s\n" "${chunks[@]:$((MAX_EMBEDS-1))}" | tr '\n' ' ')"
-            chunks=( "${chunks[@]:0:$((MAX_EMBEDS-1))}" "$extra" )
-          fi
-
-          # 4) Monta el array de embeds
-          embeds_json="["
-          for idx in "${!chunks[@]}"; do
-            esc="${chunks[$idx]//\"/\\\"}"
-            if [ "$idx" -eq 0 ]; then
-              embeds_json+="{\"title\":\"📣 New Release Published — ${VERSION}\",\"url\":\"${REPO_URL}\",\"color\":15105570,\"description\":\"${esc}\"},"
-            else
-              embeds_json+="{\"description\":\"${esc}\"},"
-            fi
-          done
-          embeds_json="${embeds_json%,}]"
-
-          # 5) Construye y envía el payload
-          payload=$(
-            jq -nc --arg user "GitHub Bot" \
-                  --argjson embeds "$embeds_json" \
-                '{ username: $user, embeds: $embeds }'
-          )
-          HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
-            -H "Content-Type: application/json" \
-            -d "$payload" \
-            "${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}")
-          echo "🛰️ HTTP status: $HTTP_CODE"
-          cat /tmp/resp.json
-          [[ "${HTTP_CODE:0:1}" == "2" ]]
-      
-
-#      - name: 📣 Notify in '#new_releases channel'
-#        if: steps.check_text.outputs.already_sent == 'false'
-#        run: |
-#          VERSION="v${{ env.TOOL_VERSION }}"
-#          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
-#          curl -X POST \
-#               -F "payload_json={
-#                 \"username\": \"GitHub Bot\",
-#                 \"embeds\": [{
-#                   \"title\": \"📣 New Release Published\",
-#                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
-#                   \"color\": 15105570,
-#                   \"footer\": {\"text\": \"$VERSION\"}
-#                 }]
-#               }" \
-#               -F "file1=@RELEASE-NOTES.md" \
-#               ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          curl -X POST \
+               -F "payload_json={
+                 \"username\": \"GitHub Bot\",
+                 \"embeds\": [{
+                   \"title\": \"📣 New Release Published\",
+                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+                   \"color\": 15105570,
+                   \"footer\": {\"text\": \"$VERSION\"}
+                 }]
+               }" \
+               -F "file1=@RELEASE-NOTES.md" \
+               ${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}
 
       # ──────────────────────────────────────────────────────────────────────
       # 3. 📡 CHECK: if thread already exists in #releases-discussion
@@ -780,73 +732,21 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: "📣 Notify in '#releases-discussion' channel (full MD in multi-embeds)"
+      - name: 📣 Notify in '#releases-discussion' channel
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
-          set -e
           VERSION="v${{ env.TOOL_VERSION }}"
-          THREAD_NAME="Release ${VERSION}"
-          REPO_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
-
-          # 1) Calcula longitud total y tamaño de chunk para máximo 10 embeds
-          TOTAL_CHARS=$(wc -m < RELEASE-NOTES.md)
-          MAX_EMBEDS=10
-          CHUNK_SIZE=$(( (TOTAL_CHARS + MAX_EMBEDS - 1) / MAX_EMBEDS ))
-
-          # 2) Parte en trozos de ≤CHUNK_SIZE caracteres
-          mapfile -t chunks < <(fold -w"$CHUNK_SIZE" -s RELEASE-NOTES.md)
-
-          # 3) Si hay más de 10 trozos, fusiona el resto en el último
-          if [ "${#chunks[@]}" -gt "$MAX_EMBEDS" ]; then
-            extra="$(printf "%s\n" "${chunks[@]:$((MAX_EMBEDS-1))}" | tr '\n' ' ')"
-            chunks=( "${chunks[@]:0:$((MAX_EMBEDS-1))}" "$extra" )
-          fi
-
-          # 4) Monta el array de embeds
-          embeds_json="["
-          for idx in "${!chunks[@]}"; do
-            esc="${chunks[$idx]//\"/\\\"}"
-            if [ "$idx" -eq 0 ]; then
-              embeds_json+="{\"title\":\"📣 New Release Published — ${VERSION}\",\"url\":\"${REPO_URL}\",\"color\":3447003,\"footer\":{\"text\":\"${VERSION}\"},\"description\":\"${esc}\"},"
-            else
-              embeds_json+="{\"description\":\"${esc}\"},"
-            fi
-          done
-          embeds_json="${embeds_json%,}]"
-
-          # 5) Construye y envía el payload
-          payload=$(
-            jq -nc --arg user "GitHub Bot" \
-                  --arg thread_name "$THREAD_NAME" \
-                  --argjson embeds "$embeds_json" \
-                '{ username: $user, thread_name: $thread_name, embeds: $embeds }'
-          )
-          HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
-            -H "Content-Type: application/json" \
-            -d "$payload" \
-            "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}")
-          echo "🛰️ HTTP status: $HTTP_CODE"
-          cat /tmp/resp.json
-          [[ "${HTTP_CODE:0:1}" == "2" ]]
-      
-      
-
-#      - name: 📣 Notify in '#releases-discussion channel'
-#        if: steps.check_discussion.outputs.already_sent == 'false'
-#        run: |
-#          VERSION="v${{ env.TOOL_VERSION }}"
-#          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
-#          curl -X POST \
-#               -F "payload_json={
-#                 \"username\": \"GitHub Bot\",
-#                 \"thread_name\": \"Release $VERSION\",
-#                 \"embeds\": [{
-#                   \"title\": \"📣 New Release Published\",
-#                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
-#                   \"color\": 3447003,
-#                   \"footer\": {\"text\": \"$VERSION\"}
-#                 }]
-#               }" \
-#               -F "file1=@RELEASE-NOTES.md" \
-#               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
-      
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+          curl -X POST \
+               -F "payload_json={
+                 \"username\": \"GitHub Bot\",
+                 \"thread_name\": \"Release $VERSION\",
+                 \"embeds\": [{
+                   \"title\": \"📣 New Release Published\",
+                   \"description\": \"Version **${{ env.TOOL_VERSION }}** is now available!\n[View release]($REPO_URL/releases/tag/$VERSION)\n\n📄 Release-Notes attached as Markdown.\",
+                   \"color\": 3447003,
+                   \"footer\": {\"text\": \"$VERSION\"}
+                 }]
+               }" \
+               -F "file1=@RELEASE-NOTES.md" \
+               ${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}
