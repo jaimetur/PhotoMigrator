@@ -30,6 +30,7 @@
       - [x] Enhancements in Overall pipeline execution of feature 'Google Takeout Processing'. Execution time reduced more than **50%** thanks to above enhancements.
       - [x] Enhancements in Steps execution order and logger messages. Now is clearer to follow the process pipeline.
     - [x] Enhancements in `build.py` module to reduce the Anti-Virus warning probability on Windows systems.
+    - [x] Renamed flag `-exeExifTool, --exec-exif-tool` by `-fnExtDates, --foldername-extracted_dates` to be more specific in the content of that output folder.
     
   - #### 🐛 Bug fixes:
     - [x] Fixed minor issues in Logger module. 
