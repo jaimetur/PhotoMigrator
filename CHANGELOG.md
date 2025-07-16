@@ -9,20 +9,20 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
-    - [x] Added a new step `Files without dates` in 'Google Takeout Processing' to show a summary of files without associated date found.
+    - [x] Added a new step `Show Files without dates` in 'Google Takeout Processing' to show a summary of files without associated date found.
     - [x] Added heuristic function to try to guess file date from filename (and also filepath) when is not possible to extract any date from EXIF and before to fallback to extract system date.
     - [x] Added Feature to Automatically Publish New Release Announcement on Discord Channels.
     
   - #### 🚀 Enhancements:
     - [x] Enhancements in 'Google Takeout Processing' feature to improve the performance.
       - [x] Created a new Class `FolderAnalyzer` to analyze any folder and:
-        - Extract dates of all media files found using Exiftool if is found, or PIL library as fallback or filesystem date as final fallback if any of both previous method is able to find dates in any media file.
-        - Get the oldest date between all date tags found in EXIF metadate of the media file.
-        - Keep the analyzer object in memory for faster date extraction during the code
-        - Save extracted dates into a JSON file when finished the process
-        - Update the index of the extracted dates when any file is moved/renamed to other folder
-        - Update the index of the extracted dates when any folder is renamed
-        - Count the files per type (supported/non-supported/media/photos/videos, etc...) and also count which files has valid/invalid dates
+        - Extract dates of all media files found using Exiftool if is found, or PIL library as fallback or guess from filename as second fallback or filesystem date as final fallback if any of previous method is able to find dates for each media file.
+        - Get the oldest date between all date tags found in EXIF metadata of the media file.
+        - Keep the analyzer object in memory for faster date extraction during the code.
+        - Save extracted dates into a JSON file when finished the process.
+        - Update the index of the extracted dates when any file is moved/renamed to other folder.
+        - Update the index of the extracted dates when any folder is renamed.
+        - Count the files per type (supported/non-supported/media/photos/videos, etc...) and also count which files has valid/invalid dates.
       - [x] Enhancements in 'Analyze Folder' function. Execution time reduced more than **65%** using the new object of Class `FolderAnalyzer`.
       - [x] Enhancements in 'Create year/month folder structure' function. Execution time reduced more than **95%** using the new object of Class `FolderAnalyzer`.
       - [x] Enhancements in 'Album renaming' function. Execution time reduced more than **85%** using the new object of Class `FolderAnalyzer`.
@@ -30,6 +30,7 @@
       - [x] Enhancements in Overall pipeline execution of feature 'Google Takeout Processing'. Execution time reduced more than **50%** thanks to above enhancements.
       - [x] Enhancements in Steps execution order and logger messages. Now is clearer to follow the process pipeline.
     - [x] Enhancements in `build.py` module to reduce the Anti-Virus warning probability on Windows systems.
+    - [x] Renamed flag `-exeExifTool, --exec-exif-tool` by `-fnExtDates, --foldername-extracted_dates` to be more specific in the content of that output folder.
     
   - #### 🐛 Bug fixes:
     - [x] Fixed minor issues in Logger module. 
@@ -102,7 +103,7 @@
     - [x] Added new argument `-fnNoAlbums, --foldername-no/albums` to Allow user to define folder name for 'No-Albums'.
     - [x] Added new argument `-fnLogs, --foldername-logs` to Allow user to define folder name for 'Logs'.
     - [x] Added new argument `-fnDuplicat, --foldername-duplicates-output` to Allow user to define folder name for 'Duplicates Outputs'.
-    - [x] Added new argument `-fnExiftool, --foldername-exiftool-output` to Allow user to define folder name for 'Exiftool Outputs'.
+    - [x] Added new argument `-fnExtDates, --foldername-extracted_dates` to Allow user to define folder name for 'Exiftool Outputs'.
     - [x] Added new argument `-exeGpthTool, --exec-gpth-tool` to Allow user to specify an external version of GPTH Tool binary.
     - [x] Added new argument `-exeExifTool, --exec-exif-tool` to Allow user to specify an external version of EXIF Tool binary.
     - [x] Added new argument `-gSkipPrep, --google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.

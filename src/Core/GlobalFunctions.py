@@ -24,7 +24,7 @@ def set_FOLDERS():
     GV.FOLDERNAME_ALBUMS            = GV.ARGS.get('foldername-albums')                                  or GV.FOLDERNAME_ALBUMS
     GV.FOLDERNAME_NO_ALBUMS         = GV.ARGS.get('foldername-no-albums')                               or GV.FOLDERNAME_NO_ALBUMS
     GV.CONFIGURATION_FILE           = resolve_external_path(GV.ARGS.get('configuration-file')           or GV.CONFIGURATION_FILE)
-    GV.FOLDERNAME_EXIFTOOL_OUTPUT   = resolve_external_path(GV.ARGS.get('foldername-exiftool-output')   or GV.FOLDERNAME_EXIFTOOL_OUTPUT)
+    GV.FOLDERNAME_EXTRACTED_DATES   = resolve_external_path(GV.ARGS.get('foldername-extracted_dates') or GV.FOLDERNAME_EXTRACTED_DATES)
     GV.FOLDERNAME_DUPLICATES_OUTPUT = resolve_external_path(GV.ARGS.get('foldername-duplicates-output') or GV.FOLDERNAME_DUPLICATES_OUTPUT)
     GV.FOLDERNAME_LOGS              = resolve_external_path(GV.ARGS.get('foldername-logs')              or GV.FOLDERNAME_LOGS)
     # GV.FOLDERNAME_GPTH              = resolve_external_path(GV.ARGS.get('exec-gpth-tool'))                or resolve_internal_path(GV.FOLDERNAME_GPTH)

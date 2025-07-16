@@ -15,7 +15,7 @@ from dateutil import parser
 import Core.GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT, FOLDERNAME_EXIFTOOL
+from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXTRACTED_DATES, FOLDERNAME_EXIFTOOL
 from Utils.DateUtils import normalize_datetime_utc, is_date_valid
 from Utils.StandaloneUtils import get_exif_tool_path
 
@@ -41,7 +41,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
     # Add TIMESTAMP to output_file
     output_filename = f"{TIMESTAMP}_{output_filename}"
     output_file = f"{output_filename}{output_ext}"
-    output_filepath = os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file)
+    output_filepath = os.path.join(FOLDERNAME_EXTRACTED_DATES, output_file)
 
     # ====================
     # AUX FUNCTIONS
@@ -407,7 +407,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
                 # Merge JSON outputs if we extracted dates
                 if extract_dates:
-                    os.makedirs(FOLDERNAME_EXIFTOOL_OUTPUT, exist_ok=True)
+                    os.makedirs(FOLDERNAME_EXTRACTED_DATES, exist_ok=True)
                     LOGGER.info(f"{step_name}🧪 Total chunks to merge: {len(chunk_paths)}")
                     merge_json_files(chunk_paths, output_filepath)
 
