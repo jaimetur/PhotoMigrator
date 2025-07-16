@@ -424,7 +424,7 @@ class FolderAnalyzer:
 
                 # Parallel execution using ThreadPoolExecutor
                 workers = max(1, min(total_blocks, max_workers, 64))    # Ensure at least 1 worker and maximum max_workers (saturated to 64 workers)
-                self.logger.info(f"{step_name}🧵 {total_files} files found | {total_media_files} media files | {total_json_files} JSON files")
+                self.logger.info(f"{step_name}🧵 {total_files} files found ({total_media_files} media files | {total_json_files} JSON files)")
                 self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of ~{block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:
