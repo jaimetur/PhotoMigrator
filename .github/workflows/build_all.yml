@@ -628,15 +628,6 @@ jobs:
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
 
-#      - name: 🏷️ Extract Tool Version
-#        run: |
-#          # 1️⃣ Obtenemos el valor sin la “v”
-#          TOOL_VERSION=$(grep -oP '^TOOL_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
-#
-#          # 3️⃣ Lo exportamos para los siguientes steps
-#          echo "TOOL_VERSION=${TOOL_VERSION}" >> "$GITHUB_ENV"
-#          echo "✅ TOOL_VERSION = ${TOOL_VERSION}"
-
       - name: 🔍 Check TOOL_VERSION env var
         run: |
           echo "🔍 TOOL_VERSION en este job es: '$TOOL_VERSION'"
@@ -699,23 +690,32 @@ jobs:
           VERSION="v${{ env.TOOL_VERSION }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
 
+          # 1) Partimos el Markdown en líneas ≤1000 chars sin romper palabras
           mapfile -t chunks < <(fold -w1000 -s RELEASE-NOTES.md)
 
+          # 2) Montamos el JSON de fields, pero solo con trozos no vacíos
           fields_json="["
           for part in "${chunks[@]}"; do
+            # quitamos espacios al principio/fin para comprobar si está realmente vacío
+            trimmed=$(echo "$part" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [[ -z "$trimmed" ]]; then
+              continue
+            fi
+
+            # escapamos comillas y añadimos el campo
             esc="${part//\"/\\\"}"
             fields_json+="{\"name\":\"\u200B\",\"value\":\"$esc\"},"
           done
+          # si quedó coma final, la quitamos
           fields_json="${fields_json%,}]"
 
-          echo "🔍 fields_json:"
-          echo "$fields_json" | jq .
-
+          # 3) Construimos el payload con jq
           payload=$(
-            jq -nc --arg username "GitHub Bot" \
-                  --arg title "📣 New Release Published — ${VERSION}" \
-                  --arg url   "$REPO_URL" \
-                  --argjson fields "$fields_json" \
+            jq -nc \
+              --arg username "GitHub Bot" \
+              --arg title "📣 New Release Published — ${VERSION}" \
+              --arg url   "$REPO_URL" \
+              --argjson fields "$fields_json" \
               '{
                  username: $username,
                  embeds: [
@@ -729,23 +729,17 @@ jobs:
                }'
           )
 
-          echo "🔍 payload JSON:"
-          echo "$payload" | jq .
-
+          # 4) Enviamos y comprobamos
           HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
             -H "Content-Type: application/json" \
             -d "$payload" \
             "${{ secrets.DISCORD_WEBHOOK_URL_NEW_RELEASES }}")
 
           echo "🛰️ HTTP status: $HTTP_CODE"
-          echo "📥 Response body:"
           cat /tmp/resp.json
-
-          if [[ "${HTTP_CODE:0:1}" != "2" ]]; then
-            echo "❌ Falló el envío al canal '#new_releases'"
-            exit 1
-          fi
-     
+          if [[ "${HTTP_CODE:0:1}" != "2" ]]; then exit 1; fi
+      
+      
 
       #      - name: 📣 Notify in '#new_releases channel'
 #        if: steps.check_text.outputs.already_sent == 'false'
@@ -797,34 +791,36 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 4. 📣 NOTIFY: in #releases-discussion (if not already sent)
       # ──────────────────────────────────────────────────────────────────────
-      - name: 📣 Notify in '#releases-discussion' channel (debug)
+      - name: "📣 Notify in '#releases-discussion' channel (full MD in embed fields)"
         if: steps.check_discussion.outputs.already_sent == 'false'
         run: |
           set -e
 
           VERSION="v${{ env.TOOL_VERSION }}"
+          THREAD_NAME="Release $VERSION"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
-          THREAD_NAME="Release ${VERSION}"
 
           mapfile -t chunks < <(fold -w1000 -s RELEASE-NOTES.md)
 
           fields_json="["
           for part in "${chunks[@]}"; do
+            trimmed=$(echo "$part" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [[ -z "$trimmed" ]]; then
+              continue
+            fi
             esc="${part//\"/\\\"}"
             fields_json+="{\"name\":\"\u200B\",\"value\":\"$esc\"},"
           done
           fields_json="${fields_json%,}]"
 
-          echo "🔍 fields_json:"
-          echo "$fields_json" | jq .
-
           payload=$(
-            jq -nc --arg username "GitHub Bot" \
-                  --arg thread_name "$THREAD_NAME" \
-                  --arg title "📣 New Release Published — ${VERSION}" \
-                  --arg url   "$REPO_URL" \
-                  --arg footer "$VERSION" \
-                  --argjson fields "$fields_json" \
+            jq -nc \
+              --arg username    "GitHub Bot" \
+              --arg thread_name "$THREAD_NAME" \
+              --arg title       "📣 New Release Published — ${VERSION}" \
+              --arg url         "$REPO_URL" \
+              --arg footer      "$VERSION" \
+              --argjson fields  "$fields_json" \
               '{
                  username: $username,
                  thread_name: $thread_name,
@@ -840,22 +836,15 @@ jobs:
                }'
           )
 
-          echo "🔍 payload JSON:"
-          echo "$payload" | jq .
-
           HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
             -H "Content-Type: application/json" \
             -d "$payload" \
             "${{ secrets.DISCORD_WEBHOOK_URL_RELEASES_DISCUSSION }}")
 
           echo "🛰️ HTTP status: $HTTP_CODE"
-          echo "📥 Response body:"
           cat /tmp/resp.json
-
-          if [[ "${HTTP_CODE:0:1}" != "2" ]]; then
-            echo "❌ Falló el envío al canal #releases-discussion"
-            exit 1
-          fi
+          if [[ "${HTTP_CODE:0:1}" != "2" ]]; then exit 1; fi
+      
       
 
       #      - name: 📣 Notify in '#releases-discussion channel'
