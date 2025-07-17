@@ -10,6 +10,7 @@ from collections import deque
 from datetime import datetime, timedelta
 from pathlib import Path
 from queue import Queue
+from typing import Union, cast
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
 from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE
@@ -374,6 +375,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # 1) HILO PRINCIPAL
     # ------------------
     def main_thread(parallel=None, log_level=logging.INFO):
+        def is_unsupported_source(client) -> bool:
+            return isinstance(client, (ClassTakeoutFolder, ClassLocalFolder))
+
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Get Log_filename
             log_file = get_logger_filename(LOGGER)
@@ -384,7 +388,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             # Check if source_client support specified filters
             unsupported_text = ""
-            if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
+            if is_unsupported_source(source_client):
                 unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
             # Check if '-move, --move-assets' have been passed as argument
