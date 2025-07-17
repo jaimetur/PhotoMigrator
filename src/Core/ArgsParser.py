@@ -60,7 +60,7 @@ def parse_arguments():
     PARSER.add_argument("-fnNoAlbums", "--foldername-no-albums", metavar="<NO_ALBUMS_FOLDER>", default="", help="Specify the folder name to store all your processed photos (including those associated to Albums).")
     PARSER.add_argument("-fnLogs", "--foldername-logs", metavar="<LOG_FOLDER>", default="", help="Specify the folder name to save the execution Logs.")
     PARSER.add_argument("-fnDuplicat", "--foldername-duplicates-output", metavar="<DUPLICATES_OUTPUT_FOLDER>", default="", help="Specify the folder name to save the outputs of 'Find Duplicates' Feature.")
-    PARSER.add_argument("-fnExtDates", "--foldername-extracted_dates", metavar="<EXTRACTED_DATES_FOLDER>", default="", help="Specify the folder name to save the Metadata outputs of 'Extracted Dates'.")
+    PARSER.add_argument("-fnExtDates", "--foldername-extracted-dates", metavar="<EXTRACTED_DATES_FOLDER>", default="", help="Specify the folder name to save the Metadata outputs of 'Extracted Dates'.")
     PARSER.add_argument("-exeGpthTool", "--exec-gpth-tool", metavar="<GPTH_PATH>", default="", help="Specify an external version of GPTH Tool binary. \nPhotoMigrator contains an embedded version of GPTH Tool, but if you want to use a different version, you can use this argument.")
     PARSER.add_argument("-exeExifTool", "--exec-exif-tool", metavar="<EXIFTOOL_PATH>", default="", help="Specify an external version of EXIF Tool binary. \nPhotoMigrator contains an embedded version of EXIF Tool, but if you want to use a different version, you can use this argument.")
 
@@ -355,7 +355,7 @@ def checkArgs(ARGS, PARSER):
     ARGS['foldername-no-albums']            = fix_path(ARGS['foldername-no-albums'])
     ARGS['foldername-logs']                 = fix_path(ARGS['foldername-logs'])
     ARGS['foldername-duplicates-output']    = fix_path(ARGS['foldername-duplicates-output'])
-    ARGS['foldername-extracted_dates']      = fix_path(ARGS['foldername-extracted_dates'])
+    ARGS['foldername-extracted-dates']      = fix_path(ARGS['foldername-extracted-dates'])
     ARGS['input-folder']                    = fix_path(ARGS['input-folder'])
     ARGS['output-folder']                   = fix_path(ARGS['output-folder'])
     ARGS['google-takeout']                  = fix_path(ARGS['google-takeout'])
@@ -381,7 +381,7 @@ def checkArgs(ARGS, PARSER):
                      'configuration-file',
                      'exec-gpth-tool',
                      'exec-exif-tool',
-                     'foldername-extracted_dates',
+                     'foldername-extracted-dates',
                      'foldername-duplicates-output',
                      # 'foldername-albums',             # Do not include this because it will depend on the <OUTPUT_FOLDER>
                      # 'foldername-no-albums',          # Do not include this because it will depend on the <OUTPUT_FOLDER>

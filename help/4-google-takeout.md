@@ -91,7 +91,7 @@ Below you can see the different steps of this feature:
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (423807 files zipped, 220224 photos/video files, 900 albums) and moved it into Synology Photos.  
 > 
-> The whole process took around **~10-11 hours** (It could vary depending on the number of optional steps that have been enabled.) and this is the time split per steps:  
+> The whole process took around **~10 hours** (It could vary depending on the number of optional steps that have been enabled). This is the time split per steps:  
 > 
 > Processing Time per Step:
 > -------------------------------------------------------------------
@@ -101,30 +101,30 @@ Below you can see the different steps of this feature:
 > Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]              :  Skipped
 > Step 1.3  : 🔍 [PRE-CHECKS]-[Analyze Takeout]            :  0:24:55
 > 
-> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:33:57
+> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:36:41
 > Step 2.1  : 🪛 [PRE-PROCESS]-[Clean Takeout Folder]      :  0:00:02
-> Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]      :  0:03:47
-> Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]         :  0:30:09
+> Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]      :  0:04:34
+> Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]         :  0:32:05
 > 
-> STEP 3    : 🧠 [PROCESS]-[TOTAL DURATION]                :  8:07:31
-> Step 3.1  : 🧠 [PROCESS]-[Metadata Processing]           :  7:43:51
+> STEP 3    : 🧠 [PROCESS]-[TOTAL DURATION]                :  7:56:34
+> Step 3.1  : 🧠 [PROCESS]-[Metadata Processing]           :  7:34:13
 > Step 3.2  : 📁 [PROCESS]-[Copy/Move]                     :  Skipped
-> Step 3.3  : 🔢 [PROCESS]-[Analyzing Output]              :  0:23:40
+> Step 3.3  : 🔢 [PROCESS]-[Analyzing Output]              :  0:22:21
 > 
-> STEP 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  0:30:31
+> STEP 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  0:14:47
 > Step 4.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:12
-> Step 4.2  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:02:11
-> Step 4.3  : 📁 [POST-PROCESS]-[Create year/month struct] :  0:27:19
-> Step 4.4  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:44
+> Step 4.2  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:01:34
+> Step 4.3  : 📁 [POST-PROCESS]-[Create year/month struct] :  0:12:15
+> Step 4.4  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:41
 > Step 4.5  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped
 > Step 4.6  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:03
-> Step 4.7  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:03
->
-> STEP 5    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]            :  0:13:45
-> Step 5.1  : 🧹 [POST-PROCESS]-[Final Cleaning]           :  0:12:45
-> Step 5.2  : ❔ [FINAL-STEPS]-[Files without dates]       :  0:01:00  
+> Step 4.7  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:02
 > 
-> TOTAL PROCESSING TIME                                    : 10:51:41
+> STEP 5    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]            :  0:07:49
+> Step 5.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]            :  0:07:47
+> Step 5.2  : ❔ [FINAL-STEPS]-[Files without dates]       :  0:00:01
+> 
+> TOTAL PROCESSING TIME                                    : 10:21:47
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 
