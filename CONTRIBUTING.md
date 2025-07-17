@@ -13,6 +13,12 @@ Whether you want to fix a bug, suggest a feature, improve documentation, or just
 - Support for NextCloud Photos. 
 - Create Unit Test and E2E Test Cases to check all features. 
 - Improve Analysis and Filtering phase at the begining of Automatic Migration. 
+- Graphical User Interface to facilitate:
+  - Config.ini uodate. 
+  - Select the execution mode. 
+  - Select the arguments. 
+  - Run the Tool. 
+  - Explore the different outputs (Logs, Extracted_dates, Duplicates, etc...)
 
 
 ## 🧭 How to contribute
