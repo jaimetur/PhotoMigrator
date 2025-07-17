@@ -175,6 +175,12 @@ In this example, the tool will do the Takeout Processing with the following step
 5. Remove any duplicates files found in `./MyTakeout_processed_timestamp` folder
 
 
+## Get Your Photos from Google Takeout
+1. Go to Google Photos Takeout [link here](https://takeout.google.com/takeout/custom/photos)
+2. Deselect all, then select only Google Photos
+3. Select all your Albums and Year folders that you want to export
+4. Download all ZIP files (use .zip format and 50 GB of filesize)
+
 > [!TIP]
 > ## <span style="color:dark">Additional Tip</span>
 > When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files.  
