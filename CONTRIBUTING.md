@@ -6,6 +6,15 @@ Whether you want to fix a bug, suggest a feature, improve documentation, or just
 
 ---
 
+## ✅ New features where you can contribute
+- Support for Tags on Synology Photos and Immich Photos uploads. 
+- Support for Tags on Automatic Mode when target is Synology Photos or Immich Photos. 
+- Support for Apple iCloud Photos. 
+- Support for NextCloud Photos. 
+- Create Unit Test and E2E Test Cases to check all features. 
+- Improve Analysis and Filtering phase at the begining of Automatic Migration. 
+
+
 ## 🧭 How to contribute
 
 ### 1. **Check for open issues**
@@ -83,7 +92,7 @@ Optional tools:
 
 ---
 
-## ✅ Contribution tips
+## 💡 Contribution tips
 
 - Keep pull requests small and focused
 - Write clear commit messages
