@@ -28,7 +28,7 @@
     - Support for Tags on Automatic Mode when target is Synology Photos or Immich Photos. 
     - Improve Analysis and Filtering phase at the begining of Automatic Migration. 
     - Graphical User Interface to facilitate:
-      - Config.ini uodate. 
+      - Config.ini update. 
       - Select the execution mode. 
       - Select the arguments. 
       - Run the Tool. 
