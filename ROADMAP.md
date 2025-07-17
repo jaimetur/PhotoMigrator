@@ -27,6 +27,13 @@
     - Support for Tags on Synology Photos and Immich Photos uploads. 
     - Support for Tags on Automatic Mode when target is Synology Photos or Immich Photos. 
     - Improve Analysis and Filtering phase at the begining of Automatic Migration. 
+    - Graphical User Interface to facilitate:
+      - Config.ini update. 
+      - Select the execution mode. 
+      - Select the arguments. 
+      - Run the Tool. 
+      - Explore the different outputs (Logs, Extracted_dates, Duplicates, etc...)
+    
     
     
     
