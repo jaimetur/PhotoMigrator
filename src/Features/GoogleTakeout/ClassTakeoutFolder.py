@@ -10,6 +10,7 @@ import stat
 import subprocess
 import sys
 import zipfile
+from collections import deque
 from contextlib import suppress
 from datetime import datetime, timedelta
 from os.path import dirname, basename
@@ -20,19 +21,18 @@ from colorama import init
 from dateutil import parser
 from packaging.version import Version
 
+from Core.ClassFolderAnalyzer import FolderAnalyzer
 from Core.CustomLogger import set_log_level
 from Core.CustomLogger import suppress_console_output_temporarily
-from Core.FileStatistics import count_files_and_extract_dates
 from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, \
     PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
-from Core.ClassFolderAnalyzer import FolderAnalyzer
 from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path
-from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, batch_replace_sourcefiles_in_json, profile_and_print
+from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, profile_and_print
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, custom_print, get_exif_tool_path
 
 
@@ -1194,32 +1194,36 @@ def unpack_zips(input_folder, unzip_folder, step_name="", log_level=None):
                     LOGGER.error(f"{step_name}Could not unzip file: {zip_file}")
 
 
+
 def contains_takeout_structure(input_folder, step_name="", log_level=None):
-    """
-    Iteratively scans directories using a manual stack instead of recursion or os.walk.
-    This can reduce overhead in large, nested folder structures.
-    """
+    # Pre-compile regex to match "Photos from " + 4 digits
+    pattern = re.compile(r"^Photos from \d{4}")
     with set_log_level(LOGGER, log_level):
-        LOGGER.info(f"")
-        LOGGER.info(f"{step_name}Looking for Google Takeout structure in input folder...")
-        stack = [input_folder]
-        while stack:
-            current = stack.pop()
+        LOGGER.info(f"{step_name}Looking for Google Takeout structure in folder: {input_folder}. This may take long time. Please be patient...")
+        queue = deque([input_folder])
+        while queue:
+            current = queue.popleft()
             try:
                 with os.scandir(current) as entries:
-                    for entry in entries:
-                        if entry.is_dir():
-                            name = entry.name
-                            if name.startswith("Photos from ") and name[12:16].isdigit():
-                                # LOGGER.info(f"Found Takeout structure in folder: {entry.path}")
-                                LOGGER.info(f"{step_name}Found Takeout structure in folder: {current}")
-                                return True
-                            stack.append(entry.path)
+                    # Gather all subdirectories
+                    subdirs = [e for e in entries if e.is_dir(follow_symlinks=False)]
+                    # First check each subdir name against the pattern
+                    for entry in subdirs:
+                        if pattern.match(entry.name):
+                            LOGGER.info(f"{step_name}Found Google Takeout structure in folder      : {current}")
+                            return True
+                    # If too many subdirs, skip descending
+                    if len(subdirs) > 5:
+                        LOGGER.debug(f"{step_name}Skipping {current} because it has {len(subdirs)} subdirectories")
+                        continue
+                    # Otherwise, enqueue them for further scanning
+                    for entry in subdirs:
+                        queue.append(entry.path)
             except PermissionError:
                 LOGGER.warning(f"{step_name}Permission denied accessing: {current}")
             except Exception as e:
                 LOGGER.warning(f"{step_name}Error scanning {current}: {e}")
-        LOGGER.info(f"{step_name}No Takeout structure found in input folder.")
+        LOGGER.info(f"{step_name}No Google Takeout structure found in folder   : {input_folder}")
         return False
 
 

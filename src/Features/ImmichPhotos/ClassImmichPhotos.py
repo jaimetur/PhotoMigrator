@@ -1186,8 +1186,14 @@ class ClassImmichPhotos:
                     break
 
             stats = os.stat(file_path)
-            date_time_for_filename = datetime.fromtimestamp(stats.st_mtime).strftime("%Y%m%d_%H%M%S")
-            date_time_for_attributes = datetime.fromtimestamp(stats.st_mtime).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+            try:
+                date_time_for_filename = datetime.fromtimestamp(stats.st_mtime).strftime("%Y%m%d_%H%M%S")
+                date_time_for_attributes = datetime.fromtimestamp(stats.st_mtime).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+            except ValueError:
+                # El timestamp stats.st_mtime está fuera de rango, usamos epoch (0)
+                LOGGER.warning(f"Timestamp {stats.st_mtime} fuera de rango, usando valor por defecto")
+                date_time_for_filename = datetime.fromtimestamp(0).strftime("%Y%m%d_%H%M%S")
+                date_time_for_attributes = datetime.fromtimestamp(0).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
             data = {
                 'deviceAssetId': f'{date_time_for_filename}_{os.path.basename(file_path)}',
