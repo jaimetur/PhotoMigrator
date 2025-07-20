@@ -4,6 +4,21 @@
 
 ---
 
+## Release: v3.4.4  
+- ### Release Date: 2025-07-30
+
+- ### Main Changes:
+  - #### 🌟 New Features:
+    
+  - #### 🚀 Enhancements:
+    
+  - #### 🐛 Bug fixes:
+
+  - #### 📚 Documentation: 
+
+
+---
+
 ## Release: v3.4.3  
 - ### Release Date: 2025-07-15
 
