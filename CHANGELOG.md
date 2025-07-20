@@ -11,10 +11,10 @@
   - #### 🌟 New Features:
     
   - #### 🚀 Enhancements:
-    - [x] Enhancement #866 to Improve performance of Input Info Analysis in 'Automatic Migration Feature'.
+    - [ ] Enhancement #866 to Improve performance of Input Info Analysis in 'Automatic Migration Feature'.
 
   - #### 🐛 Bug fixes:
-    - [x] Fixed bug #865 to avoid Albums Duplication on 'Automatic Migration Feature'.
+    - [ ] Fixed bug #865 to avoid Albums Duplication on 'Automatic Migration Feature'.
     
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.
