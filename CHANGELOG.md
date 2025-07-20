@@ -34,6 +34,8 @@
     
   - #### 🐛 Bug fixes:
     - [x] Fixed minor issues in Logger module. 
+    - [x] Fixed a bug in function 'Guess date from filename' when filename or filepath cantains some digits that were parsed as year of the file.
+    - [x] Fixed a bug in Push asset to Immich when the asset to push has not os.stat().st_mtime returning -1. Now those files returns first epoch (1970-01-01) as fallback.
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.
