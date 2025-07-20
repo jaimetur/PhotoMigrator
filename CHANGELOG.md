@@ -31,6 +31,7 @@
       - [x] Enhancements in Steps execution order and logger messages. Now is clearer to follow the process pipeline.
     - [x] Enhancements in `build.py` module to reduce the Anti-Virus warning probability on Windows systems.
     - [x] Renamed flag `-exeExifTool, --exec-exif-tool` by `-fnExtDates, --foldername-extracted-dates` to be more specific in the content of that output folder.
+    - [x] Enhancement in function `contains_takeout_structure()`. Now it stop checking subfolders when find any subfolder with 5 or more subfolder inside. This speed-up a lot the performance.
     
   - #### 🐛 Bug fixes:
     - [x] Fixed minor issues in Logger module. 
