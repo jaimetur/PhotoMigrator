@@ -50,7 +50,6 @@ def restore_log_info_on_exception(func):
 ####################################
 def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_info=None, show_gpth_errors=None, parallel=None, log_level=None):
     with set_log_level(LOGGER, log_level):
-        LOGGER.info(f"Automatic Migration Mode detected. Creating source & target objects. This may take some time. Please be patient...")
         # ───────────────────────────────────────────────────────────────
         # Declare shared variables to pass as reference to both functions
         # ───────────────────────────────────────────────────────────────
@@ -119,7 +118,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
         # Define the INTERMEDIATE_FOLDER
-        INTERMEDIATE_FOLDER = resolve_external_path(f'./Temp_folder_{TIMESTAMP}')
+        INTERMEDIATE_FOLDER = resolve_external_path(f'./Push_Queue_{TIMESTAMP}')
 
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target
@@ -148,8 +147,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 return ClassImmichPhotos(account_id=ARGS['account-id'])
 
             # Return ClassTakeoutFolder
-            elif Path(client_type).is_dir() and (contains_zip_files(client_type, log_level=logging.WARNING) or contains_takeout_structure(client_type, log_level=logging.WARNING)):
-                LOGGER.info(f"Automatic Migration Mode detected. Creating source & target objects. This may take some time depending on how big are your folder")
+            elif Path(client_type).is_dir() and (contains_zip_files(client_type, log_level=logging.WARNING) or contains_takeout_structure(client_type, log_level=logging.INFO)):
                 return ClassTakeoutFolder(client_type)  # In this clase, client_type is the path to the Takeout Folder
 
             # Return ClassLocalFolder
@@ -449,6 +447,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             total_albums_blocked_count = 0
             total_assets_blocked_count = 0
             try:
+                LOGGER.info(f"Retrieving Albums on '{source_client_name}' matching filters criteria (if any). This process may take some time, please be patient...")
                 all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving All Albums from '{source_client_name}'. - {e}")
