@@ -230,11 +230,12 @@ def guess_date_from_filename(path, step_name="", log_level=None):
         candidates = [(path.name, "filename"), (str(path), "filepath")]
 
         patterns = [
-            r'(?P<year>20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?',   # 20230715_123456
-            r'(?P<year>\d{4})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?',  # 2020.01.01_12-30-15
-            r'(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>\d{4})',  # 15-07-2023
-            r'(?P<year>\d{4})',  # only year
+            r'(?P<year>20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?',
+            r'(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?',
+            r'(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})',
+            r'(?P<year>19\d{2}|20\d{2})', # only year
         ]
+
 
         for text, source in candidates:
             for pattern in patterns:
@@ -242,7 +243,10 @@ def guess_date_from_filename(path, step_name="", log_level=None):
                 if match:
                     try:
                         parts = match.groupdict()
-                        year = int(parts.get("year"))
+                        year_str = parts.get("year")
+                        if not year_str or not re.fullmatch(r"(19|20)\d{2}", year_str):
+                            continue  # Skip if year is not a valid 4-digit year
+                        year = int(year_str)
                         month = int(parts.get("month") or 1)
                         day = int(parts.get("day") or 1)
                         hour = int(parts.get("hour") or 0)
