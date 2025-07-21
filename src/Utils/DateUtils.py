@@ -230,14 +230,14 @@ def guess_date_from_filename(path, step_name="", log_level=None):
         candidates = [(path.name, "filename"), (str(path), "filepath")]
 
         patterns = [
-            # yyyymmdd[_T ]hhmmss  (ej: 20230715_153025), solo si no va seguido de letra
-            r'(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?![a-zA-Z])',
-            # yyyy[-_. ]mm[-_. ]dd[_ ]hh[-_. ]mm[-_. ]ss  (ej: 2023-07-15_15-30-25), solo si no va seguido de letra
-            r'(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?(?![a-zA-Z])',
-            # dd[-_]mm[-_]yyyy (ej: 15-07-2023), solo si no va seguido de letra
-            r'(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
-            # solo año aislado, si no está pegado a letra
-            r'(?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
+            # yyyymmdd[_T ]hhmmss (ej: 20230715_153025), solo si NO va precedido por letra hexadecimal y NO seguido por letra
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?![a-zA-Z])',
+            # yyyy[-_. ]mm[-_. ]dd[_ ]hh[-_. ]mm[-_. ]ss (ej: 2023-07-15_15-30-25), mismo criterio de seguridad
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?(?![a-zA-Z])',
+            # dd[-_]mm[-_]yyyy (ej: 15-07-2023), solo si año no va precedido por letra hexadecimal ni seguido de letra
+            r'(?<![a-fA-F])(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
+            # año suelto (ej: Fotos_2023), solo si no va precedido por letra hexadecimal ni seguido de letra
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
         ]
 
         for text, source in candidates:
