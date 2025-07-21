@@ -230,22 +230,28 @@ def guess_date_from_filename(path, step_name="", log_level=None):
         candidates = [(path.name, "filename"), (str(path), "filepath")]
 
         patterns = [
-            r'(?P<year>20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?',
-            r'(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?',
-            r'(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})',
-            r'(?P<year>19\d{2}|20\d{2})', # only year
+            # yyyymmdd[_T ]hhmmss (ej: 20230715_153025), solo si NO va precedido por letra hexadecimal y NO seguido por letra
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?![a-zA-Z])',
+            # yyyy[-_. ]mm[-_. ]dd[_ ]hh[-_. ]mm[-_. ]ss (ej: 2023-07-15_15-30-25), mismo criterio de seguridad
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?(?![a-zA-Z])',
+            # dd[-_]mm[-_]yyyy (ej: 15-07-2023), solo si año no va precedido por letra hexadecimal ni seguido de letra
+            r'(?<![a-fA-F])(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
+            # año suelto (ej: Fotos_2023), solo si no va precedido por letra hexadecimal ni seguido de letra
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
         ]
-
 
         for text, source in candidates:
             for pattern in patterns:
                 match = re.search(pattern, text)
                 if match:
+                    parts = match.groupdict()
+                    year_str = parts.get("year")
+
+                    # Validar año explícitamente
+                    if not year_str or not re.fullmatch(r"(19|20)\d{2}", year_str):
+                        continue
+
                     try:
-                        parts = match.groupdict()
-                        year_str = parts.get("year")
-                        if not year_str or not re.fullmatch(r"(19|20)\d{2}", year_str):
-                            continue  # Skip if year is not a valid 4-digit year
                         year = int(year_str)
                         month = int(parts.get("month") or 1)
                         day = int(parts.get("day") or 1)
@@ -257,11 +263,11 @@ def guess_date_from_filename(path, step_name="", log_level=None):
                         iso_str = dt.isoformat()
                         GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from {source}: {text}")
                         return iso_str, source
+                    except ValueError:
+                        continue  # Fecha inválida
                     except Exception as e:
                         GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from {source} '{text}': {e}")
                         continue
 
         GV.LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
         return None, None
-
-
