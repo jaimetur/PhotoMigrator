@@ -230,10 +230,14 @@ def guess_date_from_filename(path, step_name="", log_level=None):
         candidates = [(path.name, "filename"), (str(path), "filepath")]
 
         patterns = [
-            r'(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?',
-            r'(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?',
-            r'(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})',
-            r'(?P<year>19\d{2}|20\d{2})',  # only year
+            # yyyymmdd[_T ]hhmmss  (ej: 20230715_153025), solo si no va seguido de letra
+            r'(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?![a-zA-Z])',
+            # yyyy[-_. ]mm[-_. ]dd[_ ]hh[-_. ]mm[-_. ]ss  (ej: 2023-07-15_15-30-25), solo si no va seguido de letra
+            r'(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?(?![a-zA-Z])',
+            # dd[-_]mm[-_]yyyy (ej: 15-07-2023), solo si no va seguido de letra
+            r'(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
+            # solo año aislado, si no está pegado a letra
+            r'(?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
         ]
 
         for text, source in candidates:
@@ -267,6 +271,3 @@ def guess_date_from_filename(path, step_name="", log_level=None):
 
         GV.LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
         return None, None
-
-
-
