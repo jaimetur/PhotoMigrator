@@ -4,6 +4,23 @@
 
 ---
 
+## Release: v3.4.4  
+- ### Release Date: 2025-07-30
+
+- ### Main Changes:
+  - #### 🌟 New Features:
+    
+  - #### 🚀 Enhancements:
+    - [ ] Enhancement #866 to Improve performance of Input Info Analysis in 'Automatic Migration Feature'.
+
+  - #### 🐛 Bug fixes:
+    - [ ] Fixed bug #865 to avoid Albums Duplication on 'Automatic Migration Feature'.
+    
+  - #### 📚 Documentation: 
+    - [x] Updated documentation with all changes.
+
+---
+
 ## Release: v3.4.3  
 - ### Release Date: 2025-07-15
 
