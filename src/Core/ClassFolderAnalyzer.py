@@ -42,27 +42,85 @@ class FolderAnalyzer:
         self.folder_path = Path(folder_path).resolve().as_posix() if folder_path else None
         self.file_dates = extracted_dates or {}
         self.file_list = []
+        # Store per-file sizes and aggregated folder sizes
+        self.file_sizes = {}
+        self.folder_sizes = {}
 
         if self.folder_path:
             self._build_file_list(step_name=step_name)
+            # self.extract_dates(step_name=step_name)
 
     def _build_file_list(self, step_name=''):
         """
-        Build the list of files in the given folder (self.folder_path), excluding symlinks.
-        If the folder does not exist, print an error message and skip file collection.
+        Build the list of files in the given folder (self.folder_path),
+        including symlinks under Albums/, so album detection works.
+
+        Then computes file_sizes and folder_sizes.
         """
         if not os.path.isdir(self.folder_path):
-            message = f"❌ Folder does not exist: {self.folder_path}"
-            self.logger.error(message)
+            self.logger.error(f"{step_name}❌ Folder does not exist: {self.folder_path}")
             self.file_list = []
             return
+
         self.logger.info(f"{step_name}Building File List for '{self.folder_path}'...")
         self.file_list = []
-        for root, _, files in os.walk(self.folder_path):
+
+        # Walk directory tree, following directory symlinks
+        for root, _, files in os.walk(self.folder_path, followlinks=True):
             for name in files:
                 full_path = os.path.join(root, name)
-                if not os.path.islink(full_path):
-                    self.file_list.append(Path(full_path).resolve().as_posix())
+
+                # If it's a symlink to a file or a real file, include its path
+                if os.path.islink(full_path) or os.path.isfile(full_path):
+                    # Store the path AS-IS so that album paths (symlinks) remain under Albums/
+                    self.file_list.append(Path(full_path).as_posix())
+
+        # After gathering all file paths, compute sizes and folder aggregates
+        self._compute_folder_sizes(step_name)
+
+
+    # def _build_file_list(self, step_name=''):
+    #     """
+    #     Build the list of files in the given folder (self.folder_path), excluding symlinks.
+    #     If the folder does not exist, print an error message and skip file collection.
+    #     """
+    #     if not os.path.isdir(self.folder_path):
+    #         message = f"❌ Folder does not exist: {self.folder_path}"
+    #         self.logger.error(message)
+    #         self.file_list = []
+    #         return
+    #     self.logger.info(f"{step_name}Building File List for '{self.folder_path}'...")
+    #     self.file_list = []
+    #     for root, _, files in os.walk(self.folder_path):
+    #         for name in files:
+    #             full_path = os.path.join(root, name)
+    #             if not os.path.islink(full_path):
+    #                 self.file_list.append(Path(full_path).resolve().as_posix())
+
+    def _compute_folder_sizes(self, step_name=""):
+        """Compute size for each file and aggregate per folder (and all ancestors)."""
+        from collections import defaultdict
+
+        sizes = defaultdict(int)
+        for fpath in self.file_list:
+            try:
+                sz = os.path.getsize(fpath)
+            except:
+                continue
+            # Store per-file size
+            self.file_sizes[fpath] = sz
+
+            # Aggregate into each parent folder up to root folder_path
+            parent = os.path.dirname(fpath)
+            while True:
+                sizes[parent] += sz
+                if parent == self.folder_path:
+                    break
+                parent = os.path.dirname(parent)
+
+        self.folder_sizes = sizes
+        self.logger.debug(f"{step_name}Calculated sizes: {len(self.file_sizes)} files, "
+                          f"{len(self.folder_sizes)} folders.")
 
     def get_file_dates(self):
         """
@@ -252,7 +310,7 @@ class FolderAnalyzer:
             for rel_path in files_with_missing_dates:
                 self.logger.info(f"{step_name}📋 File Without Date: {rel_path}")
 
-    def extract_dates(self, step_name='', block_size=1_000, use_filename=True, log_level=None, max_workers=None):
+    def extract_dates(self, step_name='', block_size=1_000, use_fallback_to_filename=True, log_level=None, max_workers=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
         """
@@ -363,7 +421,7 @@ class FolderAnalyzer:
                         pass
 
                 # Fallback al nombre del fichero o path si aún no hay ninguna
-                if not dt_final and use_filename:
+                if not dt_final and use_fallback_to_filename:
                     try:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
