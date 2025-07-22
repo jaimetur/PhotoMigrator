@@ -13,7 +13,7 @@ from queue import Queue
 from typing import Union, cast
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
-from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE
+from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE, FOLDERNAME_EXTRACTED_DATES
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
@@ -267,7 +267,17 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             if isinstance(source_client, ClassTakeoutFolder):
                 if source_client.needs_unzip or source_client.needs_process:
                     LOGGER.info(f"🔢 Source Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+
+                    # Process the Takeout if needed
                     source_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=print_messages)
+
+                    # Ensure object analyzer from class FolderAnalyzer is created on source_client when source_client is ClassTakeout instance
+                    output_metadata_json = os.path.join(FOLDERNAME_EXTRACTED_DATES, f"{TIMESTAMP}_output_dates_metadata.json")
+                    if os.path.isfile(output_metadata_json):
+                        source_client._ensure_analyzer(metadata_json_file=output_metadata_json,  log_level=log_level)
+                    else:
+                        source_client._ensure_analyzer(log_level=log_level)
+
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
                     LOGGER.info(f"🔢 Target Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")

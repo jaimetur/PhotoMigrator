@@ -106,7 +106,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                           GENERAL UTILITY                               #
     ###########################################################################
-    def _ensure_analyzer(self, step_name="", log_level=None):
+    def _ensure_analyzer(self, metadata_json_file=None, step_name="", log_level=None):
         # Ensure FolderAnalyzer is initialized lazily
         with set_log_level(LOGGER, log_level):
             if not hasattr(self, 'analyzer') or self.analyzer is None:
@@ -117,7 +117,10 @@ class ClassLocalFolder:
                     logger=LOGGER,
                     step_name=step_name
                 )
-                self.analyzer.extract_dates(step_name=step_name)
+                if os.path.isfile(metadata_json_file):
+                    self.analyzer.load_from_json(input_file=metadata_json_file, step_name=step_name)
+                else:
+                    self.analyzer.extract_dates(step_name=step_name)
                 self.analyzer.save_to_json(output_file=f"automatic_migration_dates_metadata.json", step_name=step_name)
 
     def _determine_file_type(self, file):
