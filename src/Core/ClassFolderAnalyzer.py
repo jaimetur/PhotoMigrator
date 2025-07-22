@@ -518,7 +518,7 @@ class FolderAnalyzer:
         if available to count media files with/without valid dates.
         """
         with set_log_level(self.logger, log_level):
-            self.logger.info(f"{step_name}📊Counting Files for '{self.folder_path}'...")
+            self.logger.info(f"{step_name}📊 Counting Files for '{self.folder_path}'...")
             counters = init_count_files_counters()
 
             # Normalize extensions
