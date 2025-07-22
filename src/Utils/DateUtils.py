@@ -227,44 +227,79 @@ def guess_date_from_filename(path, step_name="", log_level=None):
     with set_log_level(GV.LOGGER, log_level):
         tz = datetime.now().astimezone().tzinfo
         path = Path(path)
-        candidates = [(path.name, "filename"), (str(path), "filepath")]
+        candidates = [(path.name, "filename"), (str(path.parent), "filepath")]
 
         patterns = [
-            # yyyymmdd[_T ]hhmmss (ej: 20230715_153025), solo si NO va precedido por letra hexadecimal y NO seguido por letra
+            # yyyy mm dd [hh mm ss] sin separadores, ej: 20230715_153025
             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?![a-zA-Z])',
-            # yyyy[-_. ]mm[-_. ]dd[_ ]hh[-_. ]mm[-_. ]ss (ej: 2023-07-15_15-30-25), mismo criterio de seguridad
+            # yyyy-mm-dd_hh-mm-ss, con separadores, ej: 2023-07-15_15-30-25
             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?(?![a-zA-Z])',
-            # dd[-_]mm[-_]yyyy (ej: 15-07-2023), solo si año no va precedido por letra hexadecimal ni seguido de letra
+            # dd-mm-yyyy ej: 15-07-2023
             r'(?<![a-fA-F])(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
-            # año suelto (ej: Fotos_2023), solo si no va precedido por letra hexadecimal ni seguido de letra
-            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
+            # Año solo aislado, ej: _2023_
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?!\d|[a-zA-Z])',
+            # Año + Mes aislado, ej: 202307 o 072023
+            r'(?<![a-fA-F])(?P<ym>\d{6})(?!\d|[a-zA-Z])',
+            # Año + Mes + Día aislado (8 dígitos), ej: 20230715 o 15072023
+            r'(?<![a-fA-F])(?P<ymd>\d{8})(?!\d|[a-zA-Z])',
         ]
 
         for text, source in candidates:
             for pattern in patterns:
                 match = re.search(pattern, text)
                 if match:
-                    parts = match.groupdict()
-                    year_str = parts.get("year")
-
-                    # Validar año explícitamente
-                    if not year_str or not re.fullmatch(r"(19|20)\d{2}", year_str):
-                        continue
-
                     try:
-                        year = int(year_str)
-                        month = int(parts.get("month") or 1)
-                        day = int(parts.get("day") or 1)
-                        hour = int(parts.get("hour") or 0)
-                        minute = int(parts.get("minute") or 0)
-                        second = int(parts.get("second") or 0)
+                        parts = match.groupdict()
+                        year = month = day = hour = minute = second = None
 
-                        dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
-                        iso_str = dt.isoformat()
-                        GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from {source}: {text}")
-                        return iso_str, source
-                    except ValueError:
-                        continue  # Fecha inválida
+                        if parts.get("year"):
+                            year = int(parts["year"])
+                            month = int(parts.get("month") or 1)
+                            day = int(parts.get("day") or 1)
+                            hour = int(parts.get("hour") or 0)
+                            minute = int(parts.get("minute") or 0)
+                            second = int(parts.get("second") or 0)
+
+                        elif parts.get("ymd"):
+                            digits = parts["ymd"]
+                            combos = [
+                                (digits[0:4], digits[4:6], digits[6:8]),  # yyyy mm dd
+                                (digits[4:8], digits[2:4], digits[0:2]),  # dd mm yyyy
+                                (digits[2:6], digits[0:2], digits[6:8]),  # mm dd yyyy
+                            ]
+                            for y, m, d in combos:
+                                if re.fullmatch(r"(19|20)\d{2}", y) and 1 <= int(m) <= 12 and 1 <= int(d) <= 31:
+                                    year = int(y)
+                                    month = int(m)
+                                    day = int(d)
+                                    break
+                            if year is None:
+                                continue  # No combinación válida
+
+                            hour = minute = second = 0
+
+                        elif parts.get("ym"):
+                            digits = parts["ym"]
+                            combos = [
+                                (digits[0:4], digits[4:6]),  # yyyy mm
+                                (digits[2:6], digits[0:2]),  # mm yyyy
+                            ]
+                            for y, m in combos:
+                                if re.fullmatch(r"(19|20)\d{2}", y) and 1 <= int(m) <= 12:
+                                    year = int(y)
+                                    month = int(m)
+                                    day = 1
+                                    hour = minute = second = 0
+                                    break
+                            if year is None:
+                                continue  # No combinación válida
+
+                        if year and month and day:
+                            dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
+                            iso_str = dt.isoformat()
+                            GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from {source.upper()}: {text}")
+                            return iso_str, source.upper()
+
                     except Exception as e:
                         GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from {source} '{text}': {e}")
                         continue
