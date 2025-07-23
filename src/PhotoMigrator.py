@@ -8,6 +8,7 @@ from pathlib import Path
 
 from Core.CustomLogger import custom_log
 from Core.GlobalFunctions import set_FOLDERS
+from Core.GlobalVariables import MSG_TAGS
 
 # Añadir 'src/' al PYTHONPATH
 src_path = os.path.dirname(__file__)
@@ -336,11 +337,17 @@ def pre_parse_args():
                 prompt_str = f"{icon} Introduce {label}".ljust(PAD_PROMPT-3) + ": "
             desc_str = f"{icon} {description}".ljust(PAD_DESC-1)
             default_str = f"[{default}]".ljust(PAD_DEFAULT) if default is not None else ""
-            input_row = f"{desc_str}{default_str}{prompt_str}"
+            input_row = f"{MSG_TAGS['INFO']}{desc_str}{default_str}{prompt_str}"
             try:
                 import readline
                 readline.set_startup_hook(lambda: readline.insert_text(str(default)))
-                value = input(input_row).strip()
+                # value = input(input_row).strip()
+                try:
+                    value = input(input_row).strip()
+                except (KeyboardInterrupt, EOFError):
+                    print()
+                    custom_print("Configuration cancelled by user.", log_level=logging.WARNING)
+                    sys.exit(0)
             finally:
                 try:
                     readline.set_startup_hook(None)
@@ -360,9 +367,10 @@ def pre_parse_args():
                 custom_print("❌ Invalid choice. Please try again.", log_level=logging.ERROR)
 
         # -------- Header --------
-        print("🧩 CONFIGURATION PANEL (Console Mode)\n")
-        print("DESCRIPTION:".ljust(PAD_DESC) + "DEFAULT:".ljust(PAD_DEFAULT) + "PROMPT:".ljust(PAD_PROMPT) + "INPUT:")
-        print("-" * HEADER_WIDTH)
+        print()
+        custom_print("🧩 CONFIGURATION PANEL (Console Mode) - Pres CTRL+C to Interrupt...\n", log_level=logging.INFO)
+        custom_print("DESCRIPTION:".ljust(PAD_DESC) + "DEFAULT:".ljust(PAD_DEFAULT) + "PROMPT:".ljust(PAD_PROMPT) + "INPUT:", log_level=logging.INFO)
+        custom_print("-" * HEADER_WIDTH, log_level=logging.INFO)
 
         # -------- Takeout folder --------
         if not folder_already_provided:
@@ -372,9 +380,9 @@ def pre_parse_args():
                     sys.argv += ["--google-takeout", folder]
                     break
                 elif folder == "":
-                    print("❌ Folder path is required. Please enter a valid path.")
+                    custom_print("❌ Folder path is required. Please enter a valid path.", log_level=logging.ERROR)
                 else:
-                    print("❌ Invalid folder. Please try again.")
+                    custom_print("❌ Invalid folder. Please try again.", log_level=logging.ERROR)
 
         # -------- Output suffix --------
         suffix = ask_input("Output folder suffix", description="Suffix for the processed output folder", default="processed", icon="🔤")
