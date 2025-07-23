@@ -13,7 +13,7 @@ from queue import Queue
 from typing import Union, cast
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
-from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE
+from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE, FOLDERNAME_EXTRACTED_DATES
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
@@ -256,9 +256,9 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 time.sleep(2)
 
             LOGGER.info(f"")
-            LOGGER.info(f"=========================================================================================================================================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"🚀 AUTOMATIC MIGRATION JOB STARTED - {source_client_name} ➜ {target_client_name}")
-            LOGGER.info(f"=========================================================================================================================================================")
+            LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
 
             # ------------------------------------------------------------------------------------------------------
@@ -267,7 +267,17 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             if isinstance(source_client, ClassTakeoutFolder):
                 if source_client.needs_unzip or source_client.needs_process:
                     LOGGER.info(f"🔢 Source Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+
+                    # Process the Takeout if needed
                     source_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=print_messages)
+
+                    # Ensure object analyzer from class FolderAnalyzer is created on source_client when source_client is ClassTakeout instance
+                    output_metadata_json = os.path.join(FOLDERNAME_EXTRACTED_DATES, f"{TIMESTAMP}_output_dates_metadata_final.json")
+                    if os.path.isfile(output_metadata_json):
+                        source_client._ensure_analyzer(metadata_json_file=output_metadata_json,  log_level=log_level)
+                    else:
+                        source_client._ensure_analyzer(log_level=log_level)
+
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
                     LOGGER.info(f"🔢 Target Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
@@ -330,6 +340,20 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         Carpeta temporal donde se descargarán los assets antes de subirse.
     """
 
+    # Protector para que no se pisen las actualizaciones de métricas
+    metrics_lock = threading.Lock()
+    class MonitoredQueue(Queue):
+        def put(self, item, *args, **kwargs):
+            super().put(item, *args, **kwargs)
+            with metrics_lock:
+                SHARED_DATA.info['assets_in_queue'] = self.qsize()
+
+        def get(self, *args, **kwargs):
+            item = super().get(*args, **kwargs)
+            with metrics_lock:
+                SHARED_DATA.info['assets_in_queue'] = self.qsize()
+            return item
+
     # ----------------------------------------------------------------------------------------
     # function to ensure that the puller put only 1 asset with the same filepath to the queue
     # ----------------------------------------------------------------------------------------
@@ -352,7 +376,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 while push_queue.qsize() >= 100:
                     while push_queue.qsize() > 25:
                         time.sleep(1)  # Hacemos pausas de 1s hasta que la cola se vacíe (25 elementos)
-                        SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+                        # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
 
                 # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
                 if push_queue.qsize() > 50:
@@ -448,7 +472,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             total_assets_blocked_count = 0
             try:
                 LOGGER.info(f"Retrieving Albums on '{source_client_name}' matching filters criteria (if any). This process may take some time, please be patient...")
-                all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.WARNING)
+                all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.INFO)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving All Albums from '{source_client_name}'. - {e}")
             LOGGER.info(f"{len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")
@@ -498,7 +522,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 "total_albums_blocked": total_albums_blocked_count,
                 "total_metadata": len(all_metadata),
                 "total_sidecar": len(all_sidecar),
-                "total_invalid": len(all_invalid),  # Corrección de "unsopported" → "invalid"
+                "total_invalid": len(all_invalid),
             })
 
             SHARED_DATA.counters['total_albums_blocked'] = total_albums_blocked_count
@@ -538,37 +562,32 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
             push_threads = [threading.Thread(target=pusher_worker, kwargs={"processed_albums": processed_albums, "worker_id": worker_id + 1}, daemon=True) for worker_id in range(num_push_threads)]
 
-            # Initiate pull threads
+            # 1) Arrancar pullers
             for t in pull_threads:
                 t.start()
 
-            # If parallel mode, then initiate push threads in parallel
+            # 2) Si modo paralelo, arranca ya los pushers
             if parallel:
                 for t in push_threads:
                     t.start()
 
-            # ----------------------------------------------------------------------------------------------
-            # 2) Esperamos a que terminen los hilos de pull para mandar Nones a la cola de push,
-            #    luego esperamos que la cola termine y finalmente esperamos que terminen los hilos de push
-            # ----------------------------------------------------------------------------------------------
-
-            # Esperar a que terminen los hilos de pull
+            # 3) Esperar a que terminen los pullers
             for t in pull_threads:
                 t.join()
 
-            # Enviamos tantos None como hilos de push para avisar que finalicen
-            for _ in range(num_push_threads):
-                push_queue.put(None)
-
-            # If sequential mode, then initiate push threads only when pull threads have finished
+            # 4) Si modo secuencial, ahora sí arranca los pushers
             if not parallel:
                 for t in push_threads:
                     t.start()
 
-            # Esperamos a que la cola termine de procesarse
-            # push_queue.join()
+            # 5) Esperar a que la cola se vacíe (assets reales y todos los re‑enqueues)
+            push_queue.join()
 
-            # Esperar a que terminen los hilos de push
+            # 6) Inyectar un None por cada pusher para que lean la señal de fin
+            for _ in range(num_push_threads):
+                push_queue.put(None)
+
+            # 7) Esperar a que los pushers consuman su None y terminen
             for t in push_threads:
                 t.join()
 
@@ -826,11 +845,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------
     # 2) PUSHER: Función pusher_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
-    def pusher_worker(processed_albums=[], worker_id=1, log_level=logging.INFO):
+    def pusher_worker(processed_albums=None, worker_id=1, log_level=logging.INFO):
         # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
         # from Core.GlobalVariables import LOGGER as GV_LOGGER
         # thread_id = threading.get_ident()
         # LOGGER = GV_LOGGER.getChild(f"pusher-{thread_id}")
+
+        if processed_albums is None:
+            processed_albums = []
 
         with set_log_level(LOGGER, log_level):
             move_assets = ARGS.get('move-assets', None)
@@ -839,13 +861,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     # Extraemos el siguiente asset de la cola
                     # time.sleep(0.7)  # Esto es por si queremos ralentizar el worker de subidas
                     asset = push_queue.get()
-                    SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+                    # Actualizamos inmediatamente el tamaño tras el get
+                    # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+
                     if asset is None:
-                        # Si recibimos None, significa que ya no hay más trabajo
+                        # Señal de fin: marcamos la tarea y salimos
                         push_queue.task_done()
                         break
 
-                    # Obtenemos las propiedades del asset extraido de la cola.
+                    # Obtenemos las propiedades del asset extraído de la cola.
                     asset_id = asset['asset_id']
                     asset_file_path = asset['asset_file_path']
                     asset_datetime = asset['asset_datetime']
@@ -856,6 +880,20 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
                     try:
+                        # Primero comprobamos si el Album existe, si no existe, y no somos el worker_id=1, devolvemos el asset a la cola. Esto evita que varios pusher_workers intenten crear el mismo album a la vez. Solo el worker_id=1 puede crear nuevos Albumes.
+                        if album_name and worker_id > 1:
+                            album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
+                            if not album_exists:
+                                # Re-encolamos el asset nuevamente al final de la cola
+                                push_queue.put(asset)
+                                LOGGER.info(f"Asset Delayed   : '{os.path.basename(asset_file_path)}' by pusher_worker={worker_id}. Waiting to pusher_worker=1 to create associated Album '{album_name}' before to push the asset into it.")
+                                # Marcamos este get() como "done" para equilibrar el contador
+                                push_queue.task_done()
+                                # Actualizamos el contador de assets en la cola
+                                # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+                                # Saltamos al siguiente loop para no procesar este asset aquí
+                                continue
+
                         # SUBIR el asset
                         asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
 
@@ -891,8 +929,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if move_assets:
                             source_client.remove_assets(asset_ids=asset['asset_id'], log_level=log_level)
 
-                        # Borrar asset de la carpeta temp_folder tras subir
-                        if os.path.exists(asset_file_path):
+                        # Borrar asset de la carpeta Push_Queue tras subir
+                        if asset_pushed and os.path.exists(asset_file_path):
                             try:
                                 os.remove(asset_file_path)
                             except:
@@ -917,6 +955,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         # 4) Marca la tarea como completada y pasa al siguiente asset
                         push_queue.task_done()
+                        # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
                         continue
 
                     finally:
@@ -931,6 +970,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                             if not album_exists:
                                 album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
+                                LOGGER.info(f"Album Created   : '{album_name}' by pusher_worker={worker_id}")
                             # Añadir el asset al álbum
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.ERROR)
                         except Exception as e:
@@ -962,6 +1002,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                     # Finalmente, marco la tarea como procesada
                     push_queue.task_done()
+                    # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
 
                 except Exception as e:
                     if album_name:
@@ -985,7 +1026,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     migration_start_time = datetime.now()
 
     # Preparar la cola que compartiremos entre descargas y subidas
-    push_queue = Queue()
+    # push_queue = Queue()
+    push_queue = MonitoredQueue()
 
     # Set global para almacenar paths ya añadidos
     added_file_paths = set()
@@ -1361,6 +1403,16 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
                         line_colored = f"[red]{line}[/red]"
                     elif "debug   :" in line_lower:
                         line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
+                    elif "delayed" in line_lower:
+                        line_colored = f"[bright_black]{line}[/bright_black]"
+                    elif "album created" in line_lower:
+                        line_colored = f"[bright_white]{line}[/bright_white]"
+                    elif "album pulled" in line_lower:
+                        line_colored = f"[bright_cyan]{line}[/bright_cyan]"
+                    elif "album pushed" in line_lower:
+                        line_colored = f"[bright_green]{line}[/bright_green]"
+                    elif "fail" in line_lower:
+                        line_colored = f"[yellow]{line}[/yellow]"
                     elif "pull" in line_lower and not "push" in line_lower:
                         line_colored = f"[cyan]{line}[/cyan]"
                     elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:

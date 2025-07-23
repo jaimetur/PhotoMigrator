@@ -5,16 +5,20 @@
 ---
 
 ## Release: v3.4.4  
-- ### Release Date: 2025-07-30
+- ### Release Date: 2025-07-25
 
 - ### Main Changes:
   - #### 🌟 New Features:
-    
+    - [x] Added new Feature to create a Graphical User Interface (if supported) or Interactive Prompts (if Graphical Interface is not supported) to configura `Google Takeout Fixing` feature if the tool is called without arguments.
+
   - #### 🚀 Enhancements:
-    - [ ] Enhancement #866 to Improve performance of Input Info Analysis in 'Automatic Migration Feature'.
+    - [x] Enhancement [#866](https://github.com/jaimetur/PhotoMigrator/issues/866) to Improve performance of Input Info Analysis in 'Automatic Migration Feature' using an object from class FolderAnalyzer instead of performing read/write disk operations on LocalFolder class methods.
+    - [x] Enhancement on 'Album Pulled' / 'Album Pushed' dashboard messages during `Automatic Migration Feature`. Now Album messages are displayed in bright color to highlight it vs normal asset pull/push operations. 
 
   - #### 🐛 Bug fixes:
-    - [ ] Fixed bug #865 to avoid Albums Duplication on 'Automatic Migration Feature'.
+    - [x] Fixed bug [#865](https://github.com/jaimetur/PhotoMigrator/issues/865) to avoid Albums Duplication on 'Automatic Migration Feature' due to race conditions when more than 1 pusher_workers try to create the same Album in parallel. Now, to avoid this race conditions, only pusher_worker with id=1 is allowed to create new Albums. If the Album does not exists and the id>1 then the asset is returned back to pusher_queue.
+    - [x] Fixed bug [#879](https://github.com/jaimetur/PhotoMigrator/issues/879) in `guess_date_from_filename` function when the filename contains a number starting with 19 or 20 followed by 2 or more digits without checking if the following digits matches with a real month or month+day.
+    - [x] Fixed Bug [#884](https://github.com/jaimetur/PhotoMigrator/issues/884) in 'Google Takeout Processing' feature when flag `-gics, --google-ignore-check-structure` is detected causing that Output Folder is the same as Input Takeout Folder and deleting that at the end of the process.
     
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.
@@ -52,8 +56,8 @@
     
   - #### 🐛 Bug fixes:
     - [x] Fixed minor issues in Logger module. 
-    - [x] Fixed a bug in function 'Guess date from filename' when filename or filepath contains some digits that were parsed as year of the file . Fixed in #867.
-    - [x] Fixed bug #864 in Push asset to Immich when the asset to push has not os.stat().st_mtime returning -1. Now those files returns first epoch (1970-01-01) as fallback. Fixed in #867.
+    - [x] Fixed a bug in function 'Guess date from filename' when filename or filepath contains some digits that were parsed as year of the file . Fixed in [#867](https://github.com/jaimetur/PhotoMigrator/issues/867).
+    - [x] Fixed bug [#864](https://github.com/jaimetur/PhotoMigrator/issues/864) in Push asset to Immich when the asset to push has not os.stat().st_mtime returning -1. Now those files returns first epoch (1970-01-01) as fallback. Fixed in [#867](https://github.com/jaimetur/PhotoMigrator/issues/867).
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.

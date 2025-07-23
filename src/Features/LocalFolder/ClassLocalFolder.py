@@ -9,10 +9,11 @@ from datetime import datetime
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
+from Core.FolderAnalyzer import FolderAnalyzer
+from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch
-from Utils.StandaloneUtils import change_working_dir
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
+from Utils.StandaloneUtils import change_working_dir
 
 """
 -------------------
@@ -72,18 +73,18 @@ class ClassLocalFolder:
         self.ALLOWED_MEDIA_EXTENSIONS = self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
         self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS + self.ALLOWED_SIDECAR_EXTENSIONS + self.ALLOWED_METADATA_EXTENSIONS
 
-        # Definición de patrones de exclusión de carpetas
+        # Definition of folder exclusion patterns
         self.FOLDER_EXCLUSION_PATTERNS = [
-            r"@eaDir",  # Excluye la carpeta específica "@eaDir"
-            r"\..*"  # Excluye cualquier carpeta oculta (cuyo nombre comience con ".")
+            r"@eaDir",  # Excludes the specific "@eaDir" folder
+            r"\..+"  # Excludes any hidden folder (starting with ".")
         ]
 
-        # Definición de patrones de exclusión de ficheros
+        # Definition of file exclusion patterns
         self.FILE_EXCLUSION_PATTERNS = [
-            r"SYNOFILE_THUMB.*"  # Excluye cualquier archivo que empiece por "SYNOFILE_THUMB"
+            r"SYNOFILE_THUMB.*"  # Excludes any file beginning with "SYNOFILE_THUMB"
         ]
 
-        # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
+        # Create a cache dictionary of albums_owned_by_user to save in memory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
 
         # Create cache lists for future use
@@ -96,12 +97,32 @@ class ClassLocalFolder:
         self.from_date = ARGS.get('filter-from-date', None)
         self.to_date = ARGS.get('filter-to-date', None)
 
+        # Create the object analyzer from FolderAnalyzer Class
+        self.analyzer = None
+
         self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
 
 
     ###########################################################################
     #                           GENERAL UTILITY                               #
     ###########################################################################
+    def _ensure_analyzer(self, metadata_json_file=None, step_name="", log_level=None):
+        # Ensure FolderAnalyzer is initialized lazily
+        with set_log_level(LOGGER, log_level):
+            if not hasattr(self, 'analyzer') or self.analyzer is None:
+                LOGGER.info(f"{step_name}Initializing analyzer for {self.base_folder}…")
+                # Create the analyzer with the base folder path
+                self.analyzer = FolderAnalyzer(
+                    folder_path=str(self.base_folder),
+                    logger=LOGGER,
+                    step_name=step_name
+                )
+                if metadata_json_file and os.path.isfile(metadata_json_file):
+                    self.analyzer.load_from_json(input_file=metadata_json_file, step_name=step_name)
+                else:
+                    self.analyzer.extract_dates(step_name=step_name)
+                self.analyzer.save_to_json(output_file=f"automatic_migration_dates_metadata.json", step_name=step_name)
+
     def _determine_file_type(self, file):
         """
         Determines the type of the file based on its extension.
@@ -143,8 +164,8 @@ class ClassLocalFolder:
         elif type == 'sidecar':
             return self.ALLOWED_SIDECAR_EXTENSIONS
         elif type == 'unsupported':
-            return "unsupported"  # Caso especial para archivos no soportados
-        else:  # 'all' o cualquier otro valor no reconocido
+            return "unsupported"  # Special case for unsupported files
+        else:  # 'all' or any other unrecognized value
             return self.ALLOWED_EXTENSIONS
 
 
@@ -159,18 +180,18 @@ class ClassLocalFolder:
             bool: True if the file or folder should be excluded, False otherwise.
         """
         file_name = file_path.name
-        # Verificar exclusión de carpetas
+        # Check folder exclusion
         for pattern in self.FOLDER_EXCLUSION_PATTERNS:
             if any(re.fullmatch(pattern, part) for part in file_path.parts):
                 return True
-        # Verificar exclusión de archivos
+        # Check file exclusion
         for pattern in self.FILE_EXCLUSION_PATTERNS:
             if re.fullmatch(pattern, file_name):
                 return True
         return False
 
     def get_takeout_assets_by_filters(self, type='all', log_level=None):
-        return []  # Clase base no tiene takeout, devuelve lista vacía
+        return []  # Base class has no takeout, returns an empty list
 
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
@@ -327,10 +348,13 @@ class ClassLocalFolder:
                 return True
             return False
 
-
     def get_albums_owned_by_user(self, filter_assets=True, log_level=None):
         """
         Retrieves the list of owned albums.
+
+        Args:
+            filter_assets (bool): If True, only return albums with at least one asset.
+            log_level (logging.LEVEL): log level for logs and console.
 
         Returns:
             list[dict]: A list of dictionaries containing album details.
@@ -339,23 +363,56 @@ class ClassLocalFolder:
                         - 'albumName': Name of the album folder.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"Retrieving owned albums.")
+            LOGGER.info("Retrieving owned albums.")
 
+            # Check if we already have cached results for this filter_assets value
+            cache_key = f"owned_{filter_assets}"
+            if cache_key in self.albums_owned_by_user:
+                LOGGER.debug("Returning cached owned albums.")
+                return self.albums_owned_by_user[cache_key]
+
+            # Initialize the analyzer if needed
+            self._ensure_analyzer(log_level=log_level)
+
+            # Discover non-empty album names via analyzer.file_list
+            album_names = set()
+            base = Path(self.albums_folder.resolve())
+            for p in self.analyzer.file_list:
+                file = Path(p)
+                try:
+                    # only process files that live under the Albums folder
+                    rel = file.relative_to(base)
+                except ValueError:
+                    # file is not inside base → skip
+                    continue
+                # the first component of the relative path is the album folder name
+                album_names.add(rel.parts[0])
+
+            # Build the list of albums
             albums = [
-                {"id": str(p.resolve()), "albumName": p.name}
-                for p in self.albums_folder.iterdir() if p.is_dir()
+                {"id": str((self.albums_folder / name).resolve()), "albumName": name}
+                for name in album_names
             ]
 
+            # If not filtering by assets, cache and return immediately
+            if not filter_assets:
+                self.albums_owned_by_user[cache_key] = albums
+                return albums
+
+            # Apply the original asset-presence filter
             albums_filtered = []
             for album in albums:
-                album_id = album.get('id')
-                album_name = album.get("albumName", "")
+                album_id = album["id"]
+                album_name = album["albumName"]
                 album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                 if len(album_assets) > 0:
                     albums_filtered.append(album)
-            LOGGER.info(f"Found {len(albums_filtered)} owned albums.")
-            return albums_filtered
 
+            LOGGER.info(f"Found {len(albums_filtered)} owned albums.")
+
+            # Cache the result for future calls
+            self.albums_owned_by_user[cache_key] = albums_filtered
+            return albums_filtered
 
     def get_albums_including_shared_with_user(self, filter_assets=True, log_level=None):
         """
@@ -371,22 +428,46 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             try:
                 LOGGER.info(f"Retrieving owned and shared albums.")
+                # Initialize the analyzer if needed
+                self._ensure_analyzer(log_level=log_level)
+
+                # Discover non-empty album names via analyzer.file_list
+                owned_names = set()
+                shared_names = set()
+                base_owned = Path(self.albums_folder.resolve())
+                base_shared = Path(self.shared_albums_folder.resolve())
+
+                for p in self.analyzer.file_list:
+                    file_path = Path(p)
+                    # owned
+                    try:
+                        rel = file_path.relative_to(base_owned)
+                        # rel.parts[0] es el nombre del álbum
+                        owned_names.add(rel.parts[0])
+                        continue
+                    except ValueError:
+                        pass
+                    # shared
+                    try:
+                        rel = file_path.relative_to(base_shared)
+                        shared_names.add(rel.parts[0])
+                    except ValueError:
+                        pass
 
                 albums = [
-                    {"id": str(p.resolve()), "albumName": p.name}
-                    for p in self.albums_folder.iterdir() if p.is_dir()
+                    {"id": str((self.albums_folder / name).resolve()), "albumName": name}
+                    for name in owned_names
                 ]
                 shared_albums = [
-                    {"id": str(p.resolve()), "albumName": p.name}
-                    for p in self.shared_albums_folder.iterdir() if p.is_dir()
+                    {"id": str((self.shared_albums_folder / name).resolve()), "albumName": name}
+                    for name in shared_names
                 ]
 
                 all_albums = albums + shared_albums
-
                 albums_filtered = []
                 for album in all_albums:
-                    album_id = album.get('id')
-                    album_name = album.get("albumName", "")
+                    album_id = album["id"]
+                    album_name = album["albumName"]
                     album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     if len(album_assets) > 0:
                         albums_filtered.append(album)
@@ -398,51 +479,63 @@ class ClassLocalFolder:
 
     def get_album_assets_size(self, album_id, type='all', log_level=None):
         """
-        Gets the total size (bytes) of all assets in an album, with optional filtering by file type.
-
-        Args:
-            album_id (str): Path to the album folder.
-            type (str): Type of assets to consider for size calculation. Options are 'all', 'photo', 'image', 'video',
-                        'media', 'metadata', 'sidecar', 'unsupported'.
-            log_level (logging.LEVEL): Log level for logs and console.
-
-        Returns:
-            int: Total size of assets in the album (in bytes).
+        Total size (bytes) of assets in an album, with global and local filters.
         """
         with set_log_level(LOGGER, log_level):
-            try:
-                album_path = Path(album_id)
-                if not album_path.exists() or not album_path.is_dir():
-                    LOGGER.warning(f"Album path '{album_id}' does not exist or is not a directory.")
-                    return 0
-
-                selected_type_extensions = self._get_selected_extensions(type)
-
-                total_size = 0
-                for file in album_path.iterdir():
-                    if file.is_file() or file.is_symlink():
-                        # Aplicar exclusiones de carpetas y archivos
-                        if self._should_exclude(file):
-                            continue
-
-                        file_extension = file.suffix.lower()
-
-                        # Filtrado por tipo de archivo
-                        if selected_type_extensions == "unsupported":
-                            if file_extension in self.ALLOWED_EXTENSIONS:
-                                continue
-                        elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
-                            continue
-
-                        total_size += file.stat().st_size
-
-                LOGGER.info(f"Total size of {type} assets in album {album_id}: {total_size} bytes.")
-                return total_size
-
-            except Exception as e:
-                LOGGER.error(f"Failed to calculate size of {type} assets in album '{album_id}': {str(e)}")
+            self._ensure_analyzer(log_level=log_level)
+            album_path = Path(album_id)
+            if not album_path.is_dir():
+                LOGGER.warning(f"Album path '{album_id}' is invalid.")
                 return 0
 
+            prefix = str(album_path.resolve().as_posix())
+            if type == 'all' and not self.type and not self.from_date and not self.to_date:
+                return self.analyzer.folder_sizes.get(prefix, 0)
+
+            sel_ext_local = self._get_selected_extensions(type)
+            sel_ext_global = self._get_selected_extensions(self.type) if self.type else None
+            epoch_start = 0 if not self.from_date else parse_text_datetime_to_epoch(self.from_date)
+            epoch_end = float('inf') if not self.to_date else parse_text_datetime_to_epoch(self.to_date)
+
+            total = 0
+            for p in self.analyzer.file_list:
+                file = Path(p)
+                try:
+                    file.relative_to(prefix)
+                except ValueError:
+                    continue
+                size = self.analyzer.file_sizes.get(p)
+                if size is None:
+                    continue
+
+                ext = Path(p).suffix.lower()
+                # filters same as above…
+                if sel_ext_local == "unsupported":
+                    if ext in self.ALLOWED_EXTENSIONS:
+                        continue
+                elif sel_ext_local and ext not in sel_ext_local:
+                    continue
+                if sel_ext_global:
+                    if sel_ext_global == "unsupported":
+                        if ext in self.ALLOWED_EXTENSIONS:
+                            continue
+                    elif ext not in sel_ext_global:
+                        continue
+
+                file_date = self.analyzer.get_date(p)
+                if file_date is None:
+                    continue
+                ts = file_date if isinstance(file_date, (int, float)) else int(file_date.timestamp())
+                if ts < epoch_start or ts > epoch_end:
+                    continue
+
+                # accumulate size
+                try:
+                    total += size
+                except (OSError, IOError) as e:
+                    LOGGER.warning(f"Error summing size of {p}: {e}")
+
+            return total
 
     def get_album_assets_count(self, album_id, log_level=None):
         """
@@ -456,7 +549,7 @@ class ClassLocalFolder:
             int: Number of assets in the album.
         """
         with set_log_level(LOGGER, log_level):
-            return len(self.get_all_assets_from_album(album_id, log_level))
+            return len(self.get_all_assets_from_album(album_id, type='all', log_level=log_level))
 
 
     def album_exists(self, album_name, log_level=None):
@@ -598,198 +691,251 @@ class ClassLocalFolder:
     ###########################################################################
     def get_assets_by_filters(self, type='all', log_level=logging.WARNING):
         """
-        Retrieves assets stored in the base folder, filtering by type and applying folder and file exclusions.
-
-        Args:
-            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media',
-                        'metadata', 'sidecar', 'unsupported'.
-            log_level (int): Logging level.
-
-        Returns:
-            list[dict]: A list of asset dictionaries, each containing:
-                        - 'id': Absolute path to the file.
-                        - 'time': Creation timestamp of the file.
-                        - 'filename': File name (no path).
-                        - 'filepath': Absolute path to the file.
-                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+        Retrieves all assets from the base_folder, filtering by global date/type
+        and by local type (parameter 'type').
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"Retrieving {type} assets from the base folder, excluding system folders and unwanted files.")
-            # If all_assets is already cached, return it
-            if self.all_assets_filtered is not None:
+            LOGGER.info(f"Retrieving {type} assets…")
+
+            if self.all_assets_filtered is not None and not self.from_date and not self.to_date and not self.type:
                 return self.all_assets_filtered
 
-            base_folder = self.base_folder.resolve()
-            selected_type_extensions = self._get_selected_extensions(type)
+            sel_ext_local = self._get_selected_extensions(type)
+            sel_ext_global = self._get_selected_extensions(self.type) if self.type else None
+            epoch_start = 0 if not self.from_date else parse_text_datetime_to_epoch(self.from_date)
+            epoch_end = float('inf') if not self.to_date else parse_text_datetime_to_epoch(self.to_date)
 
-            all_assets = []
-            for file in base_folder.rglob("*"):
-                if file.is_file():
-                    # Aplicar exclusión de carpetas y archivos
-                    if self._should_exclude(file):
+            self._ensure_analyzer(log_level=log_level)
+            result = []
+
+            for p in self.analyzer.file_list:
+                f = Path(p)
+                if not f.is_file():
+                    continue
+                if self._should_exclude(f):
+                    continue
+
+                ext = f.suffix.lower()
+                # local filter
+                if sel_ext_local == "unsupported":
+                    if ext in self.ALLOWED_EXTENSIONS:
+                        continue
+                elif sel_ext_local and ext not in sel_ext_local:
+                    continue
+                # global filter
+                if sel_ext_global:
+                    if sel_ext_global == "unsupported":
+                        if ext in self.ALLOWED_EXTENSIONS:
+                            continue
+                    elif ext not in sel_ext_global:
                         continue
 
-                    file_extension = file.suffix.lower()
+                # global date filter
+                file_date = self.analyzer.get_date(p)
+                if file_date is None:
+                    continue
+                ts = file_date if isinstance(file_date, (int, float)) else int(file_date.timestamp())
+                if ts < epoch_start or ts > epoch_end:
+                    continue
 
-                    # Caso especial: archivos no soportados
-                    if selected_type_extensions == "unsupported":
-                        if file_extension in self.ALLOWED_EXTENSIONS:
-                            continue  # Omitir archivos que sí están en las extensiones permitidas
-                    elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
-                        continue  # Omitir archivos que no están en el tipo solicitado
+                # OK: asset metadata
+                try:
+                    mtime = f.stat().st_mtime
+                except (OSError, IOError) as e:
+                    LOGGER.warning(f"Could not read mtime of {f}: {e}")
+                    continue
 
-                    all_assets.append({
-                        "id": str(file.resolve()),
-                        # "time": file.stat().st_ctime,
-                        "time": file.stat().st_mtime,
-                        "filename": file.name,
-                        "filepath": str(file.resolve()),
-                        "type": self._determine_file_type(file),
-                    })
-            # Here we have to use the old filter_assets method in order to apply the filter to all_assets_filtered. Then the other methods can use the new filter_assets based in this pre-filtered list.
-            all_filtered_assets = self.filter_assets_old(assets=all_assets, log_level=log_level)
-            LOGGER.info(f"Found {len(all_filtered_assets)} assets of type '{type}' in the base folder.")
-            self.all_assets_filtered = all_filtered_assets  # Cache all_assets for future use
-            return all_filtered_assets
+                result.append({
+                    "id": str(f),
+                    "time": mtime,
+                    "filename": f.name,
+                    "filepath": str(f),
+                    "type": self._determine_file_type(f),
+                })
+
+            LOGGER.info(f"Found {len(result)} assets of type '{type}'.")
+            self.all_assets_filtered = result
+            return result
 
     def get_all_assets_from_album(self, album_id, album_name=None, type='all', log_level=logging.WARNING):
         """
-        Lists the assets within a given album, with optional filtering by file type.
-
-        Args:
-            album_id (str): Path to the album folder.
-            album_name (str, optional): Name of the album for logging.
-            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata',
-                        'sidecar', 'unsupported'.
-            log_level (int): Logging level.
-
-        Returns:
-            list[dict]: A list of asset dictionaries, each containing:
-                        - 'id': Absolute path to the file.
-                        - 'time': Creation timestamp of the file.
-                        - 'filename': File name (no path).
-                        - 'filepath': Absolute path to the file.
-                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+        Lists assets in a specific album, applying both global and local type/date filters.
         """
         with set_log_level(LOGGER, log_level):
-            try:
-                LOGGER.debug(f"Retrieving '{type}' assets for album: {album_id}")
-
-                album_path = Path(album_id)
-                if not album_path.exists() or not album_path.is_dir():
-                    LOGGER.warning(f"Album path '{album_id}' does not exist or is not a directory.")
-                    return []
-
-                selected_type_extensions = self._get_selected_extensions(type)
-
-                album_assets = []
-                for file in album_path.iterdir():
-                    if file.is_file() or file.is_symlink():
-                        # Aplicar exclusiones de carpetas y archivos
-                        if self._should_exclude(file):
-                            continue
-
-                        file_extension = file.suffix.lower()
-
-                        # Filtrado por tipo de archivo
-                        if selected_type_extensions == "unsupported":
-                            if file_extension in self.ALLOWED_EXTENSIONS:
-                                continue
-                        elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
-                            continue
-
-                        album_assets.append({
-                            "id": str(file.resolve()),
-                            # "time": file.stat().st_ctime,
-                            "time": file.stat().st_mtime,
-                            "filename": file.name,
-                            "filepath": str(file.resolve()),
-                            "type": self._determine_file_type(file),
-                        })
-
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                LOGGER.debug(f"Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
-                return filtered_album_assets
-
-            except Exception as e:
-                error_message = f"Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"Failed to retrieve {type} assets from album ID={album_id}"
-                LOGGER.error(f"{error_message}: {str(e)}")
+            album_path = Path(album_id)
+            if not album_path.is_dir():
+                LOGGER.warning(f"Album '{album_id}' does not exist.")
                 return []
 
+            sel_ext_local = self._get_selected_extensions(type)
+            sel_ext_global = self._get_selected_extensions(self.type) if self.type else None
+            epoch_start = 0 if not self.from_date else parse_text_datetime_to_epoch(self.from_date)
+            epoch_end = float('inf') if not self.to_date else parse_text_datetime_to_epoch(self.to_date)
+            prefix = album_path.resolve()
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.WARNING):
+            self._ensure_analyzer(log_level=log_level)
+            assets = []
+
+            for p in self.analyzer.file_list:
+                filepath = Path(p)
+                try:
+                    filepath.relative_to(prefix)
+                except ValueError:
+                    continue
+                if not (filepath.is_file() or filepath.is_symlink()):
+                    continue
+                if self._should_exclude(filepath):
+                    continue
+
+                ext = filepath.suffix.lower()
+                # local filter
+                if sel_ext_local == "unsupported":
+                    if ext in self.ALLOWED_EXTENSIONS:
+                        continue
+                elif sel_ext_local and ext not in sel_ext_local:
+                    continue
+                # global filter
+                if sel_ext_global:
+                    if sel_ext_global == "unsupported":
+                        if ext in self.ALLOWED_EXTENSIONS:
+                            continue
+                    elif ext not in sel_ext_global:
+                        continue
+
+                # global date filter (resolve symlinks to get real metadata)
+                fs_path = Path(p)
+                if fs_path.is_symlink():
+                    # resolve the link to the real file
+                    target = fs_path.resolve()
+                    file_date = self.analyzer.get_date(str(target))
+                else:
+                    file_date = self.analyzer.get_date(p)
+
+                if file_date is None:
+                    continue
+                ts = file_date if isinstance(file_date, (int, float)) else int(file_date.timestamp())
+                if ts < epoch_start or ts > epoch_end:
+                    continue
+
+                try:
+                    mtime = filepath.stat().st_mtime
+                except (OSError, IOError) as e:
+                    LOGGER.warning(f"Unable to read mtime from {filepath}: {e}")
+                    continue
+
+                assets.append({
+                    "id": str(filepath),
+                    "time": mtime,
+                    "filename": filepath.name,
+                    "filepath": str(filepath),
+                    "type": self._determine_file_type(filepath),
+                })
+
+            LOGGER.debug(f"{len(assets)} assets in album '{album_id}'.")
+            return assets
+
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, type='all', album_passphrase=None, log_level=logging.WARNING):
         """
-        Lists the assets within a given album, with optional filtering by file type.
+        Lists the assets within a given shared album, with optional filtering by file type.
 
         Args:
-            album_id (str): Path to the album folder.
+            album_id (str): Path to the shared album folder.
             album_name (str, optional): Name of the album for logging.
-            album_passphrase (str): Shared album passphrase
+            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media',
+                        'metadata', 'sidecar', 'unsupported'.
+            album_passphrase (str): Shared album passphrase (no‐op for local).
             log_level (int): Logging level.
 
         Returns:
             list[dict]: A list of asset dictionaries, each containing:
                         - 'id': Absolute path to the file.
-                        - 'time': Creation timestamp of the file.
-                        - 'filename': File name (no path).
-                        - 'filepath': Absolute path to the file.
-                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+                        - 'time': Modification timestamp.
+                        - 'filename': File name.
+                        - 'filepath': Absolute path.
+                        - 'type': 'image', 'video', etc.
         """
         # TODO: This method is just a copy of get_all_assets_from_album. Change to filter only shared albums
+
         with set_log_level(LOGGER, log_level):
-            try:
-                LOGGER.debug(f"Retrieving '{type}' assets for album: {album_id}")
-
-                album_path = Path(album_id)
-                if not album_path.exists() or not album_path.is_dir():
-                    LOGGER.warning(f"Album path '{album_id}' does not exist or is not a directory.")
-                    return []
-
-                selected_type_extensions = self._get_selected_extensions(type)
-
-                album_assets = []
-                for file in album_path.iterdir():
-                    if file.is_file() or file.is_symlink():
-                        # Aplicar exclusiones de carpetas y archivos
-                        if self._should_exclude(file):
-                            continue
-
-                        file_extension = file.suffix.lower()
-
-                        # Filtrado por tipo de archivo
-                        if selected_type_extensions == "unsupported":
-                            if file_extension in self.ALLOWED_EXTENSIONS:
-                                continue
-                        elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
-                            continue
-
-                        album_assets.append({
-                            "id": str(file.resolve()),
-                            # "time": file.stat().st_ctime,
-                            "time": file.stat().st_mtime,
-                            "filename": file.name,
-                            "filepath": str(file.resolve()),
-                            "type": self._determine_file_type(file),
-                        })
-
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                LOGGER.debug(f"Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
-                return filtered_album_assets
-
-            except Exception as e:
-                error_message = f"Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"Failed to retrieve {type} assets from album ID={album_id}"
-                LOGGER.error(f"{error_message}: {str(e)}")
+            album_path = Path(album_id)
+            if not album_path.is_dir():
+                LOGGER.warning(f"Shared album '{album_id}' does not exist.")
                 return []
 
+            sel_ext_local  = self._get_selected_extensions(type)
+            sel_ext_global = self._get_selected_extensions(self.type) if self.type else None
+            epoch_start    = 0 if not self.from_date else parse_text_datetime_to_epoch(self.from_date)
+            epoch_end      = float('inf') if not self.to_date else parse_text_datetime_to_epoch(self.to_date)
+            prefix         = str(album_path.resolve())
+
+            self._ensure_analyzer(log_level=log_level)
+            assets = []
+
+            for p in self.analyzer.file_list:
+                filepath = Path(p)
+                try:
+                    filepath.relative_to(prefix)
+                except ValueError:
+                    continue
+                if not (filepath.is_file() or filepath.is_symlink()):
+                    continue
+                if self._should_exclude(filepath):
+                    continue
+
+                ext = filepath.suffix.lower()
+                # local and global filters identical to above…
+                if sel_ext_local == "unsupported":
+                    if ext in self.ALLOWED_EXTENSIONS:
+                        continue
+                elif sel_ext_local and ext not in sel_ext_local:
+                    continue
+                if sel_ext_global:
+                    if sel_ext_global == "unsupported":
+                        if ext in self.ALLOWED_EXTENSIONS:
+                            continue
+                    elif ext not in sel_ext_global:
+                        continue
+
+                # global date filter (resolve symlinks to get real metadata)
+                fs_path = Path(p)
+                if fs_path.is_symlink():
+                    # resolve the link to the real file
+                    target = fs_path.resolve()
+                    file_date = self.analyzer.get_date(str(target))
+                else:
+                    file_date = self.analyzer.get_date(p)
+
+                if file_date is None:
+                    continue
+                ts = file_date if isinstance(file_date, (int, float)) else int(file_date.timestamp())
+                if ts < epoch_start or ts > epoch_end:
+                    continue
+
+                try:
+                    mtime = filepath.stat().st_mtime
+                except (OSError, IOError) as e:
+                    LOGGER.warning(f"Could not read mtime of {filepath}: {e}")
+                    continue
+
+                assets.append({
+                    "id": str(filepath),
+                    "time": mtime,
+                    "filename": filepath.name,
+                    "filepath": str(filepath),
+                    "type": self._determine_file_type(filepath),
+                })
+
+            LOGGER.debug(f"{len(assets)} assets in shared album '{album_id}'.")
+            return assets
 
     def get_all_assets_without_albums(self, type='all', log_level=logging.WARNING):
         """
-        Lists assets that are in self.base_folder but not in self.albums_folder or self.shared_albums_folder,
-        with optional filtering by file type.
+        Lists assets that are in self.base_folder but not in self.albums_folder
+        or self.shared_albums_folder, with optional filtering by file type.
 
         Args:
-            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata',
-                        'sidecar', 'unsupported'.
+            type (str): Type of assets to retrieve. Options are 'all', 'photo',
+                        'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
             log_level (int): Logging level.
 
         Returns:
@@ -802,59 +948,68 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"Retrieving {type} assets excluding albums, shared albums, and excluded patterns.")
-            # If assets_without_albums is already cached, return it.
+
+            # Cache check (same as before)
             if self.assets_without_albums_filtered is not None:
                 return self.assets_without_albums_filtered
 
-            base_folder = self.base_folder.resolve()
-            albums_folder = self.albums_folder.resolve() if self.albums_folder else None
-            shared_albums_folder = self.shared_albums_folder.resolve() if self.shared_albums_folder else None
-
+            albums_folder = self.albums_folder.resolve()
+            shared_albums_folder = self.shared_albums_folder.resolve()
             selected_type_extensions = self._get_selected_extensions(type)
 
+            # Initialize the analyzer only once
+            self._ensure_analyzer(log_level=log_level)
+
             assets = []
-            for file in base_folder.rglob("*"):
-                if file.is_file():
-                    # Aplicar exclusiones de carpetas y archivos
-                    if self._should_exclude(file):
+            for p in self.analyzer.file_list:
+                f = Path(p)
+                # Only regular files
+                if not f.is_file():
+                    continue
+                # Pattern exclusion
+                if self._should_exclude(f):
+                    continue
+                # Discard anything inside Albums or Shared
+                try:
+                    f.relative_to(albums_folder)
+                    continue
+                except ValueError:
+                    pass
+                try:
+                    f.relative_to(shared_albums_folder)
+                    continue
+                except ValueError:
+                    pass
+
+                ext = f.suffix.lower()
+                # Local filter by type (param 'type')
+                if selected_type_extensions == "unsupported":
+                    if ext in self.ALLOWED_EXTENSIONS:
                         continue
+                elif selected_type_extensions is not None and ext not in selected_type_extensions:
+                    continue
 
-                    # Excluir archivos dentro de albums_folder y shared_albums_folder
-                    try:
-                        if albums_folder and file.relative_to(albums_folder):
-                            continue
-                    except ValueError:
-                        pass
+                assets.append({
+                    "id": str(f),
+                    "time": f.stat().st_mtime,
+                    "filename": f.name,
+                    "filepath": str(f),
+                    "type": self._determine_file_type(f),
+                })
 
-                    try:
-                        if shared_albums_folder and file.relative_to(shared_albums_folder):
-                            continue
-                    except ValueError:
-                        pass
-
-                    # Filtrado por tipo de archivo
-                    if selected_type_extensions == "unsupported":
-                        if file.suffix.lower() in self.ALLOWED_EXTENSIONS:
-                            continue
-                    elif selected_type_extensions is not None and file.suffix.lower() not in selected_type_extensions:
-                        continue
-
-                    assets.append({
-                        "id": str(file.resolve()),
-                        # "time": file.stat().st_ctime,
-                        "time": file.stat().st_mtime,
-                        "filename": file.name,
-                        "filepath": str(file.resolve()),
-                        "type": self._determine_file_type(file),
-                    })
-
+            # Apply global filter (self.type, self.from_date, self.to_date)
             assets_without_albums = self.filter_assets(assets=assets, log_level=log_level)
+
+            # Rest of takeouts as before
             takeout_metadata = self.get_takeout_assets_by_filters(type='metadata', log_level=log_level)
             takeout_sidecar = self.get_takeout_assets_by_filters(type='sidecar', log_level=log_level)
             takeout_unsupported = self.get_takeout_assets_by_filters(type='unsupported', log_level=log_level)
+
             LOGGER.info(f"Found {len(assets_without_albums)} assets of type '{type}' in No-Album folders.")
             all_assets = assets_without_albums + takeout_metadata + takeout_sidecar + takeout_unsupported
-            self.assets_without_albums_filtered = all_assets  # Cache assets_without_albums for future use
+
+            # Cache for subsequent calls
+            self.assets_without_albums_filtered = all_assets
             return all_assets
 
     def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
@@ -926,7 +1081,6 @@ class ClassLocalFolder:
             LOGGER.info(f"Added {count_added} asset(s) to album '{album_name or album_id}'.")
             return count_added
 
-
     def get_duplicates_assets(self, log_level=None):
         """
         Returns a list of duplicate assets found in local storage.
@@ -938,21 +1092,23 @@ class ClassLocalFolder:
             list[list[str]]: Each element is a list of file paths considered duplicates.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"Searching for duplicate assets in local storage.")
-            size_map = {}
-            duplicates = []
-            for file in self.base_folder.rglob("*"):
-                if file.is_file():
-                    fsize = file.stat().st_size
-                    if fsize not in size_map:
-                        size_map[fsize] = [file]
-                    else:
-                        size_map[fsize].append(file)
+            LOGGER.info("Searching for duplicate assets in local storage.")
+            # Ensure analyzer has built file_sizes cache
+            self._ensure_analyzer(log_level=log_level)
 
-            for fsize, group in size_map.items():
+            # Use the cached file_sizes from the analyzer to group by size
+            size_map = {}
+            for file_path, size in self.analyzer.file_sizes.items():
+                # file_path is a posix string; keep grouping by its size
+                size_map.setdefault(size, []).append(file_path)
+
+            # Build list of groups where more than one file shares the same size
+            duplicates = []
+            for group in size_map.values():
                 if len(group) > 1:
-                    duplicates.append([str(x.resolve()) for x in group])
-            LOGGER.info(f"Found {len(duplicates)} group(s) of duplicates.")
+                    duplicates.append(group)
+
+            LOGGER.info(f"Found {len(duplicates)} duplicate group(s).")
             return duplicates
 
     def remove_assets(self, asset_ids, log_level=None):
@@ -1088,7 +1244,7 @@ class ClassLocalFolder:
         Returns:
             tuple: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_removed, total_duplicates_skipped=0)
         """
-        # (La lógica concreta de la subida local puede ser idéntica a la previa que definimos)
+        # (The concrete local-upload logic can be the same as what we defined earlier)
         pass
 
 
@@ -1102,7 +1258,7 @@ class ClassLocalFolder:
         Returns:
             tuple: (total_assets_uploaded, total_duplicates_skipped=0, total_duplicates_removed)
         """
-        # (Igual a la lógica local previa, adaptada)
+        # (Same as the previous local logic, adapted)
         pass
 
 
@@ -1150,7 +1306,6 @@ class ClassLocalFolder:
         """
         pass
 
-
     def remove_empty_folders(self, log_level=None):
         """
         Recursively removes all empty folders in the entire base folder structure.
@@ -1164,24 +1319,24 @@ class ClassLocalFolder:
                 return 0
 
             LOGGER.info(f"Looking for empty folders in '{self.base_folder}'...")
+            # Initialize the analyzer if necessary
+            self._ensure_analyzer(log_level=log_level)
 
-            empty_folders_removed = 0
+            # Folder → contains files?
+            occupied = set(Path(p).parent.resolve() for p in self.analyzer.file_list)
+            removed = 0
 
-            # Recorremos en orden inverso para asegurar que primero se limpien las subcarpetas
             for folder in sorted(self.base_folder.rglob("*"), key=lambda p: len(p.parts), reverse=True):
-                if folder.is_dir():
+                if folder.is_dir() and folder not in occupied:
                     try:
-                        # Solo la eliminamos si no tiene archivos ni subdirectorios
-                        if not any(folder.iterdir()):
-                            folder.rmdir()
-                            empty_folders_removed += 1
-                            LOGGER.info(f"Removed empty folder: {folder}")
+                        folder.rmdir()
+                        removed += 1
+                        LOGGER.info(f"Removed empty folder: {folder}")
                     except Exception as e:
                         LOGGER.warning(f"WARN    : Could not remove folder '{folder}': {e}")
 
-            LOGGER.info(f"Removed {empty_folders_removed} empty folders.")
-            return empty_folders_removed
-
+            LOGGER.info(f"Removed {removed} empty folders.")
+            return removed
 
     def remove_all_albums(self, log_level=None):
         """
@@ -1238,34 +1393,32 @@ class ClassLocalFolder:
                 return 0
 
             LOGGER.info(f"Looking for exact duplicate albums in local folders...")
+            # Initialize the analyzer if needed
+            self._ensure_analyzer(log_level=log_level)
 
             duplicates_map = defaultdict(list)
-
             for folder in self.albums_folder.glob("*"):
                 if folder.is_dir():
                     album_name = folder.name
-                    total_size = sum(f.stat().st_size for f in folder.rglob("*") if f.is_file())
+                    key = str(folder.resolve())
+                    total_size = self.analyzer.folder_sizes.get(key, 0)
                     duplicates_map[(album_name, total_size)].append(folder)
 
             folders_to_remove = []
-            for (album_name, total_size), folders in duplicates_map.items():
-                if len(folders) > 1:
-                    keeper = folders[0]
+            for (album_name, total_size), group in duplicates_map.items():
+                if len(group) > 1:
+                    keeper = group[0]
                     LOGGER.info(f"Keeping folder '{keeper}' with size {total_size} bytes.")
-                    duplicates = folders[1:]
-                    for dup_folder in duplicates:
+                    for dup_folder in group[1:]:
                         folders_to_remove.append((album_name, total_size, dup_folder))
 
             if not folders_to_remove:
                 LOGGER.info(f"No exact duplicate albums found.")
                 return 0
 
-            # Display the folders to be removed
             LOGGER.info(f"Folders marked for deletion:")
             for album_name, total_size, dup_folder in folders_to_remove:
                 print(f"  '{album_name}' - Size: {total_size} bytes -> {dup_folder}")
-
-            # Ask for confirmation only if requested
             if request_user_confirmation and not confirm_continue():
                 LOGGER.info(f"Exiting program.")
                 return 0
@@ -1307,85 +1460,87 @@ class ClassLocalFolder:
                 return 0
 
             LOGGER.info(f"Searching for duplicate albums in local folders...")
+            # Initialize the analyzer if needed
+            self._ensure_analyzer(log_level=log_level)
 
-            # Map from album name to list of folders
+            # Group albums by name using in-memory data
             albums_by_name = defaultdict(list)
             for folder in self.albums_folder.glob("*"):
                 if folder.is_dir():
                     album_name = folder.name
-                    file_count = sum(1 for f in folder.rglob("*") if f.is_file())
-                    total_size = sum(f.stat().st_size for f in folder.rglob("*") if f.is_file())
+                    prefix = str(folder.resolve())
+                    file_count = 0
+                    for p in self.analyzer.file_list:
+                        file = Path(p)
+                        try:
+                            file.relative_to(prefix)
+                        except ValueError:
+                            continue
+                        if file.is_file():
+                            file_count += 1
+                    size = self.analyzer.folder_sizes.get(prefix, 0)
                     albums_by_name[album_name].append({
                         "path": folder,
                         "count": file_count,
-                        "size": total_size
+                        "size": size
                     })
 
             merge_plan = []
-            for album_name, folder_group in albums_by_name.items():
-                if len(folder_group) <= 1:
-                    continue  # No duplicates
-
+            for album_name, group in albums_by_name.items():
+                if len(group) <= 1:
+                    continue
                 if strategy == 'size':
-                    sorted_group = sorted(folder_group, key=lambda x: x['size'], reverse=True)
-                else:  # Default to 'count'
-                    sorted_group = sorted(folder_group, key=lambda x: x['count'], reverse=True)
-
-                keeper = sorted_group[0]
-                duplicates = sorted_group[1:]
-
+                    keeper = sorted(group, key=lambda x: x['size'], reverse=True)[0]
+                else:
+                    keeper = sorted(group, key=lambda x: x['count'], reverse=True)[0]
+                duplicates = [item["path"] for item in group if item["path"] != keeper["path"]]
                 merge_plan.append({
                     "album_name": album_name,
                     "keeper_path": keeper["path"],
-                    "duplicates": [dup["path"] for dup in duplicates]
+                    "duplicates": duplicates
                 })
 
             if not merge_plan:
                 LOGGER.info(f"No duplicate albums found.")
                 return 0
 
-            # Display the merge plan
             LOGGER.info(f"Albums to be merged:")
             for item in merge_plan:
                 LOGGER.info(f"\nAlbum: '{item['album_name']}'")
                 LOGGER.info(f"  Keeper: {item['keeper_path']}")
-                for dup_path in item["duplicates"]:
-                    LOGGER.info(f"  Duplicate to merge and remove: {dup_path}")
+                for dup in item["duplicates"]:
+                    LOGGER.info(f"  Duplicate to merge and remove: {dup}")
 
-            # Ask for confirmation
             if request_user_confirmation and not confirm_continue():
                 LOGGER.info(f"Exiting program.")
                 return 0
 
-            total_removed_duplicated_albums = 0
-
-            # Proceed with merging
+            total_removed = 0
             for item in merge_plan:
                 keeper_path = item["keeper_path"]
                 for dup_path in item["duplicates"]:
-                    LOGGER.debug(f"Moving files from duplicate folder: {dup_path}")
-
-                    for file in dup_path.rglob("*"):
-                        if file.is_file():
-                            relative_path = file.relative_to(dup_path)
-                            target_file = keeper_path / relative_path
-                            target_file.parent.mkdir(parents=True, exist_ok=True)
-                            if not target_file.exists():
-                                file.rename(target_file)
-                            else:
-                                LOGGER.warning(f"Skipped moving '{file}' as it already exists at destination.")
-
+                    for f in self.analyzer.file_list:
+                        if f.startswith(str(dup_path.resolve()) + os.sep):
+                            file = Path(f)
+                            if file.is_file():
+                                rel = file.relative_to(dup_path)
+                                target = keeper_path / rel
+                                target.parent.mkdir(parents=True, exist_ok=True)
+                                if not target.exists():
+                                    file.rename(target)
+                                else:
+                                    LOGGER.warning(f"Skipped moving '{file}' as it already exists at destination.")
                     try:
-                        dup_path.rmdir()  # Only works if the folder is empty
-                        total_removed_duplicated_albums += 1
+                        dup_path.rmdir()
+                        total_removed += 1
                         LOGGER.info(f"Removed duplicate folder: {dup_path}")
                     except OSError:
                         shutil.rmtree(dup_path)
-                        total_removed_duplicated_albums += 1
+                        total_removed += 1
                         LOGGER.info(f"Removed duplicate folder and its contents: {dup_path}")
 
-            LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate folders.")
-            return total_removed_duplicated_albums
+            LOGGER.info(f"Removed {total_removed} duplicate folders.")
+            return total_removed
 
     def remove_orphan_assets(self, user_confirmation=True, log_level=logging.WARNING):
         """
