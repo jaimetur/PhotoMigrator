@@ -870,22 +870,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     orig_level = LOGGER.level
                     try:
                         # Primero comprobamos si el Album existe, si no existe, y no somos el worker_id=1, devolvemos el asset a la cola. Esto evita que varios pusher_workers intenten crear el mismo album a la vez. Solo el worker_id=1 puede crear nuevos Albumes.
-                        if worker_id > 1:
+                        if album_name and worker_id > 1:
                             album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                             if not album_exists:
-                                # * Devolvemos el asset al frente de la cola *
-                                try:
-                                    # queue.Queue tiene internamente un deque en .queue
-                                    push_queue.queue.appendleft(asset)
-                                except AttributeError:
-                                    # En caso de que no sea un deque (p. ej. otro tipo de cola), lo añadimos normalmente al final como fallback
-                                    push_queue.put(asset)
-                                finally:
-                                    # Marcamos este get() como "done" para equilibrar el contador
-                                    push_queue.task_done()
-                                # Actualizamos el contador de asset en la cola tras haber repuesto el asset en la misma.
+                                # Re-encolamos el asset nuevamente al final de la cola
+                                push_queue.put(asset)
+                                LOGGER.info(f"Asset Delayed   : '{os.path.basename(asset_file_path)}' by pusher_worker={worker_id}. Waiting to pusher_worker=1 to create associated Album '{album_name}' before to push the asset into it.")
+                                # Actualizamos el contador de assets en la cola
                                 SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
-                                # Saltamos al siguiente loop para no procesar este asset
+                                # Marcamos este get() como "done" para equilibrar el contador
+                                push_queue.task_done()
+                                # Saltamos al siguiente loop para no procesar este asset aquí
                                 continue
 
                         # SUBIR el asset
@@ -963,6 +958,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                             if not album_exists:
                                 album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
+                                LOGGER.info(f"Album Created   : '{album_name}' by pusher_worker={worker_id}")
                             # Añadir el asset al álbum
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.ERROR)
                         except Exception as e:
@@ -1393,6 +1389,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
                         line_colored = f"[red]{line}[/red]"
                     elif "debug   :" in line_lower:
                         line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
+                    elif "delayed" in line_lower:
+                        line_colored = f"[bright_black]{line}[/bright_black]"
+                    elif "album created" in line_lower:
+                        line_colored = f"[bright_white]{line}[/bright_white]"
+                    elif "album pulled" in line_lower:
+                        line_colored = f"[bright_cyan]{line}[/bright_cyan]"
+                    elif "album pushed" in line_lower:
+                        line_colored = f"[bright_green]{line}[/bright_green]"
                     elif "pull" in line_lower and not "push" in line_lower:
                         line_colored = f"[cyan]{line}[/cyan]"
                     elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
