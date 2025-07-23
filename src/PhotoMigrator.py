@@ -124,50 +124,6 @@ def main():
     # Get the execution mode and run it.
     detect_and_run_execution_mode()
 
-
-# def pre_parse_args():
-#     # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
-#     if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
-#         custom_print(f"Valid folder detected as input: '{sys.argv[1]}'", log_level=logging.INFO)
-#         custom_print(f"Executing Google Takeout Photos Processor Feature with the provided input folder...", log_level=logging.INFO)
-#         sys.argv.insert(1, "--google-takeout")
-#
-#     # Verificar si el script se ejecutó sin argumentos, en ese caso se pedirá al usuario queue introduzca la ruta de la carpeta que contiene el Takeout a procesar
-#     elif len(sys.argv) == 1:
-#         def select_folder_gui():
-#             root = tk.Tk()
-#             root.withdraw()
-#             return filedialog.askdirectory(title="Select the Google Takeout folder to process")
-#         try:
-#             import tkinter as tk
-#             from tkinter import filedialog
-#             TKINTER_AVAILABLE = True
-#         except ImportError:
-#             TKINTER_AVAILABLE = False
-#
-#         custom_print(f"No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.", log_level=logging.INFO)
-#         has_display = os.environ.get("DISPLAY") is not None or sys.platform == "win32"
-#
-#         if has_display and TKINTER_AVAILABLE:
-#             custom_print(f"GUI environment detected. Opening folder selection dialog...", log_level=logging.INFO)
-#             custom_print(f"Please, Select the Google Takeout folder to process...", log_level=logging.INFO)
-#             selected_folder = select_folder_gui()
-#         else:
-#             if not TKINTER_AVAILABLE and has_display:
-#                 custom_print(f"Tkinter is not installed. Falling back to console input.", log_level=logging.WARNING)
-#             else:
-#                 custom_print(f"No GUI detected. Using console input.", log_level=logging.INFO)
-#             custom_print(f"Please type the full path to the Takeout folder to process:", log_level=logging.WARNING)
-#             selected_folder = input("Folder path: ").strip()
-#
-#         if selected_folder and os.path.isdir(selected_folder):
-#             custom_print(f"Folder selected: '{selected_folder}'", log_level=logging.INFO)
-#             sys.argv.append("--google-takeout")
-#             sys.argv.append(selected_folder)
-#         else:
-#             custom_print(f"No valid folder selected. Exiting.", log_level=logging.ERROR)
-#             sys.exit(1)
-
 def pre_parse_args():
     def has_display():
         # Detect if a graphical environment is available
@@ -232,12 +188,12 @@ def pre_parse_args():
                 # -------- Flags with Descriptions --------
                 self.flags = {
                     "--google-ignore-check-structure": ("Ignore Takeout structure checking", tk.BooleanVar()),
-                    "--google-no-symbolic-albums": ("Duplicate assets instead of create symlink for albums", tk.BooleanVar()),
+                    "--google-no-symbolic-albums": ("No Creates symbolic links for Albums", tk.BooleanVar()),
                     "--google-remove-duplicates-files": ("Remove duplicate assets (only useful if before flag is unchecked", tk.BooleanVar()),
                     "--google-rename-albums-folders": ("Rename albums based on its assets dates (useful for a better organization)", tk.BooleanVar()),
                     "--google-skip-extras-files": ("Skip Google-edited/effect files", tk.BooleanVar()),
                     "--google-skip-move-albums": ("Do not move albums to ALBUMS_FOLDER", tk.BooleanVar()),
-                    "--google-skip-gpth-tool": ("Skip GPTH tool (only recommended for testing purposses)", tk.BooleanVar()),
+                    "--google-skip-gpth-tool": ("Skip GPTH tool (only recommended for testing purposes)", tk.BooleanVar()),
                     "--google-skip-preprocess": ("Skip pre-processing step (not recommended)", tk.BooleanVar()),
                     "--google-skip-postprocess": ("Skip post-processing step (not recommended)", tk.BooleanVar()),
                     "--google-keep-takeout-folder": ("Keep untouched Takeout copy (uses double disk space)", tk.BooleanVar()),
@@ -271,16 +227,24 @@ def pre_parse_args():
                 tk.Checkbutton(row2, variable=self.show_errors).pack(side="left")
                 tk.Label(row2, text=f"{'--show-gpth-errors':<40} Show GPTH error messages", anchor="w", justify="left", font=("Courier", 10)).pack(side="left")
 
-                # -------- Buttons --------
-                btn_frame = tk.Frame(master)
-                btn_frame.pack(pady=12)
-                tk.Button(btn_frame, text="Accept", command=self.submit, width=12).pack(side="left", padx=10)
-                tk.Button(btn_frame, text="Cancel", command=self.cancel, width=12).pack(side="left", padx=10)
+                # -------- Bottom buttons --------
+                button_frame = tk.Frame(master)
+                button_frame.pack(pady=(10, 10))
+
+                # ⛔ Primero se crea el botón Accept, y empieza desactivado
+                self.accept_btn = tk.Button(button_frame, text="Accept", command=self.submit, state="disabled")
+                self.accept_btn.pack(side="right", padx=5)
+                self.validate_folder()
+
+                # ❌ Y si tienes botón Cancel, va en medio o al lado izquierdo
+                cancel_btn = tk.Button(button_frame, text="Cancel", command=self.cancel)
+                cancel_btn.pack(side="left", padx=5)
 
             def browse_folder(self):
                 folder = filedialog.askdirectory()
                 if folder:
                     self.takeout_folder.set(folder)
+                    self.validate_folder()  # 👈 Esto activa el botón Accept si la carpeta es válida
 
             def submit(self):
                 # Takeout folder is always required
@@ -313,8 +277,9 @@ def pre_parse_args():
                 if self.show_errors.get() is False:
                     sys.argv += ["--show-gpth-errors", "false"]
 
-                # Show final command line
-                print("\n💡 Final command line:\n" + " ".join(f'"{arg}"' if " " in arg else arg for arg in sys.argv))
+                # -------- Final command summary --------
+                print()
+                custom_print("▶️ Final command line: " + " ".join(f'"{arg}"' if " " in arg else arg for arg in sys.argv), log_level=logging.INFO)
 
                 # Close the GUI window completely
                 self.master.destroy()
@@ -329,7 +294,8 @@ def pre_parse_args():
                 return os.path.isdir(path)
 
             def validate_folder(self, *args):
-                if self.is_valid_folder():
+                folder = self.takeout_folder.get()
+                if folder and os.path.isdir(folder):
                     self.accept_btn.config(state="normal")
                 else:
                     self.accept_btn.config(state="disabled")
@@ -347,79 +313,103 @@ def pre_parse_args():
         root.mainloop()
 
     def launch_console_config(folder_already_provided):
-        def ask_input(prompt, default=None):
-            full_prompt = f"{prompt} [default: {default}] → Press Enter to use default value:"
-            value = input(f"{full_prompt} ").strip()
+        PAD_DESC = 58
+        PAD_DEFAULT = 14
+        PAD_PROMPT = 44
+        HEADER_WIDTH = PAD_DESC + PAD_DEFAULT + PAD_PROMPT + 40
+
+        def ask_input(label, description="", default=None, icon="ℹ️", is_flag=False):
+            if is_flag:
+                prompt_str = f"{icon} {label} (y/n)".ljust(PAD_PROMPT-3) + ": "
+            else:
+                prompt_str = f"{icon} Introduce {label}".ljust(PAD_PROMPT-3) + ": "
+            desc_str = f"{icon} {description}".ljust(PAD_DESC-1)
+            default_str = f"[{default}]".ljust(PAD_DEFAULT) if default is not None else ""
+            input_row = f"{desc_str}{default_str}{prompt_str}"
+            try:
+                import readline
+                readline.set_startup_hook(lambda: readline.insert_text(str(default)))
+                value = input(input_row).strip()
+            finally:
+                try:
+                    readline.set_startup_hook(None)
+                except:
+                    pass
             return value if value else default
 
-        # -------- Folder Selection --------
+        def ask_bool(flag, description, default="true", icon="❓"):
+            return ask_input(flag, description=description, icon=icon, default=default, is_flag=True).lower()
+
+        def ask_structure(name, default="flatten", icon="📂"):
+            choices = ["flatten", "year", "year/month", "year-month"]
+            while True:
+                value = ask_input(f"{name} structure", description=f"Structure for {name.lower()} folder", default=default, icon=icon)
+                if value in choices:
+                    return value
+                custom_print("❌ Invalid choice. Please try again.", log_level=logging.ERROR)
+
+        # -------- Header --------
+        print("🧩 CONFIGURATION PANEL (Console Mode)\n")
+        print("DESCRIPTION:".ljust(PAD_DESC) + "DEFAULT:".ljust(PAD_DEFAULT) + "PROMPT:".ljust(PAD_PROMPT) + "INPUT:")
+        print("-" * HEADER_WIDTH)
+
+        # -------- Takeout folder --------
         if not folder_already_provided:
             while True:
-                folder = ask_input("📁 Path to Takeout folder", default="MyTakeout")
+                folder = ask_input("Path to Takeout folder", description="Google Takeout input folder", default="MyTakeout", icon="📁")
                 if folder and os.path.isdir(folder):
                     sys.argv += ["--google-takeout", folder]
                     break
                 elif folder == "":
                     print("❌ Folder path is required. Please enter a valid path.")
                 else:
-                    print(f"❌ Folder does not exists: '{folder}'. Please try again.")
+                    print("❌ Invalid folder. Please try again.")
 
-        # -------- Output Folder Suffix --------
-        suffix = ask_input("📦 Output folder suffix", default="processed")
+        # -------- Output suffix --------
+        suffix = ask_input("Output folder suffix", description="Suffix for the processed output folder", default="processed", icon="🔤")
         if suffix != "processed":
             sys.argv += ["--google-output-folder-suffix", suffix]
 
-        # -------- Folder Structures --------
-        def ask_structure(name, default="flatten"):
-            choices = ["flatten", "year", "year/month", "year-month"]
-            while True:
-                value = ask_input(f"{name} structure ({' / '.join(choices)})", default)
-                if value in choices:
-                    return value
-                print("❌ Invalid choice.")
-
-        albums_structure = ask_structure("Albums folder", default="flatten")
+        # -------- Folder structure options --------
+        albums_structure = ask_structure("Albums folder", default="flatten", icon="📂")
         if albums_structure != "flatten":
             sys.argv += ["--google-albums-folders-structure", albums_structure]
 
-        no_albums_structure = ask_structure("No-albums folder", default="year/month")
+        no_albums_structure = ask_structure("No-albums folder", default="year/month", icon="📂")
         if no_albums_structure != "year/month":
             sys.argv += ["--google-no-albums-folders-structure", no_albums_structure]
 
-        # -------- Flags (yes/no questions) --------
+        # -------- Flags --------
         flag_questions = {
             "--google-ignore-check-structure": "Ignore Takeout structure checking",
-            "--google-no-symbolic-albums": "Duplicate assets instead of symlink",
+            "--google-no-symbolic-albums": "No Creates symbolic links for Albums",
             "--google-remove-duplicates-files": "Remove duplicate assets",
-            "--google-rename-albums-folders": "Rename albums based on asset dates",
+            "--google-rename-albums-folders": "Rename albums based on its asset dates",
             "--google-skip-extras-files": "Skip Google-edited/effect files",
             "--google-skip-move-albums": "Do not move albums to ALBUMS_FOLDER",
-            "--google-skip-gpth-tool": "Skip GPTH tool (only for testing)",
+            "--google-skip-gpth-tool": "Skip GPTH tool (only recommended for testing purposes)",
             "--google-skip-preprocess": "Skip pre-processing (not recommended)",
             "--google-skip-postprocess": "Skip post-processing (not recommended)",
-            "--google-keep-takeout-folder": "Keep untouched Takeout copy",
+            "--google-keep-takeout-folder": "Keep untouched Takeout copy (uses double disk space)",
         }
 
-        for flag, description in flag_questions.items():
-            answer = ask_input(f"{flag}? {description}", "n").lower()
-            if answer == "y":
+        for flag, desc in flag_questions.items():
+            answer = ask_bool(flag=flag, description=desc, default="no", icon="❓").lower()
+            if answer in ["y", "yes", "true"]:
                 sys.argv.append(flag)
 
-        # -------- Boolean Flags with true/false --------
-        def ask_bool(flag, description, default="true"):
-            answer = ask_input(f"{flag} {description}", default).lower()
-            return answer if answer in ["true", "false"] else default
+        # -------- Boolean options --------
+        answer = ask_bool(flag="--show-gpth-info", description="Show GPTH progress messages", default="yes", icon="❓").lower()
+        if answer not in ["y", "yes", "true"]:
+            sys.argv += ["--show-gpth-info", answer]
 
-        info = ask_bool("--show-gpth-info", "Show GPTH progress messages", "true")
-        if info != "true":
-            sys.argv += ["--show-gpth-info", info]
+        answer = ask_bool(flag="--show-gpth-errors", description="Show GPTH error messages", default="yes", icon="❓").lower()
+        if answer not in ["y", "yes", "true"]:
+            sys.argv += ["--show-gpth-errors", answer]
 
-        errors = ask_bool("--show-gpth-errors", "Show GPTH error messages", "true")
-        if errors != "true":
-            sys.argv += ["--show-gpth-errors", errors]
-
-        # -------- Final summary --------
-        print("\n💡 Final command line:\n" + " ".join(f'"{arg}"' if " " in arg else arg for arg in sys.argv))
+        # -------- Final command summary --------
+        print()
+        custom_print("▶️ Final command line: " + " ".join(f'"{arg}"' if " " in arg else arg for arg in sys.argv), log_level=logging.INFO)
 
     # -----------------------------------------------------------------------------------
     # END OF AUX FUNCTIONS
@@ -468,7 +458,7 @@ def pre_parse_args():
         if gui_available and not TKINTER_AVAILABLE:
             custom_print(f"Tkinter is not installed. Falling back to console input.", log_level=logging.WARNING)
         else:
-            custom_print(f"No GUI detected. Using console input.", log_level=logging.INFO)
+            custom_print(f"No GUI detected. Using console input. You will be prompted for each configuration option for 'Google Takeout Fixing' feature...", log_level=logging.INFO)
         launch_console_config(folder_already_provided)
 
 
