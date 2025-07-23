@@ -16,7 +16,7 @@
   - #### 🐛 Bug fixes:
     - [x] Fixed Bug #884 in 'Google Takeout Processing' feature when flag `-gics, --google-ignore-check-structure` is detected causing that Output Folder is the same as Input Takeout Folder and deleting that at the end of the process.
     - [x] Fixed bug #879 in `guess_date_from_filename` function when the filename contains a number starting with 19 or 20 followed by 2 or more digits without checking if the following digits matches with a real month or month+day.
-    - [ ] Fixed bug #865 to avoid Albums Duplication on 'Automatic Migration Feature'.
+    - [x] Fixed bug #865 to avoid Albums Duplication on 'Automatic Migration Feature' due to race conditions when more than 1 pusher_workers try to create the same Album in parallel. Now, to avoid this race conditions, only pusher_worker with id=1 is allowed to create new Albums. If the Album does not exists and the id>1 then the asset is returned back to pusher_queue.
     
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.

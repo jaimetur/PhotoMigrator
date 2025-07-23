@@ -836,11 +836,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------
     # 2) PUSHER: Función pusher_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
-    def pusher_worker(processed_albums=[], worker_id=1, log_level=logging.INFO):
+    def pusher_worker(processed_albums=None, worker_id=1, log_level=logging.INFO):
         # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
         # from Core.GlobalVariables import LOGGER as GV_LOGGER
         # thread_id = threading.get_ident()
         # LOGGER = GV_LOGGER.getChild(f"pusher-{thread_id}")
+
+        if processed_albums is None:
+            processed_albums = []
 
         with set_log_level(LOGGER, log_level):
             move_assets = ARGS.get('move-assets', None)
@@ -866,6 +869,25 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
                     try:
+                        # Primero comprobamos si el Album existe, si no existe, y no somos el worker_id=1, devolvemos el asset a la cola. Esto evita que varios pusher_workers intenten crear el mismo album a la vez. Solo el worker_id=1 puede crear nuevos Albumes.
+                        if worker_id > 1:
+                            album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
+                            if not album_exists:
+                                # * Devolvemos el asset al frente de la cola *
+                                try:
+                                    # queue.Queue tiene internamente un deque en .queue
+                                    push_queue.queue.appendleft(asset)
+                                except AttributeError:
+                                    # En caso de que no sea un deque (p. ej. otro tipo de cola), lo añadimos normalmente al final como fallback
+                                    push_queue.put(asset)
+                                finally:
+                                    # Marcamos este get() como "done" para equilibrar el contador
+                                    push_queue.task_done()
+                                # Actualizamos el contador de asset en la cola tras haber repuesto el asset en la misma.
+                                SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+                                # Saltamos al siguiente loop para no procesar este asset
+                                continue
+
                         # SUBIR el asset
                         asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
 
