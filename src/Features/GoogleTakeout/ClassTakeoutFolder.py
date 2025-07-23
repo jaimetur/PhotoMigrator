@@ -493,6 +493,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     if not self.needs_process:
                         LOGGER.warning(f"{step_name}No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
+                        # Determine the output_folder again because when elf.ARGS['google-ignore-check-structure'] = True, the output_folder is different
+                        output_folder = self.get_output_folder()
 
                 # Now Call GPTH Tool
                 ok = fix_metadata_with_gpth_tool(
@@ -535,12 +537,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Determine if manual copy/move is needed (for step 4)
-            manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
+            manual_copy_move_needed = (self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']) and input_folder != output_folder
             if manual_copy_move_needed:
                 if self.ARGS['google-skip-gpth-tool']:
                     LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gSkipGpth, --google-skip-gpth-tool' flag). step {self.step}.{self.substep} is needed to copy files manually to output folder.")
                 if self.ARGS['google-ignore-check-structure']:
-                    LOGGER.warning(f"{step_name}Flag to Ignore Google Takeout Structure detected. step {self.step} is needed to copy/move files manually to output folder.")
+                    LOGGER.warning(f"{step_name}Flag to Ignore Google Takeout Structure detected. step {self.step}.{self.substep} is needed to copy/move files manually to output folder.")
                 if not self.ARGS['google-keep-takeout-folder']:
                     LOGGER.info(f"{step_name}Moving files from Takeout folder to Output folder...")
                 else:
@@ -2005,6 +2007,11 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                 return False
             if not is_valid_path(dst):
                 LOGGER.error(f"{step_name}The path '{dst}' is not valid for the execution platform. Cannot copy/move folders to it.")
+                return False
+
+            # Ensure source != destination
+            if src == dst:
+                LOGGER.warning(f"{step_name}The source path '{src}' is the same as destination path '{dst}' Skipping copy/move folders to it...")
                 return False
 
             # Ensure the source folder exists

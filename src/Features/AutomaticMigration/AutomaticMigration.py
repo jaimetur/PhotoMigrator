@@ -901,8 +901,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if move_assets:
                             source_client.remove_assets(asset_ids=asset['asset_id'], log_level=log_level)
 
-                        # Borrar asset de la carpeta temp_folder tras subir
-                        if os.path.exists(asset_file_path):
+                        # Borrar asset de la carpeta Push_Queue tras subir
+                        if asset_pushed and os.path.exists(asset_file_path):
                             try:
                                 os.remove(asset_file_path)
                             except:
@@ -1365,7 +1365,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
 
                     # Opcional: aplica color según la palabra “pull”/”push”
                     line_lower = line.lower()
-                    if "warning :" in line_lower:
+                    if "warning :" in line_lower or "fail" in line_lower:
                         line_colored = f"[yellow]{line}[/yellow]"
                     elif "error   :" in line_lower:
                         line_colored = f"[red]{line}[/red]"

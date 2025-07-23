@@ -117,7 +117,7 @@ class ClassLocalFolder:
                     logger=LOGGER,
                     step_name=step_name
                 )
-                if os.path.isfile(metadata_json_file):
+                if metadata_json_file and os.path.isfile(metadata_json_file):
                     self.analyzer.load_from_json(input_file=metadata_json_file, step_name=step_name)
                 else:
                     self.analyzer.extract_dates(step_name=step_name)
