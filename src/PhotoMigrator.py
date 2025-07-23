@@ -4,6 +4,7 @@ import importlib
 import logging
 import os
 import sys
+from pathlib import Path
 
 from Core.CustomLogger import custom_log
 from Core.GlobalFunctions import set_FOLDERS
@@ -137,7 +138,10 @@ def pre_parse_args():
             def __init__(self, master, default_folder):
                 self.master = master
                 master.title("Google Takeout Fixing Configuration")
-                # self.master.geometry("700x600")  # Wider window
+                # Cambiar icono
+                icon_path = Path(__file__).resolve().parent.parent / "assets" / "ico" / "PhotoMigrator.ico"
+                if icon_path.exists():
+                    self.master.iconbitmap(icon_path)
 
                 # -------- Folder Selection --------
                 self.takeout_folder = tk.StringVar(value=default_folder)
@@ -147,12 +151,10 @@ def pre_parse_args():
 
                 row_folder = tk.Frame(folder_frame)
                 row_folder.pack(anchor="w", pady=2)
-                tk.Label(row_folder, text="Takeout Folder:", width=28, anchor="w").pack(side="left")
+                tk.Label(row_folder, text="Input Folder:", width=28, anchor="w").pack(side="left")
                 self.folder_entry = tk.Entry(row_folder, textvariable=self.takeout_folder, width=110)
                 self.folder_entry.pack(side="left")
                 tk.Button(row_folder, text="Select Folder", command=self.browse_folder).pack(side="left", padx=8)
-
-                self.takeout_folder.trace_add("write", self.validate_folder)
 
                 # -------- Output Suffix --------
                 suffix_frame = tk.Frame(master)
@@ -234,11 +236,18 @@ def pre_parse_args():
                 # ⛔ Primero se crea el botón Accept, y empieza desactivado
                 self.accept_btn = tk.Button(button_frame, text="Accept", command=self.submit, state="disabled")
                 self.accept_btn.pack(side="right", padx=5)
-                self.validate_folder()
 
                 # ❌ Y si tienes botón Cancel, va en medio o al lado izquierdo
                 cancel_btn = tk.Button(button_frame, text="Cancel", command=self.cancel)
                 cancel_btn.pack(side="left", padx=5)
+
+                # ⚠️ Warning label (initially hidden)
+                self.warning_label = tk.Label(master, text="You must select a valid Input Folder", fg="red", font=("Arial", 10))
+                self.warning_label.pack()
+                self.warning_label.pack_forget()  # Oculta la etiqueta al inicio
+
+                self.takeout_folder.trace_add("write", self.validate_folder)
+                self.validate_folder()
 
             def browse_folder(self):
                 folder = filedialog.askdirectory()
@@ -297,8 +306,10 @@ def pre_parse_args():
                 folder = self.takeout_folder.get()
                 if folder and os.path.isdir(folder):
                     self.accept_btn.config(state="normal")
+                    self.warning_label.pack_forget()
                 else:
                     self.accept_btn.config(state="disabled")
+                    self.warning_label.pack()
 
         root = tk.Tk()
         root.update_idletasks()
