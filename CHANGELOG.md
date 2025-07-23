@@ -14,6 +14,7 @@
     - [ ] Enhancement #866 to Improve performance of Input Info Analysis in 'Automatic Migration Feature'.
 
   - #### 🐛 Bug fixes:
+    - [x] Fixed Bug #884 in 'Google Takeout Processing' feature when flag `-gits, --google-ignore-check-structure` is detected causing that Output Folder is the same as Input Takeout Folder and deleting that at the end of the process.
     - [ ] Fixed bug #865 to avoid Albums Duplication on 'Automatic Migration Feature'.
     
   - #### 📚 Documentation: 
