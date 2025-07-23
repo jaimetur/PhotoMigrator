@@ -463,8 +463,13 @@ class FolderAnalyzer:
                 self.logger.info(f"{step_name}📅 Extracting Dates for '{self.folder_path}'...")
 
                 # Filter the file list to only include supported photo and video extensions
-                media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
-                json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
+                # media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
+                # json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
+
+                # Filter the file list to only include supported photo and video extensions, and exclude any symlinks (only real files).
+                media_files = [f for f in self.file_list if not Path(f).is_symlink() and Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
+                json_files  = [f for f in self.file_list if not Path(f).is_symlink() and Path(f).suffix.lower() == '.json']
+
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
                 total_files = len(self.file_list)
@@ -490,8 +495,7 @@ class FolderAnalyzer:
                         executor.submit(_process_block, idx, block): idx
                         for idx, block in enumerate(file_blocks, 1)
                     }
-                    # disable_tqdm = log_level < logging.WARNING
-                    # with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True, disable=disable_tqdm) as pbar:
+
                     with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True) as pbar:
                         for future in as_completed(future_to_index):
                             result = future.result()
@@ -512,6 +516,7 @@ class FolderAnalyzer:
         # Call the main function to start the process
         main()
 
+
     def count_files(self, exclude_ext=None, include_ext=None, step_name='', log_level=None):
         """
         Count all files in the folder by type (photos, videos, metadata, sidecar),
@@ -529,78 +534,89 @@ class FolderAnalyzer:
             total_bytes = 0
             media_file_paths = []
 
-            for root, dirs, files in os.walk(self.folder_path):
-                # Skip hidden folders and Synology folders
-                dirs[:] = [d for d in dirs if not d.startswith('.') and d != '@eaDir']
-                for filename in files:
-                    full_path = os.path.join(root, filename)
-                    ext = Path(full_path).suffix.lower()
+            # Decide source of file list: use in-memory analyzer list if available
+            if getattr(self, 'file_list', None):
+                # English comment: iterate over cached file list
+                paths = self.file_list
+            else:
+                # English comment: fallback to walking the disk
+                paths = []
+                for root, dirs, files in os.walk(self.folder_path):
+                    # Skip hidden folders and Synology folders
+                    dirs[:] = [d for d in dirs if not d.startswith('.') and d != '@eaDir']
+                    for filename in files:
+                        paths.append(os.path.join(root, filename))
 
-                    # Skip by extension if requested
-                    if excluded_extensions and ext in excluded_extensions:
-                        continue
-                    if included_extensions and ext not in included_extensions:
-                        continue
+            for full_path in paths:
+                ext = Path(full_path).suffix.lower()
 
-                    is_symlink = os.path.islink(full_path)
-                    if is_symlink:
-                        try:
-                            link_target = os.readlink(full_path)
-                            resolved_target = os.path.abspath(os.path.join(os.path.dirname(full_path), link_target))
-                            if not os.path.exists(resolved_target):
-                                self.logger.info(f"{step_name}Excluded broken symlink: {full_path}")
-                                continue
-                        except OSError as e:
-                            self.logger.warning(f"{step_name}⚠️ Failed to read symlink {full_path}: {e}")
+                # Skip by extension if requested
+                if excluded_extensions and ext in excluded_extensions:
+                    continue
+                if included_extensions and ext not in included_extensions:
+                    continue
+
+                is_symlink = os.path.islink(full_path)
+                if is_symlink:
+                    try:
+                        link_target = os.readlink(full_path)
+                        resolved_target = os.path.abspath(
+                            os.path.join(os.path.dirname(full_path), link_target)
+                        )
+                        if not os.path.exists(resolved_target):
+                            self.logger.info(f"{step_name}Excluded broken symlink: {full_path}")
                             continue
+                    except OSError as e:
+                        self.logger.warning(f"{step_name}⚠️ Failed to read symlink {full_path}: {e}")
+                        continue
 
-                    counters['total_files'] += 1
+                counters['total_files'] += 1
+                if is_symlink:
+                    counters['total_symlinks'] += 1
+
+                supported = ext in (PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
+                if supported:
+                    counters['supported_files'] += 1
                     if is_symlink:
-                        counters['total_symlinks'] += 1
+                        counters['supported_symlinks'] += 1
+                else:
+                    counters['unsupported_files'] += 1
 
-                    supported = ext in (PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
-                    if supported:
-                        counters['supported_files'] += 1
-                        if is_symlink:
-                            counters['supported_symlinks'] += 1
-                    else:
-                        counters['unsupported_files'] += 1
+                media_category = None
+                if ext in PHOTO_EXT:
+                    media_category = 'photos'
+                    counters['photo_files'] += 1
+                    counters['media_files'] += 1
+                    counters['photos']['total'] += 1
+                    if is_symlink:
+                        counters['photo_symlinks'] += 1
+                        counters['media_symlinks'] += 1
+                        counters[media_category]['symlinks'] += 1
+                elif ext in VIDEO_EXT:
+                    media_category = 'videos'
+                    counters['video_files'] += 1
+                    counters['media_files'] += 1
+                    counters['videos']['total'] += 1
+                    if is_symlink:
+                        counters['video_symlinks'] += 1
+                        counters['media_symlinks'] += 1
+                        counters[media_category]['symlinks'] += 1
 
-                    media_category = None
-                    if ext in PHOTO_EXT:
-                        media_category = 'photos'
-                        counters['photo_files'] += 1
-                        counters['media_files'] += 1
-                        counters['photos']['total'] += 1
-                        if is_symlink:
-                            counters['photo_symlinks'] += 1
-                            counters['media_symlinks'] += 1
-                            counters[media_category]['symlinks'] += 1
-                    elif ext in VIDEO_EXT:
-                        media_category = 'videos'
-                        counters['video_files'] += 1
-                        counters['media_files'] += 1
-                        counters['videos']['total'] += 1
-                        if is_symlink:
-                            counters['video_symlinks'] += 1
-                            counters['media_symlinks'] += 1
-                            counters[media_category]['symlinks'] += 1
+                if ext in METADATA_EXT:
+                    counters['metadata_files'] += 1
+                if ext in SIDECAR_EXT:
+                    counters['sidecar_files'] += 1
+                if ext in METADATA_EXT or ext in SIDECAR_EXT:
+                    counters['non_media_files'] += 1
 
-                    if ext in METADATA_EXT:
-                        counters['metadata_files'] += 1
-                    if ext in SIDECAR_EXT:
-                        counters['sidecar_files'] += 1
-                    if ext in METADATA_EXT or ext in SIDECAR_EXT:
-                        counters['non_media_files'] += 1
+                if media_category:
+                    media_file_paths.append(full_path)
 
-                    if media_category:
-                        media_file_paths.append(full_path)
-
-                    if not is_symlink:
-                        try:
-                            total_bytes += os.path.getsize(full_path)
-                        except:
-                            pass
+                if not is_symlink:
+                    try:
+                        total_bytes += os.path.getsize(full_path)
+                    except:
+                        pass
 
             counters['total_size_mb'] = round(total_bytes / (1024 * 1024), 1)
 
