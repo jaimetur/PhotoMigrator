@@ -5,16 +5,17 @@
 ---
 
 ## Release: v3.4.4  
-- ### Release Date: 2025-07-30
+- ### Release Date: 2025-07-25
 
 - ### Main Changes:
   - #### 🌟 New Features:
     
   - #### 🚀 Enhancements:
-    - [ ] Enhancement #866 to Improve performance of Input Info Analysis in 'Automatic Migration Feature'.
+    - [x] Enhancement #866 to Improve performance of Input Info Analysis in 'Automatic Migration Feature' using an object from class FolderAnalyzer instead of performing read/write disk operations on LocalFolder class methods.
 
   - #### 🐛 Bug fixes:
-    - [x] Fixed Bug #884 in 'Google Takeout Processing' feature when flag `-gits, --google-ignore-check-structure` is detected causing that Output Folder is the same as Input Takeout Folder and deleting that at the end of the process.
+    - [x] Fixed Bug #884 in 'Google Takeout Processing' feature when flag `-gics, --google-ignore-check-structure` is detected causing that Output Folder is the same as Input Takeout Folder and deleting that at the end of the process.
+    - [x] Fixed bug #879 in `guess_date_from_filename` function when the filename contains a number starting with 19 or 20 followed by 2 or more digits without checking if the following digits matches with a real month or month+day.
     - [ ] Fixed bug #865 to avoid Albums Duplication on 'Automatic Migration Feature'.
     
   - #### 📚 Documentation: 
