@@ -461,14 +461,13 @@ class FolderAnalyzer:
         def main():
             with set_log_level(self.logger, log_level):
                 self.logger.info(f"{step_name}📅 Extracting Dates for '{self.folder_path}'...")
+                json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
 
                 # Filter the file list to only include supported photo and video extensions
                 # media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
-                # json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
 
                 # Filter the file list to only include supported photo and video extensions, and exclude any symlinks (only real files).
                 media_files = [f for f in self.file_list if not Path(f).is_symlink() and Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
-                json_files  = [f for f in self.file_list if not Path(f).is_symlink() and Path(f).suffix.lower() == '.json']
 
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
