@@ -490,7 +490,8 @@ class FolderAnalyzer:
                         executor.submit(_process_block, idx, block): idx
                         for idx, block in enumerate(file_blocks, 1)
                     }
-
+                    # disable_tqdm = log_level < logging.WARNING
+                    # with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True, disable=disable_tqdm) as pbar:
                     with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True) as pbar:
                         for future in as_completed(future_to_index):
                             result = future.result()
