@@ -21,9 +21,9 @@ from colorama import init
 from dateutil import parser
 from packaging.version import Version
 
-from Core.ClassFolderAnalyzer import FolderAnalyzer
 from Core.CustomLogger import set_log_level
 from Core.CustomLogger import suppress_console_output_temporarily
+from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, \
     PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
@@ -136,17 +136,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
         self.get_albums_folder()
         return self.output_folder
 
-    def analyze_folder(self, folder_to_analyze, folder_type='output', step_name='', save_json=True):
+    def analyze_folder(self, folder_to_analyze, folder_type='output', step_name='', save_json=True, json_filename=None):
         # Analyze Folder using the New Class FolderAnalyzer to extract files dates and to count all file types from a given folder
         # ----------------------------------------------------------------------------------------------------------------------
         step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
         sub_step_start_time = datetime.now()
         if folder_type.lower() == 'input':
             self.initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, logger=LOGGER, step_name=step_name)
-            self.initial_takeout_folder_analyzer.extract_dates(use_filename=False, step_name=step_name) # Avoud to use_filename to guess dates from filename to do a fair comparisson between pre/post
+            self.initial_takeout_folder_analyzer.extract_dates(use_fallback_to_filename=False, step_name=step_name) # Avoid to use_filename to guess dates from filename to do a fair comparison between pre/post
             counters = self.initial_takeout_folder_analyzer.count_files(step_name=step_name)
             if save_json:
-                self.initial_takeout_folder_analyzer.save_to_json(f"input_dates_metadata.json", step_name=step_name)
+                if json_filename is None:
+                    json_filename = f"input_dates_metadata.json"
+                self.initial_takeout_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Takeout folder'
             sub_dict = 'input_counters'
@@ -155,7 +157,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.output_folder_analyzer.extract_dates(step_name=step_name)
             counters = self.output_folder_analyzer.count_files(step_name=step_name)
             if save_json:
-                self.output_folder_analyzer.save_to_json(f"output_dates_metadata.json", step_name=step_name)
+                if json_filename is None:
+                    json_filename = f"output_dates_metadata.json"
+                self.output_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Output folder'
             sub_dict = 'output_counters'
@@ -489,6 +493,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     if not self.needs_process:
                         LOGGER.warning(f"{step_name}No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
+                        # Determine the output_folder again because when elf.ARGS['google-ignore-check-structure'] = True, the output_folder is different
+                        output_folder = self.get_output_folder()
 
                 # Now Call GPTH Tool
                 ok = fix_metadata_with_gpth_tool(
@@ -531,12 +537,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Determine if manual copy/move is needed (for step 4)
-            manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
+            manual_copy_move_needed = (self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']) and input_folder != output_folder
             if manual_copy_move_needed:
                 if self.ARGS['google-skip-gpth-tool']:
                     LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gSkipGpth, --google-skip-gpth-tool' flag). step {self.step}.{self.substep} is needed to copy files manually to output folder.")
                 if self.ARGS['google-ignore-check-structure']:
-                    LOGGER.warning(f"{step_name}Flag to Ignore Google Takeout Structure detected. step {self.step} is needed to copy/move files manually to output folder.")
+                    LOGGER.warning(f"{step_name}Flag to Ignore Google Takeout Structure detected. step {self.step}.{self.substep} is needed to copy/move files manually to output folder.")
                 if not self.ARGS['google-keep-takeout-folder']:
                     LOGGER.info(f"{step_name}Moving files from Takeout folder to Output folder...")
                 else:
@@ -1110,64 +1116,64 @@ class ClassTakeoutFolder(ClassLocalFolder):
         self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
 
 
-    # sobreescribimos el método get_takeout_assets_by_filters() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
-    def get_takeout_assets_by_filters(self, type='all', log_level=None):
-        """
-        Retrieves assets stored in the base folder, filtering by type.
-
-        Args:
-            log_level (int): Logging level.
-            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
-
-        Returns:
-            list[dict]: A list of asset dictionaries, each containing:
-                        - 'id': Absolute path to the file.
-                        - 'time': Creation timestamp of the file.
-                        - 'filename': File name (no path).
-                        - 'filepath': Absolute path to the file.
-                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
-        """
-        with set_log_level(LOGGER, log_level):
-            if self.unzipped_folder:
-                base_folder = self.unzipped_folder
-            else:
-                base_folder = self.takeout_folder
-
-            LOGGER.info(f"Retrieving {type} assets from the base folder: '{base_folder}'.")
-
-            # Determine allowed extensions based on the type
-            if type in ['photo', 'image']:
-                selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
-            elif type == 'video':
-                selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
-            elif type == 'media':
-                selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
-            elif type == 'metadata':
-                selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
-            elif type == 'sidecar':
-                selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
-            elif type == 'unsupported':
-                selected_type_extensions = None  # Special case to filter unsupported files
-            else:  # 'all' or unrecognized type defaults to all supported extensions
-                selected_type_extensions = self.ALLOWED_EXTENSIONS
-
-            assets = [
-                {
-                    "id": str(file.resolve()),
-                    "time": file.stat().st_ctime,
-                    "filename": file.name,
-                    "filepath": str(file.resolve()),
-                    "type": self._determine_file_type(file),
-                }
-                for file in base_folder.rglob("*")
-                if file.is_file() and (
-                    (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
-                    (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
-                )
-            ]
-
-            LOGGER.info(f"Found {len(assets)} {type} assets in the base folder.")
-            return assets
+    # # sobreescribimos el método get_takeout_assets_by_filters() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
+    # def get_takeout_assets_by_filters(self, type='all', log_level=None):
+    #     """
+    #     Retrieves assets stored in the base folder, filtering by type.
+    #
+    #     Args:
+    #         log_level (int): Logging level.
+    #         type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
+    #
+    #     Returns:
+    #         list[dict]: A list of asset dictionaries, each containing:
+    #                     - 'id': Absolute path to the file.
+    #                     - 'time': Creation timestamp of the file.
+    #                     - 'filename': File name (no path).
+    #                     - 'filepath': Absolute path to the file.
+    #                     - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+    #     """
+    #     with set_log_level(LOGGER, log_level):
+    #         if self.unzipped_folder:
+    #             base_folder = self.unzipped_folder
+    #         else:
+    #             base_folder = self.takeout_folder
+    #
+    #         LOGGER.info(f"Retrieving {type} assets from the base folder: '{base_folder}'.")
+    #
+    #         # Determine allowed extensions based on the type
+    #         if type in ['photo', 'image']:
+    #             selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
+    #         elif type == 'video':
+    #             selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
+    #         elif type == 'media':
+    #             selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
+    #         elif type == 'metadata':
+    #             selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
+    #         elif type == 'sidecar':
+    #             selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
+    #         elif type == 'unsupported':
+    #             selected_type_extensions = None  # Special case to filter unsupported files
+    #         else:  # 'all' or unrecognized type defaults to all supported extensions
+    #             selected_type_extensions = self.ALLOWED_EXTENSIONS
+    #
+    #         assets = [
+    #             {
+    #                 "id": str(file.resolve()),
+    #                 "time": file.stat().st_ctime,
+    #                 "filename": file.name,
+    #                 "filepath": str(file.resolve()),
+    #                 "type": self._determine_file_type(file),
+    #             }
+    #             for file in base_folder.rglob("*")
+    #             if file.is_file() and (
+    #                 (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
+    #                 (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
+    #             )
+    #         ]
+    #
+    #         LOGGER.info(f"Found {len(assets)} {type} assets in the base folder.")
+    #         return assets
 ##############################################################################
 #                                END OF CLASS                                #
 ##############################################################################
@@ -2001,6 +2007,11 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                 return False
             if not is_valid_path(dst):
                 LOGGER.error(f"{step_name}The path '{dst}' is not valid for the execution platform. Cannot copy/move folders to it.")
+                return False
+
+            # Ensure source != destination
+            if src == dst:
+                LOGGER.warning(f"{step_name}The source path '{src}' is the same as destination path '{dst}' Skipping copy/move folders to it...")
                 return False
 
             # Ensure the source folder exists

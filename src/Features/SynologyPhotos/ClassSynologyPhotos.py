@@ -91,7 +91,7 @@ class ClassSynologyPhotos:
         self.ALLOWED_MEDIA_EXTENSIONS = self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
         self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS
 
-        # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
+        # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
 
         # Create cache lists for future use
