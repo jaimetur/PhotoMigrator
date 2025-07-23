@@ -21,9 +21,9 @@ from colorama import init
 from dateutil import parser
 from packaging.version import Version
 
-from Core.ClassFolderAnalyzer import FolderAnalyzer
 from Core.CustomLogger import set_log_level
 from Core.CustomLogger import suppress_console_output_temporarily
+from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, \
     PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)

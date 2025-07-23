@@ -8,12 +8,12 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from Core.ClassFolderAnalyzer import FolderAnalyzer
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
+from Core.FolderAnalyzer import FolderAnalyzer
+from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch
-from Utils.StandaloneUtils import change_working_dir
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
+from Utils.StandaloneUtils import change_working_dir
 
 """
 -------------------
