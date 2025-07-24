@@ -9,7 +9,7 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
-    - [x] Added new Feature to create a Graphical User Interface (if supported) or Interactive Prompts (if Graphical Interface is not supported) to configura `Google Takeout Fixing` feature if the tool is called without arguments.
+    - [x] Added new Feature to create a Graphical User Interface (if supported) or Interactive Prompts (if Graphical Interface is not supported) to configure `Google Takeout Fixing` feature if the tool is called without arguments.
 
   - #### 🚀 Enhancements:
     - [x] Enhancement [#866](https://github.com/jaimetur/PhotoMigrator/issues/866) to Improve performance of Input Info Analysis in 'Automatic Migration Feature' using an object from class FolderAnalyzer instead of performing read/write disk operations on LocalFolder class methods.
