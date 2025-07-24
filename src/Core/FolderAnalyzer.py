@@ -122,8 +122,13 @@ class FolderAnalyzer:
 
             # --- filter by date if requested
             date_val = self.get_date(p)
-            ts = int(date_val.timestamp()) if hasattr(date_val, 'timestamp') else date_val or None
-            if ts is None or not (self.epoch_start <= ts <= self.epoch_end):
+            if date_val is None:
+                # no date, skip it
+                continue
+            # convert to timestamp once, en float (segundos UTC)
+            date_ts = date_val.timestamp()
+            # ahora comparas claramente con tus límites en segundos
+            if date_ts < self.epoch_start or date_ts > self.epoch_end:
                 continue
 
             # --- if passes all, keep it
