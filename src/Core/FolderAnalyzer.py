@@ -30,54 +30,108 @@ from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_worki
 # 📂 FolderAnalyzer CLASS
 # ========================
 class FolderAnalyzer:
-    def __init__(self, folder_path=None, extracted_dates=None, logger=None, step_name=''):
+    def __init__(self, folder_path=None, metadata_json_file=None, file_dates=None, force_date_extraction=True, logger=None, step_name='', filter_ext=None, from_epoch=None, to_epoch=None):
+    # def __init__(self, folder_path=None, extracted_dates=None, logger=None, step_name=''):
         """
         Initialize the FolderAnalyzer from a given folder or existing extracted_dates.
         If folder_path is provided, walk through all files.
         """
+        self.folder_path = Path(folder_path).resolve().as_posix() if folder_path else None
+        self.metadata_json_file = metadata_json_file
+        self.file_dates = file_dates or {}  # file_dates dict
+
+        # New fields: filtering criteria
+        self.filter_ext = filter_ext                    # set of extensions or None
+        self.epoch_start = from_epoch or 0              # start timestamp or 0
+        self.epoch_end = to_epoch or float('inf')       # end timestamp or float('inf')
+
+        self.file_list = []                             # all files (no filter)
+        self.filtered_file_list = []                    # files after applying filters
+
+        # Store per-file sizes and aggregated folder sizes
+        self.file_sizes = {}                            # map file_path -> size of each file
+        self.folder_sizes = {}                          # map folder_path -> size of filtered files
+        self.folder_assets = {}                         # map folder_path -> count of filtered files
+
         if logger:
             self.logger = logger
         else:
             self.logger = set_LOGGER()
-        self.folder_path = Path(folder_path).resolve().as_posix() if folder_path else None
-        self.file_dates = extracted_dates or {}
-        self.file_list = []
-        # Store per-file sizes and aggregated folder sizes
-        self.file_sizes = {}
-        self.folder_sizes = {}
 
-        if self.folder_path:
+        # 3 different ways to build initialize the Constructor:
+        # 1) if file_dates dictionary is given
+        if self.file_dates and isinstance(self.file_dates, dict):
+            self._rebuild_from_file_dates(step_name=step_name)
+        # 2) if metadata_json_file is given
+        elif self.metadata_json_file:
+            self.load_from_json(input_file=self.metadata_json_file, step_name=step_name)
+            self._rebuild_from_file_dates(step_name=step_name)
+        # 3) if folder_path is given
+        elif self.folder_path:
             self._build_file_list(step_name=step_name)
-            # self.extract_dates(step_name=step_name)
+            if not self.file_dates and force_date_extraction:
+                self.extract_dates(step_name=step_name)
+
+        # finally compute folder sizes based on filtered_file_list (if any) or full file_list
+        self._compute_folder_sizes(step_name)
 
     def _build_file_list(self, step_name=''):
         """
-        Build the list of files in the given folder (self.folder_path),
-        including symlinks under Albums/, so album detection works.
-
-        Then computes file_sizes and folder_sizes.
+        Build the list of files in folder_path and then apply filters once,
+        populating filtered_file_list and folder_assets.
         """
         if not os.path.isdir(self.folder_path):
             self.logger.error(f"{step_name}❌ Folder does not exist: {self.folder_path}")
-            self.file_list = []
             return
 
         self.logger.info(f"{step_name}Building File List for '{self.folder_path}'...")
+        # 1) Gather all files, following symlinks
         self.file_list = []
-
-        # Walk directory tree, following directory symlinks
         for root, _, files in os.walk(self.folder_path, followlinks=True):
             for name in files:
-                full_path = os.path.join(root, name)
+                full = Path(root) / name
+                self.file_list.append(full.as_posix())
 
-                # If it's a symlink to a file or a real file, include its path
-                if os.path.islink(full_path) or os.path.isfile(full_path):
-                    # Store the path AS-IS so that album paths (symlinks) remain under Albums/
-                    self.file_list.append(Path(full_path).as_posix())
+        # 2) If no filters at all, just use the full list
+        no_filters = (not self.filter_ext) and (self.epoch_start == 0) and (self.epoch_end == float('inf'))
+        if no_filters:
+            # Copy every file
+            self.filtered_file_list = list(self.file_list)
+            # Build folder_assets for each parent folder
+            self.folder_assets = {}
+            for p in self.filtered_file_list:
+                parent = Path(p).parent.resolve().as_posix()
+                self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
 
-        # After gathering all file paths, compute sizes and folder aggregates
-        self._compute_folder_sizes(step_name)
+            self.logger.info(f"{step_name}✅ No filters applied: indexed {len(self.filtered_file_list)} files in {len(self.folder_assets)} folders.")
+            return
 
+        # 3) Otherwise apply filters
+        self.filtered_file_list = []
+        for p in self.file_list:
+            file = Path(p)
+            ext = file.suffix.lower()
+
+            # --- filter by extension if requested
+            if self.filter_ext:
+                if self.filter_ext == "unsupported":
+                    if ext in self.ALLOWED_EXTENSIONS:
+                        continue
+                elif ext not in self.filter_ext:
+                    continue
+
+            # --- filter by date if requested
+            date_val = self.get_date(p)
+            ts = int(date_val.timestamp()) if hasattr(date_val, 'timestamp') else date_val or None
+            if ts is None or not (self.epoch_start <= ts <= self.epoch_end):
+                continue
+
+            # --- if passes all, keep it
+            self.filtered_file_list.append(p)
+            parent = file.parent.resolve().as_posix()
+            self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
+
+        self.logger.info(f"{step_name}✅ Filtered to {len(self.filtered_file_list)} files; indexed {len(self.folder_assets)} folders.")
 
     # def _build_file_list(self, step_name=''):
     #     """
@@ -97,30 +151,108 @@ class FolderAnalyzer:
     #             if not os.path.islink(full_path):
     #                 self.file_list.append(Path(full_path).resolve().as_posix())
 
-    def _compute_folder_sizes(self, step_name=""):
-        """Compute size for each file and aggregate per folder (and all ancestors)."""
-        from collections import defaultdict
+    def _rebuild_from_file_dates(self, step_name=''):
+        """
+        Rebuild file_list, filtered_file_list and folder_assets
+        based on the already-loaded self.file_dates dict.
+        """
+        # 1) file_list comes from the keys of file_dates
+        self.file_list = list(self.file_dates.keys())
 
-        sizes = defaultdict(int)
-        for fpath in self.file_list:
-            try:
-                sz = os.path.getsize(fpath)
-            except:
+        # 2) Prepare filtered list and asset counts
+        self.filtered_file_list = []
+        self.folder_assets = {}
+
+        # 3) Detect if there are absolutely NO filters applied
+        no_filters = (
+                not self.filter_ext and
+                self.epoch_start == 0 and
+                self.epoch_end == float('inf')
+        )
+
+        if no_filters:
+            # If no filters, include all file_list entries
+            self.filtered_file_list = list(self.file_list)
+            # Count each file into its parent folder
+            for fp in self.filtered_file_list:
+                parent = Path(fp).parent.resolve().as_posix()
+                self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
+
+            self.logger.info(
+                f"{step_name}✅ Rebuilt from file_dates without filters: "
+                f"{len(self.filtered_file_list)} files, "
+                f"{len(self.folder_assets)} folders."
+            )
+            return
+
+        # 4) Otherwise, apply extension & date filters per file
+        from datetime import datetime
+
+        for file_path in self.file_list:
+            file = Path(file_path)
+            ext = file.suffix.lower()
+
+            # --- extension filter
+            if self.filter_ext:
+                if self.filter_ext == "unsupported":
+                    if ext in self.ALLOWED_EXTENSIONS:
+                        continue
+                elif ext not in self.filter_ext:
+                    continue
+
+            # --- date filter
+            info = self.file_dates.get(file_path, {})
+            date_iso = info.get("OldestDate")
+            if not date_iso:
                 continue
-            # Store per-file size
-            self.file_sizes[fpath] = sz
+            ts = datetime.fromisoformat(date_iso).timestamp()
+            if ts < self.epoch_start or ts > self.epoch_end:
+                continue
 
-            # Aggregate into each parent folder up to root folder_path
-            parent = os.path.dirname(fpath)
-            while True:
-                sizes[parent] += sz
-                if parent == self.folder_path:
-                    break
-                parent = os.path.dirname(parent)
+            # --- keep the file
+            self.filtered_file_list.append(file_path)
+            parent = file.parent.resolve().as_posix()
+            self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
 
-        self.folder_sizes = sizes
-        self.logger.debug(f"{step_name}Calculated sizes: {len(self.file_sizes)} files, "
-                          f"{len(self.folder_sizes)} folders.")
+        self.logger.info(
+            f"{step_name}✅ Rebuilt from file_dates with filters: "
+            f"{len(self.file_list)} total, "
+            f"{len(self.filtered_file_list)} after filter, "
+            f"{len(self.folder_assets)} folders indexed."
+        )
+
+    def _compute_folder_sizes(self, step_name=''):
+        """
+        Compute per-file and per-folder byte sizes, based on the filtered file list.
+        If self.filtered_file_list is populated, only those files are considered;
+        otherwise falls back to self.file_list.
+        """
+        # decide which list to size
+        source_list = self.filtered_file_list if hasattr(self, 'filtered_file_list') and self.filtered_file_list else self.file_list
+
+        # reset previous size maps
+        self.file_sizes = {}
+        self.folder_sizes = {}
+
+        for file_path in source_list:
+            file = Path(file_path)
+            try:
+                size = file.stat().st_size
+            except Exception as e:
+                self.logger.warning(f"{step_name}Could not get size for {file_path}: {e}")
+                continue
+
+            # store individual file size
+            self.file_sizes[file_path] = size
+
+            # accumulate into its parent folder
+            parent = file.parent.resolve().as_posix()
+            self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
+
+        self.logger.info(
+            f"{step_name}Computed sizes for {len(self.file_sizes)} files "
+            f"and {len(self.folder_sizes)} folders."
+        )
 
     def get_file_dates(self):
         """
@@ -287,6 +419,7 @@ class FolderAnalyzer:
             self.file_dates = json.load(f)
         self.logger.info(f"{step_name}EXIF Dates loaded from JSON: {input_file}")
 
+
     def show_files_without_dates(self, relative_folder, step_name=""):
         """
         Displays a summary of files that do not have a valid OldestDate field in self.file_dates.
@@ -361,7 +494,7 @@ class FolderAnalyzer:
                     self.logger.exception(f"{step_name}❌ Error running Exiftool: {e}")
                     metadata_list = []
 
-            # If Exiftool is not found, then fallback to PIL or filesystem
+            # If Exiftool is not found, show a warning
             else:
                 self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
                 metadata_list = [{"SourceFile": f} for f in block_files]
@@ -370,7 +503,9 @@ class FolderAnalyzer:
                 src = entry.get("SourceFile")
                 if not src:
                     continue
-                file_path = Path(src).resolve().as_posix()
+
+                # file_path = Path(src).resolve().as_posix()      # resolve symlinks to target file
+                file_path = Path(src).as_posix()                # don't resolve symlinks to target file
 
                 # Creamos full_info con SourceFile y TargetFile al principio
                 full_info = {
@@ -464,20 +599,24 @@ class FolderAnalyzer:
                 json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
 
                 # Filter the file list to only include supported photo and video extensions
-                # media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
+                media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
 
                 # Filter the file list to only include supported photo and video extensions, and exclude any symlinks (only real files).
-                media_files = [f for f in self.file_list if not Path(f).is_symlink() and Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
+                # media_files = [f for f in self.file_list if not Path(f).is_symlink() and Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
+
+                symlinks = [f for f in self.file_list if Path(f).is_symlink()]
 
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
                 total_files = len(self.file_list)
                 total_media_files = len(media_files)
                 total_json_files = len(json_files)
+                total_symlinks = len(symlinks)
 
                 # Clean memory
                 del media_files
                 del json_files
+                del symlinks
 
                 # ⏱️ Start timing
                 start_time = time.time()
@@ -486,7 +625,7 @@ class FolderAnalyzer:
 
                 # Parallel execution using ThreadPoolExecutor
                 workers = max(1, min(total_blocks, max_workers, 64))    # Ensure at least 1 worker and maximum max_workers (saturated to 64 workers)
-                self.logger.info(f"{step_name}🧵 {total_files} files found ({total_media_files} media files | {total_json_files} JSON files)")
+                self.logger.info(f"{step_name}🧵 {total_files} files found ({total_media_files} media files | {total_json_files} JSON files | {total_symlinks} Symlinks)")
                 self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of maximum {block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
                 with ThreadPoolExecutor(max_workers=workers) as executor:
@@ -641,7 +780,8 @@ class FolderAnalyzer:
                     with_date = counters[media_type].get('with_date', 0)
                     without_date = counters[media_type].get('without_date', 0)
 
-                    real_total = total - symlinks
+                    # real_total = total - symlinks
+                    real_total = total
                     if real_total > 0:
                         counters[media_type]['pct_with_date'] = (with_date / real_total) * 100
                         counters[media_type]['pct_without_date'] = (without_date / real_total) * 100
@@ -657,17 +797,17 @@ def run_full_pipeline(input_folder, logger, max_workers=None):
 
     start_time = time.time()
 
-    # 🕒 Inicializar FolderAnalyzer
+    # 🕒 Inicializar FolderAnalyzer y extrae fechas
     t0 = time.time()
-    analyzer = FolderAnalyzer(folder_path=input_folder, logger=logger)
+    analyzer = FolderAnalyzer(folder_path=input_folder, force_date_extraction=True, logger=logger)
     elapsed = timedelta(seconds=round(time.time() - t0))
     logger.info(f"🕒 FolderAnalyzer initialized in {elapsed}")
 
-    # 🕒 Extraer fechas
-    t0 = time.time()
-    analyzer.extract_dates(step_name=f"🕒 [Extract Dates | workers={max_workers}] : ", max_workers=max_workers)
-    elapsed = timedelta(seconds=round(time.time() - t0))
-    logger.info(f"🕒 Dates extracted in {elapsed}")
+    # # 🕒 Extraer fechas
+    # t0 = time.time()
+    # analyzer.extract_dates(step_name=f"🕒 [Extract Dates | workers={max_workers}] : ", max_workers=max_workers)
+    # elapsed = timedelta(seconds=round(time.time() - t0))
+    # logger.info(f"🕒 Dates extracted in {elapsed}")
 
     # 🕒 Contar ficheros
     t0 = time.time()

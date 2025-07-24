@@ -142,7 +142,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
         sub_step_start_time = datetime.now()
         if folder_type.lower() == 'input':
-            self.initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, logger=LOGGER, step_name=step_name)
+            self.initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, force_date_extraction=False, logger=LOGGER, step_name=step_name)
             self.initial_takeout_folder_analyzer.extract_dates(use_fallback_to_filename=False, step_name=step_name) # Avoid to use_filename to guess dates from filename to do a fair comparison between pre/post
             counters = self.initial_takeout_folder_analyzer.count_files(step_name=step_name)
             if save_json:
@@ -153,8 +153,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             folder = 'Takeout folder'
             sub_dict = 'input_counters'
         elif folder_type.lower() == 'output':
-            self.output_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, logger=LOGGER, step_name=step_name)
-            self.output_folder_analyzer.extract_dates(step_name=step_name)
+            self.output_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, force_date_extraction=True, logger=LOGGER, step_name=step_name)
+            # self.output_folder_analyzer.extract_dates(step_name=step_name)
             counters = self.output_folder_analyzer.count_files(step_name=step_name)
             if save_json:
                 if json_filename is None:
@@ -878,6 +878,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the output_json with all the files changed during this step
+                    # TODO: Verificar los reemplazos porque no se están aplicando. También hay que añadir reemplazos en el paso 4.4.1 Rename Albums Folders based on content date
                     self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # For No-Albums
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':

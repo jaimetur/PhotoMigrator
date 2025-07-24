@@ -472,6 +472,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             total_assets_blocked_count = 0
             try:
                 LOGGER.info(f"Retrieving Albums on '{source_client_name}' matching filters criteria (if any). This process may take some time, please be patient...")
+                # TODO: Change log_level a WARNING dentro de la funcion de abajo
                 all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.INFO)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving All Albums from '{source_client_name}'. - {e}")
@@ -490,7 +491,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     total_albums_blocked_count += 1
                     total_assets_blocked_count += album.get('item_count')
                     try:
-                        blocked_assets.extend(source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING))
+                        blocked_assets.extend(source_client.get_all_assets_from_album_shared(album_id=album_id, album_name=album_name, album_passphrase=album_passphrase, log_level=logging.WARNING))
                     except Exception as e:
                         LOGGER.error(f"Error Retrieving Shared Albums's Assets from '{source_client_name}' - {e}")
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
@@ -631,12 +632,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         # thread_id = threading.get_ident()
         # LOGGER = GV_LOGGER.getChild(f"puller-{thread_id}")
 
+        # Check if there is some filter applied
+        with_filters = False
+        if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
+            with_filters = True
+
         with set_log_level(LOGGER, log_level):
 
             # 1.1) Descarga de álbumes
             albums = []
             try:
-                albums = source_client.get_albums_including_shared_with_user(filter_assets=True, log_level=logging.ERROR)
+                albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.ERROR)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving All Albums - {e} \n{traceback.format_exc()}")
                 LOGGER.info(f"Albums Assets Skipped")
