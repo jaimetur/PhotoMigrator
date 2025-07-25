@@ -354,6 +354,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 SHARED_DATA.info['assets_in_queue'] = self.qsize()
             return item
 
+    # -------------------------------------------------------------------
+    # Variables compartidas para controlar la creación de álbumes
+    # -------------------------------------------------------------------
+    # Creamos un conjunto created_albums (protegido por candado para evitar condiciones de carrera entre workers) para registrar los albums que ya han sido creados y de este modo evitar que un album se cree 2 o más veces por varios workers en paralelo.
+    album_creation_lock = threading.Lock()
+    created_albums = set()
+
     # ----------------------------------------------------------------------------------------
     # function to ensure that the puller put only 1 asset with the same filepath to the queue
     # ----------------------------------------------------------------------------------------
@@ -886,25 +893,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
                     try:
-                        # Primero comprobamos si el Album existe, si no existe, y no somos el worker_id=1, devolvemos el asset a la cola. Esto evita que varios pusher_workers intenten crear el mismo album a la vez. Solo el worker_id=1 puede crear nuevos Albumes.
-                        if album_name and worker_id > 1:
-                            album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
-                            if not album_exists:
-                                # Re-encolamos el asset nuevamente al final de la cola
-                                push_queue.put(asset)
-
-                                # # Re-encolamos el asset nuevamente al principio de la cola
-                                # with push_queue.mutex:
-                                #     push_queue.queue.appendleft(asset)
-
-                                LOGGER.info(f"Asset Delayed   : '{os.path.basename(asset_file_path)}' by pusher_worker={worker_id}. Waiting to pusher_worker=1 to create associated Album '{album_name}' before to push the asset into it.")
-                                # Marcamos este get() como "done" para equilibrar el contador
-                                push_queue.task_done()
-                                # Actualizamos el contador de assets en la cola
-                                # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
-                                # Saltamos al siguiente loop para no procesar este asset aquí
-                                continue
-
                         # SUBIR el asset
                         asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
 
@@ -974,19 +962,25 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # aquí restauramos siempre el nivel original
                         LOGGER.setLevel(orig_level)
 
-                    # Si existe album_name, manejar álbum en destino
+                    # Si existe album_name y el asset ya fue subido, manejamos el álbum en destino
                     if album_name and asset_pushed:
+                        # 1) Asegurarnos de que el álbum existe (sólo un hilo lo crea)
+                        with album_creation_lock:
+                            if album_name not in created_albums:
+                                exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
+                                if not exists:
+                                    aid = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
+                                    LOGGER.info(f"Album Created   : '{album_name}' by pusher_worker={worker_id}")
+                                created_albums[album_name] = aid
+                        # 2) Recuperar album_id cached que ya debe existir (añadido por este worker o cualquier otro worker previamente)
+                        album_id_dest = created_albums.get(album_name)
                         try:
-                            # Si el álbum no existe en destino, lo creamos
-                            album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
-                            if not album_exists:
-                                album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
-                                LOGGER.info(f"Album Created   : '{album_name}' by pusher_worker={worker_id}")
-                            # Añadir el asset al álbum
+                            # 3) Añadir el asset al álbum existente
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.ERROR)
                         except Exception as e:
                             LOGGER.error(f"Album Push Fail : '{album_name}'")
-                            LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
+                            LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
+                            # 4) Actualizar contador de fallos de álbum
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla

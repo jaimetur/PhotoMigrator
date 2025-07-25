@@ -2103,7 +2103,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
             - 'year/month' → creates nested folders like '2024/07'
             - 'year-month' → creates folders like '2024-07'
         exclude_subfolders (list): A list of folder names (not paths) to exclude from processing.
-        folder_analyzer (FolderAnalyzer): Optional object FolderAnalyzer which contains method get_file_dates() to obtain the EXIF dates of all files within folder.
+        folder_analyzer (FolderAnalyzer): Optional object FolderAnalyzer which contains method get_extracted_dates() to obtain the EXIF dates of all files within folder.
                            Used to avoid reprocessing EXIF metadata.
         update_json (str or Path): Path to a JSON file whose "source_file" entries will be updated with new paths.
         step_name (str): Optional prefix to include in all log messages for context tracking.
@@ -2117,13 +2117,13 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
     """
 
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
-    def get_file_date(file_path, file_dates, step_name):
+    def get_date(file_path, extracted_dates, step_name):
         norm_path = Path(file_path).resolve().as_posix()
 
-        # 1. Try to get OldestDate from file_dates if available
-        file_entry = file_dates.get(norm_path) if file_dates else None
-        if isinstance(file_entry, dict):
-            oldest_date = file_entry.get("OldestDate")
+        # 1. Try to get OldestDate from extracted_dates if available
+        date_entry = extracted_dates.get(norm_path) if extracted_dates else None
+        if isinstance(date_entry, dict):
+            oldest_date = date_entry.get("OldestDate")
             if isinstance(oldest_date, datetime):
                 return oldest_date
             elif isinstance(oldest_date, str) and oldest_date.strip():
@@ -2135,7 +2135,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
 
             # If no OldestDate, try to use the minimum date among all EXIF tags
             all_dates = []
-            for k, v in file_entry.items():
+            for k, v in date_entry.items():
                 if k in ["OldestDate", "Source"] or not v:
                     continue
                 try:
@@ -2177,8 +2177,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError(f"{step_name}The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
 
-        # ⏩ Extract file_dates dict from folder_analyzer object
-        file_dates = folder_analyzer.get_file_dates() if folder_analyzer else {}
+        # ⏩ Extract extracted_dates dict from folder_analyzer object
+        extracted_dates = folder_analyzer.get_extracted_dates() if folder_analyzer else {}
 
         replacements = []
         with tqdm(smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files", dynamic_ncols=True) as pbar:
@@ -2190,7 +2190,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
                         continue
                     pbar.update(1)
                     # Get file date
-                    mod_time = get_file_date(file_path, file_dates, step_name)
+                    mod_time = get_date(file_path, extracted_dates, step_name)
                     if LOGGER.isEnabledFor(logging.DEBUG):
                         LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
                     # Determine target folder

@@ -30,7 +30,7 @@ from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_worki
 # 📂 FolderAnalyzer CLASS
 # ========================
 class FolderAnalyzer:
-    def __init__(self, folder_path=None, metadata_json_file=None, file_dates=None, force_date_extraction=True, logger=None, step_name='', filter_ext=None, from_epoch=None, to_epoch=None):
+    def __init__(self, folder_path=None, metadata_json_file=None, extracted_dates=None, force_date_extraction=True, logger=None, step_name='', filter_ext=None, filter_from_epoch=None, filter_to_epoch=None):
     # def __init__(self, folder_path=None, extracted_dates=None, logger=None, step_name=''):
         """
         Initialize the FolderAnalyzer from a given folder or existing extracted_dates.
@@ -38,20 +38,21 @@ class FolderAnalyzer:
         """
         self.folder_path = Path(folder_path).resolve().as_posix() if folder_path else None
         self.metadata_json_file = metadata_json_file
-        self.file_dates = file_dates or {}  # file_dates dict
 
-        # New fields: filtering criteria
-        self.filter_ext = filter_ext                    # set of extensions or None
-        self.epoch_start = from_epoch or 0              # start timestamp or 0
-        self.epoch_end = to_epoch or float('inf')       # end timestamp or float('inf')
-
-        self.file_list = []                             # all files (no filter)
-        self.filtered_file_list = []                    # files after applying filters
+        # Main attributes of the Class to store file_list, filtered_file_list and extracted_dates
+        self.file_list = []                                     # all files (no filter)
+        self.filtered_file_list = []                            # files after applying filters
+        self.extracted_dates = extracted_dates or {}            # extracted_dates dict
 
         # Store per-file sizes and aggregated folder sizes
-        self.file_sizes = {}                            # map file_path -> size of each file
-        self.folder_sizes = {}                          # map folder_path -> size of filtered files
-        self.folder_assets = {}                         # map folder_path -> count of filtered files
+        self.file_sizes = {}                                    # map file_path -> size of each file
+        self.folder_sizes = {}                                  # map folder_path -> size of filtered files
+        self.folder_assets = {}                                 # map folder_path -> count of filtered files
+
+        # New fields: filtering criteria
+        self.filter_ext = filter_ext  # set of extensions or None
+        self.filter_from_epoch = filter_from_epoch or 0  # start timestamp or 0
+        self.filter_to_epoch = filter_to_epoch or float('inf')  # end timestamp or float('inf')
 
         if logger:
             self.logger = logger
@@ -59,17 +60,17 @@ class FolderAnalyzer:
             self.logger = set_LOGGER()
 
         # 3 different ways to build initialize the Constructor:
-        # 1) if file_dates dictionary is given
-        if self.file_dates and isinstance(self.file_dates, dict):
-            self._build_file_list_from_file_dates(step_name=step_name)
+        # 1) if extracted_dates dictionary is given
+        if self.extracted_dates and isinstance(self.extracted_dates, dict):
+            self._build_file_list_from_extracted_dates(step_name=step_name)
         # 2) if metadata_json_file is given
         elif self.metadata_json_file:
             self.load_from_json(input_file=self.metadata_json_file, step_name=step_name)
-            self._build_file_list_from_file_dates(step_name=step_name)
+            self._build_file_list_from_extracted_dates(step_name=step_name)
         # 3) if folder_path is given
         elif self.folder_path:
             self._build_file_list_from_disk(step_name=step_name)
-            if not self.file_dates and force_date_extraction:
+            if not self.extracted_dates and force_date_extraction:
                 self.extract_dates(step_name=step_name)
 
     # finally compute folder sizes based on filtered_file_list (if any) or full file_list
@@ -93,7 +94,7 @@ class FolderAnalyzer:
                 self.file_list.append(full.as_posix())
 
         # 2) If no filters at all, just use the full list
-        no_filters = (not self.filter_ext) and (self.epoch_start == 0) and (self.epoch_end == float('inf'))
+        no_filters = (not self.filter_ext) and (self.filter_from_epoch == 0) and (self.filter_to_epoch == float('inf'))
         if no_filters:
             # Copy every file
             self.filtered_file_list = list(self.file_list)
@@ -128,7 +129,7 @@ class FolderAnalyzer:
             # convert to timestamp once, en float (segundos UTC)
             date_ts = date_val.timestamp()
             # ahora comparas claramente con tus límites en segundos
-            if date_ts < self.epoch_start or date_ts > self.epoch_end:
+            if date_ts < self.filter_from_epoch or date_ts > self.filter_to_epoch:
                 continue
 
             # --- if passes all, keep it
@@ -156,13 +157,13 @@ class FolderAnalyzer:
     #             if not os.path.islink(full_path):
     #                 self.file_list.append(Path(full_path).resolve().as_posix())
 
-    def _build_file_list_from_file_dates(self, step_name=''):
+    def _build_file_list_from_extracted_dates(self, step_name=''):
         """
         Rebuild file_list, filtered_file_list and folder_assets
-        based on the already-loaded self.file_dates dict.
+        based on the already-loaded self.extracted_dates dict.
         """
-        # 1) file_list comes from the keys of file_dates
-        self.file_list = list(self.file_dates.keys())
+        # 1) file_list comes from the keys of extracted_dates
+        self.file_list = list(self.extracted_dates.keys())
 
         # 2) Prepare filtered list and asset counts
         self.filtered_file_list = []
@@ -171,8 +172,8 @@ class FolderAnalyzer:
         # 3) Detect if there are absolutely NO filters applied
         no_filters = (
                 not self.filter_ext and
-                self.epoch_start == 0 and
-                self.epoch_end == float('inf')
+                self.filter_from_epoch == 0 and
+                self.filter_to_epoch == float('inf')
         )
 
         if no_filters:
@@ -184,7 +185,7 @@ class FolderAnalyzer:
                 self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
 
             self.logger.info(
-                f"{step_name}✅ Rebuilt from file_dates without filters: "
+                f"{step_name}✅ Rebuilt from extracted_dates without filters: "
                 f"{len(self.filtered_file_list)} files, "
                 f"{len(self.folder_assets)} folders."
             )
@@ -206,12 +207,12 @@ class FolderAnalyzer:
                     continue
 
             # --- date filter
-            info = self.file_dates.get(file_path, {})
+            info = self.extracted_dates.get(file_path, {})
             date_iso = info.get("OldestDate")
             if not date_iso:
                 continue
             ts = datetime.fromisoformat(date_iso).timestamp()
-            if ts < self.epoch_start or ts > self.epoch_end:
+            if ts < self.filter_from_epoch or ts > self.filter_to_epoch:
                 continue
 
             # --- keep the file
@@ -220,7 +221,7 @@ class FolderAnalyzer:
             self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
 
         self.logger.info(
-            f"{step_name}✅ Rebuilt from file_dates with filters: "
+            f"{step_name}✅ Rebuilt from extracted_dates with filters: "
             f"{len(self.file_list)} total, "
             f"{len(self.filtered_file_list)} after filter, "
             f"{len(self.folder_assets)} folders indexed."
@@ -259,7 +260,7 @@ class FolderAnalyzer:
             f"and {len(self.folder_sizes)} folders."
         )
 
-    def get_file_dates(self):
+    def get_extracted_dates(self):
         """
         Return the full dictionary of extracted date metadata for all files.
 
@@ -267,14 +268,14 @@ class FolderAnalyzer:
             dict: A dictionary where each key is a file path (TargetFile) and each value
                   is a dictionary containing metadata such as OldestDate and Source.
         """
-        return self.file_dates
+        return self.extracted_dates
 
     def get_attribute(self, file_path, attr="OldestDate", step_name=""):
         """
         Return one or more attributes from extracted_dates by TargetFile.
         """
         path = Path(file_path).resolve().as_posix()
-        item = self.file_dates.get(path)
+        item = self.extracted_dates.get(path)
         if not item:
             self.logger.debug(f"{step_name}No se encontró '{file_path}' en los datos.")
             return None
@@ -317,14 +318,14 @@ class FolderAnalyzer:
         new_target_path = Path(new_target_path).resolve().as_posix()
 
         # Elimina la ruta antigua de si existía
-        item = self.file_dates.pop(current_path, None)
+        item = self.extracted_dates.pop(current_path, None)
         if not item:
             self.logger.warning(f"{step_name}No se encontró el archivo por '{current_path}'")
             return False
 
         # Asigna el nuevo TargetFile como índice
         item["TargetFile"] = new_target_path
-        self.file_dates[new_target_path] = item
+        self.extracted_dates[new_target_path] = item
 
         self.logger.info(f"{step_name}TargetFile actualizado: {current_path} → {new_target_path}")
         return True
@@ -343,14 +344,14 @@ class FolderAnalyzer:
         new_folder = Path(new_folder).resolve().as_posix()
         updated = {}
         count = 0
-        for key, item in list(self.file_dates.items()):
+        for key, item in list(self.extracted_dates.items()):
             tgt = item.get("TargetFile", item.get("SourceFile"))
             if tgt and tgt.startswith(old_folder):
                 new_tgt = tgt.replace(old_folder, new_folder, 1)
                 item["TargetFile"] = new_tgt
                 updated[new_tgt] = item
                 count += 1
-        self.file_dates = updated
+        self.extracted_dates = updated
 
         self.logger.info(f"{step_name}Se actualizaron {count} rutas TargetFile: {old_folder} → {new_folder}")
         return count
@@ -368,23 +369,23 @@ class FolderAnalyzer:
             return 0
 
         updated_count = 0
-        new_file_dates = {}
+        new_extracted_dates = {}
 
         for old_path, new_path in replacements:
             old_path = Path(old_path).resolve().as_posix()
             new_path = Path(new_path).resolve().as_posix()
 
-            item = self.file_dates.pop(old_path, None)
+            item = self.extracted_dates.pop(old_path, None)
             if item:
                 item["TargetFile"] = new_path
-                new_file_dates[new_path] = item
+                new_extracted_dates[new_path] = item
                 updated_count += 1
                 self.logger.debug(f"{step_name}✔️ Replaced: {old_path} → {new_path}")
             else:
                 self.logger.warning(f"{step_name}⚠️ Not found: {old_path}")
 
         # Añadir los elementos actualizados de nuevo
-        self.file_dates.update(new_file_dates)
+        self.extracted_dates.update(new_extracted_dates)
 
         self.logger.info(f"{step_name}✅ {updated_count} rutas TargetFile actualizadas con apply_replacements().")
         return updated_count
@@ -394,7 +395,7 @@ class FolderAnalyzer:
         Devuelve True si el archivo fue renombrado (tiene 'TargetFile' distinta de 'SourceFile').
         """
         file_path = Path(file_path).resolve().as_posix()
-        entry = self.file_dates.get(file_path)
+        entry = self.extracted_dates.get(file_path)
         return bool(entry and entry.get("TargetFile") != entry.get("SourceFile"))
 
     def save_to_json(self, output_file, step_name=''):
@@ -413,7 +414,7 @@ class FolderAnalyzer:
         os.makedirs(FOLDERNAME_EXTRACTED_DATES, exist_ok=True)
 
         with open(output_filepath, "w", encoding="utf-8") as f:
-            json.dump(self.file_dates, f, ensure_ascii=False, indent=2)
+            json.dump(self.extracted_dates, f, ensure_ascii=False, indent=2)
         self.logger.info(f"{step_name}EXIF Dates saved into JSON: {output_filepath}")
 
     def load_from_json(self, input_file, step_name=''):
@@ -421,13 +422,13 @@ class FolderAnalyzer:
         Load extracted_dates from a JSON file.
         """
         with open(input_file, 'r', encoding='utf-8') as f:
-            self.file_dates = json.load(f)
+            self.extracted_dates = json.load(f)
         self.logger.info(f"{step_name}EXIF Dates loaded from JSON: {input_file}")
 
 
     def show_files_without_dates(self, relative_folder, step_name=""):
         """
-        Displays a summary of files that do not have a valid OldestDate field in self.file_dates.
+        Displays a summary of files that do not have a valid OldestDate field in self.extracted_dates.
 
         Args:
             relative_folder: Base path to which file paths will be shown relatively.
@@ -436,7 +437,7 @@ class FolderAnalyzer:
         if self.logger.isEnabledFor(logging.INFO):
             files_with_missing_dates = []
             relative_base = Path(relative_folder).resolve()
-            for file_path, info in self.file_dates.items():
+            for file_path, info in self.extracted_dates.items():
                 oldest_date = info.get("OldestDate")
                 if oldest_date is None:
                     try:
@@ -450,11 +451,11 @@ class FolderAnalyzer:
 
     def extract_dates(self, step_name='', block_size=1_000, use_fallback_to_filename=True, log_level=None, max_workers=None):
         """
-        Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.file_dates.
+        Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
         if max_workers is None:
             max_workers = cpu_count() * 16
-        self.file_dates = {}
+        self.extracted_dates = {}
         candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate', 'FileNameDate', 'FilePathDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
@@ -642,7 +643,7 @@ class FolderAnalyzer:
                     with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True) as pbar:
                         for future in as_completed(future_to_index):
                             result = future.result()
-                            self.file_dates.update(result)
+                            self.extracted_dates.update(result)
                             completed_blocks += 1
                             elapsed = time.time() - start_time
                             current_block_time = elapsed / completed_blocks
@@ -764,8 +765,8 @@ class FolderAnalyzer:
             counters['total_size_mb'] = round(total_bytes / (1024 * 1024), 1)
 
             # If we have extracted dates, count valid/invalid per media type
-            if self.file_dates:
-                for path, entry in self.file_dates.items():
+            if self.extracted_dates:
+                for path, entry in self.extracted_dates.items():
                     oldest_date = entry.get("OldestDate")
                     media_type = None
                     ext = Path(path).suffix.lower()
