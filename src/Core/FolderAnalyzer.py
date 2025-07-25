@@ -11,6 +11,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from subprocess import run
 import logging
+import platform
 
 from PIL import Image, ExifTags
 from dateutil import parser
@@ -91,7 +92,7 @@ class FolderAnalyzer:
                 for root, _, files in os.walk(self.folder_path, followlinks=True)
                 for name in files
             ]
-            LOGGER.debug(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
+            LOGGER.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
 
     # def _build_file_list_from_disk(self, step_name=''):
     #     """
@@ -170,44 +171,42 @@ class FolderAnalyzer:
 
             self.logger.info(f"{step_name}✅ Analyzer Object Filtered to {len(self.filtered_file_list)} files; {len(self.folder_assets)} folders.")
 
-    def _compute_folder_sizes(self, step_name=''):
+    def _compute_folder_sizes(self, step_name='', log_level=None):
         """
         Compute per-file and per-folder byte sizes, based on the filtered file list.
         If self.filtered_file_list is populated, only those files are considered;
         otherwise falls back to self.file_list.
         """
-        # decide which list to size
-        source_list = self.filtered_file_list if hasattr(self, 'filtered_file_list') and self.filtered_file_list else self.file_list
+        with set_log_level(self.logger, log_level):
+            # decide which list to size
+            source_list = self.filtered_file_list if hasattr(self, 'filtered_file_list') and self.filtered_file_list else self.file_list
 
-        # reset previous size maps
-        self.file_sizes = {}
-        self.folder_sizes = {}
+            # reset previous size maps
+            self.file_sizes = {}
+            self.folder_sizes = {}
 
-        for file_path in source_list:
-            file = Path(file_path)
+            for file_path in source_list:
+                file = Path(file_path)
 
-            # skip files that no longer exist
-            if not file.exists():
-                LOGGER.debug(f"{step_name}Skipping missing file: {file_path}")
-                continue
+                # skip files that no longer exist
+                if not file.exists():
+                    LOGGER.debug(f"{step_name}Skipping missing file: {file_path}")
+                    continue
 
-            try:
-                size = file.stat().st_size
-            except Exception as e:
-                LOGGER.warning(f"{step_name}Could not get size for {file_path}: {e}")
-                continue
+                try:
+                    size = file.stat().st_size
+                except Exception as e:
+                    LOGGER.warning(f"{step_name}Could not get size for {file_path}: {e}")
+                    continue
 
-            # store individual file size
-            self.file_sizes[file_path] = size
+                # store individual file size
+                self.file_sizes[file_path] = size
 
-            # accumulate into its parent folder
-            parent = file.parent.resolve().as_posix()
-            self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
+                # accumulate into its parent folder
+                parent = file.parent.resolve().as_posix()
+                self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
 
-        LOGGER.info(
-            f"{step_name}🧮 Computed sizes for {len(self.file_sizes)} files "
-            f"and {len(self.folder_sizes)} folders."
-        )
+            LOGGER.info(f"{step_name}🧮 Computed sizes for {len(self.file_sizes)} files and {len(self.folder_sizes)} folders.")
 
     def get_extracted_dates(self):
         """
@@ -279,7 +278,7 @@ class FolderAnalyzer:
         self.logger.info(f"{step_name}TargetFile actualizado: {current_path} → {new_target_path}")
         return True
 
-    def update_folder(self, old_folder, new_folder, step_name="", log_level=None):
+    def update_folder(self, old_folder, new_folder, apply_filters=True, compute_folder_size=True, step_name="", log_level=None):
         """
         Bulk-update all entries whose key or TargetFile/SourceFile starts with old_folder,
         replacing that prefix with new_folder, and then refresh all dependent attributes.
@@ -303,22 +302,19 @@ class FolderAnalyzer:
                     item["TargetFile"] = tgt.replace(old_prefix, new_prefix, 1)
                     updated_count += 1
 
-                # 3) update SourceFile inside metadata
-                src = item.get("SourceFile")
-                if src and src.startswith(old_prefix):
-                    item["SourceFile"] = src.replace(old_prefix, new_prefix, 1)
-
                 # store the (possibly) updated item under the (possibly) updated key
                 new_extracted[new_key] = item
 
             # replace the extracted_dates mapping
             self.extracted_dates = new_extracted
-            LOGGER.info(f"{step_name}Se actualizaron {updated_count} rutas dentro de carpeta: {old_prefix} → {new_prefix}")
+            LOGGER.debug(f"{step_name}Updated {updated_count} paths within folder: {old_prefix} → {new_prefix}")
 
             # rebuild file_list and all dependent attributes
             self.file_list = list(self.extracted_dates.keys())
-            self._apply_filters(step_name=step_name, log_level=log_level)
-            self._compute_folder_sizes(step_name)
+            if apply_filters:
+                self._apply_filters(step_name=step_name, log_level=log_level)
+            if compute_folder_size:
+                self._compute_folder_sizes(step_name=step_name, log_level=log_level)
 
             return updated_count
 
@@ -329,11 +325,16 @@ class FolderAnalyzer:
         """
         with set_log_level(self.logger, log_level):
             total_updated = 0
+            total_updated_folders = 0
             for old_folder, new_folder in replacements:
-                updated = self.update_folder(old_folder, new_folder, step_name=step_name, log_level=log_level)
+                updated = self.update_folder(old_folder, new_folder, apply_filters=False, compute_folder_size=False, step_name=step_name, log_level=log_level)
                 LOGGER.debug(f"{step_name}Folder update: {old_folder} → {new_folder}, files updated: {updated}")
                 total_updated += updated
-            LOGGER.info(f"{step_name}Total files updated across all folders: {total_updated}")
+                total_updated_folders += 1
+            # Now Apply filters and compute folder sizes
+            self._apply_filters(step_name=step_name, log_level=log_level)
+            self._compute_folder_sizes(step_name=step_name, log_level=log_level)
+            LOGGER.info(f"{step_name}Total files updated: {total_updated}. Total folders updated: {total_updated_folders}.")
             return total_updated
 
     def apply_replacements(self, replacements=None, step_name="", log_level=None):
@@ -443,6 +444,8 @@ class FolderAnalyzer:
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
+        import unicodedata
+
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.extracted_dates = {}
@@ -456,7 +459,19 @@ class FolderAnalyzer:
 
             # --- Try ExifTool
             if Path(exif_tool_path).exists():
-                command = [exif_tool_path, "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + block_files
+                if platform.system() == 'Windows':
+                    filename_charset = 'cp1252'
+                else:
+                    filename_charset = 'utf8'
+
+                command = [
+                    exif_tool_path,
+                    '-charset', f'filename={filename_charset}',  # leer nombres en CP1252 en Win, UTF-8 en Linux/macOS
+                    '-charset', 'exif=utf8',  # emitir todos los campos EXIF en UTF-8
+                    '-j', '-n', '-time:all', '-fast', '-fast2', '-s',
+                    *block_files
+                ]
+                # command = [exif_tool_path, "-charset", "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + block_files
                 try:
                     if len(block_files) <= 10:
                         files_preview = ' '.join(block_files)
@@ -464,7 +479,7 @@ class FolderAnalyzer:
                         files_preview = ' '.join(block_files[:10]) + ' ...'
                     base_cmd = ' '.join(command[:7])
                     self.logger.debug(f"{step_name}⏳ Running: {base_cmd} {files_preview}")
-                    result = run(command, capture_output=True, text=True, check=False)
+                    result = run(command, capture_output=True, text=True, encoding='utf-8', errors='replace', check=False)
 
                     if result.stdout.strip():
                         try:
@@ -500,8 +515,10 @@ class FolderAnalyzer:
                 if not src:
                     continue
 
-                # file_path = Path(src).resolve().as_posix()      # resolve symlinks to target file
-                file_path = Path(src).as_posix()                # don't resolve symlinks to target file
+                # file_path = Path(src).resolve().as_posix()                 # resolve symlinks to target file
+                file_path = Path(src).as_posix()                             # don't resolve symlinks to target file
+                # raw_path = Path(src).as_posix()                             # don't resolve symlinks to target file
+                # file_path = unicodedata.normalize('NFC', raw_path)    # Normalize to unicode to preserve accents etc...
 
                 # Creamos full_info con SourceFile y TargetFile al principio
                 full_info = {

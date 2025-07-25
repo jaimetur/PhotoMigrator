@@ -27,6 +27,7 @@
     - [x] Fixed bug [#879](https://github.com/jaimetur/PhotoMigrator/issues/879) in `guess_date_from_filename` function when the filename contains a number starting with 19 or 20 followed by 2 or more digits without checking if the following digits matches with a real month or month+day.
     - [x] Fixed Bug [#884](https://github.com/jaimetur/PhotoMigrator/issues/884) in 'Google Takeout Processing' feature when flag `-gics, --google-ignore-check-structure` is detected causing that Output Folder is the same as Input Takeout Folder and deleting that at the end of the process.
     - [x] Fixed Bug in `mode_folders_rename_content_based` function. It was not updated to the new output dictionary.    
+    - [x] Fixed Bug in `FolderAnalyzer` when create the extracted_dates dictionary on windows system and you have any path with unicode characters accents or special chars.    
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.

@@ -839,8 +839,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # Now modify the object analyzer with all the files changed during this step
                 # TODO: Verificar los reemplazos porque no se están aplicando.
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements1, step_name=step_name)
-                albums_path = os.path.join(output_folder, f"{FOLDERNAME_ALBUMS}")
                 # Finally Move Albums to Albums root folder
+                albums_path = os.path.join(output_folder, f"{FOLDERNAME_ALBUMS}")
                 replacements2 = move_albums_to_root(albums_root=albums_path, step_name=step_name, log_level=log_level)
                 # TODO: Verificar los reemplazos porque no se están aplicando.
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements2, step_name=step_name)
@@ -1083,7 +1083,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         LOGGER.info(f"================================================================================================================================================")
         LOGGER.info(f"")
         # Save the final output_dates_metadata.json
-        self.output_folder_analyzer.save_to_json(f"output_dates_metadata_final.json", step_name=step_name)
+        self.output_folder_analyzer.save_to_json(f"output_dates_metadata_filtered.json", step_name=step_name)
         # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
         removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
         if removed:
