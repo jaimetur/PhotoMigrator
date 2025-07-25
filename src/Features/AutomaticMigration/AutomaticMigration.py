@@ -272,7 +272,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                     source_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=print_messages)
 
                     # Ensure object analyzer from class FolderAnalyzer is created on source_client when source_client is ClassTakeout instance
-                    output_metadata_json = os.path.join(FOLDERNAME_EXTRACTED_DATES, f"{TIMESTAMP}_output_dates_metadata_final.json")
+                    output_metadata_json = os.path.join(FOLDERNAME_EXTRACTED_DATES, f"{TIMESTAMP}_takeout_output_dates_metadata_final.json")
                     if os.path.isfile(output_metadata_json):
                         source_client._ensure_analyzer(metadata_json_file=output_metadata_json,  log_level=log_level)
                     else:

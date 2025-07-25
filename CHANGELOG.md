@@ -19,12 +19,15 @@
     - [x] Enhancement on `Automatic Migration Feature` when using Live Dashboard. Now it restore the cursor back if the process is interrupted.
     - [x] Enhancement on `FolderAnalyzer`. Now it can construct the object from 3 different ways (base_folder, extracted_dates dictionary or extracted_dates JSON file.
     - [x] Enhancement on `FolderAnalyzer`. Now it handles date and type filters to only process those assets matching the filter criteria.
+    - [x] Updated GPTH to version `4.1.0` (by @Xentraxx) which includes several improvements and bugs fixing extracting metadata info from Google Takeouts. 
+      - This release fix a bug unhandled exceptions finding Albums.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed bug [#865](https://github.com/jaimetur/PhotoMigrator/issues/865) to avoid Albums Duplication on 'Automatic Migration Feature' due to race conditions when more than 1 pusher_workers try to create the same Album in parallel. Now, to avoid this race conditions, only pusher_worker with id=1 is allowed to create new Albums. If the Album does not exists and the id>1 then the asset is returned back to pusher_queue.
     - [x] Fixed bug [#879](https://github.com/jaimetur/PhotoMigrator/issues/879) in `guess_date_from_filename` function when the filename contains a number starting with 19 or 20 followed by 2 or more digits without checking if the following digits matches with a real month or month+day.
     - [x] Fixed Bug [#884](https://github.com/jaimetur/PhotoMigrator/issues/884) in 'Google Takeout Processing' feature when flag `-gics, --google-ignore-check-structure` is detected causing that Output Folder is the same as Input Takeout Folder and deleting that at the end of the process.
     - [x] Fixed Bug in `mode_folders_rename_content_based` function. It was not updated to the new output dictionary.    
+    - [x] Fixed Bug in `FolderAnalyzer` when create the extracted_dates dictionary on windows system and you have any path with unicode characters accents or special chars.    
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.

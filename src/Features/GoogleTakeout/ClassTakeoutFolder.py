@@ -147,7 +147,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             counters = self.initial_takeout_folder_analyzer.count_files(step_name=step_name)
             if save_json:
                 if json_filename is None:
-                    json_filename = f"input_dates_metadata.json"
+                    json_filename = f"takeout_input_dates_metadata.json"
                 self.initial_takeout_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Takeout folder'
@@ -158,7 +158,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             counters = self.output_folder_analyzer.count_files(step_name=step_name)
             if save_json:
                 if json_filename is None:
-                    json_filename = f"output_dates_metadata.json"
+                    json_filename = f"takeout_output_dates_metadata.json"
                 self.output_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Output folder'
@@ -837,12 +837,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
                 replacements1 = move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 # Now modify the object analyzer with all the files changed during this step
-                # TODO: Verificar los reemplazos porque no se están aplicando.
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements1, step_name=step_name)
-                albums_path = os.path.join(output_folder, f"{FOLDERNAME_ALBUMS}")
                 # Finally Move Albums to Albums root folder
+                albums_path = os.path.join(output_folder, f"{FOLDERNAME_ALBUMS}")
                 replacements2 = move_albums_to_root(albums_root=albums_path, step_name=step_name, log_level=log_level)
-                # TODO: Verificar los reemplazos porque no se están aplicando.
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements2, step_name=step_name)
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
                 # Step 4.2.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
@@ -938,7 +936,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # Extrae la lista de tuplas (old_path, new_path)
                 replacements = rename_output['replacements']
                 # Now modify the object analyzer with all the files changed during this step
-                # TODO: Verificar los reemplazos porque no se están aplicando.
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements, step_name=step_name)
                 # Merge all counts from rename_output into self.result in one go
                 self.result.update(rename_output)
@@ -1083,7 +1080,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         LOGGER.info(f"================================================================================================================================================")
         LOGGER.info(f"")
         # Save the final output_dates_metadata.json
-        self.output_folder_analyzer.save_to_json(f"output_dates_metadata_final.json", step_name=step_name)
+        self.output_folder_analyzer.save_to_json(f"takeout_output_dates_metadata_final.json", step_name=step_name)
         # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
         removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
         if removed:

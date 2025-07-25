@@ -123,7 +123,6 @@ class ClassLocalFolder:
 
                 # Initialize analyzer with metadata_json_file or with folder_path
                 if metadata_json_file and os.path.isfile(metadata_json_file):
-                    # TODO: No crear el objeto analyzer usando el json que viene del process() de ClassTakeoutFolder porque las rutas no están corregidas tras crear year/month structure ni renombrar albumes, ademas no incluye symlinks. hay que revisar esto.
                     self.analyzer = FolderAnalyzer(folder_path=None, metadata_json_file=metadata_json_file, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)
                     # self.analyzer = FolderAnalyzer(folder_path=str(self.base_folder), metadata_json_file=None, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)
 
@@ -607,65 +606,6 @@ class ClassLocalFolder:
 
             return total
 
-    # def get_album_assets_size(self, album_id, type='all', log_level=None):
-    #     """
-    #     Total size (bytes) of assets in an album, with global and local filters.
-    #     """
-    #     with set_log_level(LOGGER, log_level):
-    #         self._ensure_analyzer(log_level=log_level)
-    #         album_path = Path(album_id)
-    #         if not album_path.is_dir():
-    #             LOGGER.warning(f"Album path '{album_id}' is invalid.")
-    #             return 0
-    #
-    #         prefix = str(album_path.resolve().as_posix())
-    #         if type == 'all' and not self.type and not self.from_date and not self.to_date:
-    #             return self.analyzer.folder_sizes.get(prefix, 0)
-    #
-    #         sel_ext_local = self._get_selected_extensions(type)
-    #         sel_ext_global = self._get_selected_extensions(self.type) if self.type else None
-    #         epoch_start = 0 if not self.from_date else parse_text_datetime_to_epoch(self.from_date)
-    #         epoch_end = float('inf') if not self.to_date else parse_text_datetime_to_epoch(self.to_date)
-    #
-    #         total = 0
-    #         for p in self.analyzer.file_list:
-    #             file = Path(p)
-    #             try:
-    #                 file.relative_to(prefix)
-    #             except ValueError:
-    #                 continue
-    #             size = self.analyzer.file_sizes.get(p)
-    #             if size is None:
-    #                 continue
-    #
-    #             ext = Path(p).suffix.lower()
-    #             # filters same as above…
-    #             if sel_ext_local == "unsupported":
-    #                 if ext in self.ALLOWED_EXTENSIONS:
-    #                     continue
-    #             elif sel_ext_local and ext not in sel_ext_local:
-    #                 continue
-    #             if sel_ext_global:
-    #                 if sel_ext_global == "unsupported":
-    #                     if ext in self.ALLOWED_EXTENSIONS:
-    #                         continue
-    #                 elif ext not in sel_ext_global:
-    #                     continue
-    #
-    #             file_date = self.analyzer.get_date(p)
-    #             if file_date is None:
-    #                 continue
-    #             ts = file_date if isinstance(file_date, (int, float)) else int(file_date.timestamp())
-    #             if ts < epoch_start or ts > epoch_end:
-    #                 continue
-    #
-    #             # accumulate size
-    #             try:
-    #                 total += size
-    #             except (OSError, IOError) as e:
-    #                 LOGGER.warning(f"Error summing size of {p}: {e}")
-    #
-    #         return total
 
     def get_album_assets_count(self, album_id, log_level=None):
         """
