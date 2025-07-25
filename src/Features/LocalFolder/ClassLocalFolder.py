@@ -130,7 +130,7 @@ class ClassLocalFolder:
                     self.analyzer = FolderAnalyzer(folder_path=str(self.base_folder), metadata_json_file=None, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)
 
                 # Optional: save date metadata for reuse
-                self.analyzer.save_to_json(output_file="automatic_migration_dates_metadata_filtered.json", step_name=step_name)
+                self.analyzer.save_to_json(output_file="automatic_migration_dates_metadata.json", step_name=step_name)
 
     def _determine_file_type(self, file):
         """
