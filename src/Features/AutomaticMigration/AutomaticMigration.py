@@ -892,6 +892,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             if not album_exists:
                                 # Re-encolamos el asset nuevamente al final de la cola
                                 push_queue.put(asset)
+
+                                # # Re-encolamos el asset nuevamente al principio de la cola
+                                # with push_queue.mutex:
+                                #     push_queue.queue.appendleft(asset)
+
                                 LOGGER.info(f"Asset Delayed   : '{os.path.basename(asset_file_path)}' by pusher_worker={worker_id}. Waiting to pusher_worker=1 to create associated Album '{album_name}' before to push the asset into it.")
                                 # Marcamos este get() como "done" para equilibrar el contador
                                 push_queue.task_done()

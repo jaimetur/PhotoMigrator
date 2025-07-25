@@ -61,21 +61,21 @@ class FolderAnalyzer:
         # 3 different ways to build initialize the Constructor:
         # 1) if file_dates dictionary is given
         if self.file_dates and isinstance(self.file_dates, dict):
-            self._rebuild_from_file_dates(step_name=step_name)
+            self._build_file_list_from_file_dates(step_name=step_name)
         # 2) if metadata_json_file is given
         elif self.metadata_json_file:
             self.load_from_json(input_file=self.metadata_json_file, step_name=step_name)
-            self._rebuild_from_file_dates(step_name=step_name)
+            self._build_file_list_from_file_dates(step_name=step_name)
         # 3) if folder_path is given
         elif self.folder_path:
-            self._build_file_list(step_name=step_name)
+            self._build_file_list_from_disk(step_name=step_name)
             if not self.file_dates and force_date_extraction:
                 self.extract_dates(step_name=step_name)
 
-        # finally compute folder sizes based on filtered_file_list (if any) or full file_list
+    # finally compute folder sizes based on filtered_file_list (if any) or full file_list
         self._compute_folder_sizes(step_name)
 
-    def _build_file_list(self, step_name=''):
+    def _build_file_list_from_disk(self, step_name=''):
         """
         Build the list of files in folder_path and then apply filters once,
         populating filtered_file_list and folder_assets.
@@ -138,7 +138,7 @@ class FolderAnalyzer:
 
         self.logger.info(f"{step_name}✅ Filtered to {len(self.filtered_file_list)} files; indexed {len(self.folder_assets)} folders.")
 
-    # def _build_file_list(self, step_name=''):
+    # def _build_file_list_from_disk(self, step_name=''):
     #     """
     #     Build the list of files in the given folder (self.folder_path), excluding symlinks.
     #     If the folder does not exist, print an error message and skip file collection.
@@ -156,7 +156,7 @@ class FolderAnalyzer:
     #             if not os.path.islink(full_path):
     #                 self.file_list.append(Path(full_path).resolve().as_posix())
 
-    def _rebuild_from_file_dates(self, step_name=''):
+    def _build_file_list_from_file_dates(self, step_name=''):
         """
         Rebuild file_list, filtered_file_list and folder_assets
         based on the already-loaded self.file_dates dict.

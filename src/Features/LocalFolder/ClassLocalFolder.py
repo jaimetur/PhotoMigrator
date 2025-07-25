@@ -359,7 +359,7 @@ class ClassLocalFolder:
                 shutil.rmtree(album_path)
                 # Refresh the analyzer so it reflects the deletion
                 # Rebuild file_list and recompute folder sizes/assets
-                self.analyzer._build_file_list(step_name="remove_album: ")
+                self.analyzer._build_file_list_from_disk(step_name="remove_album: ")
                 self.analyzer._compute_folder_sizes(step_name="remove_album: ")
                 return True
             else:
@@ -1831,7 +1831,7 @@ class ClassLocalFolder:
                         LOGGER.error(f"Failed to remove album folder {album}: {e}")
 
             # Refresh analyzer so it no longer lists removed albums
-            self.analyzer._build_file_list(step_name="remove_all_albums: ")
+            self.analyzer._build_file_list_from_disk(step_name="remove_all_albums: ")
             self.analyzer._compute_folder_sizes(step_name="remove_all_albums: ")
 
             LOGGER.info(f"Removed {albums_removed} album(s) and {assets_removed} asset(s).")
@@ -1953,7 +1953,7 @@ class ClassLocalFolder:
 
             # --- Update analyzer to reflect folder removals ---
             # Rebuild the in-memory file list and recompute sizes
-            self.analyzer._build_file_list(step_name="remove_duplicates_albums: ")
+            self.analyzer._build_file_list_from_disk(step_name="remove_duplicates_albums: ")
             self.analyzer._compute_folder_sizes(step_name="remove_duplicates_albums: ")
 
             return total_removed
@@ -2075,7 +2075,7 @@ class ClassLocalFolder:
 
             # after merging and deleting folders…
             # Refresh the analyzer so it rescans y recompute los índices
-            self.analyzer._build_file_list(step_name="merge_duplicates_albums: ")
+            self.analyzer._build_file_list_from_disk(step_name="merge_duplicates_albums: ")
             self.analyzer._compute_folder_sizes(step_name="merge_duplicates_albums: ")
 
             LOGGER.info(f"Removed {total_removed} duplicate folders.")
@@ -2309,7 +2309,7 @@ class ClassLocalFolder:
 
             # 3) Refresh analyzer state
             #    Rebuild file list and recompute sizes so it no longer sees removed assets
-            self.analyzer._build_file_list(step_name="remove_all_assets: ")
+            self.analyzer._build_file_list_from_disk(step_name="remove_all_assets: ")
             self.analyzer._compute_folder_sizes(step_name="remove_all_assets: ")
 
             LOGGER.info(f"Removed {assets_removed} asset(s) in total.")
