@@ -889,7 +889,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the object analyzer with all the files changed during this step
-                    # TODO: Verificar los reemplazos porque no se están aplicando.
                     self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # If flatten
                 if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
