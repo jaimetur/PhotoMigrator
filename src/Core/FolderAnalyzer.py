@@ -205,7 +205,7 @@ class FolderAnalyzer:
             self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
 
         LOGGER.info(
-            f"{step_name}Computed sizes for {len(self.file_sizes)} files "
+            f"{step_name}🧮 Computed sizes for {len(self.file_sizes)} files "
             f"and {len(self.folder_sizes)} folders."
         )
 
