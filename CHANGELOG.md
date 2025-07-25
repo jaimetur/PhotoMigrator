@@ -19,6 +19,8 @@
     - [x] Enhancement on `Automatic Migration Feature` when using Live Dashboard. Now it restore the cursor back if the process is interrupted.
     - [x] Enhancement on `FolderAnalyzer`. Now it can construct the object from 3 different ways (base_folder, extracted_dates dictionary or extracted_dates JSON file.
     - [x] Enhancement on `FolderAnalyzer`. Now it handles date and type filters to only process those assets matching the filter criteria.
+    - [x] Updated GPTH to version `4.1.0` (by @Xentraxx) which includes several improvements and bugs fixing extracting metadata info from Google Takeouts. 
+      - This release fix a bug unhandled exceptions finding Albums.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed bug [#865](https://github.com/jaimetur/PhotoMigrator/issues/865) to avoid Albums Duplication on 'Automatic Migration Feature' due to race conditions when more than 1 pusher_workers try to create the same Album in parallel. Now, to avoid this race conditions, only pusher_worker with id=1 is allowed to create new Albums. If the Album does not exists and the id>1 then the asset is returned back to pusher_queue.
