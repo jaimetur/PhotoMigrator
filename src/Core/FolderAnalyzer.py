@@ -327,7 +327,7 @@ class FolderAnalyzer:
                     updated_count += 1
                     LOGGER.debug(f"{step_name}✔️ Replaced: {old_resolved} → {new_resolved}")
                 else:
-                    LOGGER.warning(f"{step_name}⚠️ Not found for replacement: {old_resolved}")
+                    LOGGER.debug(f"{step_name}⚠️ Not found for replacement: {old_resolved}")
 
             # agrega de nuevo las entradas renombradas
             self.extracted_dates.update(new_extracted_dates)
