@@ -2141,6 +2141,9 @@ class ClassImmichPhotos:
 
             # Comprobar si hay algún grupo con más de un álbum
             if any(len(album_group) > 1 for album_group in albums_by_name.values()):
+                # Contar cuántos álbumes duplicados se van a unir
+                duplicate_albums = sum(len(group) - 1 for group in albums_by_name.values() if len(group) > 1)
+                LOGGER.info(f"A total of {duplicate_albums} duplicate albums will be merged (keeping only one per name).")
                 # Loop through each album name and its group to show all Duplicates Albums and request User Confirmation to continue
                 LOGGER.info(f"The following Albums are duplicates (by Name) and will be merged into the first album:")
                 for album_name, album_group in albums_by_name.items():
@@ -2167,6 +2170,7 @@ class ClassImmichPhotos:
                     LOGGER.info(f"Exiting program.")
                     return 0
 
+            total_merged_albums = 0
             total_removed_duplicated_albums = 0
             for album_name, album_group in albums_by_name.items():
                 if len(album_group) <= 1:
@@ -2197,10 +2201,11 @@ class ClassImmichPhotos:
                     LOGGER.info(f"Removing duplicate album: '{dup_name}' (ID={dup_id})")
                     if self.remove_album(dup_id, dup_name, log_level=log_level):
                         total_removed_duplicated_albums += 1
+                total_merged_albums += 1
 
-            LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate albums.")
+            LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate albums belonging to {total_merged_albums} different Albums groups.")
             # self.logout(log_level=log_level)
-            return total_removed_duplicated_albums
+            return total_merged_albums, total_removed_duplicated_albums
 
     # -----------------------------------------------------------------------------
     #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE

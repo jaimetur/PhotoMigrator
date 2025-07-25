@@ -278,6 +278,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         debug_messages = []
         info_messages = []
         warning_messages = []
+        replacements = []
 
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
@@ -314,6 +315,8 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 # Skip renaming if the clean name is the same as the original
                 if cleaned_folder_name != original_folder_name:
                     new_folder_path = os.path.join(input_folder, cleaned_folder_name)
+                    replacements.append((item_path, new_folder_path))
+
                     if os.path.exists(new_folder_path):
                         duplicates_album_folders += 1
                         warning_messages.append(f"{step_name}Folder '{new_folder_path}' already exists. Merging contents...")
@@ -357,4 +360,5 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             'duplicates_album_folders': duplicates_album_folders,
             'duplicates_albums_fully_merged': duplicates_albums_fully_merged,
             'duplicates_albums_not_fully_merged': duplicates_albums_not_fully_merged,
+            'replacements': replacements,
         }

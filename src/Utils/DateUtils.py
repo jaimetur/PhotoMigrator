@@ -210,7 +210,7 @@ def guess_date_from_filename(path, step_name="", log_level=None):
     Try to guess a date from a filename (first from filename, then full filepath) and return it in ISO 8601 format with local timezone.
     If only year/month/day is found, missing parts are filled with 01.
     If no time is found, it defaults to 00:00:00.
-    Timezone is set to the system's local timezone.
+    Timezone is set to the system's local timezone unless a timezone is detected in the pattern.
 
     Args:
         path: Full path or filename.
@@ -222,88 +222,175 @@ def guess_date_from_filename(path, step_name="", log_level=None):
     """
     import re
     from pathlib import Path
-    from datetime import datetime
+    from datetime import datetime, timezone, timedelta
+    from dateutil import tz
 
     with set_log_level(GV.LOGGER, log_level):
-        tz = datetime.now().astimezone().tzinfo
+        local_tz = datetime.now().astimezone().tzinfo
         path = Path(path)
-        candidates = [(path.name, "filename"), (str(path.parent), "filepath")]
+        candidates = [(path.name, "filename"), (str(path), "filepath")]
 
+        # Patrones más inteligentes, con control de separadores y zonas horarias
         patterns = [
-            # yyyy mm dd [hh mm ss] sin separadores, ej: 20230715_153025
-            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?![a-zA-Z])',
-            # yyyy-mm-dd_hh-mm-ss, con separadores, ej: 2023-07-15_15-30-25
-            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?(?![a-zA-Z])',
-            # dd-mm-yyyy ej: 15-07-2023
+            # yyyymmdd con hora y opcional zona horaria (sin separadores)
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[T_\-\. ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?:\.(?P<millisec>\d{1,6}))?(?P<tz>Z|[+-]\d{2}:?\d{2})?(?![a-zA-Z])',
+            # yyyy-mm-dd con hora y zona horaria
+            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})[-_. ](?P<month>\d{2})[-_. ](?P<day>\d{2})[T_\-\. ]?(?P<hour>\d{2})?[-_.:]?(?P<minute>\d{2})?[-_.:]?(?P<second>\d{2})?(?:\.(?P<millisec>\d{1,6}))?(?P<tz>Z|[+-]\d{2}:?\d{2})?(?![a-zA-Z])',
+            # dd-mm-yyyy sin hora
             r'(?<![a-fA-F])(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
-            # Año solo aislado, ej: _2023_
-            r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?!\d|[a-zA-Z])',
-            # Año + Mes aislado, ej: 202307 o 072023
-            r'(?<![a-fA-F])(?P<ym>\d{6})(?!\d|[a-zA-Z])',
-            # Año + Mes + Día aislado (8 dígitos), ej: 20230715 o 15072023
-            r'(?<![a-fA-F])(?P<ymd>\d{8})(?!\d|[a-zA-Z])',
+            # año + mes (6 dígitos) si el mes es válido
+            r'(?<!\d)(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?!\d)',
+            r'(?<!\d)(?P<month>\d{2})(?P<year>19\d{2}|20\d{2})(?!\d)',
+            # año suelto (4 dígitos)
+            r'(?<![a-fA-F\d])(?P<year>19\d{2}|20\d{2})(?![a-zA-Z\d])',
         ]
 
         for text, source in candidates:
             for pattern in patterns:
                 match = re.search(pattern, text)
-                if match:
-                    try:
-                        parts = match.groupdict()
-                        year = month = day = hour = minute = second = None
+                if not match:
+                    continue
 
-                        if parts.get("year"):
-                            year = int(parts["year"])
-                            month = int(parts.get("month") or 1)
-                            day = int(parts.get("day") or 1)
-                            hour = int(parts.get("hour") or 0)
-                            minute = int(parts.get("minute") or 0)
-                            second = int(parts.get("second") or 0)
+                parts = match.groupdict()
+                try:
+                    year = int(parts.get("year") or 0)
+                    month = int(parts.get("month") or 1)
+                    day = int(parts.get("day") or 1)
+                    hour = int(parts.get("hour") or 0)
+                    minute = int(parts.get("minute") or 0)
+                    second = int(parts.get("second") or 0)
+                    microsecond = int((parts.get("millisec") or "0").ljust(6, "0"))
 
-                        elif parts.get("ymd"):
-                            digits = parts["ymd"]
-                            combos = [
-                                (digits[0:4], digits[4:6], digits[6:8]),  # yyyy mm dd
-                                (digits[4:8], digits[2:4], digits[0:2]),  # dd mm yyyy
-                                (digits[2:6], digits[0:2], digits[6:8]),  # mm dd yyyy
-                            ]
-                            for y, m, d in combos:
-                                if re.fullmatch(r"(19|20)\d{2}", y) and 1 <= int(m) <= 12 and 1 <= int(d) <= 31:
-                                    year = int(y)
-                                    month = int(m)
-                                    day = int(d)
-                                    break
-                            if year is None:
-                                continue  # No combinación válida
+                    # Validaciones
+                    if not (1900 <= year <= 2099): continue
+                    if not (1 <= month <= 12): continue
+                    if not (1 <= day <= 31): continue
+                    if not (0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59): continue
 
-                            hour = minute = second = 0
+                    # Timezone
+                    tz_str = parts.get("tz")
+                    if tz_str == "Z":
+                        tzinfo = timezone.utc
+                    elif tz_str and re.fullmatch(r"[+-]\d{2}:?\d{2}", tz_str):
+                        sign = 1 if tz_str.startswith("+") else -1
+                        hours = int(tz_str[1:3])
+                        minutes = int(tz_str[-2:])
+                        offset = timedelta(hours=hours, minutes=minutes)
+                        tzinfo = timezone(sign * offset)
+                    else:
+                        tzinfo = local_tz
 
-                        elif parts.get("ym"):
-                            digits = parts["ym"]
-                            combos = [
-                                (digits[0:4], digits[4:6]),  # yyyy mm
-                                (digits[2:6], digits[0:2]),  # mm yyyy
-                            ]
-                            for y, m in combos:
-                                if re.fullmatch(r"(19|20)\d{2}", y) and 1 <= int(m) <= 12:
-                                    year = int(y)
-                                    month = int(m)
-                                    day = 1
-                                    hour = minute = second = 0
-                                    break
-                            if year is None:
-                                continue  # No combinación válida
+                    dt = datetime(year, month, day, hour, minute, second, microsecond, tzinfo=tzinfo)
+                    iso_str = dt.isoformat()
+                    GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from {source}: {text}")
+                    return iso_str, source
 
-                        if year and month and day:
-                            dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
-                            iso_str = dt.isoformat()
-                            GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from {source.upper()}: {text}")
-                            return iso_str, source.upper()
-
-                    except Exception as e:
-                        GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from {source} '{text}': {e}")
-                        continue
+                except Exception as e:
+                    GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from {source} '{text}': {e}")
+                    continue
 
         GV.LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
         return None, None
+
+# def guess_date_from_filename(path, step_name="", log_level=None):
+#     """
+#     Try to guess a date from a filename (first from filename, then full filepath) and return it in ISO 8601 format with local timezone.
+#     If only year/month/day is found, missing parts are filled with 01.
+#     If no time is found, it defaults to 00:00:00.
+#     Timezone is set to the system's local timezone.
+#
+#     Args:
+#         path: Full path or filename.
+#         step_name: Optional prefix for log messages.
+#         log_level: Optional logging level override.
+#
+#     Returns:
+#         Tuple: (ISO date string or None, source: 'filename' | 'filepath' | None)
+#     """
+#     import re
+#     from pathlib import Path
+#     from datetime import datetime
+#
+#     with set_log_level(GV.LOGGER, log_level):
+#         tz = datetime.now().astimezone().tzinfo
+#         path = Path(path)
+#         candidates = [(path.name, "filename"), (str(path.parent), "filepath")]
+#
+#         patterns = [
+#             # yyyy mm dd [hh mm ss] sin separadores, ej: 20230715_153025
+#             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?![a-zA-Z])',
+#             # yyyy-mm-dd_hh-mm-ss, con separadores, ej: 2023-07-15_15-30-25
+#             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?(?![a-zA-Z])',
+#             # dd-mm-yyyy ej: 15-07-2023
+#             r'(?<![a-fA-F])(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
+#             # Año solo aislado, ej: _2023_
+#             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?!\d|[a-zA-Z])',
+#             # Año + Mes aislado, ej: 202307 o 072023
+#             r'(?<![a-fA-F])(?P<ym>\d{6})(?!\d|[a-zA-Z])',
+#             # Año + Mes + Día aislado (8 dígitos), ej: 20230715 o 15072023
+#             r'(?<![a-fA-F])(?P<ymd>\d{8})(?!\d|[a-zA-Z])',
+#         ]
+#
+#         for text, source in candidates:
+#             for pattern in patterns:
+#                 match = re.search(pattern, text)
+#                 if match:
+#                     try:
+#                         parts = match.groupdict()
+#                         year = month = day = hour = minute = second = None
+#
+#                         if parts.get("year"):
+#                             year = int(parts["year"])
+#                             month = int(parts.get("month") or 1)
+#                             day = int(parts.get("day") or 1)
+#                             hour = int(parts.get("hour") or 0)
+#                             minute = int(parts.get("minute") or 0)
+#                             second = int(parts.get("second") or 0)
+#
+#                         elif parts.get("ymd"):
+#                             digits = parts["ymd"]
+#                             combos = [
+#                                 (digits[0:4], digits[4:6], digits[6:8]),  # yyyy mm dd
+#                                 (digits[4:8], digits[2:4], digits[0:2]),  # dd mm yyyy
+#                                 (digits[2:6], digits[0:2], digits[6:8]),  # mm dd yyyy
+#                             ]
+#                             for y, m, d in combos:
+#                                 if re.fullmatch(r"(19|20)\d{2}", y) and 1 <= int(m) <= 12 and 1 <= int(d) <= 31:
+#                                     year = int(y)
+#                                     month = int(m)
+#                                     day = int(d)
+#                                     break
+#                             if year is None:
+#                                 continue  # No combinación válida
+#
+#                             hour = minute = second = 0
+#
+#                         elif parts.get("ym"):
+#                             digits = parts["ym"]
+#                             combos = [
+#                                 (digits[0:4], digits[4:6]),  # yyyy mm
+#                                 (digits[2:6], digits[0:2]),  # mm yyyy
+#                             ]
+#                             for y, m in combos:
+#                                 if re.fullmatch(r"(19|20)\d{2}", y) and 1 <= int(m) <= 12:
+#                                     year = int(y)
+#                                     month = int(m)
+#                                     day = 1
+#                                     hour = minute = second = 0
+#                                     break
+#                             if year is None:
+#                                 continue  # No combinación válida
+#
+#                         if year and month and day:
+#                             dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
+#                             iso_str = dt.isoformat()
+#                             GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from {source.upper()}: {text}")
+#                             return iso_str, source.upper()
+#
+#                     except Exception as e:
+#                         GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from {source} '{text}': {e}")
+#                         continue
+#
+#         GV.LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
+#         return None, None
 

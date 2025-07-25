@@ -16,7 +16,8 @@ def init_process_results ():
             'duplicates_albums_fully_merged': 0,
             'duplicates_albums_not_fully_merged': 0,
             'fix_truncations': init_fix_truncations_counters(),
-        }
+            'replacements': [],
+    }
 
 # Initialize Dataclass to return by count_files_per_type()
 def init_count_files_counters ():

@@ -245,7 +245,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_merge_duplicates_albums
         LOGGER.info(f"Merging Duplicates Albums...")
-        total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_merged, total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info(f"Removing Duplicates Assets...")
         duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
@@ -270,6 +270,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
         LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
+        LOGGER.info(f"Total Duplicated Albums merged          : {total_duplicates_albums_merged}")
         LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
         LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
         LOGGER.info(f"")
@@ -318,7 +319,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_merge_duplicates_albums
         LOGGER.info(f"Merging Duplicates Albums...")
-        total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_merged, total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute merge_duplicates_assets
         LOGGER.info(f"Removing Duplicates Assets...")
         duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
@@ -344,6 +345,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
         LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
+        LOGGER.info(f"Total Duplicated Albums merged          : {total_duplicates_albums_merged}")
         LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
         LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
         LOGGER.info(f"")
@@ -394,7 +396,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
         # Execute mode_merge_duplicates_albums
         LOGGER.info(f"")
         LOGGER.info(f"Merging Duplicates Albums...")
-        total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_merged, total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info(f"")
         LOGGER.info(f"Removing Duplicates Assets...")
@@ -456,7 +458,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
         # Execute mode_remove_empty_albums
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute merge_duplicates_albums
-        total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_merged, total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
@@ -620,7 +622,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
         cloud_client_obj.login(log_level=logging.WARNING)
 
         # Call the Function using 'count' as strategy (you can change to 'size')
-        albums_removed = cloud_client_obj.merge_duplicates_albums(strategy='count', log_level=logging.INFO)
+        albums_merged, albums_removed = cloud_client_obj.merge_duplicates_albums(strategy='count', log_level=logging.INFO)
 
         # Logout
         LOGGER.info(f"")
@@ -638,7 +640,8 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
         LOGGER.info(f"==================================================")
         LOGGER.info(f"                  FINAL SUMMARY:                  ")
         LOGGER.info(f"==================================================")
-        LOGGER.info(f"Total Duplicate Albums merged and removed : {albums_removed}")
+        LOGGER.info(f"Total Duplicate Albums merged             : {albums_merged}")
+        LOGGER.info(f"Total Duplicate Albums removed            : {albums_removed}")
         LOGGER.info(f"")
         LOGGER.info(f"Total time elapsed                        : {formatted_duration}")
         LOGGER.info(f"==================================================")
@@ -1044,7 +1047,14 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Rename Albums Mode detected. Only this module will be run!!!")
         LOGGER.info(f"Argument detected '-ra, --rename-folders-content-based'. The Tool will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
-        renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = rename_album_folders(ARGS['rename-folders-content-based'])
+        rename_output = rename_album_folders(ARGS['rename-folders-content-based'])
+
+        # extract counters from the output
+        renamed_album_folders = rename_output['renamed_album_folders']
+        duplicates_album_folders = rename_output['duplicates_album_folders']
+        duplicates_albums_fully_merged = rename_output['duplicates_albums_fully_merged']
+        duplicates_albums_not_fully_merged = rename_output['duplicates_albums_not_fully_merged']
+
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
