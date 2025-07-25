@@ -281,35 +281,46 @@ class FolderAnalyzer:
 
     def update_folder(self, old_folder, new_folder, step_name="", log_level=None):
         """
-        Bulk-update all files whose TargetFile or SourceFile starts with old_folder
-        to use new_folder instead, and recompute all dependent attributes.
+        Bulk-update all entries whose key or TargetFile/SourceFile starts with old_folder,
+        replacing that prefix with new_folder, and then refresh all dependent attributes.
         """
         with set_log_level(self.logger, log_level):
-            old_folder = Path(old_folder).resolve().as_posix()
-            new_folder = Path(new_folder).resolve().as_posix()
-            updated = {}
-            count = 0
+            old_prefix = Path(old_folder).resolve().as_posix()
+            new_prefix = Path(new_folder).resolve().as_posix()
+            new_extracted = {}
+            updated_count = 0
 
-            # update extracted_dates
-            for key, item in list(self.extracted_dates.items()):
-                tgt = item.get("TargetFile", item.get("SourceFile"))
-                if tgt and tgt.startswith(old_folder):
-                    new_tgt = tgt.replace(old_folder, new_folder, 1)
-                    item["TargetFile"] = new_tgt
-                    updated[new_tgt] = item
-                    count += 1
-            self.extracted_dates = updated
-            LOGGER.info(f"{step_name}Se actualizaron {count} rutas TargetFile: {old_folder} → {new_folder}")
+            # iterate over all existing entries
+            for key, item in self.extracted_dates.items():
+                # 1) update the dict key if needed
+                new_key = key
+                if key.startswith(old_prefix):
+                    new_key = key.replace(old_prefix, new_prefix, 1)
 
-            # rebuild file lists and counts
+                # 2) update TargetFile inside metadata
+                tgt = item.get("TargetFile")
+                if tgt and tgt.startswith(old_prefix):
+                    item["TargetFile"] = tgt.replace(old_prefix, new_prefix, 1)
+                    updated_count += 1
+
+                # 3) update SourceFile inside metadata
+                src = item.get("SourceFile")
+                if src and src.startswith(old_prefix):
+                    item["SourceFile"] = src.replace(old_prefix, new_prefix, 1)
+
+                # store the (possibly) updated item under the (possibly) updated key
+                new_extracted[new_key] = item
+
+            # replace the extracted_dates mapping
+            self.extracted_dates = new_extracted
+            LOGGER.info(f"{step_name}Se actualizaron {updated_count} rutas dentro de carpeta: {old_prefix} → {new_prefix}")
+
+            # rebuild file_list and all dependent attributes
             self.file_list = list(self.extracted_dates.keys())
-            LOGGER.debug(f"{step_name}Rebuilt file_list: {len(self.file_list)} entries after folder update")
-
-            # re-apply filters and recompute sizes/assets
             self._apply_filters(step_name=step_name, log_level=log_level)
             self._compute_folder_sizes(step_name)
 
-            return count
+            return updated_count
 
     def update_folders_bulk(self, replacements, step_name="", log_level=None):
         """
