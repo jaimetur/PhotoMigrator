@@ -94,24 +94,6 @@ class FolderAnalyzer:
             ]
             LOGGER.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
 
-    # def _build_file_list_from_disk(self, step_name=''):
-    #     """
-    #     Build the list of files in the given folder (self.folder_path), excluding symlinks.
-    #     If the folder does not exist, print an error message and skip file collection.
-    #     """
-    #     if not os.path.isdir(self.folder_path):
-    #         message = f"❌ Folder does not exist: {self.folder_path}"
-    #         self.logger.error(message)
-    #         self.file_list = []
-    #         return
-    #     self.logger.info(f"{step_name}Building File List for '{self.folder_path}'...")
-    #     self.file_list = []
-    #     for root, _, files in os.walk(self.folder_path):
-    #         for name in files:
-    #             full_path = os.path.join(root, name)
-    #             if not os.path.islink(full_path):
-    #                 self.file_list.append(Path(full_path).resolve().as_posix())
-
     def _build_file_list_from_extracted_dates(self, step_name='', log_level=None):
         with set_log_level(self.logger, log_level):
             # English: rebuild file_list from existing extracted_dates keys
@@ -444,7 +426,6 @@ class FolderAnalyzer:
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
-        import unicodedata
 
         if max_workers is None:
             max_workers = cpu_count() * 16
@@ -471,7 +452,6 @@ class FolderAnalyzer:
                     '-j', '-n', '-time:all', '-fast', '-fast2', '-s',
                     *block_files
                 ]
-                # command = [exif_tool_path, "-charset", "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + block_files
                 try:
                     if len(block_files) <= 10:
                         files_preview = ' '.join(block_files)
@@ -517,8 +497,6 @@ class FolderAnalyzer:
 
                 # file_path = Path(src).resolve().as_posix()                 # resolve symlinks to target file
                 file_path = Path(src).as_posix()                             # don't resolve symlinks to target file
-                # raw_path = Path(src).as_posix()                             # don't resolve symlinks to target file
-                # file_path = unicodedata.normalize('NFC', raw_path)    # Normalize to unicode to preserve accents etc...
 
                 # Creamos full_info con SourceFile y TargetFile al principio
                 full_info = {
