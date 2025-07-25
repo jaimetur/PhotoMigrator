@@ -838,12 +838,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 replacements1 = move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 # Now modify the object analyzer with all the files changed during this step
                 # TODO: Verificar los reemplazos porque no se están aplicando.
-                self.output_folder_analyzer.apply_replacements(replacements=replacements1, step_name=step_name)
+                self.output_folder_analyzer.update_folders_bulk(replacements=replacements1, step_name=step_name)
                 albums_path = os.path.join(output_folder, f"{FOLDERNAME_ALBUMS}")
                 # Finally Move Albums to Albums root folder
                 replacements2 = move_albums_to_root(albums_root=albums_path, step_name=step_name, log_level=log_level)
                 # TODO: Verificar los reemplazos porque no se están aplicando.
-                self.output_folder_analyzer.apply_replacements(replacements=replacements2, step_name=step_name)
+                self.output_folder_analyzer.update_folders_bulk(replacements=replacements2, step_name=step_name)
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
                 # Step 4.2.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                 # ----------------------------------------------------------------------------------------------------------------------
@@ -939,7 +939,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 replacements = rename_output['replacements']
                 # Now modify the object analyzer with all the files changed during this step
                 # TODO: Verificar los reemplazos porque no se están aplicando.
-                self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
+                self.output_folder_analyzer.update_folders_bulk(replacements=replacements, step_name=step_name)
                 # Merge all counts from rename_output into self.result in one go
                 self.result.update(rename_output)
                 # Step 4.4.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
