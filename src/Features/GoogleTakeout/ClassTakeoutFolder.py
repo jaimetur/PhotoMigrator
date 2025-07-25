@@ -147,7 +147,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             counters = self.initial_takeout_folder_analyzer.count_files(step_name=step_name)
             if save_json:
                 if json_filename is None:
-                    json_filename = f"input_dates_metadata.json"
+                    json_filename = f"takeout_input_dates_metadata.json"
                 self.initial_takeout_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Takeout folder'
@@ -158,7 +158,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             counters = self.output_folder_analyzer.count_files(step_name=step_name)
             if save_json:
                 if json_filename is None:
-                    json_filename = f"output_dates_metadata.json"
+                    json_filename = f"takeout_output_dates_metadata.json"
                 self.output_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Output folder'
@@ -1083,7 +1083,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         LOGGER.info(f"================================================================================================================================================")
         LOGGER.info(f"")
         # Save the final output_dates_metadata.json
-        self.output_folder_analyzer.save_to_json(f"output_dates_metadata_filtered.json", step_name=step_name)
+        self.output_folder_analyzer.save_to_json(f"takeout_output_dates_metadata_final.json", step_name=step_name)
         # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
         removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
         if removed:
