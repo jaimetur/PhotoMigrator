@@ -835,7 +835,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             if not self.ARGS['google-skip-move-albums']:
                 LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
-                move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                replacements = move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                # Now modify the object analyzer with all the files changed during this step
+                # TODO: Verificar los reemplazos porque no se están aplicando.
+                self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
                 # Step 4.2.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                 # ----------------------------------------------------------------------------------------------------------------------
@@ -2220,15 +2223,11 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
 def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_subfolder=None, step_name="", log_level=None):
     """
     Moves album folders to a specific subfolder, excluding the specified subfolder(s).
-
-    Parameters:
-        input_folder (str, Path): Path to the input folder containing the albums.
-        albums_subfolder (str, Path): Name of the subfolder where albums should be moved.
-        exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
-        :param step_name:
-        :param log_level:
+    Returns:
+        dict: {
+            'replacements': list of (old_path, new_path) tuples
+        }
     """
-
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def safe_move(folder_path, albums_path):
         destination = os.path.join(albums_path, os.path.basename(folder_path))
@@ -2240,31 +2239,51 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
         shutil.move(folder_path, albums_path)
     # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
 
-    # Ensure exclude_subfolder is a list, even if a single string is passed
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):
+        # prepare replacements list
+        replacements = []
+
+        # normalize exclude_subfolder
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
         albums_path = os.path.join(input_folder, albums_subfolder)
-        exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
-        subfolders = os.listdir(input_folder)
-        subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == FOLDERNAME_NO_ALBUMS]
+        exclude_subfolder_paths = [
+            os.path.abspath(os.path.join(input_folder, sub))
+            for sub in (exclude_subfolder or [])
+        ]
 
-        # for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Moving Albums in '{input_folder}' to Subfolder '{albums_subfolder}'", unit=" albums"):
-        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Moving Albums in '{os.path.basename(input_folder)}' to Subfolder '{os.path.basename(albums_subfolder)}'", unit=" albums"):
+        subfolders = [
+            sub for sub in os.listdir(input_folder)
+            if sub not in ('@eaDir', FOLDERNAME_NO_ALBUMS)
+        ]
+
+        for subfolder in tqdm(
+            subfolders,
+            smoothing=0.1,
+            desc=f"{MSG_TAGS['INFO']}{step_name}Moving Albums in '{os.path.basename(input_folder)}' to Subfolder '{os.path.basename(albums_subfolder)}'",
+            unit=" albums"
+        ):
             folder_path = os.path.join(input_folder, subfolder)
-            # if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
             if (
-                    os.path.isdir(folder_path)
-                    and subfolder != albums_subfolder
-                    and os.path.abspath(folder_path) != os.path.abspath(input_folder)
-                    and os.path.abspath(folder_path) not in exclude_subfolder_paths
+                os.path.isdir(folder_path)
+                and subfolder != albums_subfolder
+                and os.path.abspath(folder_path) != os.path.abspath(input_folder)
+                and os.path.abspath(folder_path) not in exclude_subfolder_paths
             ):
-                LOGGER.debug(f"{step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
+                destination = os.path.join(albums_path, subfolder)
+                LOGGER.debug(f"{step_name}Moving folder '{subfolder}' → '{os.path.basename(albums_subfolder)}'")
                 os.makedirs(albums_path, exist_ok=True)
+
+                # record the planned move
+                replacements.append((folder_path, destination))
+
                 safe_move(folder_path, albums_path)
 
-        # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
+        # Finally Move Albums to Albums root folder
         move_albums_to_root(albums_path, step_name=step_name, log_level=logging.INFO)
+
+        return replacements
+
 
 
 def move_albums_to_root(albums_root, step_name="", log_level=None):

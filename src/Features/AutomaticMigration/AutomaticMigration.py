@@ -479,8 +479,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             total_assets_blocked_count = 0
             try:
                 LOGGER.info(f"Retrieving Albums on '{source_client_name}' matching filters criteria (if any). This process may take some time, please be patient...")
-                # TODO: Change log_level a WARNING dentro de la funcion de abajo
-                all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.INFO)
+                all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving All Albums from '{source_client_name}'. - {e}")
             LOGGER.info(f"{len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")
