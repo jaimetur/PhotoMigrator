@@ -30,7 +30,7 @@ from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_worki
 # 📂 FolderAnalyzer CLASS
 # ========================
 class FolderAnalyzer:
-    def __init__(self, folder_path=None, metadata_json_file=None, extracted_dates=None, force_date_extraction=True, logger=None, step_name='', filter_ext=None, filter_from_epoch=None, filter_to_epoch=None):
+    def __init__(self, folder_path=None, metadata_json_file=None, extracted_dates=None, force_date_extraction=True, logger=None, step_name='', filter_ext=None, filter_from_epoch=None, filter_to_epoch=None, log_level=None):
     # def __init__(self, folder_path=None, extracted_dates=None, logger=None, step_name=''):
         """
         Initialize the FolderAnalyzer from a given folder or existing extracted_dates.
@@ -63,81 +63,35 @@ class FolderAnalyzer:
         # 1) if extracted_dates dictionary is given
         if self.extracted_dates and isinstance(self.extracted_dates, dict):
             self._build_file_list_from_extracted_dates(step_name=step_name)
+            self._apply_filters(step_name=step_name, log_level=log_level)
         # 2) if metadata_json_file is given
         elif self.metadata_json_file:
             self.load_from_json(input_file=self.metadata_json_file, step_name=step_name)
             self._build_file_list_from_extracted_dates(step_name=step_name)
+            self._apply_filters(step_name=step_name, log_level=log_level)
         # 3) if folder_path is given
         elif self.folder_path:
             self._build_file_list_from_disk(step_name=step_name)
             if not self.extracted_dates and force_date_extraction:
                 self.extract_dates(step_name=step_name)
+            self._apply_filters(step_name=step_name, log_level=log_level)
 
-    # finally compute folder sizes based on filtered_file_list (if any) or full file_list
+        # finally compute folder sizes based on filtered_file_list (if any) or full file_list
         self._compute_folder_sizes(step_name)
 
-    def _build_file_list_from_disk(self, step_name=''):
-        """
-        Build the list of files in folder_path and then apply filters once,
-        populating filtered_file_list and folder_assets.
-        """
-        if not os.path.isdir(self.folder_path):
-            self.logger.error(f"{step_name}❌ Folder does not exist: {self.folder_path}")
-            return
-
-        self.logger.info(f"{step_name}Building File List for '{self.folder_path}'...")
-        # 1) Gather all files, following symlinks
-        self.file_list = []
-        for root, _, files in os.walk(self.folder_path, followlinks=True):
-            for name in files:
-                full = Path(root) / name
-                self.file_list.append(full.as_posix())
-
-        # 2) If no filters at all, just use the full list
-        no_filters = (not self.filter_ext) and (self.filter_from_epoch == 0) and (self.filter_to_epoch == float('inf'))
-        if no_filters:
-            # Copy every file
-            self.filtered_file_list = list(self.file_list)
-            # Build folder_assets for each parent folder
-            self.folder_assets = {}
-            for p in self.filtered_file_list:
-                parent = Path(p).parent.resolve().as_posix()
-                self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
-
-            self.logger.info(f"{step_name}✅ No filters applied: indexed {len(self.filtered_file_list)} files in {len(self.folder_assets)} folders.")
-            return
-
-        # 3) Otherwise apply filters
-        self.filtered_file_list = []
-        for p in self.file_list:
-            file = Path(p)
-            ext = file.suffix.lower()
-
-            # --- filter by extension if requested
-            if self.filter_ext:
-                if self.filter_ext == "unsupported":
-                    if ext in self.ALLOWED_EXTENSIONS:
-                        continue
-                elif ext not in self.filter_ext:
-                    continue
-
-            # --- filter by date if requested
-            date_val = self.get_date(p)
-            if date_val is None:
-                # no date, skip it
-                continue
-            # convert to timestamp once, en float (segundos UTC)
-            date_ts = date_val.timestamp()
-            # ahora comparas claramente con tus límites en segundos
-            if date_ts < self.filter_from_epoch or date_ts > self.filter_to_epoch:
-                continue
-
-            # --- if passes all, keep it
-            self.filtered_file_list.append(p)
-            parent = file.parent.resolve().as_posix()
-            self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
-
-        self.logger.info(f"{step_name}✅ Filtered to {len(self.filtered_file_list)} files; indexed {len(self.folder_assets)} folders.")
+    def _build_file_list_from_disk(self, step_name='', log_level=None):
+        with set_log_level(self.logger, log_level):
+            # Gather all file paths under folder_path
+            if not os.path.isdir(self.folder_path):
+                LOGGER.warning(f"{step_name}❌ Folder does not exist: {self.folder_path}")
+                return
+            # Build raw list of files (no filtering)
+            self.file_list = [
+                (Path(root) / name).as_posix()
+                for root, _, files in os.walk(self.folder_path, followlinks=True)
+                for name in files
+            ]
+            LOGGER.debug(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
 
     # def _build_file_list_from_disk(self, step_name=''):
     #     """
@@ -157,75 +111,63 @@ class FolderAnalyzer:
     #             if not os.path.islink(full_path):
     #                 self.file_list.append(Path(full_path).resolve().as_posix())
 
-    def _build_file_list_from_extracted_dates(self, step_name=''):
+    def _build_file_list_from_extracted_dates(self, step_name='', log_level=None):
+        with set_log_level(self.logger, log_level):
+            # English: rebuild file_list from existing extracted_dates keys
+            self.file_list = list(self.extracted_dates.keys())
+            LOGGER.debug(f"{step_name}Built file_list from extracted_dates: {len(self.file_list)} entries.")
+
+    def _apply_filters(self, step_name='', log_level=None):
         """
-        Rebuild file_list, filtered_file_list and folder_assets
-        based on the already-loaded self.extracted_dates dict.
+        Apply filtering criteria to self.file_list and optional self.extracted_dates,
+        populating filtered_file_list and folder_assets.
         """
-        # 1) file_list comes from the keys of extracted_dates
-        self.file_list = list(self.extracted_dates.keys())
+        with set_log_level(self.logger, log_level):
+            # reset filtered lists and counts
+            self.filtered_file_list = []
+            self.folder_assets = {}
 
-        # 2) Prepare filtered list and asset counts
-        self.filtered_file_list = []
-        self.folder_assets = {}
-
-        # 3) Detect if there are absolutely NO filters applied
-        no_filters = (
-                not self.filter_ext and
-                self.filter_from_epoch == 0 and
-                self.filter_to_epoch == float('inf')
-        )
-
-        if no_filters:
-            # If no filters, include all file_list entries
-            self.filtered_file_list = list(self.file_list)
-            # Count each file into its parent folder
-            for fp in self.filtered_file_list:
-                parent = Path(fp).parent.resolve().as_posix()
-                self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
-
-            self.logger.info(
-                f"{step_name}✅ Rebuilt from extracted_dates without filters: "
-                f"{len(self.filtered_file_list)} files, "
-                f"{len(self.folder_assets)} folders."
+            no_filters = (
+                    not self.filter_ext
+                    and self.filter_from_epoch == 0
+                    and self.filter_to_epoch == float('inf')
             )
-            return
+            if no_filters:
+                # include everything
+                for p in self.file_list:
+                    self.filtered_file_list.append(p)
+                    parent = Path(p).parent.resolve().as_posix()
+                    self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
+                self.logger.debug(f"{step_name}✅ No filters applied: {len(self.filtered_file_list)} files, {len(self.folder_assets)} folders.")
+                return
 
-        # 4) Otherwise, apply extension & date filters per file
-        from datetime import datetime
+            # otherwise, apply ext + date filters
+            for p in self.file_list:
+                file = Path(p)
+                ext = file.suffix.lower()
 
-        for file_path in self.file_list:
-            file = Path(file_path)
-            ext = file.suffix.lower()
-
-            # --- extension filter
-            if self.filter_ext:
-                if self.filter_ext == "unsupported":
-                    if ext in self.ALLOWED_EXTENSIONS:
+                # extension filter
+                if self.filter_ext:
+                    if self.filter_ext == "unsupported":
+                        if ext in self.ALLOWED_EXTENSIONS:
+                            continue
+                    elif ext not in self.filter_ext:
                         continue
-                elif ext not in self.filter_ext:
+
+                # date filter
+                date_val = self.get_date(p, step_name)
+                if date_val is None:
+                    continue
+                ts = date_val.timestamp()
+                if ts < self.filter_from_epoch or ts > self.filter_to_epoch:
                     continue
 
-            # --- date filter
-            info = self.extracted_dates.get(file_path, {})
-            date_iso = info.get("OldestDate")
-            if not date_iso:
-                continue
-            ts = datetime.fromisoformat(date_iso).timestamp()
-            if ts < self.filter_from_epoch or ts > self.filter_to_epoch:
-                continue
+                # keep it
+                self.filtered_file_list.append(p)
+                parent = file.parent.resolve().as_posix()
+                self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
 
-            # --- keep the file
-            self.filtered_file_list.append(file_path)
-            parent = file.parent.resolve().as_posix()
-            self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
-
-        self.logger.info(
-            f"{step_name}✅ Rebuilt from extracted_dates with filters: "
-            f"{len(self.file_list)} total, "
-            f"{len(self.filtered_file_list)} after filter, "
-            f"{len(self.folder_assets)} folders indexed."
-        )
+            self.logger.debug(f"{step_name}✅ Filtered to {len(self.filtered_file_list)} files; {len(self.folder_assets)} folders.")
 
     def _compute_folder_sizes(self, step_name=''):
         """

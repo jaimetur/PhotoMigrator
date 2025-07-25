@@ -15,6 +15,10 @@
     - [x] Enhancement [#866](https://github.com/jaimetur/PhotoMigrator/issues/866) to Improve performance of Input Info Analysis in 'Automatic Migration Feature' using an object from class FolderAnalyzer instead of performing read/write disk operations on LocalFolder class methods.
     - [x] Enhancement on 'Album Pulled' / 'Album Pushed' dashboard messages during `Automatic Migration Feature`. Now Album messages are displayed in bright color to highlight it vs normal asset pull/push operations. 
     - [x] Enhancement on `ClassLocalFolder`. Now all methods of this class uses an object analyzer from FolderAnalyzer class to speed-up any file operations. 
+    - [x] Enhancement on `Automatic Migration Feature` when using Live Dashboard. Now it catch any exception during processing.
+    - [x] Enhancement on `Automatic Migration Feature` when using Live Dashboard. Now it restore the cursor back if the process is interrupted.
+    - [x] Enhancement on `FolderAnalyzer`. Now it can construct the object from 3 different ways (base_folder, extracted_dates dictionary or extracted_dates JSON file.
+    - [x] Enhancement on `FolderAnalyzer`. Now it handles date and type filters to only process those assets matching the filter criteria.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed bug [#865](https://github.com/jaimetur/PhotoMigrator/issues/865) to avoid Albums Duplication on 'Automatic Migration Feature' due to race conditions when more than 1 pusher_workers try to create the same Album in parallel. Now, to avoid this race conditions, only pusher_worker with id=1 is allowed to create new Albums. If the Album does not exists and the id>1 then the asset is returned back to pusher_queue.
