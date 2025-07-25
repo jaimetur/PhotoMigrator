@@ -568,7 +568,15 @@ class FolderAnalyzer:
                 if not dt_final:
                     try:
                         fs_ctime = datetime.fromtimestamp(os.path.getctime(file_path)).replace(tzinfo=timezone.utc)
-                        if is_date_valid(fs_ctime, reference):
+                        # 1) calculamos la fecha de la carpeta padre
+                        parent_folder = Path(file_path).parent
+                        try:
+                            parent_folder_date = datetime.fromtimestamp(os.path.getctime(parent_folder)).replace(tzinfo=timezone.utc)
+                        except:
+                            parent_folder_date = None
+                
+                        # 2) pasamos ese parent_folder_date a is_date_valid
+                        if is_date_valid(fs_ctime, reference, parent_folder_date=parent_folder_date):
                             full_info["FileSystem:CTime"] = fs_ctime.isoformat()
                             dt_final = fs_ctime
                             source = "FileSystem:CTime"
