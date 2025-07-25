@@ -197,12 +197,31 @@ def normalize_datetime_utc(dt):
         return dt.astimezone(timezone.utc)      # aware → UTC
 
 
-def is_date_valid(file_date, reference_timestamp, min_days=1):
+def is_date_valid(file_date, reference_timestamp, min_days=1, parent_folder_date=None):
+    """
+    Return True if file_date is at least min_days before reference_timestamp,
+    and (if provided) not later than parent_folder_date.
+    """
+    # if there's no date, it's invalid
     if file_date is None:
         return False
+
+    # ensure reference_timestamp is timezone-aware
     if reference_timestamp.tzinfo is None:
         reference_timestamp = reference_timestamp.replace(tzinfo=timezone.utc)
-    return file_date < (reference_timestamp - timedelta(days=min_days))
+
+    # must be strictly before (reference - min_days)
+    if file_date >= (reference_timestamp - timedelta(days=min_days)):
+        return False
+
+    # if a parent folder date is provided, ensure file_date is not after it
+    if parent_folder_date:
+        if parent_folder_date.tzinfo is None:
+            parent_folder_date = parent_folder_date.replace(tzinfo=timezone.utc)
+        if file_date > parent_folder_date:
+            return False
+
+    return True
 
 
 def guess_date_from_filename(path, step_name="", log_level=None):
