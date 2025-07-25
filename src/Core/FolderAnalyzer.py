@@ -138,10 +138,11 @@ class FolderAnalyzer:
                     self.filtered_file_list.append(p)
                     parent = Path(p).parent.resolve().as_posix()
                     self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
-                self.logger.debug(f"{step_name}✅ No filters applied: {len(self.filtered_file_list)} files, {len(self.folder_assets)} folders.")
+                self.logger.info(f"{step_name}✅ No filters applied to Analyzer Object: {len(self.filtered_file_list)} files, {len(self.folder_assets)} folders.")
                 return
 
             # otherwise, apply ext + date filters
+            self.logger.info(f"{step_name}🔍 Applying filters to Analyzer Object. This may take some time. Please be patient...")
             for p in self.file_list:
                 file = Path(p)
                 ext = file.suffix.lower()
@@ -167,7 +168,7 @@ class FolderAnalyzer:
                 parent = file.parent.resolve().as_posix()
                 self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
 
-            self.logger.debug(f"{step_name}✅ Filtered to {len(self.filtered_file_list)} files; {len(self.folder_assets)} folders.")
+            self.logger.info(f"{step_name}✅ Analyzer Object Filtered to {len(self.filtered_file_list)} files; {len(self.folder_assets)} folders.")
 
     def _compute_folder_sizes(self, step_name=''):
         """
@@ -298,39 +299,49 @@ class FolderAnalyzer:
         self.logger.info(f"{step_name}Se actualizaron {count} rutas TargetFile: {old_folder} → {new_folder}")
         return count
 
-    def apply_replacements(self, replacements=None, step_name=""):
+    def apply_replacements(self, replacements=None, step_name="", log_level=None):
         """
-        Aplica una lista de reemplazos en bloque, actualizando las rutas TargetFile
-        tanto en la clave del diccionario como en el valor de 'TargetFile'.
-
-        Parámetros:
-            replacements (list of tuples): lista de pares (source_path, new_target_path).
+        Apply bulk path replacements in self.extracted_dates, then
+        update all related attributes (file_list, filtered_file_list,
+        folder_assets, file_sizes, folder_sizes).
         """
-        if not replacements:
-            self.logger.info(f"{step_name}No replacements found in 'replacements' list.")
-            return 0
+        with set_log_level(self.logger, log_level):
+            if not replacements:
+                LOGGER.debug(f"{step_name}No replacements to apply.")
+                return 0
 
-        updated_count = 0
-        new_extracted_dates = {}
+            updated_count = 0
+            new_extracted_dates = {}
 
-        for old_path, new_path in replacements:
-            old_path = Path(old_path).resolve().as_posix()
-            new_path = Path(new_path).resolve().as_posix()
+            # process each (old → new) pair
+            for old_path, new_path in replacements:
+                old_resolved = Path(old_path).resolve().as_posix()
+                new_resolved = Path(new_path).resolve().as_posix()
 
-            item = self.extracted_dates.pop(old_path, None)
-            if item:
-                item["TargetFile"] = new_path
-                new_extracted_dates[new_path] = item
-                updated_count += 1
-                self.logger.debug(f"{step_name}✔️ Replaced: {old_path} → {new_path}")
-            else:
-                self.logger.warning(f"{step_name}⚠️ Not found: {old_path}")
+                # pop returns and elimina la entrada vieja directamente de self.extracted_dates
+                item = self.extracted_dates.pop(old_resolved, None)
+                if item:
+                    # actualiza TargetFile en el diccionario
+                    item["TargetFile"] = new_resolved
+                    new_extracted_dates[new_resolved] = item
+                    updated_count += 1
+                    LOGGER.debug(f"{step_name}✔️ Replaced: {old_resolved} → {new_resolved}")
+                else:
+                    LOGGER.warning(f"{step_name}⚠️ Not found for replacement: {old_resolved}")
 
-        # Añadir los elementos actualizados de nuevo
-        self.extracted_dates.update(new_extracted_dates)
+            # agrega de nuevo las entradas renombradas
+            self.extracted_dates.update(new_extracted_dates)
+            LOGGER.debug(f"{step_name}✅ {updated_count} replacements applied to extracted_dates.")
 
-        self.logger.info(f"{step_name}✅ {updated_count} rutas TargetFile actualizadas con apply_replacements().")
-        return updated_count
+            # reconstruye file_list basándote en las claves actuales
+            self.file_list = list(self.extracted_dates.keys())
+            LOGGER.debug(f"{step_name}Rebuilt file_list: {len(self.file_list)} entries.")
+
+            # reaplica filtros y recalcula tamaños
+            self._apply_filters(step_name=step_name, log_level=log_level)
+            self._compute_folder_sizes(step_name)
+
+            return updated_count
 
     def has_been_renamed(self, file_path: str) -> bool:
         """

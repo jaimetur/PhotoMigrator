@@ -112,7 +112,7 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             if not hasattr(self, 'analyzer') or self.analyzer is None:
-                LOGGER.info(f"{step_name}Initializing analyzer for {self.base_folder}…")
+                LOGGER.info(f"{step_name}Initializing analyzer for {self.base_folder}. This process may take long time. Please be patient…")
 
                 # Read filter parameters from ARGS
                 selected_ext = None
@@ -124,8 +124,8 @@ class ClassLocalFolder:
                 # Initialize analyzer with metadata_json_file or with folder_path
                 if metadata_json_file and os.path.isfile(metadata_json_file):
                     # TODO: No crear el objeto analyzer usando el json que viene del process() de ClassTakeoutFolder porque las rutas no están corregidas tras crear year/month structure ni renombrar albumes, ademas no incluye symlinks. hay que revisar esto.
-                    # self.analyzer = FolderAnalyzer(folder_path=None, metadata_json_file=metadata_json_file, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, from_epoch=epoch_start, to_epoch=epoch_end)
-                    self.analyzer = FolderAnalyzer(folder_path=str(self.base_folder), metadata_json_file=None, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)
+                    self.analyzer = FolderAnalyzer(folder_path=None, metadata_json_file=metadata_json_file, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)
+                    # self.analyzer = FolderAnalyzer(folder_path=str(self.base_folder), metadata_json_file=None, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)
 
                 else:
                     self.analyzer = FolderAnalyzer(folder_path=str(self.base_folder), metadata_json_file=None, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)

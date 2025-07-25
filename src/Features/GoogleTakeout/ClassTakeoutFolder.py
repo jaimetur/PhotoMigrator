@@ -877,8 +877,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
                     # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
-                    # Now modify the output_json with all the files changed during this step
-                    # TODO: Verificar los reemplazos porque no se están aplicando. También hay que añadir reemplazos en el paso 4.4.1 Rename Albums Folders based on content date
+                    # Now modify the object analyzer with all the files changed during this step
                     self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # For No-Albums
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
@@ -889,7 +888,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     exclude_subfolders = []
                     # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
-                    # Now modify the output_json with all the files changed during this step
+                    # Now modify the object analyzer with all the files changed during this step
+                    # TODO: Verificar los reemplazos porque no se están aplicando.
                     self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # If flatten
                 if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
@@ -928,6 +928,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if self.ARGS['google-rename-albums-folders']:
                 LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
                 rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                # Extrae la lista de tuplas (old_path, new_path)
+                replacements = rename_output['replacements']
+                # Now modify the object analyzer with all the files changed during this step
+                # TODO: Verificar los reemplazos porque no se están aplicando.
+                self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # Merge all counts from rename_output into self.result in one go
                 self.result.update(rename_output)
                 # Step 4.4.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links

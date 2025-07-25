@@ -1047,7 +1047,14 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Rename Albums Mode detected. Only this module will be run!!!")
         LOGGER.info(f"Argument detected '-ra, --rename-folders-content-based'. The Tool will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
-        renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = rename_album_folders(ARGS['rename-folders-content-based'])
+        rename_output = rename_album_folders(ARGS['rename-folders-content-based'])
+
+        # extract counters from the output
+        renamed_album_folders = rename_output['renamed_album_folders']
+        duplicates_album_folders = rename_output['duplicates_album_folders']
+        duplicates_albums_fully_merged = rename_output['duplicates_albums_fully_merged']
+        duplicates_albums_not_fully_merged = rename_output['duplicates_albums_not_fully_merged']
+
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
