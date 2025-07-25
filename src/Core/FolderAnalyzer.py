@@ -185,10 +185,16 @@ class FolderAnalyzer:
 
         for file_path in source_list:
             file = Path(file_path)
+
+            # skip files that no longer exist
+            if not file.exists():
+                LOGGER.debug(f"{step_name}Skipping missing file: {file_path}")
+                continue
+
             try:
                 size = file.stat().st_size
             except Exception as e:
-                self.logger.warning(f"{step_name}Could not get size for {file_path}: {e}")
+                LOGGER.warning(f"{step_name}Could not get size for {file_path}: {e}")
                 continue
 
             # store individual file size
@@ -198,7 +204,7 @@ class FolderAnalyzer:
             parent = file.parent.resolve().as_posix()
             self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
 
-        self.logger.info(
+        LOGGER.info(
             f"{step_name}Computed sizes for {len(self.file_sizes)} files "
             f"and {len(self.folder_sizes)} folders."
         )
@@ -273,31 +279,51 @@ class FolderAnalyzer:
         self.logger.info(f"{step_name}TargetFile actualizado: {current_path} → {new_target_path}")
         return True
 
-    def update_target_file_bulk(self, old_folder, new_folder):
+    def update_folder(self, old_folder, new_folder, step_name="", log_level=None):
         """
-        Update all TargetFile entries when an entire folder has been renamed/moved.
+        Bulk-update all files whose TargetFile or SourceFile starts with old_folder
+        to use new_folder instead, and recompute all dependent attributes.
         """
-        self.update_folder(old_folder, new_folder)
+        with set_log_level(self.logger, log_level):
+            old_folder = Path(old_folder).resolve().as_posix()
+            new_folder = Path(new_folder).resolve().as_posix()
+            updated = {}
+            count = 0
 
-    def update_folder(self, old_folder: str, new_folder: str, step_name: str = ""):
-        """
-        Actualiza en bloque todos los archivos cuyo 'TargetFile' o 'SourceFile' empiece por old_folder.
-        """
-        old_folder = Path(old_folder).resolve().as_posix()
-        new_folder = Path(new_folder).resolve().as_posix()
-        updated = {}
-        count = 0
-        for key, item in list(self.extracted_dates.items()):
-            tgt = item.get("TargetFile", item.get("SourceFile"))
-            if tgt and tgt.startswith(old_folder):
-                new_tgt = tgt.replace(old_folder, new_folder, 1)
-                item["TargetFile"] = new_tgt
-                updated[new_tgt] = item
-                count += 1
-        self.extracted_dates = updated
+            # update extracted_dates
+            for key, item in list(self.extracted_dates.items()):
+                tgt = item.get("TargetFile", item.get("SourceFile"))
+                if tgt and tgt.startswith(old_folder):
+                    new_tgt = tgt.replace(old_folder, new_folder, 1)
+                    item["TargetFile"] = new_tgt
+                    updated[new_tgt] = item
+                    count += 1
+            self.extracted_dates = updated
+            LOGGER.info(f"{step_name}Se actualizaron {count} rutas TargetFile: {old_folder} → {new_folder}")
 
-        self.logger.info(f"{step_name}Se actualizaron {count} rutas TargetFile: {old_folder} → {new_folder}")
-        return count
+            # rebuild file lists and counts
+            self.file_list = list(self.extracted_dates.keys())
+            LOGGER.debug(f"{step_name}Rebuilt file_list: {len(self.file_list)} entries after folder update")
+
+            # re-apply filters and recompute sizes/assets
+            self._apply_filters(step_name=step_name, log_level=log_level)
+            self._compute_folder_sizes(step_name)
+
+            return count
+
+    def update_folders_bulk(self, replacements, step_name="", log_level=None):
+        """
+        Apply update_folder() for each (old_folder, new_folder) in replacements.
+        Returns the total number of files updated across all folders.
+        """
+        with set_log_level(self.logger, log_level):
+            total_updated = 0
+            for old_folder, new_folder in replacements:
+                updated = self.update_folder(old_folder, new_folder, step_name=step_name, log_level=log_level)
+                LOGGER.debug(f"{step_name}Folder update: {old_folder} → {new_folder}, files updated: {updated}")
+                total_updated += updated
+            LOGGER.info(f"{step_name}Total files updated across all folders: {total_updated}")
+            return total_updated
 
     def apply_replacements(self, replacements=None, step_name="", log_level=None):
         """
