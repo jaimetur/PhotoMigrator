@@ -835,10 +835,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             if not self.ARGS['google-skip-move-albums']:
                 LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
-                replacements = move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                replacements1 = move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 # Now modify the object analyzer with all the files changed during this step
                 # TODO: Verificar los reemplazos porque no se están aplicando.
-                self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
+                self.output_folder_analyzer.apply_replacements(replacements=replacements1, step_name=step_name)
+                albums_path = os.path.join(output_folder, f"{FOLDERNAME_ALBUMS}")
+                # Finally Move Albums to Albums root folder
+                replacements2 = move_albums_to_root(albums_root=albums_path, step_name=step_name, log_level=log_level)
+                # TODO: Verificar los reemplazos porque no se están aplicando.
+                self.output_folder_analyzer.apply_replacements(replacements=replacements2, step_name=step_name)
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
                 # Step 4.2.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                 # ----------------------------------------------------------------------------------------------------------------------
@@ -2224,9 +2229,7 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
     """
     Moves album folders to a specific subfolder, excluding the specified subfolder(s).
     Returns:
-        dict: {
-            'replacements': list of (old_path, new_path) tuples
-        }
+        list of (old_path, new_path) tuples for each moved folder.
     """
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def safe_move(folder_path, albums_path):
@@ -2240,10 +2243,8 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
     # -------------------------------------------------------------- END OF AUXILIARY FUNCTIONS ---------------------------------------------------------------
 
     with set_log_level(LOGGER, log_level):
-        # prepare replacements list
         replacements = []
 
-        # normalize exclude_subfolder
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
         albums_path = os.path.join(input_folder, albums_subfolder)
@@ -2274,13 +2275,12 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
                 LOGGER.debug(f"{step_name}Moving folder '{subfolder}' → '{os.path.basename(albums_subfolder)}'")
                 os.makedirs(albums_path, exist_ok=True)
 
-                # record the planned move
-                replacements.append((folder_path, destination))
-
                 safe_move(folder_path, albums_path)
 
-        # Finally Move Albums to Albums root folder
-        move_albums_to_root(albums_path, step_name=step_name, log_level=logging.INFO)
+                # record the actual old and new paths, both as posix strings
+                old_posix = Path(folder_path).resolve().as_posix()
+                new_posix = Path(destination).resolve().as_posix()
+                replacements.append((old_posix, new_posix))
 
         return replacements
 
@@ -2290,15 +2290,19 @@ def move_albums_to_root(albums_root, step_name="", log_level=None):
     """
     Moves all albums from nested subdirectories ('Takeout/Google Fotos' or 'Takeout/Google Photos')
     directly into the 'Albums' folder, removing unnecessary intermediate folders.
+    Returns:
+        list of (old_path, new_path) tuples for each moved album.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):
+        replacements = []
+
         possible_google_folders = ["Google Fotos", "Google Photos"]
         takeout_path = os.path.join(albums_root, "Takeout")
-        # Check if 'Takeout' exists
         if not os.path.exists(takeout_path):
             LOGGER.debug(f"{step_name}'Takeout' folder not found at {takeout_path}. Exiting.")
-            return
-        # Find the actual Google Photos folder name
+            return replacements
+
+        # find the actual Google Photos folder
         google_photos_path = None
         for folder in possible_google_folders:
             path = os.path.join(takeout_path, folder)
@@ -2307,29 +2311,40 @@ def move_albums_to_root(albums_root, step_name="", log_level=None):
                 break
         if not google_photos_path:
             LOGGER.debug(f"{step_name}No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
-            return
+            return replacements
+
         LOGGER.debug(f"{step_name}Found Google Photos folder: {google_photos_path}")
         LOGGER.info(f"{step_name}Moving Albums to Albums root folder...")
-        # Move albums to the root 'Albums' directory
+
+        # move each album and record replacement
         for album in os.listdir(google_photos_path):
             album_path = os.path.join(google_photos_path, album)
+            if not os.path.isdir(album_path):
+                continue
+
             target_path = os.path.join(albums_root, album)
-            if os.path.isdir(album_path):  # Ensure it's a directory (album)
-                new_target_path = target_path
-                count = 1
-                # Handle naming conflicts by adding a suffix
-                while os.path.exists(new_target_path):
-                    new_target_path = f"{target_path}_{count}"
-                    count += 1
-                # Move the album
-                shutil.move(album_path, new_target_path)
-                LOGGER.debug(f"{step_name}Moved: {album_path} → {new_target_path}")
-        # Attempt to remove empty folders
+            new_target_path = target_path
+            count = 1
+            while os.path.exists(new_target_path):
+                new_target_path = f"{target_path}_{count}"
+                count += 1
+
+            shutil.move(album_path, new_target_path)
+            LOGGER.debug(f"{step_name}Moved: {album_path} → {new_target_path}")
+
+            # record posix paths for analyzer
+            old_posix = Path(album_path).resolve().as_posix()
+            new_posix = Path(new_target_path).resolve().as_posix()
+            replacements.append((old_posix, new_posix))
+
+        # remove the empty 'Takeout' tree
         try:
             shutil.rmtree(takeout_path)
             LOGGER.debug(f"{step_name}'Takeout' folder successfully removed.")
         except Exception as e:
             LOGGER.error(f"{step_name}Failed to remove 'Takeout': {e}")
+
+        return replacements
 
 
 def count_valid_albums(folder_path, excluded_folders=None, step_name="", log_level=None):

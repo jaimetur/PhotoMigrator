@@ -185,10 +185,16 @@ class FolderAnalyzer:
 
         for file_path in source_list:
             file = Path(file_path)
+
+            # skip files that no longer exist
+            if not file.exists():
+                LOGGER.debug(f"{step_name}Skipping missing file: {file_path}")
+                continue
+
             try:
                 size = file.stat().st_size
             except Exception as e:
-                self.logger.warning(f"{step_name}Could not get size for {file_path}: {e}")
+                LOGGER.warning(f"{step_name}Could not get size for {file_path}: {e}")
                 continue
 
             # store individual file size
@@ -198,7 +204,7 @@ class FolderAnalyzer:
             parent = file.parent.resolve().as_posix()
             self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
 
-        self.logger.info(
+        LOGGER.info(
             f"{step_name}Computed sizes for {len(self.file_sizes)} files "
             f"and {len(self.folder_sizes)} folders."
         )
