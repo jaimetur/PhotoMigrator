@@ -117,7 +117,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 arc
 Or check the [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) to choose any specific release. 
 
 > [!NOTE]  
-> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
+> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly from Windows systems, MacOs or within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
 > 
 > You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
 
