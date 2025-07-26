@@ -218,7 +218,7 @@ def is_date_valid(file_date, reference_timestamp, min_days=1, parent_folder_date
     if parent_folder_date:
         if parent_folder_date.tzinfo is None:
             parent_folder_date = parent_folder_date.replace(tzinfo=timezone.utc)
-        if file_date > parent_folder_date:
+        if file_date >= parent_folder_date:
             return False
 
     return True
