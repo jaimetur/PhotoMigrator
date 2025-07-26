@@ -516,6 +516,9 @@ class FolderAnalyzer:
                 
             # renómbralo a `effective_ref` y úsalo explícitamente
             effective_ref = local_reference
+            
+            # Log the effective_ref of this block
+            LOGGER.info(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
             # ──────────────────────────────────────────────────────────────────────
             
             for entry in metadata_list:
