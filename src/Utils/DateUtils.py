@@ -197,31 +197,36 @@ def normalize_datetime_utc(dt):
         return dt.astimezone(timezone.utc)      # aware → UTC
 
 
-def is_date_valid(file_date, reference_timestamp, min_days=1, parent_folder_date=None):
+def is_date_valid(reference_timestamp, fs_ctime=None, fs_mtime=None, min_days=1):
     """
-    Return True if file_date is at least min_days before reference_timestamp,
-    and (if provided) not later than parent_folder_date.
+    Return True if either fs_ctime or fs_mtime is at least `min_days`
+    before `reference_timestamp`; otherwise return False.
     """
-    # if there's no date, it's invalid
-    if file_date is None:
+    # ensure reference_timestamp is provided and timezone-aware
+    if reference_timestamp is None:
         return False
-
-    # ensure reference_timestamp is timezone-aware
     if reference_timestamp.tzinfo is None:
         reference_timestamp = reference_timestamp.replace(tzinfo=timezone.utc)
 
-    # must be strictly before (reference - min_days)
-    if file_date >= (reference_timestamp - timedelta(days=min_days)):
-        return False
+    # compute cutoff threshold
+    threshold = reference_timestamp - timedelta(days=min_days)
 
-    # if a parent folder date is provided, ensure file_date is not after it
-    if parent_folder_date:
-        if parent_folder_date.tzinfo is None:
-            parent_folder_date = parent_folder_date.replace(tzinfo=timezone.utc)
-        if file_date >= parent_folder_date:
-            return False
+    # check creation time
+    if fs_ctime is not None:
+        if fs_ctime.tzinfo is None:
+            fs_ctime = fs_ctime.replace(tzinfo=timezone.utc)
+        if fs_ctime < threshold:
+            return True
 
-    return True
+    # check modification time
+    if fs_mtime is not None:
+        if fs_mtime.tzinfo is None:
+            fs_mtime = fs_mtime.replace(tzinfo=timezone.utc)
+        if fs_mtime < threshold:
+            return True
+
+    # neither timestamp is valid
+    return False
 
 
 def guess_date_from_filename(path, step_name="", log_level=None):
