@@ -13,6 +13,7 @@ from subprocess import run
 import logging
 import platform
 
+from collections import Counter
 from PIL import Image, ExifTags
 from dateutil import parser
 import time
@@ -494,25 +495,35 @@ class FolderAnalyzer:
             else:
                 self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
                 metadata_list = [{"SourceFile": f} for f in block_files]
-        
-            # Cache dict to store per folder_mtime
-            folder_mtime_cache = {}
+                    
+            # ──────────────────────────────────────────────────────────────────────
+            # Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
+            block_dates = [
+                entry.get("FileModifyDate")
+                for entry in metadata_list
+                if entry.get("FileModifyDate")
+            ]
+            if block_dates:
+                most_common_str, _ = Counter(block_dates).most_common(1)[0]
+                try:
+                    dt_block_ref = normalize_datetime_utc(parser.isoparse(most_common_str))
+                    # si es anterior al reference global, lo usamos como referencia local
+                    local_reference = dt_block_ref if dt_block_ref < reference else reference
+                except:
+                    local_reference = reference
+            else:
+                local_reference = reference
+                
+            # renómbralo a `effective_ref` y úsalo explícitamente
+            effective_ref = local_reference
+            # ──────────────────────────────────────────────────────────────────────
+            
             for entry in metadata_list:
                 src = entry.get("SourceFile")
                 if not src:
                     continue
                 
-                # Recalcular el umbral para este fichero según mtime de la carpeta padre
                 file_path = Path(src).as_posix()
-                parent = Path(file_path).parent.as_posix()
-                # si no lo tenemos en caché, lo leemos y lo guardamos
-                if parent not in folder_mtime_cache:
-                    try:
-                        folder_mtime_cache[parent] = datetime.fromtimestamp(os.path.getmtime(parent)).replace(tzinfo=timezone.utc)
-                    except:
-                        folder_mtime_cache[parent] = None
-                parent_mtime = folder_mtime_cache[parent]
-                effective_ref = parent_mtime if parent_mtime and parent_mtime < reference else reference
                               
                 # Creamos full_info con SourceFile y TargetFile al principio
                 full_info = {
