@@ -435,207 +435,207 @@ class FolderAnalyzer:
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
         # --- Internal function to process a single block
-    def _process_block(block_index, block_files):
-        local_metadata = {}
-    
-        # --- Try ExifTool
-        if Path(exif_tool_path).exists():
-            if platform.system() == 'Windows':
-                filename_charset = 'cp1252'
-            else:
-                filename_charset = 'utf8'
-    
-            command = [
-                exif_tool_path,
-                '-charset', f'filename={filename_charset}',
-                '-charset', 'exif=utf8',
-                '-j', '-n', '-time:all', '-fast', '-fast2', '-s',
-                *block_files
-            ]
-            try:
-                if len(block_files) <= 10:
-                    files_preview = ' '.join(block_files)
+        def _process_block(block_index, block_files):
+            local_metadata = {}
+        
+            # --- Try ExifTool
+            if Path(exif_tool_path).exists():
+                if platform.system() == 'Windows':
+                    filename_charset = 'cp1252'
                 else:
-                    files_preview = ' '.join(block_files[:10]) + ' ...'
-                base_cmd = ' '.join(command[:7])
-                self.logger.debug(f"{step_name}⏳ Running: {base_cmd} {files_preview}")
-                result = run(
-                    command,
-                    capture_output=True,
-                    text=True,
-                    encoding='utf-8',
-                    errors='replace',
-                    check=False
-                )
-    
-                if result.stdout.strip():
-                    try:
-                        raw_metadata_list = json.loads(result.stdout)
-                        metadata_list = []
-                        # Filter raw_metadata_list to include only the tags in candidate_tags
-                        for entry in raw_metadata_list:
-                            filtered_entry = {"SourceFile": entry.get("SourceFile")}
-                            for tag in candidate_tags:
-                                if tag in entry:
-                                    filtered_entry[tag] = entry[tag]
-                            metadata_list.append(filtered_entry)
-                        self.logger.debug(
-                            f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}."
-                        )
-                    except json.JSONDecodeError as e:
-                        self.logger.debug(f"{step_name}⚠️ [Block {block_index}]: JSON error: {e}")
-                        self.logger.debug(f"{step_name}🔴 STDOUT:\n{result.stdout}")
-                        metadata_list = []
-                else:
-                    self.logger.warning(f"{step_name}❌ [Block {block_index}]: No output from Exiftool.")
-                    self.logger.debug(f"{step_name}🔴 STDERR:\n{result.stderr}")
-                    metadata_list = []
-            except Exception as e:
-                self.logger.exception(f"{step_name}❌ Error running Exiftool: {e}")
-                metadata_list = []
-    
-        else:
-            self.logger.warning(
-                f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback."
-            )
-            metadata_list = [{"SourceFile": f} for f in block_files]
-    
-        for entry in metadata_list:
-            src = entry.get("SourceFile")
-            if not src:
-                continue
-    
-            file_path = Path(src).as_posix()
-    
-            # Creamos full_info con SourceFile y TargetFile al principio
-            full_info = {
-                "SourceFile": file_path,
-                "TargetFile": file_path,
-            }
-            # Ahora añadimos el resto de claves originales que estén en candidate_tags
-            full_info.update(entry)
-    
-            dt_final = None
-            source = ""
-    
-            # 1) EXIFTOOL
-            # Buscar la fecha más antigua entre los tags EXIF en orden de prioridad
-            candidates = []
-            for tag in candidate_tags:
-                value = entry.get(tag)
-                if not isinstance(value, str):
-                    continue
+                    filename_charset = 'utf8'
+        
+                command = [
+                    exif_tool_path,
+                    '-charset', f'filename={filename_charset}',
+                    '-charset', 'exif=utf8',
+                    '-j', '-n', '-time:all', '-fast', '-fast2', '-s',
+                    *block_files
+                ]
                 try:
-                    raw_clean = value.strip()
-                    if raw_clean[:10].count(":") == 2 and "+" in raw_clean:
-                        dt = normalize_datetime_utc(
-                            datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z")
-                        )
-                    elif raw_clean[:10].count(":") == 2:
-                        dt = normalize_datetime_utc(
-                            datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S")
-                        )
+                    if len(block_files) <= 10:
+                        files_preview = ' '.join(block_files)
                     else:
-                        dt = normalize_datetime_utc(parser.parse(raw_clean))
-                    candidates.append((dt, tag))
-                except:
-                    continue
-    
-            if candidates:
-                dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
-                if is_date_valid(dt_oldest, reference, min_days=0):
-                    dt_final = dt_oldest
-                    source = f"EXIF:{tag_oldest}"
-    
-            # 2) Fallback a PIL solo si aún no se tiene una fecha válida
-            if not dt_final:
-                try:
-                    img = Image.open(file_path)
-                    exif_data = img._getexif() or {}
-                    for tag_name in ("DateTimeOriginal", "DateTime"):
-                        tag_id = next(
-                            (tid for tid, name in ExifTags.TAGS.items() if name == tag_name),
-                            None
-                        )
-                        raw = exif_data.get(tag_id)
-                        if isinstance(raw, str):
-                            dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(
-                                tzinfo=timezone.utc
-                            )
-                            if is_date_valid(dt, reference, min_days=0):
-                                full_info[f"PIL:{tag_name}"] = dt.isoformat()
-                                dt_final = dt
-                                source = f"PIL:{tag_name}"
-                            break
-                except:
-                    pass
-    
-            # 3) Fallback al nombre del fichero o path si aún no hay ninguna
-            if not dt_final and use_fallback_to_filename:
-                try:
-                    guessed_date, guessed_source = guess_date_from_filename(
-                        file_path, step_name=step_name
+                        files_preview = ' '.join(block_files[:10]) + ' ...'
+                    base_cmd = ' '.join(command[:7])
+                    self.logger.debug(f"{step_name}⏳ Running: {base_cmd} {files_preview}")
+                    result = run(
+                        command,
+                        capture_output=True,
+                        text=True,
+                        encoding='utf-8',
+                        errors='replace',
+                        check=False
                     )
-                    if guessed_date:
-                        dt = parser.isoparse(guessed_date)
-                        if is_date_valid(dt, reference, min_days=0):
-                            file_path_obj = Path(file_path)
-                            if guessed_source == "filename":
-                                full_info["FileNameDate"] = dt.isoformat()
-                                source = f"FILENAME:{file_path_obj.name}"
-                            elif guessed_source == "filepath":
-                                full_info["FilePathDate"] = dt.isoformat()
-                                source = f"FILEPATH:{file_path_obj.parent}"
-                            dt_final = dt
-                except:
-                    pass
-    
-            # 4) fallback to filesystem timestamps if no EXIF/PIL/filename date found
-            if not dt_final:
-                try:
-                    fs_mtime = datetime.fromtimestamp(
-                        os.path.getmtime(file_path)
-                    ).replace(tzinfo=timezone.utc)
-                    fs_ctime = datetime.fromtimestamp(
-                        os.path.getctime(file_path)
-                    ).replace(tzinfo=timezone.utc)
-    
-                    # compute effective reference using parent folder mtime if earlier
-                    parent = Path(file_path).parent
+        
+                    if result.stdout.strip():
+                        try:
+                            raw_metadata_list = json.loads(result.stdout)
+                            metadata_list = []
+                            # Filter raw_metadata_list to include only the tags in candidate_tags
+                            for entry in raw_metadata_list:
+                                filtered_entry = {"SourceFile": entry.get("SourceFile")}
+                                for tag in candidate_tags:
+                                    if tag in entry:
+                                        filtered_entry[tag] = entry[tag]
+                                metadata_list.append(filtered_entry)
+                            self.logger.debug(
+                                f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}."
+                            )
+                        except json.JSONDecodeError as e:
+                            self.logger.debug(f"{step_name}⚠️ [Block {block_index}]: JSON error: {e}")
+                            self.logger.debug(f"{step_name}🔴 STDOUT:\n{result.stdout}")
+                            metadata_list = []
+                    else:
+                        self.logger.warning(f"{step_name}❌ [Block {block_index}]: No output from Exiftool.")
+                        self.logger.debug(f"{step_name}🔴 STDERR:\n{result.stderr}")
+                        metadata_list = []
+                except Exception as e:
+                    self.logger.exception(f"{step_name}❌ Error running Exiftool: {e}")
+                    metadata_list = []
+        
+            else:
+                self.logger.warning(
+                    f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback."
+                )
+                metadata_list = [{"SourceFile": f} for f in block_files]
+        
+            for entry in metadata_list:
+                src = entry.get("SourceFile")
+                if not src:
+                    continue
+        
+                file_path = Path(src).as_posix()
+        
+                # Creamos full_info con SourceFile y TargetFile al principio
+                full_info = {
+                    "SourceFile": file_path,
+                    "TargetFile": file_path,
+                }
+                # Ahora añadimos el resto de claves originales que estén en candidate_tags
+                full_info.update(entry)
+        
+                dt_final = None
+                source = ""
+        
+                # 1) EXIFTOOL
+                # Buscar la fecha más antigua entre los tags EXIF en orden de prioridad
+                candidates = []
+                for tag in candidate_tags:
+                    value = entry.get(tag)
+                    if not isinstance(value, str):
+                        continue
                     try:
-                        parent_mtime = datetime.fromtimestamp(
-                            os.path.getmtime(parent)
-                        ).replace(tzinfo=timezone.utc)
-                    except:
-                        parent_mtime = reference
-                    effective_ref = parent_mtime if parent_mtime < reference else reference
-    
-                    # check either timestamp is valid
-                    if (
-                        is_date_valid(fs_mtime, effective_ref, min_days=0)
-                        or is_date_valid(fs_ctime, effective_ref, min_days=0)
-                    ):
-                        # pick the earliest valid timestamp
-                        valid_ts = [
-                            t for t in (fs_ctime, fs_mtime) if t < effective_ref
-                        ]
-                        chosen = min(valid_ts)
-                        if chosen is fs_ctime:
-                            full_info["FileSystem:CTime"] = chosen.isoformat()
-                            source = "FileSystem:CTime"
+                        raw_clean = value.strip()
+                        if raw_clean[:10].count(":") == 2 and "+" in raw_clean:
+                            dt = normalize_datetime_utc(
+                                datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z")
+                            )
+                        elif raw_clean[:10].count(":") == 2:
+                            dt = normalize_datetime_utc(
+                                datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S")
+                            )
                         else:
-                            full_info["FileSystem:ModifyDate"] = chosen.isoformat()
-                            source = "FileSystem:ModifyDate"
-                        dt_final = chosen
-                except:
-                    pass
-    
-            # 5) Añadir OldestDate y Source al diccionario
-            full_info["OldestDate"] = dt_final.isoformat() if dt_final else None
-            full_info["Source"] = source or "None"
-            local_metadata[file_path] = full_info
-    
-        return local_metadata
+                            dt = normalize_datetime_utc(parser.parse(raw_clean))
+                        candidates.append((dt, tag))
+                    except:
+                        continue
+        
+                if candidates:
+                    dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
+                    if is_date_valid(dt_oldest, reference, min_days=0):
+                        dt_final = dt_oldest
+                        source = f"EXIF:{tag_oldest}"
+        
+                # 2) Fallback a PIL solo si aún no se tiene una fecha válida
+                if not dt_final:
+                    try:
+                        img = Image.open(file_path)
+                        exif_data = img._getexif() or {}
+                        for tag_name in ("DateTimeOriginal", "DateTime"):
+                            tag_id = next(
+                                (tid for tid, name in ExifTags.TAGS.items() if name == tag_name),
+                                None
+                            )
+                            raw = exif_data.get(tag_id)
+                            if isinstance(raw, str):
+                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(
+                                    tzinfo=timezone.utc
+                                )
+                                if is_date_valid(dt, reference, min_days=0):
+                                    full_info[f"PIL:{tag_name}"] = dt.isoformat()
+                                    dt_final = dt
+                                    source = f"PIL:{tag_name}"
+                                break
+                    except:
+                        pass
+        
+                # 3) Fallback al nombre del fichero o path si aún no hay ninguna
+                if not dt_final and use_fallback_to_filename:
+                    try:
+                        guessed_date, guessed_source = guess_date_from_filename(
+                            file_path, step_name=step_name
+                        )
+                        if guessed_date:
+                            dt = parser.isoparse(guessed_date)
+                            if is_date_valid(dt, reference, min_days=0):
+                                file_path_obj = Path(file_path)
+                                if guessed_source == "filename":
+                                    full_info["FileNameDate"] = dt.isoformat()
+                                    source = f"FILENAME:{file_path_obj.name}"
+                                elif guessed_source == "filepath":
+                                    full_info["FilePathDate"] = dt.isoformat()
+                                    source = f"FILEPATH:{file_path_obj.parent}"
+                                dt_final = dt
+                    except:
+                        pass
+        
+                # 4) fallback to filesystem timestamps if no EXIF/PIL/filename date found
+                if not dt_final:
+                    try:
+                        fs_mtime = datetime.fromtimestamp(
+                            os.path.getmtime(file_path)
+                        ).replace(tzinfo=timezone.utc)
+                        fs_ctime = datetime.fromtimestamp(
+                            os.path.getctime(file_path)
+                        ).replace(tzinfo=timezone.utc)
+        
+                        # compute effective reference using parent folder mtime if earlier
+                        parent = Path(file_path).parent
+                        try:
+                            parent_mtime = datetime.fromtimestamp(
+                                os.path.getmtime(parent)
+                            ).replace(tzinfo=timezone.utc)
+                        except:
+                            parent_mtime = reference
+                        effective_ref = parent_mtime if parent_mtime < reference else reference
+        
+                        # check either timestamp is valid
+                        if (
+                            is_date_valid(fs_mtime, effective_ref, min_days=0)
+                            or is_date_valid(fs_ctime, effective_ref, min_days=0)
+                        ):
+                            # pick the earliest valid timestamp
+                            valid_ts = [
+                                t for t in (fs_ctime, fs_mtime) if t < effective_ref
+                            ]
+                            chosen = min(valid_ts)
+                            if chosen is fs_ctime:
+                                full_info["FileSystem:CTime"] = chosen.isoformat()
+                                source = "FileSystem:CTime"
+                            else:
+                                full_info["FileSystem:ModifyDate"] = chosen.isoformat()
+                                source = "FileSystem:ModifyDate"
+                            dt_final = chosen
+                    except:
+                        pass
+        
+                # 5) Añadir OldestDate y Source al diccionario
+                full_info["OldestDate"] = dt_final.isoformat() if dt_final else None
+                full_info["Source"] = source or "None"
+                local_metadata[file_path] = full_info
+        
+            return local_metadata
 
 
         # --- Main execution
