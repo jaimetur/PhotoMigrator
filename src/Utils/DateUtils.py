@@ -197,7 +197,7 @@ def normalize_datetime_utc(dt):
         return dt.astimezone(timezone.utc)      # aware → UTC
 
 
-def is_date_valid(date_to_check, reference, min_days=1):
+def is_date_valid(date_to_check, reference, min_days=0):
     """
     Return True if date_to_check < (reference - min_days days).
     """
