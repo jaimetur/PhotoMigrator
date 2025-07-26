@@ -580,9 +580,23 @@ class FolderAnalyzer:
 
                         # validate using creation and modification times
                         if is_date_valid(reference_timestamp=effective_ref, fs_ctime=fs_ctime, fs_mtime=fs_mtime, min_days=0):
-                            full_info["FileSystem:ModifyDate"] = fs_mtime.isoformat()
-                            dt_final = fs_mtime
-                            source = "FileSystem:ModifyDate"
+                            # pick the earliest valid timestamp
+                            candidates = []
+                            if fs_ctime < effective_ref:
+                                candidates.append(fs_ctime)
+                            if fs_mtime < effective_ref:
+                                candidates.append(fs_mtime)
+                            chosen = min(candidates)
+
+                            # record with the appropriate key
+                            if chosen is fs_ctime:
+                                full_info["FileSystem:CTime"] = chosen.isoformat()
+                                source = "FileSystem:CTime"
+                            else:
+                                full_info["FileSystem:ModifyDate"] = chosen.isoformat()
+                                source = "FileSystem:ModifyDate"
+
+                            dt_final = chosen
                     except:
                         pass
 
