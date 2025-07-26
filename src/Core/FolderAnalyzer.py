@@ -509,6 +509,7 @@ class FolderAnalyzer:
                 dt_final = None
                 source = ""
 
+                # 1) EXIFTOOL
                 # Buscar la fecha más antigua entre las claves del EXIF
                 for tag, value in entry.items():
                     if isinstance(value, str):
@@ -527,7 +528,7 @@ class FolderAnalyzer:
                         except:
                             continue
 
-                # Fallback a PIL solo si aún no se tiene una fecha válida
+                # 2) Fallback a PIL solo si aún no se tiene una fecha válida
                 if not dt_final:
                     try:
                         img = Image.open(file_path)
@@ -546,7 +547,7 @@ class FolderAnalyzer:
                     except:
                         pass
 
-                # Fallback al nombre del fichero o path si aún no hay ninguna
+                # 3) Fallback al nombre del fichero o path si aún no hay ninguna
                 if not dt_final and use_fallback_to_filename:
                     try:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
@@ -564,8 +565,7 @@ class FolderAnalyzer:
                     except:
                         pass
 
-
-                # fallback to filesystem timestamps if no EXIF/PIL date found
+                # 4) fallback to filesystem timestamps if no EXIF/PIL date found
                 if not dt_final:
                     try:
                         fs_mtime = datetime.fromtimestamp(os.path.getmtime(file_path)).replace(tzinfo=timezone.utc)
@@ -591,8 +591,7 @@ class FolderAnalyzer:
                     except:
                         pass
 
-
-                # Añadir OldestDate y Source al diccionario
+                # 5) Añadir OldestDate y Source al diccionario
                 full_info["OldestDate"] = dt_final.isoformat() if dt_final else None
                 full_info["Source"] = source or "None"
 
