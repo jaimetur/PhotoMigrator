@@ -426,7 +426,6 @@ class FolderAnalyzer:
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
-
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.extracted_dates = {}
@@ -479,9 +478,7 @@ class FolderAnalyzer:
                                     if tag in entry:
                                         filtered_entry[tag] = entry[tag]
                                 metadata_list.append(filtered_entry)
-                            self.logger.debug(
-                                f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}."
-                            )
+                            self.logger.debug(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}.")
                         except json.JSONDecodeError as e:
                             self.logger.debug(f"{step_name}⚠️ [Block {block_index}]: JSON error: {e}")
                             self.logger.debug(f"{step_name}🔴 STDOUT:\n{result.stdout}")
@@ -495,18 +492,28 @@ class FolderAnalyzer:
                     metadata_list = []
         
             else:
-                self.logger.warning(
-                    f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback."
-                )
+                self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
                 metadata_list = [{"SourceFile": f} for f in block_files]
         
+            # Cache dict to store per folder_mtime
+            folder_mtime_cache = {}
             for entry in metadata_list:
                 src = entry.get("SourceFile")
                 if not src:
                     continue
-        
+                
+                # Recalcular el umbral para este fichero según mtime de la carpeta padre
                 file_path = Path(src).as_posix()
-        
+                parent = Path(file_path).parent.as_posix()
+                # si no lo tenemos en caché, lo leemos y lo guardamos
+                if parent not in folder_mtime_cache:
+                    try:
+                        folder_mtime_cache[parent] = datetime.fromtimestamp(os.path.getmtime(parent)).replace(tzinfo=timezone.utc)
+                    except:
+                        folder_mtime_cache[parent] = None
+                parent_mtime = folder_mtime_cache[parent]
+                effective_ref = parent_mtime if parent_mtime and parent_mtime < reference else reference
+                              
                 # Creamos full_info con SourceFile y TargetFile al principio
                 full_info = {
                     "SourceFile": file_path,
@@ -528,13 +535,9 @@ class FolderAnalyzer:
                     try:
                         raw_clean = value.strip()
                         if raw_clean[:10].count(":") == 2 and "+" in raw_clean:
-                            dt = normalize_datetime_utc(
-                                datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z")
-                            )
+                            dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
                         elif raw_clean[:10].count(":") == 2:
-                            dt = normalize_datetime_utc(
-                                datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S")
-                            )
+                            dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
                         else:
                             dt = normalize_datetime_utc(parser.parse(raw_clean))
                         candidates.append((dt, tag))
@@ -543,7 +546,7 @@ class FolderAnalyzer:
         
                 if candidates:
                     dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
-                    if is_date_valid(dt_oldest, reference, min_days=0):
+                    if is_date_valid(dt_oldest, effective_ref, min_days=0):
                         dt_final = dt_oldest
                         source = f"EXIF:{tag_oldest}"
         
@@ -559,10 +562,8 @@ class FolderAnalyzer:
                             )
                             raw = exif_data.get(tag_id)
                             if isinstance(raw, str):
-                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(
-                                    tzinfo=timezone.utc
-                                )
-                                if is_date_valid(dt, reference, min_days=0):
+                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                                if is_date_valid(dt, effective_ref, min_days=0):
                                     full_info[f"PIL:{tag_name}"] = dt.isoformat()
                                     dt_final = dt
                                     source = f"PIL:{tag_name}"
@@ -573,12 +574,10 @@ class FolderAnalyzer:
                 # 3) Fallback al nombre del fichero o path si aún no hay ninguna
                 if not dt_final and use_fallback_to_filename:
                     try:
-                        guessed_date, guessed_source = guess_date_from_filename(
-                            file_path, step_name=step_name
-                        )
+                        guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
                             dt = parser.isoparse(guessed_date)
-                            if is_date_valid(dt, reference, min_days=0):
+                            if is_date_valid(dt, effective_ref, min_days=0):
                                 file_path_obj = Path(file_path)
                                 if guessed_source == "filename":
                                     full_info["FileNameDate"] = dt.isoformat()
@@ -593,23 +592,9 @@ class FolderAnalyzer:
                 # 4) fallback to filesystem timestamps if no EXIF/PIL/filename date found
                 if not dt_final:
                     try:
-                        fs_mtime = datetime.fromtimestamp(
-                            os.path.getmtime(file_path)
-                        ).replace(tzinfo=timezone.utc)
-                        fs_ctime = datetime.fromtimestamp(
-                            os.path.getctime(file_path)
-                        ).replace(tzinfo=timezone.utc)
-        
-                        # compute effective reference using parent folder mtime if earlier
-                        parent = Path(file_path).parent
-                        try:
-                            parent_mtime = datetime.fromtimestamp(
-                                os.path.getmtime(parent)
-                            ).replace(tzinfo=timezone.utc)
-                        except:
-                            parent_mtime = reference
-                        effective_ref = parent_mtime if parent_mtime < reference else reference
-        
+                        fs_mtime = datetime.fromtimestamp(os.path.getmtime(file_path)).replace(tzinfo=timezone.utc)
+                        fs_ctime = datetime.fromtimestamp(os.path.getctime(file_path)).replace(tzinfo=timezone.utc)
+                
                         # check either timestamp is valid
                         if (
                             is_date_valid(fs_mtime, effective_ref, min_days=0)
@@ -634,7 +619,6 @@ class FolderAnalyzer:
                 full_info["OldestDate"] = dt_final.isoformat() if dt_final else None
                 full_info["Source"] = source or "None"
                 local_metadata[file_path] = full_info
-        
             return local_metadata
 
 
