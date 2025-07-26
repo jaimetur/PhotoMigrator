@@ -197,36 +197,15 @@ def normalize_datetime_utc(dt):
         return dt.astimezone(timezone.utc)      # aware → UTC
 
 
-def is_date_valid(reference_timestamp, fs_ctime=None, fs_mtime=None, min_days=1):
+def is_date_valid(date_to_check, reference, min_days=1):
     """
-    Return True if either fs_ctime or fs_mtime is at least `min_days`
-    before `reference_timestamp`; otherwise return False.
+    Return True if date_to_check < (reference - min_days days).
     """
-    # ensure reference_timestamp is provided and timezone-aware
-    if reference_timestamp is None:
+    if date_to_check is None:
         return False
-    if reference_timestamp.tzinfo is None:
-        reference_timestamp = reference_timestamp.replace(tzinfo=timezone.utc)
-
-    # compute cutoff threshold
-    threshold = reference_timestamp - timedelta(days=min_days)
-
-    # check creation time
-    if fs_ctime is not None:
-        if fs_ctime.tzinfo is None:
-            fs_ctime = fs_ctime.replace(tzinfo=timezone.utc)
-        if fs_ctime < threshold:
-            return True
-
-    # check modification time
-    if fs_mtime is not None:
-        if fs_mtime.tzinfo is None:
-            fs_mtime = fs_mtime.replace(tzinfo=timezone.utc)
-        if fs_mtime < threshold:
-            return True
-
-    # neither timestamp is valid
-    return False
+    if reference.tzinfo is None:
+        reference = reference.replace(tzinfo=timezone.utc)
+    return date_to_check < (reference - timedelta(days=min_days))
 
 
 def guess_date_from_filename(path, step_name="", log_level=None):
