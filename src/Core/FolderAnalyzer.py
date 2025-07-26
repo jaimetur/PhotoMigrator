@@ -564,38 +564,29 @@ class FolderAnalyzer:
                     except:
                         pass
 
+
                 # fallback to filesystem timestamps if no EXIF/PIL date found
                 if not dt_final:
                     try:
                         fs_mtime = datetime.fromtimestamp(os.path.getmtime(file_path)).replace(tzinfo=timezone.utc)
                         fs_ctime = datetime.fromtimestamp(os.path.getctime(file_path)).replace(tzinfo=timezone.utc)
                         # compute effective reference using parent folder mtime if earlier
-                        parent_mtime = None
                         parent = Path(file_path).parent
                         try:
                             parent_mtime = datetime.fromtimestamp(os.path.getmtime(parent)).replace(tzinfo=timezone.utc)
                         except:
-                            pass
-                        effective_ref = parent_mtime if parent_mtime and parent_mtime < reference else reference
-
-                        # validate using creation and modification times
-                        if is_date_valid(reference_timestamp=effective_ref, fs_ctime=fs_ctime, fs_mtime=fs_mtime, min_days=0):
-                            # pick the earliest valid timestamp
-                            candidates = []
-                            if fs_ctime < effective_ref:
-                                candidates.append(fs_ctime)
-                            if fs_mtime < effective_ref:
-                                candidates.append(fs_mtime)
-                            chosen = min(candidates)
-
-                            # record with the appropriate key
+                            parent_mtime = reference
+                        effective_ref = parent_mtime if parent_mtime < reference else reference
+                        # check either timestamp is valid
+                        if is_date_valid(fs_mtime, effective_ref, min_days=0) or is_date_valid(fs_ctime, effective_ref, min_days=0):
+                            # pick the earliest of the two
+                            chosen = min(fs_mtime, fs_ctime)
                             if chosen is fs_ctime:
                                 full_info["FileSystem:CTime"] = chosen.isoformat()
                                 source = "FileSystem:CTime"
                             else:
                                 full_info["FileSystem:ModifyDate"] = chosen.isoformat()
                                 source = "FileSystem:ModifyDate"
-
                             dt_final = chosen
                     except:
                         pass
