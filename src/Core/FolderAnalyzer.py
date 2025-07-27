@@ -641,12 +641,13 @@ class FolderAnalyzer:
                     except:
                         pass
         
-                # 5) Añadir OldestDate y Source al diccionario
-                full_info["OldestDate"] = dt_final.isoformat() if dt_final else None
-                full_info["Source"] = source or "None"
-                local_metadata[file_path] = full_info
+                # 5) Añadir OldestDate, Source, ReferenceDate e isValid al diccionario
+                full_info["OldestDate"]      = dt_final.isoformat() if dt_final else None
+                full_info["Source"]          = source or "None"
+                full_info["ReferenceDate"]   = effective_ref.isoformat()
+                full_info["isValid"]         = True if dt_final else False
+                local_metadata[file_path] = full_info            
             return local_metadata
-
 
         # --- Main execution
         def main():
