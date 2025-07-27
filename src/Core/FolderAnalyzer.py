@@ -59,7 +59,10 @@ class FolderAnalyzer:
         if logger:
             self.logger = logger
         else:
-            self.logger = set_LOGGER()
+            if LOGGER:
+                self.logger = LOGGER
+            else:
+                self.logger = set_LOGGER()
             
         self._initialized_with_valid_input = False
 
@@ -91,7 +94,7 @@ class FolderAnalyzer:
         with set_log_level(self.logger, log_level):
             # Gather all file paths under folder_path
             if not os.path.isdir(self.folder_path):
-                LOGGER.warning(f"{step_name}❌ Folder does not exist: {self.folder_path}")
+                self.logger.warning(f"{step_name}❌ Folder does not exist: {self.folder_path}")
                 return
             # Build raw list of files (no filtering)
             self.file_list = [
@@ -99,13 +102,13 @@ class FolderAnalyzer:
                 for root, _, files in os.walk(self.folder_path, followlinks=True)
                 for name in files
             ]
-            LOGGER.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
+            self.logger.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
 
     def _build_file_list_from_extracted_dates(self, step_name='', log_level=None):
         with set_log_level(self.logger, log_level):
             # English: rebuild file_list from existing extracted_dates keys
             self.file_list = list(self.extracted_dates.keys())
-            LOGGER.debug(f"{step_name}Built file_list from extracted_dates: {len(self.file_list)} entries.")
+            self.logger.debug(f"{step_name}Built file_list from extracted_dates: {len(self.file_list)} entries.")
 
     def _apply_filters(self, step_name='', log_level=None):
         """
@@ -179,13 +182,13 @@ class FolderAnalyzer:
 
                 # skip files that no longer exist
                 if not file.exists():
-                    LOGGER.debug(f"{step_name}Skipping missing file: {file_path}")
+                    self.logger.debug(f"{step_name}Skipping missing file: {file_path}")
                     continue
 
                 try:
                     size = file.stat().st_size
                 except Exception as e:
-                    LOGGER.warning(f"{step_name}Could not get size for {file_path}: {e}")
+                    self.logger.warning(f"{step_name}Could not get size for {file_path}: {e}")
                     continue
 
                 # store individual file size
@@ -195,7 +198,7 @@ class FolderAnalyzer:
                 parent = file.parent.resolve().as_posix()
                 self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
 
-            LOGGER.info(f"{step_name}🧮 Computed sizes for {len(self.file_sizes)} files and {len(self.folder_sizes)} folders.")
+            self.logger.info(f"{step_name}🧮 Computed sizes for {len(self.file_sizes)} files and {len(self.folder_sizes)} folders.")
 
     def get_extracted_dates(self):
         """
@@ -296,7 +299,7 @@ class FolderAnalyzer:
 
             # replace the extracted_dates mapping
             self.extracted_dates = new_extracted
-            LOGGER.debug(f"{step_name}Updated {updated_count} paths within folder: {old_prefix} → {new_prefix}")
+            self.logger.debug(f"{step_name}Updated {updated_count} paths within folder: {old_prefix} → {new_prefix}")
 
             # rebuild file_list and all dependent attributes
             self.file_list = list(self.extracted_dates.keys())
@@ -317,13 +320,13 @@ class FolderAnalyzer:
             total_updated_folders = 0
             for old_folder, new_folder in replacements:
                 updated = self.update_folder(old_folder, new_folder, apply_filters=False, compute_folder_size=False, step_name=step_name, log_level=log_level)
-                LOGGER.debug(f"{step_name}Folder update: {old_folder} → {new_folder}, files updated: {updated}")
+                self.logger.debug(f"{step_name}Folder update: {old_folder} → {new_folder}, files updated: {updated}")
                 total_updated += updated
                 total_updated_folders += 1
             # Now Apply filters and compute folder sizes
             self._apply_filters(step_name=step_name, log_level=log_level)
             self._compute_folder_sizes(step_name=step_name, log_level=log_level)
-            LOGGER.info(f"{step_name}Total files updated: {total_updated}. Total folders updated: {total_updated_folders}.")
+            self.logger.info(f"{step_name}Total files updated: {total_updated}. Total folders updated: {total_updated_folders}.")
             return total_updated
 
     def apply_replacements(self, replacements=None, step_name="", log_level=None):
@@ -334,7 +337,7 @@ class FolderAnalyzer:
         """
         with set_log_level(self.logger, log_level):
             if not replacements:
-                LOGGER.debug(f"{step_name}No replacements to apply.")
+                self.logger.debug(f"{step_name}No replacements to apply.")
                 return 0
 
             updated_count = 0
@@ -352,17 +355,17 @@ class FolderAnalyzer:
                     item["TargetFile"] = new_resolved
                     new_extracted_dates[new_resolved] = item
                     updated_count += 1
-                    LOGGER.debug(f"{step_name}✔️ Replaced: {old_resolved} → {new_resolved}")
+                    self.logger.debug(f"{step_name}✔️ Replaced: {old_resolved} → {new_resolved}")
                 else:
-                    LOGGER.debug(f"{step_name}⚠️ Not found for replacement: {old_resolved}")
+                    self.logger.debug(f"{step_name}⚠️ Not found for replacement: {old_resolved}")
 
             # agrega de nuevo las entradas renombradas
             self.extracted_dates.update(new_extracted_dates)
-            LOGGER.debug(f"{step_name}✅ {updated_count} replacements applied to extracted_dates.")
+            self.logger.debug(f"{step_name}✅ {updated_count} replacements applied to extracted_dates.")
 
             # reconstruye file_list basándote en las claves actuales
             self.file_list = list(self.extracted_dates.keys())
-            LOGGER.debug(f"{step_name}Rebuilt file_list: {len(self.file_list)} entries.")
+            self.logger.debug(f"{step_name}Rebuilt file_list: {len(self.file_list)} entries.")
 
             # reaplica filtros y recalcula tamaños
             self._apply_filters(step_name=step_name, log_level=log_level)
