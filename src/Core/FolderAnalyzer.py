@@ -495,41 +495,45 @@ class FolderAnalyzer:
             else:
                 self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
                 metadata_list = [{"SourceFile": f} for f in block_files]
-                    
+
+
+            # 0) Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
             # ──────────────────────────────────────────────────────────────────────
-            # Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
             block_datetimes = []
             for entry in metadata_list:
                 raw = entry.get("FileModifyDate")
                 if not isinstance(raw, str):
                     continue
                 raw_clean = raw.strip()
-                try:
-                    # si viene con zona horaria (+HH:MM)
-                    if raw_clean[:10].count(":") == 2 and "+" in raw_clean:
-                        dt = normalize_datetime_utc(
-                            datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z")
-                        )
-                    # sin zona horaria
-                    elif raw_clean[:10].count(":") == 2:
-                        dt = normalize_datetime_utc(
-                            datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S")
-                        )
-                    else:
-                        # formato inesperado: saltarlo
-                        continue
-                    block_datetimes.append(dt)
-                except Exception:
-                    continue
+                parts = raw_clean.split(" ", 1)
+                if len(parts) == 2 and parts[1].startswith("24:"):
+                    date_part, time_part = parts
+                    base_dt = datetime.strptime(date_part, "%Y:%m:%d")
+                    rolled = base_dt + timedelta(days=1)
+                    raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
+                if "+" in raw_clean:
+                    dt = normalize_datetime_utc(
+                        datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z")
+                    )
+                else:
+                    dt = normalize_datetime_utc(
+                        datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S")
+                    )
+                block_datetimes.append(dt)
+
+            one_year_ago = reference - timedelta(days=365)
+
             if block_datetimes:
-                # el datetime más frecuente (modo)
                 most_common_dt = Counter(block_datetimes).most_common(1)[0][0]
-                # si esa extracción es anterior al TIMESTAMP original, la usamos
-                effective_ref = most_common_dt if most_common_dt < reference else reference
+                # Solo actualizamos si la fecha está en el último año
+                if most_common_dt >= one_year_ago:
+                    effective_ref = most_common_dt
+                else:
+                    effective_ref = reference
             else:
                 effective_ref = reference
-                
-            # Log the effective_ref of this block
+
+            # Log del effective_ref de este bloque
             self.logger.debug(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
             # ──────────────────────────────────────────────────────────────────────
             
