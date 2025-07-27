@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import json
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from subprocess import run
 import logging
 import platform
@@ -560,16 +560,23 @@ class FolderAnalyzer:
                         continue
                     try:
                         raw_clean = value.strip()
-                        if raw_clean[:10].count(":") == 2 and "+" in raw_clean:
+                        # detect hour "24" and roll over to next day at 00
+                        parts = raw_clean.split(" ", 1)
+                        if len(parts) == 2:
+                            date_part, time_part = parts
+                            if time_part.startswith("24:"):
+                                base_dt = datetime.strptime(date_part, "%Y:%m:%d")
+                                rolled = base_dt + timedelta(days=1)
+                                raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
+                        # parseamos con o sin zona
+                        if "+" in raw_clean:
                             dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
-                        elif raw_clean[:10].count(":") == 2:
-                            dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
                         else:
-                            dt = normalize_datetime_utc(parser.parse(raw_clean))
+                            dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
                         candidates.append((dt, tag))
                     except:
                         continue
-        
+
                 if candidates:
                     dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
                     if is_date_valid(dt_oldest, effective_ref, min_days=0):
