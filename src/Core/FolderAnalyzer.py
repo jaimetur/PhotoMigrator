@@ -60,26 +60,32 @@ class FolderAnalyzer:
             self.logger = logger
         else:
             self.logger = set_LOGGER()
+            
+        self._initialized_with_valid_input = False
 
         # 3 different ways to build initialize the Constructor:
         # 1) if extracted_dates dictionary is given
         if self.extracted_dates and isinstance(self.extracted_dates, dict):
             self._build_file_list_from_extracted_dates(step_name=step_name)
             self._apply_filters(step_name=step_name, log_level=log_level)
+            self._initialized_with_valid_input = True
         # 2) if metadata_json_file is given
         elif self.metadata_json_file:
             self.load_from_json(input_file=self.metadata_json_file, step_name=step_name)
             self._build_file_list_from_extracted_dates(step_name=step_name)
             self._apply_filters(step_name=step_name, log_level=log_level)
+            self._initialized_with_valid_input = True
         # 3) if folder_path is given
         elif self.folder_path:
             self._build_file_list_from_disk(step_name=step_name)
             if not self.extracted_dates and force_date_extraction:
                 self.extract_dates(step_name=step_name)
             self._apply_filters(step_name=step_name, log_level=log_level)
+            self._initialized_with_valid_input = True
 
         # finally compute folder sizes based on filtered_file_list (if any) or full file_list
-        self._compute_folder_sizes(step_name)
+        if self._initialized_with_valid_input:
+            self._compute_folder_sizes(step_name)
 
     def _build_file_list_from_disk(self, step_name='', log_level=None):
         with set_log_level(self.logger, log_level):
