@@ -503,23 +503,18 @@ class FolderAnalyzer:
                 raw = entry.get("FileModifyDate")
                 if raw is None:
                     continue
-                # si viene como número (epoch) conviértelo a datetime UTC
-                if isinstance(raw, (int, float)):
-                    dt = datetime.fromtimestamp(raw, timezone.utc)
-                else:
-                    # si viene como cadena ISO parseamos
-                    try:
-                        dt = normalize_datetime_utc(parser.isoparse(raw))
-                    except:
-                        continue
+                try:
+                    dt = normalize_datetime_utc(parser.parse(raw))
+                except:
+                    continue
                 block_datetimes.append(dt)
+            
             if block_datetimes:
-                # el datetime más frecuente
-                most_common_dt, _ = Counter(block_datetimes).most_common(1)[0]
-                # tomamos el menor entre esa extracción y el reference original
+                most_common_dt = Counter(block_datetimes).most_common(1)[0][0]
                 effective_ref = most_common_dt if most_common_dt < reference else reference
             else:
                 effective_ref = reference
+                
             # Log the effective_ref of this block
             self.logger.info(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
             # ──────────────────────────────────────────────────────────────────────
