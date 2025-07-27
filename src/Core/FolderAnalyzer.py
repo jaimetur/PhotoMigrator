@@ -530,7 +530,7 @@ class FolderAnalyzer:
                 effective_ref = reference
                 
             # Log the effective_ref of this block
-            self.logger.info(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
+            self.logger.debug(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
             # ──────────────────────────────────────────────────────────────────────
             
             for entry in metadata_list:
