@@ -498,27 +498,30 @@ class FolderAnalyzer:
                     
             # ──────────────────────────────────────────────────────────────────────
             # Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
-            block_dates = [
-                entry.get("FileModifyDate")
-                for entry in metadata_list
-                if entry.get("FileModifyDate")
-            ]
-            if block_dates:
-                most_common_str, _ = Counter(block_dates).most_common(1)[0]
-                try:
-                    dt_block_ref = normalize_datetime_utc(parser.isoparse(most_common_str))
-                    # si es anterior al reference global, lo usamos como referencia local
-                    local_reference = dt_block_ref if dt_block_ref < reference else reference
-                except:
-                    local_reference = reference
+            block_datetimes = []
+            for entry in metadata_list:
+                raw = entry.get("FileModifyDate")
+                if raw is None:
+                    continue
+                # si viene como número (epoch) conviértelo a datetime UTC
+                if isinstance(raw, (int, float)):
+                    dt = datetime.fromtimestamp(raw, timezone.utc)
+                else:
+                    # si viene como cadena ISO parseamos
+                    try:
+                        dt = normalize_datetime_utc(parser.isoparse(raw))
+                    except:
+                        continue
+                block_datetimes.append(dt)
+            if block_datetimes:
+                # el datetime más frecuente
+                most_common_dt, _ = Counter(block_datetimes).most_common(1)[0]
+                # tomamos el menor entre esa extracción y el reference original
+                effective_ref = most_common_dt if most_common_dt < reference else reference
             else:
-                local_reference = reference
-                
-            # renómbralo a `effective_ref` y úsalo explícitamente
-            effective_ref = local_reference
-            
+                effective_ref = reference
             # Log the effective_ref of this block
-            LOGGER.info(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
+            self.logger.info(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
             # ──────────────────────────────────────────────────────────────────────
             
             for entry in metadata_list:
