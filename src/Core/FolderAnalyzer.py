@@ -501,16 +501,30 @@ class FolderAnalyzer:
             block_datetimes = []
             for entry in metadata_list:
                 raw = entry.get("FileModifyDate")
-                if raw is None:
+                if not isinstance(raw, str):
                     continue
+                raw_clean = raw.strip()
                 try:
-                    dt = normalize_datetime_utc(parser.parse(raw))
-                except:
+                    # si viene con zona horaria (+HH:MM)
+                    if raw_clean[:10].count(":") == 2 and "+" in raw_clean:
+                        dt = normalize_datetime_utc(
+                            datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z")
+                        )
+                    # sin zona horaria
+                    elif raw_clean[:10].count(":") == 2:
+                        dt = normalize_datetime_utc(
+                            datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S")
+                        )
+                    else:
+                        # formato inesperado: saltarlo
+                        continue
+                    block_datetimes.append(dt)
+                except Exception:
                     continue
-                block_datetimes.append(dt)
-            
             if block_datetimes:
+                # el datetime más frecuente (modo)
                 most_common_dt = Counter(block_datetimes).most_common(1)[0][0]
+                # si esa extracción es anterior al TIMESTAMP original, la usamos
                 effective_ref = most_common_dt if most_common_dt < reference else reference
             else:
                 effective_ref = reference
