@@ -432,7 +432,7 @@ class FolderAnalyzer:
             for rel_path in files_with_missing_dates:
                 self.logger.info(f"{step_name}📋 File Without Date: {rel_path}")
 
-    def extract_dates(self, step_name='', block_size=1_000, use_fallback_to_filename=True, log_level=None, max_workers=None):
+    def extract_dates(self, step_name='', block_size=1_000, use_fallback_to_filename=True, use_fallback_to_filesystem_date=True, log_level=None, max_workers=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
@@ -507,7 +507,7 @@ class FolderAnalyzer:
 
 
             # 0) Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
-            # ──────────────────────────────────────────────────────────────────────
+            # -----------------------------------------------------------------------------------------------------
             block_datetimes = []
             for entry in metadata_list:
                 raw = entry.get("FileModifyDate")
@@ -544,7 +544,7 @@ class FolderAnalyzer:
 
             # Log del effective_ref de este bloque
             self.logger.debug(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
-            # ──────────────────────────────────────────────────────────────────────
+            # -----------------------------------------------------------------------------------------------------
             
             for entry in metadata_list:
                 src = entry.get("SourceFile")
@@ -636,7 +636,7 @@ class FolderAnalyzer:
                         pass
         
                 # 4) fallback to filesystem timestamps if no EXIF/PIL/filename date found
-                if not dt_final:
+                if not dt_final and use_fallback_to_filesystem_date:
                     try:
                         fs_mtime = datetime.fromtimestamp(os.path.getmtime(file_path)).replace(tzinfo=timezone.utc)
                         fs_ctime = datetime.fromtimestamp(os.path.getctime(file_path)).replace(tzinfo=timezone.utc)
