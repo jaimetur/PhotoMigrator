@@ -545,7 +545,8 @@ class FolderAnalyzer:
             # Log del effective_ref de este bloque
             self.logger.debug(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
             # -----------------------------------------------------------------------------------------------------
-            
+
+            # Now iterate for all entries in metadata_list
             for entry in metadata_list:
                 src = entry.get("SourceFile")
                 if not src:
@@ -562,6 +563,7 @@ class FolderAnalyzer:
                 full_info.update(entry)
         
                 dt_final = None
+                is_valid = False
                 source = ""
         
                 # 1) EXIFTOOL
@@ -595,9 +597,10 @@ class FolderAnalyzer:
                     if is_date_valid(dt_oldest, effective_ref, min_days=0):
                         dt_final = dt_oldest
                         source = f"EXIF:{tag_oldest}"
-        
+                        is_valid = True
+
                 # 2) Fallback a PIL solo si aún no se tiene una fecha válida
-                if not dt_final:
+                if not is_valid:
                     try:
                         img = Image.open(file_path)
                         exif_data = img._getexif() or {}
@@ -613,12 +616,13 @@ class FolderAnalyzer:
                                     full_info[f"PIL:{tag_name}"] = dt.isoformat()
                                     dt_final = dt
                                     source = f"PIL:{tag_name}"
+                                    is_valid = True
                                 break
                     except:
                         pass
         
                 # 3) Fallback al nombre del fichero o path si aún no hay ninguna
-                if not dt_final and use_fallback_to_filename:
+                if not is_valid and use_fallback_to_filename:
                     try:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
@@ -632,24 +636,20 @@ class FolderAnalyzer:
                                     full_info["FilePathDate"] = dt.isoformat()
                                     source = f"FILEPATH:{file_path_obj.parent}"
                                 dt_final = dt
+                                is_valid = True
                     except:
                         pass
         
                 # 4) fallback to filesystem timestamps if no EXIF/PIL/filename date found
-                if not dt_final and use_fallback_to_filesystem_date:
+                if not is_valid and use_fallback_to_filesystem_date:
                     try:
                         fs_mtime = datetime.fromtimestamp(os.path.getmtime(file_path)).replace(tzinfo=timezone.utc)
                         fs_ctime = datetime.fromtimestamp(os.path.getctime(file_path)).replace(tzinfo=timezone.utc)
                 
                         # check either timestamp is valid
-                        if (
-                            is_date_valid(fs_mtime, effective_ref, min_days=0)
-                            or is_date_valid(fs_ctime, effective_ref, min_days=0)
-                        ):
+                        if (is_date_valid(fs_mtime, effective_ref, min_days=0) or is_date_valid(fs_ctime, effective_ref, min_days=0)):
                             # pick the earliest valid timestamp
-                            valid_ts = [
-                                t for t in (fs_ctime, fs_mtime) if t < effective_ref
-                            ]
+                            valid_ts = [t for t in (fs_ctime, fs_mtime) if t < effective_ref]
                             chosen = min(valid_ts)
                             if chosen is fs_ctime:
                                 full_info["FileSystem:CTime"] = chosen.isoformat()
@@ -658,14 +658,15 @@ class FolderAnalyzer:
                                 full_info["FileSystem:ModifyDate"] = chosen.isoformat()
                                 source = "FileSystem:ModifyDate"
                             dt_final = chosen
+                            is_valid = True
                     except:
                         pass
         
                 # 5) Añadir OldestDate, Source, ReferenceDate e isValid al diccionario
-                full_info["OldestDate"]      = dt_final.isoformat() if dt_final else None
+                full_info["OldestDate"]      = dt_final.isoformat() if is_valid else None
                 full_info["Source"]          = source or "None"
                 full_info["ReferenceDate"]   = effective_ref.isoformat()
-                full_info["isValid"]         = True if dt_final else False
+                full_info["isValid"]         = is_valid
                 local_metadata[file_path] = full_info            
             return local_metadata
 
