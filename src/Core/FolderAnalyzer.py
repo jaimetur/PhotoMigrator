@@ -684,10 +684,10 @@ class FolderAnalyzer:
                         pass
         
                 # 6) Añadir OldestDate, Source, ReferenceDateForValidation e isValid al diccionario
-                full_info["OldestDate"]                     = dt_final.isoformat() if is_valid else None
-                full_info["Source"]                         = source or "None"
                 full_info["ReferenceDateForValidation"]     = effective_ref.isoformat()
                 full_info["isValid"]                        = is_valid
+                full_info["OldestDate"]                     = dt_final.isoformat() if is_valid else None
+                full_info["Source"]                         = source or "None"
                 local_metadata[file_path]                   = full_info
             return local_metadata
 
