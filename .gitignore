@@ -4,6 +4,10 @@
 # Pycharm Folder
 /.idea/
 
+#Synchredible files
+sync.ffs_db
+/sync.ffs_lock
+
 # Auxiliary Scripts
 copy-src-to-nas*.*
 
