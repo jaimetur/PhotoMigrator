@@ -8,11 +8,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import json
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from subprocess import run
 import logging
 import platform
 
+from collections import Counter
 from PIL import Image, ExifTags
 from dateutil import parser
 import time
@@ -58,33 +59,42 @@ class FolderAnalyzer:
         if logger:
             self.logger = logger
         else:
-            self.logger = set_LOGGER()
+            if LOGGER:
+                self.logger = LOGGER
+            else:
+                self.logger = set_LOGGER()
+            
+        self._initialized_with_valid_input = False
 
         # 3 different ways to build initialize the Constructor:
         # 1) if extracted_dates dictionary is given
         if self.extracted_dates and isinstance(self.extracted_dates, dict):
             self._build_file_list_from_extracted_dates(step_name=step_name)
             self._apply_filters(step_name=step_name, log_level=log_level)
+            self._initialized_with_valid_input = True
         # 2) if metadata_json_file is given
         elif self.metadata_json_file:
             self.load_from_json(input_file=self.metadata_json_file, step_name=step_name)
             self._build_file_list_from_extracted_dates(step_name=step_name)
             self._apply_filters(step_name=step_name, log_level=log_level)
+            self._initialized_with_valid_input = True
         # 3) if folder_path is given
         elif self.folder_path:
             self._build_file_list_from_disk(step_name=step_name)
             if not self.extracted_dates and force_date_extraction:
                 self.extract_dates(step_name=step_name)
             self._apply_filters(step_name=step_name, log_level=log_level)
+            self._initialized_with_valid_input = True
 
         # finally compute folder sizes based on filtered_file_list (if any) or full file_list
-        self._compute_folder_sizes(step_name)
+        if self._initialized_with_valid_input:
+            self._compute_folder_sizes(step_name)
 
     def _build_file_list_from_disk(self, step_name='', log_level=None):
         with set_log_level(self.logger, log_level):
             # Gather all file paths under folder_path
             if not os.path.isdir(self.folder_path):
-                LOGGER.warning(f"{step_name}❌ Folder does not exist: {self.folder_path}")
+                self.logger.warning(f"{step_name}❌ Folder does not exist: {self.folder_path}")
                 return
             # Build raw list of files (no filtering)
             self.file_list = [
@@ -92,13 +102,13 @@ class FolderAnalyzer:
                 for root, _, files in os.walk(self.folder_path, followlinks=True)
                 for name in files
             ]
-            LOGGER.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
+            self.logger.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
 
     def _build_file_list_from_extracted_dates(self, step_name='', log_level=None):
         with set_log_level(self.logger, log_level):
             # English: rebuild file_list from existing extracted_dates keys
             self.file_list = list(self.extracted_dates.keys())
-            LOGGER.debug(f"{step_name}Built file_list from extracted_dates: {len(self.file_list)} entries.")
+            self.logger.debug(f"{step_name}Built file_list from extracted_dates: {len(self.file_list)} entries.")
 
     def _apply_filters(self, step_name='', log_level=None):
         """
@@ -172,13 +182,13 @@ class FolderAnalyzer:
 
                 # skip files that no longer exist
                 if not file.exists():
-                    LOGGER.debug(f"{step_name}Skipping missing file: {file_path}")
+                    self.logger.debug(f"{step_name}Skipping missing file: {file_path}")
                     continue
 
                 try:
                     size = file.stat().st_size
                 except Exception as e:
-                    LOGGER.warning(f"{step_name}Could not get size for {file_path}: {e}")
+                    self.logger.warning(f"{step_name}Could not get size for {file_path}: {e}")
                     continue
 
                 # store individual file size
@@ -188,7 +198,7 @@ class FolderAnalyzer:
                 parent = file.parent.resolve().as_posix()
                 self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
 
-            LOGGER.info(f"{step_name}🧮 Computed sizes for {len(self.file_sizes)} files and {len(self.folder_sizes)} folders.")
+            self.logger.info(f"{step_name}🧮 Computed sizes for {len(self.file_sizes)} files and {len(self.folder_sizes)} folders.")
 
     def get_extracted_dates(self):
         """
@@ -289,7 +299,7 @@ class FolderAnalyzer:
 
             # replace the extracted_dates mapping
             self.extracted_dates = new_extracted
-            LOGGER.debug(f"{step_name}Updated {updated_count} paths within folder: {old_prefix} → {new_prefix}")
+            self.logger.debug(f"{step_name}Updated {updated_count} paths within folder: {old_prefix} → {new_prefix}")
 
             # rebuild file_list and all dependent attributes
             self.file_list = list(self.extracted_dates.keys())
@@ -310,13 +320,13 @@ class FolderAnalyzer:
             total_updated_folders = 0
             for old_folder, new_folder in replacements:
                 updated = self.update_folder(old_folder, new_folder, apply_filters=False, compute_folder_size=False, step_name=step_name, log_level=log_level)
-                LOGGER.debug(f"{step_name}Folder update: {old_folder} → {new_folder}, files updated: {updated}")
+                self.logger.debug(f"{step_name}Folder update: {old_folder} → {new_folder}, files updated: {updated}")
                 total_updated += updated
                 total_updated_folders += 1
             # Now Apply filters and compute folder sizes
             self._apply_filters(step_name=step_name, log_level=log_level)
             self._compute_folder_sizes(step_name=step_name, log_level=log_level)
-            LOGGER.info(f"{step_name}Total files updated: {total_updated}. Total folders updated: {total_updated_folders}.")
+            self.logger.info(f"{step_name}Total files updated: {total_updated}. Total folders updated: {total_updated_folders}.")
             return total_updated
 
     def apply_replacements(self, replacements=None, step_name="", log_level=None):
@@ -327,7 +337,7 @@ class FolderAnalyzer:
         """
         with set_log_level(self.logger, log_level):
             if not replacements:
-                LOGGER.debug(f"{step_name}No replacements to apply.")
+                self.logger.debug(f"{step_name}No replacements to apply.")
                 return 0
 
             updated_count = 0
@@ -345,17 +355,17 @@ class FolderAnalyzer:
                     item["TargetFile"] = new_resolved
                     new_extracted_dates[new_resolved] = item
                     updated_count += 1
-                    LOGGER.debug(f"{step_name}✔️ Replaced: {old_resolved} → {new_resolved}")
+                    self.logger.debug(f"{step_name}✔️ Replaced: {old_resolved} → {new_resolved}")
                 else:
-                    LOGGER.debug(f"{step_name}⚠️ Not found for replacement: {old_resolved}")
+                    self.logger.debug(f"{step_name}⚠️ Not found for replacement: {old_resolved}")
 
             # agrega de nuevo las entradas renombradas
             self.extracted_dates.update(new_extracted_dates)
-            LOGGER.debug(f"{step_name}✅ {updated_count} replacements applied to extracted_dates.")
+            self.logger.debug(f"{step_name}✅ {updated_count} replacements applied to extracted_dates.")
 
             # reconstruye file_list basándote en las claves actuales
             self.file_list = list(self.extracted_dates.keys())
-            LOGGER.debug(f"{step_name}Rebuilt file_list: {len(self.file_list)} entries.")
+            self.logger.debug(f"{step_name}Rebuilt file_list: {len(self.file_list)} entries.")
 
             # reaplica filtros y recalcula tamaños
             self._apply_filters(step_name=step_name, log_level=log_level)
@@ -422,34 +432,34 @@ class FolderAnalyzer:
             for rel_path in files_with_missing_dates:
                 self.logger.info(f"{step_name}📋 File Without Date: {rel_path}")
 
-    def extract_dates(self, step_name='', block_size=1_000, use_fallback_to_filename=True, log_level=None, max_workers=None):
+    def extract_dates(self, step_name='', block_size=1_000, use_fallback_to_filename=True, use_fallback_to_filesystem_date=True, log_level=None, max_workers=None):
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
-
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.extracted_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate', 'FileNameDate', 'FilePathDate']
+        candidate_tags = ['DateTimeOriginal', 'DateTime', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
         # --- Internal function to process a single block
         def _process_block(block_index, block_files):
             local_metadata = {}
-
+        
             # --- Try ExifTool
             if Path(exif_tool_path).exists():
                 if platform.system() == 'Windows':
                     filename_charset = 'cp1252'
                 else:
                     filename_charset = 'utf8'
-
+        
                 command = [
                     exif_tool_path,
-                    '-charset', f'filename={filename_charset}',  # leer nombres en CP1252 en Win, UTF-8 en Linux/macOS
-                    '-charset', 'exif=utf8',  # emitir todos los campos EXIF en UTF-8
-                    '-j', '-n', '-time:all', '-fast', '-fast2', '-s',
+                    '-charset', f'filename={filename_charset}',
+                    '-charset', 'exif=utf8',
+                    '-j', '-n', '-s', '-time:all', '-fast',
+                    # '-j', '-n', '-s', '-time:all', '-fast', '-fast2',     # -fast2 is very agresive and can skip some useful tags.
                     *block_files
                 ]
                 try:
@@ -459,8 +469,15 @@ class FolderAnalyzer:
                         files_preview = ' '.join(block_files[:10]) + ' ...'
                     base_cmd = ' '.join(command[:7])
                     self.logger.debug(f"{step_name}⏳ Running: {base_cmd} {files_preview}")
-                    result = run(command, capture_output=True, text=True, encoding='utf-8', errors='replace', check=False)
-
+                    result = run(
+                        command,
+                        capture_output=True,
+                        text=True,
+                        encoding='utf-8',
+                        errors='replace',
+                        check=False
+                    )
+        
                     if result.stdout.strip():
                         try:
                             raw_metadata_list = json.loads(result.stdout)
@@ -484,20 +501,63 @@ class FolderAnalyzer:
                 except Exception as e:
                     self.logger.exception(f"{step_name}❌ Error running Exiftool: {e}")
                     metadata_list = []
-
-            # If Exiftool is not found, show a warning
+        
             else:
                 self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
                 metadata_list = [{"SourceFile": f} for f in block_files]
 
+
+            # Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
+            # -----------------------------------------------------------------------------------------------------
+            one_year_ago = reference - timedelta(days=365)
+            block_datetimes = []
+            for entry in metadata_list:
+                raw = entry.get("FileModifyDate")
+                if not isinstance(raw, str):
+                    continue
+                raw_clean = raw.strip()
+                parts = raw_clean.split(" ", 1)
+                if len(parts) == 2 and parts[1].startswith("24:"):
+                    date_part, time_part = parts
+                    base_dt = datetime.strptime(date_part, "%Y:%m:%d")
+                    rolled = base_dt + timedelta(days=1)
+                    raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
+                try:
+                    if "+" in raw_clean:
+                        dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
+                    else:
+                        dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
+                    block_datetimes.append(dt)
+                except ValueError:
+                    continue
+
+            if block_datetimes:
+                # 1) Calculamos la moda
+                mode_dt = Counter(block_datetimes).most_common(1)[0][0]
+                # 2) Definimos ventana de tolerancia ±12h alrededor de la moda
+                window_start = mode_dt - timedelta(hours=12)
+                window_end = mode_dt + timedelta(hours=12)
+                window = [dt for dt in block_datetimes if window_start <= dt <= window_end]
+                # 3) Tomamos el más antiguo dentro de la ventana (o la propia moda si no hay en ventana)
+                candidate = min(window) if window else mode_dt
+                # 4) Clampeamos a [one_year_ago, reference]
+                effective_ref = max(candidate, one_year_ago)
+                effective_ref = min(effective_ref, reference)
+            else:
+                effective_ref = reference
+
+            # Log del effective_ref de este bloque
+            self.logger.debug(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
+            # -----------------------------------------------------------------------------------------------------
+
+            # Now iterate for all entries in metadata_list
             for entry in metadata_list:
                 src = entry.get("SourceFile")
                 if not src:
                     continue
-
-                # file_path = Path(src).resolve().as_posix()                 # resolve symlinks to target file
-                file_path = Path(src).as_posix()                             # don't resolve symlinks to target file
-
+                
+                file_path = Path(src).as_posix()
+                              
                 # Creamos full_info con SourceFile y TargetFile al principio
                 full_info = {
                     "SourceFile": file_path,
@@ -505,54 +565,83 @@ class FolderAnalyzer:
                 }
                 # Ahora añadimos el resto de claves originales que estén en candidate_tags
                 full_info.update(entry)
-
+        
                 dt_final = None
+                is_valid = False
                 source = ""
+        
+                # 1) EXIFTOOL
+                # Buscar la fecha más antigua entre los tags EXIF en orden de prioridad
+                candidates = []
+                for tag in candidate_tags:
+                    if tag == "FileModifyDate":
+                        continue
+                    value = entry.get(tag)
+                    if not isinstance(value, str):
+                        continue
+                    try:
+                        raw_clean = value.strip()
+                        # detect hour "24" and roll over to next day at 00
+                        parts = raw_clean.split(" ", 1)
+                        if len(parts) == 2 and parts[1].startswith("24:"):
+                            date_part, time_part = parts
+                            base_dt = datetime.strptime(date_part, "%Y:%m:%d")
+                            rolled = base_dt + timedelta(days=1)
+                            raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
+                        # parseamos con o sin zona
+                        if "+" in raw_clean:
+                            dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
+                        else:
+                            dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
+                        candidates.append((dt, tag))
+                    except:
+                        continue
 
-                # Buscar la fecha más antigua entre las claves del EXIF
-                for tag, value in entry.items():
-                    if isinstance(value, str):
-                        try:
-                            raw_clean = value.strip()
-                            if raw_clean[:10].count(":") == 2 and "+" in raw_clean:
-                                dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
-                            elif raw_clean[:10].count(":") == 2:
-                                dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
-                            else:
-                                dt = normalize_datetime_utc(parser.parse(raw_clean))
-                            if is_date_valid(dt, reference):
-                                if not dt_final or dt < dt_final:
-                                    dt_final = dt
-                                    source = f"EXIF:{tag}"
-                        except:
-                            continue
+                if candidates:
+                    dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
+                    # si es FileModifyDate o ModifyDate, validamos frente a effective_ref
+                    if tag_oldest == "ModifyDate":
+                        if is_date_valid(dt_oldest, effective_ref, min_days=0):
+                            dt_final = dt_oldest
+                            source = f"EXIF:{tag_oldest}"
+                            is_valid = True
+                    else:
+                        # el resto de tags EXIF los aceptamos siempre
+                        dt_final = dt_oldest
+                        source = f"EXIF:{tag_oldest}"
+                        is_valid = True
 
-                # Fallback a PIL solo si aún no se tiene una fecha válida
-                if not dt_final:
+                # 2) Fallback a PIL solo si aún no se tiene una fecha válida
+                if not is_valid:
                     try:
                         img = Image.open(file_path)
                         exif_data = img._getexif() or {}
                         for tag_name in ("DateTimeOriginal", "DateTime"):
-                            tag_id = next((tid for tid, name in ExifTags.TAGS.items() if name == tag_name), None)
+                            tag_id = next(
+                                (tid for tid, name in ExifTags.TAGS.items() if name == tag_name),
+                                None
+                            )
                             raw = exif_data.get(tag_id)
                             if isinstance(raw, str):
                                 dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=timezone.utc)
-                                if is_date_valid(dt, reference):
+                                # if is_date_valid(dt, effective_ref, min_days=0):
+                                if True:  # Skip validation for PIL dates
                                     full_info[f"PIL:{tag_name}"] = dt.isoformat()
-                                    if not dt_final or dt < dt_final:
-                                        dt_final = dt
-                                        source = f"PIL:{tag_name}"
-                                    break
+                                    dt_final = dt
+                                    source = f"PIL:{tag_name}"
+                                    is_valid = True
+                                break
                     except:
                         pass
-
-                # Fallback al nombre del fichero o path si aún no hay ninguna
-                if not dt_final and use_fallback_to_filename:
+        
+                # 3) Fallback al nombre del fichero o path si aún no hay ninguna
+                if not is_valid and use_fallback_to_filename:
                     try:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
                             dt = parser.isoparse(guessed_date)
-                            if is_date_valid(dt, reference):
+                            if is_date_valid(dt, effective_ref, min_days=0):
+                            # if True:    # Skip validation for guessed_dates
                                 file_path_obj = Path(file_path)
                                 if guessed_source == "filename":
                                     full_info["FileNameDate"] = dt.isoformat()
@@ -561,26 +650,57 @@ class FolderAnalyzer:
                                     full_info["FilePathDate"] = dt.isoformat()
                                     source = f"FILEPATH:{file_path_obj.parent}"
                                 dt_final = dt
+                                is_valid = True
                     except:
                         pass
 
-                # Fallback a fecha del sistema si aún no hay ninguna
-                if not dt_final:
+                # 4) Fallback al tag FileModifyDate de ExifTool
+                if not is_valid and use_fallback_to_filesystem_date:
+                    raw = entry.get("FileModifyDate")
+                    if isinstance(raw, str):
+                        try:
+                            rc = raw.strip()
+                            # parche “24:” si hiciera falta…
+                            if "+" in rc:
+                                dt = normalize_datetime_utc(datetime.strptime(rc, "%Y:%m:%d %H:%M:%S%z"))
+                            else:
+                                dt = normalize_datetime_utc(datetime.strptime(rc, "%Y:%m:%d %H:%M:%S"))
+                            if is_date_valid(dt, effective_ref, min_days=0):
+                                # full_info["EXIF:FileModifyDate"] = dt.isoformat()
+                                dt_final = dt
+                                source = "EXIF:FileModifyDate"
+                                is_valid = True
+                        except:
+                            pass
+
+                # 5) fallback to filesystem timestamps if no EXIF/PIL/filename date found
+                if not is_valid and use_fallback_to_filesystem_date:
                     try:
+                        fs_mtime = datetime.fromtimestamp(os.path.getmtime(file_path)).replace(tzinfo=timezone.utc)
                         fs_ctime = datetime.fromtimestamp(os.path.getctime(file_path)).replace(tzinfo=timezone.utc)
-                        if is_date_valid(fs_ctime, reference):
-                            full_info["FileSystem:CTime"] = fs_ctime.isoformat()
-                            dt_final = fs_ctime
-                            source = "FileSystem:CTime"
+                
+                        # check either timestamp is valid
+                        if (is_date_valid(fs_mtime, effective_ref, min_days=0) or is_date_valid(fs_ctime, effective_ref, min_days=0)):
+                            # pick the earliest valid timestamp
+                            valid_ts = [t for t in (fs_ctime, fs_mtime) if t < effective_ref]
+                            chosen = min(valid_ts)
+                            if chosen is fs_ctime:
+                                full_info["FileSystem:CreateDate:CTime"] = chosen.isoformat()
+                                source = "FileSystem:CreateDate:CTime"
+                            else:
+                                full_info["FileSystem:ModifyDate:MTime"] = chosen.isoformat()
+                                source = "FileSystem:ModifyDate:MTime"
+                            dt_final = chosen
+                            is_valid = True
                     except:
                         pass
-
-                # Añadir OldestDate y Source al diccionario
-                full_info["OldestDate"] = dt_final.isoformat() if dt_final else None
-                full_info["Source"] = source or "None"
-
-                local_metadata[file_path] = full_info
-
+        
+                # 6) Añadir OldestDate, Source, ReferenceForModifyDate e isValid al diccionario
+                full_info["ReferenceForModifyDate"]     = effective_ref.isoformat()
+                full_info["isValid"]                    = is_valid
+                full_info["OldestDate"]                 = dt_final.isoformat() if is_valid else None
+                full_info["Source"]                     = source or "None"
+                local_metadata[file_path]               = full_info
             return local_metadata
 
         # --- Main execution
