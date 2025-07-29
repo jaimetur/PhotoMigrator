@@ -508,6 +508,7 @@ class FolderAnalyzer:
 
             # 0) Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
             # -----------------------------------------------------------------------------------------------------
+            one_year_ago = reference - timedelta(days=365)
             block_datetimes = []
             for entry in metadata_list:
                 raw = entry.get("FileModifyDate")
@@ -520,17 +521,16 @@ class FolderAnalyzer:
                     base_dt = datetime.strptime(date_part, "%Y:%m:%d")
                     rolled = base_dt + timedelta(days=1)
                     raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
-                if "+" in raw_clean:
-                    dt = normalize_datetime_utc(
-                        datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z")
-                    )
-                else:
-                    dt = normalize_datetime_utc(
-                        datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S")
-                    )
-                block_datetimes.append(dt)
-
-            one_year_ago = reference - timedelta(days=365)
+                # ahora intentamos parsear; si no encaja, lo descartamos
+                try:
+                    if "+" in raw_clean:
+                        dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
+                    else:
+                        dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
+                    block_datetimes.append(dt)
+                except ValueError:
+                    # no casó el formato, lo saltamos
+                    continue
 
             if block_datetimes:
                 most_common_dt = Counter(block_datetimes).most_common(1)[0][0]
