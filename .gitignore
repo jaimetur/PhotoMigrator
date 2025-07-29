@@ -4,7 +4,7 @@
 # Pycharm Folder
 /.idea/
 
-#Synchredible files
+# FreeFileSync files
 sync.ffs_db
 /sync.ffs_lock
 
