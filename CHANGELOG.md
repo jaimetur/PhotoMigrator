@@ -19,15 +19,22 @@
     - [x] Enhancement on `Automatic Migration Feature` when using Live Dashboard. Now it restore the cursor back if the process is interrupted.
     - [x] Enhancement on `FolderAnalyzer`. Now it can construct the object from 3 different ways (base_folder, extracted_dates dictionary or extracted_dates JSON file.
     - [x] Enhancement on `FolderAnalyzer`. Now it handles date and type filters to only process those assets matching the filter criteria.
-    - [x] Updated GPTH to version `4.1.0` (by @Xentraxx) which includes several improvements and bugs fixing extracting metadata info from Google Takeouts. 
-      - This release fix a bug unhandled exceptions finding Albums.
+    - [x] Enhancement on `FolderAnalyzer`. Now Exiftool command does not include `-fast2` argument to avoid skipp useful tags.
+    - [x] Enhancement on `FolderAnalyzer`. Now Exiftool block only process tag `FileModifyDate` as final fallback, in that way the logic is the following:
+      1. Extract following tags `['DateTimeOriginal', 'DateTime', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']` with EXIFTOOL (if detected) or tags `['DateTimeOriginal', 'DateTime']` with PIL if EXIFTOOL is not detected.
+      2. Process all of them except `FileModifyDate` to get the oldest date found.
+      3. Guess date from filename/pathname if none of above Tags contains a valid date.
+      4. Calculate `ReferenceForModifyDate` in a smart way based on the date of Takeout Unzip and the date of execution.
+      5. Get tag `FileModifyDate` if still there is not a valid date found even with guess date from file algorithm and check if it is valid (should not be older than `ReferenceForModifyDate` otherwise will not pass validation.
+      6. Finally, if `FileModifyDate` still not contains a valid date,  get Filesystem `CreationTime` (ctime) and FileSystem `ModifyTime` (mtime) and if any of them pass the validation (older than `ReferenceForModifyDate`) it will be taken as valid_date.
+      7. Of none of above methods detect a valid date, the file will be count as 'no valid date' file.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed bug [#865](https://github.com/jaimetur/PhotoMigrator/issues/865) to avoid Albums Duplication on 'Automatic Migration Feature' due to race conditions when more than 1 pusher_workers try to create the same Album in parallel. Now, to avoid this race conditions, only pusher_worker with id=1 is allowed to create new Albums. If the Album does not exists and the id>1 then the asset is returned back to pusher_queue.
     - [x] Fixed bug [#879](https://github.com/jaimetur/PhotoMigrator/issues/879) in `guess_date_from_filename` function when the filename contains a number starting with 19 or 20 followed by 2 or more digits without checking if the following digits matches with a real month or month+day.
     - [x] Fixed Bug [#884](https://github.com/jaimetur/PhotoMigrator/issues/884) in 'Google Takeout Processing' feature when flag `-gics, --google-ignore-check-structure` is detected causing that Output Folder is the same as Input Takeout Folder and deleting that at the end of the process.
     - [x] Fixed Bug in `mode_folders_rename_content_based` function. It was not updated to the new output dictionary.    
-    - [x] Fixed Bug in `FolderAnalyzer` when create the extracted_dates dictionary on windows system and you have any path with unicode characters accents or special chars.    
+    - [x] Fixed Bug in `FolderAnalyzer` when create the extracted_dates dictionary on Windows system, and you have any path with unicode characters accents or special chars.    
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.

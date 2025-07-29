@@ -439,7 +439,7 @@ class FolderAnalyzer:
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.extracted_dates = {}
-        candidate_tags = ['DateTimeOriginal', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate', 'FileNameDate', 'FilePathDate']
+        candidate_tags = ['DateTimeOriginal', 'DateTime', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         reference = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
 
@@ -458,7 +458,8 @@ class FolderAnalyzer:
                     exif_tool_path,
                     '-charset', f'filename={filename_charset}',
                     '-charset', 'exif=utf8',
-                    '-j', '-n', '-time:all', '-fast', '-fast2', '-s',
+                    '-j', '-n', '-s', '-time:all', '-fast',
+                    # '-j', '-n', '-s', '-time:all', '-fast', '-fast2',     # -fast2 is very agresive and can skip some useful tags.
                     *block_files
                 ]
                 try:
@@ -521,7 +522,6 @@ class FolderAnalyzer:
                     base_dt = datetime.strptime(date_part, "%Y:%m:%d")
                     rolled = base_dt + timedelta(days=1)
                     raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
-                # ahora intentamos parsear; si no encaja, lo descartamos
                 try:
                     if "+" in raw_clean:
                         dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
@@ -529,16 +529,20 @@ class FolderAnalyzer:
                         dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
                     block_datetimes.append(dt)
                 except ValueError:
-                    # no casó el formato, lo saltamos
                     continue
 
             if block_datetimes:
-                most_common_dt = Counter(block_datetimes).most_common(1)[0][0]
-                # Solo actualizamos si la fecha está en el último año
-                if most_common_dt >= one_year_ago:
-                    effective_ref = most_common_dt
-                else:
-                    effective_ref = reference
+                # 1) Calculamos la moda
+                mode_dt = Counter(block_datetimes).most_common(1)[0][0]
+                # 2) Definimos ventana de tolerancia ±12h alrededor de la moda
+                window_start = mode_dt - timedelta(hours=12)
+                window_end = mode_dt + timedelta(hours=12)
+                window = [dt for dt in block_datetimes if window_start <= dt <= window_end]
+                # 3) Tomamos el más antiguo dentro de la ventana (o la propia moda si no hay en ventana)
+                candidate = min(window) if window else mode_dt
+                # 4) Clampeamos a [one_year_ago, reference]
+                effective_ref = max(candidate, one_year_ago)
+                effective_ref = min(effective_ref, reference)
             else:
                 effective_ref = reference
 
@@ -579,12 +583,11 @@ class FolderAnalyzer:
                         raw_clean = value.strip()
                         # detect hour "24" and roll over to next day at 00
                         parts = raw_clean.split(" ", 1)
-                        if len(parts) == 2:
+                        if len(parts) == 2 and parts[1].startswith("24:"):
                             date_part, time_part = parts
-                            if time_part.startswith("24:"):
-                                base_dt = datetime.strptime(date_part, "%Y:%m:%d")
-                                rolled = base_dt + timedelta(days=1)
-                                raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
+                            base_dt = datetime.strptime(date_part, "%Y:%m:%d")
+                            rolled = base_dt + timedelta(days=1)
+                            raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
                         # parseamos con o sin zona
                         if "+" in raw_clean:
                             dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
@@ -596,7 +599,14 @@ class FolderAnalyzer:
 
                 if candidates:
                     dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
-                    if is_date_valid(dt_oldest, effective_ref, min_days=0):
+                    # si es FileModifyDate o ModifyDate, validamos frente a effective_ref
+                    if tag_oldest == "ModifyDate":
+                        if is_date_valid(dt_oldest, effective_ref, min_days=0):
+                            dt_final = dt_oldest
+                            source = f"EXIF:{tag_oldest}"
+                            is_valid = True
+                    else:
+                        # el resto de tags EXIF los aceptamos siempre
                         dt_final = dt_oldest
                         source = f"EXIF:{tag_oldest}"
                         is_valid = True
@@ -614,7 +624,8 @@ class FolderAnalyzer:
                             raw = exif_data.get(tag_id)
                             if isinstance(raw, str):
                                 dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=timezone.utc)
-                                if is_date_valid(dt, effective_ref, min_days=0):
+                                # if is_date_valid(dt, effective_ref, min_days=0):
+                                if True:  # Skip validation for PIL dates
                                     full_info[f"PIL:{tag_name}"] = dt.isoformat()
                                     dt_final = dt
                                     source = f"PIL:{tag_name}"
@@ -630,6 +641,7 @@ class FolderAnalyzer:
                         if guessed_date:
                             dt = parser.isoparse(guessed_date)
                             if is_date_valid(dt, effective_ref, min_days=0):
+                            # if True:    # Skip validation for guessed_dates
                                 file_path_obj = Path(file_path)
                                 if guessed_source == "filename":
                                     full_info["FileNameDate"] = dt.isoformat()
@@ -654,7 +666,7 @@ class FolderAnalyzer:
                             else:
                                 dt = normalize_datetime_utc(datetime.strptime(rc, "%Y:%m:%d %H:%M:%S"))
                             if is_date_valid(dt, effective_ref, min_days=0):
-                                full_info["EXIF:FileModifyDate"] = dt.isoformat()
+                                # full_info["EXIF:FileModifyDate"] = dt.isoformat()
                                 dt_final = dt
                                 source = "EXIF:FileModifyDate"
                                 is_valid = True
@@ -683,12 +695,12 @@ class FolderAnalyzer:
                     except:
                         pass
         
-                # 6) Añadir OldestDate, Source, ReferenceDateForValidation e isValid al diccionario
-                full_info["ReferenceDateForValidation"]     = effective_ref.isoformat()
-                full_info["isValid"]                        = is_valid
-                full_info["OldestDate"]                     = dt_final.isoformat() if is_valid else None
-                full_info["Source"]                         = source or "None"
-                local_metadata[file_path]                   = full_info
+                # 6) Añadir OldestDate, Source, ReferenceForModifyDate e isValid al diccionario
+                full_info["ReferenceForModifyDate"]     = effective_ref.isoformat()
+                full_info["isValid"]                    = is_valid
+                full_info["OldestDate"]                 = dt_final.isoformat() if is_valid else None
+                full_info["Source"]                     = source or "None"
+                local_metadata[file_path]               = full_info
             return local_metadata
 
         # --- Main execution
