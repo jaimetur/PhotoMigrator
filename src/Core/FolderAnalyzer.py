@@ -506,7 +506,7 @@ class FolderAnalyzer:
                 metadata_list = [{"SourceFile": f} for f in block_files]
 
 
-            # 0) Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
+            # Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
             # -----------------------------------------------------------------------------------------------------
             one_year_ago = reference - timedelta(days=365)
             block_datetimes = []
@@ -570,6 +570,8 @@ class FolderAnalyzer:
                 # Buscar la fecha más antigua entre los tags EXIF en orden de prioridad
                 candidates = []
                 for tag in candidate_tags:
+                    if tag == "FileModifyDate":
+                        continue
                     value = entry.get(tag)
                     if not isinstance(value, str):
                         continue
@@ -639,8 +641,27 @@ class FolderAnalyzer:
                                 is_valid = True
                     except:
                         pass
-        
-                # 4) fallback to filesystem timestamps if no EXIF/PIL/filename date found
+
+                # 4) Fallback al tag FileModifyDate de ExifTool
+                if not is_valid and use_fallback_to_filesystem_date:
+                    raw = entry.get("FileModifyDate")
+                    if isinstance(raw, str):
+                        try:
+                            rc = raw.strip()
+                            # parche “24:” si hiciera falta…
+                            if "+" in rc:
+                                dt = normalize_datetime_utc(datetime.strptime(rc, "%Y:%m:%d %H:%M:%S%z"))
+                            else:
+                                dt = normalize_datetime_utc(datetime.strptime(rc, "%Y:%m:%d %H:%M:%S"))
+                            if is_date_valid(dt, effective_ref, min_days=0):
+                                full_info["EXIF:FileModifyDate"] = dt.isoformat()
+                                dt_final = dt
+                                source = "EXIF:FileModifyDate"
+                                is_valid = True
+                        except:
+                            pass
+
+                # 5) fallback to filesystem timestamps if no EXIF/PIL/filename date found
                 if not is_valid and use_fallback_to_filesystem_date:
                     try:
                         fs_mtime = datetime.fromtimestamp(os.path.getmtime(file_path)).replace(tzinfo=timezone.utc)
@@ -652,20 +673,20 @@ class FolderAnalyzer:
                             valid_ts = [t for t in (fs_ctime, fs_mtime) if t < effective_ref]
                             chosen = min(valid_ts)
                             if chosen is fs_ctime:
-                                full_info["FileSystem:CTime"] = chosen.isoformat()
-                                source = "FileSystem:CTime"
+                                full_info["FileSystem:CreateDate:CTime"] = chosen.isoformat()
+                                source = "FileSystem:CreateDate:CTime"
                             else:
-                                full_info["FileSystem:ModifyDate"] = chosen.isoformat()
-                                source = "FileSystem:ModifyDate"
+                                full_info["FileSystem:ModifyDate:MTime"] = chosen.isoformat()
+                                source = "FileSystem:ModifyDate:MTime"
                             dt_final = chosen
                             is_valid = True
                     except:
                         pass
         
-                # 5) Añadir OldestDate, Source, ReferenceDate e isValid al diccionario
+                # 6) Añadir OldestDate, Source, ReferenceDateForValidation e isValid al diccionario
                 full_info["OldestDate"]      = dt_final.isoformat() if is_valid else None
                 full_info["Source"]          = source or "None"
-                full_info["ReferenceDate"]   = effective_ref.isoformat()
+                full_info["ReferenceDateForValidation"]   = effective_ref.isoformat()
                 full_info["isValid"]         = is_valid
                 local_metadata[file_path] = full_info            
             return local_metadata
