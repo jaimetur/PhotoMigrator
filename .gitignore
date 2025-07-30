@@ -7,6 +7,11 @@
 # Auxiliary Scripts
 copy-src-to-nas*.*
 
+# FreeFilesync files
+/sync.ffs_db
+/BatchRun_PhotoMigrator_GDrive_NAS.ffs_gui
+/BatchRun_PhotoMigrator_GDrive_NAS.ffs_batch
+
 # Compiled Code and others project files
 PhotoMigrator*.exe
 PhotoMigrator*.run
