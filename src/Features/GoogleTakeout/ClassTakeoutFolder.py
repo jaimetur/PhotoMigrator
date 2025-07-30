@@ -348,7 +348,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. FIX LIVE/MOTION PICTURES WITH ASSOCIATED MP$ FILES... ")
+            LOGGER.info(f"{self.step}.{self.substep}. FIX LIVE/MOTION PICTURES WITH ASSOCIATED MP4 FILES... ")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Looking for .MP4 files from live pictures and asociate date and time with live picture file...")

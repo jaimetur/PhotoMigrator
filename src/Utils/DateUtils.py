@@ -197,12 +197,15 @@ def normalize_datetime_utc(dt):
         return dt.astimezone(timezone.utc)      # aware → UTC
 
 
-def is_date_valid(file_date, reference_timestamp, min_days=1):
-    if file_date is None:
+def is_date_valid(date_to_check, reference, min_days=0):
+    """
+    Return True if date_to_check < (reference - min_days days).
+    """
+    if date_to_check is None:
         return False
-    if reference_timestamp.tzinfo is None:
-        reference_timestamp = reference_timestamp.replace(tzinfo=timezone.utc)
-    return file_date < (reference_timestamp - timedelta(days=min_days))
+    if reference.tzinfo is None:
+        reference = reference.replace(tzinfo=timezone.utc)
+    return date_to_check < (reference - timedelta(days=min_days))
 
 
 def guess_date_from_filename(path, step_name="", log_level=None):
