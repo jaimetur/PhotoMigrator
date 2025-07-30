@@ -8,9 +8,6 @@
 - ### Release Date: 2025-07-30
 
 - ### Main Changes:
-  - #### 🌟 New Features:
-    - [x] Added new Feature to create a Graphical User Interface (if supported) or Interactive Prompts (if Graphical Interface is not supported) to configure `Google Takeout Fixing` feature if the tool is called without arguments.
-
   - #### 🚀 Enhancements:
     - [x] Updated GPTH to version `4.1.0` (by @Xentraxx) which includes several new features, improvements and bugs fixing extracting metadata info from Google Takeouts. 
 
@@ -55,10 +52,8 @@
       - **Step 8 now also uses a progress bar instead of simple print statements**
       - **Supressed some unnecessary ouput**
 
-        - #### 🐛 Bug fixes:
-
-        - #### 📚 Documentation: 
-          - [x] Updated documentation with all changes.
+  - #### 📚 Documentation: 
+    - [x] Updated documentation with all changes.
 
 ---
 
