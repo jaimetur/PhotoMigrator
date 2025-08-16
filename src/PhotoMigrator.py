@@ -21,7 +21,7 @@ from Utils.StandaloneUtils import change_working_dir, custom_print
 # -------------------------------------------------------------
 # MAIN FUNCTION
 # -------------------------------------------------------------
-def main():
+def PhotoMigrator():
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -482,4 +482,4 @@ def pre_parse_args():
 
 
 if __name__ == "__main__":
-    main()
+    PhotoMigrator()
