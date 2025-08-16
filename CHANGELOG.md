@@ -4,6 +4,18 @@
 
 ---
 
+## Release: v3.5.1
+- ### Release Date: 2025-08-20
+
+- ### Main Changes:
+  - #### 🚀 Enhancements:
+    - [x] Updated GPTH to version `4.1.1` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts. 
+
+  - #### 📚 Documentation: 
+    - [x] Updated documentation with all changes.
+    
+---
+
 ## Release: v3.5.0
 - ### Release Date: 2025-07-30
 
@@ -20,37 +32,39 @@
           - **Added folder year date extraction strategy** - New fallback date extractor that extracts year from parent folder names like "Photos from 2005" when other extraction methods fail (Issue #28)
           - **Centralized concurrency management** - Introduced `ConcurrencyManager` for consistent concurrency calculations across all services, eliminating hardcoded multipliers scattered throughout the codebase
           - **Displaying version of Exiftool when found** - Instead of just displaying that Exif tool was found, we display the version now as well.
+      
       - #### 🚀 **Performance Improvements**
-      - **EXIF processing optimization** - Native `exif_reader` library integration for 15-40% performance improvement in EXIF data extraction
-        - Uses fast native library for supported formats (JPEG, TIFF, HEIC, PNG, WebP, AVIF, JXL, CR3, RAF, ARW, DNG, CRW, NEF, NRW)
-        - Automatic fallback to ExifTool for unsupported formats or when native extraction fails
-        - Centralized MIME type constants verified against actual library source code
-        - Improved error logging with GitHub issue reporting guidance when native extraction fails
-      - **GPS coordinate extraction optimization** - Dedicated coordinate extraction service with native library support
-        - 15-40% performance improvement for GPS-heavy photo collections
-        - Clean architectural separation between date and coordinate extraction
-        - Centralized MIME type support across all EXIF processing operations
-      - **Significantly increased parallelization** - Changed CPU concurrency multiplier from ×2 to ×8 for most operations, dramatically improving performance on multi-core systems
-      - **Removed concurrency caps** - Eliminated `.clamp()` limits that were artificially restricting parallelization on high-core systems
-      - **Platform-optimized concurrency**:
-        - **Linux**: Improved from `CPU cores + 1` to `CPU cores × 8` (massive improvement for Linux users)
-        - **macOS**: Improved from `CPU cores + 1` to `CPU cores × 6` 
-        - **Windows**: Maintained at `CPU cores × 8` (already optimized)
-      - **Operation-specific concurrency tuning**:
-        - **Hash operations**: `CPU cores × 4` (balanced for CPU + I/O workload)
-        - **EXIF/Metadata**: `CPU cores × 6` (I/O optimized for modern SSDs)
-        - **Duplicate detection**: `CPU cores × 6` (memory intensive, conservative)
-        - **Network operations**: `CPU cores × 16` (high for I/O waiting)
-      - **Adaptive concurrency scaling** - Dynamic performance-based concurrency adjustment that scales up to ×24 for high-performance scenarios
-    - #### 🐛 **Bug Fixes**
-      - **Fixed memory exhaustion during ZIP extraction** - Implemented streaming extraction to handle large ZIP files without running out of memory
-      - **Fixed atomic file operations** - Changed to atomic file rename operations to resolve situations where only the json was renamed in file extension correction (Issue #60)
-      - **Fixed album relationship processing** - Improved album relationship service to handle edge cases properly (Issue #61)
-      - **Fixed interactive presenter display** - Corrected display issue in interactive mode (Issue #62)
-      - **Fixed date division behavior for albums** - The `--divide-to-dates` flag now only applies to ALL_PHOTOS folder, leaving album folders flattened without date subfolders (Issue #55)
-      - **Reaorganised ReadMe for a more intuitive structure** - First Installation, then prerequisites and then the quickstart.
-      - **Step 8 now also uses a progress bar instead of simple print statements**
-      - **Supressed some unnecessary ouput**
+        - **EXIF processing optimization** - Native `exif_reader` library integration for 15-40% performance improvement in EXIF data extraction
+          - Uses fast native library for supported formats (JPEG, TIFF, HEIC, PNG, WebP, AVIF, JXL, CR3, RAF, ARW, DNG, CRW, NEF, NRW)
+          - Automatic fallback to ExifTool for unsupported formats or when native extraction fails
+          - Centralized MIME type constants verified against actual library source code
+          - Improved error logging with GitHub issue reporting guidance when native extraction fails
+        - **GPS coordinate extraction optimization** - Dedicated coordinate extraction service with native library support
+          - 15-40% performance improvement for GPS-heavy photo collections
+          - Clean architectural separation between date and coordinate extraction
+          - Centralized MIME type support across all EXIF processing operations
+        - **Significantly increased parallelization** - Changed CPU concurrency multiplier from ×2 to ×8 for most operations, dramatically improving performance on multi-core systems
+        - **Removed concurrency caps** - Eliminated `.clamp()` limits that were artificially restricting parallelization on high-core systems
+        - **Platform-optimized concurrency**:
+          - **Linux**: Improved from `CPU cores + 1` to `CPU cores × 8` (massive improvement for Linux users)
+          - **macOS**: Improved from `CPU cores + 1` to `CPU cores × 6` 
+          - **Windows**: Maintained at `CPU cores × 8` (already optimized)
+        - **Operation-specific concurrency tuning**:
+          - **Hash operations**: `CPU cores × 4` (balanced for CPU + I/O workload)
+          - **EXIF/Metadata**: `CPU cores × 6` (I/O optimized for modern SSDs)
+          - **Duplicate detection**: `CPU cores × 6` (memory intensive, conservative)
+          - **Network operations**: `CPU cores × 16` (high for I/O waiting)
+        - **Adaptive concurrency scaling** - Dynamic performance-based concurrency adjustment that scales up to ×24 for high-performance scenarios
+    
+      - #### 🐛 **Bug Fixes**
+        - **Fixed memory exhaustion during ZIP extraction** - Implemented streaming extraction to handle large ZIP files without running out of memory
+        - **Fixed atomic file operations** - Changed to atomic file rename operations to resolve situations where only the json was renamed in file extension correction (Issue #60)
+        - **Fixed album relationship processing** - Improved album relationship service to handle edge cases properly (Issue #61)
+        - **Fixed interactive presenter display** - Corrected display issue in interactive mode (Issue #62)
+        - **Fixed date division behavior for albums** - The `--divide-to-dates` flag now only applies to ALL_PHOTOS folder, leaving album folders flattened without date subfolders (Issue #55)
+        - **Reaorganised ReadMe for a more intuitive structure** - First Installation, then prerequisites and then the quickstart.
+        - **Step 8 now also uses a progress bar instead of simple print statements**
+        - **Supressed some unnecessary ouput**
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.
