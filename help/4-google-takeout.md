@@ -109,7 +109,7 @@ Below you can see the different steps of this feature:
 > STEP 3    : 🧠 [PROCESS]-[TOTAL DURATION]                :  7:56:34
 > Step 3.1  : 🧠 [PROCESS]-[Metadata Processing]           :  7:34:13
 > Step 3.2  : 📁 [PROCESS]-[Copy/Move]                     :  Skipped
-> Step 3.3  : 🔢 [PROCESS]-[Analyzing Output]              :  0:22:21
+> Step 3.3  : 🔢 [PROCESS]-[Analyze Output]                :  0:22:21
 > 
 > STEP 4    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  0:14:47
 > Step 4.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:12

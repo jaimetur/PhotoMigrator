@@ -559,7 +559,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 3.3: Analyze Output
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🔢 [PROCESS]-[Analyzing Output   ] : '
+            step_name = '🔢 [PROCESS]-[Analyze Output     ] : '
             self.substep += 1
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
