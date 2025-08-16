@@ -5,8 +5,8 @@
 /.idea/
 
 # FreeFileSync files
-sync.ffs_db
-/sync.ffs_lock
+/*.ffs_db
+/*.ffs_lock
 /BatchRun_PhotoMigrator_GDrive_NAS.ffs_batch
 /BatchRun_PhotoMigrator_GDrive_NAS.ffs_gui
 

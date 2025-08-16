@@ -4,6 +4,33 @@
 
 ---
 
+## Release: v3.5.1
+- ### Release Date: 2025-08-20
+
+- ### Main Changes:
+  - #### 🚀 Enhancements:
+    - [x] Updated GPTH to version `4.1.1` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts. 
+
+  - #### 🐛 **Bug Fixes in GPTH Tool:**
+    - **Changed exif tags to be utilized** 
+      - Before we used the following lists of tags in this exact order to find a date to set: 
+        - Exiftool reading: 'DateTimeOriginal', 'MediaCreateDate', 'CreationDate', 'TrackCreateDate', 'CreateDate', 'DateTimeDigitized', 'GPSDateStamp' and 'DateTime'.
+        - Native dart exif reading: 'Image DateTime', 'EXIF DateTimeOriginal', 'EXIF DateTimeDigitized'.  
+      - Some of those values are prone to deliver wrong dates (e.g. DateTimeDigitized) and the order did not completely make sense. We therefore now read those tags and the oldest DateTime we can find:
+        - Exiftool reading: 'DateTimeOriginal','DateTime','CreateDate','DateCreated','CreationDate','MediaCreateDate','TrackCreateDate','EncodedDate','MetadataDate','ModifyDate'.
+        - Native dart exif reading: same as above.
+    - **Fixed typo in partner sharing** - Functionality was fundamentally broken due to a typo.
+    - **Fixed small bug in interactive mode in the options of the limit filezise dialogue**
+    - **Fixed unzipping through command line by automatically detecting if input directory contains zip files**
+
+  - #### 🚀 **Improvements in GPTH Tool:**
+    - **Improved non-zero exit code quitting behaviour** - Now with nice descriptive error messages because I was tired of looking up what is responsible for a certain exit code. 
+
+  - #### 📚 Documentation: 
+    - [x] Updated documentation with all changes.
+    
+---
+
 ## Release: v3.5.0
 - ### Release Date: 2025-07-30
 
