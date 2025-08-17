@@ -640,7 +640,8 @@ class FolderAnalyzer:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
                             dt = parser.isoparse(guessed_date)
-                            if is_date_valid(dt, effective_ref, min_days=0):
+                            # Avoid to assign date if the guessed_date obtained from the PATH is exactly the same as the TIMESTAMP
+                            if dt.astimezone(timezone.utc) != reference and is_date_valid(dt, effective_ref, min_days=0):
                             # if True:    # Skip validation for guessed_dates
                                 file_path_obj = Path(file_path)
                                 if guessed_source == "filename":
