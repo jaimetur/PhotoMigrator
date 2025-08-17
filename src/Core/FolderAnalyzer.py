@@ -633,15 +633,21 @@ class FolderAnalyzer:
                                 break
                     except:
                         pass
-        
+
                 # 3) Fallback al nombre del fichero o path si aún no hay ninguna
                 if not is_valid and use_fallback_to_filename:
                     try:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
                             dt = parser.isoparse(guessed_date)
-                            if is_date_valid(dt, effective_ref, min_days=0):
-                            # if True:    # Skip validation for guessed_dates
+                            # Normaliza a UTC (maneja naive/aware)
+                            if dt.tzinfo is None:
+                                dt = dt.replace(tzinfo=timezone.utc)
+                            else:
+                                dt = dt.astimezone(timezone.utc)
+
+                            # Evita usar exactamente el TIMESTAMP y valida contra effective_ref
+                            if dt != reference and is_date_valid(dt, effective_ref, min_days=0):
                                 file_path_obj = Path(file_path)
                                 if guessed_source == "filename":
                                     full_info["FileNameDate"] = dt.isoformat()
