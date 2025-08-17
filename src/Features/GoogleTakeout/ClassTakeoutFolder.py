@@ -1748,6 +1748,12 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # Basic GPTH Command
         gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
 
+        # TODO: Remove this Testing Block
+        # gpth_command.append("--verbose")
+        # gpth_command.append("--_test-conservative-multiplier=1")
+        # gpth_command.append("--_test-standard-multiplier=1")
+        # gpth_command.append("--_test-disk-optimized-multiplier=1")
+
         # Add verbosity depending on log-level
         if ARGS['log-level'].lower() in ['verbose']:
             gpth_command.append("--verbose")
