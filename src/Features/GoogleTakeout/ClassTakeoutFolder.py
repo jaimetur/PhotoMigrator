@@ -1793,13 +1793,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 gpth_command.append("--no-copy")
 
         if Version(GPTH_VERSION) >= Version("3.6.0"):
-            # Use the new feature to Delete the "supplemental-metadata" suffix from .json files to ensure that script works correctly
-            # Flag removed on 4.0.7 (incorporated in the native logic)
-            # gpth_command.append("--modify-json")
-
             # Use the new feature to Transform Pixel .MP or .MV extensions to ".mp4"
             gpth_command.append("--transform-pixel-mp")
-
             # Use the new feature to Set creation time equal to the last modification date at the end of the program. (Only Windows supported)
             gpth_command.append("--update-creation-time")
 
@@ -1811,8 +1806,13 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             # gpth_command.append("--fix-extensions=conservative")
             # gpth_command.append("--fix-extensions=solo")
             # gpth_command.append("--fix-extensions=none")
+
         elif Version(GPTH_VERSION) == Version("4.0.8"):
             gpth_command.append("--fix-extensions")
+
+        if Version(GPTH_VERSION) >= Version("4.1.0"):
+            gpth_command.append("--guess-from-name")
+            gpth_command.append("--divide-partner-shared")
 
         try:
             command = ' '.join(gpth_command)
