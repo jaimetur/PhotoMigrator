@@ -9,7 +9,7 @@
 
 - ### Main Changes:
   - #### 🚀 Enhancements:
-    - [x] Updated GPTH to version `4.1.1` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts. 
+    - [x] Updated GPTH to version `4.2.0` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts. 
 
   - #### 🐛 Bug fixes:
       - [x] Fixed a bug when guessed date from filepath extract the same date than TIMESTAMP (if the path contains the current TIMESTAMP). 
