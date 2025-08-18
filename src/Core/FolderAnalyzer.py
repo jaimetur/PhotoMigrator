@@ -679,11 +679,11 @@ class FolderAnalyzer:
                                 if is_date_valid(dt_local, effective_ref, min_days=0):
                                     file_path_obj = Path(file_path)
                                     if guessed_source == "filename":
-                                        full_info["GUESS:FileNameDate"] = dt_local.isoformat()  # prefixed key
-                                        source = f"GUESS:FILENAME:{file_path_obj.name}"
+                                        full_info["GUESS:FileNameDate"] = dt_local.isoformat()
+                                        source = {"GUESS:FileNameDate": file_path_obj.name}
                                     elif guessed_source == "filepath":
-                                        full_info["GUESS:FilePathDate"] = dt_local.isoformat()  # prefixed key
-                                        source = f"GUESS:FILEPATH:{file_path_obj.parent}"
+                                        full_info["GUESS:FilePathDate"] = dt_local.isoformat()
+                                        source = {"GUESS:FilePathDate": file_path_obj.parent.as_posix()}
                                     dt_final = dt_local
                                     is_valid = True
                     except:
