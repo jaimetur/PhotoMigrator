@@ -442,7 +442,50 @@ class FolderAnalyzer:
         candidate_tags = ['DateTimeOriginal', 'DateTime', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         local_tz = datetime.now().astimezone().tzinfo
-        timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=local_tz)  # en tu TZ local
+        timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=local_tz)  # in your local TZ
+
+        # --- Fast helpers (keep comments & variable names elsewhere untouched)
+        def parse_exif_to_local(raw_str, local_tz):
+            """Parse EXIF-like datetime string into local tz, handling '24:' rollover and multiple formats with/without %z and seconds."""
+            if not isinstance(raw_str, str):
+                raise ValueError("raw_str must be a string")
+            raw_clean = raw_str.strip()
+            parts = raw_clean.split(" ", 1)
+            if len(parts) == 2 and parts[1].startswith("24:"):
+                date_part, time_part = parts
+                base_dt = datetime.strptime(date_part, "%Y:%m:%d")
+                rolled = base_dt + timedelta(days=1)
+                raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
+            # Try formats in order: with tz / without tz; with seconds / without seconds; date-only
+            fmts = ["%Y:%m:%d %H:%M:%S%z", "%Y:%m:%d %H:%M%z", "%Y:%m:%d %H:%M:%S", "%Y:%m:%d %H:%M", "%Y:%m:%d"]
+            for fmt in fmts:
+                try:
+                    dt = datetime.strptime(raw_clean, fmt)
+                    if "%z" in fmt:
+                        return dt.astimezone(local_tz)
+                    if fmt == "%Y:%m:%d":
+                        dt = dt.replace(hour=0, minute=0, second=0, tzinfo=local_tz)
+                    else:
+                        dt = dt.replace(tzinfo=local_tz)
+                    return dt
+                except Exception:
+                    continue
+            # If all formats fail, raise to let caller decide
+            raise ValueError(f"Unsupported EXIF datetime format: {raw_str}")
+
+        # Precompute PIL tag id map once
+        pil_tag_id_map = {}
+        try:
+            pil_tag_id_map = {name: tid for tid, name in ExifTags.TAGS.items() if name in ("DateTimeOriginal", "DateTime")}
+        except Exception:
+            pil_tag_id_map = {}
+
+        # Prebuild exiftool args for only needed tags (faster than -time:all)
+        exiftool_tag_args = []
+        for t in candidate_tags:
+            exiftool_tag_args.append(f"-{t}")
+        if "FileModifyDate" not in candidate_tags:
+            exiftool_tag_args.append("-FileModifyDate")
 
         # --- Internal function to process a single block
         def _process_block(block_index, block_files):
@@ -459,8 +502,11 @@ class FolderAnalyzer:
                     exif_tool_path,
                     '-charset', f'filename={filename_charset}',
                     '-charset', 'exif=utf8',
-                    '-j', '-n', '-s', '-time:all', '-fast',
-                    # '-j', '-n', '-s', '-time:all', '-fast', '-fast2',     # -fast2 is very aggressive and can skip some useful tags.
+                    '-j', '-n', '-s',
+                    '-m', '-q', '-q',
+                    '-api', 'largefilesupport=1',
+                    '-fast',
+                    *exiftool_tag_args,
                     *block_files
                 ]
                 try:
@@ -483,7 +529,7 @@ class FolderAnalyzer:
                         try:
                             raw_metadata_list = json.loads(result.stdout)
                             metadata_list = []
-                            # Filter raw_metadata_list to include only the tags in candidate_tags
+                            # Filter raw_metadata_list to include only the tags in candidate_tags (raw values)
                             for entry in raw_metadata_list:
                                 filtered_entry = {"SourceFile": entry.get("SourceFile")}
                                 for tag in candidate_tags:
@@ -507,7 +553,7 @@ class FolderAnalyzer:
                 self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
                 metadata_list = [{"SourceFile": f} for f in block_files]
 
-            # Reajustar reference solo para este bloque, usando el FileModifyDate más frecuente en metadata_list
+            # Recalculate reference only for this block, using the most frequent FileModifyDate in metadata_list
             # -----------------------------------------------------------------------------------------------------
             one_year_ago = timestamp - timedelta(days=365)
             block_datetimes = []
@@ -515,43 +561,32 @@ class FolderAnalyzer:
                 raw = entry.get("FileModifyDate")
                 if not isinstance(raw, str):
                     continue
-                raw_clean = raw.strip()
-                parts = raw_clean.split(" ", 1)
-                if len(parts) == 2 and parts[1].startswith("24:"):
-                    date_part, time_part = parts
-                    base_dt = datetime.strptime(date_part, "%Y:%m:%d")
-                    rolled = base_dt + timedelta(days=1)
-                    raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
                 try:
-                    if "+" in raw_clean:
-                        dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
-                    else:
-                        dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
-                    dt = dt.astimezone(local_tz)  # <- Convertimos a TZ local para trabajar y comparar siempre en local
+                    dt = parse_exif_to_local(raw, local_tz)  # Convert to local TZ to always work and compare in local
                     block_datetimes.append(dt)
                 except ValueError:
                     continue
 
             if block_datetimes:
-                # 1) Calculamos la moda
+                # 1) Calculate the mode
                 mode_dt = Counter(block_datetimes).most_common(1)[0][0]
-                # 2) Definimos ventana de tolerancia ±12h alrededor de la moda
+                # 2) Define a ±12h tolerance window around the mode
                 window_start = mode_dt - timedelta(hours=12)
                 window_end = mode_dt + timedelta(hours=12)
                 window = [dt for dt in block_datetimes if window_start <= dt <= window_end]
-                # 3) Tomamos el más antiguo dentro de la ventana (o la propia moda si no hay en ventana)
+                # 3) Take the oldest within the window (or the mode itself if no candidates in window)
                 candidate = min(window) if window else mode_dt
-                # 4) Clampeamos a [one_year_ago, reference]
+                # 4) Clamp to [one_year_ago, reference]
                 effective_ref = max(candidate, one_year_ago)
                 effective_ref = min(effective_ref, timestamp)
             else:
                 effective_ref = timestamp
 
-            # Log del effective_ref de este bloque
+            # Log effective_ref for this block
             self.logger.debug(f"{step_name}Block {block_index}: effective_ref = {effective_ref.isoformat()}")
             # -----------------------------------------------------------------------------------------------------
 
-            # Now iterate for all entries in metadata_list
+            # Iterate through all entries in metadata_list
             for entry in metadata_list:
                 src = entry.get("SourceFile")
                 if not src:
@@ -559,20 +594,18 @@ class FolderAnalyzer:
 
                 file_path = Path(src).as_posix()
 
-                # Creamos full_info con SourceFile y TargetFile al principio
+                # Build full_info with SourceFile and TargetFile first
                 full_info = {
                     "SourceFile": file_path,
                     "TargetFile": file_path,
                 }
-                # Ahora añadimos el resto de claves originales que estén en candidate_tags
-                full_info.update(entry)
 
                 dt_final = None
                 is_valid = False
                 source = ""
 
                 # 1) EXIFTOOL
-                # Buscar la fecha más antigua entre los tags EXIF en orden de prioridad
+                # Search for the oldest date among EXIF tags in priority order; store under prefixed keys (EXIF:<Tag>)
                 candidates = []
                 for tag in candidate_tags:
                     if tag == "FileModifyDate":
@@ -589,46 +622,44 @@ class FolderAnalyzer:
                             base_dt = datetime.strptime(date_part, "%Y:%m:%d")
                             rolled = base_dt + timedelta(days=1)
                             raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
-                        # parseamos con o sin zona
-                        if "+" in raw_clean:
-                            dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S%z"))
-                        else:
-                            dt = normalize_datetime_utc(datetime.strptime(raw_clean, "%Y:%m:%d %H:%M:%S"))
-                        dt = dt.astimezone(local_tz)  # <- trabajamos en local
-                        candidates.append((dt, tag))
-                    except:
+                        # parse with or without timezone and with/without seconds
+                        dt_local = parse_exif_to_local(raw_clean, local_tz)  # work in local
+                        # save normalized under prefixed key (single save per tag, no raw duplicates)
+                        full_info[f"EXIF:{tag}"] = dt_local.isoformat()
+                        candidates.append((dt_local, tag))
+                    except Exception:
                         continue
 
                 if candidates:
                     dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
-                    # si es FileModifyDate o ModifyDate, validamos frente a effective_ref
+                    # if it is FileModifyDate or ModifyDate, validate against effective_ref
                     if tag_oldest == "ModifyDate":
-                        if is_date_valid(dt_oldest, effective_ref, min_days=0):  # <- validación en local
+                        if is_date_valid(dt_oldest, effective_ref, min_days=0):  # validation in local
                             dt_final = dt_oldest
                             source = f"EXIF:{tag_oldest}"
                             is_valid = True
                     else:
-                        # el resto de tags EXIF los aceptamos siempre
+                        # the rest of EXIF tags are always accepted
                         dt_final = dt_oldest
                         source = f"EXIF:{tag_oldest}"
                         is_valid = True
 
-                # 2) Fallback a PIL solo si aún no se tiene una fecha válida
+                # 2) Fallback to PIL only if there is still no valid date; store under prefixed keys (PIL:<Tag>)
                 if not is_valid:
                     try:
                         img = Image.open(file_path)
                         exif_data = img._getexif() or {}
                         for tag_name in ("DateTimeOriginal", "DateTime"):
-                            tag_id = next(
-                                (tid for tid, name in ExifTags.TAGS.items() if name == tag_name),
-                                None
-                            )
+                            tag_id = pil_tag_id_map.get(tag_name)
+                            if tag_id is None:
+                                continue
                             raw = exif_data.get(tag_id)
                             if isinstance(raw, str):
-                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=local_tz)  # <- guardamos y comparamos en local
-                                # if is_date_valid(dt, effective_ref, min_days=0):
-                                if True:  # Skip validation for PIL dates
-                                    full_info[f"PIL:{tag_name}"] = dt.isoformat()
+                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=local_tz)  # keep in local
+                                # save once under prefixed canonical tag name
+                                full_info[f"PIL:{tag_name}"] = dt.isoformat()
+                                # Skip validation for PIL dates (keep behavior)
+                                if True:
                                     dt_final = dt
                                     source = f"PIL:{tag_name}"
                                     is_valid = True
@@ -636,78 +667,75 @@ class FolderAnalyzer:
                     except:
                         pass
 
-                # 3) Fallback al nombre del fichero o path si aún no hay ninguna
+                # 3) Fallback to filename or path if still no date; store under prefixed keys (GUESS:<Key>)
                 if not is_valid and use_fallback_to_filename:
                     try:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
-                            dt_local = parser.isoparse(guessed_date)  # guess_date ya devuelve con tu TZ local
-                            # Evita usar exactamente el TIMESTAMP (comparación en TZ local)
+                            dt_local = parser.isoparse(guessed_date)  # already local TZ
+                            # Avoid using exactly TIMESTAMP (comparison in local TZ)
                             if dt_local != timestamp:
-                                # valida en local
+                                # validate in local
                                 if is_date_valid(dt_local, effective_ref, min_days=0):
                                     file_path_obj = Path(file_path)
                                     if guessed_source == "filename":
-                                        full_info["FileNameDate"] = dt_local.isoformat()  # guarda en tu TZ local
+                                        full_info["GUESS:FileNameDate"] = dt_local.isoformat()  # prefixed key
                                         source = f"GUESS:FILENAME:{file_path_obj.name}"
                                     elif guessed_source == "filepath":
-                                        full_info["FilePathDate"] = dt_local.isoformat()  # guarda en tu TZ local
+                                        full_info["GUESS:FilePathDate"] = dt_local.isoformat()  # prefixed key
                                         source = f"GUESS:FILEPATH:{file_path_obj.parent}"
                                     dt_final = dt_local
                                     is_valid = True
                     except:
                         pass
 
-                # 4) Fallback al tag FileModifyDate de ExifTool
+                # 4) Fallback to ExifTool's FileModifyDate; store under prefixed key (EXIF:FileModifyDate)
                 if not is_valid and use_fallback_to_filesystem_date:
                     raw = entry.get("FileModifyDate")
                     if isinstance(raw, str):
                         try:
-                            rc = raw.strip()
-                            # parche “24:” si hiciera falta (opcional según tus datos)
-                            if "+" in rc:
-                                dt_local = datetime.strptime(rc, "%Y:%m:%d %H:%M:%S%z").astimezone(local_tz)
-                            else:
-                                # si no trae zona, interprétalo en tu zona local
-                                dt_local = datetime.strptime(rc, "%Y:%m:%d %H:%M:%S").replace(tzinfo=local_tz)
-
-                            # valida en local
+                            dt_local = parse_exif_to_local(raw, local_tz)
+                            # store normalized under prefixed key
+                            full_info["EXIF:FileModifyDate"] = dt_local.isoformat()
+                            # validate in local
                             if is_date_valid(dt_local, effective_ref, min_days=0):
-                                dt_final = dt_local  # guarda en local
+                                dt_final = dt_local  # save in local
                                 source = "EXIF:FileModifyDate"
                                 is_valid = True
                         except:
                             pass
 
-                # 5) fallback to filesystem timestamps if no EXIF/PIL/filename date found
+                # 5) Fallback to filesystem timestamps if no EXIF/PIL/filename date found; keep existing prefixed labels for provenance
                 if not is_valid and use_fallback_to_filesystem_date:
                     try:
-                        # crea datetimes en tu TZ local
-                        fs_mtime_local = datetime.fromtimestamp(os.path.getmtime(file_path), tz=local_tz)
-                        fs_ctime_local = datetime.fromtimestamp(os.path.getctime(file_path), tz=local_tz)
+                        # create datetimes in your local TZ
+                        st = os.stat(file_path)
+                        fs_mtime_local = datetime.fromtimestamp(st.st_mtime, tz=local_tz)
+                        fs_ctime_local = datetime.fromtimestamp(st.st_ctime, tz=local_tz)
 
-                        # valida en local
+                        # validate in local
                         if is_date_valid(fs_mtime_local, effective_ref, min_days=0) or is_date_valid(fs_ctime_local, effective_ref, min_days=0):
-                            # elige el más antiguo **entre los que son válidos**, comparando en local
+                            # choose the oldest among the valid ones, comparing in local
                             valid_pairs = []
                             if is_date_valid(fs_ctime_local, effective_ref, min_days=0):
-                                valid_pairs.append((fs_ctime_local, fs_ctime_local, "FileSystem:CreateDate:CTime"))
+                                valid_pairs.append((fs_ctime_local, "FileSystem:CreateDate:CTime"))
                             if is_date_valid(fs_mtime_local, effective_ref, min_days=0):
-                                valid_pairs.append((fs_mtime_local, fs_mtime_local, "FileSystem:ModifyDate:MTime"))
+                                valid_pairs.append((fs_mtime_local, "FileSystem:ModifyDate:MTime"))
 
-                            # ordena por fecha local y elige el más antiguo
-                            valid_pairs.sort(key=lambda x: x[0])
+                            # sort by local date and pick the oldest
                             if valid_pairs:
-                                _, chosen_local, chosen_label = valid_pairs[0]
-                                full_info[chosen_label] = chosen_local.isoformat()  # guarda en local
+                                valid_pairs.sort(key=lambda x: x[0])
+                                chosen_local, chosen_label = valid_pairs[0]
+                                # keep existing filesystem prefixed labels (already include source)
+                                full_info[chosen_label] = chosen_local.isoformat()
                                 source = chosen_label
                                 dt_final = chosen_local
                                 is_valid = True
                     except:
                         pass
 
-                # 6) Añadir OldestDate, Source, ReferenceForModifyDate e isValid al diccionario
-                full_info["TimeStamp"] = timestamp.isoformat()
+                # 6) Add OldestDate, Source, ReferenceForModifyDate and isValid to the dictionary
+                full_info["ExecutionTimeStamp"] = timestamp.isoformat()
                 full_info["ReferenceForModifyDate"] = effective_ref.isoformat()
                 full_info["isValid"] = is_valid
                 full_info["OldestDate"] = dt_final.isoformat() if is_valid else None
@@ -741,13 +769,13 @@ class FolderAnalyzer:
                 del json_files
                 del symlinks
 
-                # ⏱️ Start timing
+                # Start timing
                 start_time = time.time()
                 completed_blocks = 0
                 avg_block_time = None
 
                 # Parallel execution using ThreadPoolExecutor
-                workers = max(1, min(total_blocks, max_workers, 64))    # Ensure at least 1 worker and maximum max_workers (saturated to 64 workers)
+                workers = max(1, min(total_blocks, max_workers, 64))  # Ensure at least 1 worker and maximum max_workers (capped to 64 workers)
                 self.logger.info(f"{step_name}🧵 {total_files} files found ({total_media_files} media files | {total_json_files} JSON files | {total_symlinks} Symlinks)")
                 self.logger.info(f"{step_name}🧵 Launching {total_blocks} blocks of maximum {block_size} files")
                 self.logger.info(f"{step_name}🧵 Using {workers} workers for parallel extraction")
@@ -776,7 +804,6 @@ class FolderAnalyzer:
 
         # Call the main function to start the process
         main()
-
 
     def count_files(self, exclude_fallbacks=False, exclude_ext=None, include_ext=None, step_name='', log_level=None):
         """
