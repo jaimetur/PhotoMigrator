@@ -8,8 +8,13 @@
 - ### Release Date: 2025-08-20
 
 - ### Main Changes:
+  - #### 🚀 Enhancements:
+    - Extracted Dates JSON now contains all Dates in Local UTC format.
+    - Extracted Dates JSON now includes ExecutionTimestamp Tag for reference.
+    - Extracted Dates JSON Tags renamed for a better understanding.
+    - Updated GPTH to version `4.2.3` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+
   - #### 🚀 Enhancements in GPTH Tool:
-    - Updated GPTH to version `4.2.3` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts. 
     - **Improved non-zero exit code quitting behaviour** - Now with nice descriptive error messages because I was tired of looking up what is responsible for a certain exit code. 
 
     - #### ⚡ Performance
