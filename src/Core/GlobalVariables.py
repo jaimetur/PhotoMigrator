@@ -15,10 +15,6 @@ TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
 TOOL_DATE                       = "2025-08-20"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
-# GPTH_VERSION                    = "4.0.9"
-# GPTH_VERSION                    = "4.1.1"
-# GPTH_VERSION                    = "4.2.1"
-# GPTH_VERSION                    = "4.2.2"
 GPTH_VERSION                    = "4.2.3"
 EXIF_VERSION                    = "13.30"
 INCLUDE_EXIF_TOOL               = True
