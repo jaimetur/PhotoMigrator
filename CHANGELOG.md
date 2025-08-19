@@ -9,10 +9,34 @@
 
 - ### Main Changes:
   - #### 🚀 Enhancements:
-    - [x] Updated GPTH to version `4.1.1` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts. 
+    - Extracted Dates JSON now contains all Dates in Local UTC format.
+    - Extracted Dates JSON now includes ExecutionTimestamp Tag for reference.
+    - Extracted Dates JSON Tags renamed for a better understanding.
+    - Updated GPTH to version `4.2.3` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
 
-  - #### 🐛 Bug fixes:
-      - [x] Fixed a bug when guessed date from filepath extract the same date than TIMESTAMP (if the path contains the current TIMESTAMP). 
+  - #### 🚀 Enhancements in GPTH Tool:
+    - **Improved non-zero exit code quitting behaviour** - Now with nice descriptive error messages because I was tired of looking up what is responsible for a certain exit code. 
+
+    - #### ⚡ Performance
+      - Step 4 (READ-EXIF) now uses batch reads and a fast native mode, with ExifTool only as fallback → about 3x faster metadata extraction.  
+      - Step 5 (WRITE-EXIF) supports batch writes and argfile mode, plus native JPEG writers → up to 5x faster on large collections.  
+
+    - #### 🔧 API
+      - Added batch write methods in `ExifToolService`.  
+      - Updated `MediaEntityCollection` to use new helpers for counting written tags.  
+
+    - #### 📊 Logging
+      - Statistics are clearer: calls, hits, misses, fallback attempts, timings.  
+      - Date, GPS, and combined writes are reported separately.  
+
+    - #### 🧪 Testing
+      - Extended mocks with batch support and error simulation.  
+      - Added tests for GPS writing, batch operations, and non-image handling.  
+
+    - #### ✅ Benefits
+      - Much faster EXIF processing with less ExifTool overhead.  
+      - More reliable and structured API.  
+      - Logging is easier to read and interpret.  
 
   - #### 🐛 **Bug Fixes in GPTH Tool:**
     - **Changed exif tags to be utilized** 
@@ -26,8 +50,8 @@
     - **Fixed small bug in interactive mode in the options of the limit filezise dialogue**
     - **Fixed unzipping through command line by automatically detecting if input directory contains zip files**
 
-  - #### 🚀 **Improvements in GPTH Tool:**
-    - **Improved non-zero exit code quitting behaviour** - Now with nice descriptive error messages because I was tired of looking up what is responsible for a certain exit code. 
+  - #### 🐛 Bug fixes:
+      - [x] Fixed a bug when guessed date from filepath extract the same date than TIMESTAMP (if the path contains the current TIMESTAMP). 
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.

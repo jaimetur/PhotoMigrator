@@ -1095,7 +1095,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-        # Step 5.2: FINAL CLEANING
+        # Step 5.2: SHOW FILES WITHOUT DATES
         # ----------------------------------------------------------------------------------------------------------------------
         step_name = '❔ [FINAL-STEPS]-[Files without dates] : '
         step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -1812,7 +1812,9 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         if Version(GPTH_VERSION) >= Version("4.1.0"):
             gpth_command.append("--guess-from-name")
-            gpth_command.append("--divide-partner-shared")
+            # TODO: Implement this again when tested in 4.2.0
+            if not Version(GPTH_VERSION) == Version("4.2.0"):
+                gpth_command.append("--divide-partner-shared")
 
         try:
             command = ' '.join(gpth_command)
