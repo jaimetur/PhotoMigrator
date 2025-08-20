@@ -2,7 +2,7 @@
 .github_ignore/
 
 # Pycharm Folder
-.idea/
+#.idea/
 
 # FreeFileSync files
 /*.ffs_db
