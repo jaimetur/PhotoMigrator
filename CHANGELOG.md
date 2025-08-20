@@ -12,31 +12,50 @@
     - Extracted Dates JSON now contains all Dates in Local UTC format.
     - Extracted Dates JSON now includes ExecutionTimestamp Tag for reference.
     - Extracted Dates JSON Tags renamed for a better understanding.
-    - Updated GPTH to version `4.2.3` (by @Xentraxx) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+    - Updated GPTH to version `4.3.0` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
 
   - #### 🚀 Enhancements in GPTH Tool:
     - **Improved non-zero exit code quitting behaviour** - Now with nice descriptive error messages because I was tired of looking up what is responsible for a certain exit code. 
 
-    - #### ⚡ Performance
-      - Step 4 (READ-EXIF) now uses batch reads and a fast native mode, with ExifTool only as fallback → about 3x faster metadata extraction.  
-      - Step 5 (WRITE-EXIF) supports batch writes and argfile mode, plus native JPEG writers → up to 5x faster on large collections.  
+    - #### Step 4 (Extract Dates) & 5 (Write EXIF) Optimization
+      - ##### ⚡ Performance
+        - Step 4 (READ-EXIF) now uses batch reads and a fast native mode, with ExifTool only as fallback → about 3x faster metadata extraction.  
+        - Step 5 (WRITE-EXIF) supports batch writes and argfile mode, plus native JPEG writers → up to 5x faster on large collections.
+      - ##### 🔧 API
+        - Added batch write methods in `ExifToolService`.  
+        - Updated `MediaEntityCollection` to use new helpers for counting written tags.
+      - ##### 📊 Logging
+        - Statistics are clearer: calls, hits, misses, fallback attempts, timings.  
+        - Date, GPS, and combined writes are reported separately.  
+        - Removed extra blank lines for cleaner output.
+      - ##### 🧪 Testing
+        - Extended mocks with batch support and error simulation.  
+        - Added tests for GPS writing, batch operations, and non-image handling.
+      - ##### ✅ Benefits
+        - Much faster EXIF processing with less ExifTool overhead.  
+        - More reliable and structured API.  
+        - Logging is easier to read and interpret.  
+        - Stronger test coverage across edge cases.  
 
-    - #### 🔧 API
-      - Added batch write methods in `ExifToolService`.  
-      - Updated `MediaEntityCollection` to use new helpers for counting written tags.  
+    - #### Step 6 (Find Albums) Optimization
+      - ##### ⚡ Performance
+        - Replaced `_groupIdenticalMedia` with `_groupIdenticalMediaOptimized`.  
+          - Two-phase strategy:  
+            - First group by file **size** (cheap).  
+            - Only hash files that share the same size.  
+          - Switched from `readAsBytes()` (full memory load) to **streaming hashing** with `md5.bind(file.openRead())`.  
+          - Files are processed in **parallel batches** instead of sequentially.  
+          - Concurrency defaults to number of CPU cores, configurable via `maxConcurrent`.
+      - ##### 🔧 Implementation
+        - Added an in-memory **hash cache** keyed by `(path|size|mtime)` to avoid recalculating.  
+          - Introduced a custom **semaphore** to limit concurrent hashing and prevent I/O overload.  
+          - Errors are handled gracefully: unprocessable files go into dedicated groups without breaking the process.
+      - ##### ✅ Benefits
+        - Processing time reduced from **1m20s → 4s** on large collections.  
+          - Greatly reduced memory usage.  
+          - Scales better on multi-core systems.  
+          - More robust and fault-tolerant album detection.  
 
-    - #### 📊 Logging
-      - Statistics are clearer: calls, hits, misses, fallback attempts, timings.  
-      - Date, GPS, and combined writes are reported separately.  
-
-    - #### 🧪 Testing
-      - Extended mocks with batch support and error simulation.  
-      - Added tests for GPS writing, batch operations, and non-image handling.  
-
-    - #### ✅ Benefits
-      - Much faster EXIF processing with less ExifTool overhead.  
-      - More reliable and structured API.  
-      - Logging is easier to read and interpret.  
 
   - #### 🐛 **Bug Fixes in GPTH Tool:**
     - **Changed exif tags to be utilized** 
