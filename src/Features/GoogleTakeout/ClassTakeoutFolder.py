@@ -145,9 +145,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
         sub_step_start_time = datetime.now()
         if folder_type.lower() == 'input':
             self.initial_takeout_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, force_date_extraction=False, logger=LOGGER, step_name=step_name)
-            # self.initial_takeout_folder_analyzer.extract_dates(use_fallback_to_filename=False, step_name=step_name) # Avoid to use_filename to guess dates from filename to do a fair comparison between pre/post
-            self.initial_takeout_folder_analyzer.extract_dates(step_name=step_name) # Avoid to use_filename to guess dates from filename to do a fair comparison between pre/post
-            counters = self.initial_takeout_folder_analyzer.count_files(exclude_fallbacks=True, step_name=step_name)
+            # self.initial_takeout_folder_analyzer.extract_dates(use_fallback_to_filename=False, step_name=step_name) # Avoid to use filename to guess dates from filename to do a fair comparison between pre/post
+            self.initial_takeout_folder_analyzer.extract_dates(step_name=step_name) # Use filename to guess dates and save them in the JSON, but does not count GUESS dates in the count_files function
+            counters = self.initial_takeout_folder_analyzer.count_files(exclude_fallbacks=True, step_name=step_name) # Avoid to use filename to guess dates from filename to do a fair comparison between pre/post
             if save_json:
                 if json_filename is None:
                     json_filename = f"takeout_input_dates_metadata.json"
