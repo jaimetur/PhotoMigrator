@@ -674,19 +674,28 @@ class FolderAnalyzer:
                         guessed_date, guessed_source = guess_date_from_filename(file_path, step_name=step_name)
                         if guessed_date:
                             dt_local = parser.isoparse(guessed_date)  # already local TZ
-                            # Avoid using exactly TIMESTAMP (comparison in local TZ)
-                            if dt_local != timestamp:
-                                # validate in local
-                                if is_date_valid(dt_local, effective_ref, min_days=0):
-                                    file_path_obj = Path(file_path)
-                                    if guessed_source == "filename":
-                                        full_info["GUESS:FileNameDate"] = dt_local.isoformat()
-                                        source = {"GUESS:FileNameDate": file_path_obj.name}
-                                    elif guessed_source == "filepath":
-                                        full_info["GUESS:FilePathDate"] = dt_local.isoformat()
-                                        source = {"GUESS:FilePathDate": file_path_obj.parent.as_posix()}
-                                    dt_final = dt_local
-                                    is_valid = True
+
+                            # If first guess equals execution timestamp, remove TIMESTAMP substring and retry
+                            if dt_local == timestamp:
+                                alt_path = str(file_path).replace(TIMESTAMP, "")
+                                guessed_date, guessed_source = guess_date_from_filename(alt_path, step_name=step_name)
+                                if guessed_date:
+                                    dt_local = parser.isoparse(guessed_date)
+
+                            # Accept guess only if it is valid and not equal to the execution timestamp
+                            if dt_local != timestamp and is_date_valid(dt_local, effective_ref, min_days=0):
+                                file_path_obj = Path(file_path)
+                                if guessed_source == "filename":
+                                    full_info["GUESS:FileNameDate"] = dt_local.isoformat()
+                                    source = {"GUESS:FileNameDate": file_path_obj.name}
+                                elif guessed_source == "filepath":
+                                    full_info["GUESS:FilePathDate"] = dt_local.isoformat()
+                                    source = {"GUESS:FilePathDate": file_path_obj.parent.as_posix()}
+                                else:
+                                    full_info["GUESS:FilePathDate"] = dt_local.isoformat()
+                                    source = {"GUESS:FilePathDate": Path(file_path).as_posix()}
+                                dt_final = dt_local
+                                is_valid = True
                     except:
                         pass
 
@@ -912,8 +921,8 @@ class FolderAnalyzer:
             # If we have extracted dates, count valid/invalid per media type
             if self.extracted_dates:
                 # Lista de Sources a Excluir del conteo de fechas (sirve para excluir los GUESS: del conteo inicial
-                # sources_to_exclude = ["GUESS:FILENAME:", "GUESS:FILESYSTEM:", "EXIF:FileModifyDate", "FileSystem:"]
-                sources_to_exclude = ["GUESS:FILENAME:", "GUESS:FILESYSTEM:"]
+                # sources_to_exclude = ["GUESS:FileNameDate:", "GUESS:FilePathDate:", "EXIF:FileModifyDate", "FileSystem:"]
+                sources_to_exclude = ["GUESS:FileNameDate", "GUESS:FilePathDate"]
                 for path, entry in self.extracted_dates.items():
                     oldest_date = entry.get("OldestDate")
                     source = entry.get("Source")
