@@ -447,7 +447,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # STEP 3: Analyze initial files in Takeout Folder before to process with GPTH and modify any original file
             # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
-            step_start_time = datetime.now()
             # Determine the input_folder depending on if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
             step_name = '🔢 [PRE]-[Analyze Takeout] : '
@@ -457,12 +456,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             self.analyze_folder(folder_to_analyze=input_folder, folder_type='input', step_name=step_name)
-            # # Finally show TOTAL DURATION OF THIS STEP
-            # step_end_time = datetime.now()
-            # formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-            # LOGGER.info(f"")
-            # LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-            # self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
             # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -589,7 +582,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # STEP 5: Analyze final files in Output Folder after processed with GPTH
             # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
-            step_start_time = datetime.now()
             # Determine the input_folder depending on if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
             step_name = '🔢 [POST]-[Analyze Output] : '
@@ -600,12 +592,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             # Call analyze_folder to invoke FolderAnalyzer class with the selected folder_to_analyze
             self.analyze_folder(folder_to_analyze=output_folder, folder_type='output', step_name=step_name, save_json=False)
-            # # Finally show TOTAL DURATION OF THIS STEP
-            # step_end_time = datetime.now()
-            # formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-            # LOGGER.info(f"")
-            # LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-            # self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
             # ----------------------------------------------------------------------------------------------------------------------
 
 
