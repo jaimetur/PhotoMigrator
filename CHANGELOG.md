@@ -12,6 +12,7 @@
     - Extracted Dates JSON now contains all Dates in Local UTC format.
     - Extracted Dates JSON now includes ExecutionTimestamp Tag for reference.
     - Extracted Dates JSON Tags renamed for a better understanding.
+    - Enhancements in extract_dates() function to avoid guess date from file path when the file path cotains the execution timestamp.
     - Included support in GPTH to use the Extracted Dates JSON dictionary. This will speed-up GPTH Date extraction a lot.
     - Updated GPTH to version `4.3.0` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
 
