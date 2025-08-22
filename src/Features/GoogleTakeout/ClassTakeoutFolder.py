@@ -204,8 +204,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
         sub_step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
         LOGGER.info(f"")
-        LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-        self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+        LOGGER.info(f"{step_name}Step {self.step}: {step_name_cleaned} completed in {formatted_duration}.")
+        self.steps_duration.append({'step_id': f"{self.step}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
     def pre_checks(self, log_level=None):
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
@@ -289,18 +289,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Sub-Step 3: Analyze initial files in Takeout Folder before to process with GPTH and modify any original file
-            # ----------------------------------------------------------------------------------------------------------------------
-            # Determine the input_folder depending on if the Takeout have been unzipped or not
-            input_folder = self.get_input_folder()
-            step_name = '🔍 [PRE-CHECKS]-[Analyze Takeout] : '
-            self.substep += 1
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. ANALYZING INITIAL TAKEOUT FILES... ")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
-            self.analyze_folder(folder_to_analyze=input_folder, folder_type='input', step_name=step_name)
 
             # Finally show TOTAL DURATION OF PRE-CHECKS PHASE
             step_name = '🔍 [PRE-CHECKS] : '
@@ -433,11 +421,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if capture_output is None: capture_output=self.ARGS['show-gpth-info']
             if capture_errors is None: capture_errors=self.ARGS['show-gpth-errors']
 
-            # Step 1: Pre-check the object with skip_process=True to just unzip files in case they are zipped
+            # STEP 1: Pre-check the object with skip_process=True to just unzip files in case they are zipped
             # ----------------------------------------------------------------------------------------------------------------------
             self.pre_checks(log_level=log_level)
 
-            # Step 2: Pre-Process Takeout folder
+
+            # STEP 2: Pre-Process Takeout folder
             # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
             LOGGER.info(f"")
@@ -454,7 +443,30 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
-            # Step 3: Process Input Takeout folder
+
+            # STEP 3: Analyze initial files in Takeout Folder before to process with GPTH and modify any original file
+            # ----------------------------------------------------------------------------------------------------------------------
+            self.step += 1
+            step_start_time = datetime.now()
+            # Determine the input_folder depending on if the Takeout have been unzipped or not
+            input_folder = self.get_input_folder()
+            step_name = '🔢 [PRE]-[Analyze Takeout] : '
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. ANALYZING INITIAL TAKEOUT FILES... ")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            self.analyze_folder(folder_to_analyze=input_folder, folder_type='input', step_name=step_name)
+            # # Finally show TOTAL DURATION OF THIS STEP
+            # step_end_time = datetime.now()
+            # formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            # LOGGER.info(f"")
+            # LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+            # self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+            # ----------------------------------------------------------------------------------------------------------------------
+
+
+            # STEP 4: Process Input Takeout folder
             # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
             self.substep = 0
@@ -476,7 +488,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Determine where the Albums will be located
             albums_folder = self.get_albums_folder()
 
-            # Step 3.1: Process photos with GPTH tool
+            # Sub-Step 4.1: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧠 [PROCESS]-[Metadata Processing] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -529,7 +541,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
                 self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 3.2: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
+            # Sub-Step 4.2: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '📁 [PROCESS]-[Copy/Move] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -561,19 +573,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[') + 1: step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 3.3: Analyze Output
-            # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🔢 [PROCESS]-[Analyze Output     ] : '
-            self.substep += 1
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. ANALYZING OUTPUT FILES... ")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
-            # Call analyze_folder to invoke FolderAnalyzer class with the selected folder_to_analyze
-            self.analyze_folder(folder_to_analyze=output_folder, folder_type='output', step_name=step_name, save_json=False)
-
-            # Finally show TOTAL DURATION OF PRE-PROCESS PHASE
+            # Finally show TOTAL DURATION OF PROCESSING PHASE
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
             step_name = '🧠 [PROCESS] : '
@@ -586,7 +586,30 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
 
 
-            # Step 4: Post Process Output folder
+            # STEP 5: Analyze final files in Output Folder after processed with GPTH
+            # ----------------------------------------------------------------------------------------------------------------------
+            self.step += 1
+            step_start_time = datetime.now()
+            # Determine the input_folder depending on if the Takeout have been unzipped or not
+            input_folder = self.get_input_folder()
+            step_name = '🔢 [POST]-[Analyze Output] : '
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. ANALYZING OUTPUT FILES... ")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            # Call analyze_folder to invoke FolderAnalyzer class with the selected folder_to_analyze
+            self.analyze_folder(folder_to_analyze=output_folder, folder_type='output', step_name=step_name, save_json=False)
+            # # Finally show TOTAL DURATION OF THIS STEP
+            # step_end_time = datetime.now()
+            # formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+            # LOGGER.info(f"")
+            # LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+            # self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+            # ----------------------------------------------------------------------------------------------------------------------
+
+
+            # STEP 6: Post Process Output folder
             # ----------------------------------------------------------------------------------------------------------------------
             # Increment self.step for the Post Process Steps
             self.step += 1
@@ -605,7 +628,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
-            # Step 5: Final Steps
+            # STEP 7: Final Steps
             # ----------------------------------------------------------------------------------------------------------------------
             # Increment self.step for the Post Process Steps
             self.step += 1
@@ -804,7 +827,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Initialize self.substep counter for the Post Process Steps
             self.substep = 0
-
 
             # Step 4.1: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------

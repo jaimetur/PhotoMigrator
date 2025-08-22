@@ -1,7 +1,17 @@
 # 🗓️ CHANGELOG
 [Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for the following releases
-[Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) for the past releases
+[Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) for the past releases+
+---
 
+## Release: v3.5.2
+- ### Release Date: 2025-08-25
+
+- ### Main Changes:
+  - #### 🚀 Enhancements:
+    - Separate Steps for Analyze Input Takeout files and Analyze Output files in feature `Google Takeout Processing`. No the Analyzer for the Input Takeout folder is executed after Pre-Processing steps, in this way the extracted dates JSON dictionary will match with for all input files during GPTH processing phase.
+
+  - #### 📚 Documentation: 
+    - [x] Updated documentation with all changes.
 ---
 
 ## Release: v3.5.1
