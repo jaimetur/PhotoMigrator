@@ -12,6 +12,7 @@
     - Extracted Dates JSON now contains all Dates in Local UTC format.
     - Extracted Dates JSON now includes ExecutionTimestamp Tag for reference.
     - Extracted Dates JSON Tags renamed for a better understanding.
+    - Included support in GPTH to use the Extracted Dates JSON dictionary. This will speed-up GPTH Date extraction a lot.
     - Updated GPTH to version `4.3.0` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
 
   - #### 🚀 Enhancements in GPTH Tool:
@@ -19,6 +20,7 @@
 
     - #### Step 4 (Extract Dates) & 5 (Write EXIF) Optimization
       - ##### ⚡ Performance
+        - Step 4 (READ-EXIF) now support --fileDates flag to provide a JSON dictionar with the Extracted dates per file (PhotoMigrator creates this file and can now be used by GPTH Tool).
         - Step 4 (READ-EXIF) now uses batch reads and a fast native mode, with ExifTool only as fallback → about 3x faster metadata extraction.  
         - Step 5 (WRITE-EXIF) supports batch writes and argfile mode, plus native JPEG writers → up to 5x faster on large collections.
       - ##### 🔧 API

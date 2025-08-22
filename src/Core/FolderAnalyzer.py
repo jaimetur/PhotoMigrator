@@ -399,6 +399,7 @@ class FolderAnalyzer:
         with open(output_filepath, "w", encoding="utf-8") as f:
             json.dump(self.extracted_dates, f, ensure_ascii=False, indent=2)
         self.logger.info(f"{step_name}EXIF Dates saved into JSON: {output_filepath}")
+        return output_filepath
 
     def load_from_json(self, input_file, step_name=''):
         """

@@ -83,6 +83,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Define the Folder Analyzers
         self.initial_takeout_folder_analyzer = FolderAnalyzer()
         self.output_folder_analyzer = FolderAnalyzer()
+        self.initial_filedates_json = ""
+        self.final_filedates_json = ""
 
         # Contador de pasos durante el procesamiento
         self.step = 0
@@ -149,7 +151,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if save_json:
                 if json_filename is None:
                     json_filename = f"takeout_input_dates_metadata.json"
-                self.initial_takeout_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
+                self.initial_filedates_json = self.initial_takeout_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Takeout folder'
             sub_dict = 'input_counters'
@@ -160,7 +162,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if save_json:
                 if json_filename is None:
                     json_filename = f"takeout_output_dates_metadata.json"
-                self.output_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
+                self.final_filedates_json = self.output_folder_analyzer.save_to_json(output_file=json_filename, step_name=step_name)
             # Define folder and sub_dict counters
             folder = 'Output folder'
             sub_dict = 'output_counters'
@@ -508,6 +510,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     skip_extras=self.ARGS['google-skip-extras-files'],
                     keep_takeout_folder=self.ARGS['google-keep-takeout-folder'],
                     ignore_takeout_structure=self.ARGS['google-ignore-check-structure'],
+                    filedates_json = self.initial_filedates_json,
                     step_name=step_name,
                     log_level=LOG_LEVEL
                 )
@@ -1081,7 +1084,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         LOGGER.info(f"================================================================================================================================================")
         LOGGER.info(f"")
         # Save the final output_dates_metadata.json
-        self.output_folder_analyzer.save_to_json(f"takeout_output_dates_metadata_final.json", step_name=step_name)
+        self.final_filedates_json = self.output_folder_analyzer.save_to_json(f"takeout_output_dates_metadata_final.json", step_name=step_name)
         # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
         removed = force_remove_directory_faster(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
         if removed:
@@ -1707,7 +1710,7 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
             return process.returncode
 
 
-def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, no_symbolic_albums=False, keep_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=None):
+def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, no_symbolic_albums=False, keep_takeout_folder=False, ignore_takeout_structure=False, filedates_json=None, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         """Runs the GPTH Tool command to process photos."""
         input_folder = os.path.abspath(input_folder)
@@ -1801,20 +1804,26 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         if Version(GPTH_VERSION) >= Version("4.0.0"):
             gpth_command.append("--write-exif")
 
+        # From version 4.0.8 onwards a new flag --fix-extensions was added to fix those files whose extensions does not match with its mime type.
+        elif Version(GPTH_VERSION) == Version("4.0.8"):
+            gpth_command.append("--fix-extensions")
+
+        # From version 4.0.9 the flag --fix-extensions needs a modifier
         if Version(GPTH_VERSION) >= Version("4.0.9"):
             gpth_command.append("--fix-extensions=standard")
             # gpth_command.append("--fix-extensions=conservative")
             # gpth_command.append("--fix-extensions=solo")
             # gpth_command.append("--fix-extensions=none")
 
-        elif Version(GPTH_VERSION) == Version("4.0.8"):
-            gpth_command.append("--fix-extensions")
-
         if Version(GPTH_VERSION) >= Version("4.1.0"):
             gpth_command.append("--guess-from-name")
-            # TODO: Implement this again when tested in 4.2.0
             if not Version(GPTH_VERSION) == Version("4.2.0"):
-                gpth_command.append("--divide-partner-shared")
+                gpth_command.append("--divide-partner-shared")  # This flag was temporarilly removed in 4.2.0 but restored again in 4.2.1 and onwards
+
+        # From version 4.3.0 onwards a new flag --fileDates has been introduced to provide a JSON file with a dictionary of Dates per file (this will speed-up GPTH date extraction a lot).
+        if Version(GPTH_VERSION) >= Version("4.3.0"):
+            if filedates_json and os.path.exists(filedates_json):
+                gpth_command.extend(["--fileDates", filedates_json])
 
         try:
             command = ' '.join(gpth_command)
