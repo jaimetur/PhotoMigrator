@@ -20,7 +20,7 @@
 
     - #### Step 4 (Extract Dates) & 5 (Write EXIF) Optimization
       - ##### ⚡ Performance
-        - Step 4 (READ-EXIF) now support --fileDates flag to provide a JSON dictionar with the Extracted dates per file (PhotoMigrator creates this file and can now be used by GPTH Tool).
+        - Step 4 (READ-EXIF) now support --fileDates flag to provide a JSON dictionary with the Extracted dates per file (PhotoMigrator creates this file and can now be used by GPTH Tool).
         - Step 4 (READ-EXIF) now uses batch reads and a fast native mode, with ExifTool only as fallback → about 3x faster metadata extraction.  
         - Step 5 (WRITE-EXIF) supports batch writes and argfile mode, plus native JPEG writers → up to 5x faster on large collections.
       - ##### 🔧 API
