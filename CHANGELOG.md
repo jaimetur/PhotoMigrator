@@ -8,7 +8,7 @@
 
 - ### Main Changes:
   - #### 🚀 Enhancements:
-    - Separate Steps for Analyze Input Takeout files and Analyze Output files in feature `Google Takeout Processing`. No the Analyzer for the Input Takeout folder is executed after Pre-Processing steps, in this way the extracted dates JSON dictionary will match with for all input files during GPTH processing phase.
+    - Separate Steps for Analyze Input Takeout files and Analyze Output files in feature `Google Takeout Fixing`. Now the Analyzer for the Input Takeout folder is executed after Pre-Processing steps, in this way the extracted dates JSON dictionary will match for all input files during GPTH processing phase even if any file was renamed during any pre-processing step.
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.
