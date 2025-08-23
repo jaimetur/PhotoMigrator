@@ -1,6 +1,7 @@
 # 🗓️ CHANGELOG
 [Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for the following releases
 [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) for the past releases+
+
 ---
 
 ## Release: v3.5.2
@@ -12,6 +13,8 @@
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.
+
+
 ---
 
 ## Release: v3.5.1
