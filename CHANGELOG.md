@@ -4,7 +4,7 @@
 ---
 
 ## Release: v3.5.2
-- ### Release Date: 2025-08-25
+- ### Release Date: 2025-08-23
 
 - ### Main Changes:
   - #### 🚀 Enhancements:
