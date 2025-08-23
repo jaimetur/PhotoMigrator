@@ -67,6 +67,7 @@ Below you can see the different steps of this feature:
 #### 5. 🔢 Calculate statistics of your Final processed Media Library
 
 #### 6. ✅ Post Process steps
+`(default=enabled. Can be disabled using flag '-gSkipPost; --google-skip-postprocess')`
   - 6.1. 🕒 Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
   - 6.2. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
   - 6.3. 📁 Organize your assets in a year/month structure for a better organization. 
