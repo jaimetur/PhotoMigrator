@@ -5,11 +5,15 @@
 ---
 
 ## Release: v3.5.2
-- ### Release Date: 2025-08-23
+- ### Release Date: 2025-08-24
 
 - ### Main Changes:
   - #### 🚀 Enhancements:
     - Separate Steps for Analyze Input Takeout files and Analyze Output files in feature `Google Takeout Fixing`. Now the Analyzer for the Input Takeout folder is executed after Pre-Processing steps, in this way the extracted dates JSON dictionary will match for all input files during GPTH processing phase even if any file was renamed during any pre-processing step.
+    - Show dictMiss files in GPTH log to see those files that have not been found in dates dictionary when it was passed as argument using --fileDates
+
+  - #### 🐛 Bug fixes:
+    - Fixed a bug in GPTH in JSON Matcher service when the JSON filename lenght is longer than 51 chars. In those cases the tool was trying to find a truncated JSON variant and never try to match with the full filename, but PhotoMigrator fixes Truncations during Pre-process, so it was never found.
 
   - #### 📚 Documentation: 
     - [x] Updated documentation with all changes.
