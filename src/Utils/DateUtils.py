@@ -231,7 +231,13 @@ def guess_date_from_filename(path, step_name="", log_level=None):
     with set_log_level(GV.LOGGER, log_level):
         local_tz = datetime.now().astimezone().tzinfo
         path = Path(path)
-        candidates = [(path.name, "filename"), (str(path), "filepath")]
+
+        # Restrict search scope to filename, parent and grandparent folder names
+        candidates = [(path.name, "filename")]
+        if path.parent and path.parent.name:
+            candidates.append((path.parent.name, "filepath"))
+            if path.parent.parent and path.parent.parent.name:
+                candidates.append((path.parent.parent.name, "filepath"))
 
         # Patrones más inteligentes, con control de separadores y zonas horarias
         patterns = [
