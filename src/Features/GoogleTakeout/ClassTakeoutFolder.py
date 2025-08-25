@@ -847,7 +847,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             if not self.ARGS['google-skip-move-albums']:
                 LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
-                replacements1 = move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+
+                if Version(GPTH_VERSION) >= Version("4.3.0"):
+                    album_folder = os.path.join('Albums', output_folder)
+                else:
+                    album_folder = output_folder
+
+                replacements1 = move_albums(input_folder=album_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 # Now modify the object analyzer with all the files changed during this step
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements1, step_name=step_name)
                 # Finally Move Albums to Albums root folder
