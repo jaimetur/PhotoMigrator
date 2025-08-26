@@ -75,6 +75,7 @@ class ClassLocalFolder:
 
         # Definition of folder exclusion patterns
         self.FOLDER_EXCLUSION_PATTERNS = [
+            r"_Duplicates",  # Excludes the specific "_Duplicates" folder
             r"@eaDir",  # Excludes the specific "@eaDir" folder
             r"\..+"  # Excludes any hidden folder (starting with ".")
         ]
@@ -1069,11 +1070,10 @@ class ClassLocalFolder:
     #         LOGGER.debug(f"{len(assets)} assets in shared album '{album_id}'.")
     #         return assets
 
-
     def get_all_assets_without_albums(self, type='all', log_level=logging.WARNING):
         """
-        Lists assets that are in self.base_folder but not in self.albums_folder
-        or self.shared_albums_folder, with optional filtering by file type.
+        Lists assets that are in self.base_folder but not in self.albums_folder,
+        self.shared_albums_folder, or '_Duplicates' folder, with optional filtering by file type.
 
         Args:
             type (str): Type of assets to retrieve. Options are 'all', 'photo',
@@ -1089,7 +1089,7 @@ class ClassLocalFolder:
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"Retrieving {type} assets excluding albums, shared albums, and excluded patterns.")
+            LOGGER.info(f"Retrieving {type} assets excluding albums, shared albums, _Duplicates, and excluded patterns.")
 
             # Return cached if already computed
             if self.assets_without_albums_filtered is not None:
@@ -1100,6 +1100,7 @@ class ClassLocalFolder:
 
             albums_folder = Path(self.albums_folder.resolve())
             shared_albums_folder = Path(self.shared_albums_folder.resolve())
+            duplicates_folder = self.base_folder / "_Duplicates"
             sel_ext = self._get_selected_extensions(type)
 
             assets = []
@@ -1117,6 +1118,12 @@ class ClassLocalFolder:
                     pass
                 try:
                     f.relative_to(shared_albums_folder)
+                    continue
+                except ValueError:
+                    pass
+                # skip any path under _Duplicates
+                try:
+                    f.relative_to(duplicates_folder)
                     continue
                 except ValueError:
                     pass
@@ -1139,17 +1146,16 @@ class ClassLocalFolder:
                 })
 
             # include takeout metadata, sidecar, unsupported files also outside albums
-            metadata = [ { 'id': a['id'], **a } for a in self.get_takeout_assets_by_filters('metadata') ]
-            sidecar  = [ { 'id': a['id'], **a } for a in self.get_takeout_assets_by_filters('sidecar') ]
-            unsupported = [ { 'id': a['id'], **a } for a in self.get_takeout_assets_by_filters('unsupported') ]
+            metadata = [{'id': a['id'], **a} for a in self.get_takeout_assets_by_filters('metadata')]
+            sidecar = [{'id': a['id'], **a} for a in self.get_takeout_assets_by_filters('sidecar')]
+            unsupported = [{'id': a['id'], **a} for a in self.get_takeout_assets_by_filters('unsupported')]
 
             all_assets = assets + metadata + sidecar + unsupported
 
-            LOGGER.info(f"Found {len(all_assets)} assets of type '{type}' in No-Album folders.")
+            LOGGER.info(f"Found {len(all_assets)} assets of type '{type}' in No-Album folders (excluding _Duplicates).")
             # cache result for next calls
             self.assets_without_albums_filtered = all_assets
             return all_assets
-
 
     # def get_all_assets_without_albums(self, type='all', log_level=logging.WARNING):
     #     """
