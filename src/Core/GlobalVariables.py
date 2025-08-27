@@ -10,9 +10,9 @@ from colorama import Fore
 #---------------------------------------
 COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 TOOL_NAME                       = "PhotoMigrator"
-TOOL_VERSION_WITHOUT_V          = "3.5.2"
+TOOL_VERSION_WITHOUT_V          = "3.5.3"
 TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
-TOOL_DATE                       = "2025-08-24"
+TOOL_DATE                       = "2025-08-30"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
 GPTH_VERSION                    = "4.3.0"
@@ -26,15 +26,19 @@ TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
 # Define Project root folder
 PROJECT_ROOT                    = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
+# Customizable Dates Separator for function 'rename_album_folders'
+DATE_SEPARATOR                  = '-'
+RANGE_OF_DATES_SEPARATOR        = '--'
+
 # Customizable DIR Folders
-CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_FOLDERS
-FOLDERNAME_GPTH                 = 'gpth_tool'                                   # To be Changed in set_FOLDERS
-FOLDERNAME_EXIFTOOL             = 'exif_tool'                                   # To be Changed in set_FOLDERS
-FOLDERNAME_ALBUMS               = "Albums"                                      # To be Changed in set_FOLDERS
-FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  # To be Changed in set_FOLDERS
-FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_FOLDERS
-FOLDERNAME_EXTRACTED_DATES      = "Extracted_Dates"                             # To be Changed in set_FOLDERS
-FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_FOLDERS
+CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_GLOBAL_VARIABLES
+FOLDERNAME_GPTH                 = 'gpth_tool'                                   # To be Changed in set_GLOBAL_VARIABLES
+FOLDERNAME_EXIFTOOL             = 'exif_tool'                                   # To be Changed in set_GLOBAL_VARIABLES
+FOLDERNAME_ALBUMS               = "Albums"                                      # To be Changed in set_GLOBAL_VARIABLES
+FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  # To be Changed in set_GLOBAL_VARIABLES
+FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_GLOBAL_VARIABLES
+FOLDERNAME_EXTRACTED_DATES      = "Extracted_Dates"                             # To be Changed in set_GLOBAL_VARIABLES
+FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_GLOBAL_VARIABLES
 LOG_FILENAME                    = "PhotoMigrator"                               # To be Changed in set_LOGGER
 LOG_LEVEL                       = logging.INFO                                  # To be Changed in set_LOGGER
 

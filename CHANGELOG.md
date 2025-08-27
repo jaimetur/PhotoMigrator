@@ -4,6 +4,19 @@
 
 ---
 
+## Release: v3.5.3
+- ### Release Date: 2025-08-30
+
+- ### Main Changes:
+  - #### 🚨 Breaking Changes:
+    - [x] `Auto-Rename Albums content based` now uses as dates sepparator `-` instead of `.` and as group of dates separator `--` instead of `-`. Those separators can be customized using two new parameters (see below).
+
+  - #### 🌟 New Features:
+    - [x] Added new parameter `-dateSep, --date-separator <DATE_SEPARATOR` to specify the Dates Separator for the Feature `Auto-Rename Albums Content Based`.
+    - [x] Added new parameter `-rangeSep, --range-separator <RANGE_OF_DATES_SEPARATOR` to specify the Range of Dates Separator for the Feature `Auto-Rename Albums Content Based`.
+    
+---
+
 ## Release: v3.5.2
 - ### Release Date: 2025-08-24
 

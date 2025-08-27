@@ -27,9 +27,9 @@ Below you can find the list of all commands that the Tool can receive to execute
 ---------------------------------------------------------------------------------------------------------
 usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noLog]
                      [-logLevel =[VERBOSE, DEBUG, INFO, WARNING, ERROR]] [-logFormat =[LOG, TXT, ALL]]
-                     [-fnAlbums <ALBUMS_FOLDER>] [-fnNoAlbums <NO_ALBUMS_FOLDER>] [-fnLogs <LOG_FOLDER>]
-                     [-fnDuplicat <DUPLICATES_OUTPUT_FOLDER>] [-fnExtDates <EXTRACTED_DATES_FOLDER>]
-                     [-exeGpthTool <GPTH_PATH>] [-exeExifTool <EXIFTOOL_PATH>]
+                     [-dateSep <DATE_SEPARATOR>] [-rangeSep <RANGE_OF_DATES_SEPARATOR>] [-fnAlbums <ALBUMS_FOLDER>]
+                     [-fnNoAlbums <NO_ALBUMS_FOLDER>] [-fnLogs <LOG_FOLDER>] [-fnDuplicat <DUPLICATES_OUTPUT_FOLDER>]
+                     [-fnExtDates <EXTRACTED_DATES_FOLDER>] [-exeGpthTool <GPTH_PATH>] [-exeExifTool <EXIFTOOL_PATH>]
                      [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>] [-client = ['google-takeout', 'synology', 'immich']]
                      [-id [= [1-3]]]
                      [-from <FROM_DATE>] [-to <TO_DATE>] [-type = [image,video,all]]
@@ -40,7 +40,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                      [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                      [-gnas ['flatten', 'year', 'year/month', 'year-month']] [-gics] [-gnsa] [-grdf] [-graf] [-gsef]
-                     [-gsma] [-gSkipGpth] [-gSkipPrep] [-gKeepTakeout]
+                     [-gsma] [-gSkipGpth] [-gSkipPrep] [-gSkipPost] [-gKeepTakeout]
                      [-gpthInfo [= [true,false]]] [-gpthError [= [true,false]]]
                      [-uAlb <ALBUMS_FOLDER>] [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                      [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>]
@@ -50,7 +50,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
 
-PhotoMigrator v3.5.2 - 2025-08-24
+PhotoMigrator v3.5.3 - 2025-08-30
 
           Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
           such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -73,6 +73,10 @@ optional arguments:
                Specify the log level for logging and screen messages.
 -logFormat   ; --log-format =[LOG, TXT, ALL]
                Specify the log file format.
+-dateSep     ; --date-separator <DATE_SEPARATOR>
+               Specify Date Separator used by feature `Auto-Rename Albums Content Based`.
+-rangeSep    ; --range-separator <RANGE_OF_DATES_SEPARATOR>
+               Specify Range of Dates Separator used by feature `Auto-Rename Albums Content Based`.
 -fnAlbums    ; --foldername-albums <ALBUMS_FOLDER>
                Specify the folder name to store all your processed photos associated to any Album.
 -fnNoAlbums  ; --foldername-no-albums <NO_ALBUMS_FOLDER>
@@ -222,6 +226,21 @@ for the rest of the arguments for this extra mode.
                This Pre-process is very important for a high accuracy on the Output, but if you have already done this
                Pre-Processing in a previous execution using the flag '-gKeepTakeout,--google-keep-takeout-folder' then
                you can skip it for that <TAKEOUT_FOLDER>.
+-gSkipPost   ; --google-skip-postprocess
+               Skip Post-process Google Takeout which has following steps:
+                 1.Copy/Move files to Output folder manually.
+                 2.Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file.
+                 3.Separate all your Albums folders within 'Albums' subfolder from the original assets within
+               'ALL_PHOTOS' subfolder.
+                 4.Auto rename Albums folders to homogenize all names based on content dates.
+                 5.Calculate statistics of your Final processed Media Library and compare it with your original Takeout
+               statistics.
+                 6.Organize your assets in a year/month structure for a better organization.
+                 7.Detect and remove duplicates.
+                 8. Remove empty folders.
+                 9.Count Albums.
+                 10.Clean Final Media Library.
+               This Post-process is very important for a better Output. We don't recommend to skip those steps.
 -gKeepTakeout; --google-keep-takeout-folder
                Keeps a untouched copy of your original Takeout folder. (requires double HDD space).
                TIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files,

@@ -56,6 +56,9 @@ def parse_arguments():
                         type=lambda s: s.lower(),  # Convert input to lowercase
                         help="Specify the log file format.",
                         )
+    PARSER.add_argument("-dateSep", "--date-separator", metavar="<DATE_SEPARATOR>", default="-", help="Specify Date Separator used by feature `Auto-Rename Albums Content Based`.")
+    PARSER.add_argument("-rangeSep", "--range-separator", metavar="<RANGE_OF_DATES_SEPARATOR>", default="--", help="Specify Range of Dates Separator used by feature `Auto-Rename Albums Content Based`.")
+
     PARSER.add_argument("-fnAlbums", "--foldername-albums", metavar="<ALBUMS_FOLDER>", default="", help="Specify the folder name to store all your processed photos associated to any Album.")
     PARSER.add_argument("-fnNoAlbums", "--foldername-no-albums", metavar="<NO_ALBUMS_FOLDER>", default="", help="Specify the folder name to store all your processed photos (including those associated to Albums).")
     PARSER.add_argument("-fnLogs", "--foldername-logs", metavar="<LOG_FOLDER>", default="", help="Specify the folder name to save the execution Logs.")

@@ -89,18 +89,22 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
   - None
 - **Explanation:**
   - With this feature, the Tool will rename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format:  
-  - New Album Name: **`yyyy - Album Name` or `yyyy-yyyy - Album Name`**  
-  - where `yyyy` is the year of the files contained in each Album folder (if more than one year is found, then `yyyy-yyyy` will indicate the range of years for the files contained in the Album folder.
+  - New Album Name: **`yyyy - Album Name` or `yyyy--yyyy - Album Name`**  
+  - where `yyyy` is the year of the files contained in each Album folder (if more than one year is found, then `yyyy--yyyy` will indicate the range of years for the files contained in the Album folder.
 - **Example of use:**
   ```
   ./PhotoMigrator.run ---rename-folders-content-based ./MyLocalPhotoLibrary
   ```
   In this example, the Tool will Process your Library of photos in folder `./MyLocalPhotoLibrary` (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:  
-  `yyyy - Cleaned Subfolder Name` or `yyyy-yyyy - Cleaned Subfolder Name`  
+  `yyyy - Cleaned Subfolder Name` or `yyyy--yyyy - Cleaned Subfolder Name`  
    where, 
   - `yyyy` is the year of the assets found in that folder
-  - `yyyy-yyyy` is the range of years for the assets found (if more than one year is found)  
+  - `yyyy--yyyy` is the range of years for the assets found (if more than one year is found)  
   - `Cleaned Subfolder Name` is the name of the folder cleaned and homogenized.  
+
+> [!NOTE]  
+> Default Date Separator `-` can be configured using the new parameter `-dateSep, --date-separator`.  
+> Default Range of Date Separator `--` can be configured using the new parameter `-rangeSep, --range-separator`.  
 
 > [!TIP]  
 > Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  

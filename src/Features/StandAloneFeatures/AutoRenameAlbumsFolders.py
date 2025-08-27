@@ -9,7 +9,7 @@ from datetime import datetime
 import piexif
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT, FOLDERNAME_EXIFTOOL
+from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT, FOLDERNAME_EXIFTOOL, DATE_SEPARATOR, RANGE_OF_DATES_SEPARATOR
 from Utils.StandaloneUtils import get_exif_tool_path
 from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions, batch_replace_sourcefiles_in_json
 
@@ -203,7 +203,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 if oldest_year == latest_year:
                     return str(oldest_year)
                 else:
-                    return f"{oldest_year}-{latest_year}"
+                    return f"{oldest_year}{RANGE_OF_DATES_SEPARATOR}{latest_year}"
             except Exception as e:
                 LOGGER.error(f"{step_name}Error obtaining year range: {e}")
             return False
@@ -250,17 +250,17 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 days = {(dt.year, dt.month, dt.day) for dt in dates}
                 if len(days) == 1:
                     dt = dates[0]
-                    return f"{dt.year:04}.{dt.month:02}.{dt.day:02}"
+                    return f"{dt.year:04}{DATE_SEPARATOR}{dt.month:02}{DATE_SEPARATOR}{dt.day:02}"
                 elif len(months) == 1:
                     y, m = next(iter(months))
-                    return f"{y:04}.{m:02}"
+                    return f"{y:04}{DATE_SEPARATOR}{m:02}"
                 elif len(years) == 1:
                     sorted_months = sorted(months)
-                    start = f"{sorted_months[0][0]:04}.{sorted_months[0][1]:02}"
-                    end = f"{sorted_months[-1][0]:04}.{sorted_months[-1][1]:02}"
-                    return f"{start}-{end}"
+                    start = f"{sorted_months[0][0]:04}{DATE_SEPARATOR}{sorted_months[0][1]:02}"
+                    end = f"{sorted_months[-1][0]:04}{DATE_SEPARATOR}{sorted_months[-1][1]:02}"
+                    return f"{start}{RANGE_OF_DATES_SEPARATOR}{end}"
                 else:
-                    return f"{min(years):04}-{max(years):04}"
+                    return f"{min(years):04}{RANGE_OF_DATES_SEPARATOR}{max(years):04}"
             except Exception as e:
                 LOGGER.error(f"{step_name}Error obtaining date range: {e}")
                 return False
