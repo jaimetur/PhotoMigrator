@@ -15,6 +15,9 @@
     - [x] Added new parameter `-dateSep, --date-separator <DATE_SEPARATOR` to specify the Dates Separator for the Feature `Auto-Rename Albums Content Based`.
     - [x] Added new parameter `-rangeSep, --range-separator <RANGE_OF_DATES_SEPARATOR` to specify the Range of Dates Separator for the Feature `Auto-Rename Albums Content Based`.
     
+  - #### 🚀 Enhancements:
+    - Updated GPTH to version `4.3.1` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+
 ---
 
 ## Release: v3.5.2
