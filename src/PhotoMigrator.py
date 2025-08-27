@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from Core.CustomLogger import custom_log
-from Core.GlobalFunctions import set_FOLDERS
+from Core.GlobalFunctions import set_GLOBAL_VARIABLES
 from Core.GlobalVariables import MSG_TAGS
 
 # Añadir 'src/' al PYTHONPATH
@@ -63,9 +63,9 @@ def PhotoMigrator():
     custom_print(f"Setting ARGS...", log_level=logging.INFO)
     set_ARGS_PARSER()   # Need to be called first of all
     custom_print(f"Setting Global Folders...", log_level=logging.INFO)
-    set_FOLDERS()       # Need to be called after set_ARGS_PARSER() but before set_LOGGER()
+    set_GLOBAL_VARIABLES()       # Need to be called after set_ARGS_PARSER() but before set_LOGGER()
     custom_print(f"Setting Global LOGGER...", log_level=logging.INFO)
-    set_LOGGER()        # Need to be called after set_FOLDERS()
+    set_LOGGER()        # Need to be called after set_GLOBAL_VARIABLES()
     custom_print(f"Setting Global HELP_TEXTS...", log_level=logging.INFO)
     set_HELP_TEXTS()
 
@@ -109,6 +109,8 @@ def PhotoMigrator():
     GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
+    GV.LOGGER.info(f"  - Dates Separator               : '{GV.DATE_SEPARATOR}'")
+    GV.LOGGER.info(f"  - Range of Dates Separator      : '{GV.RANGE_OF_DATES_SEPARATOR}'")
     GV.LOGGER.info(f"  - Project Root                  : {GV.PROJECT_ROOT}")
     GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
     GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
