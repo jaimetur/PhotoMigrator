@@ -20,7 +20,7 @@ body:
     label: Version
     description: What version of our software are you running?
     options:
-    - v3.5.3 (latest)
+    - v3.6.0 (latest)
     - v3.5.2 (latest-stable)
     - v3.5.1
     - v3.5.0
