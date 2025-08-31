@@ -5,7 +5,7 @@
 ---
 
 ## Release: v3.6.0
-- ### Release Date: 2025-08-30
+- ### Release Date: 2025-08-31
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
@@ -16,7 +16,36 @@
     - [x] Added new parameter `-rangeSep, --range-separator <RANGE_OF_DATES_SEPARATOR>` to specify the Range of Dates Separator for the Feature `Auto-Rename Albums Content Based`.
     
   - #### 🚀 Enhancements:
-    - Updated GPTH to version `4.4.0` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+    - Updated GPTH to version `5.0.0` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+
+      - #### ✨ **GPTH New Features**
+        - Support for 7zip and unzip extractors (if found in your system). This is shy the native extractor does not extract properly filenames or dirnames with latin chars.
+        - Support new `Extra` files from Google Takeout with following suffixes: `-motion`, `-animation`, `-collage`.
+        - New flag `--keep-input` to Work on a temporary sibling copy of --input (suffix _tmp), keeping the original untouched.
+
+      - #### 🚀 **GPTH Improvements**
+        - `MediaEntity` Class changed
+          - Removed `files` attribute
+          - Added `primaryFile` and `secondaryFiles` attributes for a better logic.
+          - Added `belongToAlbums` attribute to store All Albums where the media entity was found as a `AlbumInfo` List which can contain many usefull info related to the Album.
+          - Adapted all methods to work with this new structure
+        - All modules have been adapted to the new `MediaEntity` structure.
+        - All Tests have been adapted to the new `MediaEntity` structure.
+        - Homogenized logs for all steps.
+        - Code Structure refactored for a better understanding and easier way to find each module.
+        - Code Refactored to isolate the execution logic of each step into the .execute() function of the step's class. In this way the media_entity_collection module is much clearer and easy to understand and maintain.
+        - Created a single package gpth-lib with all the exported modules for an easier way to manage imports and refactoring.
+        - Added new flag `fallbackToExifToolOnNativeMiss`in `GlobalConfigService` Class to specify if we want to fallback to ExifTool on Native EXIF reader fail. (Normally if Native fails is because EXIF is corrupt, so fallback to ExifTool does not help).
+        - Added new flag `enableBatching`in `GlobalConfigService` Class to specify if we want to enable/disable call ExifTool with batches of files instead of one call per file (this speed-up a lot the EXIF writting time with ExifTool).
+        - Added new flag `maxExifImageBatchSize`in `GlobalConfigService` Class to specify the maximum number of Images for each batch passed in any call to ExifTool.
+        - Added new flag `maxExifVideoBatchSize`in `GlobalConfigService` Class to specify the maximum number of Videos for each batch passed in any call to ExifTool.
+        - Added new flag `forceProcessUnsupportedFormats`in `GlobalConfigService` Class to specify if we want to forze process unsupported format such as `.AVI`, `.MPG`or `.BMP` files with ExifTool.
+        - Added new flag `silenceUnsupportedWarnings`in `GlobalConfigService` Class to specify if we want to recive or silence warnings due to unsupported format on ExifTool calls.
+        - Added new flag `moveDuplicatesToDuplicatesFolder`in `GlobalConfigService` Class to decide what to do with all duplicates file found (remove them directly or move them to `_Duplicates` subfolder within output folder).
+        - Improvements on Statistics results.
+
+      - #### 🐛 **GPTH Bug Fixes**
+        - Now all supported media files are moved from input folder to output folder. So after running GPTH input folder should only contains .json files and unsupported media types.
 
 ---
 
