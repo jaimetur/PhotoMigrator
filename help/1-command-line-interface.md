@@ -41,7 +41,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                      [-gnas ['flatten', 'year', 'year/month', 'year-month']] [-gics] [-gnsa] [-grdf] [-graf] [-gsef]
                      [-gsma] [-gSkipGpth] [-gSkipPrep] [-gSkipPost] [-gKeepTakeout]
-                     [-gpthInfo [= [true,false]]] [-gpthError [= [true,false]]]
+                     [-gpthInfo [= [true,false]]] [-gpthError [= [true,false]]] [-gpthLog]
                      [-uAlb <ALBUMS_FOLDER>] [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                      [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>]
                      [-renAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>] [-rAlb <ALBUMS_NAME_PATTERN>]
@@ -249,6 +249,8 @@ for the rest of the arguments for this extra mode.
                Enable or disable Info messages during GPTH Processing. (default: True).
 -gpthError   ; --show-gpth-errors = [true,false]
                Enable or disable Error messages during GPTH Processing. (default: True).
+-gpthLog     ; --gpth-log
+               Save GPTH log messages into a log file within 'Log' folder.
 
 
 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:

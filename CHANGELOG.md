@@ -14,6 +14,7 @@
   - #### 🌟 New Features:
     - [x] Added new parameter `-dateSep, --date-separator <DATE_SEPARATOR>` to specify the Dates Separator for the Feature `Auto-Rename Albums Content Based`.
     - [x] Added new parameter `-rangeSep, --range-separator <RANGE_OF_DATES_SEPARATOR>` to specify the Range of Dates Separator for the Feature `Auto-Rename Albums Content Based`.
+    - [x] Added new parameter `-gpthLog, --gpth-log` to Save GPTH log messages into a log file within `Logs` folder.
     
   - #### 🚀 Enhancements:
     - Updated GPTH to version `5.0.2` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
