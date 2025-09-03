@@ -23,6 +23,7 @@
         - Support new `Extra` files from Google Takeout with following suffixes: `-motion`, `-animation`, `-collage`.
         - New flag `--keep-input` to Work on a temporary sibling copy of --input (suffix _tmp), keeping the original untouched.
         - New flag `--keep-duplicates` to keep duplicates files in `_Duplicates` subfolder within output folder.
+        - New flag `--save-log` to save log messages into disk file.
         - Created GitHub Action `build-and-create-release.yml` to Automatically build all binaries, create new release (stable or pre-release), update it wiht the release-notes and upload the binaries to the new release.
 
       - #### 🚀 **GPTH Improvements**
