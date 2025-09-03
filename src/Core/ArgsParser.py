@@ -226,6 +226,8 @@ def parse_arguments():
                         type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Error messages during GPTH Processing. (default: True)."
     )
+    PARSER.add_argument("-gpthLog", "--gpth-log", action="store_true", help=f"Save GPTH log messages into a log file within 'Log' folder.")
+
 
     # FEATURES FOR SYNOLOGY/IMMICH PHOTOS:
     # -------------------------------

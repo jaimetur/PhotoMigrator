@@ -1835,9 +1835,19 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 gpth_command.append("--divide-partner-shared")  # This flag was temporarilly removed in 4.2.0 but restored again in 4.2.1 and onwards
 
         # From version 4.3.0 onwards a new flag --fileDates has been introduced to provide a JSON file with a dictionary of Dates per file (this will speed-up GPTH date extraction a lot).
-        if Version(GPTH_VERSION) >= Version("4.3.0"):
+        if Version(GPTH_VERSION) >= Version("4.3.0") and Version(GPTH_VERSION) < Version("5.0.2"):
             if filedates_json and os.path.exists(filedates_json):
                 gpth_command.extend(["--fileDates", filedates_json])
+
+        # From version 5.0.2 onwards flag --fileDates has been renamed to --json-dates
+        if Version(GPTH_VERSION) >= Version("5.0.2"):
+            if filedates_json and os.path.exists(filedates_json):
+                gpth_command.extend(["--json-dates", filedates_json])
+
+        # From version 5.0.2 onwards flag --save-log have been added to save messages log into a file.
+        if Version(GPTH_VERSION) >= Version("5.0.2") and ARGS['gpth-log']:
+            if filedates_json and os.path.exists(filedates_json):
+                gpth_command.extend(["--save-log", filedates_json])
 
         try:
             command = ' '.join(gpth_command)
