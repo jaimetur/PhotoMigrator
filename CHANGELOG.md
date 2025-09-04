@@ -26,6 +26,7 @@
         - New flag `--keep-duplicates` to keep duplicates files in `_Duplicates` subfolder within output folder.
         - New flag `--save-log` to save log messages into disk file.
         - Created GitHub Action `build-and-create-release.yml` to Automatically build all binaries, create new release (stable or pre-release), update it wiht the release-notes and upload the binaries to the new release.
+        - Step 8 (Update creation time) is now multi-platform. Also update creation date for physical files and symlinks on linux/macos.
 
       - #### 🚀 **GPTH Improvements**
         - Created a single package gpth-lib with all the exported modules for an easier way to manage imports and refactoring.

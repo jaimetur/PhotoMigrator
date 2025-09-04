@@ -264,26 +264,31 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             if self.ARGS.get('google-keep-takeout-folder'):
-                # Determine the input_folder depending if the Takeout have been unzipped or not
-                input_folder = self.get_input_folder()
-                LOGGER.info(f"")
-                LOGGER.warning(f"{step_name}Flag '-gKeepTakeout, --google-keep-takeout-folder' detected. Cloning Takeout Folder...")
-                # Generate the target temporary folder path
-                parent_dir = dirname(self.takeout_folder)
-                folder_name = basename(self.takeout_folder)
-                cloned_folder = os.path.join(parent_dir, f"{folder_name}_tmp_{TIMESTAMP}")
-                # Call the cloning function
-                tmp_folder = clone_folder_fast (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
-                if tmp_folder != self.input_folder:
-                    ARGS['google-takeout'] = tmp_folder
-                    self.unzipped_folder = tmp_folder
-                    self.backup_takeout_folder = input_folder
-                    LOGGER.info(f"{step_name}Takeout folder cloned successfully and will be used as working folder for next steps. ")
-                    LOGGER.info(f"{step_name}Your original Takeout files have been safely preserved in the folder: '{self.backup_takeout_folder}' ")
-                sub_step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                if not self.unzipped_folder:
+                    # Determine the input_folder depending if the Takeout have been unzipped or not
+                    input_folder = self.get_input_folder()
+                    LOGGER.info(f"")
+                    LOGGER.warning(f"{step_name}Flag '-gKeepTakeout, --google-keep-takeout-folder' detected. Cloning Takeout Folder...")
+                    # Generate the target temporary folder path
+                    parent_dir = dirname(self.takeout_folder)
+                    folder_name = basename(self.takeout_folder)
+                    cloned_folder = os.path.join(parent_dir, f"{folder_name}_tmp_{TIMESTAMP}")
+                    # Call the cloning function
+                    tmp_folder = clone_folder_fast (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
+                    if tmp_folder != self.input_folder:
+                        ARGS['google-takeout'] = tmp_folder
+                        self.unzipped_folder = tmp_folder
+                        self.backup_takeout_folder = input_folder
+                        LOGGER.info(f"{step_name}Takeout folder cloned successfully and will be used as working folder for next steps. ")
+                        LOGGER.info(f"{step_name}Your original Takeout files have been safely preserved in the folder: '{self.backup_takeout_folder}' ")
+                    sub_step_end_time = datetime.now()
+                    formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+                    LOGGER.info(f"")
+                    LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                else:
+                    LOGGER.warning(f"{step_name}Flag '-gKeepTakeout, --google-keep-takeout-folder' detected, but Takeout have been unzipped. No need to create a clone of Input folder")
+                    formatted_duration = f"Skipped"
+                    LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[') + 1: step_name.rfind(']')].strip()}'")
             else:
                 formatted_duration = f"Skipped"
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
@@ -1846,7 +1851,6 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         # From version 5.0.2 onwards flag --save-log have been added to save messages log into a file.
         if Version(GPTH_VERSION) >= Version("5.0.2") and ARGS['gpth-log']:
-            if filedates_json and os.path.exists(filedates_json):
                 gpth_command.extend(["--save-log", filedates_json])
 
         try:
