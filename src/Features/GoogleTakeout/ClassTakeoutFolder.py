@@ -955,7 +955,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             if self.ARGS['google-rename-albums-folders']:
                 LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
-                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], date_dict=self.output_folder_analyzer.extracted_dates, step_name=step_name, log_level=LOG_LEVEL)
                 # Extrae la lista de tuplas (old_path, new_path)
                 replacements = rename_output['replacements']
                 # Now modify the object analyzer with all the files changed during this step

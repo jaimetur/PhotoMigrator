@@ -17,6 +17,12 @@
     - [x] Added new parameter `-gpthLog, --gpth-log` to Save GPTH log messages into a log file within `Logs` folder.
     
   - #### 🚀 Enhancements:
+    - Improvements in `Auto Rename Albums Folders` feature to Compute the best 'oldest_date' per file using the following priority:
+      1. date_dict
+      2. EXIF native (piexif)
+      3. EXIF exiftool
+      4. Filesystem ctime
+      5. Filesystem mtime 
     - Updated GPTH to version `5.0.2` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
 
       - #### ✨ **GPTH New Features**

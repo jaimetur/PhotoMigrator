@@ -440,6 +440,7 @@ class FolderAnalyzer:
         if max_workers is None:
             max_workers = cpu_count() * 16
         self.extracted_dates = {}
+        # FileModifyDate is only used to calculate the most frequent date of each batch, but we don't rely on this tag to get the date
         candidate_tags = ['DateTimeOriginal', 'DateTime', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         local_tz = datetime.now().astimezone().tzinfo
@@ -610,7 +611,7 @@ class FolderAnalyzer:
                 candidates = []
                 for tag in candidate_tags:
                     if tag == "FileModifyDate":
-                        continue
+                        continue # We don't rely on FileModifyDate tag because this is the system date and it is overwritten on file operations.
                     value = entry.get(tag)
                     if not isinstance(value, str):
                         continue

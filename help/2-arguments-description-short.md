@@ -96,8 +96,9 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gSkipGpth`,<br>`--google-skip-gpth-tool`         | Skip processing with GPTH Tool (not recommended)                                                                       |
 | `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).                                                             |
 | `-gKeepTakeout`,<br>`--google-keep-takeout-folder` | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
-| `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                                                                            |
-| `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true)                                                                               |
+| `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true).                                                                           |
+| `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true).                                                                              |
+| `-gpthLog`,<br>`--gpth-log`                        | Save GPTH log messages into a log file within `Logs` folder.                                                           |
 
 #### 🧪 Examples:
 ```bash
