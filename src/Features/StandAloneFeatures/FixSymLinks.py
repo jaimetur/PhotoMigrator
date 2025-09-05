@@ -96,6 +96,6 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=None):
                             if not already_warned:
                                 LOGGER.warning("")
                                 already_warned = True
-                            LOGGER.warning(f"{step_name}Could not find the file for {file_path} within {input_folder}")
+                            LOGGER.warning(f"{step_name}File not found: {file_path}")
                             failed_count += 1
         return corrected_count, failed_count
