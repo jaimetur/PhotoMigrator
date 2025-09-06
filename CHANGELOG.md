@@ -83,8 +83,6 @@
           - Added more statistics to `Step 6: Move Files` 
           - Added more statistics to `Step 8: Update Creation Time`.
           - Total execution time is now shown as hh:mm:ss instead of only minutes.
-        - Replace all `print()` functions by `logPrint()` method from LoggerMixin class. In this way all messages are registered both on screen and also on the logger (and saved to disk if flag `--save-log` is enabled).
-        - All console messages have now a Step prefix to identify from which step or service they come from.
 
       - #### 🐛 **GPTH Bug Fixes**
         - Fixed #65: Now all supported media files are moved from input folder to output folder. So after running GPTH input folder should only contain .json files and unsupported media types.
