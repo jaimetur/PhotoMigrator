@@ -12,6 +12,7 @@
   - #### 🚀 Enhancements:
     - Now `Logs`, `Extracted_dates_metadata.json` and `Duplcicates.csv` files are saved at Output folder by default when `Google Takeout Processing` feature is detected
     - Updated GPTH to version `5.0.3` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+    
       - #### 🚀 **GPTH Improvements**
         - Replace all `print()` functions by `logPrint()` method from LoggerMixin class. In this way all messages are registered both on screen and also on the logger (and saved to disk if flag `--save-log` is enabled).
         - All console messages have now a Step prefix to identify from which step or service they come from.
