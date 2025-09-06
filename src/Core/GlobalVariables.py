@@ -10,9 +10,9 @@ from colorama import Fore
 #---------------------------------------
 COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 TOOL_NAME                       = "PhotoMigrator"
-TOOL_VERSION_WITHOUT_V          = "3.6.0"
+TOOL_VERSION_WITHOUT_V          = "3.6.1"
 TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
-TOOL_DATE                       = "2025-08-31"
+TOOL_DATE                       = "2025-09-06"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
 GPTH_VERSION                    = "5.0.3"
@@ -36,6 +36,7 @@ FOLDERNAME_GPTH                 = 'gpth_tool'                                   
 FOLDERNAME_EXIFTOOL             = 'exif_tool'                                   # To be Changed in set_GLOBAL_VARIABLES
 FOLDERNAME_ALBUMS               = "Albums"                                      # To be Changed in set_GLOBAL_VARIABLES
 FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  # To be Changed in set_GLOBAL_VARIABLES
+OUTPUT_TAKEOUT_FOLDER           = "Takeout_processed"                           # To be Changed in set_GLOBAL_VARIABLES
 FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_GLOBAL_VARIABLES
 FOLDERNAME_EXTRACTED_DATES      = "Extracted_Dates"                             # To be Changed in set_GLOBAL_VARIABLES
 FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_GLOBAL_VARIABLES

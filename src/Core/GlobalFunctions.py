@@ -21,17 +21,25 @@ def set_ARGS_PARSER():
     GV.PARSER = parser
 
 def set_GLOBAL_VARIABLES():
-    GV.DATE_SEPARATOR               = GV.ARGS.get('date-separator')                                     or GV.DATE_SEPARATOR
-    GV.RANGE_OF_DATES_SEPARATOR     = GV.ARGS.get('range-separator')                                    or GV.RANGE_OF_DATES_SEPARATOR
+    if GV.ARGS['google-takeout']:
+        if GV.ARGS['output-folder']:
+            GV.OUTPUT_TAKEOUT_FOLDER    = resolve_external_path(GV.ARGS['output-folder'])                                                               or GV.OUTPUT_TAKEOUT_FOLDER
+        else:
+            GV.OUTPUT_TAKEOUT_FOLDER    = resolve_external_path(f"{GV.ARGS['google-takeout']}_{GV.ARGS['google-output-folder-suffix']}_{GV.TIMESTAMP}") or GV.OUTPUT_TAKEOUT_FOLDER
+        GV.FOLDERNAME_EXTRACTED_DATES   = resolve_external_path(GV.ARGS.get('foldername-extracted-dates')                                               or GV.OUTPUT_TAKEOUT_FOLDER)
+        GV.FOLDERNAME_DUPLICATES_OUTPUT = resolve_external_path(GV.ARGS.get('foldername-duplicates-output')                                             or GV.OUTPUT_TAKEOUT_FOLDER)
+        GV.FOLDERNAME_LOGS              = resolve_external_path(GV.ARGS.get('foldername-logs')                                                          or GV.OUTPUT_TAKEOUT_FOLDER)
+    else:
+        GV.FOLDERNAME_EXTRACTED_DATES   = resolve_external_path(GV.ARGS.get('foldername-extracted-dates')                                               or GV.FOLDERNAME_EXTRACTED_DATES)
+        GV.FOLDERNAME_DUPLICATES_OUTPUT = resolve_external_path(GV.ARGS.get('foldername-duplicates-output')                                             or GV.FOLDERNAME_DUPLICATES_OUTPUT)
+        GV.FOLDERNAME_LOGS              = resolve_external_path(GV.ARGS.get('foldername-logs')                                                          or GV.FOLDERNAME_LOGS)
 
-    GV.FOLDERNAME_ALBUMS            = GV.ARGS.get('foldername-albums')                                  or GV.FOLDERNAME_ALBUMS
-    GV.FOLDERNAME_NO_ALBUMS         = GV.ARGS.get('foldername-no-albums')                               or GV.FOLDERNAME_NO_ALBUMS
-    GV.CONFIGURATION_FILE           = resolve_external_path(GV.ARGS.get('configuration-file')           or GV.CONFIGURATION_FILE)
-    GV.FOLDERNAME_EXTRACTED_DATES   = resolve_external_path(GV.ARGS.get('foldername-extracted-dates')   or GV.FOLDERNAME_EXTRACTED_DATES)
-    GV.FOLDERNAME_DUPLICATES_OUTPUT = resolve_external_path(GV.ARGS.get('foldername-duplicates-output') or GV.FOLDERNAME_DUPLICATES_OUTPUT)
-    GV.FOLDERNAME_LOGS              = resolve_external_path(GV.ARGS.get('foldername-logs')              or GV.FOLDERNAME_LOGS)
-    # GV.FOLDERNAME_GPTH              = resolve_external_path(GV.ARGS.get('exec-gpth-tool'))                or resolve_internal_path(GV.FOLDERNAME_GPTH)
-    # GV.FOLDERNAME_EXIFTOOL          = resolve_external_path(GV.ARGS.get('exec-exif-tool'))                or resolve_internal_path(GV.FOLDERNAME_EXIFTOOL)
+    GV.DATE_SEPARATOR                   = GV.ARGS.get('date-separator')                                                                                 or GV.DATE_SEPARATOR
+    GV.RANGE_OF_DATES_SEPARATOR         = GV.ARGS.get('range-separator')                                                                                or GV.RANGE_OF_DATES_SEPARATOR
+    GV.FOLDERNAME_ALBUMS                = GV.ARGS.get('foldername-albums')                                                                              or GV.FOLDERNAME_ALBUMS
+    GV.FOLDERNAME_NO_ALBUMS             = GV.ARGS.get('foldername-no-albums')                                                                           or GV.FOLDERNAME_NO_ALBUMS
+    GV.CONFIGURATION_FILE               = resolve_external_path(GV.ARGS.get('configuration-file')                                                       or GV.CONFIGURATION_FILE)
+
     # Now resolve GV.FOLDERNAME_GPTH and GV.FOLDERNAME_EXIFTOOL depending on if the user passed them as argument or not. If not we need to resolve using resolve_internal_path to find it within the binary file.
     gpth_arg = GV.ARGS.get('exec-gpth-tool') or ''
     exif_arg = GV.ARGS.get('exec-exif-tool') or ''
@@ -39,7 +47,8 @@ def set_GLOBAL_VARIABLES():
     exif_resolved = resolve_external_path(exif_arg) if exif_arg.strip() else None
     GV.FOLDERNAME_GPTH = gpth_resolved if gpth_resolved and os.path.exists(gpth_resolved) else resolve_internal_path(GV.FOLDERNAME_GPTH)
     GV.FOLDERNAME_EXIFTOOL = exif_resolved if exif_resolved and os.path.exists(exif_resolved) else resolve_internal_path(GV.FOLDERNAME_EXIFTOOL)
-
+    # GV.FOLDERNAME_GPTH              = resolve_external_path(GV.ARGS.get('exec-gpth-tool'))                or resolve_internal_path(GV.FOLDERNAME_GPTH)
+    # GV.FOLDERNAME_EXIFTOOL          = resolve_external_path(GV.ARGS.get('exec-exif-tool'))                or resolve_internal_path(GV.FOLDERNAME_EXIFTOOL)
 
 def set_LOGGER(level_str=None):
     tool_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]

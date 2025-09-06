@@ -23,7 +23,7 @@ from multiprocessing import cpu_count
 from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXTRACTED_DATES, MSG_TAGS
+from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXTRACTED_DATES, MSG_TAGS, TOOL_NAME, TOOL_VERSION
 from Utils.DateUtils import normalize_datetime_utc, is_date_valid, guess_date_from_filename
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
@@ -391,7 +391,7 @@ class FolderAnalyzer:
         # Separate output_filename and output_ext
         output_filename, output_ext = os.path.splitext(output_file)
         # Add TIMESTAMP to output_file
-        output_filename = f"{TIMESTAMP}_{output_filename}"
+        output_filename = f"{TOOL_NAME}_{TOOL_VERSION}_{TIMESTAMP}_{output_filename}"
         output_file = f"{output_filename}{output_ext}"
         output_filepath = os.path.join(FOLDERNAME_EXTRACTED_DATES, output_file)
         os.makedirs(FOLDERNAME_EXTRACTED_DATES, exist_ok=True)

@@ -9,7 +9,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_DUPLICATES_OUTPUT
+from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_DUPLICATES_OUTPUT, TOOL_NAME, TOOL_VERSION
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs
 from Utils.GeneralUtils import tqdm
 from Utils.StandaloneUtils import resolve_external_path
@@ -351,7 +351,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                 timestamp_dir = os.path.join(duplicates_root, 'Duplicates_' + timestamp)
                 os.makedirs(timestamp_dir, exist_ok=True)
                 LOGGER.info(f"{step_name}Results in {timestamp_dir}")
-                duplicates_csv_path = os.path.join(timestamp_dir, f'Duplicates_{timestamp}.csv')
+                duplicates_csv_path = os.path.join(timestamp_dir, f'{TOOL_NAME}_{TOOL_VERSION}_{timestamp}_Duplicates.csv')
                 header = ['Num_Duplicates', 'Principal', 'Duplicate', 'Principal_Path', 'Duplicate_Path', 'Action', 'Reason for Principal']
                 if duplicates_action == 'move':
                     header.append('Destination')

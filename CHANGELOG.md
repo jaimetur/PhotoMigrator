@@ -4,6 +4,20 @@
 
 ---
 
+## Release: v3.6.1
+- ### Release Date: 2025-09-06
+
+  - ### Main Changes:
+ 
+  - #### 🚀 Enhancements:
+    - Now `Logs`, `Extracted_dates_metadata.json` and `Duplcicates.csv` files are saved at Output folder by default when `Google Takeout Processing` feature is detected
+    - Updated GPTH to version `5.0.3` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+      - #### 🚀 **GPTH Improvements**
+        - Replace all `print()` functions by `logPrint()` method from LoggerMixin class. In this way all messages are registered both on screen and also on the logger (and saved to disk if flag `--save-log` is enabled).
+        - All console messages have now a Step prefix to identify from which step or service they come from.
+
+---
+
 ## Release: v3.6.0
 - ### Release Date: 2025-08-31
 
@@ -23,7 +37,7 @@
       3. EXIF exiftool
       4. Filesystem ctime
       5. Filesystem mtime 
-    - Updated GPTH to version `5.0.3` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+    - Updated GPTH to version `5.0.2` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
 
       - #### ✨ **GPTH New Features**
         - Support for 7zip and unzip extractors (if found in your system). This is because the native extractor does not extract properly filenames or dirnames with UTF-8/latin1 chars.
@@ -83,8 +97,6 @@
           - Added more statistics to `Step 6: Move Files` 
           - Added more statistics to `Step 8: Update Creation Time`.
           - Total execution time is now shown as hh:mm:ss instead of only minutes.
-        - Replace all `print()` functions by `logPrint()` method from LoggerMixin class. In this way all messages are registered both on screen and also on the logger (and saved to disk if flag `--save-log` is enabled).
-        - All console messages have now a Step prefix to identify from which step or service they come from.
 
       - #### 🐛 **GPTH Bug Fixes**
         - Fixed #65: Now all supported media files are moved from input folder to output folder. So after running GPTH input folder should only contain .json files and unsupported media types.
