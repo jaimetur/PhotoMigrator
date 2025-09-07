@@ -38,10 +38,11 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=None):
                         full_path = os.path.join(path, fname)
                         # Only index real files (not symbolic links)
                         if os.path.isfile(full_path) and not os.path.islink(full_path):
-                            # Add the path to the index
-                            if fname not in file_index:
-                                file_index[fname] = []
-                            file_index[fname].append(full_path)
+                            # English comment: store keys in lowercase to make lookup case-insensitive
+                            key = fname.lower()
+                            if key not in file_index:
+                                file_index[key] = []
+                            file_index[key].append(full_path)
             return file_index
 
     def find_real_file(file_index, target_name, log_level=None):
@@ -52,8 +53,10 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=None):
         If none is found, return None.
         """
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            if target_name in file_index and file_index[target_name]:
-                return file_index[target_name][0]
+            # English comment: lookup using lowercase key to be case-insensitive
+            key = (target_name or "").lower()
+            if key in file_index and file_index[key]:
+                return file_index[key][0]
             return None
 
     # ===========================
