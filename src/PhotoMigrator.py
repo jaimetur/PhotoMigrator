@@ -113,6 +113,8 @@ def PhotoMigrator():
     GV.LOGGER.info(f"  - Range of Dates Separator      : '{GV.RANGE_OF_DATES_SEPARATOR}'")
     GV.LOGGER.info(f"  - Project Root                  : {GV.PROJECT_ROOT}")
     GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
+    GV.LOGGER.info(f"  - GPTH TOOL Version             : {GV.GPTH_VERSION}")
+    GV.LOGGER.info(f"  - EXIF TOOL Version             : {GV.EXIFTOOL_VERSION}")
     GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
     GV.LOGGER.info(f"  - Folder/Binary for EXIF TOOL   : {GV.FOLDERNAME_EXIFTOOL}")
     GV.LOGGER.info(f"  - Folder for Duplicates Outputs : {GV.FOLDERNAME_DUPLICATES_OUTPUT}")
