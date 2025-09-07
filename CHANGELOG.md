@@ -10,7 +10,8 @@
   - ### Main Changes:
  
   - #### 🚀 Enhancements:
-    - Now `Logs`, `Extracted_dates_metadata.json` and `Duplcicates.csv` files are saved at Output folder by default when `Google Takeout Processing` feature is detected
+    - Now `Logs`, `Extracted_dates_metadata.json` and `Duplcicates.csv` files are saved at Output folder by default when `Google Takeout Processing` feature is detected.
+    - Improved FixSymLinks to be case-insensitive when looking for real files of symlinks
     - Updated GPTH to version `5.0.4` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
       
       - #### ✨ **GPTH New Features**
@@ -24,6 +25,8 @@
         - Added `reverse-shortcut` strategy to interactive mode.
         - Fixed some moving strategies that was missing some files in the input folder
   
+  - #### 🐛 Bug fixes:
+    - Fixed albums_input_folder in Move Albums step within `Google Takeout Processing` feature.
 
 ---
 

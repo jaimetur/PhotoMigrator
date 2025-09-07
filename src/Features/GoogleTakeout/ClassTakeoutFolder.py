@@ -528,6 +528,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning(f"{step_name}Metadata fixing didn't finish properly due to GPTH error.")
                     LOGGER.warning(f"{step_name}If your Takeout does not contain Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                     return self.result
+
+                # [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # ----------------------------------------------------------------------------------------------------------------------
+                if not self.ARGS['google-no-symbolic-albums']:
+                    LOGGER.info(f"")
+                    LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after Metadata processing with GPTH...")
+                    self.result['symlink_fixed'], self.result['symlink_not_fixed'] = fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+                    LOGGER.info(f"{step_name}Fixed symbolic links after Metadata processing with GPTH")
+
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
@@ -850,15 +859,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{self.step}.{self.substep}. MOVING ALBUMS FOLDER...")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
-            if not self.ARGS['google-skip-move-albums']:
+
+            if Version(GPTH_VERSION) >= Version("4.3.0"):
+                albums_input_folder = os.path.join(output_folder, FOLDERNAME_ALBUMS)
+            else:
+                albums_input_folder = output_folder
+
+            need_to_move_albums = os.path.abspath(albums_input_folder) != os.path.abspath(os.path.join(output_folder, FOLDERNAME_ALBUMS))
+
+            if not self.ARGS['google-skip-move-albums'] and need_to_move_albums:
                 LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
 
-                if Version(GPTH_VERSION) >= Version("4.3.0"):
-                    album_folder = os.path.join('Albums', output_folder)
-                else:
-                    album_folder = output_folder
-
-                replacements1 = move_albums(input_folder=album_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                replacements1 = move_albums(input_folder=albums_input_folder, albums_subfolder=FOLDERNAME_ALBUMS, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 # Now modify the object analyzer with all the files changed during this step
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements1, step_name=step_name)
                 # Finally Move Albums to Albums root folder
@@ -2292,6 +2304,12 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
         albums_path = os.path.join(input_folder, albums_subfolder)
+
+        # English comment: safeguard → if albums_path is the same as input_folder, do nothing
+        if os.path.abspath(input_folder) == os.path.abspath(albums_path):
+            LOGGER.debug(f"{step_name}Skipping move: input_folder and albums_subfolder point to the same directory")
+            return []
+
         exclude_subfolder_paths = [
             os.path.abspath(os.path.join(input_folder, sub))
             for sub in (exclude_subfolder or [])
@@ -2327,6 +2345,7 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
                 replacements.append((old_posix, new_posix))
 
         return replacements
+
 
 
 
