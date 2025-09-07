@@ -96,13 +96,14 @@ class FolderAnalyzer:
             if not os.path.isdir(self.folder_path):
                 self.logger.warning(f"{step_name}❌ Folder does not exist: {self.folder_path}")
                 return
-            # Build raw list of files (no filtering)
+            # Build raw list of files, excluding those starting with "PhotoMigrator_" or "gpth_"
             self.file_list = [
                 (Path(root) / name).as_posix()
                 for root, _, files in os.walk(self.folder_path, followlinks=True)
                 for name in files
+                if not (name.startswith("PhotoMigrator_") or name.startswith("gpth_"))
             ]
-            self.logger.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files.")
+            self.logger.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files (excluded PhotoMigrator_* and gpth_*).")
 
     def _build_file_list_from_extracted_dates(self, step_name='', log_level=None):
         with set_log_level(self.logger, log_level):
