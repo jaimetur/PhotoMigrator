@@ -5,17 +5,25 @@
 ---
 
 ## Release: v3.6.1
-- ### Release Date: 2025-09-06
+- ### Release Date: 2025-09-07
 
   - ### Main Changes:
  
   - #### 🚀 Enhancements:
     - Now `Logs`, `Extracted_dates_metadata.json` and `Duplcicates.csv` files are saved at Output folder by default when `Google Takeout Processing` feature is detected
-    - Updated GPTH to version `5.0.3` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
-    
+    - Updated GPTH to version `5.0.4` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+      
+      - #### ✨ **GPTH New Features**
+         - New album moving strategy `ignore-albums` to completely ignore all Albums content. The difference with `nothing` strategy is that `nothing` don't create Albums folders but process and move all Albums content into `ALL_PHOTOS` folder.
+
       - #### 🚀 **GPTH Improvements**
         - Replace all `print()` functions by `logPrint()` method from LoggerMixin class. In this way all messages are registered both on screen and also on the logger (and saved to disk if flag `--save-log` is enabled).
         - All console messages have now a Step prefix to identify from which step or service they come from.
+
+      - #### 🐛 **Bug Fixes**
+        - Added `reverse-shortcut` strategy to interactive mode.
+        - Fixed some moving strategies that was missing some files in the input folder
+  
 
 ---
 

@@ -2210,6 +2210,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
                     LOGGER.verbose(f"{step_name}Falling back to read EXIF with PIL for: {file_path}")
                 exif_dict = piexif.load(file_path)
                 for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                # for tag in ["DateTimeOriginal", "DateTime"]:
                     tag_id = piexif.ExifIFD.__dict__.get(tag)
                     value = exif_dict["Exif"].get(tag_id)
                     if value:
