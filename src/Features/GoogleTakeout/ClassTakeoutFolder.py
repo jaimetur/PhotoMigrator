@@ -176,30 +176,52 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Present Results
         # ----------------------------------------------------------------------------------------------------------------------
         COL1_WIDTH = 44  # Description
-        COL2_WIDTH = 7  # Counters
-        COL3_WIDTH = 34  # Symlinks / % of photos and videos
+        COL2_WIDTH = 7   # Counters
+        COL3_WIDTH = 40  # "(Physical: xxxx | Symlinks: yyyyyy)"
         TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH
-        SYMLINK_DIGITS = max(1, len(str(result[sub_dict]['total_symlinks'])))
-        PCT_DIGITS = max(1, len(str(int(result[sub_dict]['photos']['pct_with_date']))), len(str(int(result[sub_dict]['photos']['pct_without_date']))), len(str(int(result[sub_dict]['videos']['pct_with_date']))), len(str(int(result[sub_dict]['videos']['pct_without_date'])))) + 2
+
+        inp = result[sub_dict]
+
+        phys_total_files = inp['total_files'] - inp['total_symlinks']
+        phys_supported   = inp['supported_files'] - inp['supported_symlinks']
+        phys_media       = inp['media_files'] - inp['media_symlinks']
+        phys_photos      = inp['photo_files'] - inp['photo_symlinks']
+        phys_videos      = inp['video_files'] - inp['video_symlinks']
+
+        PHYS_DIGITS    = max(6, len(str(max(phys_total_files, phys_supported, phys_media, phys_photos, phys_videos))))
+        SYMLINK_DIGITS = max(6, len(str(max(inp['total_symlinks'], inp['supported_symlinks'], inp['media_symlinks'], inp['photo_symlinks'], inp['video_symlinks']))))
+
+        def fmt_phys_syml(total, syms):
+            phys = total - syms
+            return f"(Physical: {phys:>{PHYS_DIGITS}} | Symlinks: {syms:>{SYMLINK_DIGITS}})"
+
+        PCT_DIGITS = max(
+            3,
+            len(str(int(inp['photos']['pct_with_date']))),
+            len(str(int(inp['photos']['pct_without_date']))),
+            len(str(int(inp['videos']['pct_with_date']))),
+            len(str(int(inp['videos']['pct_without_date'])))
+        ) + 2
 
         LOGGER.info(f"{step_name}Analyzing {folder} completed!")
         LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
-        LOGGER.info(f"{step_name}{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb'] / 1024:>{COL2_WIDTH}.2f} (GB)")
-        LOGGER.info(f"{step_name}{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
+        LOGGER.info(f"{step_name}{'Total Size of ' + folder:<{COL1_WIDTH}}: {inp['total_size_mb'] / 1024:>{COL2_WIDTH}.2f} (GB)")
+        LOGGER.info(f"{step_name}{'Total Files in ' + folder:<{COL1_WIDTH}}: {inp['total_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['total_files'], inp['total_symlinks']):<{COL3_WIDTH}}")
+        LOGGER.info(f"{step_name}{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {inp['unsupported_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['unsupported_files'], 0):<{COL3_WIDTH}}")
+        LOGGER.info(f"{step_name}{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {inp['supported_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['supported_files'], inp['supported_symlinks']):<{COL3_WIDTH}}")
+        LOGGER.info(f"{step_name}{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {inp['non_media_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['non_media_files'], 0):<{COL3_WIDTH}}")
+        LOGGER.info(f"{step_name}{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {inp['metadata_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['metadata_files'], 0):<{COL3_WIDTH}}")
+        LOGGER.info(f"{step_name}{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {inp['sidecar_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['sidecar_files'], 0):<{COL3_WIDTH}}")
         LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
-        LOGGER.info(f"{step_name}{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
-        LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(len(step_name) + TOTAL_WIDTH))
+        LOGGER.info(f"{step_name}{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {inp['media_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['media_files'], inp['media_symlinks']):<{COL3_WIDTH}}")
+        LOGGER.info(f"{step_name}{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {inp['photo_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['photo_files'], inp['photo_symlinks']):<{COL3_WIDTH}}")
+        LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {inp['photos']['with_date']:>{COL2_WIDTH}} ({inp['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)")
+        LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {inp['photos']['without_date']:>{COL2_WIDTH}} ({inp['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)")
+        LOGGER.info(f"{step_name}{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {inp['video_files']:>{COL2_WIDTH}} {fmt_phys_syml(inp['video_files'], inp['video_symlinks']):<{COL3_WIDTH}}")
+        LOGGER.info(f"{step_name}{'      - Correct Date':<{COL1_WIDTH}}: {inp['videos']['with_date']:>{COL2_WIDTH}} ({inp['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)")
+        LOGGER.info(f"{step_name}{'      - Incorrect Date':<{COL1_WIDTH}}: {inp['videos']['without_date']:>{COL2_WIDTH}} ({inp['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)")
         LOGGER.info(f"{step_name}{'-' * TOTAL_WIDTH}")
+
 
         sub_step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
@@ -736,58 +758,108 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
                 LOGGER.info(f"")
                 LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
+                # ---------------------- Column widths ----------------------
                 COL1_WIDTH = 44  # Description
-                COL2_WIDTH = 7  # Counters
-                COL3_WIDTH = 34  # Symlinks / % of photos and videos
+                COL2_WIDTH = 7   # Counters
+                COL3_WIDTH = 38  # "(Physical: xxxx | Symlinks: yyyyyy)"
                 COL4_WIDTH = 18  # diff
                 COL5_WIDTH = 20  # % of input
-                TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH + COL5_WIDTH
-                SYMLINK_DIGITS = max(1, len(str(result['input_counters']['total_symlinks'])), len(str(result['output_counters']['total_symlinks'])))
-                PCT_DIGITS = max(1,
-                                 len(str(int(result['input_counters']['photos']['pct_with_date']))), len(str(int(result['input_counters']['photos']['pct_without_date']))), len(str(int(result['input_counters']['videos']['pct_with_date']))), len(str(int(result['input_counters']['videos']['pct_without_date']))),
-                                 len(str(int(result['output_counters']['photos']['pct_with_date']))), len(str(int(result['output_counters']['photos']['pct_without_date']))), len(str(int(result['output_counters']['videos']['pct_with_date']))), len(str(int(result['output_counters']['videos']['pct_without_date'])))
-                                 ) + 2
+                TOTAL_WIDTH = COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH + COL5_WIDTH + 2
 
-                # Primera parte: resumen de Takeout
+                # ---------------------- Helpers & digit widths ----------------------
+                def _safe_get(d, *keys, default=0):
+                    cur = d
+                    for k in keys:
+                        if not isinstance(cur, dict) or k not in cur:
+                            return default
+                        cur = cur[k]
+                    return cur
+
+                inp = result.get('input_counters', {})
+                out = result.get('output_counters', {})
+
+                pairs = []
+                pairs.append((_safe_get(inp, 'total_files'), _safe_get(inp, 'total_symlinks')))
+                pairs.append((_safe_get(inp, 'unsupported_files'), 0))
+                pairs.append((_safe_get(inp, 'supported_files'), _safe_get(inp, 'supported_symlinks')))
+                pairs.append((_safe_get(inp, 'non_media_files'), 0))
+                pairs.append((_safe_get(inp, 'metadata_files'), 0))
+                pairs.append((_safe_get(inp, 'sidecar_files'), 0))
+                pairs.append((_safe_get(inp, 'media_files'), _safe_get(inp, 'media_symlinks')))
+                pairs.append((_safe_get(inp, 'photo_files'), _safe_get(inp, 'photo_symlinks')))
+                pairs.append((_safe_get(inp, 'video_files'), _safe_get(inp, 'video_symlinks')))
+                pairs.append((_safe_get(out, 'total_files'), _safe_get(out, 'total_symlinks')))
+                pairs.append((_safe_get(out, 'unsupported_files'), 0))
+                pairs.append((_safe_get(out, 'supported_files'), _safe_get(out, 'supported_symlinks')))
+                pairs.append((_safe_get(out, 'non_media_files'), 0))
+                pairs.append((_safe_get(out, 'metadata_files'), 0))
+                pairs.append((_safe_get(out, 'sidecar_files'), 0))
+                pairs.append((_safe_get(out, 'media_files'), _safe_get(out, 'media_symlinks')))
+                pairs.append((_safe_get(out, 'photo_files'), _safe_get(out, 'photo_symlinks')))
+                pairs.append((_safe_get(out, 'video_files'), _safe_get(out, 'video_symlinks')))
+
+                phys_vals = [max(0, (t or 0) - (s or 0)) for (t, s) in pairs]
+                sym_vals  = [s or 0 for (_, s) in pairs]
+                PHYS_DIGITS = max(6, *(len(str(v)) for v in phys_vals))
+                SYMLINK_DIGITS = max(6, *(len(str(v)) for v in sym_vals))
+
+                def fmt_phys_syml(total, syms):
+                    # single-line formatter "(Physical: ### | Symlinks: ######)"
+                    phys = max(0, (total or 0) - (syms or 0))
+                    return f"(Physical: {phys:>{PHYS_DIGITS}} | Symlinks: {syms:>{SYMLINK_DIGITS}})"
+
+                PCT_DIGITS = max(
+                    3,
+                    len(str(int(_safe_get(inp, 'photos', 'pct_with_date', default=0)))),
+                    len(str(int(_safe_get(inp, 'photos', 'pct_without_date', default=0)))),
+                    len(str(int(_safe_get(inp, 'videos', 'pct_with_date', default=0)))),
+                    len(str(int(_safe_get(inp, 'videos', 'pct_without_date', default=0)))),
+                    len(str(int(_safe_get(out, 'photos', 'pct_with_date', default=0)))),
+                    len(str(int(_safe_get(out, 'photos', 'pct_without_date', default=0)))),
+                    len(str(int(_safe_get(out, 'videos', 'pct_with_date', default=0)))),
+                    len(str(int(_safe_get(out, 'videos', 'pct_without_date', default=0))))
+                ) + 2
+
+                # ---------------------- INPUT SUMMARY ----------------------
                 folder = 'Takeout folder'
                 sub_dict = 'input_counters'
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.2f} (GB)")
-                LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
+                LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['total_files'], result[sub_dict]['total_symlinks']):<{COL3_WIDTH}}")
+                LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['unsupported_files'], 0):<{COL3_WIDTH}}")
+                LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['supported_files'], result[sub_dict]['supported_symlinks']):<{COL3_WIDTH}}")
+                LOGGER.info(f"{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['non_media_files'], 0):<{COL3_WIDTH}}")
+                LOGGER.info(f"{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['metadata_files'], 0):<{COL3_WIDTH}}")
+                LOGGER.info(f"{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['sidecar_files'], 0):<{COL3_WIDTH}}")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)".ljust(TOTAL_WIDTH))
+                LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['media_files'], result[sub_dict]['media_symlinks']):<{COL3_WIDTH}}")
+                LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['photo_files'], result[sub_dict]['photo_symlinks']):<{COL3_WIDTH}}")
+                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_with_date']:>{PCT_DIGITS}.1f}%)")
+                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['photos']['pct_without_date']:>{PCT_DIGITS}.1f}%)")
+                LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['video_files'], result[sub_dict]['video_symlinks']):<{COL3_WIDTH}}")
+                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_with_date']:>{PCT_DIGITS}.1f}%)")
+                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({result[sub_dict]['videos']['pct_without_date']:>{PCT_DIGITS}.1f}%)")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
 
-                # Segunda parte: resumen de Output con diferencias respecto a Takeout
+                # ---------------------- OUTPUT SUMMARY (with diffs) ----------------------
                 folder = 'Output folder'
                 sub_dict = 'output_counters'
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"{'Total Size of ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_size_mb']/1024:>{COL2_WIDTH}.2f} (GB)")
-                LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} ({result[sub_dict]['total_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_files:>5.1f}% of input)")
-                LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_unsupported_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_unsupported_files:>5.1f}% of input)")
-                LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} ({result[sub_dict]['supported_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_supported_files:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_supported_files:>5.1f}% of input)")
-                LOGGER.info(f"{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_non_media:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_non_media:>5.1f}% of input)")
-                LOGGER.info(f"{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_metadata:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_metadata:>5.1f}% of input)")
-                LOGGER.info(f"{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} ({'0':>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_sidecars:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_sidecars:>5.1f}% of input)")
+                LOGGER.info(f"{'Total Files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['total_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['total_files'], result[sub_dict]['total_symlinks']):<{COL3_WIDTH}}| (diff: {diff_output_input_total_files:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_files:>5.1f}% of input)")
+                LOGGER.info(f"{'Total Non-Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['unsupported_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['unsupported_files'], 0):<{COL3_WIDTH}}| (diff: {diff_output_input_total_unsupported_files:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_unsupported_files:>5.1f}% of input)")
+                LOGGER.info(f"{'Total Supported files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['supported_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['supported_files'], result[sub_dict]['supported_symlinks']):<{COL3_WIDTH}}| (diff: {diff_output_input_total_supported_files:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_supported_files:>5.1f}% of input)")
+                LOGGER.info(f"{'  - Total Non-Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['non_media_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['non_media_files'], 0):<{COL3_WIDTH}}| (diff: {diff_output_input_total_non_media:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_non_media:>5.1f}% of input)")
+                LOGGER.info(f"{'    - Total Metadata in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['metadata_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['metadata_files'], 0):<{COL3_WIDTH}}| (diff: {diff_output_input_total_metadata:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_metadata:>5.1f}% of input)")
+                LOGGER.info(f"{'    - Total Sidecars in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['sidecar_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['sidecar_files'], 0):<{COL3_WIDTH}}| (diff: {diff_output_input_total_sidecars:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_sidecars:>5.1f}% of input)")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} ({result[sub_dict]['media_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_media:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_media:>5.1f}% of input)")
-                LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} ({result[sub_dict]['photo_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_images:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_images:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({output_perc_photos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_with_date:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({output_perc_photos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_photos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_photos_without_date:>5.1f}% of input)")
-                LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} ({result[sub_dict]['video_symlinks']:>{SYMLINK_DIGITS}} of them are Symlinks)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({output_perc_videos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_with_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_with_date:>5.1f}% of input)")
-                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({output_perc_videos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"| (diff: {diff_output_input_total_videos_without_date:>7})".ljust(COL4_WIDTH) + f"| ({perc_of_input_total_videos_without_date:>5.1f}% of input)")
+                LOGGER.info(f"{'  - Total Media files in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['media_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['media_files'], result[sub_dict]['media_symlinks']):<{COL3_WIDTH}}| (diff: {diff_output_input_total_media:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_media:>5.1f}% of input)")
+                LOGGER.info(f"{'    - Total Photos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['photo_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['photo_files'], result[sub_dict]['photo_symlinks']):<{COL3_WIDTH}}| (diff: {diff_output_input_total_images:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_images:>5.1f}% of input)")
+                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['with_date']:>{COL2_WIDTH}} ({output_perc_photos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"   | (diff: {diff_output_input_total_photos_with_date:>7})".ljust(COL4_WIDTH) + f" | ({perc_of_input_total_photos_with_date:>5.1f}% of input)")
+                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['photos']['without_date']:>{COL2_WIDTH}} ({output_perc_photos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"   | (diff: {diff_output_input_total_photos_without_date:>7})".ljust(COL4_WIDTH) + f" | ({perc_of_input_total_photos_without_date:>5.1f}% of input)")
+                LOGGER.info(f"{'    - Total Videos in ' + folder:<{COL1_WIDTH}}: {result[sub_dict]['video_files']:>{COL2_WIDTH}} {fmt_phys_syml(result[sub_dict]['video_files'], result[sub_dict]['video_symlinks']):<{COL3_WIDTH}}| (diff: {diff_output_input_total_videos:>7})".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH + COL4_WIDTH) + f" | ({perc_of_input_total_videos:>5.1f}% of input)")
+                LOGGER.info(f"{'      - Correct Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['with_date']:>{COL2_WIDTH}} ({output_perc_videos_with_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"   | (diff: {diff_output_input_total_videos_with_date:>7})".ljust(COL4_WIDTH) + f" | ({perc_of_input_total_videos_with_date:>5.1f}% of input)")
+                LOGGER.info(f"{'      - Incorrect Date':<{COL1_WIDTH}}: {result[sub_dict]['videos']['without_date']:>{COL2_WIDTH}} ({output_perc_videos_without_date:>{PCT_DIGITS}.1f}%)".ljust(COL1_WIDTH + COL2_WIDTH + COL3_WIDTH) + f"   | (diff: {diff_output_input_total_videos_without_date:>7})".ljust(COL4_WIDTH) + f" | ({perc_of_input_total_videos_without_date:>5.1f}% of input)")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
 
                 LOGGER.info(f"")
@@ -817,6 +889,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 super().__init__(output_folder)
 
             return self.result
+
 
     def post_process(self, input_folder=None, output_folder=None, albums_folder=None, log_level=None):
         # Start the Post Process

@@ -12,6 +12,7 @@
   - #### 🚀 Enhancements:
     - Now `Logs`, `Extracted_dates_metadata.json` and `Duplcicates.csv` files are saved at Output folder by default when `Google Takeout Processing` feature is detected.
     - Improved FixSymLinks to be case-insensitive when looking for real files of symlinks.
+    - Improvements in Analysis Output Statistics to separate Physical and Symlinks files.
     - Show GPTH Tool and EXIF Tool version in Global Configuration settings at the beginning of the tool.
     - Updated GPTH to version `5.0.4` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
       
