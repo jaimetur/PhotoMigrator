@@ -17,16 +17,24 @@
     - Updated GPTH to version `5.0.4` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
       
       - #### ✨ **GPTH New Features**
-         - New album moving strategy `ignore-albums` to completely ignore all Albums content. The difference with `nothing` strategy is that `nothing` don't create Albums folders but process and move all Albums content into `ALL_PHOTOS` folder.
+         - New album moving strategy `ignore` to completely ignore all Albums content. The difference with `nothing` strategy is that `nothing` don't create Albums folders but process and move all Albums content into `ALL_PHOTOS` folder.
 
       - #### 🚀 **GPTH Improvements**
         - Replace all `print()` functions by `logPrint()` method from LoggerMixin class. In this way all messages are registered both on screen and also on the logger (and saved to disk if flag `--save-log` is enabled).
         - All console messages have now a Step prefix to identify from which step or service they come from.
+        - Moving Strategies re-defined
+        - Included Timeouts on ExifTool operations.
+        - Log saving enabled by default. Use flag `--no-save-log` to disable it.
+        - Changed log name from `gpth-{version}_{timestamp}.log` to `gpth_{version}_{timestamp}.log`.
+        - Added progress bar to Step 3 (Merge Media Entities).
 
       - #### 🐛 **Bug Fixes**
         - Added `reverse-shortcut` strategy to interactive mode.
         - Fixed some moving strategies that was missing some files in the input folder
-  
+        - Fixed exiftool_service.dart to avoid IFD0 pointer references.
+        - Fixed exiftool_service.dart to avoid use of -common_args when -@ ARGFILE is used.
+        - Fixed PNG management writting XMP instead of EXIF for those files.  
+
   - #### 🐛 Bug fixes:
     - Fixed albums_input_folder in Move Albums step within `Google Takeout Processing` feature.
 
@@ -42,7 +50,7 @@
   - #### 🌟 New Features:
     - [x] Added new parameter `-dateSep, --date-separator <DATE_SEPARATOR>` to specify the Dates Separator for the Feature `Auto-Rename Albums Content Based`.
     - [x] Added new parameter `-rangeSep, --range-separator <RANGE_OF_DATES_SEPARATOR>` to specify the Range of Dates Separator for the Feature `Auto-Rename Albums Content Based`.
-    - [x] Added new parameter `-gpthLog, --gpth-log` to Save GPTH log messages into a log file within `Logs` folder.
+    - [x] Added new parameter `-gpthNoLog, --gpth-no-log` to Skip Save GPTH log messages into output folder.
     
   - #### 🚀 Enhancements:
     - Improvements in `Auto Rename Albums Folders` feature to Compute the best 'oldest_date' per file using the following priority:

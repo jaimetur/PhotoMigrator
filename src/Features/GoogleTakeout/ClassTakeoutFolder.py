@@ -1675,7 +1675,10 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
     def handle_stream(stream, is_error=False):
         init(autoreset=True)
 
-        progress_re = re.compile(r': .*?(\d+)\s*/\s*(\d+)$')
+        # progress_re = re.compile(r': .*?(\d+)\s*/\s*(\d+)$')                            # Patron que solo detecta barras que terminen en contadores 11/100 etc...
+        # progress_re = re.compile(r': .*?(\d+)\s*/\s*(\d+)(?:\s+\d+(\.\d+)?%)?\s*$')     # Patron que detecta barras que terminen en contadores 11/100 etc.. aunque vengan porcentajes detrás (1063/1063 100.0%)
+        progress_re = re.compile(r': .*?(\d+)\s*/\s*(\d+)\b.*$')                        # Patron que detecta barras que terminen en contadores 11/100 aunque vengan más cosas detrás como porcentajes o ETAS
+
         last_was_progress = False
         printed_final = set()
 
@@ -1935,8 +1938,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 gpth_command.extend(["--json-dates", filedates_json])
 
         # From version 5.0.2 onwards flag --save-log have been added to save messages log into a file.
-        if Version(GPTH_VERSION) >= Version("5.0.2") and ARGS['gpth-log']:
-                gpth_command.extend(["--save-log", filedates_json])
+        if Version(GPTH_VERSION) >= Version("5.0.2") and ARGS['gpth-no-log']:
+                gpth_command.extend(["--no-save-log"])
 
         try:
             command = ' '.join(gpth_command)

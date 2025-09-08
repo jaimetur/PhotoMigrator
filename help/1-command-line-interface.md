@@ -249,8 +249,8 @@ for the rest of the arguments for this extra mode.
                Enable or disable Info messages during GPTH Processing. (default: True).
 -gpthError   ; --show-gpth-errors = [true,false]
                Enable or disable Error messages during GPTH Processing. (default: True).
--gpthLog     ; --gpth-log
-               Save GPTH log messages into a log file within 'Log' folder.
+-gpthNoLog   ; --gpth-no-log
+               Skip Save GPTH log messages into output folder.
 
 
 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
