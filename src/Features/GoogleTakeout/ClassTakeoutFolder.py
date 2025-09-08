@@ -308,7 +308,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.info(f"")
                     LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
                 else:
-                    LOGGER.warning(f"{step_name}Flag '-gKeepTakeout, --google-keep-takeout-folder' detected, but Takeout have been unzipped. No need to create a clone of Input folder")
+                    LOGGER.warning(f"{step_name}Flag '-gKeepTakeout, --google-keep-takeout-folder' detected, but Takeout have been unzipped. No need to clone Input folder")
                     formatted_duration = f"Skipped"
                     LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[') + 1: step_name.rfind(']')].strip()}'")
             else:
