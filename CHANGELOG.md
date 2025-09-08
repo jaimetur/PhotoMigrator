@@ -5,7 +5,7 @@
 ---
 
 ## Release: v3.6.1
-- ### Release Date: 2025-09-07
+- ### Release Date: 2025-09-09
 
   - ### Main Changes:
  
@@ -27,6 +27,8 @@
         - Log saving enabled by default. Use flag `--no-save-log` to disable it.
         - Changed log name from `gpth-{version}_{timestamp}.log` to `gpth_{version}_{timestamp}.log`.
         - Added progress bar to Step 3 (Merge Media Entities).
+        - Changed default value for flag `--update-creation-time. Now is enabled by default.
+        - Smart split in writeBatchSafe: we parse stderr, separate only the conflicting files, retry the rest in a single batch, and write the conflicting ones per-file (without blocking progress). If paths can’t be extracted, we fall back to your original recursive split.
 
       - #### 🐛 **Bug Fixes**
         - Added `reverse-shortcut` strategy to interactive mode.
@@ -34,6 +36,8 @@
         - Fixed exiftool_service.dart to avoid IFD0 pointer references.
         - Fixed exiftool_service.dart to avoid use of -common_args when -@ ARGFILE is used.
         - Fixed PNG management writting XMP instead of EXIF for those files.  
+        - (ExifToolService): I added -F to the common arguments (_commonWriteArgs). It’s an immediate patch that often turns “Truncated InteropIFD” into a success.
+        - (Step 7): If we detect a “problematic” JPEG, we force XMP (CreateDate/DateTimeOriginal/ModifyDate + signed GPS), both when initially building the tags (via _forceJpegXmp) and again on retry when a batch fails and stderr contains Truncated InteropIFD (in-place conversion of those entries with _retagEntryToXmpIfJpeg).
 
   - #### 🐛 Bug fixes:
     - Fixed albums_input_folder in Move Albums step within `Google Takeout Processing` feature.
