@@ -5,7 +5,7 @@
 ---
 
 ## Release: v3.6.2
-- ### Release Date: 2025-09-22
+- ### Release Date: 2025-09-10
 
   - ### Main Changes:
      - Updated GPTH to version `5.0.5` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
@@ -27,7 +27,7 @@
 ---
 
 ## Release: v3.6.1
-- ### Release Date: 2025-09-22
+- ### Release Date: 2025-09-10
 
   - ### Main Changes:
  
