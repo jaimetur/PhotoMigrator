@@ -4,8 +4,29 @@
 
 ---
 
+## Release: v3.6.2
+- ### Release Date: 2025-09-22
+
+  - ### Main Changes:
+     - Updated GPTH to version `5.0.5` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+      
+      - #### ✨ **GPTH New Features**
+        - None
+
+      - #### 🚀 **GPTH Improvements**
+        - Moved logic of each Step to step's service module. Now each step has a service associated to it which includes all the logic and interation with other services used by this step.
+
+      - #### 🐛 **Bug Fixes**
+        - None
+
+  - #### 🐛 Bug fixes:
+    - None.
+  
+
+---
+
 ## Release: v3.6.1
-- ### Release Date: 2025-09-09
+- ### Release Date: 2025-09-22
 
   - ### Main Changes:
  
