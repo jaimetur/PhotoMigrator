@@ -29,6 +29,7 @@
         - Added progress bar to Step 3 (Merge Media Entities).
         - Changed default value for flag `--update-creation-time. Now is enabled by default.
         - Smart split in writeBatchSafe: we parse stderr, separate only the conflicting files, retry the rest in a single batch, and write the conflicting ones per-file (without blocking progress). If paths can’t be extracted, we fall back to your original recursive split.
+        - Added Progress bar on Step 1 & Step 2.
 
       - #### 🐛 **Bug Fixes**
         - Added `reverse-shortcut` strategy to interactive mode.
