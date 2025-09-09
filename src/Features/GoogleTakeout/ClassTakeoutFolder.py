@@ -978,38 +978,40 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"{self.step}.{self.substep}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
             LOGGER.info(f"================================================================================================================================================")
-            if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
+            albums_structure = self.ARGS['google-albums-folders-structure'].lower()
+            no_albums_structure = self.ARGS['google-no-albums-folders-structure'].lower()
+            if albums_structure != 'flatten' or no_albums_structure != 'flatten' or (albums_structure == 'flatten' and no_albums_structure == 'flatten'):
                 # For Albums
-                if self.ARGS['google-albums-folders-structure'].lower() != 'flatten':
+                if albums_structure != 'flatten':
                     LOGGER.info(f"")
-                    LOGGER.info(f"{step_name}Creating Folder structure '{self.ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
+                    LOGGER.info(f"{step_name}Creating Folder structure '{albums_structure}' for each Album folder...")
                     if self.ARGS['google-skip-move-albums']:
                         basedir = output_folder
                     else:
                         basedir = os.path.join(output_folder, FOLDERNAME_ALBUMS)
-                    type_structure = self.ARGS['google-albums-folders-structure']
+
                     exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
-                    # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
-                    replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
+                    # replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=albums_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
+                    replacements = organize_files_by_date(input_folder=basedir, type=albums_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the object analyzer with all the files changed during this step
                     self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # For No-Albums
-                if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
+                if no_albums_structure != 'flatten':
                     LOGGER.info(f"")
-                    LOGGER.info(f"{step_name}Creating Folder structure '{self.ARGS['google-no-albums-folders-structure'].lower()}' for '{FOLDERNAME_NO_ALBUMS}' folder...")
+                    LOGGER.info(f"{step_name}Creating Folder structure '{no_albums_structure}' for '{FOLDERNAME_NO_ALBUMS}' folder...")
                     basedir = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
-                    type_structure = self.ARGS['google-no-albums-folders-structure']
+
                     exclude_subfolders = []
-                    # replacements = organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
-                    replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
+                    # replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=no_albums_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
+                    replacements = organize_files_by_date(input_folder=basedir, type=no_albums_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the object analyzer with all the files changed during this step
                     self.output_folder_analyzer.apply_replacements(replacements=replacements, step_name=step_name)
                 # If flatten
-                if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
+                if albums_structure == 'flatten' and no_albums_structure == 'flatten':
                     LOGGER.info(f"")
                     LOGGER.warning(f"{step_name}No argument '-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure' detected. All photos and videos will be flattened in their folders.")
 
-                if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
+                if albums_structure != 'flatten' or no_albums_structure != 'flatten':
                     # Step 4.6.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
                     # ----------------------------------------------------------------------------------------------------------------------
                     if not self.ARGS['google-no-symbolic-albums']:
@@ -2276,19 +2278,19 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
                     if LOGGER.isEnabledFor(logging.VERBOSE):
                         LOGGER.verbose(f"{step_name}❌ Error parsing OldestDate '{oldest_date}' for {norm_path}: {e}")
 
-            # If no OldestDate, try to use the minimum date among all EXIF tags
-            all_dates = []
-            for k, v in date_entry.items():
-                if k in ["OldestDate", "Source"] or not v:
-                    continue
-                try:
-                    dt = v if isinstance(v, datetime) else parser.parse(str(v).strip())
-                    dt = normalize_datetime_utc(dt) # Converts datetime to datetime UTC aware if it is datetime naive
-                    all_dates.append(dt)
-                except Exception:
-                    continue
-            if all_dates:
-                return min(all_dates)
+            # # If no OldestDate, try to use the minimum date among all EXIF tags found in the extracted_dates dictionary
+            # all_dates = []
+            # for k, v in date_entry.items():
+            #     if k in ["OldestDate", "Source"] or not v:
+            #         continue
+            #     try:
+            #         dt = v if isinstance(v, datetime) else parser.parse(str(v).strip())
+            #         dt = normalize_datetime_utc(dt) # Converts datetime to datetime UTC aware if it is datetime naive
+            #         all_dates.append(dt)
+            #     except Exception:
+            #         continue
+            # if all_dates:
+            #     return min(all_dates)
 
         # 2. Try to extract EXIF date directly if it's a photo
         ext = Path(file_path).suffix.lower()

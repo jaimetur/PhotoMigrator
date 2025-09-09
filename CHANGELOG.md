@@ -5,7 +5,7 @@
 ---
 
 ## Release: v3.6.2
-- ### Release Date: 2025-09-22
+- ### Release Date: 2025-09-10
 
   - ### Main Changes:
      - Updated GPTH to version `5.0.5` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
@@ -17,7 +17,8 @@
         - Moved logic of each Step to step's service module. Now each step has a service associated to it which includes all the logic and interation with other services used by this step.
 
       - #### 🐛 **Bug Fixes**
-        - None
+        - Fixed bug in guess dates from filepath where it was looking into the grandparents folder even if the parent folder was not a month folder.
+        - Fixed bug in guess dates from filename where it was detecting false positives in filenames as hashnames (i.e.: "5752a2c4-1908-4696-9117-fdfa750fbd88.jpg" --> incorrect 1908).
 
   - #### 🐛 Bug fixes:
     - None.
@@ -26,7 +27,7 @@
 ---
 
 ## Release: v3.6.1
-- ### Release Date: 2025-09-22
+- ### Release Date: 2025-09-10
 
   - ### Main Changes:
  
