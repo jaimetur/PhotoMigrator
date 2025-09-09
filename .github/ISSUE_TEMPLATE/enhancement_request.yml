@@ -20,6 +20,7 @@ body:
     label: Version
     description: What version of our software are you running?
     options:
+    - v3.6.2 (latest)
     - v3.6.1 (latest-stable)
     - v3.6.0
     - v3.5.2
@@ -49,7 +50,6 @@ body:
     - v1.3.1
     - v1.3.0
     - v1.2.2
-    - v1.2.1
     default: 0
   validations:
     required: true
