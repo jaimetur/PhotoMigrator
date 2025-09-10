@@ -10,6 +10,7 @@ import stat
 import subprocess
 import sys
 import zipfile
+import unicodedata
 from collections import deque
 from contextlib import suppress
 from datetime import datetime, timedelta
@@ -343,13 +344,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 1: Delete hidden subfolders '@eaDir'
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🪛 [PRE-PROCESS]-[Clean Takeout Folder] : '
+            step_name = '🪛 [PRE-PROCESS]-[Clean/Sanitize Takeout Folder] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. CLEAN TAKEOUT FOLDER... ")
+            LOGGER.info(f"{self.step}.{self.substep}. CLEAN AND SANITIZE TAKEOUT FOLDER... ")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Sanitizing input folder (fix folders/files ending with spaces or dosts to avoid SMB mingling names)...")
+            sanitize_names(input_folder=input_folder, step_name=step_name, log_level=log_level)
             LOGGER.info(f"{step_name}Cleaning hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
             delete_subfolders(input_folder=input_folder, folder_name_to_delete="@eaDir", step_name=step_name, log_level=LOG_LEVEL)
             sub_step_end_time = datetime.now()
@@ -1356,6 +1359,218 @@ def contains_takeout_structure(input_folder, step_name="", log_level=None):
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
+def sanitize_names(input_folder, dry_run=False, step_name="", log_level=None):
+    """
+    Sanitize file and directory names to be SMB/Windows-friendly while keeping visible characters (including accents).
+    Operations performed (in this order), component-wise (never across directories):
+      1) Unicode normalization to NFC (no visual loss; 'a' + acute -> 'á').
+      2) Strip trailing spaces and dots (Windows/SMB-incompatible).
+      3) Replace control chars and SMB-reserved chars [: * ? " < > |] with '_'.
+      4) Avoid reserved DOS names for files/dirs (CON, PRN, AUX, NUL, COM1..COM9, LPT1..LPT9) by prefixing '_'.
+      5) Resolve collisions safely by appending ' (n)' before the extension (or at end for directories).
+      6) Case-only renames handled via a temporary hop name to satisfy case-insensitive filesystems.
+    Notes:
+      - Does not create or delete folders; only renames entries in-place.
+      - Processes directories depth-first (post-order) to avoid breaking traversal.
+      - Returns counters with detailed stats.
+    Args:
+      input_folder: Root path to sanitize recursively.
+      dry_run: If True, only logs intended changes (no rename on disk).
+      step_name: Prefix to prepend to all log lines.
+      log_level: Log level context to apply within set_log_level.
+    Returns:
+      dict with counters:
+        - total_entries_scanned
+        - dirs_renamed
+        - files_renamed
+        - collisions_resolved
+        - nfc_normalized
+        - trailing_fixed
+        - illegal_chars_replaced
+        - reserved_names_fixed
+        - errors
+    """
+    # ------------------------------- helpers (pure functions) --------------------------------
+    # Precompile patterns and constants once
+    control_re = re.compile(r'[\x00-\x1F\x7F]')
+    illegal_re = re.compile(r'[:*?"<>|]')  # SMB/Windows disallowed
+    trailing_re = re.compile(r'[ .]+$')    # trailing spaces/dots
+    reserved_names = {
+        'CON','PRN','AUX','NUL',
+        *(f'COM{i}' for i in range(1,10)),
+        *(f'LPT{i}' for i in range(1,10)),
+    }
+
+    def nfc(s):
+        # Normalize to NFC (no character loss; only composes combining sequences)
+        return unicodedata.normalize('NFC', s)
+
+    def split_name_ext(name, is_dir):
+        # For files: separate base and extension; for dirs: ext is ''
+        if is_dir:
+            return name, ''
+        base, ext = os.path.splitext(name)
+        return base, ext
+
+    def join_name_ext(base, ext):
+        return f"{base}{ext}"
+
+    def sanitize_component(name, is_dir):
+        """Return (clean_name, flags_dict) for a single path component."""
+        flags = {'nfc': False, 'trailing': False, 'illegal': False, 'reserved': False}
+
+        original = name
+        # 1) Unicode NFC
+        s = nfc(name)
+        if s != name:
+            flags['nfc'] = True
+        name = s
+
+        # 2) Strip trailing spaces/dots
+        s = trailing_re.sub('', name)
+        if s != name:
+            flags['trailing'] = True
+        name = s
+
+        # 3) Replace control and illegal chars
+        s = control_re.sub('_', name)
+        s = illegal_re.sub('_', s)
+        if s != name:
+            flags['illegal'] = True
+        name = s
+
+        # 4) Reserved DOS names (case-insensitive)
+        test = name.upper()
+        if test in reserved_names or (not is_dir and split_name_ext(name, False)[0].upper() in reserved_names):
+            name = f"_{name}"
+            flags['reserved'] = True
+
+        return name, flags
+
+    def unique_target_path(dir_path, target_name, is_dir):
+        """Generate a collision-free path by appending ' (n)'. Preserve file extension."""
+        base, ext = split_name_ext(target_name, is_dir)
+        candidate = target_name
+        n = 1
+        while (dir_path / candidate).exists():
+            n += 1
+            candidate = join_name_ext(f"{base} ({n})", ext)
+        return candidate, (n > 1)
+
+    def safe_rename(src_path, dst_path):
+        """Perform a safe rename, handling case-only changes via a temp hop."""
+        if str(src_path) == str(dst_path):
+            return True
+        # Case-only rename on case-insensitive FS needs a temp hop
+        same_dir = src_path.parent == dst_path.parent
+        hop_ok = True
+        try:
+            if same_dir and src_path.name.lower() == dst_path.name.lower() and src_path.name != dst_path.name:
+                temp_name = f".__rename_tmp__{os.getpid()}__"
+                temp_path = src_path.parent / temp_name
+                os.replace(src_path, temp_path)
+                os.replace(temp_path, dst_path)
+            else:
+                os.replace(src_path, dst_path)
+            return True
+        except Exception as e:
+            LOGGER.warning(f"{step_name}⚠️ Rename failed: {src_path} → {dst_path} | {e}")
+            return False
+    # -----------------------------------------------------------------------------------------
+
+    counters = {
+        'total_entries_scanned': 0,
+        'dirs_renamed': 0,
+        'files_renamed': 0,
+        'collisions_resolved': 0,
+        'nfc_normalized': 0,
+        'trailing_fixed': 0,
+        'illegal_chars_replaced': 0,
+        'reserved_names_fixed': 0,
+        'errors': 0,
+    }
+
+    with set_log_level(LOGGER, log_level):
+        root = Path(input_folder)
+        if not root.exists():
+            LOGGER.warning(f"{step_name}❌ Folder does not exist: {input_folder}")
+            counters['errors'] += 1
+            return counters
+
+        # -------------------- 1) Directories first (post-order) --------------------
+        # Walk once to collect all directories with depth, then rename deepest first
+        dir_entries = []
+        for current_root, dirnames, _ in os.walk(root, topdown=True, followlinks=False):
+            base_depth = Path(current_root).relative_to(root).parts
+            for d in dirnames:
+                p = Path(current_root) / d
+                depth = len(Path(current_root).relative_to(root).parts) + 1
+                dir_entries.append((depth, p))
+
+        # Process deeper directories first
+        for _, dir_path in sorted(dir_entries, key=lambda t: t[0], reverse=True):
+            counters['total_entries_scanned'] += 1
+            parent = dir_path.parent
+            clean_name, flags = sanitize_component(dir_path.name, is_dir=True)
+            if clean_name == dir_path.name:
+                continue  # nothing to do
+
+            target_name, collided = unique_target_path(parent, clean_name, is_dir=True)
+            dst_path = parent / target_name
+
+            if collided:
+                counters['collisions_resolved'] += 1
+
+            LOGGER.debug(f"{step_name}DIR  : {dir_path.name} → {target_name}")
+            if not dry_run:
+                ok = safe_rename(dir_path, dst_path)
+                if not ok:
+                    counters['errors'] += 1
+                    continue
+            counters['dirs_renamed'] += 1
+            counters['nfc_normalized'] += int(flags['nfc'])
+            counters['trailing_fixed'] += int(flags['trailing'])
+            counters['illegal_chars_replaced'] += int(flags['illegal'])
+            counters['reserved_names_fixed'] += int(flags['reserved'])
+
+        # -------------------- 2) Files inside all directories --------------------
+        for current_root, _, filenames in os.walk(root, topdown=True, followlinks=False):
+            for fname in filenames:
+                counters['total_entries_scanned'] += 1
+                file_path = Path(current_root) / fname
+                parent = file_path.parent
+
+                clean_name, flags = sanitize_component(fname, is_dir=False)
+                if clean_name == fname:
+                    continue  # nothing to do
+
+                target_name, collided = unique_target_path(parent, clean_name, is_dir=False)
+                dst_path = parent / target_name
+
+                if collided:
+                    counters['collisions_resolved'] += 1
+
+                LOGGER.debug(f"{step_name}FILE : {fname} → {target_name}")
+                if not dry_run:
+                    try:
+                        ok = safe_rename(file_path, dst_path)
+                        if not ok:
+                            counters['errors'] += 1
+                            continue
+                    except Exception as e:
+                        counters['errors'] += 1
+                        LOGGER.warning(f"{step_name}⚠️ Rename failed: {file_path} → {dst_path} | {e}")
+                        continue
+
+                counters['files_renamed'] += 1
+                counters['nfc_normalized'] += int(flags['nfc'])
+                counters['trailing_fixed'] += int(flags['trailing'])
+                counters['illegal_chars_replaced'] += int(flags['illegal'])
+                counters['reserved_names_fixed'] += int(flags['reserved'])
+
+        LOGGER.debug(f"{step_name}Sanitize completed. Dirs: {counters['dirs_renamed']}, Files: {counters['files_renamed']}, Collisions: {counters['collisions_resolved']}, Errors: {counters['errors']}")
+        return counters
+
 def fix_mp4_files(input_folder, step_name="", log_level=None):
     """
     Busca archivos .MP4/.MOV/.AVI sin su JSON correspondiente. Si existe un archivo .HEIC/.JPG/.JPEG

@@ -9,6 +9,7 @@
 
   - ### Main Changes:
      - Updated GPTH to version `5.0.5` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+     - Added new function to Sanitize (fix folders/files ending with spaces or dosts to avoid SMB mingling names) your Takeout input folder during `Google Takeout Procesing Feature`. 
       
       - #### ✨ **GPTH New Features**
         - None
