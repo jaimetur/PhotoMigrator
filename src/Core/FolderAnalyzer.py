@@ -536,8 +536,8 @@ class FolderAnalyzer:
         exiftool_tag_args = [f"-{t}" for t in candidate_tags]
 
         # Ensure that File:System:FileModifyDate is read (needed to calculate the most common filesystem date of the group.
-        if "File:System:FileModifyDate" not in candidate_tags:
-            exiftool_tag_args.append("-File:System:FileModifyDate")
+        if "File:FileModifyDate" not in candidate_tags:
+            exiftool_tag_args.append("-File:FileModifyDate")
 
         # --- Internal function to process a single block
         def _process_block(block_index, block_files):
@@ -556,7 +556,7 @@ class FolderAnalyzer:
                     '-charset', 'exif=utf8',
                     '-j', '-n', '-s',
                     '-m', '-q', '-q',
-                    '-G1',  # ensure group-qualified keys in JSON (EXIF:*, XMP:*, File:*)
+                    '-G0',  # ensure group-qualified keys in JSON (EXIF:*, XMP:*, File:*)
                     '-api', 'largefilesupport=1',
                     '-fast',
                     *exiftool_tag_args,
@@ -664,7 +664,7 @@ class FolderAnalyzer:
                 # Search for the oldest date among EXIF tags in priority order; store under prefixed keys (EXIF:<Tag>)
                 candidates = []
                 for tag in candidate_tags:
-                    if tag == "File:System:FileModifyDate":
+                    if tag == "File:FileModifyDate":
                         continue # We don't rely on FileModifyDate tag because this is the system date and it is overwritten on file operations.
                     value = entry.get(tag)
                     if not isinstance(value, str):
@@ -766,7 +766,7 @@ class FolderAnalyzer:
                             # validate in local
                             if is_date_valid(dt_local, effective_ref, min_days=0):
                                 dt_final = dt_local  # save in local
-                                source = "File:System:FileModifyDate"
+                                source = "File:FileModifyDate"
                                 is_valid = True
                         except:
                             pass
