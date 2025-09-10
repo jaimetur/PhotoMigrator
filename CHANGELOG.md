@@ -24,6 +24,7 @@
   - #### 🚀 Enhancements:
      - Added new function to Sanitize (fix folders/files ending with spaces or dosts to avoid SMB mingling names) your Takeout input folder during `Google Takeout Procesing Feature`. 
      - Improved Folder Analyzer to read date tags from groups EXIF/XMP/QuickTime/Track/Media/Matroska/RIFF only (other groups are not reliable).
+     - Improved Folder Analyzer to choose the oldest date with time when two or more candidates has the same date but one has time o other not.
      - Updated GPTH to version `5.0.5` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
      
       - #### ✨ **GPTH New Features**
