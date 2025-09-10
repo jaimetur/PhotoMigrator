@@ -442,7 +442,29 @@ class FolderAnalyzer:
             max_workers = cpu_count() * 16
         self.extracted_dates = {}
         # FileModifyDate is only used to calculate the most frequent date of each batch, but we don't rely on this tag to get the date
-        candidate_tags = ['DateTimeOriginal', 'DateTime', 'CreateDate', 'DateCreated', 'CreationDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate', 'FileModifyDate']
+        candidate_tags = [
+            'EXIF:DateTimeOriginal',
+            'EXIF:DateTime',
+            'EXIF:CreateDate',
+            'EXIF:DateCreated',
+            'EXIF:CreationDate',
+            'EXIF:MediaCreateDate',
+            'EXIF:TrackCreateDate',
+            'EXIF:EncodedDate',
+            'EXIF:MetadataDate',
+            'EXIF:ModifyDate',
+            'XMP:DateTimeOriginal',
+            'XMP:DateTime',
+            'XMP:CreateDate',
+            'XMP:DateCreated',
+            'XMP:CreationDate',
+            'XMP:MediaCreateDate',
+            'XMP:TrackCreateDate',
+            'XMP:EncodedDate',
+            'XMP:MetadataDate',
+            'XMP:ModifyDate',
+            'File:System:FileModifyDate'  # This tag is only used to calculate the most common date in the block file set
+        ]
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
         local_tz = datetime.now().astimezone().tzinfo
         timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=local_tz)  # in your local TZ
@@ -486,9 +508,15 @@ class FolderAnalyzer:
         # Prebuild exiftool args for only needed tags (faster than -time:all)
         exiftool_tag_args = []
         for t in candidate_tags:
-            exiftool_tag_args.append(f"-{t}")
-        if "FileModifyDate" not in candidate_tags:
-            exiftool_tag_args.append("-FileModifyDate")
+            # Ask ExifTool exactly these tags; the only special-case is File:System:FileModifyDate
+            if t == 'File:System:FileModifyDate':
+                exiftool_tag_args.append('-File:FileModifyDate')  # ExifTool expects family-0 group here
+            else:
+                exiftool_tag_args.append(f'-{t}')
+
+        # Ensure that File:System:FileModifyDate is read (needed to calculate the most common filesystem date of the group.
+        if "File:System:FileModifyDate" not in candidate_tags:
+            exiftool_tag_args.append("-File:System:FileModifyDate")
 
         # --- Internal function to process a single block
         def _process_block(block_index, block_files):
@@ -507,6 +535,7 @@ class FolderAnalyzer:
                     '-charset', 'exif=utf8',
                     '-j', '-n', '-s',
                     '-m', '-q', '-q',
+                    '-G1', '-G2',  # ensure group-qualified and family keys in JSON (EXIF:*, XMP:*, File:*)
                     '-api', 'largefilesupport=1',
                     '-fast',
                     *exiftool_tag_args,
@@ -536,8 +565,16 @@ class FolderAnalyzer:
                             for entry in raw_metadata_list:
                                 filtered_entry = {"SourceFile": entry.get("SourceFile")}
                                 for tag in candidate_tags:
-                                    if tag in entry:
-                                        filtered_entry[tag] = entry[tag]
+                                    # Keep group-qualified key names exactly as in candidate_tags
+                                    if tag == 'File:System:FileModifyDate':
+                                        # ExifTool with -G1 may expose 'File:FileModifyDate'; normalize into your requested key
+                                        val = entry.get('File:System:FileModifyDate') or entry.get('File:FileModifyDate')
+                                        if val is not None:
+                                            filtered_entry['File:System:FileModifyDate'] = val
+                                    else:
+                                        val = entry.get(tag)
+                                        if val is not None:
+                                            filtered_entry[tag] = val
                                 metadata_list.append(filtered_entry)
                             self.logger.debug(f"{step_name}✅ Exiftool returned {len(metadata_list)} entries for block {block_index}.")
                         except json.JSONDecodeError as e:
@@ -561,7 +598,7 @@ class FolderAnalyzer:
             one_year_ago = timestamp - timedelta(days=365)
             block_datetimes = []
             for entry in metadata_list:
-                raw = entry.get("FileModifyDate")
+                raw = entry.get("File:System:FileModifyDate")  or entry.get("File:FileModifyDate") # Only the File group mtime is used for block reference
                 if not isinstance(raw, str):
                     continue
                 try:
@@ -611,7 +648,7 @@ class FolderAnalyzer:
                 # Search for the oldest date among EXIF tags in priority order; store under prefixed keys (EXIF:<Tag>)
                 candidates = []
                 for tag in candidate_tags:
-                    if tag == "FileModifyDate":
+                    if tag == "File:System:FileModifyDate":
                         continue # We don't rely on FileModifyDate tag because this is the system date and it is overwritten on file operations.
                     value = entry.get(tag)
                     if not isinstance(value, str):
@@ -627,25 +664,26 @@ class FolderAnalyzer:
                             raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
                         # parse with or without timezone and with/without seconds
                         dt_local = parse_exif_to_local(raw_clean, local_tz)  # work in local
-                        # save normalized under prefixed key (single save per tag, no raw duplicates)
-                        full_info[f"EXIF:{tag}"] = dt_local.isoformat()
+                        # Save using the original group-qualified key (no hardcoded 'EXIF:' prefix)
+                        full_info[tag] = dt_local.isoformat()
                         candidates.append((dt_local, tag))
                     except Exception:
                         continue
 
                 if candidates:
                     dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
-                    # if it is FileModifyDate or ModifyDate, validate against effective_ref
-                    if tag_oldest == "ModifyDate":
+                    # If it is a ModifyDate (from any group), validate against effective_ref
+                    if tag_oldest.endswith(":ModifyDate"):
                         if is_date_valid(dt_oldest, effective_ref, min_days=0):  # validation in local
                             dt_final = dt_oldest
-                            source = f"EXIF:{tag_oldest}"
+                            source = tag_oldest
                             is_valid = True
                     else:
-                        # the rest of EXIF tags are always accepted
+                        # the rest of tags are always accepted
                         dt_final = dt_oldest
-                        source = f"EXIF:{tag_oldest}"
+                        source = tag_oldest
                         is_valid = True
+
 
                 # 2) Fallback to PIL only if there is still no valid date; store under prefixed keys (PIL:<Tag>)
                 if not is_valid:
@@ -703,16 +741,16 @@ class FolderAnalyzer:
 
                 # 4) Fallback to ExifTool's FileModifyDate; store under prefixed key (EXIF:FileModifyDate)
                 if not is_valid and use_fallback_to_filesystem_date:
-                    raw = entry.get("FileModifyDate")
+                    raw = entry.get("File:System:FileModifyDate") or entry.get("File:FileModifyDate")
                     if isinstance(raw, str):
                         try:
                             dt_local = parse_exif_to_local(raw, local_tz)
                             # store normalized under prefixed key
-                            full_info["EXIF:FileModifyDate"] = dt_local.isoformat()
+                            full_info["File:System:FileModifyDate"] = dt_local.isoformat()
                             # validate in local
                             if is_date_valid(dt_local, effective_ref, min_days=0):
                                 dt_final = dt_local  # save in local
-                                source = "EXIF:FileModifyDate"
+                                source = "File:System:FileModifyDate"
                                 is_valid = True
                         except:
                             pass

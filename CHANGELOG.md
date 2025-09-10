@@ -7,10 +7,25 @@
 ## Release: v3.6.2
 - ### Release Date: 2025-09-10
 
-  - ### Main Changes:
-     - Updated GPTH to version `5.0.5` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+- ### Main Changes:
+  
+  - #### 🚨 Breaking Changes:
+    - None
+  
+  - #### 🌟 New Features:
+    - None
+    
+  - #### 🐛 Bug fixes:
+    - None.
+
+  - #### 📚 Documentation: 
+    - Updated documentation with all changes.
+    
+  - #### 🚀 Enhancements:
      - Added new function to Sanitize (fix folders/files ending with spaces or dosts to avoid SMB mingling names) your Takeout input folder during `Google Takeout Procesing Feature`. 
-      
+     - Folder Analyzer now read date tags from groups EXIF and XMP only (other groups are not reliable).
+     - Updated GPTH to version `5.0.5` (by @Xentraxx & @jaimetur) which includes new features, performance improvements and bugs fixing extracting metadata info from Google Takeouts.
+     
       - #### ✨ **GPTH New Features**
         - None
 
@@ -21,17 +36,24 @@
         - Fixed bug in guess dates from filepath where it was looking into the grandparents folder even if the parent folder was not a month folder.
         - Fixed bug in guess dates from filename where it was detecting false positives in filenames as hashnames (i.e.: "5752a2c4-1908-4696-9117-fdfa750fbd88.jpg" --> incorrect 1908).
 
-  - #### 🐛 Bug fixes:
-    - None.
-  
-
 ---
 
 ## Release: v3.6.1
 - ### Release Date: 2025-09-10
 
-  - ### Main Changes:
- 
+- ### Main Changes:
+  - #### 🚨 Breaking Changes:
+    - None
+  
+  - #### 🌟 New Features:
+    - None
+  
+  - #### 🐛 Bug fixes:
+    - Fixed albums_input_folder in Move Albums step within `Google Takeout Processing` feature.
+
+  - #### 📚 Documentation: 
+    - Updated documentation with all changes.
+    
   - #### 🚀 Enhancements:
     - Now `Logs`, `Extracted_dates_metadata.json` and `Duplcicates.csv` files are saved at Output folder by default when `Google Takeout Processing` feature is detected.
     - Improved FixSymLinks to be case-insensitive when looking for real files of symlinks.
@@ -63,8 +85,6 @@
         - (ExifToolService): I added -F to the common arguments (_commonWriteArgs). It’s an immediate patch that often turns “Truncated InteropIFD” into a success.
         - (Step 7): If we detect a “problematic” JPEG, we force XMP (CreateDate/DateTimeOriginal/ModifyDate + signed GPS), both when initially building the tags (via _forceJpegXmp) and again on retry when a batch fails and stderr contains Truncated InteropIFD (in-place conversion of those entries with _retagEntryToXmpIfJpeg).
 
-  - #### 🐛 Bug fixes:
-    - Fixed albums_input_folder in Move Albums step within `Google Takeout Processing` feature.
 
 ---
 
@@ -79,6 +99,12 @@
     - [x] Added new parameter `-dateSep, --date-separator <DATE_SEPARATOR>` to specify the Dates Separator for the Feature `Auto-Rename Albums Content Based`.
     - [x] Added new parameter `-rangeSep, --range-separator <RANGE_OF_DATES_SEPARATOR>` to specify the Range of Dates Separator for the Feature `Auto-Rename Albums Content Based`.
     - [x] Added new parameter `-gpthNoLog, --gpth-no-log` to Skip Save GPTH log messages into output folder.
+
+  - #### 🐛 Bug fixes:
+    - Fixed albums_input_folder in Move Albums step within `Google Takeout Processing` feature.
+ 
+  - #### 📚 Documentation: 
+    - Updated documentation with all changes.
     
   - #### 🚀 Enhancements:
     - Improvements in `Auto Rename Albums Folders` feature to Compute the best 'oldest_date' per file using the following priority:
@@ -153,6 +179,7 @@
         - Fixed #76: Now interactive mode ask for album strategy.
         - Changed zip_extraction_service.dart to support extract UTF-8/latin1 chars on folder/files names.
 
+    
 ---
 
 ## Release: v3.5.2
