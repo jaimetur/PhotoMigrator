@@ -712,6 +712,7 @@ class FolderAnalyzer:
 
                 # Prefer EXIF globally: if any EXIF exists, we choose only among EXIF candidates
                 # This is because I detected that Google Photos keeps oldest date in XMP tags when create collages even if there are newer photos on it and the collage was created on a newer date.
+                # And since GPTH not always update XMP tags (native writter don't update it, and exiftool writter only update some XMP tags), I decided to choose always EXIF tags over XMP tags when both are candidates.
                 # I keep previous logic commented above just in case that GPTH fix the bug.
                 if exiftool_candidates:
                     exif_only = [c for c in exiftool_candidates if c[1].startswith('EXIF:')]
