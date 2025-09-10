@@ -710,7 +710,9 @@ class FolderAnalyzer:
                 #         source = tag_oldest
                 #         is_valid = True
 
-                # Prefer EXIF globally: if any EXIF exists, we choose only among EXIF candidates (this is because I detected that GPTH assign wrong XMP sometimes). I keep previous logic commented above just in case that GPTH fix the bug.
+                # Prefer EXIF globally: if any EXIF exists, we choose only among EXIF candidates
+                # This is because I detected that Google Photos keeps oldest date in XMP tags when create collages even if there are newer photos on it and the collage was created on a newer date.
+                # I keep previous logic commented above just in case that GPTH fix the bug.
                 if exiftool_candidates:
                     exif_only = [c for c in exiftool_candidates if c[1].startswith('EXIF:')]
                     pool = exif_only if exif_only else exiftool_candidates
