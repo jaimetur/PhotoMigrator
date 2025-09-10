@@ -662,7 +662,7 @@ class FolderAnalyzer:
 
                 # 1) EXIFTOOL
                 # Search for the oldest date among EXIF tags in priority order; store under prefixed keys (EXIF:<Tag>)
-                candidates = []
+                exiftool_candidates = []
                 for tag in candidate_tags:
                     if tag == "File:FileModifyDate":
                         continue # We don't rely on FileModifyDate tag because this is the system date and it is overwritten on file operations.
@@ -682,12 +682,22 @@ class FolderAnalyzer:
                         dt_local = parse_exif_to_local(raw_clean, local_tz)  # work in local
                         # Save using the original group-qualified key (no hardcoded 'EXIF:' prefix)
                         full_info[tag] = dt_local.isoformat()
-                        candidates.append((dt_local, tag))
+                        # Flag to detect “date-only” (midnight) vs “date+time”
+                        has_time = not (dt_local.hour == 0 and dt_local.minute == 0 and dt_local.second == 0)
+                        exiftool_candidates.append((dt_local, tag, has_time))
                     except Exception:
                         continue
 
-                if candidates:
-                    dt_oldest, tag_oldest = min(candidates, key=lambda x: x[0])
+                # Chose the best exiftool_candidates (with the oldest date)
+                if exiftool_candidates:
+                    # Oldest by datetime as baseline
+                    dt_oldest, tag_oldest, has_time_oldest = min(exiftool_candidates, key=lambda x: x[0])
+                    # If there are multiple candidates on the same calendar day, prefer those with real time (not midnight)
+                    same_day = [c for c in exiftool_candidates if c[0].date() == dt_oldest.date()]
+                    same_day_with_time = [c for c in same_day if c[2]]
+                    if same_day_with_time:
+                        # Keep the oldest among those that include a real time component
+                        dt_oldest, tag_oldest, has_time_oldest = min(same_day_with_time, key=lambda x: x[0])
                     # If it is a ModifyDate (from any group), validate against effective_ref
                     if tag_oldest.endswith(":ModifyDate"):
                         if is_date_valid(dt_oldest, effective_ref, min_days=0):  # validation in local
@@ -700,27 +710,40 @@ class FolderAnalyzer:
                         source = tag_oldest
                         is_valid = True
 
-
                 # 2) Fallback to PIL only if there is still no valid date; store under prefixed keys (PIL:<Tag>)
                 if not is_valid:
                     try:
                         img = Image.open(file_path)
                         exif_data = img._getexif() or {}
+                        pil_candidates = []  # collect (dt, key, has_time)
                         for tag_name in ("DateTimeOriginal", "DateTime"):
                             tag_id = pil_tag_id_map.get(tag_name)
                             if tag_id is None:
                                 continue
                             raw = exif_data.get(tag_id)
                             if isinstance(raw, str):
-                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=local_tz)  # keep in local
-                                # save once under prefixed canonical tag name
-                                full_info[f"PIL:{tag_name}"] = dt.isoformat()
-                                # Skip validation for PIL dates (keep behavior)
-                                if True:
-                                    dt_final = dt
-                                    source = f"PIL:{tag_name}"
-                                    is_valid = True
-                                break
+                                # parse PIL datetime (no tz info; we keep local tz)
+                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=local_tz)
+                                key = f"PIL:{tag_name}"
+                                # save normalized under prefixed canonical tag name (keep provenance)
+                                full_info[key] = dt.isoformat()
+                                # flag: real time if not midnight
+                                has_time = not (dt.hour == 0 and dt.minute == 0 and dt.second == 0)
+                                pil_candidates.append((dt, key, has_time))
+
+                        # Chose the best pil_candidates (with the oldest date)
+                        if pil_candidates:
+                            # pick baseline oldest
+                            dt_oldest, key_oldest, has_time_oldest = min(pil_candidates, key=lambda x: x[0])
+                            # prefer real-time candidate if multiple on same day
+                            same_day = [c for c in pil_candidates if c[0].date() == dt_oldest.date()]
+                            same_day_with_time = [c for c in same_day if c[2]]
+                            if same_day_with_time:
+                                dt_oldest, key_oldest, has_time_oldest = min(same_day_with_time, key=lambda x: x[0])
+                            # Skip validation for PIL dates (keep behavior)
+                            dt_final = dt_oldest
+                            source = key_oldest
+                            is_valid = True
                     except:
                         pass
 
