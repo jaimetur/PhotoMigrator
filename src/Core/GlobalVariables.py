@@ -12,7 +12,7 @@ COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 TOOL_NAME                       = "PhotoMigrator"
 TOOL_VERSION_WITHOUT_V          = "3.6.2"
 TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
-TOOL_DATE                       = "2025-09-10"
+TOOL_DATE                       = "2025-09-11"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
 GPTH_VERSION                    = "5.0.5"

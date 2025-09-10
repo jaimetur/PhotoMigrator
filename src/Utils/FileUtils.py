@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import zipfile
 from pathlib import Path
+import unicodedata
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_ALBUMS
@@ -131,6 +132,95 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
                     os.rmdir(dir_path)
 
 
+def remove_empty_dirs(input_folder, log_level=None):
+    """
+    Remove empty directories recursively.
+    """
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        for path, dirs, files in os.walk(input_folder, topdown=False):
+            filtered_dirnames = [d for d in dirs if d != '@eaDir']
+            if not filtered_dirnames and not files:
+                try:
+                    os.rmdir(path)
+                    LOGGER.info(f"Removed empty directory {path}")
+                except OSError:
+                    pass
+
+
+def remove_folder(folder, step_name='', log_level=None):
+    """
+    Removes the specified `folder` and all of its contents, logging events
+    at the specified `log_level`.
+
+    Parameters:
+    - folder (str or Path): Path to the folder to remove.
+    - log_level (str): Logging level to use ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
+
+    Returns:
+    - True if the folder was removed successfully.
+    - False if an error occurred.
+    """
+    with set_log_level(LOGGER, log_level):  # Temporarily adjust LOGGER’s level for this operation
+        folder_path = Path(folder)
+        try:
+            LOGGER.debug(f"{step_name}Attempting to remove: {folder_path}")
+            shutil.rmtree(folder_path)
+            LOGGER.info(f"{step_name}Folder '{folder_path}' removed successfully.")
+            return True
+
+        except FileNotFoundError:
+            LOGGER.info(f"{step_name}Folder '{folder_path}' was not found. Nothing to remove!")
+            return False
+
+        except PermissionError:
+            LOGGER.error(f"{step_name}Insufficient permissions to remove: '{folder_path}'.")
+            return False
+
+        except Exception as e:
+            LOGGER.critical(f"{step_name}Unexpected error while removing '{folder_path}': {e}")
+            return False
+
+
+def contains_zip_files(input_folder, log_level=None):
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"Searching .zip files in input folder...")
+        for file in os.listdir(input_folder):
+            if file.endswith('.zip'):
+                return True
+        LOGGER.info(f"No .zip files found in input folder.")
+        return False
+
+
+def normalize_path(path, log_level=None):
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # return os.path.normpath(path).strip(os.sep)
+        return os.path.normpath(path)
+
+
+def zip_folder(temp_dir, output_file):
+    print(f"Creating packed file: {output_file}...")
+
+    # Convertir output_file a un objeto Path
+    output_path = Path(output_file)
+
+    # Crear los directorios padres si no existen
+    if not output_path.parent.exists():
+        print(f"Creating needed folder for: {output_path.parent}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(temp_dir):
+            for file in files:
+                file_path = Path(root) / file
+                # Añade al zip respetando la estructura de carpetas
+                zipf.write(file_path, file_path.relative_to(temp_dir))
+            for dir in dirs:
+                dir_path = Path(root) / dir
+                # Añade directorios vacíos al zip
+                if not os.listdir(dir_path):
+                    zipf.write(dir_path, dir_path.relative_to(temp_dir))
+    print(f"File successfully packed: {output_file}")
+
 def unzip_to_temp(zipfile_path):
     """
     Unzips the contents of `zip_path` into a temporary directory.
@@ -209,91 +299,91 @@ def unzip_flatten(zipfile_path, dest_folder):
         print(f"ZIP file extracted to: {dest_folder}")
 
 
-def zip_folder(temp_dir, output_file):
-    print(f"Creating packed file: {output_file}...")
 
-    # Convertir output_file a un objeto Path
-    output_path = Path(output_file)
+def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level=None):
+    """ Unzips all ZIP files from a folder into another (per-entry sanitized to avoid _ADMIN_*_WhiteSpaceConflict). """
+    # ------------------------------- minimal helpers (inline) -------------------------------
+    def sanitize_component(name, is_dir):
+        # Normalize to NFC, strip trailing spaces/dots, replace control/SMB-illegal chars, avoid empty
+        s = unicodedata.normalize('NFC', name)                      # compose accents (no visual loss)
+        s = re.sub(r'[ .]+$', '', s)                                # drop trailing spaces/dots
+        s = re.sub(r'[\x00-\x1F\x7F]', '_', s)                      # control chars
+        s = re.sub(r'[:*?"<>|]', '_', s)                            # SMB/Windows illegal
+        if s == '':                                                 # keep a safe placeholder
+            s = '_'
+        return s
 
-    # Crear los directorios padres si no existen
-    if not output_path.parent.exists():
-        print(f"Creating needed folder for: {output_path.parent}")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk(temp_dir):
-            for file in files:
-                file_path = Path(root) / file
-                # Añade al zip respetando la estructura de carpetas
-                zipf.write(file_path, file_path.relative_to(temp_dir))
-            for dir in dirs:
-                dir_path = Path(root) / dir
-                # Añade directorios vacíos al zip
-                if not os.listdir(dir_path):
-                    zipf.write(dir_path, dir_path.relative_to(temp_dir))
-    print(f"File successfully packed: {output_file}")
-
-
-def remove_empty_dirs(input_folder, log_level=None):
-    """
-    Remove empty directories recursively.
-    """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        for path, dirs, files in os.walk(input_folder, topdown=False):
-            filtered_dirnames = [d for d in dirs if d != '@eaDir']
-            if not filtered_dirnames and not files:
-                try:
-                    os.rmdir(path)
-                    LOGGER.info(f"Removed empty directory {path}")
-                except OSError:
-                    pass
-
-
-def remove_folder(folder, step_name='', log_level=None):
-    """
-    Removes the specified `folder` and all of its contents, logging events
-    at the specified `log_level`.
-
-    Parameters:
-    - folder (str or Path): Path to the folder to remove.
-    - log_level (str): Logging level to use ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
-
-    Returns:
-    - True if the folder was removed successfully.
-    - False if an error occurred.
-    """
-    with set_log_level(LOGGER, log_level):  # Temporarily adjust LOGGER’s level for this operation
-        folder_path = Path(folder)
+    def safe_join_under(root_dir, parts):
+        # Prevent absolute paths and traversal; always stay under root_dir
+        tgt = Path(root_dir)
+        for p in parts:
+            if p in ('', '.', '..') or re.match(r'^[A-Za-z]:$', p):  # ignore unsafe parts and drive letters
+                continue
+            tgt = tgt / p
         try:
-            LOGGER.debug(f"{step_name}Attempting to remove: {folder_path}")
-            shutil.rmtree(folder_path)
-            LOGGER.info(f"{step_name}Folder '{folder_path}' removed successfully.")
-            return True
+            # Ensure target remains under root_dir
+            tgt.resolve().relative_to(Path(root_dir).resolve())
+        except Exception:
+            tgt = Path(root_dir) / "_unsafe" / Path(*parts)
+        return tgt
 
-        except FileNotFoundError:
-            LOGGER.info(f"{step_name}Folder '{folder_path}' was not found. Nothing to remove!")
-            return False
+    def unique_path(parent, name, is_dir):
+        # Resolve collisions by appending ' (n)' before extension (files) or at end (dirs)
+        base, ext = (name, '') if is_dir else os.path.splitext(name)
+        candidate = name
+        n = 1
+        while (parent / candidate).exists():
+            n += 1
+            candidate = f"{base} ({n}){ext}"
+        return parent / candidate
+    # ---------------------------------------------------------------------------------------
 
-        except PermissionError:
-            LOGGER.error(f"{step_name}Insufficient permissions to remove: '{folder_path}'.")
-            return False
+    with set_log_level(LOGGER, log_level):
+        if not os.path.exists(input_folder):
+            LOGGER.warning(f"{step_name}ZIP folder '{input_folder}' does not exist.")
+            return
+        os.makedirs(unzip_folder, exist_ok=True)
 
-        except Exception as e:
-            LOGGER.critical(f"{step_name}Unexpected error while removing '{folder_path}': {e}")
-            return False
+        for zip_file in os.listdir(input_folder):
+            if not zip_file.lower().endswith(".zip"):
+                continue
 
+            zip_path = os.path.join(input_folder, zip_file)
+            try:
+                with zipfile.ZipFile(zip_path, 'r', allowZip64=True) as zip_ref:
+                    LOGGER.info(f"{step_name}Unzipping: {zip_file}")
+                    for info in zip_ref.infolist():
+                        # Split path into components and sanitize each one independently
+                        raw_parts = Path(info.filename).parts
+                        is_dir = info.is_dir()
+                        sanitized_parts = []
+                        for i, comp in enumerate(raw_parts):
+                            comp_is_dir = is_dir or (i < len(raw_parts) - 1)
+                            sanitized_parts.append(sanitize_component(comp, comp_is_dir))
 
-def contains_zip_files(input_folder, log_level=None):
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"Searching .zip files in input folder...")
-        for file in os.listdir(input_folder):
-            if file.endswith('.zip'):
-                return True
-        LOGGER.info(f"No .zip files found in input folder.")
-        return False
+                        # Build safe destination under unzip_folder
+                        dst_path = safe_join_under(unzip_folder, sanitized_parts)
+                        parent = dst_path.parent
+                        parent.mkdir(parents=True, exist_ok=True)
 
+                        if is_dir:
+                            # Create directory (handle potential collisions after sanitization)
+                            if not dst_path.exists():
+                                dst_path.mkdir(parents=True, exist_ok=True)
+                            continue
 
-def normalize_path(path, log_level=None):
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # return os.path.normpath(path).strip(os.sep)
-        return os.path.normpath(path)
+                        # Handle file collisions
+                        if dst_path.exists():
+                            dst_path = unique_path(parent, dst_path.name, is_dir=False)
+
+                        # Stream copy file content
+                        with zip_ref.open(info, 'r') as src, open(dst_path, 'wb') as out:
+                            shutil.copyfileobj(src, out, length=1024 * 1024)
+
+                LOGGER.debug(f"{step_name}Done: {zip_file}")
+
+            except zipfile.BadZipFile:
+                LOGGER.warning(f"{step_name}Could not unzip file (BadZipFile): {zip_file}")
+            except Exception as e:
+                LOGGER.warning(f"{step_name}Unzip error for {zip_file}: {e}")
+

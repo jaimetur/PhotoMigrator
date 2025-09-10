@@ -438,66 +438,8 @@ class FolderAnalyzer:
         """
         Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
         """
-        if max_workers is None:
-            max_workers = cpu_count() * 16
-        self.extracted_dates = {}
-        # FileModifyDate is only used to calculate the most frequent date of each batch, but we don't rely on this tag to get the date
-
-        candidate_tags = [
-            # 📷 EXIF (fotos)
-            'EXIF:DateTimeOriginal',
-            'EXIF:DateTime',
-            'EXIF:CreateDate',
-            'EXIF:DateCreated',
-            'EXIF:CreationDate',
-            'EXIF:MediaCreateDate',
-            'EXIF:TrackCreateDate',
-            'EXIF:EncodedDate',
-            'EXIF:MetadataDate',
-            'EXIF:ModifyDate',
-
-            # 📝 XMP (fotos y vídeos exportados desde apps modernas)
-            'XMP:DateTimeOriginal',
-            'XMP:DateTime',
-            'XMP:CreateDate',
-            'XMP:DateCreated',
-            'XMP:CreationDate',
-            'XMP:MediaCreateDate',
-            'XMP:TrackCreateDate',
-            'XMP:EncodedDate',
-            'XMP:MetadataDate',
-            'XMP:ModifyDate',
-
-            # 🎬 QuickTime / MP4 / MOV
-            'QuickTime:CreateDate',
-            'QuickTime:ModifyDate',
-            'QuickTime:TrackCreateDate',
-            'QuickTime:TrackModifyDate',
-            'QuickTime:MediaCreateDate',
-            'QuickTime:MediaModifyDate',
-
-            # 🎞️ Track/Media (otros contenedores ISO BMFF)
-            'Track:CreateDate',
-            'Track:ModifyDate',
-            'Media:CreateDate',
-            'Media:ModifyDate',
-
-            # 🎥 Matroska / MKV
-            'Matroska:DateUTC',
-
-            # 📼 AVI
-            'RIFF:DateTimeOriginal',
-
-            # 🛠️ File (solo para referencia de bloque)
-            'File:FileModifyDate'
-        ]
-
-        exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
-        local_tz = datetime.now().astimezone().tzinfo
-        timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=local_tz)  # in your local TZ
-
         # --- Fast helpers (keep comments & variable names elsewhere untouched)
-        def parse_exif_to_local(raw_str, local_tz):
+        def _parse_exif_to_local(raw_str, local_tz):
             """Parse EXIF-like datetime string into local tz, handling '24:' rollover and multiple formats with/without %z and seconds."""
             if not isinstance(raw_str, str):
                 raise ValueError("raw_str must be a string")
@@ -509,11 +451,17 @@ class FolderAnalyzer:
                 rolled = base_dt + timedelta(days=1)
                 raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
             # Try formats in order: with tz / without tz; with seconds / without seconds; date-only
-            fmts = ["%Y:%m:%d %H:%M:%S%z", "%Y:%m:%d %H:%M%z", "%Y:%m:%d %H:%M:%S", "%Y:%m:%d %H:%M", "%Y:%m:%d"]
-            for fmt in fmts:
+            date_formats = [
+                "%Y:%m:%d %H:%M:%S%z", "%Y-%m-%d %H:%M:%S%z",
+                "%Y:%m:%d %H:%M:%SZ", "%Y-%m-%d %H:%M:%SZ",
+                "%Y:%m:%d %H:%M:%S", "%Y-%m-%d %H:%M:%S",
+                "%Y:%m:%d %H:%M%z", "%Y:%m:%d %H:%M",
+                "%Y:%m:%d", "%Y-%m-%d"
+            ]
+            for fmt in date_formats:
                 try:
                     dt = datetime.strptime(raw_clean, fmt)
-                    if "%z" in fmt:
+                    if "%z" in fmt.lower():
                         return dt.astimezone(local_tz)
                     if fmt == "%Y:%m:%d":
                         dt = dt.replace(hour=0, minute=0, second=0, tzinfo=local_tz)
@@ -524,6 +472,42 @@ class FolderAnalyzer:
                     continue
             # If all formats fail, raise to let caller decide
             raise ValueError(f"Unsupported EXIF datetime format: {raw_str}")
+        # --- End of helpers
+
+        if max_workers is None:
+            max_workers = cpu_count() * 16
+        self.extracted_dates = {}
+        # FileModifyDate is only used to calculate the most frequent date of each batch, but we don't rely on this tag to get the date
+
+        candidate_exiftool_tags = [
+            # 📷 EXIF (fotos)
+            'EXIF:DateTimeOriginal', 'EXIF:DateTime', 'EXIF:CreateDate', 'EXIF:DateCreated', 'EXIF:CreationDate',
+            'EXIF:MediaCreateDate', 'EXIF:TrackCreateDate', 'EXIF:EncodedDate', 'EXIF:MetadataDate', 'EXIF:ModifyDate',
+
+            # 📝 XMP
+            'XMP:DateTimeOriginal', 'XMP:DateTime', 'XMP:CreateDate', 'XMP:DateCreated', 'XMP:CreationDate',
+            'XMP:MediaCreateDate', 'XMP:TrackCreateDate', 'XMP:EncodedDate', 'XMP:MetadataDate', 'XMP:ModifyDate',
+
+            # 🎬 QuickTime / MP4 / MOV
+            'QuickTime:CreateDate', 'QuickTime:ModifyDate', 'QuickTime:TrackCreateDate', 'QuickTime:TrackModifyDate',
+            'QuickTime:MediaCreateDate', 'QuickTime:MediaModifyDate',
+
+            # 🎞️ Track/Media (otros contenedores ISO BMFF)
+            'Track:CreateDate', 'Track:ModifyDate', 'Media:CreateDate', 'Media:ModifyDate',
+
+            # 🎥 Matroska / MKV
+            'Matroska:DateUTC',
+
+            # 📼 AVI
+            'RIFF:DateTimeOriginal',
+
+            # 🛠️ File (solo referencia; no se considera “contenido”)
+            'File:FileModifyDate'
+        ]
+
+        exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
+        local_tz = datetime.now().astimezone().tzinfo
+        timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=local_tz)  # in your local TZ
 
         # Precompute PIL tag id map once
         pil_tag_id_map = {}
@@ -533,10 +517,10 @@ class FolderAnalyzer:
             pil_tag_id_map = {}
 
         # Prebuild exiftool args for only needed tags (faster than -time:all)
-        exiftool_tag_args = [f"-{t}" for t in candidate_tags]
+        exiftool_tag_args = [f"-{t}" for t in candidate_exiftool_tags]
 
         # Ensure that File:System:FileModifyDate is read (needed to calculate the most common filesystem date of the group.
-        if "File:FileModifyDate" not in candidate_tags:
+        if "File:FileModifyDate" not in candidate_exiftool_tags:
             exiftool_tag_args.append("-File:FileModifyDate")
 
         # --- Internal function to process a single block
@@ -545,10 +529,8 @@ class FolderAnalyzer:
 
             # --- Try ExifTool
             if Path(exif_tool_path).exists():
-                if platform.system() == 'Windows':
-                    filename_charset = 'cp1252'
-                else:
-                    filename_charset = 'utf8'
+                # OS filename charset
+                filename_charset = 'cp1252' if platform.system() == 'Windows' else 'utf8'
 
                 command = [
                     exif_tool_path,
@@ -585,7 +567,7 @@ class FolderAnalyzer:
                             # Filter raw_metadata_list to include only the tags in candidate_tags (raw values)
                             for entry in raw_metadata_list:
                                 filtered_entry = {"SourceFile": entry.get("SourceFile")}
-                                for tag in candidate_tags:
+                                for tag in candidate_exiftool_tags:
                                     # Keep group-qualified key names exactly as in candidate_tags
                                     val = entry.get(tag)
                                     if val is not None:
@@ -618,7 +600,7 @@ class FolderAnalyzer:
                 if not isinstance(raw, str):
                     continue
                 try:
-                    dt = parse_exif_to_local(raw, local_tz)  # Convert to local TZ to always work and compare in local
+                    dt = _parse_exif_to_local(raw, local_tz)  # Convert to local TZ to always work and compare in local
                     block_datetimes.append(dt)
                 except ValueError:
                     continue
@@ -663,7 +645,7 @@ class FolderAnalyzer:
                 # 1) EXIFTOOL
                 # Search for the oldest date among EXIF tags in priority order; store under prefixed keys (EXIF:<Tag>)
                 exiftool_candidates = []
-                for tag in candidate_tags:
+                for tag in candidate_exiftool_tags:
                     if tag == "File:FileModifyDate":
                         continue # We don't rely on FileModifyDate tag because this is the system date and it is overwritten on file operations.
                     value = entry.get(tag)
@@ -679,7 +661,7 @@ class FolderAnalyzer:
                             rolled = base_dt + timedelta(days=1)
                             raw_clean = rolled.strftime("%Y:%m:%d") + " 00" + time_part[2:]
                         # parse with or without timezone and with/without seconds
-                        dt_local = parse_exif_to_local(raw_clean, local_tz)  # work in local
+                        dt_local = _parse_exif_to_local(raw_clean, local_tz)  # work in local
                         # Save using the original group-qualified key (no hardcoded 'EXIF:' prefix)
                         full_info[tag] = dt_local.isoformat()
                         # Flag to detect “date-only” (midnight) vs “date+time”
@@ -740,36 +722,44 @@ class FolderAnalyzer:
                         source = tag_oldest
                         is_valid = True
 
-                # 2) Fallback to PIL only if there is still no valid date; store under prefixed keys (PIL:<Tag>)
+                # 2) Fallback to PIL only if there is still no valid date; store under prefixed keys (PIL:EXIF:<Tag>)
                 if not is_valid:
                     try:
                         img = Image.open(file_path)
                         exif_data = img._getexif() or {}
-                        pil_candidates = []  # collect (dt, key, has_time)
-                        for tag_name in ("DateTimeOriginal", "DateTime"):
+                        candidates_pil_tags = ["DateTimeOriginal", "DateTime"]  # only EXIF via PIL
+                        pil_candidates = []  # collect (dt_local, key, has_time)
+
+                        for tag_name in candidates_pil_tags:
                             tag_id = pil_tag_id_map.get(tag_name)
                             if tag_id is None:
                                 continue
                             raw = exif_data.get(tag_id)
-                            if isinstance(raw, str):
-                                # parse PIL datetime (no tz info; we keep local tz)
-                                dt = datetime.strptime(raw.strip(), "%Y:%m:%d %H:%M:%S").replace(tzinfo=local_tz)
-                                key = f"PIL:{tag_name}"
-                                # save normalized under prefixed canonical tag name (keep provenance)
-                                full_info[key] = dt.isoformat()
-                                # flag: real time if not midnight
-                                has_time = not (dt.hour == 0 and dt.minute == 0 and dt.second == 0)
-                                pil_candidates.append((dt, key, has_time))
+                            if not isinstance(raw, str):
+                                continue
 
-                        # Chose the best pil_candidates (with the oldest date)
+                            # Parse with same helper and formats; keep local tz
+                            try:
+                                dt_local = _parse_exif_to_local(raw.strip(), local_tz)
+                            except Exception:
+                                continue
+
+                            # Save normalized under prefixed canonical key (PIL:EXIF:<tag>)
+                            key = f"PIL:EXIF:{tag_name}"
+                            full_info[key] = dt_local.isoformat()
+
+                            # Flag to detect “date-only” (midnight) vs “date+time”
+                            has_time = not (dt_local.hour == 0 and dt_local.minute == 0 and dt_local.second == 0)
+                            pil_candidates.append((dt_local, key, has_time))
+
+                        # Choose best candidate mirroring ExifTool strategy:
+                        # - Oldest calendar day
+                        # - Within that day, prefer entries with real time (not midnight), then earliest time
                         if pil_candidates:
-                            # pick baseline oldest
-                            dt_oldest, key_oldest, has_time_oldest = min(pil_candidates, key=lambda x: x[0])
-                            # prefer real-time candidate if multiple on same day
-                            same_day = [c for c in pil_candidates if c[0].date() == dt_oldest.date()]
-                            same_day_with_time = [c for c in same_day if c[2]]
-                            if same_day_with_time:
-                                dt_oldest, key_oldest, has_time_oldest = min(same_day_with_time, key=lambda x: x[0])
+                            min_day = min(c[0].date() for c in pil_candidates)
+                            same_day = [c for c in pil_candidates if c[0].date() == min_day]
+                            dt_oldest, key_oldest, has_time_oldest = min(same_day, key=lambda c: (0 if c[2] else 1, c[0]))
+
                             # Skip validation for PIL dates (keep behavior)
                             dt_final = dt_oldest
                             source = key_oldest
@@ -813,7 +803,7 @@ class FolderAnalyzer:
                     raw = entry.get("File:FileModifyDate")
                     if isinstance(raw, str):
                         try:
-                            dt_local = parse_exif_to_local(raw, local_tz)
+                            dt_local = _parse_exif_to_local(raw, local_tz)
                             # store normalized under prefixed key
                             full_info["File:FileModifyDate"] = dt_local.isoformat()
                             # validate in local

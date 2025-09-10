@@ -121,59 +121,132 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         with set_log_level(LOGGER, log_level):
             try:
                 LOGGER.debug(f"{step_name} Executing exiftool for {image_path}")
-                # Get exiftool complete path
                 exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
-                # Call exiftool with recommended flags
-                result = subprocess.check_output([
-                    f"{exif_tool_path}",
-                    "-j", "-n", "-time:all", "-fast", "-fast2", "-s",
-                    image_path
-                ], stderr=subprocess.STDOUT)
-                metadata = json.loads(result)[0]
+
+                # --- Try ExifTool path
+                if not Path(exif_tool_path).exists():
+                    LOGGER.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'.")
+                    return None
+
+                # OS filename charset
+                filename_charset = 'cp1252' if platform.system() == 'Windows' else 'utf8'
+
+                # Local TZ for naive datetimes
+                local_tz = datetime.now().astimezone().tzinfo
 
                 candidate_tags = [
-                    'DateTimeOriginal', 'DateTime', 'CreateDate', 'DateCreated', 'CreationDate',
-                    'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate'
+                    # 📷 EXIF (fotos)
+                    'EXIF:DateTimeOriginal', 'EXIF:DateTime', 'EXIF:CreateDate', 'EXIF:DateCreated', 'EXIF:CreationDate',
+                    'EXIF:MediaCreateDate', 'EXIF:TrackCreateDate', 'EXIF:EncodedDate', 'EXIF:MetadataDate', 'EXIF:ModifyDate',
+
+                    # 📝 XMP
+                    'XMP:DateTimeOriginal', 'XMP:DateTime', 'XMP:CreateDate', 'XMP:DateCreated', 'XMP:CreationDate',
+                    'XMP:MediaCreateDate', 'XMP:TrackCreateDate', 'XMP:EncodedDate', 'XMP:MetadataDate', 'XMP:ModifyDate',
+
+                    # 🎬 QuickTime / MP4 / MOV
+                    'QuickTime:CreateDate', 'QuickTime:ModifyDate', 'QuickTime:TrackCreateDate', 'QuickTime:TrackModifyDate',
+                    'QuickTime:MediaCreateDate', 'QuickTime:MediaModifyDate',
+
+                    # 🎞️ Track/Media (otros contenedores ISO BMFF)
+                    'Track:CreateDate', 'Track:ModifyDate', 'Media:CreateDate', 'Media:ModifyDate',
+
+                    # 🎥 Matroska / MKV
+                    'Matroska:DateUTC',
+
+                    # 📼 AVI
+                    'RIFF:DateTimeOriginal',
+
+                    # 🛠️ File (solo referencia; no se considera “contenido”)
+                    'File:FileModifyDate'
                 ]
-                # Include timezone-aware formats; we will also normalize +HH:MM → +HHMM
+
+                exiftool_tag_args = [f"-{t}" for t in candidate_tags]
+
+                command = [
+                    exif_tool_path,
+                    image_path,
+                    '-charset', f'filename={filename_charset}',
+                    '-charset', 'exif=utf8',
+                    '-j', '-n', '-s',
+                    '-G0',  # family-0 group names → EXIF:*, XMP:*, QuickTime:*, File:*
+                    '-m', '-q', '-q',
+                    '-api', 'largefilesupport=1',
+                    '-fast',
+                    *exiftool_tag_args,
+                ]
+
+                result = subprocess.check_output(command, stderr=subprocess.STDOUT)
+                metadata = json.loads(result)[0]
+
+                # result = subprocess.check_output([
+                #     f"{exif_tool_path}",
+                #     "-j", "-n", "-time:all", "-fast", "-fast2", "-s",
+                #     image_path
+                # ], stderr=subprocess.STDOUT)
+                # metadata = json.loads(result)[0]
+
+                # Parsers and helpers
                 date_formats = [
                     "%Y:%m:%d %H:%M:%S%z", "%Y-%m-%d %H:%M:%S%z",
                     "%Y:%m:%d %H:%M:%SZ", "%Y-%m-%d %H:%M:%SZ",
                     "%Y:%m:%d %H:%M:%S", "%Y-%m-%d %H:%M:%S",
+                    "%Y:%m:%d %H:%M%z", "%Y:%m:%d %H:%M",
                     "%Y:%m:%d", "%Y-%m-%d"
                 ]
-                found_dates = []
 
-                for tag in candidate_tags:
-                    raw_value = metadata.get(tag)
-                    if not raw_value:
-                        continue  # No value for this tag
-
-                    raw_text = str(raw_value).strip()
-
-                    # Normalize timezone offset "+HH:MM" → "+HHMM" to match %z
-                    # Example: "2012:08:05 18:13:45+02:00" → "2012:08:05 18:13:45+0200"
+                def parse_any(raw_text):
+                    """Try multiple formats; return tz-aware (local tz for naive)."""
+                    txt = str(raw_text).strip()
+                    # normalize +HH:MM -> +HHMM for %z
                     try:
-                        raw_norm = re.sub(r'([+\-]\d{2}):(\d{2})$', r'\1\2', raw_text)
+                        txt = re.sub(r'([+\-]\d{2}):(\d{2})$', r'\1\2', txt)
                     except Exception:
-                        raw_norm = raw_text
-
+                        pass
+                    # handle trailing 'Z' for UTC with %z alt
                     for fmt in date_formats:
                         try:
-                            parsed = datetime.strptime(raw_norm, fmt)
-                            found_dates.append(parsed)
-                            LOGGER.debug(f"{step_name} Parsed {parsed} from tag {tag}")
-                            break
+                            dt = datetime.strptime(txt, fmt)
+                            if dt.tzinfo is None:
+                                dt = dt.replace(tzinfo=local_tz)
+                            return dt
                         except ValueError:
                             continue
+                    return None
 
-                if found_dates:
-                    oldest = min(found_dates)
-                    LOGGER.debug(f"{step_name} Oldest EXIF date: {oldest}")
-                    return oldest
+                exiftool_candidates = []  # (dt, tag, has_time)
+                for tag in candidate_tags:
+                    if tag == 'File:FileModifyDate':
+                        continue  # not a content date
+                    raw_value = metadata.get(tag)
+                    if not raw_value:
+                        continue
+                    dt = parse_any(raw_value)
+                    if not dt:
+                        continue
+                    has_time = not (dt.hour == 0 and dt.minute == 0 and dt.second == 0)
+                    exiftool_candidates.append((dt, tag, has_time))
+                    LOGGER.debug(f"{step_name} Parsed {dt} from tag {tag}")
 
-                LOGGER.debug(f"{step_name} No EXIF dates found")
-                return None
+                if not exiftool_candidates:
+                    LOGGER.debug(f"{step_name} No EXIF/XMP/video dates found")
+                    return None
+
+                # --- Selection with global EXIF priority over XMP (even if XMP is older)
+                exif_only = [c for c in exiftool_candidates if c[1].startswith('EXIF:')]
+                pool = exif_only if exif_only else exiftool_candidates
+
+                # Oldest calendar day within the chosen pool
+                min_day = min(c[0].date() for c in pool)
+                same_day = [c for c in pool if c[0].date() == min_day]
+
+                # Prefer entries with real time (not midnight), then earliest time on that day
+                chosen_dt, chosen_tag, chosen_has_time = min(
+                    same_day,
+                    key=lambda c: (0 if c[2] else 1, c[0])
+                )
+
+                LOGGER.debug(f"{step_name} Oldest (with EXIF priority & time-aware): {chosen_dt} from {chosen_tag}")
+                return chosen_dt
 
             except subprocess.CalledProcessError as e:
                 LOGGER.debug(f"{step_name} exiftool error: {e.output.decode(errors='ignore')}")
@@ -187,52 +260,95 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             try:
                 LOGGER.debug(f"{step_name} Loading EXIF from {image_path}")
                 exif_dict = piexif.load(image_path)
-                # Candidate EXIF date tags; add ImageIFD.DateTime ("DateTime") as well
-                candidate_exif_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate']
-                date_formats = ["%Y:%m:%d %H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y:%m:%d", "%Y-%m-%d"]
-                found_dates = []
 
-                # From ExifIFD
-                for tag in candidate_exif_tags:
-                    tag_id = piexif.ExifIFD.__dict__.get(tag)
-                    if tag_id is None:
-                        continue  # Tag not defined in ExifIFD
-                    raw_value = exif_dict.get("Exif", {}).get(tag_id)
-                    if not raw_value:
-                        continue  # No value for this tag
-                    raw_str = raw_value.decode('utf-8', errors='ignore') if isinstance(raw_value, (bytes, bytearray)) else raw_value
+                # Candidate EXIF date tags (ExifIFD) + ImageIFD.DateTime
+                candidate_piexif_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'ModifyDate']
+                date_formats = [
+                    "%Y:%m:%d %H:%M:%S%z", "%Y-%m-%d %H:%M:%S%z",
+                    "%Y:%m:%d %H:%M:%SZ", "%Y-%m-%d %H:%M:%SZ",
+                    "%Y:%m:%d %H:%M:%S", "%Y-%m-%d %H:%M:%S",
+                    "%Y:%m:%d %H:%M%z", "%Y:%m:%d %H:%M",
+                    "%Y:%m:%d", "%Y-%m-%d"
+                ]
+                local_tz = datetime.now().astimezone().tzinfo
+
+                def parse_any(raw_text):
+                    """Parse EXIF-like string; return tz-aware (local tz for naive)."""
+                    if raw_text is None:
+                        return None
+                    txt = str(raw_text).strip()
+
+                    # Handle '... 24:xx:xx' → next day at 00:xx:xx
+                    try:
+                        parts = txt.split(' ', 1)
+                        if len(parts) == 2 and parts[1].startswith('24:'):
+                            base_dt = datetime.strptime(parts[0], "%Y:%m:%d")
+                            rolled = base_dt + timedelta(days=1)
+                            txt = rolled.strftime("%Y:%m:%d") + " 00" + parts[1][2:]
+                    except Exception:
+                        pass
+
+                    # Normalize timezone "+HH:MM" → "+HHMM" for %z parsing
+                    try:
+                        txt = re.sub(r'([+\-]\d{2}):(\d{2})$', r'\1\2', txt)
+                    except Exception:
+                        pass
+
                     for fmt in date_formats:
                         try:
-                            parsed_date = datetime.strptime(str(raw_str).strip(), fmt)
-                            found_dates.append(parsed_date)
-                            LOGGER.debug(f"{step_name} Parsed {parsed_date} from tag {tag}")
-                            break
+                            dt = datetime.strptime(txt, fmt)
+                            if dt.tzinfo is None:
+                                dt = dt.replace(tzinfo=local_tz)
+                            return dt
                         except ValueError:
                             continue
+                    return None
 
-                # English comment: also check ImageIFD.DateTime ("DateTime")
+                # Collect candidates as (dt, tag_key, has_time)
+                candidates = []
+
+                # From ExifIFD
+                exif_ifd = exif_dict.get("Exif", {}) or {}
+                for tag in candidate_piexif_tags:
+                    tag_id = piexif.ExifIFD.__dict__.get(tag)
+                    if tag_id is None:
+                        continue
+                    raw_value = exif_ifd.get(tag_id)
+                    if not raw_value:
+                        continue
+                    raw_str = raw_value.decode('utf-8', errors='ignore') if isinstance(raw_value, (bytes, bytearray)) else raw_value
+                    dt = parse_any(raw_str)
+                    if not dt:
+                        continue
+                    has_time = not (dt.hour == 0 and dt.minute == 0 and dt.second == 0)
+                    candidates.append((dt, f"EXIF:{tag}", has_time))
+                    LOGGER.debug(f"{step_name} Parsed {dt} from tag EXIF:{tag}")
+
+                # Also check ImageIFD.DateTime ("DateTime")
                 try:
-                    raw_dt0 = exif_dict.get("0th", {}).get(piexif.ImageIFD.DateTime)
+                    raw_dt0 = (exif_dict.get("0th", {}) or {}).get(piexif.ImageIFD.DateTime)
                     if raw_dt0:
                         raw_str0 = raw_dt0.decode('utf-8', errors='ignore') if isinstance(raw_dt0, (bytes, bytearray)) else raw_dt0
-                        for fmt in date_formats:
-                            try:
-                                parsed0 = datetime.strptime(str(raw_str0).strip(), fmt)
-                                found_dates.append(parsed0)
-                                LOGGER.debug(f"{step_name} Parsed {parsed0} from tag DateTime")
-                                break
-                            except ValueError:
-                                continue
+                        dt0 = parse_any(raw_str0)
+                        if dt0:
+                            has_time0 = not (dt0.hour == 0 and dt0.minute == 0 and dt0.second == 0)
+                            candidates.append((dt0, "EXIF:DateTime", has_time0))
+                            LOGGER.debug(f"{step_name} Parsed {dt0} from tag EXIF:DateTime")
                 except Exception:
-                    pass  # keep silent, we already have other candidates
+                    pass  # keep silent; optional path
 
-                if found_dates:
-                    oldest = min(found_dates)
-                    LOGGER.debug(f"{step_name} Oldest EXIF date: {oldest}")
-                    return oldest
+                if not candidates:
+                    LOGGER.debug(f"{step_name} No EXIF dates found")
+                    return None
 
-                LOGGER.debug(f"{step_name} No EXIF dates found")
-                return None
+                # Selection: choose the oldest calendar day; within that day prefer real time, then earliest time
+                min_day = min(c[0].date() for c in candidates)
+                same_day = [c for c in candidates if c[0].date() == min_day]
+                chosen_dt, chosen_tag, chosen_has_time = min(same_day, key=lambda c: (0 if c[2] else 1, c[0]))
+
+                LOGGER.debug(f"{step_name} Oldest EXIF date (time-aware): {chosen_dt} from {chosen_tag}")
+                return chosen_dt
+
             except Exception as e:
                 LOGGER.debug(f"{step_name} Error retrieving EXIF date: {e}")
                 return None
