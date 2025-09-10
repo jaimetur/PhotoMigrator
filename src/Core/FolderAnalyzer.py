@@ -688,24 +688,50 @@ class FolderAnalyzer:
                     except Exception:
                         continue
 
-                # Chose the best exiftool_candidates (with the oldest date)
+                # # Chose the best exiftool_candidates (with the oldest date)
+                # if exiftool_candidates:
+                #     # Oldest by datetime as baseline
+                #     dt_oldest, tag_oldest, has_time_oldest = min(exiftool_candidates, key=lambda x: x[0])
+                #     # If there are multiple candidates on the same calendar day, prefer those with real time (not midnight)
+                #     same_day = [c for c in exiftool_candidates if c[0].date() == dt_oldest.date()]
+                #     same_day_with_time = [c for c in same_day if c[2]]
+                #     if same_day_with_time:
+                #         # Keep the oldest among those that include a real time component
+                #         dt_oldest, tag_oldest, has_time_oldest = min(same_day_with_time, key=lambda x: x[0])
+                #     # If it is a ModifyDate (from any group), validate against effective_ref
+                #     if tag_oldest.endswith(":ModifyDate"):
+                #         if is_date_valid(dt_oldest, effective_ref, min_days=0):  # validation in local
+                #             dt_final = dt_oldest
+                #             source = tag_oldest
+                #             is_valid = True
+                #     else:
+                #         # the rest of tags are always accepted
+                #         dt_final = dt_oldest
+                #         source = tag_oldest
+                #         is_valid = True
+
+                # Prefer EXIF globally: if any EXIF exists, we choose only among EXIF candidates (this is because I detected that GPTH assign wrong XMP sometimes). I keep previous logic commented above just in case that GPTH fix the bug.
                 if exiftool_candidates:
-                    # Oldest by datetime as baseline
-                    dt_oldest, tag_oldest, has_time_oldest = min(exiftool_candidates, key=lambda x: x[0])
-                    # If there are multiple candidates on the same calendar day, prefer those with real time (not midnight)
-                    same_day = [c for c in exiftool_candidates if c[0].date() == dt_oldest.date()]
-                    same_day_with_time = [c for c in same_day if c[2]]
-                    if same_day_with_time:
-                        # Keep the oldest among those that include a real time component
-                        dt_oldest, tag_oldest, has_time_oldest = min(same_day_with_time, key=lambda x: x[0])
+                    exif_only = [c for c in exiftool_candidates if c[1].startswith('EXIF:')]
+                    pool = exif_only if exif_only else exiftool_candidates
+
+                    # Baseline: oldest calendar day within the chosen pool
+                    min_day = min(c[0].date() for c in pool)
+                    same_day = [c for c in pool if c[0].date() == min_day]
+
+                    # Prefer entries with real time (not midnight), then the earliest time
+                    dt_oldest, tag_oldest, has_time_oldest = min(
+                        same_day,
+                        key=lambda c: (0 if c[2] else 1, c[0])
+                    )
+
                     # If it is a ModifyDate (from any group), validate against effective_ref
                     if tag_oldest.endswith(":ModifyDate"):
-                        if is_date_valid(dt_oldest, effective_ref, min_days=0):  # validation in local
+                        if is_date_valid(dt_oldest, effective_ref, min_days=0):
                             dt_final = dt_oldest
                             source = tag_oldest
                             is_valid = True
                     else:
-                        # the rest of tags are always accepted
                         dt_final = dt_oldest
                         source = tag_oldest
                         is_valid = True
