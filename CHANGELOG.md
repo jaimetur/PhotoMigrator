@@ -13,12 +13,12 @@
     - None
   
   - #### 🌟 New Features:
-    - None
+    - Added support for Special Folders management such as `Archive`, `Trash`, `Locked folder` during `Google Takeout Processing` feature.
     
   - #### 🐛 Bug fixes:
     - Fixed bug in guess dates from filepath where it was looking into the grandparents folder even if the parent folder was not a month folder.
     - Fixed bug in guess dates from filename where it was detecting false positives in filenames as hashnames (i.e.: "5752a2c4-1908-4696-9117-fdfa750fbd88.jpg" --> incorrect 1908).
-    - Fixed bug when extract zips that contains noo-supporting folders for special system such as Synology NAS or SMB mounted devices such as folders ending with Whitespace that was renamed by the system as `*_ADMIN_Whitespace_conflict*`. Now native extractor makes an intelligent sanitization of folder names before to extract the archive.
+    - Fixed bug when extract zips that contains non-supporting folders for special system such as Synology NAS or SMB mounted devices such as folders ending with Whitespace that was renamed by the system as `*_ADMIN_Whitespace_conflict*`. Now native extractor makes an intelligent sanitization of folder names before to extract the archive.
 
   - #### 📚 Documentation: 
     - Updated documentation with all changes.
