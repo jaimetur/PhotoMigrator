@@ -10,7 +10,7 @@
 - ### Main Changes:
   
   - #### 🚨 Breaking Changes:
-    - None
+    - Now your special folders (`Archive`, `Trash`, `Locked folder`) will be directly moved to `Special Folders` subfolder within the output directory in `Google Takeout Processing` feature.
   
   - #### 🌟 New Features:
     - Added support for Special Folders management such as `Archive`, `Trash`, `Locked folder` during `Google Takeout Processing` feature.
