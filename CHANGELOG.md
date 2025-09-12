@@ -39,9 +39,12 @@
         - Added percentages to all progress bars.
         - Added Total time to Telemetry Summary in Step 3.
         - Fixed _extractBadPathsFromExifError method to detect from exiftool output bad files with relative paths.
+        - Performance Improvements in `step_03_merge_media_entities_service.dart`.
+          - Now grouping method can be easily changed. Internal `_fullHashGroup` is now used instead of 'groupIdenticalFast' to avoid calculate buckets again.
 
       - #### 🐛 **Bug Fixes**
-        - Fixed duplicated files/symlinks in Albums when a file belong to more than 1 album (affected strategies: shortcut, reverse-shortcut & duplicate-copy)
+        - Fixed duplicated files/symlinks in Albums when a file belong to more than 1 album (affected strategies: shortcut, reverse-shortcut & duplicate-copy).
+        - Fixed error decoding Exiftool output with UTF-8/latin chars.
 
 
 ---
