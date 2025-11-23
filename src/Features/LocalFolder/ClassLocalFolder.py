@@ -1303,7 +1303,7 @@ class ClassLocalFolder:
                             # 1) add to raw file_list
                             self.analyzer.file_list.append(new_file)
                             # 2) if pasa filtros globales y locales, añade a filtered_file_list
-                            if not self.analyzer._should_exclude(Path(new_file)):
+                            if not self._should_exclude(Path(new_file)):
                                 self.analyzer.filtered_file_list.append(new_file)
                                 # 3) incrementa el contador de assets para esta carpeta
                                 key = Path(album_path.resolve()).as_posix()
