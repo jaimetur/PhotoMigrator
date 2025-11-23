@@ -414,7 +414,8 @@ class ClassLocalFolder:
             if filter_assets:
                 # sólo los álbumes que tengan al menos 1 asset filtrado
                 albums_filtered = [a for a in albums if self.analyzer.folder_assets.get(a["id"], 0) > 0]
-
+            else:
+                albums_filtered = albums
             LOGGER.info(f"Found {len(albums_filtered)} owned albums.")
             # Cache the result for future calls
             self.albums_owned_by_user[cache_key] = albums_filtered
