@@ -220,4 +220,4 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-
+/test_data
