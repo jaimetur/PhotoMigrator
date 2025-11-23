@@ -47,7 +47,7 @@ setup(
     install_requires=requirements,                  # Dependencies from requirements.txt
     entry_points={                                  # Define console script entry point
         "console_scripts": [
-            "photomigrator = PhotoMigrator:main",
+            "photomigrator = PhotoMigrator:PhotoMigrator",
         ],
     },
     python_requires=">=3.7",                        # Minimum supported Python version

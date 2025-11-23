@@ -467,7 +467,7 @@ def pre_parse_args():
         try:
             import tkinter as tk
             from tkinter import ttk, filedialog
-            TKINTER_AVAILABLE = True
+            TKINTER_AVAILABLE = False
         except Exception:
             TKINTER_AVAILABLE = False
 
