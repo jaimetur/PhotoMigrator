@@ -141,6 +141,46 @@ The tool supports multiple accounts per service (suffix _1, _2, _3), selected vi
   - `custom_print()` - Always prints to console
   - `custom_log()` - Respects log level, writes to file
 
+### GUI and Console Mode Detection
+
+The tool has a special "zero-config" mode for Google Takeout that launches automatically when:
+- Tool is run with a single folder path argument: `photomigrator /path/to/folder`
+- Tool is run with no arguments: `photomigrator`
+
+**GUI Detection Flow (`pre_parse_args()` at src/PhotoMigrator.py:133-491):**
+
+1. **Force console mode check** (line 460): Checks for CLI flags to bypass GUI
+   - `--no-gui` flag forces console mode
+   - `--force-console` flag also forces console mode
+   - These flags are checked before argument parsing via manual `sys.argv` inspection
+
+2. **has_display()** (line 134-136): Detects if graphical environment is available
+   - Checks `DISPLAY` environment variable (Linux/Unix)
+   - Returns True for Windows (`sys.platform.startswith("win")`)
+   - Returns True for macOS (`sys.platform == "darwin"`)
+
+3. **TKINTER_AVAILABLE flag** (line 465-476): Controls whether GUI is enabled
+   - Initially set to `False` (line 465)
+   - Set to `True` (line 474) when tkinter imports successfully
+   - Respects `force_console_mode` flag - skips GUI detection if console is forced
+
+4. **Mode selection logic** (line 481-491):
+   - If `force_console_mode`: Always use console, show info message
+   - Else if `gui_available and TKINTER_AVAILABLE`: Launch GUI config panel
+   - Else if `gui_available and not TKINTER_AVAILABLE`: Warning + fallback to console
+   - Else: Use console input mode with info message
+
+**Usage Examples:**
+- `photomigrator` - Launch with GUI (if available) or console
+- `photomigrator --no-gui` - Force console mode even if GUI is available
+- `photomigrator /path/to/folder --no-gui` - Process folder with console configuration
+
+**Important Notes:**
+- GUI is now properly enabled when tkinter is available
+- Use `--no-gui` or `--force-console` flags to explicitly force console mode
+- Console mode asks interactive questions for all Google Takeout processing options
+- Flags must be present in command line before argument parser initializes
+
 ### Testing
 
 - Test configuration in `tests/conftest.py` adds `src/` to Python path
