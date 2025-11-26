@@ -173,7 +173,7 @@ The tool has a special "zero-config" mode for Google Takeout that launches autom
 - Tool is run with a single folder path argument: `photomigrator /path/to/folder`
 - Tool is run with no arguments: `photomigrator`
 
-**GUI Detection Flow (`pre_parse_args()` at src/PhotoMigrator.py:133-486):**
+**GUI Detection Flow (`pre_parse_args()` at src/PhotoMigrator.py:133-491):**
 
 1. **Force console mode check** (line 460): Checks for CLI flags to bypass GUI
    - `--no-gui` flag forces console mode
@@ -185,21 +185,16 @@ The tool has a special "zero-config" mode for Google Takeout that launches autom
    - Returns True for Windows (`sys.platform.startswith("win")`)
    - Returns True for macOS (`sys.platform == "darwin"`)
 
-3. **Lazy tkinter detection** (line 469-471): Checks availability without importing
-   - Uses `importlib.util.find_spec("tkinter")` to check if tkinter exists
-   - **Does NOT import tkinter modules** during detection
-   - Sets `tkinter_available` flag based on availability check only
+3. **TKINTER_AVAILABLE flag** (line 465-476): Controls whether GUI is enabled
+   - Initially set to `False` (line 465)
+   - Set to `True` (line 474) when tkinter imports successfully
+   - Respects `force_console_mode` flag - skips GUI detection if console is forced
 
-4. **Mode selection logic** (line 476-486):
+4. **Mode selection logic** (line 481-491):
    - If `force_console_mode`: Always use console, show info message
-   - Else if `gui_available and tkinter_available`: Launch GUI config panel (imports tkinter at line 139-140)
-   - Else if `gui_available and not tkinter_available`: Warning + fallback to console
+   - Else if `gui_available and TKINTER_AVAILABLE`: Launch GUI config panel
+   - Else if `gui_available and not TKINTER_AVAILABLE`: Warning + fallback to console
    - Else: Use console input mode with info message
-
-**Performance Optimization:**
-- Tkinter modules are **only imported when GUI is actually launched** (lazy loading)
-- Detection phase uses `find_spec()` which is fast and doesn't load modules
-- Zero memory/startup overhead if GUI is not used
 
 **Usage Examples:**
 - `photomigrator` - Launch with GUI (if available) or console

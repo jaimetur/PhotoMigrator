@@ -459,27 +459,31 @@ def pre_parse_args():
     # This check happens before argument parsing, so we manually inspect sys.argv
     force_console_mode = "--no-gui" in sys.argv or "--force-console" in sys.argv
 
-    # Check if GUI environment is available
+    # Import tkinter only if needed
     import importlib.util
     gui_available = has_display()
 
     # ──────────────────────────────────────────────────────
     # Detect if tkinter is available (without importing it yet)
     # ──────────────────────────────────────────────────────
-    tkinter_available = False
-    if not force_console_mode and gui_available:
-        tkinter_available = importlib.util.find_spec("tkinter") is not None
+    if not force_console_mode and gui_available and importlib.util.find_spec("tkinter") is not None:
+        try:
+            import tkinter as tk
+            from tkinter import ttk, filedialog
+            TKINTER_AVAILABLE = True  # Fix: Enable GUI when tkinter imports successfully
+        except Exception:
+            TKINTER_AVAILABLE = False
 
     # ──────────────────────────────────────────────────────
     # Launch GUI or fallback to console
     # ──────────────────────────────────────────────────────
-    if gui_available and tkinter_available and not force_console_mode:
+    if gui_available and TKINTER_AVAILABLE and not force_console_mode:
         custom_print(f"GUI environment detected. Opening configuration panel...", log_level=logging.INFO)
         launch_gui_config(folder_already_provided, default_folder=takeout_path)
     else:
         if force_console_mode:
             custom_print(f"Console mode forced via --no-gui flag. Using console input...", log_level=logging.INFO)
-        elif gui_available and not tkinter_available:
+        elif gui_available and not TKINTER_AVAILABLE:
             custom_print(f"Tkinter is not installed. Falling back to console input.", log_level=logging.WARNING)
         else:
             custom_print(f"No GUI detected. Using console input. You will be prompted for each configuration option for 'Google Takeout Fixing' feature...", log_level=logging.INFO)
