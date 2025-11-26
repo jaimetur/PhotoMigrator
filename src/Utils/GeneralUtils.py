@@ -406,13 +406,23 @@ def update_exif_date(image_path, asset_time, log_level=None):
             try:
                 # Dump and insert updated EXIF data
                 exif_bytes = piexif.dump(exif_dict)
+            except Exception as e:
+                GV.LOGGER.error(f"Failed to dump EXIF data for '{image_path}': {type(e).__name__}: {e}")
+                return
+
+            try:
                 piexif.insert(exif_bytes, image_path)
+            except Exception as e:
+                GV.LOGGER.error(f"Failed to insert EXIF data into '{image_path}': {type(e).__name__}: {e}")
+                return
+
+            try:
                 # Restaurar timestamps originales del archivo
                 os.utime(image_path, (original_atime, original_mtime))
                 GV.LOGGER.debug(f"EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
-            except Exception:
-                GV.LOGGER.error(f"Error when restoring original metadata to file: '{image_path}'")
-                return
+            except Exception as e:
+                GV.LOGGER.warning(f"Failed to restore file timestamps for '{image_path}': {type(e).__name__}: {e}")
+                # Don't return here - EXIF was updated successfully, just timestamp restoration failed
         except Exception as e:
             GV.LOGGER.warning(f"Failed to update EXIF metadata for {image_path}. {e}")
         

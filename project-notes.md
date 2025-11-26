@@ -92,6 +92,32 @@ The tool uses `ExecutionModes.py:detect_and_run_execution_mode()` to route based
 - **Cloud Upload/Download**: `-upload-albums`, `-download-all`, etc.
 - **Cloud Management**: `-remove-albums`, `-rename-albums`, etc.
 
+**Completion Notifications:**
+All execution modes now display standardized completion banners when operations finish:
+```
+==================================================
+         PROCESS COMPLETED SUCCESSFULLY!
+==================================================
+
+==================================================
+                  FINAL SUMMARY:
+==================================================
+[mode-specific statistics]
+Total time elapsed                      : HH:MM:SS
+==================================================
+```
+
+- **Automatic Migration** (AutomaticMigration.py:613-634): Shows migration statistics with source→target route
+- **Google Takeout** (ClassTakeoutFolder.py:673-887): Shows comprehensive processing summary with step-by-step timing
+- **All Cloud Operations** (ExecutionModes.py): Standardized completion format across upload/download/management modes
+- **Standalone Features**: All use consistent completion banner format
+
+**Implementation Notes:**
+- No helper function was created as the format is simple and consistent across modes
+- Each mode customizes statistics relevant to its operation
+- All modes track and display total elapsed time
+- Google Takeout has more detailed output due to multi-step processing nature
+
 ### Feature Class Pattern
 
 Photo service clients follow a class-based pattern:
@@ -141,6 +167,51 @@ The tool supports multiple accounts per service (suffix _1, _2, _3), selected vi
   - `custom_print()` - Always prints to console
   - `custom_log()` - Respects log level, writes to file
 
+### GUI and Console Mode Detection
+
+The tool has a special "zero-config" mode for Google Takeout that launches automatically when:
+- Tool is run with a single folder path argument: `photomigrator /path/to/folder`
+- Tool is run with no arguments: `photomigrator`
+
+**GUI Detection Flow (`pre_parse_args()` at src/PhotoMigrator.py:133-486):**
+
+1. **Force console mode check** (line 460): Checks for CLI flags to bypass GUI
+   - `--no-gui` flag forces console mode
+   - `--force-console` flag also forces console mode
+   - These flags are checked before argument parsing via manual `sys.argv` inspection
+
+2. **has_display()** (line 134-136): Detects if graphical environment is available
+   - Checks `DISPLAY` environment variable (Linux/Unix)
+   - Returns True for Windows (`sys.platform.startswith("win")`)
+   - Returns True for macOS (`sys.platform == "darwin"`)
+
+3. **Lazy tkinter detection** (line 469-471): Checks availability without importing
+   - Uses `importlib.util.find_spec("tkinter")` to check if tkinter exists
+   - **Does NOT import tkinter modules** during detection
+   - Sets `tkinter_available` flag based on availability check only
+
+4. **Mode selection logic** (line 476-486):
+   - If `force_console_mode`: Always use console, show info message
+   - Else if `gui_available and tkinter_available`: Launch GUI config panel (imports tkinter at line 139-140)
+   - Else if `gui_available and not tkinter_available`: Warning + fallback to console
+   - Else: Use console input mode with info message
+
+**Performance Optimization:**
+- Tkinter modules are **only imported when GUI is actually launched** (lazy loading)
+- Detection phase uses `find_spec()` which is fast and doesn't load modules
+- Zero memory/startup overhead if GUI is not used
+
+**Usage Examples:**
+- `photomigrator` - Launch with GUI (if available) or console
+- `photomigrator --no-gui` - Force console mode even if GUI is available
+- `photomigrator /path/to/folder --no-gui` - Process folder with console configuration
+
+**Important Notes:**
+- GUI is now properly enabled when tkinter is available
+- Use `--no-gui` or `--force-console` flags to explicitly force console mode
+- Console mode asks interactive questions for all Google Takeout processing options
+- Flags must be present in command line before argument parser initializes
+
 ### Testing
 
 - Test configuration in `tests/conftest.py` adds `src/` to Python path
@@ -170,6 +241,14 @@ The tool supports multiple accounts per service (suffix _1, _2, _3), selected vi
 - ExifTool is embedded (accessed via `--exec-exif-tool`)
 - Date extraction utilities in `Utils/DateUtils.py`
 
+**Error Handling in `update_exif_date()` (src/Utils/GeneralUtils.py:362-428):**
+- Separated exception handling for three distinct operations:
+  1. `piexif.dump()` - Converting EXIF dict to bytes (line 406-411)
+  2. `piexif.insert()` - Writing EXIF data to file (line 413-417)
+  3. `os.utime()` - Restoring file timestamps (line 419-425)
+- Each operation now logs specific error type and message for easier debugging
+- Timestamp restoration failure is logged as WARNING (not ERROR) since EXIF update succeeded
+
 ## Project-Specific Conventions
 
 - Function names use snake_case
@@ -193,6 +272,6 @@ The tool supports multiple accounts per service (suffix _1, _2, _3), selected vi
 
 - Requires Python 3.7+
 - Google Takeout GPTH processing is embedded (see `gpth_tool/`)
-- Tkinter UI is disabled by default, configurable
+- Tkinter GUI is enabled by default when available, can be disabled with `--no-gui` flag
 - Windows-specific: uses windows-curses for terminal on AMD64
 - Platform-specific splash screens for compiled binaries (PyInstaller/Nuitka)
