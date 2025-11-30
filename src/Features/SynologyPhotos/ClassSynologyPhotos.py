@@ -2729,11 +2729,11 @@ class ClassSynologyPhotos:
 
         Args:
             strategy (str): 'count' to keep album with most assets, 'size' to keep album with largest size
+            request_user_confirmation (bool): Whether to ask user for confirmation before merging
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
-            int: The number of duplicate albums deleted.
-            :param request_user_confirmation:
+            tuple: (total_merged_albums, total_removed_duplicated_albums)
         """
         with set_log_level(LOGGER, log_level):
             try:
@@ -2741,7 +2741,7 @@ class ClassSynologyPhotos:
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
 
                 if not albums:
-                    return 0
+                    return 0, 0
 
                 LOGGER.info(f"Looking for duplicate albums in Synology Photos...")
                 albums_by_name = {}
@@ -2794,7 +2794,7 @@ class ClassSynologyPhotos:
                     # Ask for confirmation only if requested
                     if request_user_confirmation and not confirm_continue():
                         LOGGER.info(f"Exiting program.")
-                        return 0
+                        return 0, 0
 
 
                 total_merged_albums = 0

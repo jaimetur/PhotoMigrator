@@ -1920,14 +1920,14 @@ class ClassLocalFolder:
             log_level (logging.LEVEL): The log level for logging and console output.
 
         Returns:
-            int: The number of duplicate folders deleted.
+            tuple: (total_merged_albums, total_removed_duplicated_albums)
         """
         with set_log_level(LOGGER, log_level):
             from collections import defaultdict
 
             if not self.albums_folder.exists():
                 LOGGER.warning(f"Albums folder does not exist: {self.albums_folder}")
-                return 0
+                return 0, 0
 
             LOGGER.info("Searching for duplicate albums in local folders...")
             # Ensure the analyzer has run to populate folder_assets and folder_sizes
@@ -1968,7 +1968,7 @@ class ClassLocalFolder:
 
             if not merge_plan:
                 LOGGER.info("No duplicate albums found.")
-                return 0
+                return 0, 0
 
             # Display plan
             LOGGER.info("Albums to be merged:")
@@ -1981,7 +1981,7 @@ class ClassLocalFolder:
             # Confirm with user
             if request_user_confirmation and not confirm_continue():
                 LOGGER.info("Exiting program.")
-                return 0
+                return 0, 0
 
             total_removed = 0
             # Execute merges
@@ -2025,8 +2025,9 @@ class ClassLocalFolder:
             self.analyzer._build_file_list_from_disk(step_name="merge_duplicates_albums: ")
             self.analyzer._compute_folder_sizes(step_name="merge_duplicates_albums: ")
 
-            LOGGER.info(f"Removed {total_removed} duplicate folders.")
-            return total_removed
+            total_merged = len(merge_plan)
+            LOGGER.info(f"Removed {total_removed} duplicate folders belonging to {total_merged} different Albums groups.")
+            return total_merged, total_removed
 
     # def merge_duplicates_albums(self, strategy='count', request_user_confirmation=True, log_level=logging.WARNING):
     #     """
