@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 import requests
 import urllib3
+from requests.adapters import HTTPAdapter
 from dateutil import parser
 from halo import Halo
 from tabulate import tabulate
@@ -79,6 +80,16 @@ class ClassImmichPhotos:
 
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
+
+        # HTTP Session for connection pooling
+        self.SESSION = None
+
+        # Upload tuning parameters (will be populated from config, with defaults)
+        self.UPLOAD_TIMEOUT = 300           # Default 5 minutes for large files
+        self.UPLOAD_RETRY_COUNT = 5         # Default 5 retries
+        self.UPLOAD_RETRY_DELAY = 2         # Default 2 seconds initial delay
+        self.UPLOAD_RATE_DELAY = 0.5        # Default 0.5 seconds between uploads
+        self.CONNECTION_POOL_SIZE = 10      # Default pool size
 
         # Create cache lists for future use
         self.all_assets_filtered = None
@@ -171,6 +182,13 @@ class ClassImmichPhotos:
                     LOGGER.info(f"IMMICH_USERNAME       : {self.IMMICH_USERNAME}")
                     masked_password = '*' * len(self.IMMICH_PASSWORD)
                     LOGGER.info(f"IMMICH_PASSWORD       : {masked_password}")
+
+            # Read upload tuning parameters with defaults
+            self.UPLOAD_TIMEOUT = int(self.CONFIG.get(section_to_load).get('IMMICH_UPLOAD_TIMEOUT', 300))
+            self.UPLOAD_RETRY_COUNT = int(self.CONFIG.get(section_to_load).get('IMMICH_UPLOAD_RETRY_COUNT', 5))
+            self.UPLOAD_RETRY_DELAY = float(self.CONFIG.get(section_to_load).get('IMMICH_UPLOAD_RETRY_DELAY', 2))
+            self.UPLOAD_RATE_DELAY = float(self.CONFIG.get(section_to_load).get('IMMICH_UPLOAD_RATE_DELAY', 0.5))
+            self.CONNECTION_POOL_SIZE = int(self.CONFIG.get(section_to_load).get('IMMICH_CONNECTION_POOL_SIZE', 10))
 
             return self.CONFIG
 
@@ -270,7 +288,100 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):
             self.SESSION_TOKEN = None
             self.HEADERS_WITH_CREDENTIALS = {}
+            if self.SESSION:
+                self.SESSION.close()
+                self.SESSION = None
             LOGGER.info(f"Session closed locally (Bearer Token discarded).")
+
+
+    ###########################################################################
+    #                   SESSION MANAGEMENT & RETRY LOGIC                      #
+    ###########################################################################
+    def _init_session(self):
+        """
+        Initializes a requests.Session with connection pooling.
+        Reuses connections for better performance and reduced server load.
+        """
+        if self.SESSION is None:
+            self.SESSION = requests.Session()
+            # Configure connection pooling via HTTPAdapter
+            adapter = HTTPAdapter(
+                pool_connections=self.CONNECTION_POOL_SIZE,
+                pool_maxsize=self.CONNECTION_POOL_SIZE,
+            )
+            self.SESSION.mount('http://', adapter)
+            self.SESSION.mount('https://', adapter)
+        return self.SESSION
+
+    def _is_retryable_error(self, exception):
+        """
+        Determines if an exception is a transient error that should be retried.
+
+        Args:
+            exception: The exception to check
+
+        Returns:
+            bool: True if the error is transient and should be retried
+        """
+        retryable_patterns = [
+            'RemoteDisconnected',
+            'Connection reset by peer',
+            'Connection aborted',
+            'Connection refused',
+            'timed out',
+            'ConnectionResetError',
+            'BrokenPipeError',
+        ]
+        error_str = str(exception)
+        return any(pattern in error_str for pattern in retryable_patterns)
+
+    def _request_with_retry(self, method, url, **kwargs):
+        """
+        Makes an HTTP request with retry logic and exponential backoff.
+
+        Args:
+            method (str): HTTP method ('get', 'post', 'put', 'delete')
+            url (str): URL to request
+            **kwargs: Additional arguments passed to requests
+
+        Returns:
+            requests.Response: The response object
+
+        Raises:
+            Exception: If all retries are exhausted
+        """
+        kwargs.setdefault('timeout', self.UPLOAD_TIMEOUT)
+        kwargs.setdefault('verify', False)
+
+        session = self._init_session()
+        request_func = getattr(session, method.lower())
+
+        last_exception = None
+        for attempt in range(self.UPLOAD_RETRY_COUNT + 1):
+            try:
+                response = request_func(url, **kwargs)
+                return response
+            except Exception as e:
+                last_exception = e
+
+                if not self._is_retryable_error(e):
+                    # Non-retryable error, raise immediately
+                    raise
+
+                if attempt < self.UPLOAD_RETRY_COUNT:
+                    # Calculate exponential backoff delay
+                    delay = self.UPLOAD_RETRY_DELAY * (2 ** attempt)
+                    LOGGER.warning(
+                        f"Request to {url} failed (attempt {attempt + 1}/{self.UPLOAD_RETRY_COUNT + 1}): {e}. "
+                        f"Retrying in {delay:.1f}s..."
+                    )
+                    time.sleep(delay)
+                else:
+                    LOGGER.error(
+                        f"Request to {url} failed after {self.UPLOAD_RETRY_COUNT + 1} attempts: {e}"
+                    )
+
+        raise last_exception
 
 
     ###########################################################################
@@ -1064,7 +1175,7 @@ class ClassImmichPhotos:
             url = f"{self.IMMICH_URL}/api/albums/{album_id}/assets"
             payload = json.dumps({"ids": asset_ids})
             try:
-                resp = requests.put(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
+                resp = self._request_with_retry('put', url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload)
                 resp.raise_for_status()
                 data = resp.json()
                 total_added = sum(1 for item in data if item.get("success"))
@@ -1218,7 +1329,7 @@ class ClassImmichPhotos:
                 }
 
             try:
-                response = requests.post(url, headers=header, data=data, files=files)
+                response = self._request_with_retry('post', url, headers=header, data=data, files=files)
                 response.raise_for_status()
                 new_asset = response.json()
                 asset_id = new_asset.get("id")
@@ -1230,8 +1341,16 @@ class ClassImmichPhotos:
                         LOGGER.debug(f"Pushed '{os.path.basename(file_path)}' with asset_id={asset_id}")
                 return asset_id, is_duplicated
             except Exception as e:
-                LOGGER.error(f"Failed to push '{file_path}': {e}")
+                if self._is_retryable_error(e):
+                    LOGGER.error(f"Failed to push '{file_path}' after {self.UPLOAD_RETRY_COUNT + 1} attempts: {e}")
+                else:
+                    LOGGER.error(f"Failed to push '{file_path}': {e}")
                 return None, None
+            finally:
+                # Ensure file handles are closed
+                for key, value in files.items():
+                    if hasattr(value, 'close'):
+                        value.close()
 
 
     def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", album_passphrase=None, log_level=None):
@@ -1400,6 +1519,10 @@ class ClassImmichPhotos:
                             else:
                                 total_assets_uploaded += 1
 
+                            # Rate limiting: add delay between uploads to reduce server stress
+                            if self.UPLOAD_RATE_DELAY > 0:
+                                time.sleep(self.UPLOAD_RATE_DELAY)
+
                             if asset_id:
                                 # Associate only if ext is photo/video
                                 if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
@@ -1498,6 +1621,10 @@ class ClassImmichPhotos:
                     elif asset_id:
                         LOGGER.debug(f"Asset ID: {asset_id} uploaded to Immich Photos")
                         total_assets_uploaded += 1
+
+                    # Rate limiting: add delay between uploads to reduce server stress
+                    if self.UPLOAD_RATE_DELAY > 0:
+                        time.sleep(self.UPLOAD_RATE_DELAY)
 
             duplicates_assets_removed = 0
             if remove_duplicates:

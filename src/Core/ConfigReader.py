@@ -96,6 +96,11 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
             'IMMICH_API_KEY_USER_3',
             'IMMICH_USERNAME_3',
             'IMMICH_PASSWORD_3',
+            'IMMICH_UPLOAD_TIMEOUT',
+            'IMMICH_UPLOAD_RETRY_COUNT',
+            'IMMICH_UPLOAD_RETRY_DELAY',
+            'IMMICH_UPLOAD_RATE_DELAY',
+            'IMMICH_CONNECTION_POOL_SIZE',
         ],
         'Apple Photos': [
             'max_photos',
