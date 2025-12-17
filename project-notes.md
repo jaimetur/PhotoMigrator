@@ -244,6 +244,54 @@ The tool has a special "zero-config" mode for Google Takeout that launches autom
 - Each operation now logs specific error type and message for easier debugging
 - Timestamp restoration failure is logged as WARNING (not ERROR) since EXIF update succeeded
 
+**EXIF Orientation Handling (NOT IMPLEMENTED):**
+- The orientation EXIF tag (`piexif.ImageIFD.Orientation`) is NOT read or processed
+- Synology API requests orientation data via `additional` param but it's not used
+- Downloaded images retain original EXIF orientation tag without pixel rotation
+- No `PIL.ImageOps.exif_transpose()` usage in codebase
+- Viewing software is expected to honor EXIF orientation tags
+
+### Album Export/Download Architecture
+
+**Synology Photos** (`ClassSynologyPhotos.py`):
+- `pull_albums()` (line 2137): Downloads albums by name/pattern
+  - Fetches album list via `get_albums_including_shared_with_user()`
+  - Iterates albums, gets assets via `get_all_assets_from_album(album_id)`
+  - Downloads each asset via `pull_asset()`
+- `pull_asset()` (line 1460): Downloads single asset
+  - Uses `SYNO.Foto.Download` API with `download_type='source'`
+  - Writes raw bytes, updates file timestamps, calls `update_metadata()`
+
+**Immich Photos** (`ClassImmichPhotos.py`):
+- `pull_albums()` (line 1690): Same pattern as Synology
+- `pull_asset()` (line 1356): Uses `/api/assets/{id}/original` endpoint
+
+**Execution Flow** (`ExecutionModes.py`):
+- `mode_cloud_download_albums()` (line 360): Entry point for `-dAlb/--download-albums`
+- Performs cleanup (empty albums, duplicates) before download
+- Calls `cloud_client_obj.pull_albums()` then displays summary
+
+### Album Upload Architecture
+
+**Synology Photos** (`ClassSynologyPhotos.py`):
+- `push_albums()` (line 1864): Uploads folder structure as albums
+  - Traverses subfolders, filters by inclusion/exclusion patterns
+  - For valid folders with supported files:
+    - Uploads each file via `push_asset()`
+    - Creates album via `create_album(album_name)`
+    - Associates assets via `add_assets_to_album(album_id, asset_ids)`
+- `push_asset()` (line 1386): Uploads single file
+  - Uses `SYNO.Foto.Upload.Item` API with multipart form
+  - Sets `uploadDestination='timeline'`, `duplicate='ignore'`
+
+**Immich Photos** (`ClassImmichPhotos.py`):
+- `push_albums()` (line 1412): Same traversal pattern
+- `push_asset()` (line 1252): Uses Immich REST API
+
+**Execution Flow** (`ExecutionModes.py`):
+- `mode_cloud_upload_albums()` (line 214): Entry point for `-uAlb/--upload-albums`
+- After upload, performs cleanup (remove empty/duplicate albums and assets)
+
 ## Project-Specific Conventions
 
 - Function names use snake_case
