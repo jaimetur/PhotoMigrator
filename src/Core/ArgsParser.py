@@ -271,6 +271,10 @@ def parse_arguments():
                         help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from the selected Photo client account.\nYou must provide the Photo client using the mandatory flag '--client'.")
     PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
                         help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them.\nYou must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
+    PARSER.add_argument("-listAlbums", "--list-albums", action="store_true", default="",
+                        help="List all owned albums from the cloud service (Synology/Immich) with their asset counts.\nYou must provide the Photo client using the mandatory argument '--client'.")
+    PARSER.add_argument("-listAlbumsShared", "--list-albums-shared", action="store_true", default="",
+                        help="List all albums including shared ones from the cloud service (Synology/Immich) with their asset counts.\nYou must provide the Photo client using the mandatory argument '--client'.")
     PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
 

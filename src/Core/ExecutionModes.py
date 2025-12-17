@@ -85,6 +85,12 @@ def detect_and_run_execution_mode():
     elif ARGS['remove-orphan-assets'] != "":
         EXECUTION_MODE = 'remove-orphan-assets'
         mode_cloud_remove_orphan_assets(client=ARGS['client'])
+    elif ARGS['list-albums']:
+        EXECUTION_MODE = 'list-albums'
+        mode_cloud_list_albums(client=ARGS['client'], include_shared=False)
+    elif ARGS['list-albums-shared']:
+        EXECUTION_MODE = 'list-albums-shared'
+        mode_cloud_list_albums(client=ARGS['client'], include_shared=True)
 
 
     # Other Stand-alone Extra Features:
@@ -540,6 +546,58 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info(f"==================================================")
         LOGGER.info(f"")
+
+
+def mode_cloud_list_albums(client=None, include_shared=False, log_level=None):
+    """List albums from cloud service with asset counts."""
+    client = capitalize_first_letter(client)
+    album_type = "all (including shared)" if include_shared else "owned"
+    LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
+    LOGGER.info(f"Listing {album_type} albums...")
+
+    # Create the cloud_client_obj Object
+    if client.lower() == 'immich':
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif client.lower() == 'synology':
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
+    else:
+        LOGGER.error(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
+        sys.exit(1)
+
+    with set_log_level(LOGGER, log_level):
+        cloud_client_obj.login(log_level=logging.WARNING)
+
+        if include_shared:
+            albums = cloud_client_obj.get_albums_including_shared_with_user(filter_assets=False, log_level=logging.WARNING)
+        else:
+            albums = cloud_client_obj.get_albums_owned_by_user(filter_assets=False, log_level=logging.WARNING)
+
+        if not albums:
+            LOGGER.info("No albums found.")
+            cloud_client_obj.logout(log_level=logging.WARNING)
+            return
+
+        # Sort albums by name (case-insensitive)
+        albums = sorted(albums, key=lambda a: a.get('albumName', a.get('name', '')).lower())
+
+        LOGGER.info(f"Found {len(albums)} albums:\n")
+        print(f"{'Album Name':<52} {'Assets':>8}   {'ID'}")
+        print("-" * 90)
+
+        for album in albums:
+            album_id = album.get('id', 'N/A')
+            album_name = album.get('albumName', album.get('name', 'Unknown'))
+            # Synology requires album_name, Immich does not
+            if client.lower() == 'synology':
+                asset_count = cloud_client_obj.get_album_assets_count(album_id, album_name, log_level=logging.WARNING)
+            else:
+                asset_count = cloud_client_obj.get_album_assets_count(album_id, log_level=logging.WARNING)
+            if asset_count == -1:
+                asset_count = "?"
+            quoted_name = f"\"{album_name}\""
+            print(f"{quoted_name:<52} {asset_count:>8}   {album_id}")
+
+        cloud_client_obj.logout(log_level=logging.WARNING)
 
 
 def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log_level=None):
