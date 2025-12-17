@@ -399,9 +399,11 @@ def update_exif_date(image_path, asset_time, log_level=None):
                 exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes
                 exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes
             # Verificar y corregir valores incorrectos antes de insertar
+            # Skip tags that must remain as integers (e.g., Orientation tag 274)
+            integer_tags = {piexif.ImageIFD.Orientation}
             for ifd_name in ["0th", "Exif"]:
                 for tag, value in exif_dict.get(ifd_name, {}).items():
-                    if isinstance(value, int):
+                    if isinstance(value, int) and tag not in integer_tags:
                         exif_dict[ifd_name][tag] = str(value).encode('utf-8')
             try:
                 # Dump and insert updated EXIF data
