@@ -2171,11 +2171,12 @@ class ClassSynologyPhotos:
                     albums_to_download = all_albums
                     LOGGER.info(f"ALL albums ({len(all_albums)}) will be downloaded...")
                 else:
-                    # Flatten user-specified album patterns
+                    # Use patterns directly from albums_name (argparse handles quoting)
+                    # Only strip whitespace, do not split on spaces
                     pattern_list = []
                     for item in albums_name:
                         if isinstance(item, str):
-                            pattern_list.extend([pt.strip() for pt in item.replace(',', ' ').split() if pt.strip()])
+                            pattern_list.append(item.strip())
                     albums_to_download = []
 
                     for album in all_albums:
