@@ -513,8 +513,8 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global archive_path_relative
 
     # Detect the operating system and architecture
-    OPERATING_SYSTEM = _get_os(use_logger=False)
-    ARCHITECTURE = _get_arch(use_logger=False)
+    OPERATING_SYSTEM = _get_os()
+    ARCHITECTURE = _get_arch()
 
     # Script names
     TOOL_SOURCE_NAME = f"{TOOL_NAME}.py"
