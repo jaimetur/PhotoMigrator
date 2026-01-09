@@ -14,6 +14,21 @@ from Core.CustomLogger import set_log_level
 #                               DATE FUNCTIONS
 # ==============================================================================
 def is_date_outside_range(date_to_check):
+    """
+    Returns True if `date_to_check` is outside the configured filter range.
+
+    It reads the boundaries from:
+      - GV.ARGS['filter-from-date']
+      - GV.ARGS['filter-to-date']
+
+    All values are converted to epoch seconds using `parse_text_datetime_to_epoch`.
+
+    Args:
+        date_to_check (str | int | float | datetime): Date/time to evaluate.
+
+    Returns:
+        bool: True if the date is before 'filter-from-date' or after 'filter-to-date', otherwise False.
+    """
     from_date = parse_text_datetime_to_epoch(GV.ARGS.get('filter-from-date'))
     to_date = parse_text_datetime_to_epoch(GV.ARGS.get('filter-to-date'))
     date_to_check = parse_text_datetime_to_epoch(date_to_check)
@@ -22,6 +37,7 @@ def is_date_outside_range(date_to_check):
     if to_date is not None and date_to_check > to_date:
         return True
     return False
+
 
 # ==============================================================================
 #                               DATE PARSERS
@@ -90,23 +106,23 @@ def parse_text_datetime_to_epoch(value):
 
 def parse_text_to_iso8601(date_str):
     """
-    Intenta convertir una cadena de fecha a formato ISO 8601 (UTC a medianoche).
+    Tries to convert a date string to ISO 8601 format (UTC at midnight).
 
-    Soporta:
-    - Día/Mes/Año (varios formatos)
-    - Año/Mes o Mes/Año (como '2024-03' o '03/2024')
-    - Solo año (como '2024')
+    Supported inputs:
+      - Day/Month/Year (various formats)
+      - Year/Month or Month/Year (e.g. '2024-03' or '03/2024')
+      - Year only (e.g. '2024')
 
     Args:
-        date_str (str): La cadena de fecha.
+        date_str (str): Input date string.
 
     Returns:
-        str | None: Fecha en formato ISO 8601 o None si no se pudo convertir.
+        str | None: ISO 8601 date string (UTC midnight) or None if conversion fails.
     """
     if not date_str or not date_str.strip():
         return None
     date_str = date_str.strip()
-    # Lista de formatos con día, mes y año
+    # List of formats with day, month and year
     date_formats = [
         "%d/%m/%Y",
         "%d-%m-%Y",
@@ -119,7 +135,7 @@ def parse_text_to_iso8601(date_str):
             return dt.strftime("%Y-%m-%dT00:00:00.000Z")
         except ValueError:
             continue
-    # Año y mes: YYYY-MM, YYYY/MM, MM-YYYY, MM/YYYY
+    # Year and month: YYYY-MM, YYYY/MM, MM-YYYY, MM/YYYY
     try:
         match = re.fullmatch(r"(\d{4})[-/](\d{1,2})", date_str)
         if match:
@@ -133,7 +149,7 @@ def parse_text_to_iso8601(date_str):
             return dt.strftime("%Y-%m-%dT00:00:00.000Z")
     except Exception:
         pass
-    # Solo año
+    # Year only
     if re.fullmatch(r"\d{4}", date_str):
         try:
             dt = datetime(int(date_str), 1, 1)
@@ -144,16 +160,21 @@ def parse_text_to_iso8601(date_str):
 
 
 def iso8601_to_epoch(iso_date):
-    # Deprecated fucntion
     """
-    Convierte una fecha en formato ISO 8601 a timestamp Unix (en segundos).
-    Si el argumento es None o una cadena vacía, devuelve el mismo valor.
+    Converts an ISO 8601 datetime string to a UNIX epoch timestamp (seconds).
 
-    Ejemplo:
-        iso8601_to_epoch("2021-12-01T00:00:00Z") -> 1638316800
-        iso8601_to_epoch("") -> -1
-        iso8601_to_epoch(None) -> -1
+    Notes:
+        - Marked as deprecated in the original code.
+        - If `iso_date` is None, returns None.
+        - If parsing fails, returns -1 (legacy behavior).
+
+    Args:
+        iso_date (str | None): ISO 8601 date string, possibly ending with 'Z'.
+
+    Returns:
+        int | None: Epoch seconds, None if input is None, -1 on parse error.
     """
+    # Deprecated function
     if iso_date is None:
         return None
     try:
@@ -162,35 +183,52 @@ def iso8601_to_epoch(iso_date):
         dt = datetime.fromisoformat(iso_date)
         return int(dt.timestamp())
     except Exception:
-        # En caso de error inesperado, se devuelve -1
+        # In case of unexpected error, return -1
         return -1
 
 
 def epoch_to_iso8601(epoch):
-    # Deprecated fucntion
     """
-    Convierte un timestamp Unix (en segundos) a una cadena en formato ISO 8601 (UTC).
-    Si el argumento es None o una cadena vacía, devuelve el mismo valor.
+    Converts a UNIX epoch timestamp (seconds) to an ISO 8601 UTC string.
 
-    Ejemplo:
-        epoch_to_iso8601(1638316800) -> "2021-12-01T00:00:00Z"
-        epoch_to_iso8601("") -> ""
-        epoch_to_iso8601(None) -> ""
+    Notes:
+        - Marked as deprecated in the original code.
+        - If `epoch` is None or empty string, returns "" (legacy behavior).
+        - If conversion fails, returns "".
+
+    Args:
+        epoch (int | str | None): Epoch seconds.
+
+    Returns:
+        str: ISO 8601 UTC string (ending with 'Z') or "" on invalid input/error.
     """
+    # Deprecated function
     if epoch is None or epoch == "":
         return ""
 
     try:
-        # Asegura que sea un número entero
         epoch = int(epoch)
         dt = datetime.fromtimestamp(epoch, tz=timezone.utc)
         return dt.isoformat().replace("+00:00", "Z")
     except Exception:
-        # En caso de error inesperado, se devuelve el valor original
+        # In case of unexpected error, return the original legacy value
         return ""
 
 
 def normalize_datetime_utc(dt):
+    """
+    Normalizes a datetime into an aware UTC datetime.
+
+    Behavior:
+      - If `dt` is naive (tzinfo is None), it is assumed to be UTC and made aware.
+      - If `dt` is timezone-aware, it is converted to UTC.
+
+    Args:
+        dt (datetime): Input datetime.
+
+    Returns:
+        datetime: Timezone-aware datetime in UTC.
+    """
     if dt.tzinfo is None:
         return dt.replace(tzinfo=timezone.utc)  # naive → UTC
     else:
@@ -199,8 +237,20 @@ def normalize_datetime_utc(dt):
 
 def is_date_valid(date_to_check, reference, min_days=0):
     """
-    Return True if date_to_check < (reference - min_days days),
-    and only if year is between 1970 and 2100 inclusive.
+    Returns True if `date_to_check` is valid and sufficiently old compared to `reference`.
+
+    Rules:
+      - `date_to_check` must not be None
+      - year must be between 1970 and 2100 inclusive
+      - `date_to_check` must be older than (reference - min_days)
+
+    Args:
+        date_to_check (datetime | None): Date to validate.
+        reference (datetime): Reference datetime (naive is assumed UTC).
+        min_days (int): Minimum age (in days) required.
+
+    Returns:
+        bool: True if valid, otherwise False.
     """
     if date_to_check is None:
         return False
@@ -211,21 +261,42 @@ def is_date_valid(date_to_check, reference, min_days=0):
     return date_to_check < (reference - timedelta(days=min_days))
 
 
-
 def guess_date_from_filename(path, step_name="", log_level=None):
     """
-    Try to guess a date from a filename (first from filename, then full filepath) and return it in ISO 8601 format with local timezone.
-    If only year/month/day is found, missing parts are filled with 01.
-    If no time is found, it defaults to 00:00:00.
-    Timezone is set to the system's local timezone unless a timezone is detected in the pattern.
+    Try to guess a date from a filename (first from filename, then path folders) and return it in ISO 8601 format.
+
+    Search strategy:
+      1) Start with the filename.
+      2) Then check the parent folder name.
+      3) Optionally check the grandparent folder name ONLY if the parent folder name looks like a month (01..12).
+
+    Anti-false-positive strategy:
+      - Detect UUID/hash-like tokens and skip them entirely before applying regex patterns
+        (prevents interpreting hash numbers as dates).
+
+    Supported patterns (strongest to weakest, applied in order):
+      - YYYYMMDD with optional time and timezone
+      - YYYY-MM-DD (or similar separators) with optional time and timezone
+      - DD-MM-YYYY without time
+      - YYYYMM / MMYYYY (6 digits) when year is 19xx/20xx and month is valid
+      - Isolated year (19xx/20xx) delimited by non-alnum boundaries
+
+    Time handling:
+      - If no time is found, defaults to 00:00:00.
+      - If partial time is found, missing parts default to 00.
+      - Milliseconds are supported (1..6 digits), padded to microseconds.
+
+    Timezone handling:
+      - If a timezone is found ("Z" or ±HHMM/±HH:MM), it is applied.
+      - Otherwise, local timezone is used.
 
     Args:
-        path: Full path or filename.
-        step_name: Optional prefix for log messages.
+        path (str | Path): Full path or filename.
+        step_name (str): Optional prefix for log messages.
         log_level: Optional logging level override.
 
     Returns:
-        Tuple: (ISO date string or None, source: 'filename' | 'filepath' | None)
+        tuple[str | None, str | None]: (ISO date string, source) where source is 'filename' or 'filepath'.
     """
     import re
     from pathlib import Path
@@ -251,6 +322,20 @@ def guess_date_from_filename(path, step_name="", log_level=None):
         uuid_like_re = re.compile(r'^[0-9a-fA-F]{8}[-_][0-9a-fA-F]{4}[-_][0-9a-fA-F]{4}[-_][0-9a-fA-F]{4}[-_][0-9a-fA-F]{12}$')
 
         def is_probably_hash(text):
+            """
+            Returns True if the provided text looks like a UUID or a hash-like token.
+
+            The function applies multiple heuristics:
+              1) UUID canonical pattern (with '-' or '_')
+              2) High hex-density long alphanumeric string
+              3) Long tokens (>=24 chars) that are almost all hex
+
+            Args:
+                text (str): Candidate text to analyze (filename/folder name).
+
+            Returns:
+                bool: True if hash/UUID-like, otherwise False.
+            """
             # Normalize: strip extension for the main token check
             base = text.rsplit('.', 1)[0]
 
@@ -277,23 +362,48 @@ def guess_date_from_filename(path, step_name="", log_level=None):
 
             return False
 
-        # Patrones más inteligentes, con control de separadores y zonas horarias
+        # More robust patterns, with separator and timezone control
         # NOTE (English): Unified list; ordered from strongest/specific to weakest (loose year last).
         patterns = [
-            # yyyymmdd con hora y opcional zona horaria (sin separadores)
+            # yyyymmdd with time and optional timezone (no separators)
             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[T_\-\. ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?:\.(?P<millisec>\d{1,6}))?(?P<tz>Z|[+-]\d{2}:?\d{2})?(?![a-zA-Z])',
-            # yyyy-mm-dd con hora y zona horaria
+            # yyyy-mm-dd with time and timezone
             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})[-_. ](?P<month>\d{2})[-_. ](?P<day>\d{2})[T_\-\. ]?(?P<hour>\d{2})?[-_.:]?(?P<minute>\d{2})?[-_.:]?(?P<second>\d{2})?(?:\.(?P<millisec>\d{1,6}))?(?P<tz>Z|[+-]\d{2}:?\d{2})?(?![a-zA-Z])',
-            # dd-mm-yyyy sin hora
+            # dd-mm-yyyy without time
             r'(?<![a-fA-F])(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
-            # año + mes (6 dígitos) si el mes es válido
+            # year + month (6 digits) if month is valid
             r'(?<!\d)(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?!\d)',
             r'(?<!\d)(?P<month>\d{2})(?P<year>19\d{2}|20\d{2})(?!\d)',
-            # año suelto (delimitado por cualquier no-alnum o límites de cadena)
+            # isolated year (delimited by any non-alnum or string boundaries)
             r'(?:(?<=^)|(?<=[^0-9A-Za-z]))(?P<year>19\d{2}|20\d{2})(?=$|[^0-9A-Za-z])',
         ]
 
         def try_build_datetime_from_match(parts):
+            """
+            Builds a timezone-aware datetime from regex named groups.
+
+            Missing date parts are defaulted:
+              - month/day default to 1
+              - hour/minute/second default to 0
+              - millisec is padded to microseconds (0..999999)
+
+            Validation:
+              - year must be in [1900..2099]
+              - month in [1..12]
+              - day in [1..31]
+              - time components in valid ranges
+
+            Timezone:
+              - 'Z' => UTC
+              - ±HHMM or ±HH:MM => fixed offset
+              - otherwise => local timezone
+
+            Args:
+                parts (dict): Named groups from the regex match.
+
+            Returns:
+                datetime | None: A timezone-aware datetime or None if validation fails.
+            """
             # Build datetime with defaults and validate ranges
             year = int(parts.get("year") or 0)
             month = int(parts.get("month") or 1)
@@ -345,108 +455,3 @@ def guess_date_from_filename(path, step_name="", log_level=None):
 
         GV.LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
         return None, None
-
-
-
-# def guess_date_from_filename(path, step_name="", log_level=None):
-#     """
-#     Try to guess a date from a filename (first from filename, then full filepath) and return it in ISO 8601 format with local timezone.
-#     If only year/month/day is found, missing parts are filled with 01.
-#     If no time is found, it defaults to 00:00:00.
-#     Timezone is set to the system's local timezone.
-#
-#     Args:
-#         path: Full path or filename.
-#         step_name: Optional prefix for log messages.
-#         log_level: Optional logging level override.
-#
-#     Returns:
-#         Tuple: (ISO date string or None, source: 'filename' | 'filepath' | None)
-#     """
-#     import re
-#     from pathlib import Path
-#     from datetime import datetime
-#
-#     with set_log_level(GV.LOGGER, log_level):
-#         tz = datetime.now().astimezone().tzinfo
-#         path = Path(path)
-#         candidates = [(path.name, "filename"), (str(path.parent), "filepath")]
-#
-#         patterns = [
-#             # yyyy mm dd [hh mm ss] sin separadores, ej: 20230715_153025
-#             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-T ]?(?P<hour>\d{2})?(?P<minute>\d{2})?(?P<second>\d{2})?(?![a-zA-Z])',
-#             # yyyy-mm-dd_hh-mm-ss, con separadores, ej: 2023-07-15_15-30-25
-#             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})[.\-_ ](?P<month>\d{2})[.\-_ ](?P<day>\d{2})[^\d]?(?P<hour>\d{2})?[.\-_ ]?(?P<minute>\d{2})?[.\-_ ]?(?P<second>\d{2})?(?![a-zA-Z])',
-#             # dd-mm-yyyy ej: 15-07-2023
-#             r'(?<![a-fA-F])(?P<day>\d{2})[-_](?P<month>\d{2})[-_](?P<year>19\d{2}|20\d{2})(?![a-zA-Z])',
-#             # Año solo aislado, ej: _2023_
-#             r'(?<![a-fA-F])(?P<year>19\d{2}|20\d{2})(?!\d|[a-zA-Z])',
-#             # Año + Mes aislado, ej: 202307 o 072023
-#             r'(?<![a-fA-F])(?P<ym>\d{6})(?!\d|[a-zA-Z])',
-#             # Año + Mes + Día aislado (8 dígitos), ej: 20230715 o 15072023
-#             r'(?<![a-fA-F])(?P<ymd>\d{8})(?!\d|[a-zA-Z])',
-#         ]
-#
-#         for text, source in candidates:
-#             for pattern in patterns:
-#                 match = re.search(pattern, text)
-#                 if match:
-#                     try:
-#                         parts = match.groupdict()
-#                         year = month = day = hour = minute = second = None
-#
-#                         if parts.get("year"):
-#                             year = int(parts["year"])
-#                             month = int(parts.get("month") or 1)
-#                             day = int(parts.get("day") or 1)
-#                             hour = int(parts.get("hour") or 0)
-#                             minute = int(parts.get("minute") or 0)
-#                             second = int(parts.get("second") or 0)
-#
-#                         elif parts.get("ymd"):
-#                             digits = parts["ymd"]
-#                             combos = [
-#                                 (digits[0:4], digits[4:6], digits[6:8]),  # yyyy mm dd
-#                                 (digits[4:8], digits[2:4], digits[0:2]),  # dd mm yyyy
-#                                 (digits[2:6], digits[0:2], digits[6:8]),  # mm dd yyyy
-#                             ]
-#                             for y, m, d in combos:
-#                                 if re.fullmatch(r"(19|20)\d{2}", y) and 1 <= int(m) <= 12 and 1 <= int(d) <= 31:
-#                                     year = int(y)
-#                                     month = int(m)
-#                                     day = int(d)
-#                                     break
-#                             if year is None:
-#                                 continue  # No combinación válida
-#
-#                             hour = minute = second = 0
-#
-#                         elif parts.get("ym"):
-#                             digits = parts["ym"]
-#                             combos = [
-#                                 (digits[0:4], digits[4:6]),  # yyyy mm
-#                                 (digits[2:6], digits[0:2]),  # mm yyyy
-#                             ]
-#                             for y, m in combos:
-#                                 if re.fullmatch(r"(19|20)\d{2}", y) and 1 <= int(m) <= 12:
-#                                     year = int(y)
-#                                     month = int(m)
-#                                     day = 1
-#                                     hour = minute = second = 0
-#                                     break
-#                             if year is None:
-#                                 continue  # No combinación válida
-#
-#                         if year and month and day:
-#                             dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
-#                             iso_str = dt.isoformat()
-#                             GV.LOGGER.debug(f"{step_name}🧠 Guessed ISO date {iso_str} from {source.upper()}: {text}")
-#                             return iso_str, source.upper()
-#
-#                     except Exception as e:
-#                         GV.LOGGER.warning(f"{step_name}⚠️ Error parsing date from {source} '{text}': {e}")
-#                         continue
-#
-#         GV.LOGGER.debug(f"{step_name}❌ No date found in filename or path: {path}")
-#         return None, None
-

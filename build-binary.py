@@ -12,6 +12,7 @@ import glob
 import shutil
 import subprocess
 import tempfile
+from colorama import Fore
 from pathlib import Path
 
 from Core.GlobalVariables import TOOL_NAME, TOOL_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE, FOLDERNAME_GPTH, FOLDERNAME_EXIFTOOL
@@ -32,7 +33,7 @@ global archive_path_relative
 # ---------------------------- GLOBAL VARIABLES ----------------------------
 # COMPILE_IN_ONE_FILE = True
 
-# TAG and TAGS Colored for messages output (in console and log)
+# Tag and colored tags for message output (console and log)
 MSG_TAGS = {
     'VERBOSE'                   : "VERBOSE : ",
     'DEBUG'                     : "DEBUG   : ",
@@ -53,11 +54,18 @@ MSG_TAGS_COLORED = {
 
 # ---------------------------------- HELPERS -------------------------------
 def _clear_screen():
+    """
+    Clears the console screen in a cross-platform way.
+
+    Uses:
+      - 'clear' on POSIX systems
+      - 'cls' on Windows
+    """
     os.system('clear' if os.name == 'posix' else 'cls')
 
 
 def _get_os(step_name=""):
-    """Return normalized operating system name (linux, macos, windows)"""
+    """Return normalized operating system name (linux, macos, windows)."""
     current_os = platform.system()
     if current_os in ["Linux", "linux"]:
         os_label = "linux"
@@ -73,7 +81,7 @@ def _get_os(step_name=""):
 
 
 def _get_arch(step_name=""):
-    """Return normalized system architecture (e.g., x64, arm64)"""
+    """Return normalized system architecture (e.g., x64, arm64)."""
     current_arch = platform.machine()
     if current_arch in ["x86_64", "amd64", "AMD64", "X64", "x64"]:
         arch_label = "x64"
@@ -128,6 +136,14 @@ def _print_arguments_pretty(arguments, title="Arguments", step_name="", use_cust
 
 # Replace original print to use the same GV.LOGGER formatter
 def _custom_print(*args, log_level=logging.INFO, **kwargs):
+    """
+    Prints a message with the same color tags used by this build script.
+
+    Args:
+        *args: Message parts to be joined with spaces.
+        log_level (int): Logging level used to select a color tag.
+        **kwargs: Extra keyword arguments passed to `print()`.
+    """
     message = " ".join(str(a) for a in args)
     log_level_name = logging.getLevelName(log_level)
     colortag = MSG_TAGS_COLORED.get(log_level_name, MSG_TAGS_COLORED['INFO'])
@@ -135,6 +151,13 @@ def _custom_print(*args, log_level=logging.INFO, **kwargs):
 
 
 def _zip_folder(temp_dir, output_file):
+    """
+    Creates a ZIP archive from `temp_dir` and writes it to `output_file`.
+
+    Notes:
+        - Preserves folder structure.
+        - Adds empty directories as entries when detected.
+    """
     print(f"Creating packed file: {output_file}...")
 
     # Convert output_file to a Path object
@@ -201,6 +224,9 @@ def _unzip_to_temp(zipfile_path):
 
 
 def _ensure_executable(path):
+    """
+    Ensures the file at `path` has executable permissions on non-Windows systems.
+    """
     if platform.system() != "Windows":
         # Add execute permissions for user, group and others without removing existing ones
         current_permissions = os.stat(path).st_mode
@@ -283,18 +309,26 @@ def _resolve_internal_path(path_to_resolve, step_name=''):
 
 
 def _include_extrafiles_and_zip(input_file, output_file):
+    """
+    Copies additional files into a temporary folder alongside the compiled binary
+    and creates a ZIP with the expected release structure.
+
+    Args:
+        input_file (str): Compiled binary path to include at ZIP root.
+        output_file (str): Output ZIP file path.
+    """
     extra_files_to_subdir = [
         {
-            'subdir': '', # To indicate that these files go to the script root directory
+            'subdir': '',  # Indicates these files go to the script root directory
             'files': ["./Config.ini"]
         },
         {
-            'subdir': 'assets/logos',# These files go to the 'assets' subdirectory
+            'subdir': 'assets/logos',  # These files go to the 'assets' subdirectory
             # 'files': ["./assets/logos/logo.png"]
             'files': ["./assets/logos/logo_17*.png"]
         },
         {
-            'subdir': 'docs',# These files go to the 'docs' subdirectory
+            'subdir': 'docs',  # These files go to the 'docs' subdirectory
             'files': ["./README.md", "./CHANGELOG.md", "./ROADMAP.md", "./DOWNLOAD.md", "./CONTRIBUTING.md", "./CODE_OF_CONDUCT.md", "./LICENSE"]
         },
         {
@@ -317,7 +351,7 @@ def _include_extrafiles_and_zip(input_file, output_file):
     # Now we copy the extra files
     for subdirs_dic in extra_files_to_subdir:
         subdir = subdirs_dic.get('subdir', '')  # If 'subdir' is empty, it will copy to the root directory
-        files = subdirs_dic.get('files', [])  # Ensures there is always a list of files
+        files = subdirs_dic.get('files', [])  # Ensure there is always a list of files
         subdir_path = os.path.join(tool_version_dir, subdir) if subdir else tool_version_dir
         os.makedirs(subdir_path, exist_ok=True)  # Create the folder if it doesn't exist
         for file_pattern in files:
@@ -337,6 +371,16 @@ def _include_extrafiles_and_zip(input_file, output_file):
 
 
 def _get_tool_version(file):
+    """
+    Reads a Python file and extracts the TOOL_VERSION value from a line like:
+        TOOL_VERSION = "x.y.z"
+
+    Args:
+        file (str): Path to the file to inspect.
+
+    Returns:
+        str | None: Extracted tool version string if found, otherwise None.
+    """
     if not Path(file).is_file():
         print(f"ERROR   : The file {file} does not exists.")
         return None
@@ -349,6 +393,15 @@ def _get_tool_version(file):
 
 
 def _get_clean_version(version: str):
+    """
+    Removes a leading 'v' from a version string (if present).
+
+    Args:
+        version (str): Version string, e.g. "v1.2.3" or "1.2.3".
+
+    Returns:
+        str: Version without the leading 'v'.
+    """
     # Remove the 'v' if it exists at the beginning
     clean_version = version.lstrip('v')
     return clean_version
@@ -399,8 +452,9 @@ def _add_roadmap_to_readme(readme_file, roadmap_file):
     Replaces the ROADMAP block in the README file with the content of another ROADMAP file.
     If the block does not exist, it inserts it before the line that contains "## Credits".
 
-    :param readme_file: Path to README.md file.
-    :param roadmap_file: Path to ROADMAP.md file.
+    Args:
+        readme_file (str): Path to README.md file.
+        roadmap_file (str): Path to ROADMAP.md file.
     """
     # Read the content of the README file
     with open(readme_file, "r", encoding="utf-8") as f:
@@ -424,11 +478,11 @@ def _add_roadmap_to_readme(readme_file, roadmap_file):
         # Search for the line where "## 🎖️ Credits" starts to insert the ROADMAP block before it
         credits_index = next((i for i, line in enumerate(readme_lines) if line.strip() == "## 🎖️ Credits:"), None)
         if credits_index is not None:
-            print ("'CREDITS' block found but 'ROADMAP' block not found")
+            print("'CREDITS' block found but 'ROADMAP' block not found")
             updated_readme = readme_lines[:credits_index] + [roadmap_content] + readme_lines[credits_index:]
         else:
             # If "## 🎖️ Credits" is not found, simply add it to the end of the file
-            print ("'CREDITS' block not found")
+            print("'CREDITS' block not found")
             updated_readme = readme_lines + [roadmap_content]
     # Write the updated content to the README file
     with open(readme_file, "w", encoding="utf-8") as f:
@@ -437,6 +491,13 @@ def _add_roadmap_to_readme(readme_file, roadmap_file):
 
 
 def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
+    """
+    Entry point for the build script:
+      - Detects OS/arch
+      - Creates build_info.txt
+      - Extracts RELEASE-NOTES.md body from CHANGELOG.md
+      - Invokes compilation (PyInstaller or Nuitka)
+    """
     # =======================
     # Create global variables
     # =======================
@@ -454,7 +515,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     OPERATING_SYSTEM = get_os(use_logger=False)
     ARCHITECTURE = get_arch(use_logger=False)
 
-    # Script Names
+    # Script names
     TOOL_SOURCE_NAME = f"{TOOL_NAME}.py"
     TOOL_VERSION_WITHOUT_V = _get_clean_version(TOOL_VERSION)
     TOOL_NAME_VERSION = f"{TOOL_NAME}_{TOOL_VERSION}"
@@ -471,7 +532,6 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # ========================
     # End of global variables
     # ========================
-
 
     _clear_screen()
     print("")
@@ -496,7 +556,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # print("Extracting body of RELEASE-NOTES and adding ROADMAP to file README.md...")
     print("Extracting body of RELEASE-NOTES...")
 
-    # Path for the files CHANGELOG.md, RELEASE-NOTES.md, README.md and ROADMAP.md
+    # Paths for CHANGELOG.md, RELEASE-NOTES.md, README.md and ROADMAP.md
     download_filepath = os.path.join(root_dir, 'DOWNLOAD.md')
     changelog_filepath = os.path.join(root_dir, 'CHANGELOG.md')
     current_release_filepath = os.path.join(root_dir, 'RELEASE-NOTES.md')
@@ -528,12 +588,24 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         print(f'ARCHIVE_PATH: {archive_path_relative}')
 
     ok = True
-    # Run Compile
+    # Run compile
     if compiler:
         ok = compile(compiler=compiler, compile_in_one_file=compile_in_one_file)
     return ok
 
+
 def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
+    """
+    Compiles the tool using the selected compiler (PyInstaller or Nuitka),
+    then packages the output and cleans temporary folders/files.
+
+    Args:
+        compiler (str): 'pyinstaller' or 'nuitka'
+        compile_in_one_file (bool): True for onefile mode, False for onedir/standalone.
+
+    Returns:
+        bool: True if compilation succeeded, otherwise False.
+    """
     global OPERATING_SYSTEM
     global ARCHITECTURE
     global TOOL_SOURCE_NAME
@@ -545,8 +617,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global archive_path_relative
 
     # Initialize variables
-    TOOL_NAME_WITH_VERSION_OS_ARCH    = f"{TOOL_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    splash_image                        = "assets/logos/logo_17_1024x1024.png" # Splash image for windows
+    TOOL_NAME_WITH_VERSION_OS_ARCH      = f"{TOOL_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+    splash_image                        = "assets/logos/logo_17_1024x1024.png"  # Splash image for Windows
     gpth_folder                         = FOLDERNAME_GPTH
     exif_folder                         = FOLDERNAME_EXIFTOOL
     gpth_tool                           = os.path.join(gpth_folder, f"gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext")
@@ -558,7 +630,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         gpth_tool = gpth_tool.replace(".ext", ".exe")
         exif_tool = exif_tool.replace('<ZIP_NAME>', 'windows')
     else:
-        if compiler=='pyinstaller':
+        if compiler == 'pyinstaller':
             script_compiled = f'{TOOL_NAME}'
         else:
             script_compiled = f'{TOOL_NAME}.bin'
@@ -566,13 +638,13 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         gpth_tool = gpth_tool.replace(".ext", ".bin")
         exif_tool = exif_tool.replace('<ZIP_NAME>', 'others')
 
-    # Use _resolve_internal_path to access files or directories that will be packaged in the binary executable mode:
+    # Use _resolve_internal_path to access files or directories that will be packaged in the binary executable mode
     gpth_tool_path = _resolve_internal_path(gpth_tool)
 
     # Ensure exec permissions for gpth binary file
     _ensure_executable(gpth_tool_path)
 
-    # Save build_info.txt into a text file
+    # Append build_info.txt with compilation metadata
     with open(os.path.join(root_dir, 'build_info.txt'), 'a') as file:
         file.write('COMPILER=' + str(compiler) + '\n')
         file.write('SCRIPT_COMPILED=' + os.path.abspath(script_compiled_with_version_os_arch_extension) + '\n')
@@ -595,11 +667,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # ===============================================================================================================================================
     # COMPILE WITH PYINSTALLER...
     # ===============================================================================================================================================
-    if compiler=='pyinstaller':
+    if compiler == 'pyinstaller':
         print("Compiling with Pyinstaller...")
         import PyInstaller.__main__
 
-        # Build and Dist Folders for Pyinstaller
+        # Build and dist folders for PyInstaller
         build_path = "./pyinstaller_build"
         dist_path = "./pyinstaller_dist"
 
@@ -610,31 +682,31 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         shutil.rmtree(dist_path, ignore_errors=True)
         print("")
 
-        # Prepare Pyinstaller command
+        # Prepare PyInstaller command
         pyinstaller_command = ['./src/' + TOOL_SOURCE_NAME]
 
-        # Mode onefile or standalone
+        # onefile or onedir mode
         if compile_in_one_file:
             pyinstaller_command.extend(["--onefile"])
         else:
             pyinstaller_command.extend(['--onedir'])
 
-        # Add splash image to .exe file (only supported in windows)
+        # Add splash image to .exe file (only supported in Windows)
         if OPERATING_SYSTEM == 'windows':
             pyinstaller_command.extend(("--splash", splash_image))
 
-        # Add following generic arguments to Pyinstaller:
+        # Add generic arguments to PyInstaller
         pyinstaller_command.extend(["--noconfirm"])
         pyinstaller_command.extend(("--distpath", dist_path))
         pyinstaller_command.extend(("--workpath", build_path))
         pyinstaller_command.extend(("--add-data", gpth_tool + ':gpth_tool'))
 
-        # If INCLUDE_EXIF_TOOL flag is True, then Unzip, Change Permissions and Add Exif Tool files to the binary file
+        # If INCLUDE_EXIF_TOOL is True, unzip, adjust permissions, and include ExifTool files in the compiled binary
         if INCLUDE_EXIF_TOOL:
-            # Unzip Exif_tool and include it to compiled binary with Pyinstaller
+            # Unzip ExifTool and include it in the compiled binary with PyInstaller
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             # exif_folder_tmp = _unzip_to_temp(exif_tool)
-            # Better avoid use of _unzip_to_temp() function to reduce the prob of anti-virus detection
+            # Better avoid using _unzip_to_temp() to reduce the chance of anti-virus detection
             exif_folder_tmp = f"exif_tool_extracted"
             _unzip(exif_tool, exif_folder_tmp)
 
@@ -643,10 +715,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             if exiftool_bin.exists():
                 _ensure_executable(exiftool_bin)
 
-            # Add Exif Tool files to the binary
+            # Add ExifTool files to the binary
             pyinstaller_command.extend(("--add-data", f"{exif_folder_tmp}:{exif_folder_dest}"))
 
-            # Walk exif_folder_tmp to add all files and subfolders to the binary file (I didn't find another way to do this with Pyinstaller)
+            # Walk exif_folder_tmp to add all files and subfolders to the binary file
+            # (no simpler way found for PyInstaller)
             for path in Path(exif_folder_tmp).rglob('*'):
                 if path.is_dir():
                     # Check if it contains at least one file
@@ -659,11 +732,12 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
                     # Add all files directly inside that folder
                     pyinstaller_command.extend(("--add-data", f"{src_path}:{dest_path}"))
 
-        # In linux set runtime tmp dir to /var/tmp for Synology compatibility (/tmp does not have access rights in Synology NAS)
+        # On Linux, set runtime tmp dir to /var/tmp for Synology compatibility
+        # (/tmp does not have access rights in Synology NAS)
         if OPERATING_SYSTEM == 'linux':
             pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
 
-        # Now Run PyInstaller with previous settings
+        # Run PyInstaller with the configured settings
         print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments", use_logger=False, use_custom_print=False)
 
         try:
@@ -680,7 +754,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # ===============================================================================================================================================
     # COMPILE WITH NUITKA...
     # ===============================================================================================================================================
-    elif compiler=='nuitka':
+    elif compiler == 'nuitka':
         print("Compiling with Nuitka...")
         # # Force C Compiler based on the Platform used (it is better to let Nuita find the best C Compilar installed on the system)
         # if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
@@ -695,7 +769,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         #     return False
         # print("")
 
-        # Build and Dist Folders for Nuitka
+        # Build and dist folders for Nuitka
         dist_path = "./nuitka_dist"
         build_path = f"{dist_path}/{TOOL_NAME}.build"
 
@@ -709,7 +783,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         # Prepare Nuitka command
         nuitka_command = [sys.executable, '-m', 'nuitka', './src/' + TOOL_SOURCE_NAME]
 
-        # Mode onefile or standalone
+        # onefile or standalone mode
         if compile_in_one_file:
             nuitka_command.extend(['--onefile'])
             # nuitka_command.append('--onefile-no-compression)
@@ -718,7 +792,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         else:
             nuitka_command.extend(['--standalone'])
 
-        # Add following generic arguments to Nuitka
+        # Add generic arguments to Nuitka
         nuitka_command.extend([
             '--jobs=4',
             '--assume-yes-for-downloads',
@@ -739,15 +813,14 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             f"--file-description={TOOL_NAME_VERSION} by Jaime Tur",
             f"--file-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
             f"--product-version={TOOL_VERSION_WITHOUT_V.split('-')[0]}",
-
         ])
 
-        # If INCLUDE_EXIF_TOOL flag is True, then Unzip, Change Permissions and Add Exif Tool files to the binary file
+        # If INCLUDE_EXIF_TOOL is True, unzip, adjust permissions, and include ExifTool files in the compiled binary
         if INCLUDE_EXIF_TOOL:
-            # Unzip Exif_tool and include it to compiled binary with Nuitka
+            # Unzip ExifTool and include it in the compiled binary with Nuitka
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             # exif_folder_tmp = _unzip_to_temp(exif_tool)
-            # Better avoid use of _unzip_to_temp() function to reduce the prob of anti-virus detection
+            # Better avoid using _unzip_to_temp() to reduce the chance of anti-virus detection
             exif_folder_tmp = f"exif_tool_extracted"
             _unzip(exif_tool, exif_folder_tmp)
 
@@ -756,19 +829,19 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             if exiftool_bin.exists():
                 _ensure_executable(exiftool_bin)
 
-            # Add Exif Tool files to the binary
+            # Add ExifTool files to the binary
             nuitka_command.extend([f'--include-data-files={exif_folder_tmp}={exif_folder_dest}/=**/*.*'])
             nuitka_command.extend([f'--include-data-dir={exif_folder_tmp}={exif_folder_dest}'])
             # nuitka_command.extend(['--include-data-dir=../exif_tool=exif_tool'])
 
-        # Now set runtime tmp dir to a specific folder within /var/tmp or %TEMP% to reduce the prob of anti-virus detection.
+        # Set runtime tmp dir to a specific folder within /var/tmp or %TEMP% to reduce the chance of anti-virus detection
         if OPERATING_SYSTEM != 'windows':
-            # In linux set runtime tmp dir to /var/tmp for Synology compatibility (/tmp does not have access rights in Synology NAS)
+            # On Linux, use /var/tmp for Synology compatibility (/tmp does not have access rights in Synology NAS)
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{TOOL_NAME_WITH_VERSION_OS_ARCH}'])
         else:
             nuitka_command.extend([rf'--onefile-tempdir-spec=%TEMP%\{TOOL_NAME_WITH_VERSION_OS_ARCH}'])
 
-        # Now Run Nuitka with previous settings
+        # Run Nuitka with the configured settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_logger=False, use_custom_print=False)
         result = subprocess.run(nuitka_command)
         success = (result.returncode == 0)
@@ -780,16 +853,16 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         return success
 
     # ===============================================================================================================================================
-    # PACKAGING AND CLEANING ACTIONS...
+    # PACKAGING AND CLEANUP...
     # ===============================================================================================================================================
-    # Now check if compilation finished successfully, if not, exit.
+    # If compilation failed, exit early.
     if success:
         print("[OK] Compilation process finished successfully.")
     else:
         print("[ERROR] There was some error during compilation process.")
         return success
 
-    # Script Compiled Absolute Path
+    # Compiled script absolute path
     script_compiled_abs_path = ''
     if compiler == 'pyinstaller':
         script_compiled_abs_path = os.path.abspath(f"{dist_path}/{script_compiled}")
@@ -833,11 +906,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
 
 if __name__ == "__main__":
-    # Get arguments if they exist
+    # Read arguments if they exist
     arg1 = sys.argv[1] if len(sys.argv) > 1 else None
     arg2 = sys.argv[2] if len(sys.argv) > 2 else None
 
-    # Convert to boolean
+    # Parse compiler argument
     if arg1 is not None:
         arg_lower = arg1.lower()
         if arg_lower in ['false', '-false', '--false', '0', 'no', 'n', 'none', '-none', '--none', 'no-compile', '-no-compile', '--no-compile', 'no-compiler', '-no-compiler', '--no-compiler']:
@@ -847,12 +920,12 @@ if __name__ == "__main__":
         elif arg_lower in ['nuitka', '-nuitka', '--nuitka']:
             compiler = 'nuitka'
         else:
-            print (f"Unrecognized compiler: '{arg1}'. Using 'PyInstaller' by default...")
+            print(f"Unrecognized compiler: '{arg1}'. Using 'PyInstaller' by default...")
             compiler = 'pyinstaller'
     else:
-        compiler = False  # default value
+        compiler = False  # Default value
 
-    # Convert to boolean
+    # Parse onefile/onedir argument
     if arg2 is not None:
         arg_lower = arg2.lower()
         if arg_lower in ['false', '-false', '--false', '0', 'no', 'n', 'none', '-none', '--none', 'onedir', '-onedir', '--onedir', 'standalone', '-standalone', '--standalone', 'no-onefile', '-no-onefile', '--no-onefile']:
@@ -860,7 +933,7 @@ if __name__ == "__main__":
         else:
             onefile = True
     else:
-        onefile = True  # default value
+        onefile = True  # Default value
 
     ok = main(compiler=compiler, compile_in_one_file=onefile)
     if ok:

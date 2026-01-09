@@ -12,69 +12,76 @@ import Core.GlobalVariables as GV
 
 
 def change_working_dir(change_dir=None):
+    """
+    Changes the current working directory to a predefined path when `change_dir` is provided.
+
+    Notes:
+        The target directory is currently hardcoded as:
+        r"R:\\jaimetur\\PhotoMigrator"
+    """
     if change_dir:
-        """ Definir la ruta de trabajo deseada """
+        """ Define the desired working path """
         WORKING_DIR = r"R:\jaimetur\PhotoMigrator"
-        # Verificar si la carpeta existe y cambiar a ella si existe
+        # Check whether the folder exists and switch to it if it does
         if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
             os.chdir(WORKING_DIR)
             current_directory = os.getcwd()
-            print(f"{MSG_TAGS['INFO']}Directorio cambiado a: {os.getcwd()}")
+            print(f"{MSG_TAGS['INFO']}Directory changed to: {os.getcwd()}")
 
 
 def get_gpth_tool_path(base_path: str, exec_name: str, step_name='') -> str:
     """
-    Devuelve la ruta al ejecutable GPTH.
+    Returns the path to the GPTH executable.
 
-    - Si `base_path` es un fichero (existe y es ejecutable), se usa tal cual.
-      No importa cómo se llame: gpth_v2, gpth-dev, lo-que-sea.
+    - If `base_path` is an executable file (exists and is executable), it is used as-is.
+      The filename does not matter: gpth_v2, gpth-dev, whatever.
 
-    - En cualquier otro caso se asume que es una carpeta y se concatena `tool_name`.
+    - Otherwise, it is assumed to be a folder and `exec_name` is appended to it.
     """
     p = Path(base_path)
 
-    # --------- Caso 1: parece un ejecutable completo ----------
-    # `exists()` evita falsos positivos con rutas de carpetas inexistentes
-    # `os.access(..., os.X_OK)` asegura que sea realmente ejecutable (opcional pero útil)
+    # --------- Case 1: looks like a full executable ----------
+    # `exists()` avoids false positives with non-existing folder paths
+    # `os.access(..., os.X_OK)` ensures it is actually executable (optional but useful)
     if p.exists() and p.is_file() and os.access(p, os.X_OK):
         return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
-    # --------- Caso 2: directorio (o ruta aún no creada) ----------
-    # Usar resolve_internal_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
+    # --------- Case 2: directory (or a not-yet-created path) ----------
+    # Use resolve_internal_path to access files or folders that will be packaged in binary executable mode:
     return resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
 
 
 def get_exif_tool_path(base_path: str, step_name='') -> str:
     """
-    Devuelve la ruta al ejecutable de ExifTool.
+    Returns the path to the ExifTool executable.
 
-    - Si `base_path` es un fichero ejecutable existente, se devuelve tal cual.
-    - En caso contrario se asume que es un directorio y se concatena el
-      nombre apropiado del ejecutable:
+    - If `base_path` is an existing executable file, it is returned as-is.
+    - Otherwise, it is assumed to be a directory and the appropriate executable
+      name is appended:
         * Linux / macOS → 'exiftool'
         * Windows       → 'exiftool.exe'
     """
     p = Path(base_path)
 
-    # --------- Caso 1: ya es un ejecutable válido ----------
+    # --------- Case 1: it is already a valid executable ----------
     if p.exists() and p.is_file() and os.access(p, os.X_OK):
         return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
-    # --------- Caso 2: es (o será) un directorio ----------
+    # --------- Case 2: it is (or will be) a directory ----------
     exec_name = "exiftool.exe" if platform.system().lower() == "windows" else "exiftool"
     return resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
 
 
 def resolve_internal_path(path_to_resolve, step_name=''):
     """
-    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
-    - PyInstaller (onefile o standalone)
-    - Nuitka (onefile o standalone)
-    - Python directo (desde cwd o desde dirname(__file__))
+    Returns the absolute path to the resource `path_to_resolve`, working in:
+    - PyInstaller (onefile or standalone)
+    - Nuitka (onefile or standalone)
+    - Plain Python (from cwd or from dirname(__file__))
     """
-    # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
+    # IMPORTANT: Don't use LOGGER in this function because it is also used by build-binary.py which does not have any LOGGER created.
     compiled_source = globals().get("__compiled__")
-    DEBUG_MODE = GV.LOG_LEVEL <= logging.DEBUG  # Cambia a False para silenciar
+    DEBUG_MODE = GV.LOG_LEVEL <= logging.DEBUG  # Set to False to silence
     if DEBUG_MODE:
         custom_print(f"{step_name}DEBUG_MODE = {DEBUG_MODE}", log_level=logging.DEBUG)
         custom_print(f"{step_name}---RESOURCE_PATH DEBUG INFO", log_level=logging.DEBUG)
@@ -103,33 +110,33 @@ def resolve_internal_path(path_to_resolve, step_name=''):
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
-        if DEBUG_MODE: custom_print(f"{step_name}Entra en modo PyInstaller     -> base_path={base_path} (sys._MEIPASS)", log_level=logging.DEBUG)
+        if DEBUG_MODE: custom_print(f"{step_name}Entering PyInstaller mode     -> base_path={base_path} (sys._MEIPASS)", log_level=logging.DEBUG)
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         # base_path = os.path.dirname(os.path.abspath(__file__))
         base_path = os.path.dirname(sys.executable)
         # base_path = PROJECT_ROOT
-        if DEBUG_MODE: custom_print(f"{step_name}Entra en modo Nuitka --onefile    -> base_path={base_path} (sys.executable)", log_level=logging.DEBUG)
+        if DEBUG_MODE: custom_print(f"{step_name}Entering Nuitka --onefile mode    -> base_path={base_path} (sys.executable)", log_level=logging.DEBUG)
     # Nuitka standalone
     elif compiled_source:
     # elif "__compiled__" in globals():
         base_path = os.path.join(compiled_source.containing_dir, TOOL_NAME + '.dist')
         # base_path = compiled_source
-        if DEBUG_MODE: custom_print(f"{step_name}Entra en modo Nuitka --standalone     -> base_path={base_path} (__compiled__.containing_dir)", log_level=logging.DEBUG)
-    # Python normal
+        if DEBUG_MODE: custom_print(f"{step_name}Entering Nuitka --standalone mode     -> base_path={base_path} (__compiled__.containing_dir)", log_level=logging.DEBUG)
+    # Plain Python
     elif "__file__" in globals():
         if RESOURCES_IN_CURRENT_FOLDER:
             base_path = os.getcwd()
-            if DEBUG_MODE: custom_print(f"{step_name}Entra en modo Python (con RESOURCES_IN_CURRENT_FOLDER={RESOURCES_IN_CURRENT_FOLDER})  -> base_path={base_path} (os.getcwd())", log_level=logging.DEBUG)
+            if DEBUG_MODE: custom_print(f"{step_name}Entering Python mode (RESOURCES_IN_CURRENT_FOLDER={RESOURCES_IN_CURRENT_FOLDER})  -> base_path={base_path} (os.getcwd())", log_level=logging.DEBUG)
         else:
             # base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             base_path = PROJECT_ROOT
-            if DEBUG_MODE: custom_print(f"{step_name}Entra en modo Python (con RESOURCES_IN_CURRENT_FOLDER={RESOURCES_IN_CURRENT_FOLDER})  -> base_path={base_path} (PROJECT_ROOT)", log_level=logging.DEBUG)
+            if DEBUG_MODE: custom_print(f"{step_name}Entering Python mode (RESOURCES_IN_CURRENT_FOLDER={RESOURCES_IN_CURRENT_FOLDER})  -> base_path={base_path} (PROJECT_ROOT)", log_level=logging.DEBUG)
     else:
         base_path = os.getcwd()
-        if DEBUG_MODE: custom_print(f"{step_name}Entra en fallback final   -> base_path={base_path} (os.getcwd())", log_level=logging.DEBUG)
+        if DEBUG_MODE: custom_print(f"{step_name}Entering final fallback   -> base_path={base_path} (os.getcwd())", log_level=logging.DEBUG)
 
-    # ✅ Si la ruta ya existe (absoluta o relativa), devuélvela directamente
+    # ✅ If the path already exists (absolute or relative), return it directly
     if path_to_resolve and os.path.exists(path_to_resolve):
         resolved_path = path_to_resolve
     else:
@@ -215,11 +222,25 @@ def resolve_external_path(user_path, step_name=''):
 
 
 def is_inside_docker():
+    """
+    Detects whether the script is running inside a Docker container.
+
+    Returns:
+        bool: True if running inside Docker, otherwise False.
+    """
     return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
 
 #------------------------------------------------------------------
 # Replace original print to use the same GV.LOGGER formatter
 def custom_print(*args, log_level=logging.INFO, **kwargs):
+    """
+    Prints messages with the same formatting/colors used by the GV.LOGGER output.
+
+    Args:
+        *args: Message parts to print.
+        log_level (int): Logging level used to select the color tag.
+        **kwargs: Extra keyword arguments passed to `print()`.
+    """
     message = " ".join(str(a) for a in args)
     log_level_name = logging.getLevelName(log_level)
     colortag = MSG_TAGS_COLORED.get(log_level_name, MSG_TAGS_COLORED['INFO'])
