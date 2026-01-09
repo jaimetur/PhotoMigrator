@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import json
 from pathlib import Path
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from subprocess import run
 import logging
 import platform
@@ -24,7 +24,7 @@ from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXTRACTED_DATES, MSG_TAGS, TOOL_NAME, TOOL_VERSION
-from Utils.DateUtils import normalize_datetime_utc, is_date_valid, guess_date_from_filename
+from Utils.DateUtils import is_date_valid, guess_date_from_filename
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
 
@@ -436,11 +436,41 @@ class FolderAnalyzer:
 
     def extract_dates(self, step_name='', block_size=1_000, use_fallback_to_filename=True, use_fallback_to_filesystem_date=True, log_level=None, max_workers=None):
         """
-        Extract dates from EXIF, PIL or fallback to filesystem timestamp. Store results in self.extracted_dates.
+        Extract dates for media files and store results in self.extracted_dates.
+
+        Strategy per file (in order):
+          1) ExifTool (preferred): extract candidate tags (EXIF/XMP/QuickTime/Track/Matroska/RIFF).
+             - Select the "oldest day", and within that day prefer entries that include a real time (not midnight).
+             - If tag is a ModifyDate, validate it against an effective per-block reference.
+          2) PIL (fallback): read EXIF DateTimeOriginal/DateTime.
+          3) Filename / filepath guess (optional): guess_date_from_filename().
+          4) ExifTool File:FileModifyDate (optional): validated.
+          5) Filesystem timestamps (optional): st_ctime / st_mtime validated.
+
+        Notes:
+          - All computations are done in local timezone.
+          - A per-block 'effective_ref' is computed based on the mode of File:FileModifyDate for the block,
+            within a tolerance window, then clamped to [now-365d, execution_timestamp].
         """
         # --- Fast helpers (keep comments & variable names elsewhere untouched)
         def _parse_exif_to_local(raw_str, local_tz):
-            """Parse EXIF-like datetime string into local tz, handling '24:' rollover and multiple formats with/without %z and seconds."""
+            """
+            Parse an EXIF-like datetime string into local timezone.
+
+            Handles:
+              - '24:xx:xx' hour rollover by moving to the next day at 00:xx:xx
+              - multiple common EXIF formats with/without timezone and with/without seconds
+
+            Args:
+                raw_str (str): Raw date string from EXIF/XMP/etc.
+                local_tz: tzinfo to force local timezone.
+
+            Returns:
+                datetime: A timezone-aware datetime in local_tz.
+
+            Raises:
+                ValueError: If the string cannot be parsed by known formats.
+            """
             if not isinstance(raw_str, str):
                 raise ValueError("raw_str must be a string")
             raw_clean = raw_str.strip()
@@ -480,7 +510,7 @@ class FolderAnalyzer:
         # FileModifyDate is only used to calculate the most frequent date of each batch, but we don't rely on this tag to get the date
 
         candidate_exiftool_tags = [
-            # 📷 EXIF (fotos)
+            # 📷 EXIF (photos)
             'EXIF:DateTimeOriginal', 'EXIF:DateTime', 'EXIF:CreateDate', 'EXIF:DateCreated', 'EXIF:CreationDate',
             'EXIF:MediaCreateDate', 'EXIF:TrackCreateDate', 'EXIF:EncodedDate', 'EXIF:MetadataDate', 'EXIF:ModifyDate',
 
@@ -492,7 +522,7 @@ class FolderAnalyzer:
             'QuickTime:CreateDate', 'QuickTime:ModifyDate', 'QuickTime:TrackCreateDate', 'QuickTime:TrackModifyDate',
             'QuickTime:MediaCreateDate', 'QuickTime:MediaModifyDate',
 
-            # 🎞️ Track/Media (otros contenedores ISO BMFF)
+            # 🎞️ Track/Media (other ISO BMFF containers)
             'Track:CreateDate', 'Track:ModifyDate', 'Media:CreateDate', 'Media:ModifyDate',
 
             # 🎥 Matroska / MKV
@@ -501,7 +531,7 @@ class FolderAnalyzer:
             # 📼 AVI
             'RIFF:DateTimeOriginal',
 
-            # 🛠️ File (solo referencia; no se considera “contenido”)
+            # 🛠️ File (reference only; not considered "content date")
             'File:FileModifyDate'
         ]
 
@@ -525,11 +555,25 @@ class FolderAnalyzer:
 
         # --- Internal function to process a single block
         def _process_block(block_index, block_files):
+            """
+            Process a block of files:
+              - Run ExifTool (if available) to get metadata for the block
+              - Compute the per-block effective reference date using File:FileModifyDate mode
+              - For each file, choose the best available date (ExifTool -> PIL -> guess -> FileModifyDate -> filesystem)
+              - Return a dict: {file_path: full_info_dict}
+
+            Args:
+                block_index (int): 1-based block index.
+                block_files (List[str]): List of file paths in this block.
+
+            Returns:
+                dict: Local metadata mapping for this block.
+            """
             local_metadata = {}
 
             # --- Try ExifTool
             if Path(exif_tool_path).exists():
-                # OS filename charset
+                # OS filename charset for ExifTool
                 filename_charset = 'cp1252' if platform.system() == 'Windows' else 'utf8'
 
                 command = [
@@ -854,6 +898,14 @@ class FolderAnalyzer:
 
         # --- Main execution
         def main():
+            """
+            Orchestrate parallel extraction over blocks using ThreadPoolExecutor.
+
+            - Uses self.file_list to select media files (PHOTO_EXT + VIDEO_EXT).
+            - Splits into blocks of size 'block_size'.
+            - Runs _process_block() in parallel and merges results into self.extracted_dates.
+            - Displays progress with tqdm and estimated times.
+            """
             with set_log_level(self.logger, log_level):
                 self.logger.info(f"{step_name}📅 Extracting Dates for '{self.folder_path}'...")
                 json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
@@ -916,9 +968,20 @@ class FolderAnalyzer:
 
     def count_files(self, exclude_fallbacks=False, exclude_ext=None, include_ext=None, step_name='', log_level=None):
         """
-        Count all files in the folder by type (photos, videos, metadata, sidecar),
-        with special handling for symlinks and size. Uses self.extracted_dates
-        if available to count media files with/without valid dates.
+        Count all files by category (photos, videos, metadata, sidecar), handling symlinks and total size.
+
+        Also, if self.extracted_dates is available, counts media files with/without dates.
+        Optionally excludes fallback sources (e.g., GUESS:* sources) from the "with_date" count.
+
+        Args:
+            exclude_fallbacks (bool): If True, excludes entries whose Source matches fallback patterns.
+            exclude_ext (list|set|None): Extensions to exclude (with or without dot).
+            include_ext (list|set|None): Extensions to include (with or without dot).
+            step_name (str): Prefix for log messages.
+            log_level: Optional log level override.
+
+        Returns:
+            dict: counters dict from init_count_files_counters().
         """
         with set_log_level(self.logger, log_level):
             self.logger.info(f"{step_name}📊 Counting Files for '{self.folder_path}'...")
@@ -957,9 +1020,7 @@ class FolderAnalyzer:
                 if is_symlink:
                     try:
                         link_target = os.readlink(full_path)
-                        resolved_target = os.path.abspath(
-                            os.path.join(os.path.dirname(full_path), link_target)
-                        )
+                        resolved_target = os.path.abspath(os.path.join(os.path.dirname(full_path), link_target))
                         if not os.path.exists(resolved_target):
                             self.logger.info(f"{step_name}Excluded broken symlink: {full_path}")
                             continue
@@ -1009,6 +1070,7 @@ class FolderAnalyzer:
                 if media_category:
                     media_file_paths.append(full_path)
 
+                # Exclude symlinks from size aggregation (consistent with your previous logic)
                 if not is_symlink:
                     try:
                         total_bytes += os.path.getsize(full_path)
@@ -1019,13 +1081,13 @@ class FolderAnalyzer:
 
             # If we have extracted dates, count valid/invalid per media type
             if self.extracted_dates:
-                # Lista de Sources a Excluir del conteo de fechas (sirve para excluir los GUESS: del conteo inicial
+                # list of fallback sources to exclude from "with_date" when exclude_fallbacks=True (sirve para excluir los GUESS: del conteo inicial
                 # sources_to_exclude = ["GUESS:FileNameDate:", "GUESS:FilePathDate:", "EXIF:FileModifyDate", "FileSystem:"]
                 sources_to_exclude = ["GUESS:FileNameDate", "GUESS:FilePathDate"]
                 for path, entry in self.extracted_dates.items():
                     oldest_date = entry.get("OldestDate")
                     source = entry.get("Source")
-                    # ✅ Solo excluir si exclude_fallbacks es True y el source contiene alguna cadena de la lista
+                    # Only exclude if exclude_fallbacks=True and Source contains any excluded token
                     should_exclude = exclude_fallbacks and source and any(excluded in source for excluded in sources_to_exclude)
                     media_type = None
                     ext = Path(path).suffix.lower()
@@ -1039,6 +1101,7 @@ class FolderAnalyzer:
                         else:
                             counters[media_type]['without_date'] += 1
 
+                # Compute percentages (symlinks already included in total; keep your behavior)
                 for media_type in ['photos', 'videos']:
                     total = counters[media_type].get('total', 0)
                     symlinks = counters[media_type].get('symlinks', 0)
@@ -1057,6 +1120,17 @@ class FolderAnalyzer:
             return counters
 
 def run_full_pipeline(input_folder, logger, max_workers=None):
+    """
+    End-to-end benchmark pipeline:
+      - Instantiate FolderAnalyzer (which may extract dates depending on force_date_extraction).
+      - Count files and print counters.
+      - Save extracted_dates JSON.
+
+    Args:
+        input_folder (str): Folder to analyze.
+        logger: Logger instance.
+        max_workers (int|None): Used only for naming output JSON in this test harness.
+    """
     import time
     from datetime import timedelta
 

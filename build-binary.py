@@ -10,6 +10,7 @@ if src_path not in sys.path:
 
 import glob
 import logging
+import platform
 import shutil
 import subprocess
 import tempfile
@@ -665,6 +666,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("")
 
     success = False
+    exif_folder_tmp = ""
     # ===============================================================================================================================================
     # COMPILE WITH PYINSTALLER...
     # ===============================================================================================================================================
@@ -739,7 +741,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
 
         # Run PyInstaller with the configured settings
-        _print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments", use_logger=False, use_custom_print=False)
+        _print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments", use_custom_print=False)
 
         try:
             PyInstaller.__main__.run(pyinstaller_command)
@@ -843,7 +845,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend([rf'--onefile-tempdir-spec=%TEMP%\{TOOL_NAME_WITH_VERSION_OS_ARCH}'])
 
         # Run Nuitka with the configured settings
-        _print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_logger=False, use_custom_print=False)
+        _print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_custom_print=False)
         result = subprocess.run(nuitka_command)
         success = (result.returncode == 0)
         if not success:
