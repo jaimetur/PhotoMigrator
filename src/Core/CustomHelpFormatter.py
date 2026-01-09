@@ -9,47 +9,63 @@ from Core.GlobalVariables import MAX_HELP_POSITION, MAX_SHORT_ARGUMENT_LENGTH, I
 
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
-        # Configura la anchura máxima del texto de ayuda
-        kwargs['width'] = MAX_HELP_POSITION  # Ancho total del texto de ayuda
-        kwargs['max_help_position'] = MAX_HELP_POSITION  # Ajusta la posición de inicio de las descripciones
+        # Configure the maximum width of the help text output
+        kwargs['width'] = MAX_HELP_POSITION  # Total help text width
+        kwargs['max_help_position'] = MAX_HELP_POSITION  # Start position of descriptions
         super().__init__(*args, **kwargs)
 
     def _tokenize_usage(self, usage_text):
-        # 1) Sustituimos saltos de línea por espacio (para no partir el texto en varias líneas).
+        """
+        Tokenize the usage string, keeping bracket blocks together (supports nested brackets).
+
+        We:
+          1) Replace newlines with spaces so the usage becomes a single logical line.
+          2) Parse tokens, treating any "[ ... ]" (including nested brackets) as a single token.
+          3) Return a structure compatible with argparse formatter: [ (indent, tokens) ].
+        """
+        # 1) Replace line breaks with spaces (avoid splitting into multiple lines here)
         flattened = usage_text.replace('\n', ' ')
+
         def parse_brackets(s):
             tokens = []
             i = 0
             n = len(s)
+
             while i < n:
-                # Saltamos espacios iniciales
+                # Skip leading spaces
                 if s[i].isspace():
                     i += 1
                     continue
-                # Si encontramos un '[' => parseamos el contenido (anidado) hasta el corchete de cierre emparejado
+
+                # If '[' is found, parse the full (possibly nested) bracket block
                 if s[i] == '[':
                     start = i
-                    bracket_count = 1  # hemos encontrado un '['
+                    bracket_count = 1  # Found one '['
                     i += 1
-                    # Avanzamos hasta cerrar todos los corchetes '[' pendientes
+
+                    # Move forward until all bracket levels are closed
                     while i < n and bracket_count > 0:
                         if s[i] == '[':
                             bracket_count += 1
                         elif s[i] == ']':
                             bracket_count -= 1
                         i += 1
-                    # i está ahora justo detrás del corchete de cierre
-                    tokens.append(s[start:i])  # incluimos el bloque completo con sus corchetes
+
+                    # i is now just after the matching closing bracket
+                    tokens.append(s[start:i])  # Include the whole block with brackets
                 else:
-                    # Caso: token "normal" (no empieza por '[')
+                    # Normal token (does not start with '[')
                     start = i
-                    # Avanzamos hasta encontrar un espacio o un '['
+                    # Advance until we reach a space or a '['
                     while i < n and not s[i].isspace() and s[i] != '[':
                         i += 1
                     tokens.append(s[start:i])
+
             return tokens
+
         tokens = parse_brackets(flattened)
-        # Devolvemos como una sola “línea” con indent vacío
+
+        # Return as a single “line” with empty original indent
         return [('', tokens)]
 
     def _build_lines_with_forced_tokens(
@@ -57,40 +73,59 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             tokenized_usage,
             forced_tokens,
             width,
-            first_line_indent = '',
-            subsequent_indent = ' ' * IDENT_USAGE_DESCRIPTION
-        ):
+            first_line_indent='',
+            subsequent_indent=' ' * IDENT_USAGE_DESCRIPTION,
+    ):
+        """
+        Rebuild usage text into lines, forcing a line break before certain tokens.
+
+        forced_tokens is a dict:
+            { "<token_prefix>": <must_be_alone_bool> }
+
+        If a token starts with <token_prefix>:
+          - Always break the line before it (unless it's the first token on the line).
+          - If must_be_alone_bool is True, the token is placed alone on its own line.
+        """
         final_lines = []
+
         for (orig_indent, tokens) in tokenized_usage:
             if not tokens:
                 final_lines.append(orig_indent)
                 continue
 
             current_line = first_line_indent
-            current_len  = len(first_line_indent)
-            first_token  = True
-            line_number  = 0
+            current_len = len(first_line_indent)
+            first_token = True
+            line_number = 0
+
             for token in tokens:
-                match_forced = next((forced_token for forced_token in forced_tokens if token.startswith(forced_token)), None)
+                match_forced = next(
+                    (forced_token for forced_token in forced_tokens if token.startswith(forced_token)),
+                    None
+                )
+
                 if match_forced is not None:
                     must_be_alone = forced_tokens[match_forced]
-                    # Forzamos salto de línea antes (si no estamos al inicio)
+
+                    # Force a line break before the token (if we are not at the beginning)
                     if not first_token:
                         final_lines.append(current_line)
                         current_line = subsequent_indent
-                        current_len  = len(subsequent_indent)
-                        first_token  = True
+                        current_len = len(subsequent_indent)
+                        first_token = True
                         line_number += 1
+
                     if must_be_alone:
-                        # Va solo en su línea
+                        # Token must be alone on its own line
                         forced_line = (subsequent_indent if line_number > 0 else first_line_indent) + token
                         final_lines.append(forced_line)
                         current_line = subsequent_indent
-                        current_len  = len(subsequent_indent)
-                        first_token  = True
+                        current_len = len(subsequent_indent)
+                        first_token = True
                         line_number += 1
                         continue
-                # Lógica normal de añadir token
+
+                # Normal logic for adding tokens
                 if first_token:
                     current_line += token
                     current_len += len(token)
@@ -101,120 +136,150 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                         final_lines.append(current_line)
                         line_number += 1
                         current_line = subsequent_indent + token
-                        current_len  = len(subsequent_indent) + len(token)
-                        first_token  = False
+                        current_len = len(subsequent_indent) + len(token)
+                        first_token = False
                     else:
                         current_line += ' ' + token
                         current_len = needed_len
-            # Al acabar los tokens, si la línea no está vacía, la agregamos
+
+            # Append remaining line
             if current_line.strip():
                 final_lines.append(current_line)
                 line_number += 1
+
         return '\n'.join(final_lines)
 
     def _format_usage(self, usage, actions, groups, prefix, **kwargs):
-        def remove_chain(usage, chain_to_remove):
-            # 1) Unir todas las líneas (sustituir saltos de línea por espacio)
-            usage_single_line = usage.replace('\n', ' ')
-            # 2) Reemplazar 2 o más espacios consecutivos por uno solo
+        """
+        Override default argparse usage formatting:
+          - Removes certain verbose blocks.
+          - Fixes spacing.
+          - Tokenizes usage with bracket-aware tokenizer.
+          - Rebuilds usage with forced line breaks for specific tokens.
+          - Colors usage output in green.
+        """
+
+        def remove_chain(usage_text, chain_to_remove):
+            # 1) Join all lines into one (replace newlines with spaces)
+            usage_single_line = usage_text.replace('\n', ' ')
+            # 2) Replace 2+ consecutive spaces by a single space
             usage_single_line = re.sub(r' {2,}', ' ', usage_single_line)
-            # 3) Remover 'chain_to_remove'
+            # 3) Remove the given chain
             usage_single_line = usage_single_line.replace(chain_to_remove, '')
             return usage_single_line
-        # 1) Uso básico de la clase padre
+
+        # 1) Base usage from parent class
         usage = super()._format_usage(usage, actions, groups, prefix)
-        # 2) Eliminamos el bloque con <DUPLICATES_ACTION> ...
-        # usage = remove_chain(usage, "[<ACTION>> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]")
+
+        # 2) Remove block with <ACTION> <DUPLICATES_FOLDER> ... (custom)
         usage = remove_chain(usage, "[<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]")
-        # 3) Quitamos los espacios antes de los ... y antes del último corchete
+
+        # 3) Remove spaces before "...]" and before the last bracket
         usage = usage.replace(" ...] ]", "...]]")
-        # 4) Eliminamos el bloque con <ALBUMS_NAME_PATTERN> ...
+
+        # 4) Remove block with <ALBUMS_NAME_PATTERN> ...
         usage = remove_chain(usage, "[<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN> ...]")
-        # 5) Quitamos los espacios antes del último corchete
+
+        # 5) Remove stray spaces before closing brackets
         usage = usage.replace(" ]", "]")
-        # 6) Tokenizamos con la nueva lógica (anidado)
+
+        # 6) Tokenize with custom nested-bracket logic
         tokenized = self._tokenize_usage(usage)
-        # 7) Diccionario de tokens forzados
+
+        # 7) Forced tokens dictionary (break line before these tokens)
         force_new_line_for_tokens = {
-            "[-from <FROM_DATE>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-country <COUNTRY_NAME>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-gpthInfo [= [true,false]]]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-i <INPUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-source <SOURCE>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-move [= [true,false]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-gTakeout <TAKEOUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-uAlb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-uAll <INPUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
-            # "[-OTP]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-fixSym <FOLDER_TO_FIX>]": False,   # Salto de línea antes, pero sigue reagrupando
-            # "[-renFldcb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
-            # "[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True,  # Va solo
+            "[-from <FROM_DATE>]": False,  # Break before token, but still allow grouping
+            "[-country <COUNTRY_NAME>]": False,  # Break before token, but still allow grouping
+            "[-gpthInfo [= [true,false]]]": False,  # Break before token, but still allow grouping
+            "[-i <INPUT_FOLDER>]": False,  # Break before token, but still allow grouping
+            "[-source <SOURCE>]": False,  # Break before token, but still allow grouping
+            "[-move [= [true,false]": False,  # Break before token, but still allow grouping (note: prefix without final brackets)
+            "[-gTakeout <TAKEOUT_FOLDER>]": False,  # Break before token, but still allow grouping
+            "[-uAlb <ALBUMS_FOLDER>]": False,  # Break before token, but still allow grouping
+            "[-uAll <INPUT_FOLDER>]": False,  # Break before token, but still allow grouping
+            "[-fixSym <FOLDER_TO_FIX>]": False,  # Break before token, but still allow grouping
+            # Examples:
+            # "[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True,  # Must be alone
         }
-        # 6) Ancho real
+
+        # 8) Use the real width set by argparse
         max_width = getattr(self, '_width', 90)
-        # 7) Reconstruimos con indentaciones
+
+        # 9) Rebuild usage with indent rules
         ident_spaces = IDENT_USAGE_DESCRIPTION
         usage = self._build_lines_with_forced_tokens(
-            tokenized_usage   = tokenized,
-            forced_tokens     = force_new_line_for_tokens,
-            width             = max_width,
-            first_line_indent = '',         # Sin espacios en la primera línea
-            subsequent_indent = ' ' * ident_spaces    # 32 espacios en líneas siguientes, por ejemplo
+            tokenized_usage=tokenized,
+            forced_tokens=force_new_line_for_tokens,
+            width=max_width,
+            first_line_indent='',
+            subsequent_indent=' ' * ident_spaces
         )
+
+        # 10) Colorize usage
         usage = f'{Fore.GREEN}{usage}{Style.RESET_ALL}'
         return usage
 
     def _format_action(self, action):
-        def justificar_texto(text, initial_indent="", subsequent_indent=""):
-            # 1. Separar en líneas
+        """
+        Override how each argument/action is rendered in help:
+          - Wrap help text with custom indentation.
+          - Insert section headers based on detecting specific sentences.
+          - Highlight "CAUTION:" in red.
+        """
+
+        def wrap_text(text, initial_indent="", subsequent_indent=""):
+            # 1) Split into lines
             lines = text.splitlines()
-            # 2. Aplicar fill() a cada línea
+            # 2) Apply textwrap.fill() line-by-line (preserve manual line breaks)
             wrapped_lines = [
-                 textwrap.fill(
-                     line,
-                     width=self._width,
-                     initial_indent=initial_indent,
-                     subsequent_indent=subsequent_indent
-                 )
-                 for line in lines
+                textwrap.fill(
+                    line,
+                    width=self._width,
+                    initial_indent=initial_indent,
+                    subsequent_indent=subsequent_indent
+                )
+                for line in lines
             ]
-            # 3. Unirlas de nuevo con saltos de línea
+            # 3) Rejoin with newlines
             return "\n".join(wrapped_lines)
-        # Encabezado del argumento
+
+        # Argument header (invocation)
         parts = [self._format_action_invocation(action)]
 
-        # Texto de ayuda, formateado e identado
+        # Help text block
         if action.help:
-            help_text = justificar_texto(action.help, initial_indent=" " * IDENT_ARGUMENT_DESCRIPTION, subsequent_indent=" " * IDENT_ARGUMENT_DESCRIPTION)
+            help_text = wrap_text(
+                action.help,
+                initial_indent=" " * IDENT_ARGUMENT_DESCRIPTION,
+                subsequent_indent=" " * IDENT_ARGUMENT_DESCRIPTION
+            )
 
-            # AUTOMATIC-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATIC-MIGRATION Process"
-            if help_text.find("Select the <SOURCE> for the AUTOMATIC-MIGRATION Process")!=-1:
-                TEXT_TO_INSERT =textwrap.dedent(f"""
+            # Insert section header: AUTOMATIC MIGRATION PROCESS
+            if help_text.find("Select the <SOURCE> for the AUTOMATIC-MIGRATION Process") != -1:
+                text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 AUTOMATIC MIGRATION PROCESS:
                 ----------------------------{Style.RESET_ALL}
                 Following arguments allow you execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service. 
 
                 """)
-                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-1,f"{TEXT_TO_INSERT}")
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
 
-
-            # AUTOMATIC-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATIC-MIGRATION Process"
-            if help_text.find("Specify the input folder that you want to process.")!=-1:
-                TEXT_TO_INSERT =textwrap.dedent(f"""
+            # Insert section header: GENERAL ARGUMENTS
+            if help_text.find("Specify the input folder that you want to process.") != -1:
+                text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 GENERAL ARGUMENTS:
                 ------------------{Style.RESET_ALL}
                 Following general arguments have different purposses depending on the Execution Mode. 
                 """)
-                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-1,f"{TEXT_TO_INSERT}")
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
 
-
-            # FEATURES for Google Photos Takeout Management: two lines before "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata"
-            if help_text.find("Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata")!=-1:
-                TEXT_TO_INSERT =textwrap.dedent(f"""
+            # Insert section header: GOOGLE PHOTOS TAKEOUT MANAGEMENT
+            if help_text.find("Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata") != -1:
+                text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
                 ---------------------------------{Style.RESET_ALL}
@@ -222,93 +287,101 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 In this mode, you can use more than one optional arguments from the below list.
                 If only the argument -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the Tool will use the default values for the rest of the arguments for this extra mode.
                 """)
-                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-1,f"{TEXT_TO_INSERT}")
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
 
-            # FEATURES for Synology Photos Management: two lines before the string
-            if help_text.find("and will create one Album per subfolder into Synology Photos.")!=-1:
-                TEXT_TO_INSERT =textwrap.dedent(f"""
+            # Insert section header: SYNOLOGY PHOTOS MANAGEMENT (legacy/detection string)
+            if help_text.find("and will create one Album per subfolder into Synology Photos.") != -1:
+                text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 SYNOLOGY PHOTOS MANAGEMENT:
                 ---------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Synology Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
-                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-1,f"{TEXT_TO_INSERT}")
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
 
-            # FEATURES for Immich Photos Management: two lines before the string
-            if help_text.find("and will create one Album per subfolder into Immich Photos.")!=-1:
-                TEXT_TO_INSERT =textwrap.dedent(f"""
+            # Insert section header: IMMICH PHOTOS MANAGEMENT (legacy/detection string)
+            if help_text.find("and will create one Album per subfolder into Immich Photos.") != -1:
+                text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 IMMICH PHOTOS MANAGEMENT:
                 -------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Immich Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
-                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-1,f"{TEXT_TO_INSERT}")
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
 
-            # FEATURES for Synology/Immich Photos Management: two lines before the string
-            if help_text.find("The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>")!=-1:
-                TEXT_TO_INSERT =textwrap.dedent(f"""
+            # Insert section header: SYNOLOGY/IMMICH PHOTOS MANAGEMENT
+            if help_text.find("The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>") != -1:
+                text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
                 ----------------------------------{Style.RESET_ALL}
                 To use following features, it is mandatory to use the argument '--client=[synology, immich]' to specify which Photo Service do you want to use.   
-                
+
                 You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.                  
-                
+
                 Following arguments allow you to interact with Synology/Immich Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
-                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-1,f"{TEXT_TO_INSERT}")
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
 
-            # OTHERS STANDALONE FEATURES: two lines before "The Tool will try to fix all symbolic links for Albums"
-            if help_text.find("The Tool will try to fix all symbolic links for Albums")!=-1:
-                TEXT_TO_INSERT =textwrap.dedent(f"""
+            # Insert section header: OTHER STANDALONE FEATURES
+            if help_text.find("The Tool will try to fix all symbolic links for Albums") != -1:
+                text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 OTHER STANDALONE FEATURES:
                 --------------------------{Style.RESET_ALL}
                 Following arguments can be used to execute the Tool in any of the useful Extra Standalone Features included. 
                 If more than one Feature is detected, only the first one will be executed.
                 """)
-                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-1,f"{TEXT_TO_INSERT}")
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
 
-            # if Detect CAUTION part on help_text, color it on Red
-            if help_text.find("CAUTION: ")!=-1:
+            # Highlight "CAUTION:" part in red if present
+            if help_text.find("CAUTION: ") != -1:
                 start_index_for_color = help_text.find("CAUTION: ")
-                # end_index_for_color = help_text.find(" Use")
                 end_index_for_color = len(help_text)
-                TEXT_TO_INSERT = f"\n{help_text[0:start_index_for_color]}{Fore.RED}{help_text[start_index_for_color:end_index_for_color]}{Style.RESET_ALL}{help_text[end_index_for_color:]}"
-                parts.append(f"{TEXT_TO_INSERT}")
+                colored = (
+                    f"\n{help_text[0:start_index_for_color]}"
+                    f"{Fore.RED}{help_text[start_index_for_color:end_index_for_color]}"
+                    f"{Style.RESET_ALL}{help_text[end_index_for_color:]}"
+                )
+                parts.append(f"{colored}")
             else:
-                parts.append(f"\n{help_text}")  # Salto de línea adicional
+                parts.append(f"\n{help_text}")  # Extra newline before help text
 
         return "".join(parts)
 
     def _format_action_invocation(self, action):
+        """
+        Customize how option strings are displayed:
+          - Align short option to a fixed width and add a separator
+          - Keep long options as-is
+          - Color the whole invocation in green
+        """
         if not action.option_strings:
-            # Para argumentos posicionales
+            # Positional args
             return super()._format_action_invocation(action)
-        else:
-            # Combina los argumentos cortos y largos con espacio adicional si es necesario
-            option_strings = []
-            for opt in action.option_strings:
-                # Argumento corto, agrega SHORT_LONG_ARGUMENTS_SEPARATOR detrás
-                if opt.startswith("-") and not opt.startswith("--"):
-                    option_strings.append(f"{opt.ljust(MAX_SHORT_ARGUMENT_LENGTH)}{SHORT_LONG_ARGUMENTS_SEPARATOR}")
-                else:
-                    option_strings.append(f"{opt}")
 
-            # Combina los argumentos cortos y largos, y agrega el parámetro si aplica
-            formatted_options = " ".join(option_strings).rstrip(",")
-            metavar = f" {action.metavar}" if action.metavar else ""
-            return f"{Fore.GREEN}{formatted_options}{metavar}{Style.RESET_ALL}"
+        # Combine short and long options with extra spacing if needed
+        option_strings = []
+        for opt in action.option_strings:
+            # Short option: pad to MAX_SHORT_ARGUMENT_LENGTH and append separator
+            if opt.startswith("-") and not opt.startswith("--"):
+                option_strings.append(f"{opt.ljust(MAX_SHORT_ARGUMENT_LENGTH)}{SHORT_LONG_ARGUMENTS_SEPARATOR}")
+            else:
+                option_strings.append(f"{opt}")
+
+        # Join options and append metavar if present
+        formatted_options = " ".join(option_strings).rstrip(",")
+        metavar = f" {action.metavar}" if action.metavar else ""
+        return f"{Fore.GREEN}{formatted_options}{metavar}{Style.RESET_ALL}"
 
     def _join_parts(self, part_strings):
-        # Asegura que cada argumento quede separado por un salto de línea
+        # Ensure each argument/help block is separated by a newline
         return "\n".join(part for part in part_strings if part)
-

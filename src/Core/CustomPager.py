@@ -10,67 +10,70 @@ if platform.system() == "Windows":
     try:
         import curses
     except ImportError:
-        raise ImportError("Instala 'windows-curses' para soporte en Windows: pip install windows-curses")
+        raise ImportError("Install 'windows-curses' for Windows support: pip install windows-curses")
 else:
     import curses
 
+
 class PagedParser(argparse.ArgumentParser):
     """
-    Sobrescribimos ArgumentParser para que print_help() use un paginador.
+    We override ArgumentParser so that print_help() uses a pager.
     """
 
     def custom_pager(self, text):
         """
-        Paginador con curses que adapta dinámicamente el texto al tamaño de la terminal.
+        Curses-based pager that dynamically adapts the text to the terminal size.
         """
 
-        # Expresión regular para detectar códigos ANSI
+        # Regular expression to detect ANSI escape codes
         ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
 
         usage_first_line = -1
         usage_last_line = -1
-        caution_ranges = []  # Lista para almacenar rangos de líneas de “CAUTION:”
-        optional_arguments_line = -1  # Línea que contiene "optional arguments:"
+        caution_ranges = []  # List to store line ranges for each “CAUTION:” block
+        optional_arguments_line = -1  # Line index that contains "optional arguments:"
 
         lines = text.splitlines()
 
-        # Determinar los índices de inicio y fin de la sección "usage"
+        # Determine start/end indices for the "usage" section
         for i, line in enumerate(lines):
-            clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
-            if 'usage' in clean_line.lower() and usage_first_line == -1:  # Detectar la primera línea con usage
+            clean_line = ANSI_ESCAPE.sub('', line)  # Remove ANSI sequences (colorama)
+            if 'usage' in clean_line.lower() and usage_first_line == -1:  # Detect the first line with usage
                 usage_first_line = i
-            if TOOL_NAME_VERSION in clean_line:  # Detectar la última línea de usage (pero NO pintarla en verde)
-                usage_last_line = i - 1  # Detener una línea antes de TOOL_NAME_VERSION
-                break  # No hace falta seguir buscando
+            if TOOL_NAME_VERSION in clean_line:  # Detect the last usage line (but do NOT paint TOOL_NAME_VERSION in green)
+                usage_last_line = i - 1  # Stop one line before TOOL_NAME_VERSION
+                break  # No need to keep searching
 
-        # Determinar todos los bloques de "CAUTION:"
+        # Determine all "CAUTION:" blocks
         caution_start = -1
         for i, line in enumerate(lines):
             clean_line = ANSI_ESCAPE.sub('', line)
-            if 'CAUTION:' in clean_line:  # Detectar cualquier aparición de “CAUTION:”
-                if caution_start == -1:  # Si no hemos iniciado un bloque, marcar el inicio
+            if 'CAUTION:' in clean_line:  # Detect any occurrence of “CAUTION:”
+                if caution_start == -1:  # If we have not started a block, mark the start
                     caution_start = i
             elif caution_start != -1 and (re.match(r"^\s*-\w", clean_line) or clean_line.strip() == ""):
-                caution_ranges.append((caution_start, i - 1))  # Guardar el rango hasta la línea anterior
-                caution_start = -1  # Reiniciar para detectar más bloques
+                caution_ranges.append((caution_start, i - 1))  # Save the block range until the previous line
+                caution_start = -1  # Reset to detect further blocks
 
-        # Buscar la línea que contiene "optional arguments:"
+        # Find the line that contains "optional arguments:"
         for i, line in enumerate(lines):
             clean_line = ANSI_ESCAPE.sub('', line)
             if 'optional arguments:' in clean_line.lower():
                 optional_arguments_line = i
-                break  # No hace falta seguir buscando más de una vez
+                break  # Only need the first occurrence
 
         # Check if terminal supports colors
         def check_color_support():
             curses.start_color()
             if not curses.has_colors():
-                LOGGER.warning(f"Your terminal does not support colors")
+                LOGGER.warning("Your terminal does not support colors")
                 return False
+
             max_pairs = curses.COLOR_PAIRS
             if max_pairs < 4:
-                LOGGER.warning(f"Your terminal only support {max_pairs} color pairs. The tool need 4")
+                LOGGER.warning(f"Your terminal only supports {max_pairs} color pairs. The tool needs 4.")
                 return False
+
             return True
 
         def pager(stdscr):
@@ -78,121 +81,138 @@ class PagedParser(argparse.ArgumentParser):
             color_support = check_color_support()
             if color_support:
                 curses.start_color()
-                curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Verde (para argumentos y usage)
-                curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Magenta (para separadores y líneas anteriores)
-                curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)     # Rojo (para secciones de CAUTION)
-                curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Amarillo con fondo azul (para optional arguments)
-            curses.curs_set(0)  # Ocultar el cursor
+                curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Green (args and usage)
+                curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Yellow (separators and previous lines)
+                curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)     # Red (CAUTION blocks)
+                curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Yellow (optional arguments)
+            curses.curs_set(0)  # Hide cursor
+
             total_lines = len(lines)
-            page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
+            page_size = curses.LINES - 2  # Terminal height minus space for the help message
             index = 0
 
             while True:
                 stdscr.clear()
-                prev_line = None  # Variable para almacenar la línea anterior
+                prev_line = None  # Store the previous line (used to color the line above separators)
 
-                for i, line in enumerate(lines[index:index+page_size]):
+                for i, line in enumerate(lines[index:index + page_size]):
                     try:
-                        clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
-                        line_number = index + i  # Línea absoluta en el texto
+                        clean_line = ANSI_ESCAPE.sub('', line)  # Remove ANSI sequences (colorama)
+                        line_number = index + i  # Absolute line number in the full help text
+
                         if color_support:
-                            # Pintar todas las líneas dentro del bloque usage en verde (excepto la línea con TOOL_NAME_VERSION)
+                            # Paint all lines in the usage block in green (except the TOOL_NAME_VERSION line)
                             if usage_first_line <= line_number <= usage_last_line:
-                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
-                            # Pintar todas las líneas dentro de cualquier bloque “CAUTION:” en rojo
+                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))
+                            # Paint all lines within any “CAUTION:” block in red
                             elif any(start <= line_number <= end for start, end in caution_ranges):
-                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(3))  # Rojo
-                            # Pintar la línea que contiene “optional arguments:” en amarillo
+                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(3))
+                            # Paint the “optional arguments:” line in yellow
                             elif line_number == optional_arguments_line:
-                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(4))  # Amarillo
+                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(4))
                             else:
-                                # Detectar si la línea actual es un separador (--- o más guiones)
+                                # Detect whether the current line is a separator (--- or more dashes)
                                 is_separator = re.match(r"^\s*-{3,}", clean_line)
 
-                                # Si encontramos un separador, pintamos también la línea anterior
+                                # If we find a separator, also paint the previous line
                                 if is_separator and prev_line is not None:
-                                    stdscr.addstr(i - 1, 0, prev_line[:curses.COLS], curses.color_pair(2))  # Magenta
+                                    stdscr.addstr(i - 1, 0, prev_line[:curses.COLS], curses.color_pair(2))
 
-                                # Pintar en verde si es un argumento (-arg, --arg)
+                                # Paint in green if it looks like an argument (-arg, --arg)
                                 # if re.match(r"^\s*-\w", clean_line):
                                 if re.match(r"^\s*--?\w", clean_line):
-                                    stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
-                                # Pintar en magenta si es un separador
+                                    stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))
+                                # Paint in yellow if it is a separator
                                 elif is_separator:
-                                    stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(2))  # Magenta
+                                    stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(2))
                                 else:
-                                    stdscr.addstr(i, 0, clean_line[:curses.COLS])  # Normal
+                                    stdscr.addstr(i, 0, clean_line[:curses.COLS])
 
-                                # Guardar la línea actual como la anterior para la siguiente iteración
+                                # Save current line as previous line for the next iteration
                                 prev_line = clean_line
-                        # if terminal does not support colors
+
+                        # If terminal does not support colors
                         else:
                             stdscr.addstr(i, 0, clean_line[:curses.COLS])
 
                     except curses.error:
-                        pass  # Ignorar errores si la terminal no puede mostrar el texto completo
+                        # Ignore errors when the terminal cannot display the full text
+                        pass
 
-                # Mensaje de ayuda
+                # Help message (footer)
                 try:
                     stdscr.addstr(
-                        page_size, 0,
+                        page_size,
+                        0,
                         "[Use: Arrows (↓/↑) to scroll line by line, PgUp/PgDown or +/- to scroll by page, Space/Enter to advance a page, Q/Esc to exit]",
                         curses.A_REVERSE
                     )
                 except curses.error:
-                    pass  # Ignorar errores si no hay suficiente espacio para el mensaje
+                    pass  # Not enough space for the footer
 
                 stdscr.refresh()
 
-                # Salir automáticamente si se alcanza el final
+                # Auto-exit if end is reached
                 if index >= total_lines - page_size:
                     break
 
-                # Asignamos los códigos de las teclas +- y */ del teclado numérico
-                NUMPAD_PLUS     = [584, 465]        # Codigos para NUMPAD_PLUS en LINUX, WINDOWS, MACOS
-                NUMPAD_MINUS    = [268, 464]        # Codigos para NUMPAD_MINUS en LINUX, WINDOWS, MACOS
-                NUMPAD_MULTIPLY = [267, 463, 42]    # Codigos para NUMPAD_MULTIPLY en LINUX, WINDOWS, MACOS
-                NUMPAD_DIVIDE   = [266, 458, 47]    # Codigos para NUMPAD_DIVIDE en LINUX, WINDOWS, MACOS
-                NUMPAD_ENTER    = [343, 459]        # Codigos para NUMPAD_ENTER en LINUX, WINDOWS, MACOS
-                BACKSPACE       = [263, 8, 127]     # Codigos para BACKSPACE en LINUX, WINDOWS, MACOS
+                # Assign key codes for numeric keypad operations
+                NUMPAD_PLUS     = [584, 465]        # Codes for NUMPAD_PLUS on LINUX, WINDOWS, MACOS
+                NUMPAD_MINUS    = [268, 464]        # Codes for NUMPAD_MINUS on LINUX, WINDOWS, MACOS
+                NUMPAD_MULTIPLY = [267, 463, 42]    # Codes for NUMPAD_MULTIPLY on LINUX, WINDOWS, MACOS
+                NUMPAD_DIVIDE   = [266, 458, 47]    # Codes for NUMPAD_DIVIDE on LINUX, WINDOWS, MACOS
+                NUMPAD_ENTER    = [343, 459]        # Codes for NUMPAD_ENTER on LINUX, WINDOWS, MACOS
+                BACKSPACE       = [263, 8, 127]     # Codes for BACKSPACE on LINUX, WINDOWS, MACOS
 
-                # Leer entrada del usuario
+                # Read user input
                 key = stdscr.getch()
-                if key in [ord('q'), ord('Q'), 27]:  # Salir con 'q' o Esc
+
+                # Exit with 'q' or Esc
+                if key in [ord('q'), ord('Q'), 27]:
                     break
-                elif key == curses.KEY_DOWN:  # Avanzar 1 línea
+
+                # Move 1 line down
+                elif key == curses.KEY_DOWN:
                     index = min(total_lines - 1, index + 1)
-                elif key == curses.KEY_UP:  # Retroceder 1 línea
+
+                # Move 1 line up
+                elif key == curses.KEY_UP:
                     index = max(0, index - 1)
-                elif key in [curses.KEY_NPAGE, ord(' '), ord('\n'), curses.KEY_ENTER, ord('+')] or key in NUMPAD_ENTER or key in NUMPAD_PLUS or key in NUMPAD_MULTIPLY:  # Avanzar 1 página
+
+                # Advance 1 page
+                elif key in [curses.KEY_NPAGE, ord(' '), ord('\n'), curses.KEY_ENTER, ord('+')] or \
+                        key in NUMPAD_ENTER or key in NUMPAD_PLUS or key in NUMPAD_MULTIPLY:
                     index = min(total_lines - page_size, index + page_size)
-                elif key in [curses.KEY_PPAGE, curses.KEY_BACKSPACE, ord('-')] or key in BACKSPACE or key in NUMPAD_MINUS or key in NUMPAD_DIVIDE:  # Retroceder 1 página
+
+                # Go back 1 page
+                elif key in [curses.KEY_PPAGE, curses.KEY_BACKSPACE, ord('-')] or \
+                        key in BACKSPACE or key in NUMPAD_MINUS or key in NUMPAD_DIVIDE:
                     index = max(0, index - page_size)
 
         curses.wrapper(pager)
 
-        # Imprimir el texto de ayuda completo de nuevo fuera de curses para que se vea al salir
+        # Print the full help text again outside curses so it remains visible after exiting
         print(text)
 
-        # # For debugging purposses
+        # # For debugging purposes
         # print("Usage range:", usage_first_line, "-", usage_last_line)
         # print("Caution ranges:", caution_ranges)
         # print("Optional arguments line:", optional_arguments_line)
 
     def get_terminal_height(self, default_height=20):
         """
-        Obtiene la altura de la terminal para ajustar el número de líneas mostradas.
-        Si no puede determinar el tamaño, usa un valor predeterminado.
+        Get the terminal height to adjust how many lines are displayed.
+        If the size cannot be detected, use a default value.
         """
         try:
-            return os.get_terminal_size().lines - 2  # Resta 2 para dejar espacio al mensaje custom
+            return os.get_terminal_size().lines - 2  # Subtract 2 to leave space for the custom footer
         except OSError:
-            return default_height  # Si no se puede obtener, usa el valor predeterminado
+            return default_height  # If size cannot be obtained, use default
 
     def is_interactive(self):
         """
-        Detecta si el script se ejecuta en un terminal interactivo y válido.
-        En Windows no depende de TERM, en Unix sí.
+        Detect whether the script is running in a valid interactive terminal.
+        On Windows it does not depend on TERM, on Unix it does.
         """
         if platform.system() == 'Windows':
             return sys.stdout.isatty()
@@ -200,14 +220,14 @@ class PagedParser(argparse.ArgumentParser):
             return sys.stdout.isatty() and os.environ.get('TERM') is not None
 
     def print_help(self, file=None):
-        # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
+        # Generate help text using formatter_class (CustomHelpFormatter).
         help_text = self.format_help()
         try:
             if self.is_interactive():
                 self.custom_pager(help_text)
             else:
-                # Muestra el texto directamente si no es interactivo
+                # Print directly when not interactive
                 print(help_text)
-        except Exception as e:
+        except Exception:
             print(help_text)
-            print('Pagination is not possible on this terminal.')
+            print("Pagination is not possible on this terminal.")

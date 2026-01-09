@@ -9,6 +9,7 @@ if src_path not in sys.path:
 
 
 import glob
+import logging
 import shutil
 import subprocess
 import tempfile
