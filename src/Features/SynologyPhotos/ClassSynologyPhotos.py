@@ -2063,7 +2063,7 @@ class ClassSynologyPhotos:
                         asset_id, is_dup = self.push_asset(file_, log_level=logging.WARNING)
                         if is_dup:
                             total_duplicated_assets_skipped += 1
-                            LOGGER.debug(f"Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
+                            LOGGER.debug(f"Duplicated Asset: {file_}. Asset ID: {asset_id} skipped")
                         elif asset_id:
                             LOGGER.debug(f"Asset ID: {asset_id} uploaded to Immich Photos")
                             total_assets_uploaded += 1
