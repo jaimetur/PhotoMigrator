@@ -367,7 +367,7 @@ def _include_extrafiles_and_zip(input_file, output_file):
             for file in matched_files:
                 shutil.copy(file, subdir_path)
     # Compress the temporary directory and then delete it
-    zip_folder(temp_dir, output_file)
+    _zip_folder(temp_dir, output_file)
     shutil.rmtree(temp_dir)
 
 
@@ -513,8 +513,8 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global archive_path_relative
 
     # Detect the operating system and architecture
-    OPERATING_SYSTEM = get_os(use_logger=False)
-    ARCHITECTURE = get_arch(use_logger=False)
+    OPERATING_SYSTEM = _get_os(use_logger=False)
+    ARCHITECTURE = _get_arch(use_logger=False)
 
     # Script names
     TOOL_SOURCE_NAME = f"{TOOL_NAME}.py"
@@ -739,7 +739,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
 
         # Run PyInstaller with the configured settings
-        print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments", use_logger=False, use_custom_print=False)
+        _print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments", use_logger=False, use_custom_print=False)
 
         try:
             PyInstaller.__main__.run(pyinstaller_command)
@@ -843,7 +843,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend([rf'--onefile-tempdir-spec=%TEMP%\{TOOL_NAME_WITH_VERSION_OS_ARCH}'])
 
         # Run Nuitka with the configured settings
-        print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_logger=False, use_custom_print=False)
+        _print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_logger=False, use_custom_print=False)
         result = subprocess.run(nuitka_command)
         success = (result.returncode == 0)
         if not success:
