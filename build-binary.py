@@ -13,6 +13,7 @@ import logging
 import platform
 import shutil
 import subprocess
+import stat
 import tempfile
 from colorama import Fore
 from pathlib import Path
