@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import stat
 import tempfile
+import zipfile
 from colorama import Fore
 from pathlib import Path
 
