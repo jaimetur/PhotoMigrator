@@ -8,11 +8,11 @@ from colorama import Fore
 #---------------------------------------
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
 #---------------------------------------
-COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
+COPYRIGHT_TEXT                  = "(c) 2024-2026 - Jaime Tur (@jaimetur)"
 TOOL_NAME                       = "PhotoMigrator"
-TOOL_VERSION_WITHOUT_V          = "3.6.2"
+TOOL_VERSION_WITHOUT_V          = "3.7.0"
 TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
-TOOL_DATE                       = "2025-09-11"
+TOOL_DATE                       = "2026-01-09"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
 GPTH_VERSION                    = "5.0.5"
@@ -126,7 +126,7 @@ TOOL_DESCRIPTION = textwrap.dedent(f"""{TOOL_NAME_VERSION} - {TOOL_DATE}
           Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
           such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
-          ©️ 2024-2025 by Jaime Tur (@jaimetur)
+          ©️ 2024-2026 by Jaime Tur (@jaimetur)
           """
                                    )
 

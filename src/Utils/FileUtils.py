@@ -16,22 +16,32 @@ from Utils.GeneralUtils import tqdm
 # FILES & FOLDERS MANAGEMENT FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
 def fix_paths(path, log_level=None):
+    """
+    Normalizes path separators to the current OS separator.
+
+    Args:
+        path (str): Input path (may contain '/' or '\\').
+        log_level: Unused (kept for API consistency).
+
+    Returns:
+        str: Path using the current OS separator.
+    """
     fixed_path = path.replace('/', os.path.sep).replace('\\', os.path.sep)
     return fixed_path
 
 
 def is_valid_path(path, log_level=None):
     """
-    Verifica si la ruta es válida en la plataforma actual.
-    — Debe ser una ruta absoluta.
-    — No debe contener caracteres inválidos para el sistema operativo.
-    — No debe usar un formato incorrecto para la plataforma.
+    Checks whether the path is valid on the current platform.
+    — It must be an absolute path.
+    — It must not contain invalid characters for the operating system.
+    — It must not use an incorrect format for the platform.
     """
     from pathvalidate import validate_filepath, ValidationError
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
-            # Verifica si `ruta` es válida como path en la plataforma actual.
+            # Checks whether `path` is valid as a filepath on the current platform.
             validate_filepath(path, platform="auto")
             return True
         except ValidationError as e:
@@ -39,6 +49,15 @@ def is_valid_path(path, log_level=None):
             return False
 
 def dir_exists(dir):
+    """
+    Checks whether a directory exists.
+
+    Args:
+        dir (str | Path): Directory path.
+
+    Returns:
+        bool: True if the directory exists and is a directory, otherwise False.
+    """
     return os.path.isdir(dir)
 
 def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_level=None):
@@ -53,9 +72,9 @@ def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_lev
         :param log_level:
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Contar el total de carpetas
+        # Count total number of folders
         total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
-        # Mostrar la barra de progreso basada en carpetas
+        # Show progress bar based on folders
         with tqdm(total=total_dirs, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=False):
                 for folder in dirs:
@@ -83,19 +102,19 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
         :param flatten_root_folder:
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Count number of sep of input_folder
+        # Count number of path separators in input_folder
         sep_input = input_folder.count(os.sep)
         # Convert wildcard patterns to regex patterns for matching
         exclude_patterns = [re.compile(fnmatch.translate(pattern)) for pattern in exclude_subfolders]
         for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
-            # Count number of sep of root folder
+            # Count number of path separators in the current root folder
             sep_root = int(path.count(os.sep))
             depth = sep_root - sep_input
             LOGGER.verbose(f"Depth: {depth}")
             if depth > max_depth:
                 # Skip deeper levels
                 continue
-            # If flatten_root_folder=True, then only need to flatten the root folder, and it recursively will flatten all subfolders
+            # If flatten_root_folder=True, then only the root folder needs to be flattened, and it will recursively flatten all subfolders
             if flatten_root_folder:
                 dirs = [os.path.basename(path)]
                 path = os.path.dirname(path)
@@ -128,7 +147,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
         for path, dirs, files in os.walk(input_folder, topdown=False):
             for dir in dirs:
                 dir_path = os.path.join(path, dir)
-                if not os.listdir(dir_path):  # Si la carpeta está vacía
+                if not os.listdir(dir_path):  # If the folder is empty
                     os.rmdir(dir_path)
 
 
@@ -182,6 +201,16 @@ def remove_folder(folder, step_name='', log_level=None):
 
 
 def contains_zip_files(input_folder, log_level=None):
+    """
+    Checks whether the given folder contains at least one .zip file.
+
+    Args:
+        input_folder (str | Path): Folder to scan.
+        log_level: Optional log level override for this operation.
+
+    Returns:
+        bool: True if any file in the folder ends with '.zip', otherwise False.
+    """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Searching .zip files in input folder...")
         for file in os.listdir(input_folder):
@@ -192,18 +221,39 @@ def contains_zip_files(input_folder, log_level=None):
 
 
 def normalize_path(path, log_level=None):
+    """
+    Normalizes a filesystem path (collapses redundant separators and up-level references).
+
+    Args:
+        path (str | Path): Input path.
+        log_level: Optional log level override for this operation.
+
+    Returns:
+        str: Normalized path string.
+    """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # return os.path.normpath(path).strip(os.sep)
         return os.path.normpath(path)
 
 
 def zip_folder(temp_dir, output_file):
+    """
+    Creates a ZIP archive from the contents of a folder.
+
+    Notes:
+        - Preserves directory structure relative to `temp_dir`.
+        - Adds empty directories to the ZIP as well.
+
+    Args:
+        temp_dir (str | Path): Folder whose contents will be zipped.
+        output_file (str | Path): Destination ZIP file path.
+    """
     print(f"Creating packed file: {output_file}...")
 
-    # Convertir output_file a un objeto Path
+    # Convert output_file to a Path object
     output_path = Path(output_file)
 
-    # Crear los directorios padres si no existen
+    # Create parent directories if they don't exist
     if not output_path.parent.exists():
         print(f"Creating needed folder for: {output_path.parent}")
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -212,11 +262,11 @@ def zip_folder(temp_dir, output_file):
         for root, dirs, files in os.walk(temp_dir):
             for file in files:
                 file_path = Path(root) / file
-                # Añade al zip respetando la estructura de carpetas
+                # Add to the zip preserving the folder structure
                 zipf.write(file_path, file_path.relative_to(temp_dir))
             for dir in dirs:
                 dir_path = Path(root) / dir
-                # Añade directorios vacíos al zip
+                # Add empty directories to the zip
                 if not os.listdir(dir_path):
                     zipf.write(dir_path, dir_path.relative_to(temp_dir))
     print(f"File successfully packed: {output_file}")
@@ -386,4 +436,3 @@ def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level
                 LOGGER.warning(f"{step_name}Could not unzip file (BadZipFile): {zip_file}")
             except Exception as e:
                 LOGGER.warning(f"{step_name}Unzip error for {zip_file}: {e}")
-

@@ -21,16 +21,29 @@ EXECUTION_MODE = "default"
 terminal_width = shutil.get_terminal_size().columns
 
 # -------------------------------------------------------------
-# Determine the Execution mode based on the provide arguments:
+# Determine the Execution mode based on the provided arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
+    """
+    Detect the execution mode based on the parsed CLI arguments (ARGS) and dispatch to the corresponding handler.
+
+    The function evaluates ARGS in a priority order and runs exactly one mode function. If no valid mode can be
+    detected, it logs an error and exits the program with a non-zero code.
+
+    Side effects:
+        - Calls other mode_* functions depending on ARGS values.
+        - May call sys.exit(1) if no valid execution mode is detected.
+
+    Returns:
+        None
+    """
     # AUTOMATIC-MIGRATION MODE:
     if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
 
         if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
             step_name = ''
-            # Configura y arranca el profiler justo antes de la llamada que quieres medir
+            # Configure and start the profiler right before the call you want to measure
             LOGGER.debug(f"{step_name}Profiling Function mode_AUTOMATIC_MIGRATION")
             profile_and_print(mode_AUTOMATIC_MIGRATION, show_dashboard=False, show_gpth_info=ARGS['show-gpth-info'], step_name=step_name)
         else:
@@ -102,7 +115,7 @@ def detect_and_run_execution_mode():
         mode_folders_rename_content_based()
 
     else:
-        EXECUTION_MODE = ''  # Opción por defecto si no se cumple ninguna condición
+        EXECUTION_MODE = ''  # Default option if no condition is met
         LOGGER.error(f"Unable to detect any valid execution mode.")
         LOGGER.error(f"Please, run '{os.path.basename(sys.argv[0])} --help' to know more about how to invoke the Script.")
         LOGGER.error(f"")
@@ -113,6 +126,27 @@ def detect_and_run_execution_mode():
 # FEATURE: GOOGLE PHOTOS TAKEOUT: #
 ###################################
 def mode_google_takeout(user_confirmation=True, log_level=None):
+    """
+    Process a Google Photos Takeout folder and generate a cleaned output folder.
+
+    This mode:
+        - Validates the input folder
+        - Detects zipped takeout content (optional unzip step handled downstream)
+        - Logs the active configuration based on ARGS
+        - Optionally asks for user confirmation before starting
+        - Executes the ClassTakeoutFolder.process() pipeline
+
+    Args:
+        user_confirmation (bool): If True, shows a warning/help text and asks the user to confirm before running.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Reads and writes filesystem paths under the input/output folders.
+        - May call sys.exit() on fatal errors or if user cancels.
+
+    Returns:
+        None
+    """
     # Configure default arguments for mode_google_takeout() execution
     LOGGER.info(f"=============================================================")
     LOGGER.info(f"Starting Google Takeout Photos Processor Feature...")
@@ -138,7 +172,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
         LOGGER.info(f"ZIP files have been detected in {input_folder}'.")
         LOGGER.info(f"Files will be unzipped first...")
 
-    # Mensajes informativos
+    # Informational messages
     LOGGER.info(f"")
     LOGGER.info(f"Folders for Google Takeout Photos Feature :")
     LOGGER.info(f"-------------------------------------------")
@@ -209,6 +243,26 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
 # SYNOLOGY/IMMICH FEATURES: #
 #############################
 def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None):
+    """
+    Upload albums from a local folder to the selected cloud client (Immich or Synology).
+
+    After uploading, the function performs a cleanup of the cloud account:
+        - Remove empty albums
+        - Merge duplicate albums
+        - Remove duplicate assets
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, uploads albums, performs cleanup, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     input_folder = ARGS['upload-albums']
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
@@ -280,6 +334,27 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
 
 
 def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
+    """
+    Upload all assets from a local folder to the selected cloud client (Immich or Synology).
+
+    This mode can optionally use ARGS['albums-folders'] to treat certain subfolders as albums.
+    After uploading, the function performs a cleanup of the cloud account:
+        - Remove empty albums
+        - Merge duplicate albums
+        - Remove duplicate assets
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, uploads assets, performs cleanup, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     input_folder = ARGS['upload-all']
     albums_folders = ARGS['albums-folders']
@@ -355,6 +430,26 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
 
 
 def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=None):
+    """
+    Download one or more albums from the selected cloud client (Immich or Synology).
+
+    Before downloading, the function performs a cleanup of the cloud account:
+        - Remove empty albums
+        - Merge duplicate albums
+        - Remove duplicate assets
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, runs cleanup, downloads albums, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     albums_name = ARGS['download-albums']
     output_folder = ARGS['output-folder']
@@ -427,6 +522,26 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
 
 
 def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None):
+    """
+    Download all assets from the selected cloud client (Immich or Synology) into a local folder.
+
+    Before downloading, the function performs a cleanup of the cloud account:
+        - Remove empty albums
+        - Merge duplicate albums
+        - Remove duplicate assets
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, runs cleanup, downloads all content, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     output_folder = ARGS['download-all']
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
@@ -488,6 +603,21 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
 
 
 def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_level=None):
+    """
+    Remove empty albums from the selected cloud client (Immich or Synology).
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, removes empty albums, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rEmpAlb, --remove-empty-albums'.")
@@ -540,6 +670,23 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
 
 
 def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log_level=None):
+    """
+    Remove duplicated albums from the selected cloud client (Immich or Synology).
+
+    The duplicate detection logic (e.g., based on asset counts/size) is implemented in the cloud client.
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, removes duplicate albums, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rDupAlb, --remove-duplicates-albums'.")
@@ -592,6 +739,23 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
 
 
 def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_level=None):
+    """
+    Merge duplicated albums from the selected cloud client (Immich or Synology).
+
+    The merge strategy is passed to the client method. This code uses 'count' by default.
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, merges duplicate albums, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-mDupAlb, --merge-duplicates-albums'.")
@@ -649,6 +813,23 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
 
 
 def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_level=None):
+    """
+    Remove orphan assets from the selected cloud client (Immich only).
+
+    If the client is Synology, this feature is not available and the function exits.
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, removes orphan assets, and logs out.
+        - May call sys.exit() when feature is not supported, invalid client, or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rOrphan, --remove-orphan-assets'.")
@@ -705,6 +886,23 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
 
 
 def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=None):
+    """
+    Remove all assets from the selected cloud client (Immich or Synology).
+
+    This is a destructive operation. The underlying client decides whether albums are also removed or affected.
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, removes all assets, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rAll, --remove-all-assets'.")
@@ -757,6 +955,25 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=None):
 
 
 def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None):
+    """
+    Rename albums in the selected cloud client (Immich or Synology) using a pattern and replacement.
+
+    This mode expects ARGS['rename-albums'] to contain two elements:
+        - [0] albums_name_pattern
+        - [1] albums_name_replacement_pattern
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, renames albums, and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     albums_name_pattern = ARGS['rename-albums'][0]
     albums_name_replacement_pattern = ARGS['rename-albums'][1]
@@ -810,6 +1027,24 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None
 
 
 def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True, log_level=None):
+    """
+    Remove albums from the selected cloud client (Immich or Synology) matching a name/regex pattern.
+
+    If ARGS['remove-all-albums'] is not empty, the pattern is forced to '.*' (remove all albums).
+    If ARGS['remove-albums-assets'] is True, the assets in the removed albums will also be removed.
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, removes albums (and optionally assets), and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     if ARGS['remove-all-albums'] != "":
         albums_name_pattern = '.*'
@@ -872,6 +1107,23 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
 
 
 def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=None):
+    """
+    Remove all albums from the selected cloud client (Immich or Synology).
+
+    If ARGS['remove-albums-assets'] is True, assets associated with removed albums will also be removed.
+
+    Args:
+        client (str|None): Client name (expected 'immich' or 'synology').
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Logs into the cloud account, removes all albums (and optionally assets), and logs out.
+        - May call sys.exit() on invalid client or user cancellation.
+
+    Returns:
+        None
+    """
     client = capitalize_first_letter(client)
     remove_albums_assets = ARGS['remove-albums-assets']
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
@@ -932,6 +1184,20 @@ def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=
 # OTHER STANDALONE FEATURES: #
 #################################
 def mode_fix_symlinkgs(user_confirmation=True, log_level=None):
+    """
+    Fix broken symbolic links in the folder specified by ARGS['fix-symlinks-broken'].
+
+    Args:
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Modifies filesystem symbolic links in the target folder.
+        - May call sys.exit() if user cancels.
+
+    Returns:
+        None
+    """
     if user_confirmation:
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["fix-symlinks-broken"].replace('<FOLDER_TO_FIX>', f"'{ARGS['fix-symlinks-broken']}'"))
@@ -963,6 +1229,23 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=None):
 
 
 def mode_find_duplicates(user_confirmation=True, log_level=None):
+    """
+    Find duplicate files across one or more folders defined in ARGS['duplicates-folders'].
+
+    The action to take is defined by ARGS['duplicates-action']. Folder deprioritization rules can be provided
+    via DEPRIORITIZE_FOLDERS_PATTERNS.
+
+    Args:
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Scans the filesystem and may remove empty folders depending on the duplicates action.
+        - May call sys.exit() on invalid folders or user cancellation.
+
+    Returns:
+        None
+    """
     LOGGER.info(f"Duplicates Action             : {ARGS['duplicates-action']}")
     LOGGER.info(f"Find Duplicates in Folders    : {ARGS['duplicates-folders']}")
     LOGGER.info(f"")
@@ -1003,6 +1286,23 @@ def mode_find_duplicates(user_confirmation=True, log_level=None):
 
 
 def mode_process_duplicates(user_confirmation=True, log_level=None):
+    """
+    Process duplicates actions from the file specified by ARGS['process-duplicates'].
+
+    The file typically contains per-duplicate actions (e.g., remove/restore/replace) that are executed by
+    process_duplicates_actions().
+
+    Args:
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Performs filesystem operations according to actions contained in the input file.
+        - May call sys.exit() if user cancels.
+
+    Returns:
+        None
+    """
     if user_confirmation:
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["process-duplicates"])
@@ -1036,6 +1336,22 @@ def mode_process_duplicates(user_confirmation=True, log_level=None):
 
 
 def mode_folders_rename_content_based(user_confirmation=True, log_level=None):
+    """
+    Rename subfolders inside ARGS['rename-folders-content-based'] based on content-driven rules.
+
+    The function calls rename_album_folders() and prints a final summary with the counters returned.
+
+    Args:
+        user_confirmation (bool): If True, asks the user for confirmation before starting.
+        log_level (int|None): Optional log level override applied only during this function execution.
+
+    Side effects:
+        - Renames folders on disk.
+        - May call sys.exit() if user cancels.
+
+    Returns:
+        None
+    """
     if user_confirmation:
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["rename-folders-content-based"].replace('<ALBUMS_FOLDER>', f"'{ARGS['rename-folders-content-based']}'"))

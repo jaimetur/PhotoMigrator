@@ -22,13 +22,15 @@ from Core.GlobalVariables import VIDEO_EXT, PHOTO_EXT, MSG_TAGS, VERBOSE_LEVEL_N
 
 
 # ------------------------------------------------------------------
-# Integrar tqdm con el logger
+# Integrate tqdm with the logger
 class TqdmLoggerConsole:
-    """Redirige la salida de tqdm solo a los manejadores de consola del GV.LOGGER."""
+    """Redirects tqdm output only to the console handlers of GV.LOGGER."""
+
     def __init__(self, logger, level=logging.INFO):
         self.logger = logger
         self.level = level
         self.levelname = logging.getLevelName(level)
+
     def write(self, message):
         message = message.strip()
         if message:
@@ -46,7 +48,7 @@ class TqdmLoggerConsole:
                 message = message.replace("CRITICAL: ", "")
 
             for handler in self.logger.handlers:
-                if isinstance(handler, logging.StreamHandler):  # Solo handlers de consola
+                if isinstance(handler, logging.StreamHandler):  # Console handlers only
                     handler.emit(logging.LogRecord(
                         name=self.logger.name,
                         level=self.level,
@@ -56,26 +58,30 @@ class TqdmLoggerConsole:
                         args=(),
                         exc_info=None
                     ))
+
     def flush(self):
-        pass  # Necesario para compatibilidad con tqdm
+        pass  # Required for tqdm compatibility
+
     def isatty(self):
-        """Engañar a tqdm para que lo trate como un terminal interactivo."""
+        """Trick tqdm into treating this as an interactive terminal."""
         return True
 
-# Crear instancia global del wrapper
+
+# Create a global instance of the wrapper
 TQDM_LOGGER_INSTANCE = TqdmLoggerConsole(GV.LOGGER, logging.INFO)
 
+
 ######################
-# FUNCIONES AUXILIARES
+# AUXILIARY FUNCTIONS
 ######################
 # -------------------------------------------------------------
 # Set Profile to analyze and optimize code:
 # -------------------------------------------------------------
 def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live_stats=True, interval=10, top_n=10, **kwargs):
     """
-    Ejecuta cProfile solo sobre function_to_analyze (dejando el sleep
-    del wrapper fuera del profiling), vuelca stats a GV.LOGGER.debug si
-    live_stats=True, y devuelve el resultado de la función analizada.
+    Runs cProfile only around `function_to_analyze` (keeping the wrapper sleep
+    out of the profiling), dumps stats to GV.LOGGER.debug if `live_stats=True`,
+    and returns the result of the analyzed function.
     """
     import io
     import cProfile
@@ -84,8 +90,8 @@ def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live
 
     profiler = cProfile.Profile()
 
-    # Ejecutamos la función BAJO profiler.runcall, de modo que
-    # el wrapper (y sus sleep) no entren en el perfil
+    # Run the function UNDER profiler.runcall, so the wrapper (and its sleeps)
+    # do not get included in the profile
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(
             profiler.runcall,
@@ -93,48 +99,53 @@ def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live
         )
 
         if live_stats:
-            # Mientras la tarea no termine, volcamos stats cada interval
+            # While the task is not finished, dump stats every `interval`
             while True:
                 try:
-                    # Esperamos como máximo interval segundos
+                    # Wait at most `interval` seconds
                     result = future.result(timeout=interval)
                     break
                 except TimeoutError:
-                    # Si no ha acabado, imprimimos stats parciales
+                    # If it has not finished, print partial stats
                     stream = io.StringIO()
                     stats = pstats.Stats(profiler, stream=stream)
                     stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
-                    GV.LOGGER.debug(f"{step_name_for_profile}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue() )
+                    GV.LOGGER.debug(f"{step_name_for_profile}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue())
 
             final_result = result
         else:
-            # Si no queremos live stats, esperamos a que acabe y ya está
+            # If we don't want live stats, just wait until it finishes
             final_result = future.result()
 
-    # Informe final
+    # Final report
     stream = io.StringIO()
     stats = pstats.Stats(profiler, stream=stream)
     stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
-    GV.LOGGER.debug(f"{step_name_for_profile}Final Profile Report (top %d):\n\n%s", top_n, stream.getvalue() )
+    GV.LOGGER.debug(f"{step_name_for_profile}Final Profile Report (top %d):\n\n%s", top_n, stream.getvalue())
 
     return final_result
 
 
-# Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file` y estamos en modo Automatic-Migration con dashboard=true
+# Redefine `tqdm` to use `TQDM_LOGGER_INSTANCE` if `file` is not specified and we are in Automatic-Migration mode with dashboard=true
 def tqdm(*args, **kwargs):
+    """
+    Wrapper around `tqdm` that redirects progress output to the console logger handlers
+    when running in Automatic-Migration mode with dashboard enabled.
+    """
     if GV.ARGS and GV.ARGS.get('AUTOMATIC-MIGRATION') and GV.ARGS.get('dashboard') == True:
-        if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
+        if 'file' not in kwargs:  # If the user did not specify `file`, use `TQDM_LOGGER_INSTANCE`
             kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
 
 
 def run_from_synology(log_level=None):
-    """ Check if the srcript is running from a Synology NAS """
+    """Check whether the script is running on a Synology NAS."""
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         return os.path.exists('/etc.defaults/synoinfo.conf')
 
 
 def clear_screen():
+    """Clears the terminal screen on both POSIX and Windows systems."""
     os.system('clear' if os.name == 'posix' else 'cls')
 
 
@@ -189,8 +200,14 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
 
 
 def ensure_executable(path):
+    """
+    Ensures a file has executable permissions on non-Windows platforms.
+
+    Args:
+        path (str | Path): Path to the file to update.
+    """
     if platform.system() != "Windows":
-        # Añade permisos de ejecución al usuario, grupo y otros sin quitar los existentes
+        # Add execution permissions for user, group and others without removing existing ones
         current_permissions = os.stat(path).st_mode
         os.chmod(path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
@@ -252,13 +269,13 @@ def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
 
 
 def check_OS_and_Terminal(log_level=None):
-    """ Check OS, Terminal Type, and System Architecture """
+    """Check OS, terminal type, and system architecture."""
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Detect the operating system
         current_os = get_os(log_level=logging.WARNING)
         # Detect the machine architecture
         arch_label = get_arch(log_level=logging.WARNING)
-        # Logging OS
+        # OS logging
         if current_os == "linux":
             if run_from_synology():
                 GV.LOGGER.info(f"Script running on Linux System in a Synology NAS")
@@ -270,7 +287,7 @@ def check_OS_and_Terminal(log_level=None):
             GV.LOGGER.info(f"Script running on Windows System")
         else:
             GV.LOGGER.error(f"Unsupported Operating System: {current_os}")
-        # Logging Architecture
+        # Architecture logging
         GV.LOGGER.info(f"Detected architecture: {arch_label}")
         # Terminal type detection
         if sys.stdout.isatty():
@@ -285,6 +302,15 @@ def check_OS_and_Terminal(log_level=None):
 
 
 def confirm_continue(log_level=None):
+    """
+    Asks the user whether to continue unless `no-request-user-confirmation` is enabled.
+
+    Args:
+        log_level: Optional logging level override for this operation.
+
+    Returns:
+        bool: True to continue, False to cancel.
+    """
     # If argument 'no-request-user-confirmation' is true then don't ask and wait for user confirmation
     if GV.ARGS['no-request-user-confirmation']:
         return True
@@ -304,7 +330,7 @@ def confirm_continue(log_level=None):
 
 def remove_quotes(input_string: str, log_level=logging.INFO) -> str:
     """
-    Elimina todas las comillas simples y dobles al inicio o fin de la cadena.
+    Removes all single and double quotes at the start or end of the string.
     """
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         return input_string.strip('\'"')
@@ -312,9 +338,9 @@ def remove_quotes(input_string: str, log_level=logging.INFO) -> str:
 
 def remove_server_name(path, log_level=None):
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Expresión regular para rutas Linux (///servidor/)
+        # Regular expression for Linux paths (///server/)
         path = re.sub(r'///[^/]+/', '///', path)
-        # Expresión regular para rutas Windows (\\servidor\)
+        # Regular expression for Windows paths (\\server\)
         path = re.sub(r'\\\\[^\\]+\\', '\\\\', path)
         return path
 
@@ -357,7 +383,7 @@ def update_metadata(file_path, date_time, log_level=None):
             GV.LOGGER.debug(f"Metadata updated for {file_path} with timestamp {date_time}")
         except Exception as e:
             GV.LOGGER.error(f"Failed to update metadata for {file_path}. {e}")
-        
+
 
 def update_exif_date(image_path, asset_time, log_level=None):
     """
@@ -370,21 +396,21 @@ def update_exif_date(image_path, asset_time, log_level=None):
     """
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
-            # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
+            # If asset_time is a string in 'YYYY-MM-DD HH:MM:SS' format, convert it to a UNIX timestamp
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
                 except ValueError as e:
                     GV.LOGGER.warning(f"Invalid date format for asset_time: {asset_time}. {e}")
                     return
-            # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"
+            # Convert UNIX timestamp to EXIF format "YYYY:MM:DD HH:MM:SS"
             date_time_exif = datetime.fromtimestamp(asset_time).strftime("%Y:%m:%d %H:%M:%S")
             date_time_bytes = date_time_exif.encode('utf-8')
             # Backup original timestamps
             original_times = os.stat(image_path)
             original_atime = original_times.st_atime
             original_mtime = original_times.st_mtime
-            # Cargar EXIF data o crear un diccionario vacío si no tiene metadatos
+            # Load EXIF data or create an empty dict if no metadata exists
             try:
                 exif_dict = piexif.load(image_path)
             except Exception:
@@ -392,13 +418,13 @@ def update_exif_date(image_path, asset_time, log_level=None):
                 # exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
                 GV.LOGGER.warning(f"No EXIF metadata found in {image_path}. Skipping it....")
                 return
-            # Actualizar solo si existen las secciones
+            # Update only if the sections exist
             if "0th" in exif_dict:
                 exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_bytes
             if "Exif" in exif_dict:
                 exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes
                 exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes
-            # Verificar y corregir valores incorrectos antes de insertar
+            # Validate and fix incorrect values before inserting
             for ifd_name in ["0th", "Exif"]:
                 for tag, value in exif_dict.get(ifd_name, {}).items():
                     if isinstance(value, int):
@@ -407,7 +433,7 @@ def update_exif_date(image_path, asset_time, log_level=None):
                 # Dump and insert updated EXIF data
                 exif_bytes = piexif.dump(exif_dict)
                 piexif.insert(exif_bytes, image_path)
-                # Restaurar timestamps originales del archivo
+                # Restore original file timestamps
                 os.utime(image_path, (original_atime, original_mtime))
                 GV.LOGGER.debug(f"EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
             except Exception:
@@ -415,7 +441,7 @@ def update_exif_date(image_path, asset_time, log_level=None):
                 return
         except Exception as e:
             GV.LOGGER.warning(f"Failed to update EXIF metadata for {image_path}. {e}")
-        
+
 
 def update_video_metadata(video_path, asset_time, log_level=None):
     """
@@ -471,7 +497,7 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=None):
     """
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
-            # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
+            # If asset_time is a string in 'YYYY-MM-DD HH:MM:SS' format, convert it to a UNIX timestamp
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
@@ -499,16 +525,16 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=None):
             GV.LOGGER.debug(f"Video metadata updated for {video_path} with timestamp {formatted_date}")
         except Exception as e:
             GV.LOGGER.warning(f"Failed to update video metadata for {video_path}. {e}")
-        
+
 
 # Convert to list
 def convert_to_list(input_string, log_level=None):
-    """ Convert a String to List"""
+    """Convert a string to a list."""
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             output = input_string
             if isinstance(output, list):
-                pass  # output ya es una lista
+                pass  # output is already a list
             elif isinstance(output, str):
                 if ',' in output:
                     output = [item.strip() for item in output.split(',') if item.strip()]
@@ -522,12 +548,12 @@ def convert_to_list(input_string, log_level=None):
                 output = [output]
         except Exception as e:
             GV.LOGGER.warning(f"Failed to convert string to List for {input_string}. {e}")
-        
+
         return output
 
 
 def convert_asset_ids_to_str(asset_ids):
-    """Convierte asset_ids a strings, incluso si es una lista de diferentes tipos."""
+    """Converts asset_ids to strings, even if it is a list containing different types."""
     if isinstance(asset_ids, list):
         return [str(item) for item in asset_ids]
     else:
@@ -535,15 +561,15 @@ def convert_asset_ids_to_str(asset_ids):
 
 
 def sha1_checksum(file_path):
-    """Calcula el SHA-1 hash de un archivo y devuelve tanto en formato HEX como Base64"""
-    sha1 = hashlib.sha1()  # Crear un objeto SHA-1
+    """Computes the SHA-1 hash of a file and returns both HEX and Base64 formats."""
+    sha1 = hashlib.sha1()  # Create a SHA-1 object
 
-    with open(file_path, "rb") as f:  # Leer el archivo en modo binario
-        while chunk := f.read(8192):  # Leer en bloques de 8 KB para eficiencia
+    with open(file_path, "rb") as f:  # Read the file in binary mode
+        while chunk := f.read(8192):  # Read in 8 KB chunks for efficiency
             sha1.update(chunk)
 
-    sha1_hex = sha1.hexdigest()  # Obtener en formato HEX
-    sha1_base64 = base64.b64encode(sha1.digest()).decode("utf-8")  # Convertir a Base64
+    sha1_hex = sha1.hexdigest()  # Get HEX format
+    sha1_base64 = base64.b64encode(sha1.digest()).decode("utf-8")  # Convert to Base64
 
     return sha1_hex, sha1_base64
 
@@ -563,10 +589,19 @@ def replace_pattern(string, pattern, pattern_to_replace):
 
 
 def has_any_filter():
+    """
+    Returns True if any filtering argument is enabled in GV.ARGS.
+    """
     return GV.ARGS.get('filter-by-type', None) or GV.ARGS.get('filter-from-date', None) or GV.ARGS.get('filter-to-date', None) or GV.ARGS.get('filter-by-country', None) or GV.ARGS.get('filter-by-city', None) or GV.ARGS.get('filter-by-person', None)
 
 
 def get_filters():
+    """
+    Collects filter-related arguments from GV.ARGS into a dictionary.
+
+    Returns:
+        dict: Dictionary containing the filter keys and their current values.
+    """
     filters = {}
     keys = [
         'filter-by-type',
@@ -582,6 +617,15 @@ def get_filters():
 
 
 def capitalize_first_letter(text):
+    """
+    Capitalizes the first character of a string (if any).
+
+    Args:
+        text (str): Input string.
+
+    Returns:
+        str: Same string with the first character uppercased.
+    """
     if not text:
         return text
     return text[0].upper() + text[1:]
@@ -589,9 +633,9 @@ def capitalize_first_letter(text):
 
 def get_subfolders_with_exclusions(input_folder, exclude_subfolders=None):
     """
-    Devuelve la lista de subcarpetas directas dentro de `input_folder`,
-    excluyendo las indicadas en `exclude_subfolders`.
-    Si `input_folder` no existe o no es un directorio, devuelve una lista vacía.
+    Returns the list of direct subfolders inside `input_folder`,
+    excluding those provided in `exclude_subfolders`.
+    If `input_folder` does not exist or is not a directory, it returns an empty list.
     """
     if not os.path.isdir(input_folder):
         return []
@@ -611,23 +655,33 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolders=None):
 
 
 def print_dict_pretty(result, log_level=logging.INFO):
-    # Si es un dataclass, lo convierto a dict
+    """
+    Pretty-prints a dict (or dataclass) as aligned key/value pairs using GV.LOGGER if available.
+
+    Args:
+        result (dict | dataclass): Dictionary or dataclass to print.
+        log_level (int): Logging level to use when printing via logger.
+
+    Raises:
+        TypeError: If `result` is not a dict or a dataclass.
+    """
+    # If it is a dataclass, convert it to a dict
     if is_dataclass(result):
         result = asdict(result)
-    # Compruebo que ahora sea un dict
+    # Ensure it is now a dict
     if not isinstance(result, dict):
-        raise TypeError(f"Se esperaba dict o dataclass, pero recibí {type(result).__name__}")
+        raise TypeError(f"Expected dict or dataclass, but got {type(result).__name__}")
 
-    # Intentar obtener el logger
+    # Try to get the logger
     logger = getattr(GV, "LOGGER", None)
 
-    # Si no hay logger, imprimir por pantalla
+    # If there is no logger, print to stdout
     if logger is None:
         for key, value in result.items():
             print(f"{key:35}: {value}")
         return
 
-    # Imprimir usando el nivel de log correspondiente
+    # Print using the corresponding log level
     for key, value in result.items():
         if log_level == VERBOSE_LEVEL_NUM:
             logger.verbose(f"{key:35}: {value}")
@@ -641,11 +695,10 @@ def print_dict_pretty(result, log_level=logging.INFO):
             logger.error(f"{key:35}: {value}")
 
 
-
 def timed_subprocess(cmd, step_name=""):
     """
-    Ejecuta cmd con Popen, espera a que termine y registra sólo
-    el tiempo total de ejecución al final.
+    Runs cmd with Popen, waits for it to finish, and logs only
+    the total execution time at the end.
     """
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     start = time.time()
