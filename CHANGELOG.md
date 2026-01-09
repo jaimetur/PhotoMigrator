@@ -4,6 +4,26 @@
 
 ---
 
+## Release: v3.7.0
+- ### Release Date: 2026-01-09
+
+- ### Main Changes:
+  
+  - #### 🚨 Breaking Changes:
+  
+  - #### 🌟 New Features:
+    
+  - #### 🚀 Enhancements:
+    - Most of the Code Translated into English.
+  
+  - #### 🐛 Bug fixes:
+
+  - #### 📚 Documentation: 
+    - Most of the Comments Translated into English.
+    - Updated documentation with all changes.
+    
+---
+
 ## Release: v3.6.2
 - ### Release Date: 2025-09-11
 
@@ -45,7 +65,6 @@
       - #### 🐛 **Bug Fixes**
         - Fixed duplicated files/symlinks in Albums when a file belong to more than 1 album (affected strategies: shortcut, reverse-shortcut & duplicate-copy).
         - Fixed error decoding Exiftool output with UTF-8/latin chars.
-
 
 ---
 
