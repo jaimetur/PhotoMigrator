@@ -1,0 +1,23 @@
+# PhotoMigrator Web Interface compose file for production.
+services:
+  photomigrator:
+    image: jaimetur/photomigrator:${IMAGE_TAG}
+    container_name: ${CONTAINER_NAME}
+    ports:
+      - "${PORT}:6078"
+    env_file:
+      - .env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}:/app/config
+      - ${DATA_DIR}:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys,urllib.request; port=os.getenv('PORT','6078'); urllib.request.urlopen(f'http://127.0.0.1:{port}/healthz', timeout=5); sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

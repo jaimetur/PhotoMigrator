@@ -1,0 +1,2 @@
+"""PhotoMigrator web interface package."""
+

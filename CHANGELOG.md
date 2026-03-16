@@ -4,6 +4,24 @@
 
 ---
 
+## Release: v3.8.0
+### Release Date: 2026-03-16
+  
+#### 🚨 Breaking Changes:
+  
+#### 🌟 New Features:
+  - New Web interface to be executed from docker.
+  - New docker-compose.yml file to deploy the tool in docker.
+    
+#### 🚀 Enhancements:
+  
+#### 🐛 Bug fixes:
+
+#### 📚 Documentation: 
+  - Updated documentation with all changes.
+
+---
+
 ## Release: v3.7.1
 ### Release Date: 2026-03-16
   

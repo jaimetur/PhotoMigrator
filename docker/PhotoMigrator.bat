@@ -4,6 +4,7 @@ setlocal enabledelayedexpansion
 REM Set default values (in case docker.conf doesn't define them)
 set "RELEASE_TAG=latest-stable"
 set "TZ=UTC"
+set "IMAGE_REPO=jaimetur/photomigrator-windows"
 
 REM Load variables from docker.conf file if it exists
 if exist "docker.conf" (
@@ -33,11 +34,11 @@ set "TZ=%TZ: =%"
 REM Get the current directory
 set CURRENT_DIR=%cd%
 
-echo Pulling Docker image: jaimetur/photomigrator:%RELEASE_TAG%
-docker pull jaimetur/photomigrator:%RELEASE_TAG%
+echo Pulling Docker image: %IMAGE_REPO%:%RELEASE_TAG%
+docker pull %IMAGE_REPO%:%RELEASE_TAG%
 
 echo Launching container with TAG='%RELEASE_TAG%' and TZ='%TZ%'...
 docker run -it --rm ^
   -v "%CURRENT_DIR%":/docker ^
   -e TZ=%TZ% ^
-  jaimetur/photomigrator:%RELEASE_TAG% %*
+  %IMAGE_REPO%:%RELEASE_TAG% %*

@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y tzdata unzip && rm -rf /var/lib/apt/lists/*
+ENV TZ=Etc/UTC
+
+COPY requirements.txt ./requirements.txt
+RUN python -m pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY help/ ./help/
+COPY gpth_tool/ ./gpth_tool/
+COPY exif_tool/others.zip ./exif_tool/others.zip
+COPY Config.ini ./Config.ini
+RUN unzip ./exif_tool/others.zip -d ./exif_tool/ && rm ./exif_tool/others.zip
+
+RUN chmod +x ./gpth_tool/* || true
+RUN chmod +x ./exif_tool/* || true
+
+EXPOSE 6078
+
+CMD ["uvicorn", "src.web_interface.app:app", "--host", "0.0.0.0", "--port", "6078"]

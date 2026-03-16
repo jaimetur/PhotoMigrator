@@ -27,3 +27,8 @@ pyyaml
 tzlocal
 #windows-curses; sys_platform == "win32"
 windows-curses; platform_system == "Windows" and platform_machine == "AMD64"
+
+# Requirements for PhotoMigrator Web
+fastapi==0.115.14
+uvicorn[standard]==0.34.2
+jinja2==3.1.6
