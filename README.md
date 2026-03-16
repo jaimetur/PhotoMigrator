@@ -159,7 +159,7 @@ You can check the whole list of features and arguments with the right syntax her
 [Command Line Interface (CLI)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/1-command-line-interface.md)
 
 
-## Web Interface (NEW)
+## 🌐 Web Interface (New)
 PhotoMigrator now includes a Web Interface that executes the same CLI arguments under the hood.
 
 Main characteristics:
