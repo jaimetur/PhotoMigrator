@@ -115,36 +115,60 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # 🐳 Build & Push Docker image
-      - name: 🐳 Build & Push Docker image
+      # 🐳 Build & Push Docker image (Web Interface)
+      - name: 🐳 Build & Push Docker image (Web Interface)
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
+          IMAGE_NAME="jaimetur/photomigrator"
+
           # Define FINAL_RELEASE=false con fallback si está vacío (por ejemplo, en eventos push)
           FINAL_RELEASE="${{ inputs.final_release }}"
           FINAL_RELEASE=${FINAL_RELEASE:-false}
       
           echo "→ FINAL_RELEASE = $FINAL_RELEASE"
+          echo "→ IMAGE_NAME    = $IMAGE_NAME"
           
-          # Fuerza a Docker a:
-          #  1) descargar la base actualizada ( --pull )
-          #  2) ignorar todas las capas cacheadas ( --no-cache )
           docker build --pull --no-cache \
-                -t jaimetur/photomigrator:${TOOL_VERSION} \
-                -f docker/dockerfile-linux .
+                -t ${IMAGE_NAME}:${TOOL_VERSION} \
+                -f docker/dockerfile .
           
-          # Push siempre etiqueta obligatoria con la versión
-          docker push jaimetur/photomigrator:${TOOL_VERSION}
+          # Push etiqueta de release/version
+          docker push ${IMAGE_NAME}:${TOOL_VERSION}
           
-          # Push 'latest' if final_release is false OR it's alpha/beta/RC
-          if [[ "${FINAL_RELEASE}" == "false" || "${TOOL_VERSION}" == *alpha* || "${TOOL_VERSION}" == *beta* || "${TOOL_VERSION}" == *RC* ]]; then
-            docker tag jaimetur/photomigrator:${TOOL_VERSION} jaimetur/photomigrator:latest
-            docker push jaimetur/photomigrator:latest
-          fi
+          # Push 'latest' siempre
+          docker tag ${IMAGE_NAME}:${TOOL_VERSION} ${IMAGE_NAME}:latest
+          docker push ${IMAGE_NAME}:latest
       
-          # Push 'latest-stable' only if final_release is true AND not alpha/beta/RC
+          # Push 'latest-stable' solo para release final estable
           if [[ "${FINAL_RELEASE}" == "true" && "${TOOL_VERSION}" != *alpha* && "${TOOL_VERSION}" != *beta* && "${TOOL_VERSION}" != *RC* ]]; then
-            docker tag jaimetur/photomigrator:${TOOL_VERSION} jaimetur/photomigrator:latest-stable
-            docker push jaimetur/photomigrator:latest-stable
+            docker tag ${IMAGE_NAME}:${TOOL_VERSION} ${IMAGE_NAME}:latest-stable
+            docker push ${IMAGE_NAME}:latest-stable
+          fi
+
+      # 🐳 Build & Push Docker image (CLI Linux)
+      - name: 🐳 Build & Push Docker image (CLI Linux)
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          IMAGE_NAME="jaimetur/photomigrator-linux"
+
+          FINAL_RELEASE="${{ inputs.final_release }}"
+          FINAL_RELEASE=${FINAL_RELEASE:-false}
+
+          echo "→ FINAL_RELEASE = $FINAL_RELEASE"
+          echo "→ IMAGE_NAME    = $IMAGE_NAME"
+
+          docker build --pull --no-cache \
+                -t ${IMAGE_NAME}:${TOOL_VERSION} \
+                -f docker/dockerfile-linux .
+
+          docker push ${IMAGE_NAME}:${TOOL_VERSION}
+
+          docker tag ${IMAGE_NAME}:${TOOL_VERSION} ${IMAGE_NAME}:latest
+          docker push ${IMAGE_NAME}:latest
+
+          if [[ "${FINAL_RELEASE}" == "true" && "${TOOL_VERSION}" != *alpha* && "${TOOL_VERSION}" != *beta* && "${TOOL_VERSION}" != *RC* ]]; then
+            docker tag ${IMAGE_NAME}:${TOOL_VERSION} ${IMAGE_NAME}:latest-stable
+            docker push ${IMAGE_NAME}:latest-stable
           fi
           
 
@@ -159,24 +183,26 @@ jobs:
       
           echo "→ FINAL_RELEASE = $FINAL_RELEASE"
           
+          IMAGE_NAME="jaimetur/photomigrator-windows"
+
           # Construir imagen Windows
           docker build --pull --no-cache \
-                -t jaimetur/photomigrator:${TOOL_VERSION}-windows \
+                -t ${IMAGE_NAME}:${TOOL_VERSION} \
                 -f docker/dockerfile-windows .
           
           # Push siempre etiqueta obligatoria con la versión
-          docker push jaimetur/photomigrator:${TOOL_VERSION}-windows
+          docker push ${IMAGE_NAME}:${TOOL_VERSION}
           
           # Push 'latest' if final_release is false OR it's alpha/beta/RC
           if [[ "${FINAL_RELEASE}" == "false" || "${TOOL_VERSION}" == *alpha* || "${TOOL_VERSION}" == *beta* || "${TOOL_VERSION}" == *RC* ]]; then
-            docker tag jaimetur/photomigrator:${TOOL_VERSION}-windows jaimetur/photomigrator:latest-windows
-            docker push jaimetur/photomigrator:latest-windows
+            docker tag ${IMAGE_NAME}:${TOOL_VERSION} ${IMAGE_NAME}:latest
+            docker push ${IMAGE_NAME}:latest
           fi
       
           # Push 'latest-stable' only if final_release is true AND not alpha/beta/RC
           if [[ "${FINAL_RELEASE}" == "true" && "${TOOL_VERSION}" != *alpha* && "${TOOL_VERSION}" != *beta* && "${TOOL_VERSION}" != *RC* ]]; then
-            docker tag jaimetur/photomigrator:${TOOL_VERSION}-windows jaimetur/photomigrator:latest-stable-windows
-            docker push jaimetur/photomigrator:latest-stable-windows
+            docker tag ${IMAGE_NAME}:${TOOL_VERSION} ${IMAGE_NAME}:latest-stable
+            docker push ${IMAGE_NAME}:latest-stable
           fi
 
       # 🧩 Prepare ZIP docker package

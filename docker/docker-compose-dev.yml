@@ -1,0 +1,28 @@
+services:
+  photomigrator-dev:
+    build:
+      context: ${APP_DIR}
+      dockerfile: docker/dockerfile
+    container_name: photomigrator-dev
+    ports:
+      - "${PORT_DEV}:6078"
+    env_file:
+      - .env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - PYTHONUNBUFFERED=1
+      - WATCHFILES_FORCE_POLLING=true
+    command: uvicorn src.web_interface.app:app --host 0.0.0.0 --port 6078 --reload
+    volumes:
+      - ${APP_DIR}:/app
+      - ${CONFIG_DIR}:/app/config
+      - ${DATA_DIR}:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:6078/healthz', timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

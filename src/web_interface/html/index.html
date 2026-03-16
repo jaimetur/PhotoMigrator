@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoMigrator Web Interface</title>
+    <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main class="page">
+    <header class="hero">
+        <div class="hero__content">
+            <div class="hero__heading">
+                <h1 class="hero__title">PhotoMigrator</h1>
+                <div class="hero__badge">{{ tool_version }} ({{ tool_date }})</div>
+            </div>
+            <h2 class="hero__subtitle">Web Interface for CLI Execution</h2>
+            <p>Configure all modules by tabs and run the same CLI arguments with live output.</p>
+        </div>
+        <img class="hero__logo" src="/assets/logos/logo_17_1024x1024.png" alt="PhotoMigrator logo">
+    </header>
+
+    <section class="panel" data-panel-id="general-panel">
+        <div class="panel-head">
+            <h2>General Panel</h2>
+            <button type="button" class="collapse-btn" data-collapse-target="general-panel" aria-label="Collapse panel">
+                <span class="collapse-btn__icon">▲</span>
+            </button>
+        </div>
+        <div class="panel-body">
+            <div class="tabs tabs--sub" id="general-tabs"></div>
+            <div id="general-general" class="general-pane"><div id="general-core-panel" class="module-special"></div></div>
+            <div id="general-config" class="general-pane hidden">
+            <p class="config-note">This editor is persisted to <code>/app/config/Config.ini</code>.</p>
+            <textarea id="config-editor" class="config-editor" spellcheck="false" wrap="off"></textarea>
+            <div class="config-actions">
+                <button type="button" id="reload-config-btn" class="run-btn">Reload config</button>
+                <button type="button" id="save-config-btn" class="run-btn run-btn--danger">Save config</button>
+            </div>
+            <div id="config-status" class="status">Config status: idle</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel" data-panel-id="feature-panel">
+        <div class="panel-head">
+            <h2>Feature Selector</h2>
+            <button type="button" class="collapse-btn" data-collapse-target="feature-panel" aria-label="Collapse panel">
+                <span class="collapse-btn__icon">▲</span>
+            </button>
+        </div>
+        <div class="panel-body">
+            <div class="tabs" id="module-tabs"></div>
+
+            <div id="cloud-action-panel" class="module-special hidden"></div>
+            <div id="standalone-action-panel" class="module-special hidden"></div>
+            <div id="migration-panel" class="module-special hidden"></div>
+
+            <form id="module-form" class="form-grid module-grid"></form>
+            <button id="run-btn" type="button" class="run-btn">Run module</button>
+        </div>
+    </section>
+
+    <section class="panel output" data-panel-id="output-panel">
+        <div class="panel-head">
+            <h2>Execution Output</h2>
+            <button type="button" class="collapse-btn" data-collapse-target="output-panel" aria-label="Collapse panel">
+                <span class="collapse-btn__icon">▲</span>
+            </button>
+        </div>
+        <div class="panel-body">
+            <div id="command-preview" class="command"></div>
+            <div id="status" class="status">Status: idle</div>
+            <pre id="output" class="terminal"></pre>
+        </div>
+    </section>
+</main>
+
+<dialog id="folder-dialog" class="folder-dialog">
+    <div class="folder-dialog__header">
+        <h3>Select folder</h3>
+        <div class="folder-dialog__actions">
+            <button type="button" id="folder-home" class="action-btn action-btn--home">Home</button>
+            <button type="button" id="folder-up" class="action-btn action-btn--up">Up</button>
+            <button type="button" id="folder-close" class="action-btn action-btn--close">Close</button>
+        </div>
+    </div>
+    <div class="folder-toolbar">
+        <input id="folder-path-input" class="field__input" type="text" value="/app/data">
+        <button type="button" id="folder-select" class="action-btn action-btn--select">Select</button>
+    </div>
+    <div id="folder-current" class="folder-current"></div>
+    <div id="folder-list" class="folder-list"></div>
+</dialog>
+
+<template id="field-template">
+    <label class="field">
+        <span class="field__name"></span>
+        <span class="field__meta"></span>
+        <span class="field__help"></span>
+    </label>
+</template>
+
+<script>
+    const MODULE_TAB_NAMES = {
+        google_takeout: "GOOGLE PHOTOS TAKEOUT MANAGEMENT",
+        synology_photos: "SYNOLOGY PHOTOS",
+        immich_photos: "IMMICH PHOTOS",
+        standalone_features: "OTHER STANDALONE FEATURES",
+        automatic_migration: "AUTOMATIC MIGRATION"
+    };
+
+    const GENERAL_TAB_NAMES = {
+        general: "General Arguments",
+        config: "Configuration File"
+    };
+
+    let schema = null;
+    let activeModuleTab = "google_takeout";
+    let activeGeneralTab = "general";
+    let currentJob = null;
+    let pollTimer = null;
+    let folderTargetInput = null;
+    let cloudActionDest = "";
+    let standaloneActionDest = "";
+
+    const ARG_LABELS = {
+        "output-folder": "Output Folder",
+        "input-folder": "Input Folder",
+        "configuration-file": "Configuration File",
+        "albums-folders": "Albums Folders",
+        "remove-albums-assets": "Remove Album Assets",
+        "one-time-password": "One-Time Password",
+        "account-id": "Account ID",
+        "source": "Source",
+        "target": "Target",
+        "move-assets": "Move Assets",
+        "dashboard": "Dashboard",
+        "parallel-migration": "Parallel Migration"
+    };
+
+    const GENERAL_GROUPS = [
+        { key: "logs", title: "Logs", dests: ["no-log-file", "log-level", "log-format", "foldername-logs"] },
+        { key: "execution", title: "Execution", dests: ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets"] },
+        { key: "naming", title: "Naming & Folders", dests: ["date-separator", "range-separator", "albums-folders", "foldername-albums", "foldername-no-albums", "foldername-duplicates-output", "foldername-extracted-dates"] },
+        { key: "filters", title: "Filters", dests: ["filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country", "filter-by-city", "filter-by-person"] }
+    ];
+
+    const MODULE_DEPENDENCIES = {
+        synology_photos: {
+            "download-albums": [{dest: "output-folder", required: true}],
+            "upload-all": [{dest: "albums-folders", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}],
+            "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
+        },
+        immich_photos: {
+            "download-albums": [{dest: "output-folder", required: true}],
+            "upload-all": [{dest: "albums-folders", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}],
+            "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
+        },
+        standalone_features: {},
+        google_takeout: {}
+    };
+
+    let stateValues = {};
+    let uiState = {collapsed_panels: {}};
+    let saveStateTimer = null;
+
+    function createInput(field) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "input-row";
+        let input;
+        const persisted = stateValues[field.dest];
+
+        if (field.kind === "flag") {
+            input = document.createElement("input");
+            input.type = "checkbox";
+            input.className = "field__check";
+            input.checked = persisted === undefined ? false : Boolean(persisted);
+        } else if (field.kind === "bool") {
+            input = document.createElement("select");
+            input.className = "field__input";
+            input.add(new Option("true", "true"));
+            input.add(new Option("false", "false"));
+            input.value = persisted === undefined
+                ? (String(field.default).toLowerCase() === "false" ? "false" : "true")
+                : (String(persisted).toLowerCase() === "false" ? "false" : "true");
+        } else if (field.kind === "select") {
+            input = document.createElement("select");
+            input.className = "field__input";
+            input.add(new Option("(default)", ""));
+            for (const choice of field.choices) {
+                input.add(new Option(choice, choice));
+            }
+            input.value = persisted === undefined ? "" : String(persisted);
+        } else if (field.kind === "list") {
+            if (field.dest === "albums-folders") {
+                input = document.createElement("input");
+                input.type = "text";
+                input.className = "field__input";
+                input.placeholder = "Comma-separated folders";
+                input.value = persisted === undefined ? "" : String(persisted);
+            } else {
+                input = document.createElement("textarea");
+                input.className = "field__input";
+                input.rows = 2;
+                input.placeholder = "One value per line or comma-separated";
+                input.value = persisted === undefined ? "" : String(persisted);
+            }
+        } else {
+            input = document.createElement("input");
+            input.type = "text";
+            input.className = "field__input";
+            if (persisted !== undefined) input.value = String(persisted);
+            else input.value = field.default === null ? "" : (typeof field.default === "string" ? field.default : "");
+        }
+
+        input.dataset.dest = field.dest;
+        wrapper.appendChild(input);
+
+        if (field.path_hint === "path" && field.kind !== "flag" && field.kind !== "bool" && field.kind !== "select") {
+            const browseBtn = document.createElement("button");
+            browseBtn.type = "button";
+            browseBtn.className = "ghost-btn browse-btn";
+            browseBtn.textContent = "···";
+            browseBtn.title = "Open folder selector";
+            browseBtn.setAttribute("aria-label", "Open folder selector");
+            browseBtn.addEventListener("click", () => openFolderDialog(input));
+            wrapper.appendChild(browseBtn);
+        }
+        return wrapper;
+    }
+
+    function createArgumentRow(field, isRequired = false) {
+        const row = document.createElement("div");
+        row.className = "arg-row";
+
+        const label = document.createElement("label");
+        label.className = "arg-label";
+        label.textContent = ARG_LABELS[field.dest] || field.long_option.replace(/^--/, "");
+        row.appendChild(label);
+
+        const badge = document.createElement("span");
+        badge.className = isRequired ? "arg-badge arg-badge--required" : "arg-badge arg-badge--optional";
+        badge.textContent = isRequired ? "Required" : "Optional";
+        label.appendChild(badge);
+
+        if (field.kind === "flag") {
+            const checkWrap = document.createElement("label");
+            checkWrap.className = "otp-wrap";
+            const check = document.createElement("input");
+            check.type = "checkbox";
+            check.className = "field__check";
+            check.dataset.dest = field.dest;
+            checkWrap.appendChild(check);
+            const txt = document.createElement("span");
+            txt.textContent = isRequired ? "Enable selected action" : "Enable";
+            checkWrap.appendChild(txt);
+            row.appendChild(checkWrap);
+        } else {
+            row.appendChild(createInput(field));
+        }
+
+        if (field.dest === "account-id" && field.help) {
+            const inlineHelp = document.createElement("div");
+            inlineHelp.className = "arg-inline-help";
+            inlineHelp.textContent = field.help;
+            row.appendChild(inlineHelp);
+        }
+        return row;
+    }
+
+    function renderBulkArgumentPanel(panelId, fields) {
+        const panel = document.getElementById(panelId);
+        panel.innerHTML = "";
+        if (!fields || !fields.length) return;
+
+        const wrap = document.createElement("div");
+        wrap.className = "bulk-layout";
+
+        const groupsGrid = document.createElement("div");
+        groupsGrid.className = "general-groups";
+
+        const desc = document.createElement("div");
+        desc.className = "desc-card desc-card--bottom";
+        const h3 = document.createElement("h3");
+        h3.textContent = "Selected argument";
+        const name = document.createElement("div");
+        name.className = "desc-card__name";
+        const p = document.createElement("p");
+        desc.appendChild(h3);
+        desc.appendChild(name);
+        desc.appendChild(p);
+
+        const setDescription = (field) => {
+            name.textContent = field.long_option.replace(/^--/, "");
+            p.textContent = field.help || "";
+        };
+
+        const fieldsByDest = new Map(fields.map((field) => [field.dest, field]));
+        const alreadyUsed = new Set();
+
+        const createArgumentBlock = (field) => {
+            const block = document.createElement("div");
+            block.className = "arg-block";
+            block.appendChild(createArgumentRow(field, false));
+            const inputs = block.querySelectorAll("[data-dest]");
+            inputs.forEach((input) => {
+                input.addEventListener("focus", () => setDescription(field));
+                input.addEventListener("click", () => setDescription(field));
+                input.addEventListener("change", () => setDescription(field));
+            });
+            block.addEventListener("mouseenter", () => setDescription(field));
+            return block;
+        };
+
+        const appendGroup = (title, groupFields) => {
+            if (!groupFields.length) return;
+            const card = document.createElement("div");
+            card.className = "general-group";
+
+            const groupTitle = document.createElement("h3");
+            groupTitle.textContent = title;
+            card.appendChild(groupTitle);
+
+            const list = document.createElement("div");
+            list.className = "general-group__list";
+            groupFields.forEach((field) => {
+                alreadyUsed.add(field.dest);
+                list.appendChild(createArgumentBlock(field));
+            });
+            card.appendChild(list);
+            groupsGrid.appendChild(card);
+        };
+
+        GENERAL_GROUPS.forEach((group) => {
+            const groupFields = group.dests
+                .map((dest) => fieldsByDest.get(dest))
+                .filter(Boolean);
+            appendGroup(group.title, groupFields);
+        });
+
+        const remaining = fields.filter((field) => !alreadyUsed.has(field.dest));
+        appendGroup("Other", remaining);
+
+        if (fields[0]) setDescription(fields[0]);
+
+        wrap.appendChild(groupsGrid);
+        wrap.appendChild(desc);
+        panel.appendChild(wrap);
+    }
+
+    function getAllFields() {
+        return [
+            ...(schema.general_tabs.general || []),
+            ...(schema.feature_scoped || []),
+            ...(schema.tabs.google_takeout || []),
+            ...(schema.tabs.synology_photos || []),
+            ...(schema.tabs.immich_photos || []),
+            ...(schema.tabs.standalone_features || []),
+            ...(schema.tabs.automatic_migration || [])
+        ];
+    }
+
+    function getFieldByDest(dest) {
+        return getAllFields().find((f) => f.dest === dest);
+    }
+
+    function normalizeFieldForContext(field, tabKey) {
+        if (!field) return field;
+        if ((tabKey === "synology_photos" || tabKey === "immich_photos") && field.dest === "account-id") {
+            return {
+                ...field,
+                kind: "select",
+                choices: [1, 2, 3],
+                help: "Select Account ID defined in Configuration file"
+            };
+        }
+        return field;
+    }
+
+    function parseRequiredFromHelp(helpText) {
+        if (!helpText) return [];
+        const found = new Set();
+        const regex = /--([a-z0-9-]+)/gi;
+        let match = regex.exec(helpText);
+        while (match !== null) {
+            const dest = match[1].toLowerCase();
+            if (dest !== "client") found.add(dest);
+            match = regex.exec(helpText);
+        }
+        return [...found];
+    }
+
+    function buildArgumentSpecs(tabKey, selectedField, includeSelectedValue = true) {
+        const specs = [];
+        const seen = new Set();
+        const pushSpec = (dest, required = false, forceIncludeFlag = false) => {
+            if (seen.has(dest)) return;
+            const field = getFieldByDest(dest);
+            if (!field) return;
+            if (field.kind === "flag" && !forceIncludeFlag && !required) return;
+            seen.add(dest);
+            specs.push({field: normalizeFieldForContext(field, tabKey), required});
+        };
+
+        if (includeSelectedValue && selectedField && selectedField.kind !== "flag") {
+            pushSpec(selectedField.dest, true);
+        }
+
+        const mapped = (MODULE_DEPENDENCIES[tabKey] || {})[selectedField?.dest || ""] || [];
+        mapped.forEach((item) => pushSpec(item.dest, item.required === true, true));
+        parseRequiredFromHelp(selectedField?.help || "").forEach((dest) => pushSpec(dest, true, true));
+        return specs;
+    }
+
+    function renderSingleSelectorPanel(panelId, title, options, selectedDest, onChange) {
+        const panel = document.getElementById(panelId);
+        if (!options.length) {
+            panel.innerHTML = "";
+            return selectedDest;
+        }
+        if (!selectedDest || !options.find((f) => f.dest === selectedDest)) {
+            selectedDest = options[0].dest;
+        }
+        const selected = options.find((f) => f.dest === selectedDest);
+        panel.innerHTML = "";
+
+        const wrap = document.createElement("div");
+        wrap.className = "selector-layout";
+
+        const left = document.createElement("div");
+        left.className = "selector-main";
+        const selectRow = document.createElement("div");
+        selectRow.className = "arg-row arg-row--stack";
+
+        const selectLabel = document.createElement("label");
+        selectLabel.className = "arg-label";
+        selectLabel.textContent = title;
+        const select = document.createElement("select");
+        select.className = "field__input";
+        options.forEach((opt) => select.add(new Option(opt.long_option.replace(/^--/, ""), opt.dest)));
+        select.value = selectedDest;
+        select.addEventListener("change", (event) => onChange(event.target.value || ""));
+        selectRow.appendChild(selectLabel);
+        selectRow.appendChild(select);
+        left.appendChild(selectRow);
+
+        const argSpecs = buildArgumentSpecs("general", selected, true);
+        if (!argSpecs.length) {
+            const noArgs = document.createElement("div");
+            noArgs.className = "arg-row";
+            const lbl = document.createElement("label");
+            lbl.className = "arg-label";
+            lbl.textContent = "Arguments";
+            noArgs.appendChild(lbl);
+            const tag = document.createElement("span");
+            tag.className = "flag-tag";
+            tag.textContent = "No extra arguments required";
+            noArgs.appendChild(tag);
+            left.appendChild(noArgs);
+        } else {
+            argSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
+        }
+
+        const right = document.createElement("div");
+        right.className = "desc-card";
+        const h3 = document.createElement("h3");
+        h3.textContent = "Selected option";
+        const name = document.createElement("div");
+        name.className = "desc-card__name";
+        name.textContent = selected ? selected.long_option.replace(/^--/, "") : "-";
+        const p = document.createElement("p");
+        p.textContent = selected?.help || "";
+        right.appendChild(h3);
+        right.appendChild(name);
+        right.appendChild(p);
+
+        wrap.appendChild(left);
+        wrap.appendChild(right);
+        panel.appendChild(wrap);
+        return selectedDest;
+    }
+
+    function createArgumentBlock(field, required = false) {
+        const block = document.createElement("div");
+        block.className = "arg-block";
+        block.appendChild(createArgumentRow(field, required));
+        if (field.help) {
+            const help = document.createElement("p");
+            help.className = "arg-block__help";
+            help.textContent = field.help;
+            block.appendChild(help);
+        }
+        return block;
+    }
+
+    function googleGroupForField(field) {
+        const dest = field.dest;
+        if (dest === "google-takeout" || dest === "google-output-folder-suffix") return "takeout";
+        if (dest === "google-albums-folders-structure" || dest === "google-no-albums-folders-structure") return "structure";
+        if (dest === "show-gpth-info" || dest === "show-gpth-errors" || dest === "gpth-no-log") return "runtime";
+        if (field.kind === "flag") return "flags";
+        return "advanced";
+    }
+
+    function renderGoogleSubpanels(container, fields) {
+        container.innerHTML = "";
+        container.classList.add("google-layout");
+
+        const groups = {
+            takeout: {title: "Takeout Input & Output", items: []},
+            structure: {title: "Folder Structure", items: []},
+            flags: {title: "Processing Flags", items: []},
+            runtime: {title: "GPTH Runtime", items: []},
+            advanced: {title: "Advanced", items: []}
+        };
+
+        (fields || []).forEach((field) => {
+            const groupKey = googleGroupForField(field);
+            groups[groupKey].items.push(field);
+        });
+
+        ["takeout", "structure", "flags", "runtime", "advanced"].forEach((key) => {
+            const group = groups[key];
+            if (!group.items.length) return;
+
+            const panel = document.createElement("section");
+            panel.className = "google-subpanel";
+            const title = document.createElement("h3");
+            title.textContent = group.title;
+            panel.appendChild(title);
+
+            group.items.forEach((field) => {
+                const required = field.dest === "google-takeout";
+                panel.appendChild(createArgumentBlock(field, required));
+            });
+            container.appendChild(panel);
+        });
+    }
+
+    function renderFields(container, fields) {
+        container.innerHTML = "";
+        const template = document.getElementById("field-template");
+        for (const field of fields) {
+            const node = template.content.firstElementChild.cloneNode(true);
+            node.querySelector(".field__name").textContent = field.long_option;
+            node.querySelector(".field__meta").textContent = field.nargs !== null ? `nargs: ${field.nargs}` : "";
+            node.querySelector(".field__help").textContent = field.help || "";
+            node.appendChild(createInput(field));
+            container.appendChild(node);
+        }
+    }
+
+    function renderTabs(containerId, mapping, active, onClick) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        for (const key of Object.keys(mapping)) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = `tab-btn ${active === key ? "active" : ""}`;
+            btn.textContent = mapping[key];
+            btn.addEventListener("click", () => onClick(key));
+            container.appendChild(btn);
+        }
+    }
+
+    function renderGeneralTab() {
+        document.getElementById("general-general").classList.toggle("hidden", activeGeneralTab !== "general");
+        document.getElementById("general-config").classList.toggle("hidden", activeGeneralTab !== "config");
+    }
+
+    function hideSpecialPanels() {
+        document.getElementById("cloud-action-panel").classList.add("hidden");
+        document.getElementById("standalone-action-panel").classList.add("hidden");
+        document.getElementById("migration-panel").classList.add("hidden");
+    }
+
+    function renderCloudActionPanel(tabKey) {
+        const panel = document.getElementById("cloud-action-panel");
+        const fields = (schema.tabs[tabKey] || []);
+        const actions = fields.filter((f) => f.dest !== "one-time-password");
+        const otpField = fields.find((f) => f.dest === "one-time-password");
+        const persistedCloudDest = uiState?.cloud_action_dest?.[tabKey];
+        if (!cloudActionDest && persistedCloudDest && actions.find((f) => f.dest === persistedCloudDest)) {
+            cloudActionDest = persistedCloudDest;
+        }
+        if (!cloudActionDest || !actions.find((f) => f.dest === cloudActionDest)) {
+            cloudActionDest = actions[0]?.dest || "";
+        }
+
+        const selected = actions.find((f) => f.dest === cloudActionDest);
+        panel.innerHTML = "";
+
+        const wrap = document.createElement("div");
+        wrap.className = "selector-layout";
+
+        const left = document.createElement("div");
+        left.className = "selector-main";
+
+        const selectRow = document.createElement("div");
+        selectRow.className = "arg-row arg-row--stack";
+        const selectLabel = document.createElement("label");
+        selectLabel.className = "arg-label";
+        selectLabel.textContent = "Select Module";
+        const select = document.createElement("select");
+        select.className = "field__input";
+        select.id = "cloud-action-select";
+        actions.forEach((action) => {
+            select.add(new Option(action.long_option.replace(/^--/, ""), action.dest));
+        });
+        select.value = cloudActionDest;
+        select.addEventListener("change", (event) => {
+            cloudActionDest = event.target.value || "";
+            if (!uiState.cloud_action_dest) uiState.cloud_action_dest = {};
+            uiState.cloud_action_dest[tabKey] = cloudActionDest;
+            queueSaveState();
+            renderCloudActionPanel(tabKey);
+        });
+        selectRow.appendChild(selectLabel);
+        selectRow.appendChild(select);
+        left.appendChild(selectRow);
+
+        const argSpecs = buildArgumentSpecs(tabKey, selected, true);
+        if (tabKey === "synology_photos" || tabKey === "immich_photos") {
+            const accountField = getFieldByDest("account-id");
+            if (accountField) {
+                const normalizedAccountField = normalizeFieldForContext(accountField, tabKey);
+                const accountIndex = argSpecs.findIndex((s) => s.field.dest === "account-id");
+                if (accountIndex >= 0) argSpecs.splice(accountIndex, 1);
+                const firstOptionalIndex = argSpecs.findIndex((s) => !s.required);
+                const insertAt = firstOptionalIndex >= 0 ? firstOptionalIndex : argSpecs.length;
+                argSpecs.splice(insertAt, 0, {field: normalizedAccountField, required: false});
+            }
+        }
+        const otpIndex = argSpecs.findIndex((s) => s.field.dest === "one-time-password");
+        if (otpIndex >= 0) argSpecs.splice(otpIndex, 1);
+        if (!argSpecs.length) {
+            const noArgs = document.createElement("div");
+            noArgs.className = "arg-row";
+            const lbl = document.createElement("label");
+            lbl.className = "arg-label";
+            lbl.textContent = "Arguments";
+            noArgs.appendChild(lbl);
+            const tag = document.createElement("span");
+            tag.className = "flag-tag";
+            tag.textContent = "No extra arguments required";
+            noArgs.appendChild(tag);
+            left.appendChild(noArgs);
+        } else {
+            argSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
+        }
+        if (otpField && (tabKey === "synology_photos" || tabKey === "immich_photos")) {
+            left.appendChild(createArgumentRow(normalizeFieldForContext(otpField, tabKey)));
+        }
+
+        const right = document.createElement("div");
+        right.className = "desc-card";
+        const rightTitle = document.createElement("h3");
+        rightTitle.textContent = "Selected module";
+        const rightName = document.createElement("div");
+        rightName.className = "desc-card__name";
+        rightName.textContent = selected ? selected.long_option.replace(/^--/, "") : "-";
+        const rightHelp = document.createElement("p");
+        rightHelp.textContent = selected?.help || "";
+        right.appendChild(rightTitle);
+        right.appendChild(rightName);
+        right.appendChild(rightHelp);
+
+        wrap.appendChild(left);
+        wrap.appendChild(right);
+        panel.appendChild(wrap);
+        panel.classList.remove("hidden");
+    }
+
+    function renderStandaloneActionPanel() {
+        const panel = document.getElementById("standalone-action-panel");
+        const actions = schema.tabs.standalone_features || [];
+        const persistedStandalone = uiState?.standalone_action_dest;
+        if (!standaloneActionDest && persistedStandalone && actions.find((f) => f.dest === persistedStandalone)) {
+            standaloneActionDest = persistedStandalone;
+        }
+        if (!standaloneActionDest || !actions.find((f) => f.dest === standaloneActionDest)) {
+            standaloneActionDest = actions[0]?.dest || "";
+        }
+        const selected = actions.find((f) => f.dest === standaloneActionDest);
+        panel.innerHTML = "";
+
+        const wrap = document.createElement("div");
+        wrap.className = "selector-layout";
+
+        const left = document.createElement("div");
+        left.className = "selector-main";
+
+        const selectRow = document.createElement("div");
+        selectRow.className = "arg-row arg-row--stack";
+        const selectLabel = document.createElement("label");
+        selectLabel.className = "arg-label";
+        selectLabel.textContent = "Select Feature";
+        const select = document.createElement("select");
+        select.className = "field__input";
+        select.id = "standalone-action-select";
+        actions.forEach((action) => {
+            select.add(new Option(action.long_option.replace(/^--/, ""), action.dest));
+        });
+        select.value = standaloneActionDest;
+        select.addEventListener("change", (event) => {
+            standaloneActionDest = event.target.value || "";
+            uiState.standalone_action_dest = standaloneActionDest;
+            queueSaveState();
+            renderStandaloneActionPanel();
+        });
+        selectRow.appendChild(selectLabel);
+        selectRow.appendChild(select);
+        left.appendChild(selectRow);
+
+        const argSpecs = buildArgumentSpecs("standalone_features", selected, true);
+        if (!argSpecs.length) {
+            const noArgs = document.createElement("div");
+            noArgs.className = "arg-row";
+            const lbl = document.createElement("label");
+            lbl.className = "arg-label";
+            lbl.textContent = "Arguments";
+            noArgs.appendChild(lbl);
+            const tag = document.createElement("span");
+            tag.className = "flag-tag";
+            tag.textContent = "No extra arguments required";
+            noArgs.appendChild(tag);
+            left.appendChild(noArgs);
+        } else {
+            argSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
+        }
+
+        const right = document.createElement("div");
+        right.className = "desc-card";
+        const title = document.createElement("h3");
+        title.textContent = "Selected feature";
+        const name = document.createElement("div");
+        name.className = "desc-card__name";
+        name.textContent = selected ? selected.long_option.replace(/^--/, "") : "-";
+        const help = document.createElement("p");
+        help.textContent = selected?.help || "";
+        right.appendChild(title);
+        right.appendChild(name);
+        right.appendChild(help);
+
+        wrap.appendChild(left);
+        wrap.appendChild(right);
+        panel.appendChild(wrap);
+        panel.classList.remove("hidden");
+    }
+
+    function renderMigrationPanel() {
+        const panel = document.getElementById("migration-panel");
+        const fields = schema.tabs.automatic_migration || [];
+        panel.innerHTML = "";
+
+        const byDest = {};
+        fields.forEach((field) => { byDest[field.dest] = field; });
+
+        const wrap = document.createElement("div");
+        wrap.className = "migration-layout";
+
+        const sourceRow = document.createElement("div");
+        sourceRow.className = "arg-row";
+        const sourceLabel = document.createElement("label");
+        sourceLabel.className = "arg-label";
+        sourceLabel.textContent = "source";
+        sourceRow.appendChild(sourceLabel);
+        if (byDest["source"]) sourceRow.appendChild(createInput(byDest["source"]));
+
+        const targetRow = document.createElement("div");
+        targetRow.className = "arg-row";
+        const targetLabel = document.createElement("label");
+        targetLabel.className = "arg-label";
+        targetLabel.textContent = "target";
+        targetRow.appendChild(targetLabel);
+        if (byDest["target"]) targetRow.appendChild(createInput(byDest["target"]));
+
+        const flagsCard = document.createElement("div");
+        flagsCard.className = "flags-card";
+        const flagsTitle = document.createElement("h3");
+        flagsTitle.textContent = "Migration Flags";
+        flagsCard.appendChild(flagsTitle);
+
+        ["move-assets", "dashboard", "parallel-migration"].forEach((dest) => {
+            if (!byDest[dest]) return;
+            flagsCard.appendChild(createArgumentRow(byDest[dest]));
+        });
+
+        wrap.appendChild(sourceRow);
+        wrap.appendChild(targetRow);
+        wrap.appendChild(flagsCard);
+        panel.appendChild(wrap);
+        panel.classList.remove("hidden");
+    }
+
+    function renderGeneralTabs() {
+        renderTabs("general-tabs", GENERAL_TAB_NAMES, activeGeneralTab, (key) => {
+            activeGeneralTab = key;
+            uiState.active_general_tab = key;
+            queueSaveState();
+            renderGeneralTabs();
+            renderGeneralTab();
+            if (key === "config") loadConfig();
+        });
+    }
+
+    function renderAll() {
+        renderTabs("module-tabs", MODULE_TAB_NAMES, activeModuleTab, (key) => {
+            activeModuleTab = key;
+            uiState.active_module_tab = key;
+            queueSaveState();
+            renderAll();
+        });
+        renderGeneralTabs();
+
+        renderBulkArgumentPanel("general-core-panel", schema.general_tabs.general || []);
+        renderGeneralTab();
+        hideSpecialPanels();
+
+        const moduleForm = document.getElementById("module-form");
+        if (activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos") {
+            moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("selector-mode");
+            moduleForm.classList.add("hidden");
+            renderCloudActionPanel(activeModuleTab);
+        } else if (activeModuleTab === "standalone_features") {
+            moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("selector-mode");
+            moduleForm.classList.add("hidden");
+            renderStandaloneActionPanel();
+        } else if (activeModuleTab === "automatic_migration") {
+            moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("selector-mode");
+            moduleForm.classList.add("hidden");
+            renderMigrationPanel();
+        } else if (activeModuleTab === "google_takeout") {
+            moduleForm.classList.remove("selector-mode");
+            moduleForm.classList.remove("hidden");
+            renderGoogleSubpanels(moduleForm, schema.tabs.google_takeout || []);
+        } else {
+            moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("selector-mode");
+            moduleForm.classList.remove("hidden");
+            renderFields(moduleForm, schema.tabs[activeModuleTab]);
+        }
+        bindStateForInputs();
+    }
+
+    function collectValues() {
+        const values = {};
+        document.querySelectorAll(
+            "#general-core-panel [data-dest], " +
+            "#module-form:not(.hidden) [data-dest], #cloud-action-panel:not(.hidden) [data-dest], " +
+            "#standalone-action-panel:not(.hidden) [data-dest], #migration-panel:not(.hidden) [data-dest]"
+        ).forEach((el) => {
+            const key = el.dataset.dest;
+            const prev = values[key];
+            if (el.type === "checkbox") {
+                values[key] = Boolean(prev) || el.checked;
+            } else {
+                const val = el.value;
+                if (prev === undefined || prev === "" || prev === null) values[key] = val;
+                else if (val !== "") values[key] = val;
+            }
+        });
+        return {...stateValues, ...values};
+    }
+
+    function queueSaveState() {
+        if (saveStateTimer) clearTimeout(saveStateTimer);
+        saveStateTimer = setTimeout(async () => {
+            try {
+                await fetch("/api/state", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({values: stateValues, ui_state: uiState})
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }, 250);
+    }
+
+    function applyPanelCollapseState() {
+        document.querySelectorAll(".panel[data-panel-id]").forEach((panel) => {
+            const panelId = panel.dataset.panelId;
+            const collapsed = Boolean(uiState?.collapsed_panels?.[panelId]);
+            panel.classList.toggle("panel--collapsed", collapsed);
+            const btn = panel.querySelector(`.collapse-btn[data-collapse-target="${panelId}"]`);
+            if (btn) {
+                const icon = btn.querySelector(".collapse-btn__icon");
+                if (icon) icon.textContent = collapsed ? "▼" : "▲";
+                btn.setAttribute("aria-label", collapsed ? "Expand panel" : "Collapse panel");
+            }
+        });
+    }
+
+    function bindCollapseButtons() {
+        document.querySelectorAll(".collapse-btn").forEach((btn) => {
+            if (btn.dataset.boundCollapse === "1") return;
+            btn.addEventListener("click", () => {
+                const panelId = btn.dataset.collapseTarget;
+                if (!panelId) return;
+                if (!uiState.collapsed_panels) uiState.collapsed_panels = {};
+                const next = !Boolean(uiState.collapsed_panels[panelId]);
+                uiState.collapsed_panels[panelId] = next;
+                applyPanelCollapseState();
+                queueSaveState();
+            });
+            btn.dataset.boundCollapse = "1";
+        });
+    }
+
+    function bindStateForInputs() {
+        document.querySelectorAll("[data-dest]").forEach((el) => {
+            if (el.dataset.boundState === "1") return;
+            const updateState = () => {
+                if (el.type === "checkbox") stateValues[el.dataset.dest] = el.checked;
+                else stateValues[el.dataset.dest] = el.value;
+                queueSaveState();
+            };
+            el.addEventListener("input", updateState);
+            el.addEventListener("change", updateState);
+            el.dataset.boundState = "1";
+        });
+    }
+
+    async function refreshJob() {
+        if (!currentJob) return;
+        const response = await fetch(`/api/jobs/${currentJob}`);
+        const data = await response.json();
+        document.getElementById("status").textContent = `Status: ${data.status}`;
+        document.getElementById("output").textContent = data.output || "";
+        if (data.status !== "running") {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    }
+
+    async function runCommand() {
+        const values = collectValues();
+        if (activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos") {
+            const selected = (schema.tabs[activeModuleTab] || []).find((f) => f.dest === cloudActionDest);
+            if (selected && selected.kind === "flag") values[selected.dest] = true;
+        } else if (activeModuleTab === "standalone_features") {
+            const selected = (schema.tabs.standalone_features || []).find((f) => f.dest === standaloneActionDest);
+            if (selected && selected.kind === "flag") values[selected.dest] = true;
+        }
+
+        const payload = { tab: activeModuleTab, values };
+        const response = await fetch("/api/run", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        currentJob = data.job_id;
+        document.getElementById("command-preview").textContent = data.command;
+        document.getElementById("output").textContent = "";
+        document.getElementById("status").textContent = "Status: running";
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(refreshJob, 2000);
+        await refreshJob();
+    }
+
+    async function loadConfig() {
+        const response = await fetch("/api/config");
+        const data = await response.json();
+        document.getElementById("config-editor").value = data.content || "";
+        document.getElementById("config-status").textContent = `Config status: loaded (${data.path})`;
+    }
+
+    async function saveConfig() {
+        const content = document.getElementById("config-editor").value;
+        const response = await fetch("/api/config", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({content})
+        });
+        const data = await response.json();
+        document.getElementById("config-status").textContent = `Config status: saved (${data.path})`;
+    }
+
+    async function loadState() {
+        try {
+            const response = await fetch("/api/state");
+            const data = await response.json();
+            stateValues = data.values || {};
+            uiState = data.ui_state || {collapsed_panels: {}};
+            if (!uiState.collapsed_panels) uiState.collapsed_panels = {};
+            if (uiState.active_module_tab && MODULE_TAB_NAMES[uiState.active_module_tab]) {
+                activeModuleTab = uiState.active_module_tab;
+            }
+            if (uiState.active_general_tab && GENERAL_TAB_NAMES[uiState.active_general_tab]) {
+                activeGeneralTab = uiState.active_general_tab;
+            }
+            if (uiState.cloud_action_dest?.[activeModuleTab]) {
+                cloudActionDest = uiState.cloud_action_dest[activeModuleTab];
+            }
+            if (uiState.standalone_action_dest) {
+                standaloneActionDest = uiState.standalone_action_dest;
+            }
+        } catch (error) {
+            console.error(error);
+            stateValues = {};
+            uiState = {collapsed_panels: {}};
+        }
+    }
+
+    async function listFolders(path) {
+        const response = await fetch(`/api/fs/list?path=${encodeURIComponent(path)}`);
+        if (!response.ok) throw new Error(await response.text());
+        return response.json();
+    }
+
+    async function renderFolderList(path) {
+        const dialog = document.getElementById("folder-dialog");
+        const pathInput = document.getElementById("folder-path-input");
+        const listEl = document.getElementById("folder-list");
+        const currentEl = document.getElementById("folder-current");
+
+        try {
+            const data = await listFolders(path);
+            pathInput.value = data.path;
+            currentEl.textContent = `Current: ${data.path}`;
+            listEl.innerHTML = "";
+
+            const selectCurrent = document.createElement("button");
+            selectCurrent.type = "button";
+            selectCurrent.className = "folder-item folder-item--select";
+            selectCurrent.textContent = `Use this folder: ${data.path}`;
+            selectCurrent.addEventListener("click", () => {
+                if (!folderTargetInput) return;
+                if (folderTargetInput.tagName === "TEXTAREA") {
+                    folderTargetInput.value = folderTargetInput.value ? `${folderTargetInput.value}\n${data.path}` : data.path;
+                } else {
+                    folderTargetInput.value = data.path;
+                }
+                const dest = folderTargetInput.dataset.dest;
+                if (dest) {
+                    stateValues[dest] = folderTargetInput.value;
+                    queueSaveState();
+                }
+                dialog.close();
+            });
+            listEl.appendChild(selectCurrent);
+
+            for (const dir of data.directories) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "folder-item";
+                btn.textContent = dir.name;
+                btn.addEventListener("click", () => renderFolderList(dir.path));
+                listEl.appendChild(btn);
+            }
+        } catch (error) {
+            listEl.innerHTML = `<div class="folder-error">Unable to open path: ${String(error)}</div>`;
+        }
+    }
+
+    function openFolderDialog(inputEl) {
+        folderTargetInput = inputEl;
+        const dialog = document.getElementById("folder-dialog");
+        const initial = inputEl.value && inputEl.value.startsWith("/") ? inputEl.value : "/app/data";
+        renderFolderList(initial);
+        dialog.showModal();
+    }
+
+    function bindUi() {
+        bindCollapseButtons();
+        document.getElementById("run-btn").addEventListener("click", runCommand);
+        document.getElementById("reload-config-btn").addEventListener("click", loadConfig);
+        document.getElementById("save-config-btn").addEventListener("click", saveConfig);
+        document.getElementById("folder-close").addEventListener("click", () => document.getElementById("folder-dialog").close());
+        document.getElementById("folder-select").addEventListener("click", () => {
+            const current = document.getElementById("folder-path-input").value || "/app/data";
+            if (!folderTargetInput) return;
+            if (folderTargetInput.tagName === "TEXTAREA") {
+                folderTargetInput.value = folderTargetInput.value ? `${folderTargetInput.value}\n${current}` : current;
+            } else {
+                folderTargetInput.value = current;
+            }
+            const dest = folderTargetInput.dataset.dest;
+            if (dest) {
+                stateValues[dest] = folderTargetInput.value;
+                queueSaveState();
+            }
+            document.getElementById("folder-dialog").close();
+        });
+        document.getElementById("folder-home").addEventListener("click", () => {
+            renderFolderList("/app/data");
+        });
+        document.getElementById("folder-up").addEventListener("click", async () => {
+            try {
+                const current = document.getElementById("folder-path-input").value || "/app/data";
+                const data = await listFolders(current);
+                if (data.parent) renderFolderList(data.parent);
+            } catch (error) {
+                console.error(error);
+            }
+        });
+    }
+
+    async function boot() {
+        bindUi();
+        await loadState();
+        applyPanelCollapseState();
+        const response = await fetch("/api/schema");
+        schema = await response.json();
+        renderAll();
+    }
+
+    boot();
+</script>
+</body>
+</html>

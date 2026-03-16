@@ -26,8 +26,31 @@ The Tool supports multiple accounts for the same service, so you can migrate you
   <br/>
 </p>
 
+# 📸 Tool Screenshots
 
-# 🖥️ Live Dashboard Preview
+## 🌐 Web Interface
+### General Arguments:
+![Live Dashboard](/assets/screenshots/web-interface-general-arguments.png?raw=true)  
+
+### Configuration File:
+![Live Dashboard](/assets/screenshots/web-interface-configuration-file.png?raw=true)  
+
+### Automatic Migration Feature:
+![Live Dashboard](/assets/screenshots/web-interface-automatic-migration.png?raw=true)  
+
+### Google Photos Feature:
+![Live Dashboard](/assets/screenshots/web-interface-google-photos.png?raw=true)  
+
+### Synology Photos Feature:
+![Live Dashboard](/assets/screenshots/web-interface-synology-photos.png?raw=true)  
+
+### Immich Photos Feature:
+![Live Dashboard](/assets/screenshots/web-interface-immich-photos.png?raw=true)  
+
+### Other Features:
+![Live Dashboard](/assets/screenshots/web-interface-other-features.png?raw=true)  
+
+## 🖥️ Live Dashboard Preview
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 # 🌟 Main Modules:
@@ -136,7 +159,90 @@ You can check the whole list of features and arguments with the right syntax her
 [Command Line Interface (CLI)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/1-command-line-interface.md)
 
 
-## 📚 Arguments Description
+## Web Interface (NEW)
+PhotoMigrator now includes a Web Interface that executes the same CLI arguments under the hood.
+
+Main characteristics:
+- Multi-tab UI separated by module:
+  - Google Photos Takeout Management
+  - Synology Photos
+  - Immich Photos
+  - Other Standalone Features
+  - Automatic Migration
+- General/optional arguments available for all tabs.
+- Real command preview + execution output in the browser.
+- Backend powered by `FastAPI` + `uvicorn` on port `6078`.
+
+Web interface source code:
+- `src/web_interface/app.py`
+- `src/web_interface/html/index.html`
+- `src/web_interface/static/style.css`
+
+## Deploy Web Interface with Docker Compose
+Use the files:
+- `docker/docker-compose.yml`
+- `docker/.env`
+
+Example `.env`:
+
+```env
+# Timezone
+TZ=Europe/Madrid
+
+# Container Name
+CONTAINER_NAME=photomigrator
+
+# Host Port
+PORT=6078
+
+# Config & Data dir (host paths)
+CONFIG_DIR=../config
+DATA_DIR=../data
+
+# Docker image tag to pull
+IMAGE_TAG=latest-stable
+```
+
+Example `docker-compose.yml`:
+
+```yaml
+# PhotoMigrator Web Interface compose file for production.
+services:
+  photomigrator:
+    image: jaimetur/photomigrator:${IMAGE_TAG}
+    container_name: ${CONTAINER_NAME}
+    ports:
+      - "${PORT}:6078"
+    env_file:
+      - .env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}:/app/config
+      - ${DATA_DIR}:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys,urllib.request; port=os.getenv('PORT','6078'); urllib.request.urlopen(f'http://127.0.0.1:{port}/healthz', timeout=5); sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+```
+
+Start it:
+
+```bash
+cd docker
+docker compose pull
+docker compose up -d
+```
+
+Then open:
+- `http://localhost:6078`
+
+## Arguments Description
 Check all arguments descriptions and usage examples in the [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)  or in the [shorter version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description-short.md).
 
 
