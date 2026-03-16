@@ -9,6 +9,7 @@ COPY requirements.txt ./requirements.txt
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
+COPY assets/ ./assets/
 COPY help/ ./help/
 COPY gpth_tool/ ./gpth_tool/
 COPY exif_tool/others.zip ./exif_tool/others.zip
