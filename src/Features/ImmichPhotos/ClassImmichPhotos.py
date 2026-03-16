@@ -6,13 +6,16 @@ import logging
 import os
 import sys
 import time
+from contextlib import ExitStack
 from datetime import datetime
 from urllib.parse import urlparse
 
+import mimetypes
 import requests
 import urllib3
 from dateutil import parser
 from halo import Halo
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 from tabulate import tabulate
 
 from Core.CustomLogger import set_log_level
@@ -1170,20 +1173,6 @@ class ClassImmichPhotos:
                     return None, None
 
             url = f"{self.IMMICH_URL}/api/assets"
-            files = {
-                'assetData': open(file_path, 'rb')
-            }
-
-            # Check for sidecar in the same path
-            for sidecar_extension in self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
-                sidecar_path_1 = f"{file_path}{sidecar_extension}"
-                sidecar_path_2 = file_path.replace(ext, sidecar_extension)
-                if os.path.isfile(sidecar_path_1):
-                    files['sidecarData'] = open(sidecar_path_1, 'rb')
-                    break
-                elif os.path.isfile(sidecar_path_2):
-                    files['sidecarData'] = open(sidecar_path_2, 'rb')
-                    break
 
             stats = os.stat(file_path)
             try:
@@ -1218,9 +1207,40 @@ class ClassImmichPhotos:
                 }
 
             try:
-                response = requests.post(url, headers=header, data=data, files=files)
-                response.raise_for_status()
-                new_asset = response.json()
+                with ExitStack() as stack:
+                    file_obj = stack.enter_context(open(file_path, "rb"))
+                    mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+
+                    fields = {
+                        "deviceAssetId": data["deviceAssetId"],
+                        "deviceId": data["deviceId"],
+                        "fileCreatedAt": data["fileCreatedAt"],
+                        "fileModifiedAt": data["fileModifiedAt"],
+                        "fileSize": data["fileSize"],
+                        "isFavorite": data["isFavorite"],
+                        "isVisible": data["isVisible"],
+                        "assetData": (os.path.basename(file_path), file_obj, mime_type),
+                    }
+
+                    for sidecar_extension in self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
+                        sidecar_path_1 = f"{file_path}{sidecar_extension}"
+                        sidecar_path_2 = file_path.replace(ext, sidecar_extension)
+                        if os.path.isfile(sidecar_path_1):
+                            sidecar_obj = stack.enter_context(open(sidecar_path_1, "rb"))
+                            sidecar_mime = mimetypes.guess_type(sidecar_path_1)[0] or "application/octet-stream"
+                            fields["sidecarData"] = (os.path.basename(sidecar_path_1), sidecar_obj, sidecar_mime)
+                            break
+                        elif os.path.isfile(sidecar_path_2):
+                            sidecar_obj = stack.enter_context(open(sidecar_path_2, "rb"))
+                            sidecar_mime = mimetypes.guess_type(sidecar_path_2)[0] or "application/octet-stream"
+                            fields["sidecarData"] = (os.path.basename(sidecar_path_2), sidecar_obj, sidecar_mime)
+                            break
+
+                    multipart_data = MultipartEncoder(fields=fields)
+                    header["Content-Type"] = multipart_data.content_type
+                    response = requests.post(url, headers=header, data=multipart_data)
+                    response.raise_for_status()
+                    new_asset = response.json()
                 asset_id = new_asset.get("id")
                 is_duplicated = (new_asset.get("status") == 'duplicate')
                 if asset_id:
