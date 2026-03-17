@@ -35,9 +35,10 @@
             <p class="config-note">This editor is persisted to <code>/app/config/Config.ini</code>.</p>
             <textarea id="config-editor" class="config-editor" spellcheck="false" wrap="off"></textarea>
             <div class="config-actions">
-                <button type="button" id="reload-config-btn" class="run-btn">Reload config</button>
+                <button type="button" id="load-config-btn" class="run-btn">Load config</button>
                 <button type="button" id="save-config-btn" class="run-btn run-btn--danger">Save config</button>
             </div>
+            <input id="config-file-input" type="file" accept=".ini,.txt,*/*" class="hidden-file-input">
             <div id="config-status" class="status">Config status: idle</div>
             </div>
         </div>
@@ -71,8 +72,22 @@
         </div>
         <div class="panel-body">
             <div id="command-preview" class="command"></div>
-            <div id="status" class="status">Status: idle</div>
+            <div class="output-toolbar">
+                <div id="status" class="status">Status: idle</div>
+                <div class="output-toolbar__actions">
+                    <label class="autos-scroll">
+                        <input id="auto-scroll-check" type="checkbox">
+                        <span>Auto Scroll</span>
+                    </label>
+                    <button id="copy-log-btn" type="button" class="ghost-btn">Copy log</button>
+                </div>
+            </div>
             <pre id="output" class="terminal"></pre>
+            <div id="job-input-controls" class="job-input-controls hidden">
+                <span class="job-input-label">Send confirmation:</span>
+                <button id="job-input-yes" type="button" class="run-btn">Yes</button>
+                <button id="job-input-no" type="button" class="run-btn run-btn--danger">No</button>
+            </div>
         </div>
     </section>
 </main>
@@ -92,6 +107,19 @@
     </div>
     <div id="folder-current" class="folder-current"></div>
     <div id="folder-list" class="folder-list"></div>
+</dialog>
+
+<dialog id="confirm-dialog" class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h3 class="confirm-dialog__title">Overwrite Configuration?</h3>
+        <p id="confirm-dialog-message" class="confirm-dialog__message">
+            This action will overwrite the active configuration file.
+        </p>
+        <div class="confirm-dialog__actions">
+            <button type="button" id="confirm-dialog-cancel" class="ghost-btn">Cancel</button>
+            <button type="button" id="confirm-dialog-accept" class="run-btn run-btn--danger">Overwrite</button>
+        </div>
+    </div>
 </dialog>
 
 <template id="field-template">
@@ -130,6 +158,7 @@
         "input-folder": "Input Folder",
         "configuration-file": "Configuration File",
         "albums-folders": "Albums Folders",
+        "no-request-user-confirmation": "request-user-confirmation",
         "remove-albums-assets": "Remove Album Assets",
         "one-time-password": "One-Time Password",
         "account-id": "Account ID",
@@ -139,6 +168,21 @@
         "dashboard": "Dashboard",
         "parallel-migration": "Parallel Migration"
     };
+
+    function uiCheckboxValueForDest(dest, persisted) {
+        // Invert only in web UI: checked means "Request confirmation" (default true).
+        if (dest === "no-request-user-confirmation") {
+            if (persisted === undefined) return true;
+            return !Boolean(persisted);
+        }
+        return persisted === undefined ? false : Boolean(persisted);
+    }
+
+    function stateValueFromUiCheckbox(dest, checked) {
+        // Store backend/CLI semantics in state: no-request-user-confirmation=true disables prompts.
+        if (dest === "no-request-user-confirmation") return !Boolean(checked);
+        return Boolean(checked);
+    }
 
     const GENERAL_GROUPS = [
         { key: "logs", title: "Logs", dests: ["no-log-file", "log-level", "log-format", "foldername-logs"] },
@@ -167,6 +211,79 @@
     let stateValues = {};
     let uiState = {collapsed_panels: {}};
     let saveStateTimer = null;
+    let lastRawOutput = "";
+
+    function uiOptionName(field) {
+        if (!field) return "";
+        if (field.dest === "no-request-user-confirmation") return "request-user-confirmation";
+        return field.long_option.replace(/^--/, "");
+    }
+
+    function uiHelpText(field) {
+        const raw = (field?.help || "");
+        return raw.replaceAll("--no-request-user-confirmation", "--request-user-confirmation");
+    }
+
+    function escapeHtml(text) {
+        return (text || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function renderOutputWithLevels(rawText) {
+        const outputEl = document.getElementById("output");
+        lastRawOutput = rawText || "";
+        const lines = (rawText || "").split("\n");
+        const html = lines.map((line) => {
+            const safe = escapeHtml(line);
+            if (/^VERBOSE\s*:/.test(line)) return `<span class="log-line log-verbose">${safe}</span>`;
+            if (/^DEBUG\s*:/.test(line)) return `<span class="log-line log-debug">${safe}</span>`;
+            if (/^INFO\s*:/.test(line)) return `<span class="log-line log-info">${safe}</span>`;
+            if (/^WARNING\s*:/.test(line)) return `<span class="log-line log-warning">${safe}</span>`;
+            if (/^ERROR\s*:/.test(line)) return `<span class="log-line log-error">${safe}</span>`;
+            if (/^CRITICAL\s*:/.test(line)) return `<span class="log-line log-critical">${safe}</span>`;
+            return `<span class="log-line">${safe}</span>`;
+        }).join("\n");
+        outputEl.innerHTML = html;
+        if (uiState.auto_scroll !== false) {
+            outputEl.scrollTop = outputEl.scrollHeight;
+        }
+    }
+
+    async function copyLogToClipboard() {
+        const text = lastRawOutput || "";
+        if (!text) return;
+        const button = document.getElementById("copy-log-btn");
+        const previousLabel = button.textContent;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                ta.style.position = "fixed";
+                ta.style.left = "-9999px";
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                document.execCommand("copy");
+                ta.remove();
+            }
+            button.textContent = "Copied";
+            setTimeout(() => {
+                button.textContent = previousLabel;
+            }, 1200);
+        } catch (error) {
+            console.error(error);
+            button.textContent = "Copy failed";
+            setTimeout(() => {
+                button.textContent = previousLabel;
+            }, 1200);
+        }
+    }
 
     function createInput(field) {
         const wrapper = document.createElement("div");
@@ -178,7 +295,7 @@
             input = document.createElement("input");
             input.type = "checkbox";
             input.className = "field__check";
-            input.checked = persisted === undefined ? false : Boolean(persisted);
+            input.checked = uiCheckboxValueForDest(field.dest, persisted);
         } else if (field.kind === "bool") {
             input = document.createElement("select");
             input.className = "field__input";
@@ -239,7 +356,7 @@
 
         const label = document.createElement("label");
         label.className = "arg-label";
-        label.textContent = ARG_LABELS[field.dest] || field.long_option.replace(/^--/, "");
+        label.textContent = ARG_LABELS[field.dest] || uiOptionName(field);
         row.appendChild(label);
 
         const badge = document.createElement("span");
@@ -254,9 +371,15 @@
             check.type = "checkbox";
             check.className = "field__check";
             check.dataset.dest = field.dest;
+            const persisted = stateValues[field.dest];
+            check.checked = uiCheckboxValueForDest(field.dest, persisted);
             checkWrap.appendChild(check);
             const txt = document.createElement("span");
-            txt.textContent = isRequired ? "Enable selected action" : "Enable";
+            if (field.dest === "no-request-user-confirmation") {
+                txt.textContent = "Enable";
+            } else {
+                txt.textContent = isRequired ? "Enable selected action" : "Enable";
+            }
             checkWrap.appendChild(txt);
             row.appendChild(checkWrap);
         } else {
@@ -266,7 +389,7 @@
         if (field.dest === "account-id" && field.help) {
             const inlineHelp = document.createElement("div");
             inlineHelp.className = "arg-inline-help";
-            inlineHelp.textContent = field.help;
+            inlineHelp.textContent = uiHelpText(field);
             row.appendChild(inlineHelp);
         }
         return row;
@@ -295,8 +418,8 @@
         desc.appendChild(p);
 
         const setDescription = (field) => {
-            name.textContent = field.long_option.replace(/^--/, "");
-            p.textContent = field.help || "";
+            name.textContent = uiOptionName(field);
+            p.textContent = uiHelpText(field);
         };
 
         const fieldsByDest = new Map(fields.map((field) => [field.dest, field]));
@@ -662,9 +785,9 @@
         rightTitle.textContent = "Selected module";
         const rightName = document.createElement("div");
         rightName.className = "desc-card__name";
-        rightName.textContent = selected ? selected.long_option.replace(/^--/, "") : "-";
+        rightName.textContent = selected ? uiOptionName(selected) : "-";
         const rightHelp = document.createElement("p");
-        rightHelp.textContent = selected?.help || "";
+        rightHelp.textContent = uiHelpText(selected);
         right.appendChild(rightTitle);
         right.appendChild(rightName);
         right.appendChild(rightHelp);
@@ -703,7 +826,7 @@
         select.className = "field__input";
         select.id = "standalone-action-select";
         actions.forEach((action) => {
-            select.add(new Option(action.long_option.replace(/^--/, ""), action.dest));
+            select.add(new Option(uiOptionName(action), action.dest));
         });
         select.value = standaloneActionDest;
         select.addEventListener("change", (event) => {
@@ -739,9 +862,9 @@
         title.textContent = "Selected feature";
         const name = document.createElement("div");
         name.className = "desc-card__name";
-        name.textContent = selected ? selected.long_option.replace(/^--/, "") : "-";
+        name.textContent = selected ? uiOptionName(selected) : "-";
         const help = document.createElement("p");
-        help.textContent = selected?.help || "";
+        help.textContent = uiHelpText(selected);
         right.appendChild(title);
         right.appendChild(name);
         right.appendChild(help);
@@ -860,7 +983,7 @@
             const key = el.dataset.dest;
             const prev = values[key];
             if (el.type === "checkbox") {
-                values[key] = Boolean(prev) || el.checked;
+                values[key] = stateValueFromUiCheckbox(key, Boolean(prev) || el.checked);
             } else {
                 const val = el.value;
                 if (prev === undefined || prev === "" || prev === null) values[key] = val;
@@ -919,7 +1042,7 @@
         document.querySelectorAll("[data-dest]").forEach((el) => {
             if (el.dataset.boundState === "1") return;
             const updateState = () => {
-                if (el.type === "checkbox") stateValues[el.dataset.dest] = el.checked;
+                if (el.type === "checkbox") stateValues[el.dataset.dest] = stateValueFromUiCheckbox(el.dataset.dest, el.checked);
                 else stateValues[el.dataset.dest] = el.value;
                 queueSaveState();
             };
@@ -934,11 +1057,23 @@
         const response = await fetch(`/api/jobs/${currentJob}`);
         const data = await response.json();
         document.getElementById("status").textContent = `Status: ${data.status}`;
-        document.getElementById("output").textContent = data.output || "";
+        renderOutputWithLevels(data.output || "");
+        const controls = document.getElementById("job-input-controls");
+        const awaitingConfirmation = Boolean(data.awaiting_confirmation);
+        controls.classList.toggle("hidden", !awaitingConfirmation);
         if (data.status !== "running") {
             clearInterval(pollTimer);
             pollTimer = null;
         }
+    }
+
+    async function sendJobInput(text) {
+        if (!currentJob) return;
+        await fetch(`/api/jobs/${currentJob}/input`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({text})
+        });
     }
 
     async function runCommand() {
@@ -962,6 +1097,7 @@
         document.getElementById("command-preview").textContent = data.command;
         document.getElementById("output").textContent = "";
         document.getElementById("status").textContent = "Status: running";
+        document.getElementById("job-input-controls").classList.add("hidden");
         if (pollTimer) clearInterval(pollTimer);
         pollTimer = setInterval(refreshJob, 2000);
         await refreshJob();
@@ -974,7 +1110,33 @@
         document.getElementById("config-status").textContent = `Config status: loaded (${data.path})`;
     }
 
+    function loadConfigFromLocalFile() {
+        document.getElementById("config-file-input").click();
+    }
+
+    async function onConfigFilePicked(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        try {
+            const content = await file.text();
+            document.getElementById("config-editor").value = content || "";
+            document.getElementById("config-status").textContent = `Config status: loaded from local file (${file.name})`;
+        } catch (error) {
+            console.error(error);
+            document.getElementById("config-status").textContent = "Config status: failed to load local file";
+        } finally {
+            event.target.value = "";
+        }
+    }
+
     async function saveConfig() {
+        const confirmed = await askForConfirmation(
+            "This will overwrite the active configuration file (/app/config/Config.ini) with the current editor content."
+        );
+        if (!confirmed) {
+            document.getElementById("config-status").textContent = "Config status: save canceled by user";
+            return;
+        }
         const content = document.getElementById("config-editor").value;
         const response = await fetch("/api/config", {
             method: "POST",
@@ -1070,11 +1232,64 @@
         dialog.showModal();
     }
 
+    function askForConfirmation(message) {
+        const dialog = document.getElementById("confirm-dialog");
+        const messageEl = document.getElementById("confirm-dialog-message");
+        const acceptBtn = document.getElementById("confirm-dialog-accept");
+        const cancelBtn = document.getElementById("confirm-dialog-cancel");
+
+        messageEl.textContent = message || "Please confirm this action.";
+
+        return new Promise((resolve) => {
+            const cleanup = () => {
+                acceptBtn.removeEventListener("click", onAccept);
+                cancelBtn.removeEventListener("click", onCancel);
+                dialog.removeEventListener("cancel", onCancel);
+                dialog.removeEventListener("click", onBackdropClick);
+            };
+            const onAccept = () => {
+                cleanup();
+                dialog.close();
+                resolve(true);
+            };
+            const onCancel = () => {
+                cleanup();
+                dialog.close();
+                resolve(false);
+            };
+            const onBackdropClick = (event) => {
+                const rect = dialog.getBoundingClientRect();
+                const inside =
+                    event.clientX >= rect.left &&
+                    event.clientX <= rect.right &&
+                    event.clientY >= rect.top &&
+                    event.clientY <= rect.bottom;
+                if (!inside) onCancel();
+            };
+
+            acceptBtn.addEventListener("click", onAccept);
+            cancelBtn.addEventListener("click", onCancel);
+            dialog.addEventListener("cancel", onCancel);
+            dialog.addEventListener("click", onBackdropClick);
+            dialog.showModal();
+        });
+    }
+
     function bindUi() {
         bindCollapseButtons();
         document.getElementById("run-btn").addEventListener("click", runCommand);
-        document.getElementById("reload-config-btn").addEventListener("click", loadConfig);
+        document.getElementById("copy-log-btn").addEventListener("click", copyLogToClipboard);
+        document.getElementById("load-config-btn").addEventListener("click", loadConfigFromLocalFile);
+        document.getElementById("config-file-input").addEventListener("change", onConfigFilePicked);
+        document.getElementById("job-input-yes").addEventListener("click", () => sendJobInput("yes"));
+        document.getElementById("job-input-no").addEventListener("click", () => sendJobInput("no"));
         document.getElementById("save-config-btn").addEventListener("click", saveConfig);
+        const autoScrollCheck = document.getElementById("auto-scroll-check");
+        autoScrollCheck.checked = uiState.auto_scroll !== false;
+        autoScrollCheck.addEventListener("change", () => {
+            uiState.auto_scroll = autoScrollCheck.checked;
+            queueSaveState();
+        });
         document.getElementById("folder-close").addEventListener("click", () => document.getElementById("folder-dialog").close());
         document.getElementById("folder-select").addEventListener("click", () => {
             const current = document.getElementById("folder-path-input").value || "/app/data";
@@ -1106,9 +1321,10 @@
     }
 
     async function boot() {
-        bindUi();
         await loadState();
+        bindUi();
         applyPanelCollapseState();
+        await loadConfig(); // Keep editor synced with active Config.ini by default
         const response = await fetch("/api/schema");
         schema = await response.json();
         renderAll();

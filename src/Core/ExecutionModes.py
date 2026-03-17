@@ -20,6 +20,23 @@ DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
 terminal_width = shutil.get_terminal_size().columns
 
+
+def _normalize_merge_duplicates_result(result):
+    """
+    Normalize merge_duplicates_albums return value to a tuple:
+      (total_duplicates_albums_merged, total_duplicates_albums_removed)
+    """
+    if isinstance(result, tuple):
+        if len(result) >= 2:
+            return result[0], result[1]
+        if len(result) == 1:
+            return result[0], 0
+        return 0, 0
+    if isinstance(result, int):
+        # Backward/edge compatibility: some implementations return a single int.
+        return result, 0
+    return 0, 0
+
 # -------------------------------------------------------------
 # Determine the Execution mode based on the provided arguments:
 # -------------------------------------------------------------
@@ -299,7 +316,8 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_merge_duplicates_albums
         LOGGER.info(f"Merging Duplicates Albums...")
-        total_duplicates_albums_merged, total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
         # Execute remove_duplicates_assets
         LOGGER.info(f"Removing Duplicates Assets...")
         duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
@@ -394,7 +412,8 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_merge_duplicates_albums
         LOGGER.info(f"Merging Duplicates Albums...")
-        total_duplicates_albums_merged, total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
         # Execute merge_duplicates_assets
         LOGGER.info(f"Removing Duplicates Assets...")
         duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
@@ -491,7 +510,8 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
         # Execute mode_merge_duplicates_albums
         LOGGER.info(f"")
         LOGGER.info(f"Merging Duplicates Albums...")
-        total_duplicates_albums_merged, total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
         # Execute remove_duplicates_assets
         LOGGER.info(f"")
         LOGGER.info(f"Removing Duplicates Assets...")
@@ -573,7 +593,8 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
         # Execute mode_remove_empty_albums
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute merge_duplicates_albums
-        total_duplicates_albums_merged, total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
         # Execute remove_duplicates_assets
         duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
@@ -786,7 +807,8 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
         cloud_client_obj.login(log_level=logging.WARNING)
 
         # Call the Function using 'count' as strategy (you can change to 'size')
-        albums_merged, albums_removed = cloud_client_obj.merge_duplicates_albums(strategy='count', log_level=logging.INFO)
+        merge_result = cloud_client_obj.merge_duplicates_albums(strategy='count', log_level=logging.INFO)
+        albums_merged, albums_removed = _normalize_merge_duplicates_result(merge_result)
 
         # Logout
         LOGGER.info(f"")

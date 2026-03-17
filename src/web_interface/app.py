@@ -145,9 +145,11 @@ class StateUpdateRequest(BaseModel):
 
 
 class JobData:
-    def __init__(self, command: List[str]) -> None:
+    def __init__(self, command: List[str], process: subprocess.Popen[str]) -> None:
         self.command = command
         self.command_string = subprocess.list2cmdline(command)
+        self.process = process
+        self.awaiting_confirmation = False
         self.status = "running"
         self.output: List[str] = []
         self.return_code: int | None = None
@@ -329,20 +331,35 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
     job = JOBS[job_id]
     try:
         assert process.stdout is not None
-        for line in process.stdout:
+        while True:
+            chunk = process.stdout.read(1)
+            if chunk == "":
+                break
             with JOBS_LOCK:
-                job.output.append(line)
+                job.output.append(chunk)
+                lowered_tail = "".join(job.output[-2000:]).lower()
+                if (
+                    "awaiting user confirmation (yes/no)" in lowered_tail
+                    or "do you want to continue? (yes/no):" in lowered_tail
+                ):
+                    job.awaiting_confirmation = True
+                elif "continuing..." in lowered_tail or "operation canceled." in lowered_tail:
+                    job.awaiting_confirmation = False
         rc = process.wait()
         with JOBS_LOCK:
             job.return_code = rc
             job.status = "success" if rc == 0 else "failed"
             job.finished_at = datetime.now(timezone.utc).isoformat()
+            job.awaiting_confirmation = False
+            job.process = None
     except Exception as exc:
         with JOBS_LOCK:
             job.output.append(f"\n[web-interface] Internal error: {exc}\n")
             job.return_code = -1
             job.status = "failed"
             job.finished_at = datetime.now(timezone.utc).isoformat()
+            job.awaiting_confirmation = False
+            job.process = None
 
 
 def _read_config_content() -> str:
@@ -454,13 +471,33 @@ def list_directories(path: str = Query("/app/data")) -> Dict[str, Any]:
 
 @app.post("/api/run")
 def run_cli(payload: RunRequest) -> Dict[str, Any]:
-    cli_args = _build_cli_args(payload.tab, payload.values)
+    incoming_values = dict(payload.values or {})
+    for key, value in list(incoming_values.items()):
+        if not isinstance(value, str):
+            continue
+        trimmed = value.strip()
+        if not trimmed.startswith("/docker"):
+            continue
+        if key == "configuration-file":
+            incoming_values[key] = str(CONFIG_FILE_PATH)
+        else:
+            incoming_values[key] = trimmed.replace("/docker", "/app/data", 1)
+
+    if not str(incoming_values.get("configuration-file", "")).strip():
+        incoming_values["configuration-file"] = str(CONFIG_FILE_PATH)
+    cli_args = _build_cli_args(payload.tab, incoming_values)
     command = [sys.executable, str(CLI_ENTRYPOINT), *cli_args]
+    child_env = os.environ.copy()
+    child_env["PHOTOMIGRATOR_ALLOW_STDIN_PIPE"] = "1"
+    child_env["PHOTOMIGRATOR_WEB_MODE"] = "1"
+    child_env["PHOTOMIGRATOR_DOCKER_BASE_PATH"] = "/app/data"
 
     job_id = uuid.uuid4().hex
     process = subprocess.Popen(
         command,
         cwd=str(PROJECT_ROOT),
+        env=child_env,
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -470,7 +507,7 @@ def run_cli(payload: RunRequest) -> Dict[str, Any]:
     )
 
     with JOBS_LOCK:
-        JOBS[job_id] = JobData(command=command)
+        JOBS[job_id] = JobData(command=command, process=process)
 
     thread = threading.Thread(target=_run_job, args=(job_id, process), daemon=True)
     thread.start()
@@ -484,7 +521,13 @@ def get_job(job_id: str) -> Dict[str, Any]:
         if job_id not in JOBS:
             raise HTTPException(status_code=404, detail="Job not found")
         job = JOBS[job_id]
-        output = "".join(job.output[-4000:])
+        output = "".join(job.output[-200000:])
+        can_send_input = bool(
+            job.status == "running"
+            and job.process is not None
+            and job.process.stdin is not None
+            and not job.process.stdin.closed
+        )
         return {
             "job_id": job_id,
             "status": job.status,
@@ -492,8 +535,33 @@ def get_job(job_id: str) -> Dict[str, Any]:
             "started_at": job.started_at,
             "finished_at": job.finished_at,
             "command": job.command_string,
+            "can_send_input": can_send_input,
+            "awaiting_confirmation": bool(can_send_input and job.awaiting_confirmation),
             "output": output,
         }
+
+
+class JobInputRequest(BaseModel):
+    text: str = ""
+
+
+@app.post("/api/jobs/{job_id}/input")
+def send_job_input(job_id: str, payload: JobInputRequest) -> Dict[str, Any]:
+    with JOBS_LOCK:
+        if job_id not in JOBS:
+            raise HTTPException(status_code=404, detail="Job not found")
+        job = JOBS[job_id]
+        process = job.process
+        if job.status != "running" or process is None or process.stdin is None or process.stdin.closed:
+            raise HTTPException(status_code=409, detail="Job is not accepting input")
+        text = (payload.text or "").rstrip("\r\n")
+        try:
+            process.stdin.write(text + "\n")
+            process.stdin.flush()
+            job.awaiting_confirmation = False
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Unable to send input: {exc}")
+    return {"sent": True}
 
 
 @app.get("/healthz")

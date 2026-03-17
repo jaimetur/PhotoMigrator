@@ -146,7 +146,10 @@ def run_from_synology(log_level=None):
 
 def clear_screen():
     """Clears the terminal screen on both POSIX and Windows systems."""
-    os.system('clear' if os.name == 'posix' else 'cls')
+    if os.name == 'nt':
+        os.system('cls')
+    elif os.environ.get('TERM') and sys.stdout.isatty():
+        os.system('clear')
 
 
 def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logger=True, use_custom_print=True):
@@ -316,8 +319,26 @@ def confirm_continue(log_level=None):
         return True
 
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        allow_stdin_pipe = os.environ.get("PHOTOMIGRATOR_ALLOW_STDIN_PIPE", "0") == "1"
+        # In non-interactive environments (e.g. docker exec without -it), input() usually raises EOFError.
+        # Allow opt-in stdin pipe mode for web interface mediated confirmations.
+        if not sys.stdin.isatty() and not allow_stdin_pipe:
+            GV.LOGGER.warning(
+                "Confirmation requested but stdin is non-interactive (non-TTY). "
+                "Use '--no-request-user-confirmation' to run in non-interactive mode."
+            )
+            return False
+
+        GV.LOGGER.info("Awaiting user confirmation (yes/no)...")
         while True:
-            response = input("Do you want to continue? (yes/no): ").strip().lower()
+            try:
+                response = input("Do you want to continue? (yes/no): ").strip().lower()
+            except EOFError:
+                GV.LOGGER.warning(
+                    "No input received (EOF). Use '--no-request-user-confirmation' "
+                    "to run in non-interactive mode."
+                )
+                return False
             if response in ['yes', 'y']:
                 GV.LOGGER.info(f"Continuing...")
                 return True

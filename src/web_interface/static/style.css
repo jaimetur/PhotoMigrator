@@ -610,6 +610,7 @@ textarea.field__input {
     background: #0d1a1f;
     color: #d8f5df;
     padding: 10px;
+    min-height: 3.2rem;
     font-family: "JetBrains Mono", Consolas, monospace;
     margin-bottom: 10px;
     overflow-wrap: anywhere;
@@ -617,7 +618,70 @@ textarea.field__input {
 
 .status {
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 0;
+}
+
+.output-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-top: 2px;
+}
+
+.output-toolbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.output-toolbar .ghost-btn {
+    padding: 7px 12px;
+}
+
+#copy-log-btn {
+    background: var(--accent);
+    color: #ffffff;
+    border: 0;
+}
+
+#copy-log-btn:hover {
+    background: var(--accent);
+    filter: brightness(0.95);
+}
+
+.autos-scroll {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.hidden-file-input {
+    display: none;
+}
+
+.job-input-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.job-input-controls.hidden {
+    display: none;
+}
+
+.job-input-label {
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.job-input-controls .run-btn {
+    margin-top: 0;
+    padding: 6px 12px;
 }
 
 .terminal {
@@ -625,12 +689,42 @@ textarea.field__input {
     border-radius: 12px;
     background: #11181c;
     color: #e7efe8;
-    min-height: 210px;
-    max-height: 460px;
+    min-height: 420px;
+    max-height: 760px;
     overflow: auto;
     padding: 12px;
     font-size: 0.85rem;
     line-height: 1.4;
+}
+
+.log-line {
+    display: inline;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.log-verbose {
+    color: #69e0ff;
+}
+
+.log-debug {
+    color: #8ac6ff;
+}
+
+.log-info {
+    color: #e7efe8;
+}
+
+.log-warning {
+    color: #ffd76a;
+}
+
+.log-error {
+    color: #ff7f7f;
+}
+
+.log-critical {
+    color: #ff6ce0;
 }
 
 .folder-dialog {
@@ -644,6 +738,54 @@ textarea.field__input {
 
 .folder-dialog::backdrop {
     background: rgba(8, 14, 16, 0.5);
+}
+
+.confirm-dialog {
+    width: min(560px, 92vw);
+    border: 1px solid transparent;
+    padding: 0;
+    border-radius: 16px;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+}
+
+.confirm-dialog::backdrop {
+    background: rgba(8, 14, 16, 0.58);
+    backdrop-filter: blur(2px);
+}
+
+.confirm-dialog__card {
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    box-shadow: 0 22px 60px rgba(19, 33, 30, 0.33);
+    padding: 18px;
+}
+
+.confirm-dialog__title {
+    margin: 0 0 10px;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    color: #3c2217;
+    font-size: 1.08rem;
+}
+
+.confirm-dialog__message {
+    margin: 0;
+    color: #4d4e44;
+    line-height: 1.45;
+}
+
+.confirm-dialog__actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.confirm-dialog__actions .run-btn,
+.confirm-dialog__actions .ghost-btn {
+    margin-top: 0;
 }
 
 .folder-dialog__header {

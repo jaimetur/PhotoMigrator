@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 import textwrap
 from datetime import datetime
 
@@ -66,14 +67,28 @@ MSG_TAGS = {
     'ERROR'                     : "ERROR   : ",
     'CRITICAL'                  : "CRITICAL: ",
 }
-MSG_TAGS_COLORED = {
-    'VERBOSE'                   : f"{Fore.CYAN}{MSG_TAGS['VERBOSE']}",
-    'DEBUG'                     : f"{Fore.LIGHTCYAN_EX}{MSG_TAGS['DEBUG']}",
-    'INFO'                      : f"{Fore.LIGHTWHITE_EX}{MSG_TAGS['INFO']}",
-    'WARNING'                   : f"{Fore.YELLOW}{MSG_TAGS['WARNING']}",
-    'ERROR'                     : f"{Fore.RED}{MSG_TAGS['ERROR']}",
-    'CRITICAL'                  : f"{Fore.MAGENTA}{MSG_TAGS['CRITICAL']}",
-}
+def _supports_ansi_colors() -> bool:
+    if os.environ.get("NO_COLOR"):
+        return False
+    if not sys.stdout.isatty():
+        return False
+    term = os.environ.get("TERM", "")
+    if term in ("", "dumb", "linux", "xterm-mono"):
+        return False
+    return True
+
+
+if _supports_ansi_colors():
+    MSG_TAGS_COLORED = {
+        'VERBOSE'                   : f"{Fore.CYAN}{MSG_TAGS['VERBOSE']}",
+        'DEBUG'                     : f"{Fore.LIGHTCYAN_EX}{MSG_TAGS['DEBUG']}",
+        'INFO'                      : f"{Fore.LIGHTWHITE_EX}{MSG_TAGS['INFO']}",
+        'WARNING'                   : f"{Fore.YELLOW}{MSG_TAGS['WARNING']}",
+        'ERROR'                     : f"{Fore.RED}{MSG_TAGS['ERROR']}",
+        'CRITICAL'                  : f"{Fore.MAGENTA}{MSG_TAGS['CRITICAL']}",
+    }
+else:
+    MSG_TAGS_COLORED = MSG_TAGS.copy()
 
 # Supplemental Metadata Suffix
 SUPPLEMENTAL_METADATA           = "supplemental-metadata"

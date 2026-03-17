@@ -3,33 +3,29 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
+ENV_FILE="$SCRIPT_DIR/.env"
 
-# Timezone
-TZ="Europe/Madrid"
+# Load and export variables from .env to avoid duplicating config in this script.
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+else
+  echo "Warning: .env file not found at $ENV_FILE. Falling back to defaults."
+fi
 
-# Container Name
-CONTAINER_NAME="photomigrator-dev"
+# Dev-first mapping (uses *_DEV if provided in .env, otherwise regular vars/defaults)
+TZ="${TZ:-Europe/Madrid}"
+CONTAINER_NAME="${CONTAINER_NAME_DEV:-${CONTAINER_NAME:-photomigrator-dev}}"
+PORT="${PORT_DEV:-${PORT:-6071}}"
+APP_DIR="${APP_DIR:-../}"
+CONFIG_DIR="${CONFIG_DIR:-../config}"
+DATA_DIR="${DATA_DIR:-../data}"
+PUID="${PUID:-1001}"
+PGID="${PGID:-1001}"
 
-# Port
-PORT=6071
-
-# Change if you have other folder's deployment
-APP_DIR="../"
-CONFIG_DIR="../config"
-DATA_DIR="../data"
-
-# Change to your PUID/PGID
-PUID=1001
-PGID=1001
-
-export TZ
-export CONTAINER_NAME
-export PORT
-export APP_DIR
-export CONFIG_DIR
-export DATA_DIR
-export PUID
-export PGID
+export TZ CONTAINER_NAME PORT APP_DIR CONFIG_DIR DATA_DIR PUID PGID
 
 mkdir -p "$APP_DIR"
 mkdir -p "$CONFIG_DIR"

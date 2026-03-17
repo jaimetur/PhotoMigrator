@@ -23,7 +23,10 @@ from Utils.StandaloneUtils import change_working_dir, custom_print
 # -------------------------------------------------------------
 def PhotoMigrator():
     # Limpiar la pantalla y parseamos argumentos de entrada
-    os.system('cls' if os.name == 'nt' else 'clear')
+    if os.name == 'nt':
+        os.system('cls')
+    elif os.environ.get('TERM') and sys.stdout.isatty():
+        os.system('clear')
 
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
     change_working_dir(change_dir=True)

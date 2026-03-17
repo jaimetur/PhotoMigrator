@@ -153,10 +153,9 @@ def resolve_external_path(user_path, step_name=''):
 
     Inside Docker:
       - If the path has a Windows drive letter (e.g. C:), raise an error.
-      - If it's an absolute path and doesn't start with /docker, raise an error.
-      - If it's absolute and starts with /docker, accept it as is.
-      - If it's relative, join it under /docker, then normalize. If the result
-        escapes /docker (e.g. /docker/../somefolder => /somefolder), raise an error.
+      - Absolute paths are allowed only under /docker or /app.
+      - If it's relative, join it under docker base root (default: /docker),
+        then normalize. If the result escapes that root, raise an error.
     Outside Docker:
       - Return the absolute path normally.
     """
@@ -175,44 +174,58 @@ def resolve_external_path(user_path, step_name=''):
     drive, tail = os.path.splitdrive(path_clean)
 
     if is_inside_docker():
+        docker_base_root = os.environ.get("PHOTOMIGRATOR_DOCKER_BASE_PATH", "/docker").strip() or "/docker"
+        docker_base_root = posixpath.normpath(docker_base_root)
+        allowed_roots = ["/docker", "/app", docker_base_root]
+
+        def _is_under_allowed_root(candidate_path: str) -> bool:
+            normalized_candidate = posixpath.normpath(candidate_path)
+            for root in allowed_roots:
+                normalized_root = posixpath.normpath(root)
+                if normalized_candidate == normalized_root or normalized_candidate.startswith(normalized_root + "/"):
+                    return True
+            return False
+
         # (a) If there's a Windows drive letter, raise an error
         if len(drive) == 2 and drive[1] == ":" and drive[0].isalpha():
             raise ValueError(
                 f"Cannot use paths with a Windows drive letter '{drive}' inside Docker."
                 f"\nWrong Path detected: {user_path}"
-                f"\nPlease provide a path under /docker or under the execution folder."
+                f"\nPlease provide a path under /docker, /app, or under the execution folder."
             )
 
         # (b) Check if path is absolute in a Unix sense
         if path_clean.startswith("/"):
-            # Must start with "/docker" or raise an error
-            if not path_clean.startswith("/docker"):
+            if not _is_under_allowed_root(path_clean):
                 raise ValueError(
-                    f"Absolute path '{path_clean}' is outside the '/docker' folder."
-                    f"\nPlease provide a path under /docker or under the execution folder."
+                    f"Absolute path '{path_clean}' is outside allowed Docker folders: {', '.join(allowed_roots)}."
+                    f"\nPlease provide a path under /docker, /app, or under the execution folder."
                 )
-            # Normalize again and ensure it still stays under /docker
+            # Normalize again and ensure it still stays under allowed Docker folders
             final_path = posixpath.normpath(path_clean)
-            if not final_path.startswith("/docker"):
+            if not _is_under_allowed_root(final_path):
                 raise ValueError(
-                    f"Path '{user_path}' escapes from '/docker' after normalization."
+                    f"Path '{user_path}' escapes from allowed Docker folders after normalization."
                     f"\nResult: '{final_path}'"
-                    f"\nPlease provide a path under /docker or under the execution folder."
+                    f"\nPlease provide a path under /docker, /app, or under the execution folder."
                 )
             return final_path
 
-        # (c) If it's relative, join it under /docker and then normalize again
+        # (c) If it's relative, join it under docker base root and then normalize again
         else:
-            joined_path = posixpath.join("/docker", path_clean)
+            joined_path = posixpath.join(docker_base_root, path_clean)
             final_path = posixpath.normpath(joined_path)
 
-            # If after normalization it no longer starts with /docker, that means
-            # we used '..' to escape the /docker directory => raise an error
-            if not final_path.startswith("/docker"):
+            # If after normalization it no longer starts with docker_base_root, that means
+            # we used '..' to escape the configured root => raise an error
+            if not (
+                final_path == docker_base_root
+                or final_path.startswith(docker_base_root + "/")
+            ):
                 raise ValueError(
-                    f"Relative path '{user_path}' escapes from '/docker' after normalization.\n"
+                    f"Relative path '{user_path}' escapes from '{docker_base_root}' after normalization.\n"
                     f"Resulting path: '{final_path}'\n"
-                    "Please do not use '..' to go outside /docker."
+                    f"Please do not use '..' to go outside {docker_base_root}."
                 )
             return final_path
     else:
@@ -230,6 +243,18 @@ def is_inside_docker():
     """
     return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
 
+
+def _supports_ansi_colors() -> bool:
+    """Best-effort ANSI color support detection."""
+    if os.environ.get("NO_COLOR"):
+        return False
+    if not sys.stdout.isatty():
+        return False
+    term = os.environ.get("TERM", "")
+    if term in ("", "dumb", "linux", "xterm-mono"):
+        return False
+    return True
+
 #------------------------------------------------------------------
 # Replace original print to use the same GV.LOGGER formatter
 def custom_print(*args, log_level=logging.INFO, **kwargs):
@@ -243,5 +268,9 @@ def custom_print(*args, log_level=logging.INFO, **kwargs):
     """
     message = " ".join(str(a) for a in args)
     log_level_name = logging.getLevelName(log_level)
-    colortag = MSG_TAGS_COLORED.get(log_level_name, MSG_TAGS_COLORED['INFO'])
-    print(f"{colortag}{message}{Style.RESET_ALL}", **kwargs)
+    if _supports_ansi_colors():
+        colortag = MSG_TAGS_COLORED.get(log_level_name, MSG_TAGS_COLORED['INFO'])
+        print(f"{colortag}{message}{Style.RESET_ALL}", **kwargs)
+    else:
+        plain_tag = MSG_TAGS.get(log_level_name, MSG_TAGS['INFO'])
+        print(f"{plain_tag}{message}", **kwargs)
