@@ -1164,6 +1164,18 @@ body.is-resizing-log {
     color: #ff6ce0;
 }
 
+.log-pull {
+    color: #7db7ff;
+}
+
+.log-push {
+    color: #6fe39f;
+}
+
+.log-duplicate {
+    color: #9da7ad;
+}
+
 .folder-dialog {
     width: min(940px, 96vw);
     height: min(840px, 92vh);

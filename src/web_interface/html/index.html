@@ -472,19 +472,48 @@
             .replace(/'/g, "&#39;");
     }
 
+    function stripAnsi(text) {
+        return String(text || "").replace(/\x1B\[[0-9;]*[A-Za-z]/g, "");
+    }
+
+    function classifyLogLine(line) {
+        const cleaned = stripAnsi(line).replace(/\r/g, "");
+        const normalized = cleaned.trimStart();
+        const normalizedLower = normalized.toLowerCase();
+
+        if (/\bduplicat(?:e|ed|es|ion)?\b/.test(normalizedLower) || /\bdupplicat(?:e|ed|es|ion)?\b/.test(normalizedLower)) {
+            return "log-duplicate";
+        }
+
+        if (/\berror\s*:/.test(normalizedLower)) return "log-error";
+        if (/\bcritical\s*:/.test(normalizedLower)) return "log-critical";
+        if (/\bwarning\s*:/.test(normalizedLower)) return "log-warning";
+        if (/\bdebug\s*:/.test(normalizedLower)) return "log-debug";
+        if (/\bverbose\s*:/.test(normalizedLower)) return "log-verbose";
+
+        // Keep pull/push semantic coloring even for INFO lines.
+        if (/(asset|album)\s+pull(?:ed| fail| error)?\s*:/.test(normalizedLower) || /\bpuller\b/.test(normalizedLower)) {
+            return "log-pull";
+        }
+        if (/(asset|album)\s+push(?:ed| fail| error)?\s*:/.test(normalizedLower) || /\bpusher\b/.test(normalizedLower)) {
+            return "log-push";
+        }
+
+        if (/\binfo\s*:/.test(normalizedLower)) return "log-info";
+        return "";
+    }
+
     function renderOutputWithLevels(rawText) {
         const outputEl = document.getElementById("output");
         lastRawOutput = rawText || "";
         const lines = (rawText || "").split("\n");
         const html = lines.map((line) => {
-            const safe = escapeHtml(line);
-            if (/^VERBOSE\s*:/.test(line)) return `<span class="log-line log-verbose">${safe}</span>`;
-            if (/^DEBUG\s*:/.test(line)) return `<span class="log-line log-debug">${safe}</span>`;
-            if (/^INFO\s*:/.test(line)) return `<span class="log-line log-info">${safe}</span>`;
-            if (/^WARNING\s*:/.test(line)) return `<span class="log-line log-warning">${safe}</span>`;
-            if (/^ERROR\s*:/.test(line)) return `<span class="log-line log-error">${safe}</span>`;
-            if (/^CRITICAL\s*:/.test(line)) return `<span class="log-line log-critical">${safe}</span>`;
-            return `<span class="log-line">${safe}</span>`;
+            const cleaned = stripAnsi(line).replace(/\r/g, "");
+            const safe = escapeHtml(cleaned);
+            const cls = classifyLogLine(cleaned);
+            return cls
+                ? `<span class="log-line ${cls}">${safe}</span>`
+                : `<span class="log-line">${safe}</span>`;
         }).join("\n");
         outputEl.innerHTML = html;
         if (uiState.auto_scroll !== false) {
