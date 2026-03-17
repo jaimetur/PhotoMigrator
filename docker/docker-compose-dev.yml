@@ -12,6 +12,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - PHOTOMIGRATOR_WEB_DELETE_ROOTS=${PHOTOMIGRATOR_WEB_DELETE_ROOTS}
       - PYTHONUNBUFFERED=1
       - WATCHFILES_FORCE_POLLING=true
     command: uvicorn src.web_interface.app:app --host 0.0.0.0 --port 6078 --reload
@@ -19,6 +20,7 @@ services:
       - ${APP_DIR}:/app
       - ${CONFIG_DIR}:/app/config
       - ${DATA_DIR}:/app/data
+      - ${VOLUMES_DIR}:/app/volumes
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:6078/healthz', timeout=5)"]

@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -24,6 +25,10 @@ CLI_ENTRYPOINT = SRC_ROOT / "PhotoMigrator.py"
 CONFIG_FILE_PATH = Path(os.environ.get("PHOTOMIGRATOR_CONFIG_PATH", "/app/config/Config.ini"))
 STATE_FILE_PATH = Path(os.environ.get("PHOTOMIGRATOR_STATE_PATH", "/app/config/web_interface_state.json"))
 WEB_HOME_PATH = Path(os.environ.get("PHOTOMIGRATOR_DOCKER_BASE_PATH", "/app/data")).resolve()
+WEB_FS_ROOT = WEB_HOME_PATH if WEB_HOME_PATH.exists() else PROJECT_ROOT.resolve()
+DELETE_ALLOWED_ROOTS_DEFAULT = [Path("/app/data"), Path("/app/config"), Path("/app/volumes")]
+_delete_roots_env = [item.strip() for item in os.environ.get("PHOTOMIGRATOR_WEB_DELETE_ROOTS", "").split(",") if item.strip()]
+DELETE_ALLOWED_ROOTS = [Path(item).expanduser().resolve() for item in _delete_roots_env] if _delete_roots_env else [p.resolve() for p in DELETE_ALLOWED_ROOTS_DEFAULT]
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
@@ -160,6 +165,11 @@ class StateUpdateRequest(BaseModel):
 class FolderCreateRequest(BaseModel):
     path: str = "/app/data"
     name: str = ""
+
+
+class FolderDeleteRequest(BaseModel):
+    paths: List[str] = Field(default_factory=list)
+    recursive: bool = True
 
 
 class JobData:
@@ -430,6 +440,16 @@ def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> s
     return required
 
 
+def _allowed_delete_root_for_path(target: Path) -> Path | None:
+    for root in DELETE_ALLOWED_ROOTS:
+        try:
+            target.relative_to(root)
+            return root
+        except ValueError:
+            continue
+    return None
+
+
 def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
     job = JOBS[job_id]
     try:
@@ -569,12 +589,12 @@ def save_config(payload: ConfigUpdateRequest) -> Dict[str, Any]:
 
 
 @app.get("/api/fs/list")
-def list_directories(path: str = Query("/app/data")) -> Dict[str, Any]:
+def list_directories(path: str = Query(str(WEB_FS_ROOT))) -> Dict[str, Any]:
     current = Path(path).expanduser()
     if not current.is_absolute():
         current = (Path("/app") / current).resolve()
     if not current.exists():
-        fallback_candidates = [Path("/app/data"), Path("/app"), PROJECT_ROOT]
+        fallback_candidates = [WEB_FS_ROOT, WEB_HOME_PATH, Path("/app"), PROJECT_ROOT]
         fallback = next((candidate for candidate in fallback_candidates if candidate.exists() and candidate.is_dir()), None)
         if fallback is None:
             raise HTTPException(status_code=404, detail=f"Path not found: {current}")
@@ -588,6 +608,31 @@ def list_directories(path: str = Query("/app/data")) -> Dict[str, Any]:
             dirs.append({"name": item.name, "path": str(item)})
     parent = str(current.parent) if current.parent != current else None
     return {"path": str(current), "parent": parent, "directories": dirs}
+
+
+@app.get("/api/fs/list-files")
+def list_csv_files(path: str = Query(str(WEB_FS_ROOT))) -> Dict[str, Any]:
+    current = Path(path).expanduser()
+    if not current.is_absolute():
+        current = (Path("/app") / current).resolve()
+    if not current.exists():
+        fallback_candidates = [WEB_FS_ROOT, WEB_HOME_PATH, Path("/app"), PROJECT_ROOT]
+        fallback = next((candidate for candidate in fallback_candidates if candidate.exists() and candidate.is_dir()), None)
+        if fallback is None:
+            raise HTTPException(status_code=404, detail=f"Path not found: {current}")
+        current = fallback
+    if not current.is_dir():
+        raise HTTPException(status_code=400, detail=f"Path is not a directory: {current}")
+
+    dirs: List[Dict[str, str]] = []
+    files: List[Dict[str, str]] = []
+    for item in sorted(current.iterdir(), key=lambda p: p.name.lower()):
+        if item.is_dir():
+            dirs.append({"name": item.name, "path": str(item)})
+        elif item.is_file() and item.suffix.lower() == ".csv":
+            files.append({"name": item.name, "path": str(item)})
+    parent = str(current.parent) if current.parent != current else None
+    return {"path": str(current), "parent": parent, "directories": dirs, "files": files}
 
 
 @app.post("/api/fs/mkdir")
@@ -608,11 +653,11 @@ def make_directory(payload: FolderCreateRequest) -> Dict[str, Any]:
     if name_path.is_absolute():
         target = name_path.resolve()
         try:
-            target.relative_to(WEB_HOME_PATH)
+            target.relative_to(WEB_FS_ROOT)
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Absolute path must be inside home folder: {WEB_HOME_PATH}",
+                detail=f"Absolute path must be inside home folder: {WEB_FS_ROOT}",
             )
     else:
         if "/" in name or "\\" in name:
@@ -623,6 +668,51 @@ def make_directory(payload: FolderCreateRequest) -> Dict[str, Any]:
         raise HTTPException(status_code=409, detail=f"Folder already exists: {target}")
     target.mkdir(parents=True, exist_ok=False)
     return {"created": True, "path": str(target), "parent": str(parent)}
+
+
+@app.post("/api/fs/rmdir")
+def remove_directories(payload: FolderDeleteRequest) -> Dict[str, Any]:
+    requested_paths = [str(item or "").strip() for item in (payload.paths or []) if str(item or "").strip()]
+    if not requested_paths:
+        raise HTTPException(status_code=400, detail="At least one folder path is required.")
+
+    removed: List[str] = []
+    failed: List[Dict[str, str]] = []
+
+    for raw_path in requested_paths:
+        target = Path(raw_path).expanduser()
+        if not target.is_absolute():
+            target = (Path("/app") / target).resolve()
+        else:
+            target = target.resolve()
+
+        allowed_root = _allowed_delete_root_for_path(target)
+        if allowed_root is None:
+            allowed = ", ".join(str(root) for root in DELETE_ALLOWED_ROOTS)
+            failed.append({"path": str(target), "detail": f"Folder must be inside one of: {allowed}"})
+            continue
+        if target == allowed_root:
+            failed.append({"path": str(target), "detail": f"Base folder cannot be removed: {allowed_root}"})
+            continue
+        if not target.exists():
+            failed.append({"path": str(target), "detail": "Folder does not exist."})
+            continue
+        if not target.is_dir():
+            failed.append({"path": str(target), "detail": "Path is not a folder."})
+            continue
+
+        try:
+            if payload.recursive:
+                shutil.rmtree(target)
+            else:
+                target.rmdir()
+            removed.append(str(target))
+        except Exception as error:
+            failed.append({"path": str(target), "detail": str(error)})
+
+    if not removed:
+        raise HTTPException(status_code=400, detail={"removed": removed, "failed": failed})
+    return {"removed": removed, "failed": failed}
 
 
 @app.post("/api/preview")

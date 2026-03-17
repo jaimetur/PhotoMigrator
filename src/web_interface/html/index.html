@@ -160,12 +160,30 @@
             <button type="button" id="folder-close" class="action-btn action-btn--close" onclick="closeFolderDialogs()">Close</button>
         </div>
     </div>
-    <div class="folder-toolbar">
-        <input id="folder-path-input" class="field__input" type="text" value="/app/data">
-        <button type="button" id="folder-select" class="action-btn action-btn--select">Select</button>
+    <div class="folder-current-row">
+        <div id="folder-current" class="folder-current"></div>
+        <button type="button" id="folder-use-current" class="action-btn action-btn--select">Use Current</button>
     </div>
-    <div id="folder-current" class="folder-current"></div>
+    <div class="folder-toolbar">
+        <input id="folder-path-input" class="field__input" type="text" placeholder="Selected folders (comma-separated)" readonly>
+        <button type="button" id="folder-use-selected" class="action-btn action-btn--select">Use Selected</button>
+    </div>
     <div id="folder-list" class="folder-list"></div>
+</dialog>
+
+<dialog id="file-dialog" class="folder-dialog">
+    <div class="folder-dialog__header">
+        <h3>Select CSV File</h3>
+        <div class="folder-dialog__actions">
+            <button type="button" id="file-close" class="action-btn action-btn--close">Close</button>
+        </div>
+    </div>
+    <div class="folder-toolbar">
+        <input id="file-path-input" class="field__input" type="text" value="/app/data" readonly>
+        <button type="button" id="file-select" class="action-btn action-btn--select" disabled>Select File</button>
+    </div>
+    <div id="file-current" class="folder-current"></div>
+    <div id="file-list" class="folder-list"></div>
 </dialog>
 
 <dialog id="folder-create-dialog" class="confirm-dialog">
@@ -195,6 +213,18 @@
     </div>
 </dialog>
 
+<dialog id="notice-dialog" class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h3 id="notice-dialog-title" class="confirm-dialog__title">Notice</h3>
+        <p id="notice-dialog-message" class="confirm-dialog__message">
+            Message
+        </p>
+        <div class="confirm-dialog__actions">
+            <button type="button" id="notice-dialog-close" class="run-btn">OK</button>
+        </div>
+    </div>
+</dialog>
+
 <template id="field-template">
     <label class="field">
         <span class="field__name"></span>
@@ -209,7 +239,7 @@
         google_takeout: "GOOGLE PHOTOS",
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
-        standalone_features: "OTHER STANDALONE FEATURES"
+        standalone_features: "OTHER FEATURES"
     };
 
     const GENERAL_TAB_NAMES = {
@@ -231,6 +261,12 @@
     let currentJob = null;
     let pollTimer = null;
     let folderTargetInput = null;
+    let fileTargetInput = null;
+    let fileSelectedPath = "";
+    let folderDialogAllowsMultiSelect = false;
+    let folderSelectionPaths = new Set();
+    let folderSelectionLastIndex = null;
+    let folderSelectionParentPath = "";
     let cloudActionDest = "";
     let standaloneActionDest = "";
     let migrationEndpointsState = {
@@ -241,6 +277,16 @@
     const ARG_LABELS = {
         "output-folder": "Output Folder",
         "input-folder": "Input Folder",
+        "upload-albums": "Albums Folder",
+        "download-albums": "Albums Name(s)",
+        "upload-all": "Input Folder",
+        "download-all": "Output Folder",
+        "rename-albums": "Rename Pattern(s)",
+        "remove-albums": "Albums Name Pattern",
+        "find-duplicates": "Find Duplicates Input",
+        "process-duplicates": "Duplicates CSV",
+        "rename-folders-content-based": "ALBUMS_FOLDER",
+        "fix-symlinks-broken": "FOLDER_TO_FIX",
         "configuration-file": "Configuration File",
         "albums-folders": "Albums Folders",
         "no-request-user-confirmation": "request-user-confirmation",
@@ -252,6 +298,25 @@
         "move-assets": "Move Assets",
         "dashboard": "Dashboard",
         "parallel-migration": "Parallel Migration"
+    };
+
+    const FEATURE_LABELS = {
+        "upload-albums": "Upload Albums",
+        "download-albums": "Download Albums",
+        "upload-all": "Upload All",
+        "download-all": "Download All",
+        "rename-albums": "Rename Albums",
+        "remove-albums": "Remove Albums",
+        "remove-all-albums": "Remove All Albums",
+        "remove-all-assets": "Remove All Assets",
+        "remove-empty-albums": "Remove Empty Albums",
+        "remove-duplicates-albums": "Remove Duplicates Albums",
+        "merge-duplicates-albums": "Merge Duplicates Albums",
+        "remove-orphan-assets": "Remove Orphan Assets",
+        "fix-symlinks-broken": "Fix Broken Symlinks",
+        "rename-folders-content-based": "Auto Rename Folders Content Based",
+        "find-duplicates": "Find Duplicates",
+        "process-duplicates": "Process Duplicates"
     };
 
     function uiCheckboxValueForDest(dest, persisted) {
@@ -310,12 +375,59 @@
         return field.long_option.replace(/^--/, "");
     }
 
+    function uiFeatureName(fieldOrDest) {
+        const dest = typeof fieldOrDest === "string" ? fieldOrDest : fieldOrDest?.dest;
+        if (!dest) return "";
+        if (FEATURE_LABELS[dest]) return FEATURE_LABELS[dest];
+        return dest
+            .split("-")
+            .map((part) => part ? (part[0].toUpperCase() + part.slice(1)) : part)
+            .join(" ");
+    }
+
     function uiHelpText(field) {
         if (field?.dest === "no-request-user-confirmation") {
             return "Request user confirmation before executing any feature.";
         }
         const raw = (field?.help || "");
         return raw.replaceAll("--no-request-user-confirmation", "--request-user-confirmation");
+    }
+
+    function optionalArgsDescription(optionalFields) {
+        const dedup = new Map();
+        (optionalFields || []).forEach((field) => {
+            if (field?.dest && !dedup.has(field.dest)) dedup.set(field.dest, field);
+        });
+        const parts = [];
+        dedup.forEach((field) => {
+            const label = ARG_LABELS[field.dest] || uiOptionName(field);
+            const help = uiHelpText(field).replace(/\s+/g, " ").trim();
+            if (help) parts.push(`${label}: ${help}`);
+        });
+        if (!parts.length) return "";
+        return ` Optional arguments: ${parts.join(" | ")}`;
+    }
+
+    function parseFindDuplicatesValue(rawValue) {
+        const parts = parseFolderListValue(String(rawValue || ""));
+        let action = "list";
+        const folders = [];
+        parts.forEach((part) => {
+            const low = String(part || "").trim().toLowerCase();
+            if (low === "list" || low === "move" || low === "remove" || low === "delete") {
+                action = low === "remove" ? "delete" : low;
+            } else if (part) {
+                folders.push(part);
+            }
+        });
+        return {action, folders};
+    }
+
+    function composeFindDuplicatesValue(actionUi, folders) {
+        const normalizedFolders = (folders || []).map((item) => String(item || "").trim()).filter(Boolean);
+        if (!normalizedFolders.length) return "";
+        const actionCli = String(actionUi || "list").toLowerCase() === "delete" ? "remove" : String(actionUi || "list").toLowerCase();
+        return [actionCli, ...normalizedFolders].join(", ");
     }
 
     function applyTheme(themeKey, persist = true) {
@@ -778,14 +890,20 @@
         input.dataset.dest = field.dest;
         wrapper.appendChild(input);
 
-        if (field.path_hint === "path" && field.kind !== "flag" && field.kind !== "bool" && field.kind !== "select") {
+        if ((field.path_hint === "path" || field.dest === "process-duplicates") && field.kind !== "flag" && field.kind !== "bool" && field.kind !== "select") {
             const browseBtn = document.createElement("button");
             browseBtn.type = "button";
             browseBtn.className = "ghost-btn browse-btn";
             browseBtn.textContent = "···";
-            browseBtn.title = "Open folder selector";
-            browseBtn.setAttribute("aria-label", "Open folder selector");
-            browseBtn.addEventListener("click", () => openFolderDialog(input));
+            if (field.dest === "process-duplicates") {
+                browseBtn.title = "Open CSV selector";
+                browseBtn.setAttribute("aria-label", "Open CSV selector");
+                browseBtn.addEventListener("click", () => openCsvFileDialog(input));
+            } else {
+                browseBtn.title = "Open folder selector";
+                browseBtn.setAttribute("aria-label", "Open folder selector");
+                browseBtn.addEventListener("click", () => openFolderDialog(input));
+            }
             wrapper.appendChild(browseBtn);
         }
         return wrapper;
@@ -1175,7 +1293,7 @@
         select.className = "field__input";
         select.id = "cloud-action-select";
         actions.forEach((action) => {
-            select.add(new Option(uiOptionName(action), action.dest));
+            select.add(new Option(uiFeatureName(action), action.dest));
         });
         select.value = cloudActionDest;
         select.addEventListener("change", (event) => {
@@ -1230,9 +1348,15 @@
         rightTitle.textContent = "Selected module";
         const rightName = document.createElement("div");
         rightName.className = "desc-card__name";
-        rightName.textContent = selected ? uiOptionName(selected) : "-";
+        rightName.textContent = selected ? uiFeatureName(selected) : "-";
         const rightHelp = document.createElement("p");
-        rightHelp.textContent = uiHelpText(selected);
+        const optionalFieldsForDescription = argSpecs
+            .filter((spec) => !spec.required)
+            .map((spec) => spec.field);
+        if (otpField && (tabKey === "synology_photos" || tabKey === "immich_photos")) {
+            optionalFieldsForDescription.push(normalizeFieldForContext(otpField, tabKey));
+        }
+        rightHelp.textContent = `${uiHelpText(selected)}${optionalArgsDescription(optionalFieldsForDescription)}`;
         right.appendChild(rightTitle);
         right.appendChild(rightName);
         right.appendChild(rightHelp);
@@ -1272,7 +1396,7 @@
         select.className = "field__input";
         select.id = "standalone-action-select";
         actions.forEach((action) => {
-            select.add(new Option(uiOptionName(action), action.dest));
+            select.add(new Option(uiFeatureName(action), action.dest));
         });
         select.value = standaloneActionDest;
         select.addEventListener("change", (event) => {
@@ -1288,7 +1412,79 @@
         left.appendChild(selectRow);
 
         const argSpecs = buildArgumentSpecs("standalone_features", selected, true);
-        if (!argSpecs.length) {
+        if (selected && selected.dest === "find-duplicates") {
+            const persistedRaw = stateValues["find-duplicates"];
+            const parsed = parseFindDuplicatesValue(persistedRaw);
+
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.dataset.dest = "find-duplicates";
+            left.appendChild(hidden);
+
+            const foldersRow = document.createElement("div");
+            foldersRow.className = "arg-row";
+            const foldersLabel = document.createElement("label");
+            foldersLabel.className = "arg-label";
+            foldersLabel.textContent = "Folder(s)";
+            const foldersBadge = document.createElement("span");
+            foldersBadge.className = "arg-badge arg-badge--required";
+            foldersBadge.textContent = "Required";
+            foldersLabel.appendChild(foldersBadge);
+            foldersRow.appendChild(foldersLabel);
+
+            const foldersWrap = document.createElement("div");
+            foldersWrap.className = "input-row";
+            const foldersInput = document.createElement("input");
+            foldersInput.type = "text";
+            foldersInput.className = "field__input";
+            foldersInput.placeholder = "Comma-separated folders";
+            foldersInput.value = parsed.folders.join(", ");
+            foldersInput.dataset.folderMulti = "1";
+            foldersWrap.appendChild(foldersInput);
+
+            const browseBtn = document.createElement("button");
+            browseBtn.type = "button";
+            browseBtn.className = "ghost-btn browse-btn";
+            browseBtn.textContent = "...";
+            browseBtn.title = "Open folder selector";
+            browseBtn.setAttribute("aria-label", "Open folder selector");
+            browseBtn.addEventListener("click", () => openFolderDialog(foldersInput));
+            foldersWrap.appendChild(browseBtn);
+            foldersRow.appendChild(foldersWrap);
+            left.appendChild(foldersRow);
+
+            const actionRow = document.createElement("div");
+            actionRow.className = "arg-row";
+            const actionLabel = document.createElement("label");
+            actionLabel.className = "arg-label";
+            actionLabel.textContent = "Action";
+            const actionBadge = document.createElement("span");
+            actionBadge.className = "arg-badge arg-badge--required";
+            actionBadge.textContent = "Required";
+            actionLabel.appendChild(actionBadge);
+            actionRow.appendChild(actionLabel);
+
+            const actionInput = document.createElement("select");
+            actionInput.className = "field__input";
+            actionInput.add(new Option("list", "list"));
+            actionInput.add(new Option("move", "move"));
+            actionInput.add(new Option("delete", "delete"));
+            actionInput.value = parsed.action || "list";
+            actionRow.appendChild(actionInput);
+            left.appendChild(actionRow);
+
+            const syncFindDuplicatesValue = () => {
+                const folders = parseFolderListValue(foldersInput.value || "");
+                hidden.value = composeFindDuplicatesValue(actionInput.value || "list", folders);
+                stateValues["find-duplicates"] = hidden.value;
+                queueSaveState();
+                queueCommandPreview();
+            };
+            foldersInput.addEventListener("input", syncFindDuplicatesValue);
+            foldersInput.addEventListener("change", syncFindDuplicatesValue);
+            actionInput.addEventListener("change", syncFindDuplicatesValue);
+            syncFindDuplicatesValue();
+        } else if (!argSpecs.length) {
             const noArgs = document.createElement("div");
             noArgs.className = "arg-row";
             const lbl = document.createElement("label");
@@ -1310,9 +1506,12 @@
         title.textContent = "Selected feature";
         const name = document.createElement("div");
         name.className = "desc-card__name";
-        name.textContent = selected ? uiOptionName(selected) : "-";
+        name.textContent = selected ? uiFeatureName(selected) : "-";
         const help = document.createElement("p");
-        help.textContent = uiHelpText(selected);
+        const optionalFieldsForDescription = argSpecs
+            .filter((spec) => !spec.required)
+            .map((spec) => spec.field);
+        help.textContent = `${uiHelpText(selected)}${optionalArgsDescription(optionalFieldsForDescription)}`;
         right.appendChild(title);
         right.appendChild(name);
         right.appendChild(help);
@@ -1987,6 +2186,12 @@
         return response.json();
     }
 
+    async function listCsvFiles(path) {
+        const response = await fetch(`/api/fs/list-files?path=${encodeURIComponent(path)}`);
+        if (!response.ok) throw new Error(await response.text());
+        return response.json();
+    }
+
     async function createFolder(parentPath, folderName) {
         const response = await fetch("/api/fs/mkdir", {
             method: "POST",
@@ -2001,17 +2206,20 @@
         return data;
     }
 
-    async function renderFolderList(path) {
-        const dialog = document.getElementById("folder-dialog");
-        const pathInput = document.getElementById("folder-path-input");
-        const listEl = document.getElementById("folder-list");
-        const currentEl = document.getElementById("folder-current");
+    async function renderFileList(path) {
+        const pathInput = document.getElementById("file-path-input");
+        const listEl = document.getElementById("file-list");
+        const currentEl = document.getElementById("file-current");
+        const selectBtn = document.getElementById("file-select");
 
         try {
-            const data = await listFolders(path);
+            const data = await listCsvFiles(path);
             pathInput.value = data.path;
-            currentEl.textContent = `Current: ${data.path}`;
             listEl.innerHTML = "";
+            currentEl.textContent = fileSelectedPath
+                ? `Current: ${data.path} | Selected: ${fileSelectedPath}`
+                : `Current: ${data.path}`;
+            selectBtn.disabled = !fileSelectedPath;
 
             const quickActions = document.createElement("div");
             quickActions.className = "folder-quick-actions";
@@ -2020,17 +2228,267 @@
             homeBtn.type = "button";
             homeBtn.className = "folder-quick-btn folder-quick-btn--home";
             homeBtn.textContent = "Home";
+            homeBtn.addEventListener("click", () => renderFileList("/app/data"));
+            quickActions.appendChild(homeBtn);
+            listEl.appendChild(quickActions);
+
+            if (data.parent) {
+                const upRow = document.createElement("div");
+                upRow.className = "folder-item-row folder-item-row--up";
+                const spacer = document.createElement("input");
+                spacer.type = "checkbox";
+                spacer.className = "folder-item-check folder-item-check--placeholder";
+                spacer.disabled = true;
+                spacer.tabIndex = -1;
+                spacer.setAttribute("aria-hidden", "true");
+                const upBtn = document.createElement("button");
+                upBtn.type = "button";
+                upBtn.className = "folder-item folder-item--up-entry";
+                upBtn.textContent = "..";
+                upBtn.setAttribute("aria-label", "Go to parent folder");
+                upBtn.addEventListener("click", () => renderFileList(data.parent));
+                upRow.appendChild(spacer);
+                upRow.appendChild(upBtn);
+                listEl.appendChild(upRow);
+            }
+
+            data.directories.forEach((dir) => {
+                const row = document.createElement("div");
+                row.className = "folder-item-row";
+                const spacer = document.createElement("input");
+                spacer.type = "checkbox";
+                spacer.className = "folder-item-check folder-item-check--placeholder";
+                spacer.disabled = true;
+                spacer.tabIndex = -1;
+                spacer.setAttribute("aria-hidden", "true");
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "folder-item";
+                btn.textContent = dir.name;
+                btn.addEventListener("click", () => renderFileList(dir.path));
+                row.appendChild(spacer);
+                row.appendChild(btn);
+                listEl.appendChild(row);
+            });
+
+            data.files.forEach((file) => {
+                const row = document.createElement("div");
+                row.className = "folder-item-row";
+                const spacer = document.createElement("input");
+                spacer.type = "checkbox";
+                spacer.className = "folder-item-check folder-item-check--placeholder";
+                spacer.disabled = true;
+                spacer.tabIndex = -1;
+                spacer.setAttribute("aria-hidden", "true");
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "folder-item folder-item--file";
+                btn.textContent = file.name;
+                if (fileSelectedPath === file.path) row.classList.add("folder-item-row--checked");
+                btn.addEventListener("click", () => {
+                    fileSelectedPath = file.path;
+                    renderFileList(data.path);
+                });
+                row.appendChild(spacer);
+                row.appendChild(btn);
+                listEl.appendChild(row);
+            });
+        } catch (error) {
+            const raw = String(error);
+            const notFoundEndpoint = raw.includes("Not Found") || raw.includes("\"detail\":\"Not Found\"");
+            const friendly = notFoundEndpoint
+                ? "CSV endpoint not available in backend. Restart/update the web backend."
+                : raw;
+            listEl.innerHTML = `<div class="folder-error">Unable to open path: ${friendly}</div>`;
+            currentEl.textContent = `Current: ${path} | Error: ${friendly}`;
+            selectBtn.disabled = true;
+        }
+    }
+
+    function openCsvFileDialog(inputEl) {
+        fileTargetInput = inputEl;
+        fileSelectedPath = "";
+        const dialog = document.getElementById("file-dialog");
+        let initial = "/app/data";
+        const rawValue = String(inputEl?.value || "").trim();
+        if (rawValue.startsWith("/")) {
+            if (rawValue.toLowerCase().endsWith(".csv")) {
+                const slash = rawValue.lastIndexOf("/");
+                initial = slash > 0 ? rawValue.slice(0, slash) : "/app/data";
+                fileSelectedPath = rawValue;
+            } else {
+                initial = rawValue;
+            }
+        }
+        renderFileList(initial);
+        dialog.showModal();
+    }
+
+    async function removeFolders(paths) {
+        const response = await fetch("/api/fs/rmdir", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({paths, recursive: true})
+        });
+        let data = null;
+        let rawText = "";
+        try {
+            data = await response.json();
+        } catch (error) {
+            try {
+                rawText = await response.text();
+            } catch (_ignore) {
+                rawText = "";
+            }
+        }
+        if (!response.ok) {
+            const apiDetail = data && typeof data.detail === "string" ? data.detail.toLowerCase() : "";
+            if (response.status === 404 || apiDetail === "not found" || apiDetail === "not found.") {
+                throw new Error("Delete endpoint unavailable. Restart the web interface backend and try again.");
+            }
+            if (data && typeof data.detail === "string") throw new Error(data.detail);
+            if (data && data.detail && Array.isArray(data.detail.failed) && data.detail.failed.length > 0) {
+                throw new Error(String(data.detail.failed[0].detail || "Unable to remove selected folder(s)."));
+            }
+            const detail = rawText ? rawText.slice(0, 220) : `HTTP ${response.status}`;
+            throw new Error(`Unable to remove selected folder(s): ${detail}`);
+        }
+        return data || {removed: [], failed: []};
+    }
+
+    function folderDialogSupportsMultiSelection(inputEl) {
+        if (!inputEl) return false;
+        if (inputEl.tagName === "TEXTAREA") return true;
+        if (inputEl.dataset?.folderMulti === "1") return true;
+        return inputEl.dataset?.dest === "albums-folders";
+    }
+
+    function parseFolderListValue(value) {
+        return String(value || "")
+            .replaceAll("\r\n", "\n")
+            .replaceAll(",", "\n")
+            .split("\n")
+            .map((item) => item.trim())
+            .filter((item) => item !== "");
+    }
+
+    function applyFolderSelectionToTargetInput(selectedPaths) {
+        if (!folderTargetInput) return;
+        const normalized = Array.from(new Set((selectedPaths || []).map((item) => String(item || "").trim()).filter(Boolean)));
+        if (folderTargetInput.tagName === "TEXTAREA") {
+            folderTargetInput.value = normalized.join(", ");
+            return;
+        }
+
+        if (folderTargetInput.dataset?.folderMulti === "1") {
+            folderTargetInput.value = normalized.join(", ");
+            return;
+        }
+
+        if (folderTargetInput.dataset?.dest === "albums-folders") {
+            folderTargetInput.value = normalized.join(", ");
+            return;
+        }
+
+        folderTargetInput.value = normalized[0] || "";
+    }
+
+    function getSelectedFoldersInDirectoryOrder(directories) {
+        return (directories || [])
+            .map((dir) => dir.path)
+            .filter((dirPath) => folderSelectionPaths.has(dirPath));
+    }
+
+    function updateFolderPathInput(directories) {
+        const input = document.getElementById("folder-path-input");
+        if (!input) return;
+        const selectedPaths = getSelectedFoldersInDirectoryOrder(directories);
+        input.value = selectedPaths.join(", ");
+    }
+
+    function setFolderCurrentMessage(path, message = "") {
+        const currentEl = document.getElementById("folder-current");
+        if (!currentEl) return;
+        currentEl.textContent = message ? `Current: ${path} | ${message}` : `Current: ${path}`;
+    }
+
+    function updateFolderSelectionAtIndex(directories, index, checked, shiftKey) {
+        if (!Array.isArray(directories) || directories.length === 0 || index < 0 || index >= directories.length) return;
+
+        if (shiftKey && folderSelectionLastIndex !== null) {
+            const start = Math.min(folderSelectionLastIndex, index);
+            const end = Math.max(folderSelectionLastIndex, index);
+            for (let i = start; i <= end; i += 1) {
+                const path = directories[i]?.path;
+                if (!path) continue;
+                if (checked) folderSelectionPaths.add(path);
+                else folderSelectionPaths.delete(path);
+            }
+        } else {
+            const path = directories[index]?.path;
+            if (path) {
+                if (checked) folderSelectionPaths.add(path);
+                else folderSelectionPaths.delete(path);
+            }
+        }
+        folderSelectionLastIndex = index;
+    }
+
+    function updateFolderRemoveButtonState() {
+        const removeBtn = document.getElementById("folder-remove-selected");
+        if (!removeBtn) return;
+        const count = folderSelectionPaths.size;
+        removeBtn.disabled = count === 0;
+        removeBtn.textContent = count > 0 ? `Remove Selected (${count})` : "Remove Selected";
+    }
+
+    async function renderFolderList(path) {
+        const listEl = document.getElementById("folder-list");
+
+        try {
+            const data = await listFolders(path);
+            if (folderSelectionParentPath !== data.path) {
+                folderSelectionPaths.clear();
+                folderSelectionLastIndex = null;
+                folderSelectionParentPath = data.path;
+            }
+            updateFolderPathInput(data.directories);
+            setFolderCurrentMessage(data.path);
+            listEl.innerHTML = "";
+
+            const quickActions = document.createElement("div");
+            quickActions.className = "folder-quick-actions";
+
+            const selectAllWrap = document.createElement("label");
+            selectAllWrap.className = "folder-select-all";
+            const selectAllCheck = document.createElement("input");
+            selectAllCheck.type = "checkbox";
+            selectAllCheck.className = "folder-item-check";
+            const selectedCount = data.directories.filter((dir) => folderSelectionPaths.has(dir.path)).length;
+            selectAllCheck.checked = data.directories.length > 0 && selectedCount === data.directories.length;
+            selectAllCheck.indeterminate = selectedCount > 0 && selectedCount < data.directories.length;
+            selectAllCheck.addEventListener("change", () => {
+                if (selectAllCheck.checked) {
+                    data.directories.forEach((dir) => folderSelectionPaths.add(dir.path));
+                    folderSelectionLastIndex = data.directories.length > 0 ? data.directories.length - 1 : null;
+                } else {
+                    folderSelectionPaths.clear();
+                    folderSelectionLastIndex = null;
+                }
+                renderFolderList(data.path);
+            });
+            const selectAllText = document.createElement("span");
+            selectAllText.textContent = "All";
+            selectAllWrap.appendChild(selectAllCheck);
+            selectAllWrap.appendChild(selectAllText);
+            quickActions.appendChild(selectAllWrap);
+
+            const homeBtn = document.createElement("button");
+            homeBtn.type = "button";
+            homeBtn.className = "folder-quick-btn folder-quick-btn--home";
+            homeBtn.textContent = "Home";
             homeBtn.addEventListener("click", () => renderFolderList("/app/data"));
             quickActions.appendChild(homeBtn);
-
-            const upBtn = document.createElement("button");
-            upBtn.type = "button";
-            upBtn.className = "folder-quick-btn folder-quick-btn--up";
-            upBtn.textContent = "Up Folder";
-            upBtn.addEventListener("click", () => {
-                if (data.parent) renderFolderList(data.parent);
-            });
-            quickActions.appendChild(upBtn);
 
             const createBtn = document.createElement("button");
             createBtn.type = "button";
@@ -2042,32 +2500,124 @@
                 try {
                     const created = await createFolder(data.path, name);
                     await renderFolderList(data.path);
-                    document.getElementById("folder-current").textContent = `Current: ${data.path} | Created: ${created.path}`;
+                    setFolderCurrentMessage(data.path, `Created: ${created.path}`);
                 } catch (error) {
-                    document.getElementById("folder-current").textContent = `Current: ${data.path} | Create failed: ${String(error)}`;
+                    setFolderCurrentMessage(data.path, `Create failed: ${String(error)}`);
                 }
             });
             quickActions.appendChild(createBtn);
 
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.id = "folder-remove-selected";
+            removeBtn.className = "folder-quick-btn folder-quick-btn--remove";
+            removeBtn.textContent = "Remove Selected";
+            removeBtn.disabled = folderSelectionPaths.size === 0;
+            removeBtn.addEventListener("click", async () => {
+                const selectedPaths = data.directories
+                    .map((dir) => dir.path)
+                    .filter((dirPath) => folderSelectionPaths.has(dirPath));
+                if (selectedPaths.length === 0) return;
+                const confirmed = await askForConfirmation({
+                    title: "Delete Selected Folders?",
+                    message: `This will permanently delete ${selectedPaths.length} selected folder(s) and all their contents.`,
+                    acceptLabel: "Delete",
+                    danger: true
+                });
+                if (!confirmed) return;
+                try {
+                    const result = await removeFolders(selectedPaths);
+                    folderSelectionPaths.clear();
+                    folderSelectionLastIndex = null;
+                    await renderFolderList(data.path);
+                    const failedCount = Array.isArray(result.failed) ? result.failed.length : 0;
+                    setFolderCurrentMessage(data.path, `Removed: ${selectedPaths.length - failedCount} | Failed: ${failedCount}`);
+                } catch (error) {
+                    await showNoticeDialog({
+                        title: "Delete Failed",
+                        message: String(error),
+                        closeLabel: "Close"
+                    });
+                }
+            });
+            quickActions.appendChild(removeBtn);
+
             listEl.appendChild(quickActions);
 
-            for (const dir of data.directories) {
+            if (data.parent) {
+                const upRow = document.createElement("div");
+                upRow.className = "folder-item-row folder-item-row--up";
+
+                const spacer = document.createElement("input");
+                spacer.type = "checkbox";
+                spacer.className = "folder-item-check folder-item-check--placeholder";
+                spacer.disabled = true;
+                spacer.tabIndex = -1;
+                spacer.setAttribute("aria-hidden", "true");
+
+                const upBtn = document.createElement("button");
+                upBtn.type = "button";
+                upBtn.className = "folder-item folder-item--up-entry";
+                upBtn.textContent = "..";
+                upBtn.setAttribute("aria-label", "Go to parent folder");
+                upBtn.addEventListener("click", () => renderFolderList(data.parent));
+
+                upRow.appendChild(spacer);
+                upRow.appendChild(upBtn);
+                listEl.appendChild(upRow);
+            }
+
+            data.directories.forEach((dir, index) => {
+                const row = document.createElement("div");
+                row.className = "folder-item-row";
+
+                const checked = folderSelectionPaths.has(dir.path);
+                if (checked) row.classList.add("folder-item-row--checked");
+
+                const check = document.createElement("input");
+                check.type = "checkbox";
+                check.className = "folder-item-check";
+                check.checked = checked;
+                check.title = "Select folder";
+                check.setAttribute("aria-label", `Select ${dir.name}`);
+                check.addEventListener("click", (event) => {
+                    updateFolderSelectionAtIndex(data.directories, index, check.checked, event.shiftKey);
+                    updateFolderPathInput(data.directories);
+                    renderFolderList(data.path);
+                });
+
                 const btn = document.createElement("button");
                 btn.type = "button";
                 btn.className = "folder-item";
                 btn.textContent = dir.name;
                 btn.addEventListener("click", () => renderFolderList(dir.path));
-                listEl.appendChild(btn);
+
+                row.appendChild(check);
+                row.appendChild(btn);
+                listEl.appendChild(row);
+            });
+
+            updateFolderRemoveButtonState();
+            const selectedCountForPath = data.directories.filter((dir) => folderSelectionPaths.has(dir.path)).length;
+            if (selectedCountForPath > 0) {
+                setFolderCurrentMessage(data.path, `Selected: ${selectedCountForPath}`);
             }
         } catch (error) {
             listEl.innerHTML = `<div class="folder-error">Unable to open path: ${String(error)}</div>`;
+            setFolderCurrentMessage(path, `Error: ${String(error)}`);
         }
     }
 
     function openFolderDialog(inputEl) {
         folderTargetInput = inputEl;
+        folderDialogAllowsMultiSelect = folderDialogSupportsMultiSelection(inputEl);
+        folderSelectionPaths.clear();
+        folderSelectionLastIndex = null;
+        folderSelectionParentPath = "";
         const dialog = document.getElementById("folder-dialog");
-        const initial = inputEl.value && inputEl.value.startsWith("/") ? inputEl.value : "/app/data";
+        const candidates = parseFolderListValue(inputEl.value || "");
+        const initialCandidate = candidates.length > 0 ? candidates[candidates.length - 1] : "";
+        const initial = initialCandidate.startsWith("/") ? initialCandidate : "/app/data";
         renderFolderList(initial);
         dialog.showModal();
     }
@@ -2174,6 +2724,42 @@
         });
     }
 
+    function showNoticeDialog(options) {
+        const dialog = document.getElementById("notice-dialog");
+        const titleEl = document.getElementById("notice-dialog-title");
+        const messageEl = document.getElementById("notice-dialog-message");
+        const closeBtn = document.getElementById("notice-dialog-close");
+        const opts = typeof options === "string" ? {message: options} : (options || {});
+        titleEl.textContent = opts.title || "Notice";
+        messageEl.textContent = opts.message || "";
+        closeBtn.textContent = opts.closeLabel || "OK";
+        return new Promise((resolve) => {
+            const cleanup = () => {
+                closeBtn.removeEventListener("click", onClose);
+                dialog.removeEventListener("cancel", onClose);
+                dialog.removeEventListener("click", onBackdropClick);
+            };
+            const onClose = () => {
+                cleanup();
+                dialog.close();
+                resolve();
+            };
+            const onBackdropClick = (event) => {
+                const rect = dialog.getBoundingClientRect();
+                const inside =
+                    event.clientX >= rect.left &&
+                    event.clientX <= rect.right &&
+                    event.clientY >= rect.top &&
+                    event.clientY <= rect.bottom;
+                if (!inside) onClose();
+            };
+            closeBtn.addEventListener("click", onClose);
+            dialog.addEventListener("cancel", onClose);
+            dialog.addEventListener("click", onBackdropClick);
+            dialog.showModal();
+        });
+    }
+
     function forceCloseDialogById(dialogId) {
         const dialog = document.getElementById(dialogId);
         if (!dialog) return;
@@ -2186,7 +2772,19 @@
 
     function closeFolderDialogs() {
         forceCloseDialogById("folder-create-dialog");
+        forceCloseDialogById("notice-dialog");
+        forceCloseDialogById("file-dialog");
         forceCloseDialogById("folder-dialog");
+        folderSelectionPaths.clear();
+        folderSelectionLastIndex = null;
+        folderSelectionParentPath = "";
+        fileSelectedPath = "";
+        fileTargetInput = null;
+        const pathInput = document.getElementById("folder-path-input");
+        if (pathInput) {
+            pathInput.value = "";
+            pathInput.placeholder = "Selected folders (comma-separated)";
+        }
     }
 
     window.closeFolderDialogs = closeFolderDialogs;
@@ -2208,14 +2806,24 @@
             queueSaveState();
         });
         document.getElementById("folder-close").addEventListener("click", closeFolderDialogs);
-        document.getElementById("folder-select").addEventListener("click", () => {
-            const current = document.getElementById("folder-path-input").value || "/app/data";
-            if (!folderTargetInput) return;
-            if (folderTargetInput.tagName === "TEXTAREA") {
-                folderTargetInput.value = folderTargetInput.value ? `${folderTargetInput.value}\n${current}` : current;
-            } else {
-                folderTargetInput.value = current;
+        document.getElementById("file-close").addEventListener("click", closeFolderDialogs);
+        document.getElementById("file-select").addEventListener("click", () => {
+            if (!fileTargetInput || !fileSelectedPath) return;
+            fileTargetInput.value = fileSelectedPath;
+            fileTargetInput.dispatchEvent(new Event("input", {bubbles: true}));
+            fileTargetInput.dispatchEvent(new Event("change", {bubbles: true}));
+            const dest = fileTargetInput.dataset.dest;
+            if (dest) {
+                stateValues[dest] = fileTargetInput.value;
+                queueSaveState();
+                queueCommandPreview();
             }
+            closeFolderDialogs();
+        });
+        document.getElementById("folder-use-current").addEventListener("click", () => {
+            const current = folderSelectionParentPath || "/app/data";
+            if (!folderTargetInput) return;
+            applyFolderSelectionToTargetInput([current]);
             folderTargetInput.dispatchEvent(new Event("input", {bubbles: true}));
             folderTargetInput.dispatchEvent(new Event("change", {bubbles: true}));
             const dest = folderTargetInput.dataset.dest;
@@ -2224,6 +2832,38 @@
                 queueSaveState();
                 queueCommandPreview();
             }
+            folderSelectionPaths.clear();
+            folderSelectionLastIndex = null;
+            folderSelectionParentPath = "";
+            document.getElementById("folder-dialog").close();
+        });
+        document.getElementById("folder-use-selected").addEventListener("click", () => {
+            const pathInput = document.getElementById("folder-path-input");
+            if (!folderTargetInput) return;
+            const selected = parseFolderListValue(pathInput ? pathInput.value : "");
+            if (selected.length === 0) {
+                setFolderCurrentMessage(folderSelectionParentPath || "/app/data", "Select at least one folder first.");
+                return;
+            }
+            if (!folderDialogAllowsMultiSelect && selected.length > 1) {
+                setFolderCurrentMessage(
+                    folderSelectionParentPath || "/app/data",
+                    "This argument only accepts one folder. Select exactly one."
+                );
+                return;
+            }
+            applyFolderSelectionToTargetInput(selected);
+            folderTargetInput.dispatchEvent(new Event("input", {bubbles: true}));
+            folderTargetInput.dispatchEvent(new Event("change", {bubbles: true}));
+            const dest = folderTargetInput.dataset.dest;
+            if (dest) {
+                stateValues[dest] = folderTargetInput.value;
+                queueSaveState();
+                queueCommandPreview();
+            }
+            folderSelectionPaths.clear();
+            folderSelectionLastIndex = null;
+            folderSelectionParentPath = "";
             document.getElementById("folder-dialog").close();
         });
         setupOutputResizer();

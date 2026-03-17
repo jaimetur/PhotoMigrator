@@ -192,15 +192,32 @@ Example `.env`:
 # Timezone
 TZ=Europe/Madrid
 
+# <you must find out your PUID/PGID through SSH, run in terminal: id $user. If needed, change $user to the user you created.>
+PUID=1001
+PGID=1001
+
 # Container Name
 CONTAINER_NAME=photomigrator
 
 # Host Port
 PORT=6078
+PORT_DEV=6071
 
-# Config & Data dir (host paths)
+# Config dir, where the config is stored (host paths)
 CONFIG_DIR=../config
+
+# Data dir, where the tool will look for inputs, and save the outputs and intermediate files (host paths)
 DATA_DIR=../data
+
+# Volumes dir, other folder that you may want to mount on the tool (host paths)
+VOLUMES_DIR=/volume1
+
+# App dir, whith the source code (for docker-compose-env.yml only)
+APP_DIR=../
+
+# Comma-separated list of allowed base folders for "Remove Selected" in the web folder picker.
+# Any delete request outside these roots will be rejected.
+PHOTOMIGRATOR_WEB_DELETE_ROOTS=/app/data,/app/config,/app/volumes
 
 # Docker image tag to pull
 IMAGE_TAG=latest-stable
@@ -222,9 +239,11 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - PHOTOMIGRATOR_WEB_DELETE_ROOTS=${PHOTOMIGRATOR_WEB_DELETE_ROOTS}
     volumes:
       - ${CONFIG_DIR}:/app/config
       - ${DATA_DIR}:/app/data
+      - ${VOLUMES_DIR}:/app/volumes
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import os,sys,urllib.request; port=os.getenv('PORT','6078'); urllib.request.urlopen(f'http://127.0.0.1:{port}/healthz', timeout=5); sys.exit(0)"]
