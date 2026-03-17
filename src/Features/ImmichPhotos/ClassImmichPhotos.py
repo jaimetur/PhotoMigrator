@@ -828,8 +828,12 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                # If all_filtered_assets is already cached, return it
-                if self.all_assets_filtered is not None:
+                # Reuse global cache only for the default "global search" shape.
+                # Queries with isNotInAlbum/isArchived/withDeleted are different datasets
+                # and must not poison the global cache.
+                use_global_cache = (isNotInAlbum is None and isArchived is None and withDeleted is None)
+
+                if use_global_cache and self.all_assets_filtered is not None:
                     return self.all_assets_filtered
 
                 # Obtain the correct type for the API call
@@ -852,7 +856,8 @@ class ClassImmichPhotos:
                     self.person_ids_list = self.get_person_id(name=self.person, log_level=log_level)
                     # If person was provided but person_ids_list is empty means that the person does not exists, so return []
                     if not self.person_ids_list:
-                        self.all_assets_filtered = []
+                        if use_global_cache:
+                            self.all_assets_filtered = []
                         return []
 
 
@@ -921,7 +926,8 @@ class ClassImmichPhotos:
                 asset["time"] = asset["fileCreatedAt"]
                 asset["filename"] = asset["originalFileName"]
 
-            self.all_assets_filtered = all_filtered_assets  # Cache all_filtered_assets for future use
+            if use_global_cache:
+                self.all_assets_filtered = all_filtered_assets  # Cache global filtered assets for future use
             return all_filtered_assets
 
 
@@ -950,8 +956,9 @@ class ClassImmichPhotos:
                     asset["time"] = asset["fileCreatedAt"]
                     asset["filename"] = asset["originalFileName"]
 
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                return filtered_album_assets
+                if has_any_filter():
+                    return self.filter_assets(assets=album_assets, log_level=log_level)
+                return album_assets
             except Exception as e:
                 if album_name:
                     LOGGER.error(f"Failed to retrieve assets from album '{album_name}': {str(e)}")
@@ -986,8 +993,9 @@ class ClassImmichPhotos:
                     asset["time"] = asset["fileCreatedAt"]
                     asset["filename"] = asset["originalFileName"]
 
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                return filtered_album_assets
+                if has_any_filter():
+                    return self.filter_assets(assets=album_assets, log_level=log_level)
+                return album_assets
             except Exception as e:
                 if album_name:
                     LOGGER.error(f"Failed to retrieve assets from album '{album_name}': {str(e)}")
