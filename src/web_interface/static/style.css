@@ -1089,8 +1089,9 @@ body[data-theme="dark"] .theme-card__name {
     border-radius: 12px;
     background: #11181c;
     color: #e7efe8;
+    height: 760px;
     min-height: 420px;
-    max-height: 760px;
+    max-height: 1520px;
     overflow: auto;
     padding: 12px;
     font-size: 0.85rem;

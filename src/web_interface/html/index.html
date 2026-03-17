@@ -1978,9 +1978,35 @@
         setStatus("Status: idle", false);
     }
 
+    function setActiveJobInUiState(jobId, tab = null) {
+        if (!uiState) uiState = {};
+        if (jobId) {
+            uiState.active_job_id = jobId;
+            if (tab) uiState.active_job_tab = tab;
+        } else {
+            delete uiState.active_job_id;
+            delete uiState.active_job_tab;
+        }
+        queueSaveState();
+    }
+
     async function refreshJob() {
         if (!currentJob) return;
         const response = await fetch(`/api/jobs/${currentJob}`);
+        if (response.status === 404) {
+            currentJob = null;
+            currentJobStartedAt = null;
+            setActiveJobInUiState(null);
+            setStatus("Status: idle", false);
+            updateRunStopButtons("idle");
+            const controls = document.getElementById("job-input-controls");
+            controls.classList.add("hidden");
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+            return;
+        }
         const data = await response.json();
         setStatus(`Status: ${data.status}`, false);
         updateRunStopButtons(data.status || "idle");
@@ -1994,6 +2020,7 @@
         const awaitingConfirmation = Boolean(data.awaiting_confirmation);
         controls.classList.toggle("hidden", !awaitingConfirmation);
         if (data.status !== "running" && data.status !== "stopping") {
+            setActiveJobInUiState(null);
             clearInterval(pollTimer);
             pollTimer = null;
         }
@@ -2035,6 +2062,7 @@
             return;
         }
         currentJob = data.job_id;
+        setActiveJobInUiState(currentJob, payload.tab);
         document.getElementById("command-preview").textContent = data.command;
         document.getElementById("output").textContent = "";
         if (currentJobIsAutomatic) {
@@ -2077,16 +2105,50 @@
         }
     }
 
+    async function tryResumeActiveJob() {
+        const savedJobId = String(uiState?.active_job_id || "").trim();
+        if (!savedJobId) return;
+
+        currentJob = savedJobId;
+        currentJobStartedAt = null;
+        const savedTab = String(uiState?.active_job_tab || "").trim();
+        currentJobIsAutomatic = savedTab === "automatic_migration";
+
+        setStatus("Status: reconnecting", false);
+        updateRunStopButtons("running");
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(refreshJob, 2000);
+        try {
+            await refreshJob();
+        } catch (error) {
+            console.error(error);
+            currentJob = null;
+            currentJobStartedAt = null;
+            setActiveJobInUiState(null);
+            setStatus("Status: idle", false);
+            updateRunStopButtons("idle");
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+    }
+
     function setupOutputResizer() {
         const output = document.getElementById("output");
         const handle = document.getElementById("output-resize-handle");
         if (!output || !handle || handle.dataset.boundResize === "1") return;
 
+        const computedStyle = () => window.getComputedStyle(output);
         const minHeight = () => {
-            const min = parseFloat(window.getComputedStyle(output).minHeight || "0");
+            const min = parseFloat(computedStyle().minHeight || "0");
             return Number.isFinite(min) && min > 0 ? Math.round(min) : 420;
         };
-        const maxHeight = () => Math.max(minHeight(), Math.floor(window.innerHeight * 0.9));
+        const maxHeight = () => {
+            const max = parseFloat(computedStyle().maxHeight || "0");
+            if (Number.isFinite(max) && max > 0) return Math.max(minHeight(), Math.round(max));
+            return Math.max(minHeight(), minHeight() * 2);
+        };
         const clampHeight = (value) => Math.max(minHeight(), Math.min(maxHeight(), Math.round(value)));
         const applyHeight = (height, persist = false) => {
             const px = clampHeight(height);
@@ -2908,6 +2970,7 @@
         const response = await fetch("/api/schema");
         schema = await response.json();
         renderAll();
+        await tryResumeActiveJob();
     }
 
     boot();
