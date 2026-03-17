@@ -41,6 +41,9 @@
             <input id="config-file-input" type="file" accept=".ini,.txt,*/*" class="hidden-file-input">
             <div id="config-status" class="status">Config status: idle</div>
             </div>
+            <div id="general-theme" class="general-pane hidden">
+                <div id="theme-panel" class="theme-panel"></div>
+            </div>
         </div>
     </section>
 
@@ -141,7 +144,15 @@
 
     const GENERAL_TAB_NAMES = {
         general: "General Arguments",
-        config: "Configuration File"
+        config: "Configuration File",
+        theme: "Theme"
+    };
+
+    const THEMES = {
+        ocean: {name: "Ocean", description: "Blue palette"},
+        emerald: {name: "Emerald", description: "Green palette"},
+        dark: {name: "Dark", description: "Dark UI palette"},
+        sunset: {name: "Sunset", description: "Warm palette"}
     };
 
     let schema = null;
@@ -222,6 +233,39 @@
     function uiHelpText(field) {
         const raw = (field?.help || "");
         return raw.replaceAll("--no-request-user-confirmation", "--request-user-confirmation");
+    }
+
+    function applyTheme(themeKey, persist = true) {
+        const key = THEMES[themeKey] ? themeKey : "ocean";
+        document.body.setAttribute("data-theme", key);
+        if (!uiState) uiState = {};
+        uiState.theme = key;
+        if (persist) queueSaveState();
+    }
+
+    function renderThemeTab() {
+        const panel = document.getElementById("theme-panel");
+        panel.innerHTML = "";
+        const selectedTheme = THEMES[uiState.theme] ? uiState.theme : "ocean";
+        Object.entries(THEMES).forEach(([key, meta]) => {
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = `theme-card ${selectedTheme === key ? "theme-card--active" : ""}`;
+            card.dataset.theme = key;
+            const title = document.createElement("div");
+            title.className = "theme-card__name";
+            title.textContent = meta.name;
+            const desc = document.createElement("div");
+            desc.className = "theme-card__desc";
+            desc.textContent = meta.description;
+            card.appendChild(title);
+            card.appendChild(desc);
+            card.addEventListener("click", () => {
+                applyTheme(key, true);
+                renderThemeTab();
+            });
+            panel.appendChild(card);
+        });
     }
 
     function escapeHtml(text) {
@@ -564,7 +608,7 @@
         selectLabel.textContent = title;
         const select = document.createElement("select");
         select.className = "field__input";
-        options.forEach((opt) => select.add(new Option(opt.long_option.replace(/^--/, ""), opt.dest)));
+        options.forEach((opt) => select.add(new Option(uiOptionName(opt), opt.dest)));
         select.value = selectedDest;
         select.addEventListener("change", (event) => onChange(event.target.value || ""));
         selectRow.appendChild(selectLabel);
@@ -594,9 +638,9 @@
         h3.textContent = "Selected option";
         const name = document.createElement("div");
         name.className = "desc-card__name";
-        name.textContent = selected ? selected.long_option.replace(/^--/, "") : "-";
+        name.textContent = selected ? uiOptionName(selected) : "-";
         const p = document.createElement("p");
-        p.textContent = selected?.help || "";
+        p.textContent = uiHelpText(selected);
         right.appendChild(h3);
         right.appendChild(name);
         right.appendChild(p);
@@ -614,7 +658,7 @@
         if (field.help) {
             const help = document.createElement("p");
             help.className = "arg-block__help";
-            help.textContent = field.help;
+            help.textContent = uiHelpText(field);
             block.appendChild(help);
         }
         return block;
@@ -671,7 +715,7 @@
             const node = template.content.firstElementChild.cloneNode(true);
             node.querySelector(".field__name").textContent = field.long_option;
             node.querySelector(".field__meta").textContent = field.nargs !== null ? `nargs: ${field.nargs}` : "";
-            node.querySelector(".field__help").textContent = field.help || "";
+            node.querySelector(".field__help").textContent = uiHelpText(field);
             node.appendChild(createInput(field));
             container.appendChild(node);
         }
@@ -693,6 +737,8 @@
     function renderGeneralTab() {
         document.getElementById("general-general").classList.toggle("hidden", activeGeneralTab !== "general");
         document.getElementById("general-config").classList.toggle("hidden", activeGeneralTab !== "config");
+        document.getElementById("general-theme").classList.toggle("hidden", activeGeneralTab !== "theme");
+        if (activeGeneralTab === "theme") renderThemeTab();
     }
 
     function hideSpecialPanels() {
@@ -732,7 +778,7 @@
         select.className = "field__input";
         select.id = "cloud-action-select";
         actions.forEach((action) => {
-            select.add(new Option(action.long_option.replace(/^--/, ""), action.dest));
+            select.add(new Option(uiOptionName(action), action.dest));
         });
         select.value = cloudActionDest;
         select.addEventListener("change", (event) => {
@@ -1160,6 +1206,7 @@
             if (uiState.active_general_tab && GENERAL_TAB_NAMES[uiState.active_general_tab]) {
                 activeGeneralTab = uiState.active_general_tab;
             }
+            if (!THEMES[uiState.theme]) uiState.theme = "ocean";
             if (uiState.cloud_action_dest?.[activeModuleTab]) {
                 cloudActionDest = uiState.cloud_action_dest[activeModuleTab];
             }
@@ -1170,6 +1217,7 @@
             console.error(error);
             stateValues = {};
             uiState = {collapsed_panels: {}};
+            uiState.theme = "ocean";
         }
     }
 
@@ -1322,6 +1370,7 @@
 
     async function boot() {
         await loadState();
+        applyTheme(uiState.theme || "ocean", false);
         bindUi();
         applyPanelCollapseState();
         await loadConfig(); // Keep editor synced with active Config.ini by default
