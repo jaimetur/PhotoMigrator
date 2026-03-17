@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from datetime import datetime, timedelta
 from subprocess import run
+import tempfile
 import logging
 import platform
 
@@ -573,12 +574,14 @@ class FolderAnalyzer:
 
             # --- Try ExifTool
             if Path(exif_tool_path).exists():
-                # OS filename charset for ExifTool
-                filename_charset = 'cp1252' if platform.system() == 'Windows' else 'utf8'
+                fd, temp_path = tempfile.mkstemp(text=True)
+                with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                    for file_path in block_files:
+                        f.write(f"{file_path}\n")
 
                 command = [
                     exif_tool_path,
-                    '-charset', f'filename={filename_charset}',
+                    '-charset', 'filename=utf-8',
                     '-charset', 'exif=utf8',
                     '-j', '-n', '-s',
                     '-m', '-q', '-q',
@@ -586,7 +589,8 @@ class FolderAnalyzer:
                     '-api', 'largefilesupport=1',
                     '-fast',
                     *exiftool_tag_args,
-                    *block_files
+                    '-@',
+                    temp_path,
                 ]
                 try:
                     if len(block_files) <= 10:
@@ -630,6 +634,9 @@ class FolderAnalyzer:
                 except Exception as e:
                     self.logger.exception(f"{step_name}❌ Error running Exiftool: {e}")
                     metadata_list = []
+                finally:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
 
             else:
                 self.logger.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'. Using PIL and filesystem fallback.")
