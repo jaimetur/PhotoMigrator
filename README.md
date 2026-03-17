@@ -35,6 +35,9 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ### Configuration File:
 ![Live Dashboard](/assets/screenshots/web-interface-configuration-file.png?raw=true)  
 
+### Theme Selector:
+![Live Dashboard](/assets/screenshots/web-interface-theme-selector.png?raw=true)  
+
 ### Automatic Migration Feature:
 ![Live Dashboard](/assets/screenshots/web-interface-automatic-migration.png?raw=true)  
 
