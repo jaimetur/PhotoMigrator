@@ -1,4 +1,5 @@
 import argparse
+from collections import deque
 import json
 import os
 import re
@@ -10,7 +11,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Deque, Dict, List, TextIO
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
@@ -180,10 +181,106 @@ class JobData:
         self.stop_requested = False
         self.awaiting_confirmation = False
         self.status = "running"
-        self.output: List[str] = []
+        self.output: Deque[str] = deque()  # tail only (for prompt detection)
+        self.output_chars = 0              # tail chars only
+        self.total_output_chars = 0        # full execution chars
+        self.output_file = _create_job_output_file()
+        self.output_fp: TextIO | None = open(self.output_file, "a", encoding="utf-8", errors="replace")
         self.return_code: int | None = None
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.finished_at: str | None = None
+
+
+MAX_JOB_OUTPUT_CHARS = 20_000
+TAIL_CONFIRM_CHARS = 4_000
+API_OUTPUT_CHARS = 1_000_000
+API_FULL_OUTPUT_LIMIT_CHARS = 8_000_000
+WEB_JOB_LOG_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_JOB_LOG_DIR", "/tmp/photomigrator-web-jobs"))
+
+
+def _create_job_output_file() -> Path:
+    WEB_JOB_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    return WEB_JOB_LOG_DIR / f"job_{uuid.uuid4().hex}.log"
+
+
+def _close_job_output_file(job: JobData) -> None:
+    fp = getattr(job, "output_fp", None)
+    if fp is not None:
+        try:
+            fp.flush()
+            fp.close()
+        except Exception:
+            pass
+        finally:
+            job.output_fp = None
+
+
+def _append_job_output(job: JobData, text: str) -> None:
+    if not text:
+        return
+    if job.output_fp is not None:
+        try:
+            job.output_fp.write(text)
+            job.output_fp.flush()
+        except Exception:
+            pass
+    job.total_output_chars += len(text)
+
+    # Keep only a small in-memory tail for confirmation prompt detection.
+    job.output.append(text)
+    job.output_chars += len(text)
+    while job.output and job.output_chars > MAX_JOB_OUTPUT_CHARS:
+        removed = job.output.popleft()
+        job.output_chars -= len(removed)
+
+
+def _get_job_output_tail(job: JobData, max_chars: int) -> str:
+    if max_chars <= 0 or not job.output:
+        return ""
+    total = 0
+    chunks: List[str] = []
+    for chunk in reversed(job.output):
+        chunks.append(chunk)
+        total += len(chunk)
+        if total >= max_chars:
+            break
+    return "".join(reversed(chunks))[-max_chars:]
+
+
+def _read_text_tail(path: Path, max_chars: int) -> str:
+    if max_chars <= 0 or not path.exists():
+        return ""
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            if size <= 0:
+                return ""
+            bytes_to_read = min(size, (max_chars * 4) + 4096)
+            f.seek(-bytes_to_read, os.SEEK_END)
+            data = f.read()
+        text = data.decode("utf-8", errors="replace")
+        return text[-max_chars:]
+    except Exception:
+        return ""
+
+
+def _read_job_output_for_api(job: JobData) -> str:
+    path = getattr(job, "output_file", None)
+    if not path:
+        return _get_job_output_tail(job, API_OUTPUT_CHARS)
+
+    try:
+        if job.total_output_chars <= API_FULL_OUTPUT_LIMIT_CHARS:
+            return path.read_text(encoding="utf-8", errors="replace")
+        tail = _read_text_tail(path, API_OUTPUT_CHARS)
+        notice = (
+            f"[web-interface] Output too large ({job.total_output_chars} chars). "
+            f"Showing last {API_OUTPUT_CHARS} chars.\n"
+        )
+        return notice + tail
+    except Exception:
+        return _get_job_output_tail(job, API_OUTPUT_CHARS)
 
 
 PARSER_SCHEMA: Dict[str, Any] = {}
@@ -455,12 +552,12 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
     try:
         assert process.stdout is not None
         while True:
-            chunk = process.stdout.read(1)
+            chunk = process.stdout.read(1024)
             if chunk == "":
                 break
             with JOBS_LOCK:
-                job.output.append(chunk)
-                lowered_tail = "".join(job.output[-2000:]).lower()
+                _append_job_output(job, chunk)
+                lowered_tail = _get_job_output_tail(job, TAIL_CONFIRM_CHARS).lower()
                 if (
                     "awaiting user confirmation (yes/no)" in lowered_tail
                     or "do you want to continue? (yes/no):" in lowered_tail
@@ -478,14 +575,16 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
             job.finished_at = datetime.now(timezone.utc).isoformat()
             job.awaiting_confirmation = False
             job.process = None
+            _close_job_output_file(job)
     except Exception as exc:
         with JOBS_LOCK:
-            job.output.append(f"\n[web-interface] Internal error: {exc}\n")
+            _append_job_output(job, f"\n[web-interface] Internal error: {exc}\n")
             job.return_code = -1
             job.status = "failed"
             job.finished_at = datetime.now(timezone.utc).isoformat()
             job.awaiting_confirmation = False
             job.process = None
+            _close_job_output_file(job)
 
 
 def _force_kill_job_process(job_id: str, process: subprocess.Popen[str], delay_seconds: float = 3.0) -> None:
@@ -764,7 +863,7 @@ def get_job(job_id: str) -> Dict[str, Any]:
         if job_id not in JOBS:
             raise HTTPException(status_code=404, detail="Job not found")
         job = JOBS[job_id]
-        output = "".join(job.output[-200000:])
+        output = _read_job_output_for_api(job)
         can_send_input = bool(
             job.status == "running"
             and job.process is not None
