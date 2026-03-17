@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import threading
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -166,6 +167,7 @@ class JobData:
         self.command = command
         self.command_string = subprocess.list2cmdline(command)
         self.process = process
+        self.stop_requested = False
         self.awaiting_confirmation = False
         self.status = "running"
         self.output: List[str] = []
@@ -449,7 +451,10 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
         rc = process.wait()
         with JOBS_LOCK:
             job.return_code = rc
-            job.status = "success" if rc == 0 else "failed"
+            if job.stop_requested:
+                job.status = "stopped"
+            else:
+                job.status = "success" if rc == 0 else "failed"
             job.finished_at = datetime.now(timezone.utc).isoformat()
             job.awaiting_confirmation = False
             job.process = None
@@ -461,6 +466,21 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
             job.finished_at = datetime.now(timezone.utc).isoformat()
             job.awaiting_confirmation = False
             job.process = None
+
+
+def _force_kill_job_process(job_id: str, process: subprocess.Popen[str], delay_seconds: float = 3.0) -> None:
+    time.sleep(delay_seconds)
+    with JOBS_LOCK:
+        job = JOBS.get(job_id)
+        if not job:
+            return
+        same_process = job.process is process
+        still_running = process.poll() is None
+        if same_process and still_running and job.stop_requested:
+            try:
+                process.kill()
+            except Exception:
+                pass
 
 
 def _read_config_content() -> str:
@@ -661,6 +681,7 @@ def get_job(job_id: str) -> Dict[str, Any]:
             and job.process.stdin is not None
             and not job.process.stdin.closed
         )
+        can_stop = bool(job.status in {"running", "stopping"} and job.process is not None)
         return {
             "job_id": job_id,
             "status": job.status,
@@ -669,6 +690,7 @@ def get_job(job_id: str) -> Dict[str, Any]:
             "finished_at": job.finished_at,
             "command": job.command_string,
             "can_send_input": can_send_input,
+            "can_stop": can_stop,
             "awaiting_confirmation": bool(can_send_input and job.awaiting_confirmation),
             "output": output,
         }
@@ -695,6 +717,28 @@ def send_job_input(job_id: str, payload: JobInputRequest) -> Dict[str, Any]:
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f"Unable to send input: {exc}")
     return {"sent": True}
+
+
+@app.post("/api/jobs/{job_id}/stop")
+def stop_job(job_id: str) -> Dict[str, Any]:
+    with JOBS_LOCK:
+        if job_id not in JOBS:
+            raise HTTPException(status_code=404, detail="Job not found")
+        job = JOBS[job_id]
+        process = job.process
+        if process is None or job.status not in {"running", "stopping"}:
+            raise HTTPException(status_code=409, detail="Job is not running")
+        job.stop_requested = True
+        job.status = "stopping"
+        job.awaiting_confirmation = False
+
+    try:
+        process.terminate()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Unable to stop job: {exc}")
+
+    threading.Thread(target=_force_kill_job_process, args=(job_id, process), daemon=True).start()
+    return {"stopping": True}
 
 
 @app.get("/healthz")

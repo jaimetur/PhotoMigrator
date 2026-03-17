@@ -54,7 +54,7 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ![Live Dashboard](/assets/screenshots/web-interface-other-features.png?raw=true)  
 
 ## 🖥️ Live Dashboard Preview
-![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+![Live Dashboard](/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 # 🌟 Main Modules:
 ## 🚀 1. Automatic Migration   

@@ -62,7 +62,10 @@
             <div id="migration-panel" class="module-special hidden"></div>
 
             <form id="module-form" class="form-grid module-grid"></form>
-            <button id="run-btn" type="button" class="run-btn">Run module</button>
+            <div class="module-actions">
+                <button id="run-btn" type="button" class="run-btn">Run module</button>
+                <button id="stop-btn" type="button" class="run-btn run-btn--danger" disabled>Stop module</button>
+            </div>
         </div>
     </section>
 
@@ -85,7 +88,62 @@
                     <button id="copy-log-btn" type="button" class="ghost-btn">Copy log</button>
                 </div>
             </div>
-            <pre id="output" class="terminal"></pre>
+            <section id="web-dashboard" class="web-dashboard hidden" aria-live="polite">
+                <div class="web-dashboard__header">
+                    <div>
+                        <h3 id="web-dashboard-title">Web Live Dashboard</h3>
+                        <p id="web-dashboard-route" class="web-dashboard__route">-</p>
+                    </div>
+                    <div id="web-dashboard-chip" class="web-dashboard__chip">Idle</div>
+                </div>
+                <div class="web-dashboard__meta">
+                    <span id="web-dashboard-elapsed">Elapsed: 00:00:00</span>
+                    <span id="web-dashboard-updated">Updated: -</span>
+                </div>
+                <div class="stats-columns">
+                    <div class="stats-card">
+                        <h4 class="stats-card__title">📊 Info Panel</h4>
+                        <div class="stat-row"><span class="stat-label">🎯 Total Assets</span><span id="dash-total-assets" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">📷 Total Photos</span><span id="dash-total-photos" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">🎬 Total Videos</span><span id="dash-total-videos" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">📂 Total Albums</span><span id="dash-total-albums" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">🔒 Blocked Albums</span><span id="dash-blocked-albums" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">📜 Total Metadata</span><span id="dash-total-metadata" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">🔗 Total Sidecar</span><span id="dash-total-sidecar" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">🔍 Invalid Files</span><span id="dash-total-invalid" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">🔒 Blocked Assets</span><span id="dash-blocked-assets" class="stat-value">-</span></div>
+                        <div class="bar-row"><span>📊 Assets in Queue</span><div class="progress-track"><div id="bar-info-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-queue-count">0/100 (0.0%)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
+                    </div>
+                    <div class="stats-card">
+                        <h4 id="dash-pull-title" class="stats-card__title">⬇️ Pull Panel</h4>
+                        <div class="bar-row"><span>🎯 Pulled Assets</span><div class="progress-track"><div id="bar-pulled-assets" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-assets-count">0/- (-)</span></span></div>
+                        <div class="bar-row"><span>📷 Pulled Photos</span><div class="progress-track"><div id="bar-pulled-photos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-photos-count">0/- (-)</span></span></div>
+                        <div class="bar-row"><span>🎬 Pulled Videos</span><div class="progress-track"><div id="bar-pulled-videos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-videos-count">0/- (-)</span></span></div>
+                        <div class="bar-row"><span>📂 Pulled Albums</span><div class="progress-track"><div id="bar-pulled-albums" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-albums-count">0/- (-)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Failed Assets</span><span id="dash-pull-failed-assets" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Failed Photos</span><span id="dash-pull-failed-photos" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Failed Videos</span><span id="dash-pull-failed-videos" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Failed Albums</span><span id="dash-pull-failed-albums" class="stat-value">0</span></div>
+                    </div>
+                    <div class="stats-card">
+                        <h4 id="dash-push-title" class="stats-card__title">⬆️ Push Panel</h4>
+                        <div class="bar-row"><span>🎯 Pushed Assets</span><div class="progress-track"><div id="bar-pushed-assets" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-assets-count">0/- (-)</span></span></div>
+                        <div class="bar-row"><span>📷 Pushed Photos</span><div class="progress-track"><div id="bar-pushed-photos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-photos-count">0/- (-)</span></span></div>
+                        <div class="bar-row"><span>🎬 Pushed Videos</span><div class="progress-track"><div id="bar-pushed-videos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-videos-count">0/- (-)</span></span></div>
+                        <div class="bar-row"><span>📂 Pushed Albums</span><div class="progress-track"><div id="bar-pushed-albums" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-albums-count">0/- (-)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">🧩 Duplicates</span><span id="dash-push-duplicates" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Failed Assets</span><span id="dash-push-failed-assets" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Failed Photos</span><span id="dash-push-failed-photos" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Failed Videos</span><span id="dash-push-failed-videos" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Failed Albums</span><span id="dash-push-failed-albums" class="stat-value">0</span></div>
+                    </div>
+                </div>
+            </section>
+            <div class="terminal-shell">
+                <pre id="output" class="terminal"></pre>
+                <div id="output-resize-handle" class="terminal-resize-handle" title="Drag from bottom edge or bottom corners to resize the log panel"></div>
+            </div>
             <div id="job-input-controls" class="job-input-controls hidden">
                 <span class="job-input-label">Send confirmation:</span>
                 <button id="job-input-yes" type="button" class="run-btn">Yes</button>
@@ -126,13 +184,13 @@
 
 <dialog id="confirm-dialog" class="confirm-dialog">
     <div class="confirm-dialog__card">
-        <h3 class="confirm-dialog__title">Overwrite Configuration?</h3>
+        <h3 id="confirm-dialog-title" class="confirm-dialog__title">Confirm Action</h3>
         <p id="confirm-dialog-message" class="confirm-dialog__message">
-            This action will overwrite the active configuration file.
+            Please confirm this action.
         </p>
         <div class="confirm-dialog__actions">
             <button type="button" id="confirm-dialog-cancel" class="ghost-btn">Cancel</button>
-            <button type="button" id="confirm-dialog-accept" class="run-btn run-btn--danger">Overwrite</button>
+            <button type="button" id="confirm-dialog-accept" class="run-btn">Confirm</button>
         </div>
     </div>
 </dialog>
@@ -241,6 +299,10 @@
     let commandPreviewTimer = null;
     let commandPreviewSeq = 0;
     let lastRawOutput = "";
+    let currentRunPayload = null;
+    let currentJobStartedAt = null;
+    let currentJobIsAutomatic = false;
+    let webDashboardState = {rawOutput: "", status: "idle", jobData: {}};
 
     function uiOptionName(field) {
         if (!field) return "";
@@ -316,6 +378,320 @@
         if (uiState.auto_scroll !== false) {
             outputEl.scrollTop = outputEl.scrollHeight;
         }
+    }
+
+    function formatDuration(ms) {
+        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+        const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+        const s = String(totalSeconds % 60).padStart(2, "0");
+        return `${h}:${m}:${s}`;
+    }
+
+    function parseNumberFromLine(text, regex) {
+        if (!text) return null;
+        const lines = text.split("\n");
+        for (let i = lines.length - 1; i >= 0; i -= 1) {
+            const m = lines[i].match(regex);
+            if (m && m[1] !== undefined) {
+                const value = Number(String(m[1]).replace(/,/g, ""));
+                if (Number.isFinite(value)) return value;
+            }
+        }
+        return null;
+    }
+
+    function parseFirstNumberFromLine(text, regex) {
+        if (!text) return null;
+        const lines = text.split("\n");
+        for (let i = 0; i < lines.length; i += 1) {
+            const m = lines[i].match(regex);
+            if (m && m[1] !== undefined) {
+                const value = Number(String(m[1]).replace(/,/g, ""));
+                if (Number.isFinite(value)) return value;
+            }
+        }
+        return null;
+    }
+
+    function parseLastTextFromLine(text, regex) {
+        if (!text) return null;
+        const lines = text.split("\n");
+        for (let i = lines.length - 1; i >= 0; i -= 1) {
+            const m = lines[i].match(regex);
+            if (m && m[1]) return String(m[1]).trim();
+        }
+        return null;
+    }
+
+    function countMatches(text, regex) {
+        if (!text) return 0;
+        const matches = text.match(regex);
+        return matches ? matches.length : 0;
+    }
+
+    function setText(id, value, fallback = "-") {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = value == null ? fallback : String(value);
+    }
+
+    function resolveTotal(primaryTotal, completed, failed = 0) {
+        if (Number.isFinite(primaryTotal) && primaryTotal > 0) return primaryTotal;
+        const estimate = Number(completed || 0) + Number(failed || 0);
+        return estimate > 0 ? estimate : null;
+    }
+
+    function setProgressRow(fillId, countId, completed, total) {
+        const fill = document.getElementById(fillId);
+        const countText = document.getElementById(countId);
+        if (!fill || !countText) return;
+        const done = Number(completed || 0);
+        if (!Number.isFinite(total) || total <= 0) {
+            fill.style.width = "0%";
+            countText.textContent = `${done}/- (-)`;
+            return;
+        }
+        const pctRaw = (done / total) * 100;
+        const pct = Math.max(0, Math.min(100, pctRaw));
+        fill.style.width = `${pct}%`;
+        countText.textContent = `${done}/${total} (${Math.round(pct)}%)`;
+    }
+
+    function extractDashboardStats(rawText) {
+        const output = String(rawText || "");
+        const parseAny = (...patterns) => {
+            for (const re of patterns) {
+                const value = parseNumberFromLine(output, re);
+                if (value != null) return value;
+            }
+            return null;
+        };
+        const parseAnyFirst = (...patterns) => {
+            for (const re of patterns) {
+                const value = parseFirstNumberFromLine(output, re);
+                if (value != null) return value;
+            }
+            return null;
+        };
+        const stats = {
+            migrationMode: parseLastTextFromLine(output, /migration mode\s*:\s*(parallel|sequential)/i),
+            sourceClientName: parseLastTextFromLine(output, /source client\s*:\s*(.+)$/i),
+            targetClientName: parseLastTextFromLine(output, /target client\s*:\s*(.+)$/i),
+            totalAssets: parseAnyFirst(/total assets\s*:\s*(\d+)/i, /total_assets\s*:\s*(\d+)/i),
+            totalPhotos: parseAnyFirst(/total photos\s*:\s*(\d+)/i, /total_photos\s*:\s*(\d+)/i),
+            totalVideos: parseAnyFirst(/total videos\s*:\s*(\d+)/i, /total_videos\s*:\s*(\d+)/i),
+            totalAlbums: parseAnyFirst(/total albums\s*:\s*(\d+)/i, /total_albums\s*:\s*(\d+)/i),
+            totalMetadata: parseAnyFirst(/total metadata\s*:\s*(\d+)/i, /total_metadata\s*:\s*(\d+)/i),
+            totalSidecar: parseAnyFirst(/total sidecar\s*:\s*(\d+)/i, /total_sidecar\s*:\s*(\d+)/i),
+            totalInvalid: parseAnyFirst(/invalid files\s*:\s*(\d+)/i, /total_invalid\s*:\s*(\d+)/i),
+            blockedAlbums: parseAny(/blocked albums\s*:\s*(\d+)/i, /total_albums_blocked\s*:\s*(\d+)/i),
+            blockedAssets: parseAny(/blocked assets\s*:\s*(\d+)/i, /total_assets_blocked\s*:\s*(\d+)/i),
+            assetsInQueue: parseAny(/assets in queue\s*:\s*(\d+)/i, /assets_in_queue\s*:\s*(\d+)/i),
+
+            pulledAssets: parseNumberFromLine(output, /pulled assets\s*:\s*(\d+)/i),
+            pulledPhotos: parseNumberFromLine(output, /pulled assets\s*:.*photos:\s*(\d+)/i),
+            pulledVideos: parseNumberFromLine(output, /pulled assets\s*:.*videos:\s*(\d+)/i),
+            pulledAlbums: parseNumberFromLine(output, /pulled albums\s*:\s*(\d+)/i),
+            pullFailedAssets: parseNumberFromLine(output, /pull failed assets\s*:\s*(\d+)/i),
+            pullFailedPhotos: parseNumberFromLine(output, /pull failed photos\s*:\s*(\d+)/i),
+            pullFailedVideos: parseNumberFromLine(output, /pull failed videos\s*:\s*(\d+)/i),
+            pullFailedAlbums: parseNumberFromLine(output, /pull failed albums\s*:\s*(\d+)/i),
+
+            pushedAssets: parseNumberFromLine(output, /pushed assets\s*:\s*(\d+)/i),
+            pushedPhotos: parseNumberFromLine(output, /pushed assets\s*:.*photos:\s*(\d+)/i),
+            pushedVideos: parseNumberFromLine(output, /pushed assets\s*:.*videos:\s*(\d+)/i),
+            pushedAlbums: parseNumberFromLine(output, /pushed albums\s*:\s*(\d+)/i),
+            pushDuplicates: parseNumberFromLine(output, /push duplicates.*:\s*(\d+)/i),
+            pushFailedAssets: parseNumberFromLine(output, /push failed assets\s*:\s*(\d+)/i),
+            pushFailedPhotos: parseNumberFromLine(output, /push failed photos\s*:\s*(\d+)/i),
+            pushFailedVideos: parseNumberFromLine(output, /push failed videos\s*:\s*(\d+)/i),
+            pushFailedAlbums: parseNumberFromLine(output, /push failed albums\s*:\s*(\d+)/i),
+        };
+
+        if (stats.pulledAssets == null) stats.pulledAssets = countMatches(output, /asset pulled\s*:/gi);
+        if (stats.pulledAlbums == null) stats.pulledAlbums = countMatches(output, /album pulled\s*:/gi);
+        if (stats.pullFailedAssets == null) stats.pullFailedAssets = countMatches(output, /asset pull fail\s*:|asset pull error\s*:/gi);
+        if (stats.pullFailedAlbums == null) stats.pullFailedAlbums = countMatches(output, /error retrieving all assets from album/gi);
+
+        if (stats.pushedAssets == null) stats.pushedAssets = countMatches(output, /asset pushed\s*:/gi);
+        if (stats.pushedAlbums == null) stats.pushedAlbums = countMatches(output, /album pushed\s*:/gi);
+        if (stats.pushFailedAssets == null) stats.pushFailedAssets = countMatches(output, /asset push fail\s*:/gi);
+        if (stats.pushFailedAlbums == null) stats.pushFailedAlbums = countMatches(output, /album push fail\s*:/gi);
+        if (stats.pushDuplicates == null) stats.pushDuplicates = countMatches(output, /asset duplicated\s*:/gi);
+
+        if (stats.blockedAlbums == null) {
+            const blockedAlbumsByEvents = countMatches(output, /cannot be pulled because is a blocked shared album/gi);
+            if (blockedAlbumsByEvents > 0) stats.blockedAlbums = blockedAlbumsByEvents;
+        }
+        if (stats.totalAlbums == null) stats.totalAlbums = parseFirstNumberFromLine(output, /(\d+)\s+albums found on/i);
+
+        const inferredTotalAssets = Math.max(
+            Number(stats.totalAssets || 0),
+            Number(stats.pulledAssets || 0) + Number(stats.pullFailedAssets || 0),
+            Number(stats.pushedAssets || 0) + Number(stats.pushFailedAssets || 0) + Number(stats.pushDuplicates || 0)
+        );
+        if (stats.totalAssets == null && inferredTotalAssets > 0) stats.totalAssets = inferredTotalAssets;
+
+        const inferredQueue = Math.max(
+            0,
+            Number(stats.pulledAssets || 0)
+            - Number(stats.pushedAssets || 0)
+            - Number(stats.pushFailedAssets || 0)
+            - Number(stats.pushDuplicates || 0)
+        );
+        // In web mode we don't have SHARED_DATA in-memory; this inference tracks queue evolution in live logs.
+        // Prefer inferred value when there is activity; otherwise keep parsed value (often initial 0 from Input Info dump).
+        if (
+            Number(stats.pulledAssets || 0) > 0
+            || Number(stats.pushedAssets || 0) > 0
+            || Number(stats.pushFailedAssets || 0) > 0
+            || Number(stats.pushDuplicates || 0) > 0
+        ) {
+            stats.assetsInQueue = inferredQueue;
+        } else if (stats.assetsInQueue == null) {
+            stats.assetsInQueue = inferredQueue;
+        }
+
+        if (stats.totalPhotos == null && stats.pulledPhotos != null && stats.pullFailedPhotos != null) {
+            stats.totalPhotos = Number(stats.pulledPhotos) + Number(stats.pullFailedPhotos);
+        }
+        if (stats.totalVideos == null && stats.pulledVideos != null && stats.pullFailedVideos != null) {
+            stats.totalVideos = Number(stats.pulledVideos) + Number(stats.pullFailedVideos);
+        }
+
+        // During live execution, logs usually provide per-asset pulls but not photo/video split
+        // until the final summary. Estimate split proportionally so bars move in real time.
+        if (
+            stats.pulledPhotos == null
+            && stats.pulledVideos == null
+            && Number(stats.pulledAssets || 0) > 0
+            && Number(stats.totalAssets || 0) > 0
+            && Number(stats.totalPhotos || 0) >= 0
+            && Number(stats.totalVideos || 0) >= 0
+        ) {
+            const pulledAssets = Number(stats.pulledAssets || 0);
+            const totalAssets = Number(stats.totalAssets || 0);
+            const totalPhotos = Number(stats.totalPhotos || 0);
+            const totalVideos = Number(stats.totalVideos || 0);
+            const photoRatio = totalAssets > 0 ? (totalPhotos / totalAssets) : 0;
+            const estPhotos = Math.min(totalPhotos, Math.max(0, Math.round(pulledAssets * photoRatio)));
+            const estVideos = Math.min(totalVideos, Math.max(0, pulledAssets - estPhotos));
+            stats.pulledPhotos = estPhotos;
+            stats.pulledVideos = estVideos;
+        }
+
+        if (
+            stats.pushedPhotos == null
+            && stats.pushedVideos == null
+            && Number(stats.pushedAssets || 0) > 0
+            && Number(stats.totalAssets || 0) > 0
+            && Number(stats.totalPhotos || 0) >= 0
+            && Number(stats.totalVideos || 0) >= 0
+        ) {
+            const pushedAssets = Number(stats.pushedAssets || 0);
+            const totalAssets = Number(stats.totalAssets || 0);
+            const totalPhotos = Number(stats.totalPhotos || 0);
+            const totalVideos = Number(stats.totalVideos || 0);
+            const photoRatio = totalAssets > 0 ? (totalPhotos / totalAssets) : 0;
+            const estPhotos = Math.min(totalPhotos, Math.max(0, Math.round(pushedAssets * photoRatio)));
+            const estVideos = Math.min(totalVideos, Math.max(0, pushedAssets - estPhotos));
+            stats.pushedPhotos = estPhotos;
+            stats.pushedVideos = estVideos;
+        }
+        return stats;
+    }
+
+    function renderWebDashboard(rawOutput, status, jobData = {}) {
+        webDashboardState = {
+            rawOutput: String(rawOutput || ""),
+            status: String(status || "idle"),
+            jobData: {...(jobData || {})}
+        };
+        const panel = document.getElementById("web-dashboard");
+        const active = activeModuleTab === "automatic_migration";
+        if (!active) {
+            panel.classList.add("hidden");
+            return;
+        }
+
+        panel.classList.remove("hidden");
+        const source = currentRunPayload?.values?.source || stateValues.source || "-";
+        const target = currentRunPayload?.values?.target || stateValues.target || "-";
+        const stats = extractDashboardStats(webDashboardState.rawOutput);
+
+        const startedAt = jobData.started_at || currentJobStartedAt;
+        if (jobData.started_at) currentJobStartedAt = jobData.started_at;
+        const startedMs = startedAt ? Date.parse(startedAt) : Date.now();
+        const elapsed = Number.isFinite(startedMs) ? formatDuration(Date.now() - startedMs) : "00:00:00";
+        const now = new Date();
+        const updated = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+
+        const sourceLabel = stats.sourceClientName || source;
+        const targetLabel = stats.targetClientName || target;
+        document.getElementById("web-dashboard-route").textContent = `${sourceLabel}  ->  ${targetLabel}`;
+        const pullTitle = document.getElementById("dash-pull-title");
+        const pushTitle = document.getElementById("dash-push-title");
+        if (pullTitle) pullTitle.textContent = `⬇️ Pull Panel (${sourceLabel})`;
+        if (pushTitle) pushTitle.textContent = `⬆️ Push Panel (${targetLabel})`;
+        const chip = document.getElementById("web-dashboard-chip");
+        const normalizedStatus = webDashboardState.status;
+        chip.textContent = normalizedStatus.toUpperCase();
+        chip.dataset.state = normalizedStatus;
+
+        document.getElementById("web-dashboard-elapsed").textContent = `Elapsed: ${elapsed}`;
+        document.getElementById("web-dashboard-updated").textContent = `Updated: ${updated}`;
+        setText("dash-total-assets", stats.totalAssets);
+        setText("dash-total-photos", stats.totalPhotos);
+        setText("dash-total-videos", stats.totalVideos);
+        setText("dash-total-albums", stats.totalAlbums);
+        setText("dash-total-metadata", stats.totalMetadata);
+        setText("dash-total-sidecar", stats.totalSidecar);
+        setText("dash-total-invalid", stats.totalInvalid);
+        setText("dash-blocked-albums", stats.blockedAlbums);
+        setText("dash-blocked-assets", stats.blockedAssets);
+        setText("dash-elapsed-time", elapsed, "00:00:00");
+
+        const modeFromState = currentRunPayload?.values?.["parallel-migration"];
+        const stateSaysParallel = typeof modeFromState === "boolean" ? modeFromState : String(modeFromState || "").toLowerCase() === "true";
+        const logSaysParallel = String(stats.migrationMode || "").toLowerCase() === "parallel";
+        const isParallel = stateSaysParallel || logSaysParallel;
+        const queueValue = Number(stats.assetsInQueue || 0);
+        setProgressRow("bar-info-queue", "bar-info-queue-count", queueValue, 100);
+        if (!isParallel) {
+            const queueCountEl = document.getElementById("bar-info-queue-count");
+            if (queueCountEl) queueCountEl.textContent = `${queueValue} (-)`;
+        }
+
+        setText("dash-pull-failed-assets", stats.pullFailedAssets, "0");
+        setText("dash-pull-failed-photos", stats.pullFailedPhotos, "0");
+        setText("dash-pull-failed-videos", stats.pullFailedVideos, "0");
+        setText("dash-pull-failed-albums", stats.pullFailedAlbums, "0");
+
+        setText("dash-push-duplicates", stats.pushDuplicates, "0");
+        setText("dash-push-failed-assets", stats.pushFailedAssets, "0");
+        setText("dash-push-failed-photos", stats.pushFailedPhotos, "0");
+        setText("dash-push-failed-videos", stats.pushFailedVideos, "0");
+        setText("dash-push-failed-albums", stats.pushFailedAlbums, "0");
+
+        const totalAssetsForPull = resolveTotal(stats.totalAssets, stats.pulledAssets, stats.pullFailedAssets);
+        const totalPhotosForPull = resolveTotal(stats.totalPhotos, stats.pulledPhotos, stats.pullFailedPhotos);
+        const totalVideosForPull = resolveTotal(stats.totalVideos, stats.pulledVideos, stats.pullFailedVideos);
+        const totalAlbumsForPull = resolveTotal(stats.totalAlbums, stats.pulledAlbums, stats.pullFailedAlbums);
+
+        const totalAssetsForPush = resolveTotal(stats.totalAssets, stats.pushedAssets, stats.pushFailedAssets);
+        const totalPhotosForPush = resolveTotal(stats.totalPhotos, stats.pushedPhotos, stats.pushFailedPhotos);
+        const totalVideosForPush = resolveTotal(stats.totalVideos, stats.pushedVideos, stats.pushFailedVideos);
+        const totalAlbumsForPush = resolveTotal(stats.totalAlbums, stats.pushedAlbums, stats.pushFailedAlbums);
+
+        setProgressRow("bar-pulled-assets", "bar-pulled-assets-count", stats.pulledAssets, totalAssetsForPull);
+        setProgressRow("bar-pulled-photos", "bar-pulled-photos-count", stats.pulledPhotos, totalPhotosForPull);
+        setProgressRow("bar-pulled-videos", "bar-pulled-videos-count", stats.pulledVideos, totalVideosForPull);
+        setProgressRow("bar-pulled-albums", "bar-pulled-albums-count", stats.pulledAlbums, totalAlbumsForPull);
+        setProgressRow("bar-pushed-assets", "bar-pushed-assets-count", stats.pushedAssets, totalAssetsForPush);
+        setProgressRow("bar-pushed-photos", "bar-pushed-photos-count", stats.pushedPhotos, totalPhotosForPush);
+        setProgressRow("bar-pushed-videos", "bar-pushed-videos-count", stats.pushedVideos, totalVideosForPush);
+        setProgressRow("bar-pushed-albums", "bar-pushed-albums-count", stats.pushedAlbums, totalAlbumsForPush);
     }
 
     async function copyLogToClipboard() {
@@ -1159,6 +1535,7 @@
         }
         bindStateForInputs();
         queueCommandPreview();
+        renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
     }
 
     function collectValues() {
@@ -1359,6 +1736,14 @@
         statusEl.classList.toggle("status--error", Boolean(isError));
     }
 
+    function updateRunStopButtons(status = "idle") {
+        const runBtn = document.getElementById("run-btn");
+        const stopBtn = document.getElementById("stop-btn");
+        const runningLike = status === "running" || status === "stopping";
+        runBtn.disabled = runningLike;
+        stopBtn.disabled = !runningLike;
+    }
+
     function clearValidationErrorStatus() {
         const statusEl = document.getElementById("status");
         if (!statusEl.classList.contains("status--error")) return;
@@ -1370,11 +1755,17 @@
         const response = await fetch(`/api/jobs/${currentJob}`);
         const data = await response.json();
         setStatus(`Status: ${data.status}`, false);
+        updateRunStopButtons(data.status || "idle");
         renderOutputWithLevels(data.output || "");
+        if (currentJobIsAutomatic) {
+            renderWebDashboard(data.output || "", data.status || "idle", data);
+        } else if (activeModuleTab === "automatic_migration") {
+            renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
+        }
         const controls = document.getElementById("job-input-controls");
         const awaitingConfirmation = Boolean(data.awaiting_confirmation);
         controls.classList.toggle("hidden", !awaitingConfirmation);
-        if (data.status !== "running") {
+        if (data.status !== "running" && data.status !== "stopping") {
             clearInterval(pollTimer);
             pollTimer = null;
         }
@@ -1390,10 +1781,17 @@
     }
 
     async function runCommand() {
+        if (currentJob && pollTimer) return;
         const payload = buildRunPayload();
+        currentRunPayload = payload;
+        currentJobIsAutomatic = payload.tab === "automatic_migration";
+        currentJobStartedAt = null;
         const validationErrors = validatePayloadBeforeRun(payload);
         if (validationErrors.length) {
             setStatus(`Status: validation error (${validationErrors[0]})`, true);
+            if (activeModuleTab === "automatic_migration") {
+                renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
+            }
             return;
         }
         const response = await fetch("/api/run", {
@@ -1405,16 +1803,107 @@
         if (!response.ok) {
             const detail = data && data.detail ? String(data.detail) : "Unable to run command";
             setStatus(`Status: validation error (${detail})`, true);
+            updateRunStopButtons("idle");
             return;
         }
         currentJob = data.job_id;
         document.getElementById("command-preview").textContent = data.command;
         document.getElementById("output").textContent = "";
+        if (currentJobIsAutomatic) {
+            renderWebDashboard("", "running", {});
+        } else if (activeModuleTab === "automatic_migration") {
+            renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
+        }
         setStatus("Status: running", false);
+        updateRunStopButtons("running");
         document.getElementById("job-input-controls").classList.add("hidden");
         if (pollTimer) clearInterval(pollTimer);
         pollTimer = setInterval(refreshJob, 2000);
         await refreshJob();
+    }
+
+    async function stopCommand() {
+        if (!currentJob) return;
+        const confirmed = await askForConfirmation({
+            title: "Stop Running Module?",
+            message: "This will interrupt the current execution. Do you want to stop the running module?",
+            acceptLabel: "Stop",
+            danger: true
+        });
+        if (!confirmed) return;
+        try {
+            const response = await fetch(`/api/jobs/${currentJob}/stop`, {method: "POST"});
+            const data = await response.json();
+            if (!response.ok) {
+                const detail = data && data.detail ? String(data.detail) : "Unable to stop job";
+                setStatus(`Status: stop error (${detail})`, true);
+                await refreshJob();
+                return;
+            }
+            setStatus("Status: stopping", false);
+            updateRunStopButtons("stopping");
+            await refreshJob();
+        } catch (error) {
+            console.error(error);
+            setStatus("Status: stop error (network failure)", true);
+        }
+    }
+
+    function setupOutputResizer() {
+        const output = document.getElementById("output");
+        const handle = document.getElementById("output-resize-handle");
+        if (!output || !handle || handle.dataset.boundResize === "1") return;
+
+        const minHeight = () => {
+            const min = parseFloat(window.getComputedStyle(output).minHeight || "0");
+            return Number.isFinite(min) && min > 0 ? Math.round(min) : 420;
+        };
+        const maxHeight = () => Math.max(minHeight(), Math.floor(window.innerHeight * 0.9));
+        const clampHeight = (value) => Math.max(minHeight(), Math.min(maxHeight(), Math.round(value)));
+        const applyHeight = (height, persist = false) => {
+            const px = clampHeight(height);
+            output.style.height = `${px}px`;
+            uiState.output_panel_height_px = px;
+            if (persist) queueSaveState();
+        };
+
+        const persisted = Number(uiState?.output_panel_height_px);
+        if (Number.isFinite(persisted) && persisted > 0) {
+            applyHeight(persisted, false);
+        }
+
+        let resizing = false;
+        let startY = 0;
+        let startHeight = 0;
+
+        const onMove = (event) => {
+            if (!resizing) return;
+            const deltaY = event.clientY - startY;
+            applyHeight(startHeight + deltaY, false);
+        };
+        const onUp = () => {
+            if (!resizing) return;
+            resizing = false;
+            document.body.classList.remove("is-resizing-log");
+            queueSaveState();
+        };
+
+        handle.addEventListener("mousedown", (event) => {
+            event.preventDefault();
+            resizing = true;
+            startY = event.clientY;
+            startHeight = output.getBoundingClientRect().height;
+            document.body.classList.add("is-resizing-log");
+        });
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onUp);
+
+        window.addEventListener("resize", () => {
+            const current = output.getBoundingClientRect().height;
+            applyHeight(current, false);
+        });
+
+        handle.dataset.boundResize = "1";
     }
 
     async function loadConfig() {
@@ -1444,9 +1933,12 @@
     }
 
     async function saveConfig() {
-        const confirmed = await askForConfirmation(
-            "This will overwrite the active configuration file (/app/config/Config.ini) with the current editor content."
-        );
+        const confirmed = await askForConfirmation({
+            title: "Overwrite Configuration?",
+            message: "This will overwrite the active configuration file (/app/config/Config.ini) with the current editor content.",
+            acceptLabel: "Overwrite",
+            danger: true
+        });
         if (!confirmed) {
             document.getElementById("config-status").textContent = "Config status: save canceled by user";
             return;
@@ -1580,13 +2072,19 @@
         dialog.showModal();
     }
 
-    function askForConfirmation(message) {
+    function askForConfirmation(options) {
         const dialog = document.getElementById("confirm-dialog");
+        const titleEl = document.getElementById("confirm-dialog-title");
         const messageEl = document.getElementById("confirm-dialog-message");
         const acceptBtn = document.getElementById("confirm-dialog-accept");
         const cancelBtn = document.getElementById("confirm-dialog-cancel");
 
-        messageEl.textContent = message || "Please confirm this action.";
+        const opts = typeof options === "string" ? {message: options} : (options || {});
+        titleEl.textContent = opts.title || "Confirm Action";
+        messageEl.textContent = opts.message || "Please confirm this action.";
+        acceptBtn.textContent = opts.acceptLabel || "Confirm";
+        cancelBtn.textContent = opts.cancelLabel || "Cancel";
+        acceptBtn.classList.toggle("run-btn--danger", Boolean(opts.danger));
 
         return new Promise((resolve) => {
             const cleanup = () => {
@@ -1696,6 +2194,7 @@
     function bindUi() {
         bindCollapseButtons();
         document.getElementById("run-btn").addEventListener("click", runCommand);
+        document.getElementById("stop-btn").addEventListener("click", stopCommand);
         document.getElementById("copy-log-btn").addEventListener("click", copyLogToClipboard);
         document.getElementById("load-config-btn").addEventListener("click", loadConfigFromLocalFile);
         document.getElementById("config-file-input").addEventListener("change", onConfigFilePicked);
@@ -1727,6 +2226,8 @@
             }
             document.getElementById("folder-dialog").close();
         });
+        setupOutputResizer();
+        updateRunStopButtons("idle");
     }
 
     async function boot() {
