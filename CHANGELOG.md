@@ -5,13 +5,15 @@
 ---
 
 ## Release: v3.8.0
-### Release Date: 2026-03-16
+### Release Date: 2026-03-17
   
 #### 🚨 Breaking Changes:
   
 #### 🌟 New Features:
-  - New Web interface to be executed from docker.
-  - New docker-compose.yml file to deploy the tool in docker.
+  - New Web Interface to configure and execute the different features & modules directly.
+  - Added themes support to Web Interface.
+  - Docker support to deploy the tool in docker and expose the new Web Interface (default port: 6078).
+  - New docker-compose.yml and .env file to easily configure and deploy the tool with docker compose.
     
 #### 🚀 Enhancements:
   

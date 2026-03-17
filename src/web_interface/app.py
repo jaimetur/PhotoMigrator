@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -21,6 +22,7 @@ PROJECT_ROOT = SRC_ROOT.parent
 CLI_ENTRYPOINT = SRC_ROOT / "PhotoMigrator.py"
 CONFIG_FILE_PATH = Path(os.environ.get("PHOTOMIGRATOR_CONFIG_PATH", "/app/config/Config.ini"))
 STATE_FILE_PATH = Path(os.environ.get("PHOTOMIGRATOR_STATE_PATH", "/app/config/web_interface_state.json"))
+WEB_HOME_PATH = Path(os.environ.get("PHOTOMIGRATOR_DOCKER_BASE_PATH", "/app/data")).resolve()
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
@@ -121,6 +123,15 @@ FEATURE_SCOPED_DESTS = {
     "account-id",
 }
 
+MODULE_DEPENDENCIES_REQUIRED = {
+    "synology_photos": {
+        "download-albums": {"output-folder"},
+    },
+    "immich_photos": {
+        "download-albums": {"output-folder"},
+    },
+}
+
 TAB_TO_CATEGORY = {
     "google_takeout": "google_takeout",
     "synology_photos": "synology_photos",
@@ -133,6 +144,7 @@ TAB_TO_CATEGORY = {
 class RunRequest(BaseModel):
     tab: str
     values: Dict[str, Any] = Field(default_factory=dict)
+    selected_action_dest: str | None = None
 
 
 class ConfigUpdateRequest(BaseModel):
@@ -142,6 +154,11 @@ class ConfigUpdateRequest(BaseModel):
 class StateUpdateRequest(BaseModel):
     values: Dict[str, Any] = Field(default_factory=dict)
     ui_state: Dict[str, Any] = Field(default_factory=dict)
+
+
+class FolderCreateRequest(BaseModel):
+    path: str = "/app/data"
+    name: str = ""
 
 
 class JobData:
@@ -274,13 +291,35 @@ def _load_parser_schema() -> Dict[str, Any]:
     return schema
 
 
-def _build_cli_args(tab: str, values: Dict[str, Any]) -> List[str]:
+def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str | None = None) -> List[str]:
     if tab not in TAB_TO_CATEGORY:
         raise HTTPException(status_code=400, detail=f"Unsupported tab: {tab}")
 
     allowed_dests = {field["dest"] for field in PARSER_SCHEMA["general_tabs"]["general"]}
     allowed_dests.update(FEATURE_SCOPED_DESTS)
-    allowed_dests.update(field["dest"] for field in PARSER_SCHEMA["tabs"][tab])
+    tab_dests = {field["dest"] for field in PARSER_SCHEMA["tabs"][tab]}
+
+    if tab in {"synology_photos", "immich_photos"}:
+        cloud_action_dests = {dest for dest in tab_dests if dest != "one-time-password"}
+        if selected_action_dest:
+            if selected_action_dest not in cloud_action_dests:
+                raise HTTPException(status_code=400, detail=f"Invalid selected action for tab {tab}: {selected_action_dest}")
+            allowed_dests.add(selected_action_dest)
+        else:
+            # Backward-compatible fallback for older UI payloads.
+            allowed_dests.update(cloud_action_dests)
+        if "one-time-password" in tab_dests:
+            allowed_dests.add("one-time-password")
+    elif tab == "standalone_features":
+        if selected_action_dest:
+            if selected_action_dest not in tab_dests:
+                raise HTTPException(status_code=400, detail=f"Invalid selected action for tab {tab}: {selected_action_dest}")
+            allowed_dests.add(selected_action_dest)
+        else:
+            # Backward-compatible fallback for older UI payloads.
+            allowed_dests.update(tab_dests)
+    else:
+        allowed_dests.update(tab_dests)
 
     args: List[str] = []
     for dest in sorted(allowed_dests):
@@ -325,6 +364,68 @@ def _build_cli_args(tab: str, values: Dict[str, Any]) -> List[str]:
         args.extend(["--client", "google-takeout"])
 
     return args
+
+
+def _normalize_incoming_values(values: Dict[str, Any]) -> Dict[str, Any]:
+    incoming_values = dict(values or {})
+    for key, value in list(incoming_values.items()):
+        if not isinstance(value, str):
+            continue
+        trimmed = value.strip()
+        if not trimmed.startswith("/docker"):
+            continue
+        if key == "configuration-file":
+            incoming_values[key] = str(CONFIG_FILE_PATH)
+        else:
+            incoming_values[key] = trimmed.replace("/docker", "/app/data", 1)
+
+    if not str(incoming_values.get("configuration-file", "")).strip():
+        incoming_values["configuration-file"] = str(CONFIG_FILE_PATH)
+    return incoming_values
+
+
+def _build_command_from_payload(payload: RunRequest) -> List[str]:
+    normalized_values = _normalize_incoming_values(payload.values or {})
+    cli_args = _build_cli_args(payload.tab, normalized_values, payload.selected_action_dest)
+    return [sys.executable, str(CLI_ENTRYPOINT), *cli_args]
+
+
+def _value_is_provided(dest: str, values: Dict[str, Any]) -> bool:
+    field = PARSER_FIELDS_BY_DEST.get(dest)
+    raw_value = values.get(dest)
+    if not field:
+        return str(raw_value or "").strip() != ""
+    kind = field.get("kind")
+    if kind == "flag":
+        return _bool_from_value(raw_value)
+    if kind == "list":
+        return len(_to_list(raw_value)) > 0
+    return str(raw_value or "").strip() != ""
+
+
+def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> set[str]:
+    required: set[str] = set()
+    if tab == "google_takeout":
+        required.add("google-takeout")
+        return required
+
+    if tab == "automatic_migration":
+        required.update({"source", "target"})
+        return required
+
+    if tab in {"synology_photos", "immich_photos", "standalone_features"} and selected_action_dest:
+        tab_fields = {field["dest"]: field for field in PARSER_SCHEMA["tabs"].get(tab, [])}
+        selected_field = tab_fields.get(selected_action_dest)
+        if selected_field and selected_field.get("kind") != "flag":
+            required.add(selected_action_dest)
+        for dep in MODULE_DEPENDENCIES_REQUIRED.get(tab, {}).get(selected_action_dest, set()):
+            required.add(dep)
+        if selected_field:
+            for match in re.findall(r"--([a-z0-9-]+)", selected_field.get("help", "") or "", flags=re.IGNORECASE):
+                dest = match.lower()
+                if dest != "client" and dest in PARSER_FIELDS_BY_DEST:
+                    required.add(dest)
+    return required
 
 
 def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
@@ -469,24 +570,56 @@ def list_directories(path: str = Query("/app/data")) -> Dict[str, Any]:
     return {"path": str(current), "parent": parent, "directories": dirs}
 
 
+@app.post("/api/fs/mkdir")
+def make_directory(payload: FolderCreateRequest) -> Dict[str, Any]:
+    parent = Path(payload.path or "/app/data").expanduser()
+    if not parent.is_absolute():
+        parent = (Path("/app") / parent).resolve()
+    if not parent.exists() or not parent.is_dir():
+        raise HTTPException(status_code=400, detail=f"Invalid parent directory: {parent}")
+
+    name = (payload.name or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Folder name is required.")
+    if name in {".", ".."}:
+        raise HTTPException(status_code=400, detail="Folder name is invalid.")
+
+    name_path = Path(name).expanduser()
+    if name_path.is_absolute():
+        target = name_path.resolve()
+        try:
+            target.relative_to(WEB_HOME_PATH)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Absolute path must be inside home folder: {WEB_HOME_PATH}",
+            )
+    else:
+        if "/" in name or "\\" in name:
+            raise HTTPException(status_code=400, detail="Folder name cannot contain path separators.")
+        target = (parent / name).resolve()
+
+    if target.exists():
+        raise HTTPException(status_code=409, detail=f"Folder already exists: {target}")
+    target.mkdir(parents=True, exist_ok=False)
+    return {"created": True, "path": str(target), "parent": str(parent)}
+
+
+@app.post("/api/preview")
+def preview_cli(payload: RunRequest) -> Dict[str, Any]:
+    command = _build_command_from_payload(payload)
+    return {"command": subprocess.list2cmdline(command)}
+
+
 @app.post("/api/run")
 def run_cli(payload: RunRequest) -> Dict[str, Any]:
-    incoming_values = dict(payload.values or {})
-    for key, value in list(incoming_values.items()):
-        if not isinstance(value, str):
-            continue
-        trimmed = value.strip()
-        if not trimmed.startswith("/docker"):
-            continue
-        if key == "configuration-file":
-            incoming_values[key] = str(CONFIG_FILE_PATH)
-        else:
-            incoming_values[key] = trimmed.replace("/docker", "/app/data", 1)
-
-    if not str(incoming_values.get("configuration-file", "")).strip():
-        incoming_values["configuration-file"] = str(CONFIG_FILE_PATH)
-    cli_args = _build_cli_args(payload.tab, incoming_values)
-    command = [sys.executable, str(CLI_ENTRYPOINT), *cli_args]
+    normalized_values = _normalize_incoming_values(payload.values or {})
+    required_dests = _required_dests_for_payload(payload.tab, payload.selected_action_dest)
+    missing = [dest for dest in sorted(required_dests) if not _value_is_provided(dest, normalized_values)]
+    if missing:
+        joined = ", ".join(f"'--{dest}'" for dest in missing)
+        raise HTTPException(status_code=400, detail=f"Missing required argument(s): {joined}")
+    command = _build_command_from_payload(payload)
     child_env = os.environ.copy()
     child_env["PHOTOMIGRATOR_ALLOW_STDIN_PIPE"] = "1"
     child_env["PHOTOMIGRATOR_WEB_MODE"] = "1"

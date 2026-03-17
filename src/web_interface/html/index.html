@@ -99,9 +99,7 @@
     <div class="folder-dialog__header">
         <h3>Select folder</h3>
         <div class="folder-dialog__actions">
-            <button type="button" id="folder-home" class="action-btn action-btn--home">Home</button>
-            <button type="button" id="folder-up" class="action-btn action-btn--up">Up</button>
-            <button type="button" id="folder-close" class="action-btn action-btn--close">Close</button>
+            <button type="button" id="folder-close" class="action-btn action-btn--close" onclick="closeFolderDialogs()">Close</button>
         </div>
     </div>
     <div class="folder-toolbar">
@@ -110,6 +108,20 @@
     </div>
     <div id="folder-current" class="folder-current"></div>
     <div id="folder-list" class="folder-list"></div>
+</dialog>
+
+<dialog id="folder-create-dialog" class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h3 class="confirm-dialog__title">Create Folder</h3>
+        <p class="confirm-dialog__message">
+            Enter a folder name, or an absolute path inside <code>/app/data</code>.
+        </p>
+        <input id="folder-create-name" class="field__input" type="text" placeholder="e.g. photos-2026 or /app/data/photos-2026">
+        <div class="confirm-dialog__actions">
+            <button type="button" id="folder-create-cancel" class="ghost-btn">Cancel</button>
+            <button type="button" id="folder-create-confirm" class="run-btn">Create</button>
+        </div>
+    </div>
 </dialog>
 
 <dialog id="confirm-dialog" class="confirm-dialog">
@@ -135,11 +147,11 @@
 
 <script>
     const MODULE_TAB_NAMES = {
-        google_takeout: "GOOGLE PHOTOS TAKEOUT MANAGEMENT",
+        automatic_migration: "AUTOMATIC MIGRATION",
+        google_takeout: "GOOGLE PHOTOS",
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
-        standalone_features: "OTHER STANDALONE FEATURES",
-        automatic_migration: "AUTOMATIC MIGRATION"
+        standalone_features: "OTHER STANDALONE FEATURES"
     };
 
     const GENERAL_TAB_NAMES = {
@@ -156,13 +168,17 @@
     };
 
     let schema = null;
-    let activeModuleTab = "google_takeout";
+    let activeModuleTab = "automatic_migration";
     let activeGeneralTab = "general";
     let currentJob = null;
     let pollTimer = null;
     let folderTargetInput = null;
     let cloudActionDest = "";
     let standaloneActionDest = "";
+    let migrationEndpointsState = {
+        source: {kind: "synology", account: "1", path: ""},
+        target: {kind: "immich", account: "1", path: ""}
+    };
 
     const ARG_LABELS = {
         "output-folder": "Output Folder",
@@ -181,9 +197,9 @@
     };
 
     function uiCheckboxValueForDest(dest, persisted) {
-        // Invert only in web UI: checked means "Request confirmation" (default true).
+        // Invert only in web UI: checked means "Request confirmation" (default unchecked).
         if (dest === "no-request-user-confirmation") {
-            if (persisted === undefined) return true;
+            if (persisted === undefined) return false;
             return !Boolean(persisted);
         }
         return persisted === undefined ? false : Boolean(persisted);
@@ -222,6 +238,8 @@
     let stateValues = {};
     let uiState = {collapsed_panels: {}};
     let saveStateTimer = null;
+    let commandPreviewTimer = null;
+    let commandPreviewSeq = 0;
     let lastRawOutput = "";
 
     function uiOptionName(field) {
@@ -231,6 +249,9 @@
     }
 
     function uiHelpText(field) {
+        if (field?.dest === "no-request-user-confirmation") {
+            return "Request user confirmation before executing any feature.";
+        }
         const raw = (field?.help || "");
         return raw.replaceAll("--no-request-user-confirmation", "--request-user-confirmation");
     }
@@ -786,7 +807,9 @@
             if (!uiState.cloud_action_dest) uiState.cloud_action_dest = {};
             uiState.cloud_action_dest[tabKey] = cloudActionDest;
             queueSaveState();
+            clearValidationErrorStatus();
             renderCloudActionPanel(tabKey);
+            queueCommandPreview();
         });
         selectRow.appendChild(selectLabel);
         selectRow.appendChild(select);
@@ -842,6 +865,7 @@
         wrap.appendChild(right);
         panel.appendChild(wrap);
         panel.classList.remove("hidden");
+        bindStateForInputs();
     }
 
     function renderStandaloneActionPanel() {
@@ -879,7 +903,9 @@
             standaloneActionDest = event.target.value || "";
             uiState.standalone_action_dest = standaloneActionDest;
             queueSaveState();
+            clearValidationErrorStatus();
             renderStandaloneActionPanel();
+            queueCommandPreview();
         });
         selectRow.appendChild(selectLabel);
         selectRow.appendChild(select);
@@ -919,6 +945,7 @@
         wrap.appendChild(right);
         panel.appendChild(wrap);
         panel.classList.remove("hidden");
+        bindStateForInputs();
     }
 
     function renderMigrationPanel() {
@@ -932,21 +959,135 @@
         const wrap = document.createElement("div");
         wrap.className = "migration-layout";
 
-        const sourceRow = document.createElement("div");
-        sourceRow.className = "arg-row";
-        const sourceLabel = document.createElement("label");
-        sourceLabel.className = "arg-label";
-        sourceLabel.textContent = "source";
-        sourceRow.appendChild(sourceLabel);
-        if (byDest["source"]) sourceRow.appendChild(createInput(byDest["source"]));
+        const parseMigrationEndpoint = (rawValue, fallbackKind) => {
+            const text = String(rawValue || "").trim();
+            if (!text) return {kind: fallbackKind, account: "1", path: ""};
+            if (text.startsWith("/")) return {kind: "folder", account: "1", path: text};
 
-        const targetRow = document.createElement("div");
-        targetRow.className = "arg-row";
-        const targetLabel = document.createElement("label");
-        targetLabel.className = "arg-label";
-        targetLabel.textContent = "target";
-        targetRow.appendChild(targetLabel);
-        if (byDest["target"]) targetRow.appendChild(createInput(byDest["target"]));
+            const synMatch = text.match(/^synology(?:-photos)?(?:-([123]))?$/i);
+            if (synMatch) return {kind: "synology", account: synMatch[1] || "1", path: ""};
+            const immichMatch = text.match(/^immich(?:-photos)?(?:-([123]))?$/i);
+            if (immichMatch) return {kind: "immich", account: immichMatch[1] || "1", path: ""};
+
+            return {kind: "folder", account: "1", path: text};
+        };
+
+        const composeMigrationEndpoint = (state) => {
+            if (state.kind === "folder") return String(state.path || "").trim();
+            if (state.kind === "synology") return `synology-photos-${state.account || "1"}`;
+            if (state.kind === "immich") return `immich-photos-${state.account || "1"}`;
+            return "";
+        };
+
+        const createMigrationEndpointRow = (dest, required = false) => {
+            const row = document.createElement("div");
+            row.className = "arg-row";
+
+            const label = document.createElement("label");
+            label.className = "arg-label";
+            label.textContent = dest;
+            const badge = document.createElement("span");
+            badge.className = required ? "arg-badge arg-badge--required" : "arg-badge arg-badge--optional";
+            badge.textContent = required ? "Required" : "Optional";
+            label.appendChild(badge);
+            row.appendChild(label);
+
+            const controls = document.createElement("div");
+            controls.className = "migration-endpoint";
+
+            const typeSelect = document.createElement("select");
+            typeSelect.className = "field__input migration-endpoint__type";
+            typeSelect.add(new Option("Synology Photos", "synology"));
+            typeSelect.add(new Option("Immich Photos", "immich"));
+            typeSelect.add(new Option("Select Folder", "folder"));
+
+            const secondaryWrap = document.createElement("div");
+            secondaryWrap.className = "migration-endpoint__secondary";
+
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.dataset.dest = dest;
+
+            const defaultKind = dest === "source" ? "synology" : "immich";
+            const persistedState = uiState?.migration_endpoints?.[dest];
+            const parsedFromValue = parseMigrationEndpoint(stateValues[dest], defaultKind);
+            migrationEndpointsState[dest] = {
+                kind: persistedState?.kind || parsedFromValue.kind || defaultKind,
+                account: String(persistedState?.account || parsedFromValue.account || "1"),
+                path: String(persistedState?.path || parsedFromValue.path || "")
+            };
+            typeSelect.value = migrationEndpointsState[dest].kind;
+
+            const updateComposedValue = (persist = true) => {
+                hidden.value = composeMigrationEndpoint(migrationEndpointsState[dest]);
+                stateValues[dest] = hidden.value;
+                if (!uiState.migration_endpoints) uiState.migration_endpoints = {};
+                uiState.migration_endpoints[dest] = {...migrationEndpointsState[dest]};
+                if (persist) {
+                    queueSaveState();
+                    queueCommandPreview();
+                }
+            };
+
+            const renderSecondary = () => {
+                secondaryWrap.innerHTML = "";
+                if (migrationEndpointsState[dest].kind === "folder") {
+                    const pathInput = document.createElement("input");
+                    pathInput.type = "text";
+                    pathInput.className = "field__input";
+                    pathInput.placeholder = "Folder path";
+                    pathInput.value = migrationEndpointsState[dest].path || "";
+                    pathInput.addEventListener("input", () => {
+                        migrationEndpointsState[dest].path = pathInput.value;
+                        updateComposedValue();
+                    });
+                    secondaryWrap.appendChild(pathInput);
+
+                    const browseBtn = document.createElement("button");
+                    browseBtn.type = "button";
+                    browseBtn.className = "ghost-btn browse-btn";
+                    browseBtn.textContent = "...";
+                    browseBtn.title = "Open folder selector";
+                    browseBtn.setAttribute("aria-label", "Open folder selector");
+                    browseBtn.addEventListener("click", () => openFolderDialog(pathInput));
+                    pathInput.addEventListener("change", () => {
+                        migrationEndpointsState[dest].path = pathInput.value;
+                        updateComposedValue();
+                    });
+                    secondaryWrap.appendChild(browseBtn);
+                } else {
+                    const accountSelect = document.createElement("select");
+                    accountSelect.className = "field__input migration-endpoint__account";
+                    accountSelect.add(new Option("Account 1", "1"));
+                    accountSelect.add(new Option("Account 2", "2"));
+                    accountSelect.add(new Option("Account 3", "3"));
+                    accountSelect.value = migrationEndpointsState[dest].account || "1";
+                    accountSelect.addEventListener("change", () => {
+                        migrationEndpointsState[dest].account = accountSelect.value || "1";
+                        updateComposedValue();
+                    });
+                    secondaryWrap.appendChild(accountSelect);
+                }
+            };
+
+            typeSelect.addEventListener("change", () => {
+                migrationEndpointsState[dest].kind = typeSelect.value || defaultKind;
+                renderSecondary();
+                updateComposedValue();
+            });
+
+            controls.appendChild(typeSelect);
+            controls.appendChild(secondaryWrap);
+            controls.appendChild(hidden);
+            row.appendChild(controls);
+
+            renderSecondary();
+            updateComposedValue(false);
+            return row;
+        };
+
+        wrap.appendChild(createMigrationEndpointRow("source", true));
+        wrap.appendChild(createMigrationEndpointRow("target", true));
 
         const flagsCard = document.createElement("div");
         flagsCard.className = "flags-card";
@@ -959,11 +1100,10 @@
             flagsCard.appendChild(createArgumentRow(byDest[dest]));
         });
 
-        wrap.appendChild(sourceRow);
-        wrap.appendChild(targetRow);
         wrap.appendChild(flagsCard);
         panel.appendChild(wrap);
         panel.classList.remove("hidden");
+        bindStateForInputs();
     }
 
     function renderGeneralTabs() {
@@ -982,6 +1122,7 @@
             activeModuleTab = key;
             uiState.active_module_tab = key;
             queueSaveState();
+            clearValidationErrorStatus();
             renderAll();
         });
         renderGeneralTabs();
@@ -1017,6 +1158,7 @@
             renderFields(moduleForm, schema.tabs[activeModuleTab]);
         }
         bindStateForInputs();
+        queueCommandPreview();
     }
 
     function collectValues() {
@@ -1036,7 +1178,119 @@
                 else if (val !== "") values[key] = val;
             }
         });
-        return {...stateValues, ...values};
+        return values;
+    }
+
+    function buildRunPayload() {
+        const values = collectValues();
+        let selectedActionDest = null;
+        if (activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos") {
+            const selected = (schema.tabs[activeModuleTab] || []).find((f) => f.dest === cloudActionDest);
+            if (selected && selected.kind === "flag") values[selected.dest] = true;
+            selectedActionDest = cloudActionDest || null;
+        } else if (activeModuleTab === "standalone_features") {
+            const selected = (schema.tabs.standalone_features || []).find((f) => f.dest === standaloneActionDest);
+            if (selected && selected.kind === "flag") values[selected.dest] = true;
+            selectedActionDest = standaloneActionDest || null;
+        }
+        return { tab: activeModuleTab, values, selected_action_dest: selectedActionDest };
+    }
+
+    function hasProvidedValue(dest, values) {
+        const field = getFieldByDest(dest);
+        const raw = values ? values[dest] : undefined;
+        if (!field) return String(raw || "").trim() !== "";
+        if (field.kind === "flag") return Boolean(raw);
+        if (field.kind === "list") {
+            if (Array.isArray(raw)) return raw.some((v) => String(v || "").trim() !== "");
+            const text = String(raw || "").replaceAll(",", "\n");
+            return text.split("\n").some((v) => v.trim() !== "");
+        }
+        return String(raw || "").trim() !== "";
+    }
+
+    function requiredDestsForPayload(payload) {
+        const required = new Set();
+        if (!payload || !payload.tab) return required;
+
+        if (payload.tab === "google_takeout") {
+            required.add("google-takeout");
+            return required;
+        }
+
+        if (payload.tab === "automatic_migration") {
+            required.add("source");
+            required.add("target");
+            return required;
+        }
+
+        if (payload.tab === "synology_photos" || payload.tab === "immich_photos") {
+            const selected = (schema.tabs[payload.tab] || []).find((f) => f.dest === payload.selected_action_dest);
+            if (selected && selected.kind !== "flag") required.add(selected.dest);
+            const mapped = (MODULE_DEPENDENCIES[payload.tab] || {})[selected?.dest || ""] || [];
+            mapped.filter((item) => item.required === true).forEach((item) => required.add(item.dest));
+            parseRequiredFromHelp(selected?.help || "").forEach((dest) => required.add(dest));
+            return required;
+        }
+
+        if (payload.tab === "standalone_features") {
+            const selected = (schema.tabs.standalone_features || []).find((f) => f.dest === payload.selected_action_dest);
+            if (selected && selected.kind !== "flag") required.add(selected.dest);
+            parseRequiredFromHelp(selected?.help || "").forEach((dest) => required.add(dest));
+            return required;
+        }
+
+        return required;
+    }
+
+    function validatePayloadBeforeRun(payload) {
+        const errors = [];
+        if (!payload || !payload.tab) return ["Missing tab."];
+
+        if ((payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "standalone_features")
+            && !payload.selected_action_dest) {
+            errors.push("Please select a feature/module to run.");
+        }
+
+        const required = requiredDestsForPayload(payload);
+        required.forEach((dest) => {
+            if (!hasProvidedValue(dest, payload.values || {})) {
+                errors.push(`Missing required argument: --${dest}`);
+            }
+        });
+        return errors;
+    }
+
+    function queueCommandPreview() {
+        if (commandPreviewTimer) clearTimeout(commandPreviewTimer);
+        commandPreviewTimer = setTimeout(() => {
+            refreshCommandPreview();
+        }, 140);
+    }
+
+    async function refreshCommandPreview() {
+        if (!schema) return;
+        const reqId = ++commandPreviewSeq;
+        const payload = buildRunPayload();
+        try {
+            const response = await fetch("/api/preview", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (reqId !== commandPreviewSeq) return;
+            if (!response.ok) {
+                const detail = data && data.detail ? String(data.detail) : "Preview unavailable";
+                document.getElementById("command-preview").textContent = `Preview unavailable: ${detail}`;
+                return;
+            }
+            document.getElementById("command-preview").textContent = data.command || "";
+        } catch (error) {
+            if (reqId !== commandPreviewSeq) return;
+            console.error(error);
+            document.getElementById("command-preview").textContent = "Preview unavailable";
+        }
     }
 
     function queueSaveState() {
@@ -1091,6 +1345,7 @@
                 if (el.type === "checkbox") stateValues[el.dataset.dest] = stateValueFromUiCheckbox(el.dataset.dest, el.checked);
                 else stateValues[el.dataset.dest] = el.value;
                 queueSaveState();
+                queueCommandPreview();
             };
             el.addEventListener("input", updateState);
             el.addEventListener("change", updateState);
@@ -1098,11 +1353,23 @@
         });
     }
 
+    function setStatus(text, isError = false) {
+        const statusEl = document.getElementById("status");
+        statusEl.textContent = text;
+        statusEl.classList.toggle("status--error", Boolean(isError));
+    }
+
+    function clearValidationErrorStatus() {
+        const statusEl = document.getElementById("status");
+        if (!statusEl.classList.contains("status--error")) return;
+        setStatus("Status: idle", false);
+    }
+
     async function refreshJob() {
         if (!currentJob) return;
         const response = await fetch(`/api/jobs/${currentJob}`);
         const data = await response.json();
-        document.getElementById("status").textContent = `Status: ${data.status}`;
+        setStatus(`Status: ${data.status}`, false);
         renderOutputWithLevels(data.output || "");
         const controls = document.getElementById("job-input-controls");
         const awaitingConfirmation = Boolean(data.awaiting_confirmation);
@@ -1123,26 +1390,27 @@
     }
 
     async function runCommand() {
-        const values = collectValues();
-        if (activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos") {
-            const selected = (schema.tabs[activeModuleTab] || []).find((f) => f.dest === cloudActionDest);
-            if (selected && selected.kind === "flag") values[selected.dest] = true;
-        } else if (activeModuleTab === "standalone_features") {
-            const selected = (schema.tabs.standalone_features || []).find((f) => f.dest === standaloneActionDest);
-            if (selected && selected.kind === "flag") values[selected.dest] = true;
+        const payload = buildRunPayload();
+        const validationErrors = validatePayloadBeforeRun(payload);
+        if (validationErrors.length) {
+            setStatus(`Status: validation error (${validationErrors[0]})`, true);
+            return;
         }
-
-        const payload = { tab: activeModuleTab, values };
         const response = await fetch("/api/run", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(payload)
         });
         const data = await response.json();
+        if (!response.ok) {
+            const detail = data && data.detail ? String(data.detail) : "Unable to run command";
+            setStatus(`Status: validation error (${detail})`, true);
+            return;
+        }
         currentJob = data.job_id;
         document.getElementById("command-preview").textContent = data.command;
         document.getElementById("output").textContent = "";
-        document.getElementById("status").textContent = "Status: running";
+        setStatus("Status: running", false);
         document.getElementById("job-input-controls").classList.add("hidden");
         if (pollTimer) clearInterval(pollTimer);
         pollTimer = setInterval(refreshJob, 2000);
@@ -1227,6 +1495,20 @@
         return response.json();
     }
 
+    async function createFolder(parentPath, folderName) {
+        const response = await fetch("/api/fs/mkdir", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({path: parentPath, name: folderName})
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            const detail = data && data.detail ? String(data.detail) : "Unable to create folder";
+            throw new Error(detail);
+        }
+        return data;
+    }
+
     async function renderFolderList(path) {
         const dialog = document.getElementById("folder-dialog");
         const pathInput = document.getElementById("folder-path-input");
@@ -1239,25 +1521,43 @@
             currentEl.textContent = `Current: ${data.path}`;
             listEl.innerHTML = "";
 
-            const selectCurrent = document.createElement("button");
-            selectCurrent.type = "button";
-            selectCurrent.className = "folder-item folder-item--select";
-            selectCurrent.textContent = `Use this folder: ${data.path}`;
-            selectCurrent.addEventListener("click", () => {
-                if (!folderTargetInput) return;
-                if (folderTargetInput.tagName === "TEXTAREA") {
-                    folderTargetInput.value = folderTargetInput.value ? `${folderTargetInput.value}\n${data.path}` : data.path;
-                } else {
-                    folderTargetInput.value = data.path;
-                }
-                const dest = folderTargetInput.dataset.dest;
-                if (dest) {
-                    stateValues[dest] = folderTargetInput.value;
-                    queueSaveState();
-                }
-                dialog.close();
+            const quickActions = document.createElement("div");
+            quickActions.className = "folder-quick-actions";
+
+            const homeBtn = document.createElement("button");
+            homeBtn.type = "button";
+            homeBtn.className = "folder-quick-btn folder-quick-btn--home";
+            homeBtn.textContent = "Home";
+            homeBtn.addEventListener("click", () => renderFolderList("/app/data"));
+            quickActions.appendChild(homeBtn);
+
+            const upBtn = document.createElement("button");
+            upBtn.type = "button";
+            upBtn.className = "folder-quick-btn folder-quick-btn--up";
+            upBtn.textContent = "Up Folder";
+            upBtn.addEventListener("click", () => {
+                if (data.parent) renderFolderList(data.parent);
             });
-            listEl.appendChild(selectCurrent);
+            quickActions.appendChild(upBtn);
+
+            const createBtn = document.createElement("button");
+            createBtn.type = "button";
+            createBtn.className = "folder-quick-btn folder-quick-btn--create";
+            createBtn.textContent = "Create Folder";
+            createBtn.addEventListener("click", async () => {
+                const name = await askForFolderName();
+                if (!name) return;
+                try {
+                    const created = await createFolder(data.path, name);
+                    await renderFolderList(data.path);
+                    document.getElementById("folder-current").textContent = `Current: ${data.path} | Created: ${created.path}`;
+                } catch (error) {
+                    document.getElementById("folder-current").textContent = `Current: ${data.path} | Create failed: ${String(error)}`;
+                }
+            });
+            quickActions.appendChild(createBtn);
+
+            listEl.appendChild(quickActions);
 
             for (const dir of data.directories) {
                 const btn = document.createElement("button");
@@ -1323,6 +1623,76 @@
         });
     }
 
+    function askForFolderName() {
+        const dialog = document.getElementById("folder-create-dialog");
+        const input = document.getElementById("folder-create-name");
+        const acceptBtn = document.getElementById("folder-create-confirm");
+        const cancelBtn = document.getElementById("folder-create-cancel");
+        input.value = "";
+
+        return new Promise((resolve) => {
+            const cleanup = () => {
+                acceptBtn.removeEventListener("click", onAccept);
+                cancelBtn.removeEventListener("click", onCancel);
+                dialog.removeEventListener("cancel", onCancel);
+                dialog.removeEventListener("click", onBackdropClick);
+                input.removeEventListener("keydown", onKeyDown);
+            };
+            const onAccept = () => {
+                const value = (input.value || "").trim();
+                if (!value) return;
+                cleanup();
+                dialog.close();
+                resolve(value);
+            };
+            const onCancel = () => {
+                cleanup();
+                dialog.close();
+                resolve(null);
+            };
+            const onBackdropClick = (event) => {
+                const rect = dialog.getBoundingClientRect();
+                const inside =
+                    event.clientX >= rect.left &&
+                    event.clientX <= rect.right &&
+                    event.clientY >= rect.top &&
+                    event.clientY <= rect.bottom;
+                if (!inside) onCancel();
+            };
+            const onKeyDown = (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    onAccept();
+                }
+            };
+
+            acceptBtn.addEventListener("click", onAccept);
+            cancelBtn.addEventListener("click", onCancel);
+            dialog.addEventListener("cancel", onCancel);
+            dialog.addEventListener("click", onBackdropClick);
+            input.addEventListener("keydown", onKeyDown);
+            dialog.showModal();
+            input.focus();
+        });
+    }
+
+    function forceCloseDialogById(dialogId) {
+        const dialog = document.getElementById(dialogId);
+        if (!dialog) return;
+        try {
+            dialog.close();
+        } catch (error) {
+            dialog.removeAttribute("open");
+        }
+    }
+
+    function closeFolderDialogs() {
+        forceCloseDialogById("folder-create-dialog");
+        forceCloseDialogById("folder-dialog");
+    }
+
+    window.closeFolderDialogs = closeFolderDialogs;
+
     function bindUi() {
         bindCollapseButtons();
         document.getElementById("run-btn").addEventListener("click", runCommand);
@@ -1338,7 +1708,7 @@
             uiState.auto_scroll = autoScrollCheck.checked;
             queueSaveState();
         });
-        document.getElementById("folder-close").addEventListener("click", () => document.getElementById("folder-dialog").close());
+        document.getElementById("folder-close").addEventListener("click", closeFolderDialogs);
         document.getElementById("folder-select").addEventListener("click", () => {
             const current = document.getElementById("folder-path-input").value || "/app/data";
             if (!folderTargetInput) return;
@@ -1347,24 +1717,15 @@
             } else {
                 folderTargetInput.value = current;
             }
+            folderTargetInput.dispatchEvent(new Event("input", {bubbles: true}));
+            folderTargetInput.dispatchEvent(new Event("change", {bubbles: true}));
             const dest = folderTargetInput.dataset.dest;
             if (dest) {
                 stateValues[dest] = folderTargetInput.value;
                 queueSaveState();
+                queueCommandPreview();
             }
             document.getElementById("folder-dialog").close();
-        });
-        document.getElementById("folder-home").addEventListener("click", () => {
-            renderFolderList("/app/data");
-        });
-        document.getElementById("folder-up").addEventListener("click", async () => {
-            try {
-                const current = document.getElementById("folder-path-input").value || "/app/data";
-                const data = await listFolders(current);
-                if (data.parent) renderFolderList(data.parent);
-            } catch (error) {
-                console.error(error);
-            }
         });
     }
 
