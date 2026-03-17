@@ -581,7 +581,7 @@ class FolderAnalyzer:
 
                 command = [
                     exif_tool_path,
-                    '-charset', 'filename=utf-8',
+                    '-charset', 'filename=utf8',
                     '-charset', 'exif=utf8',
                     '-j', '-n', '-s',
                     '-m', '-q', '-q',
