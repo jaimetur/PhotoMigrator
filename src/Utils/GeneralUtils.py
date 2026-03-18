@@ -408,7 +408,12 @@ def update_metadata(file_path, date_time, log_level=None):
 
 def update_exif_date(image_path, asset_time, log_level=None):
     """
-    Updates the EXIF metadata of an image to set the DateTimeOriginal and related fields.
+    Updates the EXIF metadata of an image only when content date tags are missing.
+
+    If any of these tags already exists, the function does not overwrite EXIF dates:
+      - Exif.DateTimeOriginal
+      - Exif.DateTimeDigitized
+      - 0th.DateTime
 
     Args:
         image_path (str): Path to the image file.
@@ -439,12 +444,33 @@ def update_exif_date(image_path, asset_time, log_level=None):
                 # exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
                 GV.LOGGER.warning(f"No EXIF metadata found in {image_path}. Skipping it....")
                 return
-            # Update only if the sections exist
-            if "0th" in exif_dict:
-                exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_bytes
-            if "Exif" in exif_dict:
-                exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes
-                exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes
+
+            def _tag_has_value(ifd_name, tag_id):
+                value = exif_dict.get(ifd_name, {}).get(tag_id)
+                if value is None:
+                    return False
+                if isinstance(value, bytes):
+                    return value.strip() != b""
+                if isinstance(value, str):
+                    return value.strip() != ""
+                return True
+
+            # Do not overwrite existing EXIF content date tags.
+            has_content_date = (
+                _tag_has_value("Exif", piexif.ExifIFD.DateTimeOriginal) or
+                _tag_has_value("Exif", piexif.ExifIFD.DateTimeDigitized) or
+                _tag_has_value("0th", piexif.ImageIFD.DateTime)
+            )
+            if has_content_date:
+                GV.LOGGER.debug(f"EXIF date tags already exist in '{image_path}'. Skipping EXIF date overwrite.")
+                return
+
+            # Fill content date tags only when all of them were missing.
+            exif_dict.setdefault("0th", {})
+            exif_dict.setdefault("Exif", {})
+            exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_bytes
+            exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes
+            exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes
             # Validate and fix incorrect values before inserting
             for ifd_name in ["0th", "Exif"]:
                 for tag, value in exif_dict.get(ifd_name, {}).items():

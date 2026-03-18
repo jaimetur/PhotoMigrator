@@ -25,7 +25,7 @@ from packaging.version import Version
 from Core.CustomLogger import set_log_level
 from Core.CustomLogger import suppress_console_output_temporarily
 from Core.FolderAnalyzer import FolderAnalyzer
-from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, \
+from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, TAKEOUT_SPECIAL_FOLDER_NAMES, \
     PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
@@ -35,6 +35,22 @@ from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path, sanitize_and_unpack_zips
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, profile_and_print
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, custom_print, get_exif_tool_path
+
+def _normalize_special_folder_token(value):
+    return re.sub(r"[\s_-]+", "", str(value or "").strip().lower())
+
+
+def _find_forbidden_special_folder_in_path(path_value):
+    """
+    Returns the offending path component if any folder in path_value matches one
+    of the special Google folders (Archive/Trash/Locked folder), else None.
+    """
+    blocked = {_normalize_special_folder_token(item) for item in TAKEOUT_SPECIAL_FOLDER_NAMES}
+    parts = [part for part in re.split(r"[\\/]+", str(path_value or "")) if part and part not in (".", "..")]
+    for part in parts:
+        if _normalize_special_folder_token(part) in blocked:
+            return part
+    return None
 
 
 ##############################################################################
@@ -59,7 +75,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # self.ignore_takeout_structure       = self.ARGS['google-ignore-check-structure']
 
         # Assign takeout_folder from the given argument when create the object
-        self.takeout_folder = Path(takeout_folder)  # Folder given when create the object
+        self.takeout_folder = Path(takeout_folder).expanduser()  # Folder given when create the object
+        offending_component = _find_forbidden_special_folder_in_path(self.takeout_folder)
+        if offending_component:
+            blocked_folders = ", ".join([f"'{name}'" for name in TAKEOUT_SPECIAL_FOLDER_NAMES])
+            LOGGER.error(f"Invalid --google-takeout path: '{self.takeout_folder}'")
+            LOGGER.error(
+                f"The input path contains forbidden folder '{offending_component}', which conflicts with Google special folders."
+            )
+            LOGGER.error(
+                f"Please move/rename the Takeout path so it does not contain any of: {blocked_folders}"
+            )
+            sys.exit(1)
         self.takeout_folder.mkdir(parents=True, exist_ok=True)  # Asegurar que takeout_folder existe
 
         # Verificar si la carpeta necesita ser descomprimida
@@ -138,6 +165,72 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Call get_albums_folder to update it with the new output_folder
         self.get_albums_folder()
         return self.output_folder
+
+    def normalize_input_root_for_gpth(self, step_name="", log_level=None):
+        """
+        Normalize input root so GPTH always receives a Takeout-compatible root.
+
+        Rules:
+          - If input already points to <...>/Takeout (or any non "Google Photos" folder), do nothing.
+          - If input points to <...>/Takeout/Google Photos, switch root to parent <...>/Takeout.
+          - If input points to <...>/Google Photos and parent is not "Takeout",
+            create sibling wrapper <...>/_gpth_wrap_<TIMESTAMP>/Takeout/Google Photos
+            and move the folder there (no copy fallback).
+        """
+        with set_log_level(LOGGER, log_level):
+            current_input = Path(self.get_input_folder())
+            google_photos_name = "google photos"
+
+            if current_input.name.lower() != google_photos_name:
+                return False
+
+            parent = current_input.parent
+
+            # Case 1: direct Google Photos under Takeout -> just use Takeout root.
+            if parent.name.lower() == "takeout":
+                LOGGER.info(f"{step_name}Detected input folder as Google Photos subfolder. Using parent Takeout folder for GPTH input.")
+                self.takeout_folder = parent
+                if self.unzipped_folder:
+                    self.unzipped_folder = parent
+                self.input_folder = parent
+                self.needs_unzip = self.check_if_needs_unzip(log_level=logging.WARNING)
+                self.needs_process = self.check_if_needs_process(log_level=logging.WARNING)
+                self.output_folder = self.get_output_folder()
+                self.get_albums_folder()
+                return True
+
+            # Case 2: Google Photos folder without Takeout parent -> build wrapper and move.
+            wrapper_root = parent / f"_gpth_wrap_{self.TIMESTAMP}"
+            wrapper_takeout = wrapper_root / "Takeout"
+            target_google_photos = wrapper_takeout / current_input.name
+
+            if wrapper_root.exists():
+                LOGGER.error(f"{step_name}Cannot normalize Takeout structure because wrapper folder already exists: '{wrapper_root}'")
+                raise RuntimeError(f"Wrapper folder already exists: {wrapper_root}")
+
+            LOGGER.warning(f"{step_name}Input folder points directly to 'Google Photos' without 'Takeout' parent.")
+            LOGGER.warning(f"{step_name}Normalizing structure for GPTH by moving folder (no copy fallback):")
+            LOGGER.warning(f"{step_name}  Source: '{current_input}'")
+            LOGGER.warning(f"{step_name}  Target: '{target_google_photos}'")
+
+            try:
+                wrapper_takeout.mkdir(parents=True, exist_ok=False)
+                current_input.rename(target_google_photos)
+            except Exception as e:
+                LOGGER.error(f"{step_name}Failed to normalize Takeout structure using move/rename: {e}")
+                LOGGER.error(f"{step_name}Aborting to avoid dangerous copy fallback for large Takeout datasets.")
+                raise RuntimeError("Could not normalize Takeout structure with move/rename.") from e
+
+            self.takeout_folder = wrapper_takeout
+            if self.unzipped_folder:
+                self.unzipped_folder = wrapper_takeout
+            self.input_folder = wrapper_takeout
+            self.needs_unzip = self.check_if_needs_unzip(log_level=logging.WARNING)
+            self.needs_process = self.check_if_needs_process(log_level=logging.WARNING)
+            self.output_folder = self.get_output_folder()
+            self.get_albums_folder()
+            LOGGER.info(f"{step_name}Takeout structure normalized successfully for GPTH.")
+            return True
 
     def analyze_folder(self, folder_to_analyze, folder_type='output', step_name='', save_json=True, json_filename=None):
         # Analyze Folder using the New Class FolderAnalyzer to extract files dates and to count all file types from a given folder
@@ -454,6 +547,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # STEP 1: Pre-check the object with skip_process=True to just unzip files in case they are zipped
             # ----------------------------------------------------------------------------------------------------------------------
             self.pre_checks(log_level=log_level)
+
+            # Normalize input root for GPTH before any pre-process/analyze step.
+            # This ensures extracted dates JSON paths match GPTH input paths.
+            step_name = '🔧 [PRE-CHECKS]-[Normalize GPTH Input] : '
+            self.normalize_input_root_for_gpth(step_name=step_name, log_level=log_level)
 
 
             # STEP 2: Pre-Process Takeout folder

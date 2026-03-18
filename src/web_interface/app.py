@@ -34,7 +34,7 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from Core.ArgsParser import parse_arguments  # noqa: E402
-from Core.GlobalVariables import TOOL_DATE, TOOL_NAME, TOOL_VERSION  # noqa: E402
+from Core.GlobalVariables import TOOL_DATE, TOOL_NAME, TOOL_VERSION, TAKEOUT_SPECIAL_FOLDER_NAMES  # noqa: E402
 
 
 BOOL_VALUE_DESTS = {
@@ -146,7 +146,6 @@ TAB_TO_CATEGORY = {
     "standalone_features": "standalone_features",
     "automatic_migration": "automatic_migration",
 }
-
 
 class RunRequest(BaseModel):
     tab: str
@@ -352,6 +351,19 @@ def _to_list(value: Any) -> List[str]:
     return [str(value).strip()]
 
 
+def _normalize_special_folder_token(value: Any) -> str:
+    return re.sub(r"[\s_-]+", "", str(value or "").strip().lower())
+
+
+def _find_forbidden_special_folder_in_path(path_value: Any) -> str | None:
+    blocked = {_normalize_special_folder_token(item) for item in TAKEOUT_SPECIAL_FOLDER_NAMES}
+    parts = [part for part in re.split(r"[\\/]+", str(path_value or "")) if part and part not in (".", "..")]
+    for part in parts:
+        if _normalize_special_folder_token(part) in blocked:
+            return part
+    return None
+
+
 def _bool_from_value(value: Any) -> bool:
     if isinstance(value, bool):
         return value
@@ -509,6 +521,20 @@ def _normalize_incoming_values(values: Dict[str, Any]) -> Dict[str, Any]:
 
 def _build_command_from_payload(payload: RunRequest) -> List[str]:
     normalized_values = _normalize_incoming_values(payload.values or {})
+    if payload.tab == "google_takeout":
+        takeout_value = str(normalized_values.get("google-takeout", "")).strip()
+        if takeout_value:
+            offending_component = _find_forbidden_special_folder_in_path(takeout_value)
+            if offending_component:
+                blocked_folders = ", ".join([f"'{name}'" for name in TAKEOUT_SPECIAL_FOLDER_NAMES])
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Invalid --google-takeout path '{takeout_value}'. "
+                        f"It contains forbidden folder '{offending_component}' "
+                        f"(special folders: {blocked_folders})."
+                    ),
+                )
     cli_args = _build_cli_args(payload.tab, normalized_values, payload.selected_action_dest)
     return [sys.executable, str(CLI_ENTRYPOINT), *cli_args]
 
@@ -670,6 +696,7 @@ def home(request: Request) -> HTMLResponse:
             "tool_name": TOOL_NAME,
             "tool_version": TOOL_VERSION,
             "tool_date": TOOL_DATE,
+            "takeout_special_folders": list(TAKEOUT_SPECIAL_FOLDER_NAMES),
         },
     )
 

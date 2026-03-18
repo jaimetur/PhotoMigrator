@@ -93,6 +93,10 @@ else:
 # Supplemental Metadata Suffix
 SUPPLEMENTAL_METADATA           = "supplemental-metadata"
 
+# Reserved Google special folder names used by GPTH/Takeout internals.
+# Input Takeout paths must avoid these names in any path component.
+TAKEOUT_SPECIAL_FOLDER_NAMES    = ("archive", "trash", "locked folder")
+
 # List of special suffixes from Google Photos:
 SPECIAL_SUFFIXES = [
     '-EFFECTS',

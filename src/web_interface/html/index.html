@@ -254,6 +254,7 @@
         dark: {name: "Dark", description: "Dark UI palette"},
         sunset: {name: "Sunset", description: "Warm palette"}
     };
+    const TAKEOUT_SPECIAL_FOLDER_NAMES = {{ takeout_special_folders | tojson }};
 
     let schema = null;
     let activeModuleTab = "automatic_migration";
@@ -517,6 +518,7 @@
         const tqdmMarkerRegex = /(\d{1,3}%\|[^|]*\|\s*\d+\/\d+)/;
         const customPartialRegex = /^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$/;
         const tqdmPartialRegex = /(\d{1,3}%\|[^|]*)/;
+        const stepPrefixRegex = /^(.*?\[\s*step\s+\d+\/\d+\][^:]*:)/i;
 
         for (let i = 0; i < lines.length; i += 1) {
             const line = lines[i];
@@ -542,12 +544,37 @@
                         if (tqdmPartialMatch && typeof tqdmPartialMatch.index === "number") {
                             progressKey = clean.slice(0, tqdmPartialMatch.index).trim().toLowerCase();
                             partialProgress = true;
+                        } else {
+                            const stepPrefixMatch = clean.match(stepPrefixRegex);
+                            if (stepPrefixMatch) {
+                                progressKey = String(stepPrefixMatch[1] || "").trim().toLowerCase();
+                                partialProgress = true;
+                            }
                         }
                     }
                 }
             }
 
             if (!progressKey) {
+                if (isLastPartialLine) {
+                    const likelyProgressByContent =
+                        /\d{1,3}%\|/.test(clean)
+                        || /\[\s*step\s+\d+\/\d+\]/i.test(clean)
+                        || /[█▓▒░]{3,}/.test(clean)
+                        || clean.includes("â–");
+                    const prevLine = result.length ? stripAnsi(result[result.length - 1]).replace(/\r/g, "").trimEnd() : "";
+                    const prevLooksProgress =
+                        /\d{1,3}%\|/.test(prevLine)
+                        || /\[\s*step\s+\d+\/\d+\]/i.test(prevLine)
+                        || /[█▓▒░]{3,}/.test(prevLine)
+                        || prevLine.includes("â–");
+                    const sharesPrefixWithPrevProgress =
+                        prevLooksProgress
+                        && (prevLine.startsWith(clean) || clean.startsWith(prevLine.slice(0, Math.min(32, prevLine.length))));
+                    if (likelyProgressByContent || sharesPrefixWithPrevProgress) {
+                        continue;
+                    }
+                }
                 result.push(line);
                 continue;
             }
@@ -1978,6 +2005,19 @@
                 errors.push(`Missing required argument: --${dest}`);
             }
         });
+
+        if (payload.tab === "google_takeout") {
+            const takeoutPath = String(payload?.values?.["google-takeout"] || "").trim();
+            if (takeoutPath) {
+                const offendingPart = findForbiddenSpecialFolderInPath(takeoutPath);
+                if (offendingPart) {
+                    errors.push(
+                        `Invalid --google-takeout path: contains '${offendingPart}'. ` +
+                        `Avoid special folder names: ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
+                    );
+                }
+            }
+        }
         return errors;
     }
 
@@ -2615,6 +2655,27 @@
             .filter((item) => item !== "");
     }
 
+    function normalizeSpecialFolderToken(value) {
+        return String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/[\s_-]+/g, "");
+    }
+
+    function findForbiddenSpecialFolderInPath(pathValue) {
+        const blocked = new Set(TAKEOUT_SPECIAL_FOLDER_NAMES.map((item) => normalizeSpecialFolderToken(item)));
+        const parts = String(pathValue || "")
+            .split(/[\\/]+/)
+            .map((item) => item.trim())
+            .filter((item) => item && item !== "." && item !== "..");
+        for (const part of parts) {
+            if (blocked.has(normalizeSpecialFolderToken(part))) {
+                return part;
+            }
+        }
+        return null;
+    }
+
     function applyFolderSelectionToTargetInput(selectedPaths) {
         if (!folderTargetInput) return;
         const normalized = Array.from(new Set((selectedPaths || []).map((item) => String(item || "").trim()).filter(Boolean)));
@@ -3070,10 +3131,20 @@
         document.getElementById("folder-use-current").addEventListener("click", () => {
             const current = folderSelectionParentPath || "/app/data";
             if (!folderTargetInput) return;
+            const dest = folderTargetInput.dataset.dest;
+            if (dest === "google-takeout") {
+                const offendingPart = findForbiddenSpecialFolderInPath(current);
+                if (offendingPart) {
+                    setFolderCurrentMessage(
+                        current,
+                        `Invalid Takeout path: contains '${offendingPart}'. Avoid ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
+                    );
+                    return;
+                }
+            }
             applyFolderSelectionToTargetInput([current]);
             folderTargetInput.dispatchEvent(new Event("input", {bubbles: true}));
             folderTargetInput.dispatchEvent(new Event("change", {bubbles: true}));
-            const dest = folderTargetInput.dataset.dest;
             if (dest) {
                 stateValues[dest] = folderTargetInput.value;
                 queueSaveState();
@@ -3088,6 +3159,7 @@
             const pathInput = document.getElementById("folder-path-input");
             if (!folderTargetInput) return;
             const selected = parseFolderListValue(pathInput ? pathInput.value : "");
+            const dest = folderTargetInput.dataset.dest;
             if (selected.length === 0) {
                 setFolderCurrentMessage(folderSelectionParentPath || "/app/data", "Select at least one folder first.");
                 return;
@@ -3099,10 +3171,19 @@
                 );
                 return;
             }
+            if (dest === "google-takeout") {
+                const offendingPart = findForbiddenSpecialFolderInPath(selected[0]);
+                if (offendingPart) {
+                    setFolderCurrentMessage(
+                        folderSelectionParentPath || "/app/data",
+                        `Invalid Takeout path: contains '${offendingPart}'. Avoid ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
+                    );
+                    return;
+                }
+            }
             applyFolderSelectionToTargetInput(selected);
             folderTargetInput.dispatchEvent(new Event("input", {bubbles: true}));
             folderTargetInput.dispatchEvent(new Event("change", {bubbles: true}));
-            const dest = folderTargetInput.dataset.dest;
             if (dest) {
                 stateValues[dest] = folderTargetInput.value;
                 queueSaveState();

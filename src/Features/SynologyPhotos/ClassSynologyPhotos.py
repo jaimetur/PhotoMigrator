@@ -5,8 +5,10 @@ import json
 import logging
 import mimetypes
 import os
+import shutil
 import sys
 import time
+import zipfile
 from datetime import datetime
 
 import requests
@@ -1462,6 +1464,10 @@ class ClassSynologyPhotos:
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
 
+        For some LIVE assets, Synology can return a ZIP payload that contains both
+        image and video components (for example: HEIF + MOV). In that case this
+        method extracts the ZIP contents into download_folder.
+
         Args:
             asset_id (int): ID of the asset to download.
             asset_filename (str): Name of the file to save.
@@ -1512,9 +1518,73 @@ class ClassSynologyPhotos:
                     LOGGER.error(f"Failed to download asset '{asset_filename}' with ID [{asset_id}]. Status code: {resp.status_code}")
                     return 0
 
-                with open(file_path, "wb") as f:
+                content_type = str(resp.headers.get("Content-Type", "")).lower()
+                content_disp = str(resp.headers.get("Content-Disposition", "")).lower()
+                zip_by_headers = ("zip" in content_type) or (".zip" in content_disp)
+
+                download_tmp_path = file_path
+                if zip_by_headers and not file_path.lower().endswith(".zip"):
+                    download_tmp_path = f"{file_path}.ziptmp"
+
+                first_bytes = b""
+                bytes_written = 0
+                with open(download_tmp_path, "wb") as f:
                     for chunk in resp.iter_content(chunk_size=8192):
+                        if not chunk:
+                            continue
+                        if not first_bytes:
+                            first_bytes = chunk[:4]
                         f.write(chunk)
+                        bytes_written += len(chunk)
+
+                if bytes_written <= 0:
+                    LOGGER.error(f"Downloaded empty payload for asset '{asset_filename}' (ID [{asset_id}]).")
+                    return 0
+
+                is_zip_payload = zip_by_headers or first_bytes.startswith(b"PK\x03\x04")
+
+                if is_zip_payload:
+                    extracted_files = []
+                    try:
+                        with zipfile.ZipFile(download_tmp_path, "r") as zf:
+                            for member in zf.infolist():
+                                if member.is_dir():
+                                    continue
+                                member_name = os.path.basename(member.filename)
+                                if not member_name:
+                                    continue
+                                extracted_path = os.path.join(download_folder, member_name)
+                                with zf.open(member, "r") as src, open(extracted_path, "wb") as dst:
+                                    shutil.copyfileobj(src, dst)
+                                os.utime(extracted_path, (asset_time, asset_time))
+                                extracted_ext = os.path.splitext(member_name)[1].lower()
+                                if extracted_ext in self.ALLOWED_MEDIA_EXTENSIONS:
+                                    update_metadata(extracted_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
+                                extracted_files.append(extracted_path)
+
+                        if os.path.exists(download_tmp_path):
+                            os.remove(download_tmp_path)
+
+                        if not extracted_files:
+                            LOGGER.error(f"ZIP payload detected for '{asset_filename}' but no files were extracted.")
+                            return 0
+
+                        # Keep backward compatibility for callers that expect file_path to exist.
+                        if not os.path.exists(file_path):
+                            requested_ext = os.path.splitext(asset_filename)[1].lower()
+                            preferred = next((p for p in extracted_files if os.path.splitext(p)[1].lower() == requested_ext), extracted_files[0])
+                            shutil.copy2(preferred, file_path)
+                            os.utime(file_path, (asset_time, asset_time))
+
+                        LOGGER.warning(f"Asset '{asset_filename}' downloaded as ZIP payload and extracted to {len(extracted_files)} file(s).")
+                        LOGGER.debug(f"")
+                        LOGGER.debug(f"Asset '{asset_filename}' downloaded and extracted at {download_folder}")
+                        return 1
+                    except zipfile.BadZipFile:
+                        LOGGER.warning(f"ZIP-like payload detected for '{asset_filename}' but extraction failed. Keeping raw file.")
+
+                if download_tmp_path != file_path:
+                    os.replace(download_tmp_path, file_path)
 
                 os.utime(file_path, (asset_time, asset_time))
 
