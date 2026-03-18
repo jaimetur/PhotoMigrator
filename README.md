@@ -182,6 +182,30 @@ Web interface source code:
 - `src/web_interface/static/style.css`
 
 ## Deploy Web Interface with Docker Compose
+### 0) Install Docker first (Windows / Linux / macOS)
+
+Before running Docker Compose, install Docker on your host:
+
+- **Windows (recommended):** Install Docker Desktop  
+  https://docs.docker.com/desktop/setup/install/windows-install/
+
+- **macOS (recommended):** Install Docker Desktop  
+  https://docs.docker.com/desktop/setup/install/mac-install/
+
+- **Linux:** Install Docker Engine + Docker Compose plugin  
+  https://docs.docker.com/engine/install/
+
+After installation, verify Docker is working:
+
+```bash
+docker --version
+docker compose version
+```
+
+If you are on Linux and want to run Docker without `sudo`, follow:
+https://docs.docker.com/engine/install/linux-postinstall/
+
+### 1) Configure Docker deployment files
 Use the files:
 - `docker/docker-compose.yml`
 - `docker/.env`
@@ -253,7 +277,7 @@ services:
       start_period: 30s
 ```
 
-Start it:
+### 2) Start it
 
 ```bash
 cd docker
