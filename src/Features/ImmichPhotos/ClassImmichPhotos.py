@@ -1256,6 +1256,9 @@ class ClassImmichPhotos:
                     new_asset = response.json()
                 asset_id = new_asset.get("id")
                 is_duplicated = (new_asset.get("status") == 'duplicate')
+                if is_duplicated and not asset_id:
+                    # Keep duplicate semantics for callers that treat missing id as failure.
+                    asset_id = f"duplicate::{os.path.basename(file_path)}"
                 if asset_id:
                     if is_duplicated:
                         LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Skipped!")

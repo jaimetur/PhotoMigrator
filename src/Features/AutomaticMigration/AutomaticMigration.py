@@ -820,6 +820,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                             os.remove(pulled_file_path)
                                         except Exception as e:
                                             LOGGER.warning(f"Could not remove file '{pulled_file_path}': {e}")
+                                    companion_to_cleanup = asset_dict.get('live_photo_video_path')
+                                    if companion_to_cleanup and os.path.exists(companion_to_cleanup):
+                                        companion_lock = companion_to_cleanup + ".lock"
+                                        if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
+                                            try:
+                                                os.remove(companion_to_cleanup)
+                                            except Exception as e:
+                                                LOGGER.warning(f"Could not remove companion file '{companion_to_cleanup}': {e}")
                         else:
                             LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}' from Album '{album_name}'")
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
@@ -933,6 +941,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         os.remove(pulled_file_path)
                                     except Exception as e:
                                         LOGGER.warning(f"Could not remove file '{pulled_file_path}': {e}")
+                                companion_to_cleanup = asset_dict.get('live_photo_video_path')
+                                if companion_to_cleanup and os.path.exists(companion_to_cleanup):
+                                    companion_lock = companion_to_cleanup + ".lock"
+                                    if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
+                                        try:
+                                            os.remove(companion_to_cleanup)
+                                        except Exception as e:
+                                            LOGGER.warning(f"Could not remove companion file '{companion_to_cleanup}': {e}")
                     else:
                         LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
@@ -984,6 +1000,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     count_push_stats = asset.get('count_push_stats', True)
                     live_photo_video_path = asset.get('live_photo_video_path', None)
                     asset_pushed = False
+                    treat_as_consumed = False
 
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
@@ -997,6 +1014,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # Actualizamos Contadores de subidas
                         if asset_id:
                             asset_pushed = True
+                            treat_as_consumed = True
                             if isDuplicated:
                                 LOGGER.info(f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
                                 if count_push_stats:
@@ -1009,7 +1027,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     else:
                                         SHARED_DATA.counters['total_pushed_photos'] += 1
                                 LOGGER.info(f"Asset Pushed    : '{os.path.basename(asset_file_path)}'")
-                                if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels:
+                                if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
                                     try:
                                         file_size = os.path.getsize(asset_file_path) if os.path.exists(asset_file_path) else 0
                                     except Exception:
@@ -1027,16 +1045,22 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             # Restauramos el LOGGER al nivel que tenía antes de llamar a push_asset
                             # LOGGER.setLevel(orig_level)
                             set_log_level(LOGGER, orig_level)
-                            if album_name:
-                                LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                            if isDuplicated:
+                                LOGGER.info(f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
+                                treat_as_consumed = True
+                                if count_push_stats:
+                                    SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                             else:
-                                LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
-                            if count_push_stats:
-                                SHARED_DATA.counters['total_push_failed_assets'] += 1
-                                if asset_type.lower() in video_labels:
-                                    SHARED_DATA.counters['total_push_failed_videos'] += 1
+                                if album_name:
+                                    LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
                                 else:
-                                    SHARED_DATA.counters['total_push_failed_photos'] += 1
+                                    LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                                if count_push_stats:
+                                    SHARED_DATA.counters['total_push_failed_assets'] += 1
+                                    if asset_type.lower() in video_labels:
+                                        SHARED_DATA.counters['total_push_failed_videos'] += 1
+                                    else:
+                                        SHARED_DATA.counters['total_push_failed_photos'] += 1
 
                         # Borrar asset de 'source' client si hemos pasado el argumento '-move, --move-assets'
                         if move_assets and asset.get('asset_id') and asset['asset_id'] not in removed_source_asset_ids:
@@ -1044,12 +1068,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             removed_source_asset_ids.add(asset['asset_id'])
 
                         # Borrar asset de la carpeta Automatic_Migration_Push_Failed tras subir
-                        if asset_pushed and os.path.exists(asset_file_path):
+                        if (asset_pushed or treat_as_consumed) and os.path.exists(asset_file_path):
                             try:
                                 os.remove(asset_file_path)
                             except:
                                 pass
-                        if asset_pushed and live_photo_video_path and os.path.exists(live_photo_video_path):
+                        if (asset_pushed or treat_as_consumed) and live_photo_video_path and os.path.exists(live_photo_video_path):
                             try:
                                 os.remove(live_photo_video_path)
                             except:
