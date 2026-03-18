@@ -4,6 +4,7 @@ import fnmatch
 import json
 import logging
 import os
+import re
 import sys
 import time
 from contextlib import ExitStack
@@ -77,6 +78,8 @@ class ClassImmichPhotos:
         self.HEADERS_WITH_CREDENTIALS = {}
 
         self.ALLOWED_IMMICH_MEDIA_EXTENSIONS = []
+        self.ALLOWED_IMMICH_PHOTO_EXTENSIONS = []
+        self.ALLOWED_IMMICH_VIDEO_EXTENSIONS = []
         self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = []
         self.ALLOWED_IMMICH_EXTENSIONS = []
 
@@ -257,6 +260,8 @@ class ClassImmichPhotos:
                 LOGGER.info(f"Authentication Successfully with user/password found in Config file.")
 
             # Now retrieve list of allowed media/sidecar extensions
+            self.ALLOWED_IMMICH_PHOTO_EXTENSIONS = self.get_supported_media_types(type='image', log_level=logging.WARNING)
+            self.ALLOWED_IMMICH_VIDEO_EXTENSIONS = self.get_supported_media_types(type='video', log_level=logging.WARNING)
             self.ALLOWED_IMMICH_MEDIA_EXTENSIONS = self.get_supported_media_types(log_level=logging.WARNING)
             self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = self.get_supported_media_types(type='sidecar', log_level=logging.WARNING)
             self.ALLOWED_IMMICH_EXTENSIONS = self.ALLOWED_IMMICH_MEDIA_EXTENSIONS + self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS
@@ -1261,6 +1266,211 @@ class ClassImmichPhotos:
                 LOGGER.error(f"Failed to push '{file_path}': {e}")
                 return None, None
 
+    def _find_live_photo_video_companion(self, photo_file_path):
+        """
+        Find a companion video for a photo using same basename in the same folder.
+        """
+        photo_ext = os.path.splitext(photo_file_path)[1].lower()
+        if photo_ext not in ['.heic', '.heif', '.jpg', '.jpeg']:
+            return None
+        photo_stem = os.path.splitext(photo_file_path)[0]
+        for video_ext in (self.ALLOWED_IMMICH_VIDEO_EXTENSIONS or []):
+            candidate = f"{photo_stem}{video_ext.lower()}"
+            if os.path.isfile(candidate):
+                return candidate
+        return None
+
+    def _link_live_photo_assets(self, photo_asset_id, video_asset_id, log_level=None):
+        """
+        Link an uploaded photo asset with its uploaded companion video using livePhotoVideoId.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            if not photo_asset_id or not video_asset_id:
+                return False
+            try:
+                url = f"{self.IMMICH_URL}/api/assets/{photo_asset_id}"
+                payload = json.dumps({"livePhotoVideoId": str(video_asset_id)})
+                headers = dict(self.HEADERS_WITH_CREDENTIALS)
+                headers["Content-Type"] = "application/json"
+                resp = requests.patch(url, headers=headers, data=payload, verify=False)
+                resp.raise_for_status()
+                return True
+            except Exception as e:
+                LOGGER.warning(f"Unable to link live photo assets (photo={photo_asset_id}, video={video_asset_id}): {e}")
+                return False
+
+    def push_live_photo(self, photo_file_path, live_photo_video_path=None, log_level=None):
+        """
+        Uploads Live Photo components (video + photo) and links them in Immich.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            companion_video = live_photo_video_path or self._find_live_photo_video_companion(photo_file_path)
+            if not companion_video or not os.path.isfile(companion_video):
+                return self.push_asset(photo_file_path, log_level=log_level)
+
+            video_asset_id, _ = self.push_asset(companion_video, log_level=log_level)
+            photo_asset_id, photo_is_dup = self.push_asset(photo_file_path, log_level=log_level)
+
+            if photo_asset_id and video_asset_id:
+                self._link_live_photo_assets(photo_asset_id=photo_asset_id, video_asset_id=video_asset_id, log_level=log_level)
+
+            return photo_asset_id, photo_is_dup
+
+    def _normalize_burst_stem(self, filename):
+        """
+        Normalize filename stem to reduce burst variants into a common key.
+        """
+        stem = os.path.splitext(os.path.basename(filename))[0].lower()
+        stem = re.sub(r'\(\d+\)$', '', stem)
+        stem = re.sub(r'([._-])(edited|edit|hdr|enhanced)$', '', stem)
+        stem = re.sub(r'([._-])burst\d+$', '', stem)
+        stem = re.sub(r'([._-])(raw|dng|jpg|jpeg|heic|heif)$', '', stem)
+        stem = re.sub(r'[\s._-]+$', '', stem)
+        return stem
+
+    def _build_burst_record(self, asset_id, file_path, capture_epoch=None, file_size=None):
+        """
+        Build a normalized record used by burst auto-stacking heuristics.
+        """
+        ext = os.path.splitext(file_path)[1].lower()
+        folder = os.path.normcase(os.path.normpath(os.path.dirname(file_path)))
+        normalized_stem = self._normalize_burst_stem(file_path)
+        if capture_epoch is None:
+            try:
+                capture_epoch = os.path.getmtime(file_path)
+            except Exception:
+                capture_epoch = None
+        if file_size is None:
+            try:
+                file_size = os.path.getsize(file_path)
+            except Exception:
+                file_size = 0
+        return {
+            "asset_id": asset_id,
+            "file_path": file_path,
+            "folder": folder,
+            "ext": ext,
+            "normalized_stem": normalized_stem,
+            "capture_epoch": capture_epoch,
+            "file_size": file_size or 0,
+        }
+
+    def _burst_primary_sort_key(self, record):
+        """
+        Lower tuple means higher priority for stack primary.
+        """
+        ext = record.get("ext", "").lower()
+        if ext in ['.jpg', '.jpeg', '.heic', '.heif']:
+            ext_rank = 0
+        elif ext in ['.dng', '.raw', '.arw', '.cr2', '.cr3', '.nef', '.orf', '.raf', '.rw2']:
+            ext_rank = 1
+        else:
+            ext_rank = 2
+        size = record.get("file_size", 0) or 0
+        capture = record.get("capture_epoch")
+        capture_rank = capture if isinstance(capture, (int, float)) else float("inf")
+        return (ext_rank, -size, capture_rank)
+
+    def _create_stack(self, asset_ids, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            if not asset_ids or len(asset_ids) < 2:
+                return None
+            try:
+                url = f"{self.IMMICH_URL}/api/stacks"
+                payload = json.dumps({"assetIds": asset_ids})
+                headers = dict(self.HEADERS_WITH_CREDENTIALS)
+                headers["Content-Type"] = "application/json"
+                resp = requests.post(url, headers=headers, data=payload, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+                return data.get("id")
+            except Exception as e:
+                LOGGER.warning(f"Unable to create burst stack ({len(asset_ids)} assets): {e}")
+                return None
+
+    def auto_stack_bursts(self, uploaded_records, context_label="", log_level=None):
+        """
+        Auto-stack burst-like photo groups in Immich using conservative heuristics.
+        """
+        with set_log_level(LOGGER, log_level):
+            if not uploaded_records:
+                return 0
+
+            # Keep only photo assets and valid IDs
+            photo_exts = {e.lower() for e in (self.ALLOWED_IMMICH_PHOTO_EXTENSIONS or [])}
+            records = []
+            for rec in uploaded_records:
+                if not rec:
+                    continue
+                asset_id = rec.get("asset_id")
+                ext = str(rec.get("ext", "")).lower()
+                if not asset_id or ext not in photo_exts:
+                    continue
+                records.append(rec)
+
+            if not records:
+                return 0
+
+            groups = {}
+            for rec in records:
+                key = (rec.get("folder"), rec.get("normalized_stem"))
+                groups.setdefault(key, []).append(rec)
+
+            stacks_created = 0
+            for _, items in groups.items():
+                if len(items) < 2:
+                    continue
+                items_sorted = sorted(items, key=lambda r: (r.get("capture_epoch") if isinstance(r.get("capture_epoch"), (int, float)) else float("inf")))
+
+                # Split by capture-time windows (<=2s)
+                current_cluster = []
+                clusters = []
+                for rec in items_sorted:
+                    if not current_cluster:
+                        current_cluster.append(rec)
+                        continue
+                    prev = current_cluster[-1]
+                    prev_t = prev.get("capture_epoch")
+                    cur_t = rec.get("capture_epoch")
+                    if isinstance(prev_t, (int, float)) and isinstance(cur_t, (int, float)) and abs(cur_t - prev_t) <= 2:
+                        current_cluster.append(rec)
+                    else:
+                        if len(current_cluster) >= 2:
+                            clusters.append(current_cluster)
+                        current_cluster = [rec]
+                if len(current_cluster) >= 2:
+                    clusters.append(current_cluster)
+
+                for cluster in clusters:
+                    # Size ratio guard
+                    sizes = [max(1, int(c.get("file_size") or 1)) for c in cluster]
+                    min_size = min(sizes)
+                    max_size = max(sizes)
+                    if max_size / min_size > 1.8:
+                        continue
+
+                    cluster_sorted = sorted(cluster, key=self._burst_primary_sort_key)
+                    ordered_asset_ids = []
+                    seen_ids = set()
+                    for c in cluster_sorted:
+                        aid = c.get("asset_id")
+                        if aid and aid not in seen_ids:
+                            ordered_asset_ids.append(aid)
+                            seen_ids.add(aid)
+                    if len(ordered_asset_ids) < 2:
+                        continue
+                    stack_id = self._create_stack(ordered_asset_ids, log_level=log_level)
+                    if stack_id:
+                        stacks_created += 1
+
+            if stacks_created > 0:
+                prefix = f"{context_label}: " if context_label else ""
+                LOGGER.info(f"{prefix}Auto-stacked {stacks_created} burst group(s) in Immich.")
+            return stacks_created
+
 
     def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", album_passphrase=None, log_level=None):
         """
@@ -1393,6 +1603,7 @@ class ClassImmichPhotos:
                     for subpath in valid_folders:
                         pbar.update(1)
                         album_assets_ids = []
+                        album_uploaded_records = []
                         if not os.path.isdir(subpath):
                             LOGGER.warning(f"Could not create album for subfolder '{subpath}'.")
                             total_albums_skipped += 1
@@ -1413,15 +1624,28 @@ class ClassImmichPhotos:
                             total_albums_skipped += 1
                             continue
 
+                        consumed_live_companions = set()
                         for file in os.listdir(subpath):
                             file_path = os.path.join(subpath, file)
                             if not os.path.isfile(file_path):
+                                continue
+                            norm_file_path = os.path.normcase(os.path.normpath(file_path))
+                            if norm_file_path in consumed_live_companions:
                                 continue
                             ext = os.path.splitext(file)[-1].lower()
                             if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
                                 continue
 
-                            asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
+                            live_photo_video_path = None
+                            if ext in self.ALLOWED_IMMICH_PHOTO_EXTENSIONS:
+                                live_photo_video_path = self._find_live_photo_video_companion(file_path)
+                                if live_photo_video_path:
+                                    consumed_live_companions.add(os.path.normcase(os.path.normpath(live_photo_video_path)))
+                                    asset_id, is_dup = self.push_live_photo(file_path, live_photo_video_path=live_photo_video_path, log_level=log_level)
+                                else:
+                                    asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
+                            else:
+                                asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
                             if is_dup:
                                 total_duplicates_assets_skipped += 1
                                 LOGGER.debug(f"Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
@@ -1429,9 +1653,12 @@ class ClassImmichPhotos:
                                 total_assets_uploaded += 1
 
                             if asset_id:
+                                album_uploaded_records.append(self._build_burst_record(asset_id=asset_id, file_path=file_path))
                                 # Associate only if ext is photo/video
                                 if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
                                     album_assets_ids.append(asset_id)
+
+                        self.auto_stack_bursts(album_uploaded_records, context_label=f"Album '{album_name}'", log_level=log_level)
 
                         if album_assets_ids:
                             album_id = self.create_album(album_name, log_level=log_level)
@@ -1509,23 +1736,39 @@ class ClassImmichPhotos:
             total_files = len(file_paths)
             total_assets_uploaded = 0
             total_duplicated_assets_skipped = 0
+            consumed_live_companions = set()
+            uploaded_records = []
 
             with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}Uploading Assets", unit=" asset") as pbar:
                 for f_idx, file_path in enumerate(file_paths, start=1):
                     pbar.update(1)
+                    norm_file_path = os.path.normcase(os.path.normpath(file_path))
+                    if norm_file_path in consumed_live_companions:
+                        continue
                     _, ext = os.path.splitext(file_path)
                     ext = ext.lower()
                     if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
                         LOGGER.debug(f"Unsopported Extension: '{ext}'. Skipped")
                         continue
 
-                    asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
+                    if ext in self.ALLOWED_IMMICH_PHOTO_EXTENSIONS:
+                        live_photo_video_path = self._find_live_photo_video_companion(file_path)
+                        if live_photo_video_path:
+                            consumed_live_companions.add(os.path.normcase(os.path.normpath(live_photo_video_path)))
+                            asset_id, is_dup = self.push_live_photo(file_path, live_photo_video_path=live_photo_video_path, log_level=log_level)
+                        else:
+                            asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
+                    else:
+                        asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
                     if is_dup:
                         total_duplicated_assets_skipped += 1
                         LOGGER.debug(f"Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
                     elif asset_id:
                         LOGGER.debug(f"Asset ID: {asset_id} uploaded to Immich Photos")
                         total_assets_uploaded += 1
+                        uploaded_records.append(self._build_burst_record(asset_id=asset_id, file_path=file_path))
+
+            self.auto_stack_bursts(uploaded_records, context_label="No-Album Upload", log_level=log_level)
 
             duplicates_assets_removed = 0
             if remove_duplicates:

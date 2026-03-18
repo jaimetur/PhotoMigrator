@@ -360,6 +360,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # Creamos un diccionario created_albums (protegido por candado para evitar condiciones de carrera entre workers) para registrar los albums que ya han sido creados y de este modo evitar que un album se cree 2 o más veces por varios workers en paralelo.
     album_creation_lock = threading.Lock()
     created_albums = {}
+    immich_uploaded_records = []
+    immich_uploaded_records_lock = threading.Lock()
 
     # ----------------------------------------------------------------------------------------
     # function to ensure that the puller put only 1 asset with the same filepath to the queue
@@ -430,6 +432,33 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 found.append(companion)
 
         return found
+
+    def find_immich_live_video_companion(photo_file_path, pulled_file_paths):
+        """
+        Finds the companion video path for a given photo path within pulled files when target is Immich.
+        """
+        if not isinstance(target_client, ClassImmichPhotos):
+            return None
+        photo_ext = os.path.splitext(photo_file_path)[1].lower()
+        if photo_ext not in ['.heic', '.heif', '.jpg', '.jpeg']:
+            return None
+        photo_stem = os.path.splitext(photo_file_path)[0]
+        candidate_paths = {os.path.normcase(os.path.normpath(p)): p for p in pulled_file_paths}
+        for video_ext in (getattr(target_client, "ALLOWED_IMMICH_VIDEO_EXTENSIONS", []) or []):
+            candidate_norm = os.path.normcase(os.path.normpath(f"{photo_stem}{video_ext.lower()}"))
+            if candidate_norm in candidate_paths:
+                return candidate_paths[candidate_norm]
+        return None
+
+    def parse_capture_epoch(asset_datetime):
+        if isinstance(asset_datetime, (int, float)):
+            return float(asset_datetime)
+        if isinstance(asset_datetime, str):
+            try:
+                return datetime.fromisoformat(asset_datetime.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                return None
+        return None
 
     # ------------------
     # 1) HILO PRINCIPAL
@@ -631,6 +660,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             # En este punto todos los pulls y pushs están listas y la cola está vacía.
 
+            # Auto-stack burst photos in Immich target using uploaded records.
+            if isinstance(target_client, ClassImmichPhotos):
+                try:
+                    target_client.auto_stack_bursts(immich_uploaded_records, context_label="Automatic Migration", log_level=logging.INFO)
+                except Exception as e:
+                    LOGGER.warning(f"Unable to auto-stack bursts in Immich after migration: {e}")
+
             # Finalmente, borrar carpetas vacías que queden en temp_folder
             remove_empty_dirs(temp_folder)
 
@@ -749,7 +785,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             if not pulled_file_paths:
                                 pulled_file_paths = [local_file_path]
 
+                            immich_live_companion = find_immich_live_video_companion(local_file_path, pulled_file_paths)
                             for idx, pulled_file_path in enumerate(pulled_file_paths):
+                                if immich_live_companion and os.path.normcase(os.path.normpath(pulled_file_path)) == os.path.normcase(os.path.normpath(immich_live_companion)):
+                                    continue
                                 normalized_asset_type = infer_asset_type_from_path(pulled_file_path, asset_type)
                                 count_push_stats = (idx == 0)
                                 LOGGER.info(f"Asset Pulled    : '{os.path.basename(pulled_file_path)}'")
@@ -768,6 +807,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     'album_name': album_name,
                                     'count_push_stats': count_push_stats,
                                 }
+                                if immich_live_companion and os.path.normcase(os.path.normpath(pulled_file_path)) == os.path.normcase(os.path.normpath(local_file_path)):
+                                    asset_dict['live_photo_video_path'] = immich_live_companion
                                 # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                                 unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                                 if not unique:
@@ -857,7 +898,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if not pulled_file_paths:
                             pulled_file_paths = [local_file_path]
 
+                        immich_live_companion = find_immich_live_video_companion(local_file_path, pulled_file_paths)
                         for idx, pulled_file_path in enumerate(pulled_file_paths):
+                            if immich_live_companion and os.path.normcase(os.path.normpath(pulled_file_path)) == os.path.normcase(os.path.normpath(immich_live_companion)):
+                                continue
                             normalized_asset_type = infer_asset_type_from_path(pulled_file_path, asset_type)
                             count_push_stats = (idx == 0)
                             # Actualizamos Contadores de descargas
@@ -877,6 +921,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 'album_name': None,
                                 'count_push_stats': count_push_stats,
                             }
+                            if immich_live_companion and os.path.normcase(os.path.normpath(pulled_file_path)) == os.path.normcase(os.path.normpath(local_file_path)):
+                                asset_dict['live_photo_video_path'] = immich_live_companion
                             unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                             if not unique:
                                 LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}'. Skipped")
@@ -936,13 +982,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     asset_type = asset['asset_type']
                     album_name = asset['album_name']
                     count_push_stats = asset.get('count_push_stats', True)
+                    live_photo_video_path = asset.get('live_photo_video_path', None)
                     asset_pushed = False
 
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
                     try:
                         # SUBIR el asset
-                        asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
+                        if isinstance(target_client, ClassImmichPhotos) and live_photo_video_path:
+                            asset_id, isDuplicated = target_client.push_live_photo(photo_file_path=asset_file_path, live_photo_video_path=live_photo_video_path, log_level=logging.ERROR)
+                        else:
+                            asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
 
                         # Actualizamos Contadores de subidas
                         if asset_id:
@@ -959,6 +1009,19 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     else:
                                         SHARED_DATA.counters['total_pushed_photos'] += 1
                                 LOGGER.info(f"Asset Pushed    : '{os.path.basename(asset_file_path)}'")
+                                if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels:
+                                    try:
+                                        file_size = os.path.getsize(asset_file_path) if os.path.exists(asset_file_path) else 0
+                                    except Exception:
+                                        file_size = 0
+                                    rec = target_client._build_burst_record(
+                                        asset_id=asset_id,
+                                        file_path=asset_file_path,
+                                        capture_epoch=parse_capture_epoch(asset_datetime),
+                                        file_size=file_size
+                                    )
+                                    with immich_uploaded_records_lock:
+                                        immich_uploaded_records.append(rec)
                         else:
                             # Si entramos aqui es porque asset_id no existe, probablemente se haya producido una excepción en push_asset, y el LOGGER se haya quedado con el nivel ERROR
                             # Restauramos el LOGGER al nivel que tenía antes de llamar a push_asset
@@ -984,6 +1047,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if asset_pushed and os.path.exists(asset_file_path):
                             try:
                                 os.remove(asset_file_path)
+                            except:
+                                pass
+                        if asset_pushed and live_photo_video_path and os.path.exists(live_photo_video_path):
+                            try:
+                                os.remove(live_photo_video_path)
                             except:
                                 pass
                     except Exception as e:

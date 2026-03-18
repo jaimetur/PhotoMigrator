@@ -14,6 +14,8 @@
   - Added themes support to Web Interface.
   - Docker support to deploy the tool in docker and expose the new Web Interface (default port: 6078).
   - New docker-compose.yml and .env file to easily configure and deploy the tool with docker compose.
+  - Added deterministic Live Photo upload support for Immich by pairing photo+video companions (same basename) and linking them through Immich API (`livePhotoVideoId`) across Immich upload features and Automatic Migration.
+  - Added automatic burst stacking for Immich uploads (including Automatic Migration) using conservative heuristics (same folder, normalized basename, short time window, and size-ratio guard), creating Immich stacks with preferred primary asset ordering.
     
 #### 🚀 Enhancements:
   - Web Live Dashboard on Automatic Migration feature.
