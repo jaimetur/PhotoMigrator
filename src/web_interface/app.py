@@ -364,6 +364,10 @@ def _find_forbidden_special_folder_in_path(path_value: Any) -> str | None:
     return None
 
 
+def _is_automatic_migration_cloud_endpoint(value: str) -> bool:
+    return bool(re.fullmatch(r"(?:synology|immich)(?:-photos)?(?:-[123])?", value.strip().lower()))
+
+
 def _bool_from_value(value: Any) -> bool:
     if isinstance(value, bool):
         return value
@@ -521,16 +525,29 @@ def _normalize_incoming_values(values: Dict[str, Any]) -> Dict[str, Any]:
 
 def _build_command_from_payload(payload: RunRequest) -> List[str]:
     normalized_values = _normalize_incoming_values(payload.values or {})
+    blocked_folders = ", ".join([f"'{name}'" for name in TAKEOUT_SPECIAL_FOLDER_NAMES])
     if payload.tab == "google_takeout":
         takeout_value = str(normalized_values.get("google-takeout", "")).strip()
         if takeout_value:
             offending_component = _find_forbidden_special_folder_in_path(takeout_value)
             if offending_component:
-                blocked_folders = ", ".join([f"'{name}'" for name in TAKEOUT_SPECIAL_FOLDER_NAMES])
                 raise HTTPException(
                     status_code=400,
                     detail=(
                         f"Invalid --google-takeout path '{takeout_value}'. "
+                        f"It contains forbidden folder '{offending_component}' "
+                        f"(special folders: {blocked_folders})."
+                    ),
+                )
+    elif payload.tab == "automatic_migration":
+        source_value = str(normalized_values.get("source", "")).strip()
+        if source_value and not _is_automatic_migration_cloud_endpoint(source_value):
+            offending_component = _find_forbidden_special_folder_in_path(source_value)
+            if offending_component:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Invalid --source path '{source_value}'. "
                         f"It contains forbidden folder '{offending_component}' "
                         f"(special folders: {blocked_folders})."
                     ),

@@ -1783,6 +1783,7 @@
                     pathInput.className = "field__input";
                     pathInput.placeholder = "Folder path";
                     pathInput.value = migrationEndpointsState[dest].path || "";
+                    pathInput.dataset.dest = dest;
                     pathInput.addEventListener("input", () => {
                         migrationEndpointsState[dest].path = pathInput.value;
                         updateComposedValue();
@@ -2013,6 +2014,18 @@
                 if (offendingPart) {
                     errors.push(
                         `Invalid --google-takeout path: contains '${offendingPart}'. ` +
+                        `Avoid special folder names: ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
+                    );
+                }
+            }
+        }
+        if (payload.tab === "automatic_migration") {
+            const sourceValue = String(payload?.values?.["source"] || "").trim();
+            if (sourceValue) {
+                const offendingPart = findForbiddenSpecialFolderInPath(sourceValue);
+                if (offendingPart) {
+                    errors.push(
+                        `Invalid --source path: contains '${offendingPart}'. ` +
                         `Avoid special folder names: ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
                     );
                 }
@@ -2676,6 +2689,10 @@
         return null;
     }
 
+    function shouldValidateSpecialFoldersForDest(dest) {
+        return dest === "google-takeout" || dest === "source";
+    }
+
     function applyFolderSelectionToTargetInput(selectedPaths) {
         if (!folderTargetInput) return;
         const normalized = Array.from(new Set((selectedPaths || []).map((item) => String(item || "").trim()).filter(Boolean)));
@@ -3132,13 +3149,15 @@
             const current = folderSelectionParentPath || "/app/data";
             if (!folderTargetInput) return;
             const dest = folderTargetInput.dataset.dest;
-            if (dest === "google-takeout") {
+            if (shouldValidateSpecialFoldersForDest(dest)) {
                 const offendingPart = findForbiddenSpecialFolderInPath(current);
                 if (offendingPart) {
-                    setFolderCurrentMessage(
-                        current,
-                        `Invalid Takeout path: contains '${offendingPart}'. Avoid ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
-                    );
+                    showNoticeDialog({
+                        title: "Invalid Folder Selection",
+                        message:
+                            `The selected path contains '${offendingPart}', which is reserved as a Google special folder name.\n\n` +
+                            `Please choose a path that does not contain: ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
+                    });
                     return;
                 }
             }
@@ -3171,13 +3190,15 @@
                 );
                 return;
             }
-            if (dest === "google-takeout") {
+            if (shouldValidateSpecialFoldersForDest(dest)) {
                 const offendingPart = findForbiddenSpecialFolderInPath(selected[0]);
                 if (offendingPart) {
-                    setFolderCurrentMessage(
-                        folderSelectionParentPath || "/app/data",
-                        `Invalid Takeout path: contains '${offendingPart}'. Avoid ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
-                    );
+                    showNoticeDialog({
+                        title: "Invalid Folder Selection",
+                        message:
+                            `The selected path contains '${offendingPart}', which is reserved as a Google special folder name.\n\n` +
+                            `Please choose a path that does not contain: ${TAKEOUT_SPECIAL_FOLDER_NAMES.join(", ")}.`
+                    });
                     return;
                 }
             }

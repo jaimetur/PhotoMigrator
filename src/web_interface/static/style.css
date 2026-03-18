@@ -611,6 +611,21 @@ textarea.field__input {
     width: 100%;
 }
 
+#cloud-action-panel .arg-label,
+#standalone-action-panel .arg-label,
+#migration-panel .arg-label {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 0;
+}
+
+#cloud-action-panel .arg-row,
+#standalone-action-panel .arg-row,
+#migration-panel .arg-row {
+    grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+}
+
 .arg-row--stack .arg-label {
     padding-top: 0;
 }
