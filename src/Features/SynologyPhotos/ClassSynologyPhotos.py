@@ -8,6 +8,7 @@ import os
 import shutil
 import sys
 import time
+import uuid
 import zipfile
 from datetime import datetime
 
@@ -1480,6 +1481,8 @@ class ClassSynologyPhotos:
             int: 1 if download succeeded, 0 if failed.
         """
         with set_log_level(LOGGER, log_level):
+            tmp_dir = None
+            download_tmp_path = None
             try:
                 self.login(log_level=log_level)
                 os.makedirs(download_folder, exist_ok=True)
@@ -1522,9 +1525,10 @@ class ClassSynologyPhotos:
                 content_disp = str(resp.headers.get("Content-Disposition", "")).lower()
                 zip_by_headers = ("zip" in content_type) or (".zip" in content_disp)
 
-                download_tmp_path = file_path
-                if zip_by_headers and not file_path.lower().endswith(".zip"):
-                    download_tmp_path = f"{file_path}.ziptmp"
+                tmp_dir = os.path.join(download_folder, ".photomigrator_tmp")
+                os.makedirs(tmp_dir, exist_ok=True)
+                tmp_name = f"{asset_id}_{uuid.uuid4().hex}.part"
+                download_tmp_path = os.path.join(tmp_dir, tmp_name)
 
                 first_bytes = b""
                 bytes_written = 0
@@ -1562,9 +1566,6 @@ class ClassSynologyPhotos:
                                     update_metadata(extracted_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
                                 extracted_files.append(extracted_path)
 
-                        if os.path.exists(download_tmp_path):
-                            os.remove(download_tmp_path)
-
                         if not extracted_files:
                             LOGGER.error(f"ZIP payload detected for '{asset_filename}' but no files were extracted.")
                             return 0
@@ -1583,8 +1584,8 @@ class ClassSynologyPhotos:
                     except zipfile.BadZipFile:
                         LOGGER.warning(f"ZIP-like payload detected for '{asset_filename}' but extraction failed. Keeping raw file.")
 
-                if download_tmp_path != file_path:
-                    os.replace(download_tmp_path, file_path)
+                os.replace(download_tmp_path, file_path)
+                download_tmp_path = None
 
                 os.utime(file_path, (asset_time, asset_time))
 
@@ -1598,6 +1599,17 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"")
                 LOGGER.error(f"Exception occurred while downloading asset '{asset_filename}' with ID [{asset_id}]. {e}")
                 return 0
+            finally:
+                try:
+                    if download_tmp_path and os.path.exists(download_tmp_path):
+                        os.remove(download_tmp_path)
+                except Exception:
+                    pass
+                try:
+                    if tmp_dir and os.path.isdir(tmp_dir) and not os.listdir(tmp_dir):
+                        os.rmdir(tmp_dir)
+                except Exception:
+                    pass
             
 
 
