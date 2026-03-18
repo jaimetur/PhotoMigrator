@@ -364,6 +364,7 @@
     let commandPreviewTimer = null;
     let commandPreviewSeq = 0;
     let lastRawOutput = "";
+    let displayedRawOutput = "";
     let currentRunPayload = null;
     let currentJobStartedAt = null;
     let currentJobIsAutomatic = false;
@@ -476,6 +477,34 @@
         return String(text || "").replace(/\x1B\[[0-9;]*[A-Za-z]/g, "");
     }
 
+    function collapseProgressLines(text) {
+        const lines = String(text || "").split("\n");
+        const result = [];
+        const keyToIndex = new Map();
+
+        // Example target:
+        // INFO ... [Step 2/8] Indexing : ███.... 1500/13479 11.1%
+        const progressRegex = /^(.*?:)\s*[█.]+\s+\d+\/\d+\s+\d+(?:\.\d+)?%\s*$/;
+
+        for (const line of lines) {
+            const clean = stripAnsi(line).replace(/\r/g, "").trimEnd();
+            const match = clean.match(progressRegex);
+            if (!match) {
+                result.push(line);
+                continue;
+            }
+
+            const key = match[1].toLowerCase();
+            if (keyToIndex.has(key)) {
+                result[keyToIndex.get(key)] = line;
+            } else {
+                keyToIndex.set(key, result.length);
+                result.push(line);
+            }
+        }
+        return result.join("\n");
+    }
+
     function classifyLogLine(line) {
         const cleaned = stripAnsi(line).replace(/\r/g, "");
         const normalized = cleaned.trimStart();
@@ -503,10 +532,20 @@
         return "";
     }
 
-    function renderOutputWithLevels(rawText) {
+    function renderOutputWithLevels(rawText, options = {}) {
         const outputEl = document.getElementById("output");
         lastRawOutput = rawText || "";
-        const lines = (rawText || "").split("\n");
+        const force = Boolean(options && options.force);
+        const autoScrollEnabled = uiState.auto_scroll !== false;
+
+        // True freeze mode: keep the visible log static while autoscroll is OFF.
+        // This avoids line shifting and keeps text selection stable for analysis.
+        if (!autoScrollEnabled && !force) {
+            return;
+        }
+
+        displayedRawOutput = collapseProgressLines(lastRawOutput);
+        const lines = (displayedRawOutput || "").split("\n");
         const html = lines.map((line) => {
             const cleaned = stripAnsi(line).replace(/\r/g, "");
             const safe = escapeHtml(cleaned);
@@ -516,7 +555,7 @@
                 : `<span class="log-line">${safe}</span>`;
         }).join("\n");
         outputEl.innerHTML = html;
-        if (uiState.auto_scroll !== false) {
+        if (autoScrollEnabled || force) {
             outputEl.scrollTop = outputEl.scrollHeight;
         }
     }
@@ -2895,7 +2934,11 @@
         autoScrollCheck.addEventListener("change", () => {
             uiState.auto_scroll = autoScrollCheck.checked;
             queueSaveState();
-        });
+            if (uiState.auto_scroll !== false) {
+                // Catch up all missed output when autoscroll is re-enabled.
+                renderOutputWithLevels(lastRawOutput, {force: true});
+            }
+            });
         document.getElementById("folder-close").addEventListener("click", closeFolderDialogs);
         document.getElementById("file-close").addEventListener("click", closeFolderDialogs);
         document.getElementById("file-select").addEventListener("click", () => {

@@ -14,7 +14,14 @@ services:
       - TZ=${TZ}
       - PHOTOMIGRATOR_WEB_DELETE_ROOTS=${PHOTOMIGRATOR_WEB_DELETE_ROOTS}
       - PYTHONUNBUFFERED=1
-    command: uvicorn src.web_interface.app:app --host 0.0.0.0 --port 6078 --reload-dir /app/src
+    command: >
+      sh -lc "
+      if [ ! -x /app/exif_tool/exiftool ] && [ -f /app/exif_tool/others.zip ]; then
+        unzip -o /app/exif_tool/others.zip -d /app/exif_tool >/dev/null &&
+        chmod +x /app/exif_tool/exiftool || true;
+      fi;
+      uvicorn src.web_interface.app:app --host 0.0.0.0 --port 6078 --reload-dir /app/src
+      "
     volumes:
       - ${APP_DIR}:/app
       - ${CONFIG_DIR}:/app/config

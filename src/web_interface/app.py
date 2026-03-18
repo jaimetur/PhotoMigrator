@@ -181,8 +181,9 @@ class JobData:
         self.stop_requested = False
         self.awaiting_confirmation = False
         self.status = "running"
-        self.output: Deque[str] = deque()  # tail only (for prompt detection)
-        self.output_chars = 0              # tail chars only
+        self.output: Deque[str] = deque()  # last completed lines in memory
+        self.output_chars = 0
+        self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.total_output_chars = 0        # full execution chars
         self.output_file = _create_job_output_file()
         self.output_fp: TextIO | None = open(self.output_file, "a", encoding="utf-8", errors="replace")
@@ -191,9 +192,9 @@ class JobData:
         self.finished_at: str | None = None
 
 
-MAX_JOB_OUTPUT_CHARS = 20_000
+MAX_JOB_OUTPUT_LINES = 20_000
 TAIL_CONFIRM_CHARS = 4_000
-API_OUTPUT_CHARS = 1_000_000
+API_OUTPUT_TAIL_LINES = 20_000
 API_FULL_OUTPUT_LIMIT_CHARS = 8_000_000
 WEB_JOB_LOG_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_JOB_LOG_DIR", "/tmp/photomigrator-web-jobs"))
 
@@ -226,10 +227,19 @@ def _append_job_output(job: JobData, text: str) -> None:
             pass
     job.total_output_chars += len(text)
 
-    # Keep only a small in-memory tail for confirmation prompt detection.
-    job.output.append(text)
-    job.output_chars += len(text)
-    while job.output and job.output_chars > MAX_JOB_OUTPUT_CHARS:
+    # Keep last completed lines in memory (line-based, not char-based).
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    payload = f"{job.partial_line}{normalized}"
+    parts = payload.split("\n")
+    completed = parts[:-1]
+    job.partial_line = parts[-1]
+
+    for line in completed:
+        line_with_nl = f"{line}\n"
+        job.output.append(line_with_nl)
+        job.output_chars += len(line_with_nl)
+
+    while len(job.output) > MAX_JOB_OUTPUT_LINES:
         removed = job.output.popleft()
         job.output_chars -= len(removed)
 
@@ -239,6 +249,10 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
         return ""
     total = 0
     chunks: List[str] = []
+    partial = job.partial_line or ""
+    if partial:
+        chunks.append(partial)
+        total += len(partial)
     for chunk in reversed(job.output):
         chunks.append(chunk)
         total += len(chunk)
@@ -247,20 +261,12 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
     return "".join(reversed(chunks))[-max_chars:]
 
 
-def _read_text_tail(path: Path, max_chars: int) -> str:
-    if max_chars <= 0 or not path.exists():
+def _read_tail_lines(path: Path, max_lines: int) -> str:
+    if max_lines <= 0 or not path.exists():
         return ""
     try:
-        with open(path, "rb") as f:
-            f.seek(0, os.SEEK_END)
-            size = f.tell()
-            if size <= 0:
-                return ""
-            bytes_to_read = min(size, (max_chars * 4) + 4096)
-            f.seek(-bytes_to_read, os.SEEK_END)
-            data = f.read()
-        text = data.decode("utf-8", errors="replace")
-        return text[-max_chars:]
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            return "".join(deque(f, maxlen=max_lines))
     except Exception:
         return ""
 
@@ -268,19 +274,26 @@ def _read_text_tail(path: Path, max_chars: int) -> str:
 def _read_job_output_for_api(job: JobData) -> str:
     path = getattr(job, "output_file", None)
     if not path:
-        return _get_job_output_tail(job, API_OUTPUT_CHARS)
+        # Fallback from in-memory line buffer.
+        base = "".join(job.output)
+        if job.partial_line:
+            base += job.partial_line
+        return base
 
     try:
         if job.total_output_chars <= API_FULL_OUTPUT_LIMIT_CHARS:
             return path.read_text(encoding="utf-8", errors="replace")
-        tail = _read_text_tail(path, API_OUTPUT_CHARS)
+        tail = _read_tail_lines(path, API_OUTPUT_TAIL_LINES)
         notice = (
             f"[web-interface] Output too large ({job.total_output_chars} chars). "
-            f"Showing last {API_OUTPUT_CHARS} chars.\n"
+            f"Showing last {API_OUTPUT_TAIL_LINES} lines.\n"
         )
         return notice + tail
     except Exception:
-        return _get_job_output_tail(job, API_OUTPUT_CHARS)
+        base = "".join(job.output)
+        if job.partial_line:
+            base += job.partial_line
+        return base
 
 
 PARSER_SCHEMA: Dict[str, Any] = {}
@@ -552,7 +565,9 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
     try:
         assert process.stdout is not None
         while True:
-            chunk = process.stdout.read(1024)
+            # Read per-character to preserve immediate updates and avoid waiting
+            # for large chunks/new lines in long-running tasks.
+            chunk = process.stdout.read(1)
             if chunk == "":
                 break
             with JOBS_LOCK:
