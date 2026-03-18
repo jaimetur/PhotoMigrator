@@ -439,6 +439,46 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         """
         return os.path.normpath(path).replace("\\", "/").lower()
 
+    def resolve_existing_path_case_insensitive(path):
+        """
+        Resolve an existing path even if provided filename casing does not match filesystem entry.
+        """
+        if not path:
+            return path
+        if os.path.exists(path):
+            return path
+        folder = os.path.dirname(path) or "."
+        wanted_name = os.path.basename(path)
+        try:
+            for entry in os.listdir(folder):
+                if entry.lower() == wanted_name.lower():
+                    candidate = os.path.join(folder, entry)
+                    if os.path.exists(candidate):
+                        return candidate
+        except Exception:
+            pass
+        return path
+
+    def safe_remove_local_file(path, retries=3, delay_s=0.15):
+        """
+        Try to remove a local file with small retries (Windows/NAS transient locks).
+        """
+        if not path:
+            return True
+        resolved = resolve_existing_path_case_insensitive(path)
+        if not os.path.exists(resolved):
+            return True
+        last_exc = None
+        for _ in range(max(1, retries)):
+            try:
+                os.remove(resolved)
+                return True
+            except Exception as e:
+                last_exc = e
+                time.sleep(delay_s)
+        LOGGER.warning(f"Could not remove file '{resolved}': {last_exc}")
+        return False
+
     def find_immich_live_video_companion(photo_file_path, pulled_file_paths):
         """
         Finds the companion video path for a given photo path within pulled files when target is Immich.
@@ -822,18 +862,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                                     # Solo borramos si ya no está en la cola (ignorando mayúsculas)
                                     if not is_asset_in_queue(push_queue, pulled_file_path) and os.path.exists(pulled_file_path):
-                                        try:
-                                            os.remove(pulled_file_path)
-                                        except Exception as e:
-                                            LOGGER.warning(f"Could not remove file '{pulled_file_path}': {e}")
+                                        safe_remove_local_file(pulled_file_path)
                                     companion_to_cleanup = asset_dict.get('live_photo_video_path')
                                     if companion_to_cleanup and os.path.exists(companion_to_cleanup):
                                         companion_lock = companion_to_cleanup + ".lock"
                                         if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
-                                            try:
-                                                os.remove(companion_to_cleanup)
-                                            except Exception as e:
-                                                LOGGER.warning(f"Could not remove companion file '{companion_to_cleanup}': {e}")
+                                            safe_remove_local_file(companion_to_cleanup)
                         else:
                             LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}' from Album '{album_name}'")
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
@@ -943,18 +977,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                                 # Solo borramos si ya no está en la cola (ignorando mayúsculas)
                                 if not is_asset_in_queue(push_queue, pulled_file_path) and os.path.exists(pulled_file_path):
-                                    try:
-                                        os.remove(pulled_file_path)
-                                    except Exception as e:
-                                        LOGGER.warning(f"Could not remove file '{pulled_file_path}': {e}")
+                                    safe_remove_local_file(pulled_file_path)
                                 companion_to_cleanup = asset_dict.get('live_photo_video_path')
                                 if companion_to_cleanup and os.path.exists(companion_to_cleanup):
                                     companion_lock = companion_to_cleanup + ".lock"
                                     if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
-                                        try:
-                                            os.remove(companion_to_cleanup)
-                                        except Exception as e:
-                                            LOGGER.warning(f"Could not remove companion file '{companion_to_cleanup}': {e}")
+                                        safe_remove_local_file(companion_to_cleanup)
                     else:
                         LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
@@ -1074,16 +1102,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             removed_source_asset_ids.add(asset['asset_id'])
 
                         # Borrar asset de la carpeta Automatic_Migration_Push_Failed tras subir
-                        if (asset_pushed or treat_as_consumed) and os.path.exists(asset_file_path):
-                            try:
-                                os.remove(asset_file_path)
-                            except:
-                                pass
-                        if (asset_pushed or treat_as_consumed) and live_photo_video_path and os.path.exists(live_photo_video_path):
-                            try:
-                                os.remove(live_photo_video_path)
-                            except:
-                                pass
+                        if asset_pushed or treat_as_consumed:
+                            safe_remove_local_file(asset_file_path)
+                            if live_photo_video_path:
+                                safe_remove_local_file(live_photo_video_path)
                     except Exception as e:
                         # 1) Restaura el nivel a INFO
                         LOGGER.setLevel(logging.INFO)
