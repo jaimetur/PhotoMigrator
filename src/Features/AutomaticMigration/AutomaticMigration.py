@@ -990,6 +990,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 active_file = os.path.join(album_folder_path, ".active")
                                 if os.path.exists(active_file):
                                     # No se borra porque aún está en uso
+                                    push_queue.task_done()
                                     continue
                                 # Si la carpeta está vacía (o solo hay subcarpetas vacías), la borramos, de lo contrario saltaremos al bloque except generando una excepción que ignoraremos
                                 os.rmdir(album_folder_path)

@@ -23,6 +23,8 @@
   
 #### 🐛 Bug fixes:
   - Added validation for `--google-takeout` path to block reserved special-folder names (`Archive`, `Trash`, `Locked folder`) and abort early with a clear message; same validation is enforced in Web UI folder selection (Issue #1008).
+  - Fixed a queue accounting bug in `Automatic Migration` that could stall execution when processing album folders still marked as active (`.active`) in parallel workers (Issue #1009).
+  - Fixed `Automatic Migration` startup with `--log-level=DEBUG` by passing profiling label arguments correctly to `profile_and_print` (Issue #1009).
   - Fixed Google Takeout GPTH input root normalization to handle direct `Google Photos` paths reliably (without copy fallback), preventing "Discover Media = 0" scenarios on NAS layouts (Issue #1013).
   - Fixed `LocalFolder.get_albums_owned_by_user()` raising `UnboundLocalError` (`albums_filtered`) when called with `filter_assets=False` during automatic migration album checks (Issue #1014).
   - Fixed Synology Live Photo downloads where ZIP payloads could be saved with `.HEIF` extension; ZIP payloads are now detected and extracted properly (Issue #1028).

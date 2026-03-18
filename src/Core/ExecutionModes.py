@@ -62,7 +62,7 @@ def detect_and_run_execution_mode():
             step_name = ''
             # Configure and start the profiler right before the call you want to measure
             LOGGER.debug(f"{step_name}Profiling Function mode_AUTOMATIC_MIGRATION")
-            profile_and_print(mode_AUTOMATIC_MIGRATION, show_dashboard=False, show_gpth_info=ARGS['show-gpth-info'], step_name=step_name)
+            profile_and_print(mode_AUTOMATIC_MIGRATION, show_dashboard=False, show_gpth_info=ARGS['show-gpth-info'], step_name_for_profile=step_name)
         else:
             mode_AUTOMATIC_MIGRATION(show_gpth_info=ARGS['show-gpth-info'])
 
