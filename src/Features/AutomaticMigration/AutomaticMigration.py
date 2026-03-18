@@ -422,13 +422,30 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         stem = os.path.splitext(asset_filename)[0]
         found = []
 
+        # Resolve actual filename case from directory entries (important on Linux/NAS).
+        try:
+            entries = os.listdir(download_folder)
+        except Exception:
+            entries = []
+        lower_to_real = {name.lower(): name for name in entries}
+
+        primary_real_name = lower_to_real.get(asset_filename.lower())
+        if primary_real_name:
+            primary_path = os.path.join(download_folder, primary_real_name)
+
         if os.path.exists(primary_path):
             found.append(primary_path)
 
         source_video_exts = [e.lower() for e in getattr(source_client, "ALLOWED_VIDEO_EXTENSIONS", [])]
-        for ext in source_video_exts:
-            companion = os.path.join(download_folder, f"{stem}{ext}")
-            if os.path.exists(companion) and companion.lower() != primary_path.lower():
+        stem_lower = stem.lower()
+        for entry in entries:
+            entry_base, entry_ext = os.path.splitext(entry)
+            if entry_base.lower() != stem_lower:
+                continue
+            if entry_ext.lower() not in source_video_exts:
+                continue
+            companion = os.path.join(download_folder, entry)
+            if companion.lower() != primary_path.lower():
                 found.append(companion)
 
         return found
