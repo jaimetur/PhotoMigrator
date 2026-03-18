@@ -1576,6 +1576,12 @@ body[data-theme="sunset"] .folder-item--select {
         grid-template-columns: 1fr;
     }
 
+    #cloud-action-panel .arg-row,
+    #standalone-action-panel .arg-row,
+    #migration-panel .arg-row {
+        grid-template-columns: 1fr;
+    }
+
     .folder-toolbar {
         grid-template-columns: 1fr;
     }

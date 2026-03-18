@@ -29,15 +29,6 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 # 📸 Tool Screenshots
 
 ## 🌐 Web Interface
-### General Arguments:
-![Live Dashboard](/assets/screenshots/web-interface-general-arguments.png?raw=true)  
-
-### Configuration File:
-![Live Dashboard](/assets/screenshots/web-interface-configuration-file.png?raw=true)  
-
-### Theme Selector:
-![Live Dashboard](/assets/screenshots/web-interface-theme-selector.png?raw=true)  
-
 ### Automatic Migration Feature:
 ![Live Dashboard](/assets/screenshots/web-interface-automatic-migration.png?raw=true)  
 
@@ -53,7 +44,16 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ### Other Features:
 ![Live Dashboard](/assets/screenshots/web-interface-other-features.png?raw=true)  
 
-## 🖥️ Live Dashboard Preview
+### General Arguments:
+![Live Dashboard](/assets/screenshots/web-interface-general-arguments.png?raw=true)  
+
+### Configuration File:
+![Live Dashboard](/assets/screenshots/web-interface-configuration-file.png?raw=true)  
+
+### Theme Selector:
+![Live Dashboard](/assets/screenshots/web-interface-theme-selector.png?raw=true)  
+
+## 🖥️ Automatic Migration on Terminal
 ![Live Dashboard](/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 # 🌟 Main Modules:
@@ -167,11 +167,11 @@ PhotoMigrator now includes a Web Interface that executes the same CLI arguments 
 
 Main characteristics:
 - Multi-tab UI separated by module:
-  - Google Photos Takeout Management
+  - Automatic Migration
+  - Google Photos
   - Synology Photos
   - Immich Photos
-  - Other Standalone Features
-  - Automatic Migration
+  - Other Features
 - General/optional arguments available for all tabs.
 - Real command preview + execution output in the browser.
 - Backend powered by `FastAPI` + `uvicorn` on port `6078`.
@@ -206,7 +206,7 @@ If you are on Linux and want to run Docker without `sudo`, follow:
 https://docs.docker.com/engine/install/linux-postinstall/
 
 ### 1) Configure Docker deployment files
-Use the files:
+Create or download to 'docker' folder the following files:
 - `docker/docker-compose.yml`
 - `docker/.env`
 
@@ -309,8 +309,9 @@ There are three different methods to execute this Tool:
 - From [Compiled Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-binaries.md)
 - From [Docker Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-docker.md)
 - From [Source Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-source.md)
+- From [Web Interface (docker)](#deploy-web-interface-with-docker-compose)  
 
-The below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide which one fits best with your needed: 
+Below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide which one fits best with your needed: 
 
 - ### 🆚 Execution Methods Comparison
 
