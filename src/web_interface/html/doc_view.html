@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tool_name }} Docs</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+        body {
+            margin: 0;
+            background: #f6f8fa;
+            color: #24292f;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+        .page {
+            width: min(99vw, 1520px);
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 14px;
+            align-items: start;
+        }
+        .sidebar {
+            background: #ffffff;
+            border: 1px solid #d0d7de;
+            border-radius: 12px;
+            padding: 14px;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 52px);
+            overflow: auto;
+        }
+        .sidebar h2 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+        .sidebar__hint {
+            margin: 0 0 10px;
+            color: #57606a;
+            font-size: 0.84rem;
+        }
+        .nav-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 4px;
+        }
+        .nav-list a {
+            display: block;
+            border-radius: 8px;
+            padding: 6px 8px;
+            color: #24292f;
+            text-decoration: none;
+            border: 1px solid transparent;
+            line-height: 1.35;
+            font-size: 0.9rem;
+        }
+        .nav-list a:hover {
+            background: #f6f8fa;
+            border-color: #d0d7de;
+        }
+        .nav-list a.active {
+            background: #eaf4ff;
+            border-color: #8ec2ff;
+            color: #0550ae;
+            font-weight: 700;
+        }
+        .content {
+            min-width: 0;
+        }
+        .layout--no-sidebar {
+            grid-template-columns: 1fr;
+        }
+        .sidebar.hidden {
+            display: none;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .topbar__actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .title {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .meta {
+            color: #57606a;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.82rem;
+            margin-bottom: 12px;
+        }
+        .btn {
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            background: #fff;
+            color: #24292f;
+            font-size: 0.9rem;
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+        .markdown {
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 12px;
+            padding: 24px;
+            line-height: 1.65;
+        }
+        .markdown h1, .markdown h2, .markdown h3, .markdown h4 {
+            margin: 1.2em 0 0.55em;
+            line-height: 1.3;
+        }
+        .markdown h1, .markdown h2 {
+            border-bottom: 1px solid #d8dee4;
+            padding-bottom: 0.3em;
+        }
+        .markdown p { margin: 0.75em 0; }
+        .markdown p[align="center"] { margin: 0.2em 0; }
+        .markdown p[align="center"] br { display: none; }
+        .markdown ul, .markdown ol { margin: 0.6em 0 0.85em 1.3em; padding: 0; }
+        .markdown blockquote {
+            margin: 0.8em 0;
+            border-left: 4px solid #d0d7de;
+            color: #57606a;
+            padding: 0.2em 0.9em;
+            background: #f6f8fa;
+        }
+        .markdown .admonition {
+            margin: 0.9em 0;
+            border: 1px solid #d0d7de;
+            border-left-width: 4px;
+            border-radius: 8px;
+            padding: 0.55em 0.8em;
+            background: #f6f8fa;
+        }
+        .markdown .admonition .admonition-title {
+            font-weight: 700;
+            margin-bottom: 0.25em;
+        }
+        .markdown .admonition.note {
+            border-left-color: #0969da;
+            border-color: #8ec2ff;
+            background: #eaf4ff;
+        }
+        .markdown .admonition.tip {
+            border-left-color: #1a7f37;
+            border-color: #8ad5a0;
+            background: #ecf9f0;
+        }
+        .markdown .admonition.important {
+            border-left-color: #b42318;
+            border-color: #f3b0a8;
+            background: #fff1ef;
+        }
+        .markdown .admonition.warning {
+            border-left-color: #9a6700;
+            border-color: #efcf8c;
+            background: #fff8e6;
+        }
+        .markdown .admonition.caution {
+            border-left-color: #cf222e;
+            border-color: #f0a6b2;
+            background: #fff0f3;
+        }
+        .markdown code {
+            background: rgba(175,184,193,0.2);
+            border-radius: 5px;
+            padding: 0.1em 0.3em;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.92em;
+        }
+        .markdown pre {
+            background: #0d1117;
+            color: #c9d1d9;
+            border-radius: 8px;
+            padding: 12px;
+            overflow: auto;
+        }
+        .markdown pre code {
+            background: transparent;
+            padding: 0;
+        }
+        .markdown img {
+            max-width: 100%;
+            border-radius: 6px;
+        }
+        .markdown .html-badges {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin: 0.65em 0;
+        }
+        .markdown .html-badges a {
+            display: inline-flex;
+            align-items: center;
+        }
+        .markdown .html-badges img {
+            border-radius: 999px;
+            max-width: none;
+            width: auto;
+            height: 28px;
+        }
+        .markdown img[src*="img.shields.io"] {
+            max-width: none;
+            width: auto;
+            height: 28px;
+        }
+        .markdown table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.8em 0;
+            display: block;
+            overflow-x: auto;
+        }
+        .markdown th, .markdown td {
+            border: 1px solid #d0d7de;
+            padding: 6px 10px;
+            text-align: left;
+            vertical-align: top;
+            white-space: nowrap;
+        }
+        .markdown th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        .markdown a {
+            color: #0969da;
+            text-decoration: none;
+        }
+        .markdown a:hover { text-decoration: underline; }
+        @media (max-width: 980px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: static;
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <div class="topbar">
+        <h1 id="doc-title" class="title">Loading...</h1>
+        <div class="topbar__actions">
+            <button type="button" class="btn" onclick="window.close()">Close Tab</button>
+        </div>
+    </div>
+    <div id="doc-meta" class="meta"></div>
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>Help Navigation</h2>
+            <p class="sidebar__hint">Quick access to markdown documents in <code>/help</code>.</p>
+            <ul id="help-nav-list" class="nav-list"></ul>
+        </aside>
+        <section class="content">
+            <article id="doc-content" class="markdown"></article>
+        </section>
+    </div>
+</main>
+
+<script>
+    const DOC_TITLE = "{{ doc_name }}";
+    const DOC_API_URL = "{{ doc_api_url }}";
+    const HELP_INDEX_API_URL = "/api/docs/help-index";
+    const REPO_BLOB_BASE = "https://github.com/jaimetur/PhotoMigrator/blob/main/";
+    const REPO_RAW_BASE = "https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/";
+    let CURRENT_DOC_PATH = "";
+
+    function escapeHtml(text) {
+        return String(text || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function splitTableRow(line) {
+        const trimmed = String(line || "").trim().replace(/^\|/, "").replace(/\|$/, "");
+        return trimmed.split("|").map((cell) => cell.trim());
+    }
+
+    function isTableDivider(line) {
+        const cells = splitTableRow(line);
+        return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+    }
+
+    function normalizePath(path) {
+        return String(path || "").replace(/\\/g, "/").replace(/^\.\//, "");
+    }
+
+    function splitLinkAndAnchor(path) {
+        const raw = String(path || "");
+        const hashIndex = raw.indexOf("#");
+        if (hashIndex < 0) return {path: raw, anchor: ""};
+        return {path: raw.slice(0, hashIndex), anchor: raw.slice(hashIndex)};
+    }
+
+    function joinNormalizedPath(baseDir, relativePath) {
+        const combined = `${baseDir}/${relativePath}`.replace(/\\/g, "/");
+        const parts = [];
+        combined.split("/").forEach((part) => {
+            if (!part || part === ".") return;
+            if (part === "..") {
+                if (parts.length) parts.pop();
+                return;
+            }
+            parts.push(part);
+        });
+        return parts.join("/");
+    }
+
+    function resolveHelpDocPath(rawPath) {
+        const {path, anchor} = splitLinkAndAnchor(String(rawPath || "").trim());
+        if (!path) return anchor || "";
+        let normalized = normalizePath(path);
+        if (normalized.startsWith("/")) normalized = normalized.slice(1);
+        if (normalized.startsWith("app/help/")) normalized = normalized.slice("app/help/".length);
+        if (normalized.startsWith("help/")) return `/docs/view/help/${normalized.slice("help/".length)}${anchor}`;
+        if (normalized.endsWith(".md")) {
+            const currentNormalized = normalizePath(CURRENT_DOC_PATH || "");
+            const marker = "/help/";
+            const markerIndex = currentNormalized.toLowerCase().indexOf(marker);
+            if (markerIndex >= 0) {
+                const currentRelPath = currentNormalized.slice(markerIndex + marker.length);
+                const currentDir = currentRelPath.includes("/") ? currentRelPath.slice(0, currentRelPath.lastIndexOf("/")) : "";
+                const resolved = joinNormalizedPath(currentDir, normalized);
+                return `/docs/view/help/${resolved}${anchor}`;
+            }
+        }
+        return "";
+    }
+
+    function resolveDocUrl(url, isImage = false) {
+        const raw = String(url || "").trim();
+        if (!raw) return "";
+        const normalizedRaw = raw.toLowerCase();
+        if (normalizedRaw === "config.ini" || normalizedRaw.endsWith("/config.ini")) return "/docs/view/config";
+
+        const ghBlob = raw.match(/^https?:\/\/github\.com\/jaimetur\/PhotoMigrator\/blob\/main\/(.+)$/i);
+        const ghRaw = raw.match(/^https?:\/\/raw\.githubusercontent\.com\/jaimetur\/PhotoMigrator\/main\/(.+)$/i);
+        const repoPath = normalizePath((ghBlob && ghBlob[1]) || (ghRaw && ghRaw[1]) || "");
+        if (repoPath) {
+            const repoLower = repoPath.toLowerCase();
+            if (repoLower === "readme.md") return "/docs/view/readme";
+            if (repoLower === "changelog.md") return "/docs/view/changelog";
+            if (repoLower === "roadmap.md") return "/docs/view/roadmap";
+            if (repoLower === "config.ini") return "/docs/view/config";
+            if (repoLower.startsWith("help/") && repoLower.endsWith(".md")) return `/docs/view/help/${repoPath.slice(5)}`;
+            if (repoLower.startsWith("assets/")) return `/${repoPath}`;
+        }
+        if (/^(https?:|mailto:|#)/i.test(raw)) return raw;
+        if (raw.startsWith("/docs/")) return raw;
+
+        const helpDocUrl = resolveHelpDocPath(raw);
+        if (helpDocUrl) return helpDocUrl;
+
+        let normalized = normalizePath(raw);
+        const lowerNormalized = normalized.toLowerCase();
+        if (lowerNormalized === "readme.md" || lowerNormalized.endsWith("/readme.md")) return "/docs/view/readme";
+        if (lowerNormalized === "changelog.md" || lowerNormalized.endsWith("/changelog.md")) return "/docs/view/changelog";
+        if (lowerNormalized === "roadmap.md" || lowerNormalized.endsWith("/roadmap.md")) return "/docs/view/roadmap";
+        if (lowerNormalized === "config.ini" || lowerNormalized.endsWith("/config.ini")) return "/docs/view/config";
+        if (normalized.startsWith("/app/assets/")) normalized = normalized.replace(/^\/app\/assets\//, "/assets/");
+        if (normalized.startsWith("/assets/")) return normalized;
+        if (normalized.startsWith("assets/")) return `/${normalized}`;
+
+        if (normalized.startsWith("/")) normalized = normalized.slice(1);
+        if (normalized.startsWith("help/") || normalized.startsWith("src/") || normalized.startsWith("docker/")) {
+            return `${REPO_BLOB_BASE}${normalized}`;
+        }
+
+        return `${isImage ? REPO_RAW_BASE : REPO_BLOB_BASE}${normalized}`;
+    }
+
+    function rewriteHtmlTagUrls(htmlSnippet) {
+        let out = String(htmlSnippet || "");
+        out = out.replace(/\s(src|href)=["']([^"']+)["']/gi, (_m, attr, url) => {
+            const resolved = resolveDocUrl(url, attr.toLowerCase() === "src");
+            return ` ${attr}="${escapeHtml(resolved)}"`;
+        });
+        return out;
+    }
+
+    function renderInlineMarkdown(text) {
+        const rawText = String(text || "");
+        const htmlTokens = [];
+        const tokenized = rawText.replace(/<\/?[a-zA-Z][^>]*>/g, (tag) => {
+            const token = `__HTML_TOKEN_${htmlTokens.length}__`;
+            htmlTokens.push(rewriteHtmlTagUrls(tag));
+            return token;
+        });
+
+        let html = escapeHtml(tokenized);
+        html = html.replace(/\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^)]+)\)/g, (_m, alt, imgUrl, linkUrl) => {
+            const resolvedLink = resolveDocUrl(linkUrl, false);
+            const resolvedImg = resolveDocUrl(imgUrl, true);
+            const isInternal = resolvedLink.startsWith("/") && !resolvedLink.startsWith("//");
+            const targetAttrs = isInternal ? "" : ` target="_blank" rel="noopener noreferrer"`;
+            return `<a href="${escapeHtml(resolvedLink)}"${targetAttrs}><img src="${escapeHtml(resolvedImg)}" alt="${escapeHtml(alt)}"></a>`;
+        });
+        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt, url) =>
+            `<img src="${escapeHtml(resolveDocUrl(url, true))}" alt="${escapeHtml(alt)}">`
+        );
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
+            const resolved = resolveDocUrl(url, false);
+            const isInternal = resolved.startsWith("/") && !resolved.startsWith("//");
+            const targetAttrs = isInternal ? "" : ` target="_blank" rel="noopener noreferrer"`;
+            return `<a href="${escapeHtml(resolved)}"${targetAttrs}>${escapeHtml(label)}</a>`;
+        });
+        html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+        html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+        htmlTokens.forEach((tag, index) => {
+            const token = `__HTML_TOKEN_${index}__`;
+            html = html.replaceAll(token, tag);
+        });
+        return html;
+    }
+
+    function renderMarkdown(markdownText) {
+        const source = String(markdownText || "").replace(/\r\n/g, "\n");
+        const rawLines = source.split("\n");
+        const lines = [];
+        let skipNextTopSeparator = false;
+        for (let i = 0; i < rawLines.length; i++) {
+            const line = String(rawLines[i] || "");
+            const trimmed = line.trim();
+            const normalized = trimmed.toLowerCase();
+            const isRoadmapLinkLine =
+                normalized.includes("planned roadmap") &&
+                normalized.includes("following releases");
+            const isChangelogLinkLine =
+                normalized.includes("changelog") &&
+                normalized.includes("past releases");
+
+            if (isRoadmapLinkLine || isChangelogLinkLine) {
+                skipNextTopSeparator = true;
+                continue;
+            }
+
+            if (skipNextTopSeparator && (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed))) {
+                skipNextTopSeparator = false;
+                continue;
+            }
+
+            if (trimmed) {
+                skipNextTopSeparator = false;
+            }
+
+            lines.push(line);
+        }
+        const html = [];
+        let paragraph = [];
+        let inUl = false;
+        let inOl = false;
+        let inCode = false;
+        let codeLang = "";
+        let codeLines = [];
+
+        const closeLists = () => {
+            if (inUl) { html.push("</ul>"); inUl = false; }
+            if (inOl) { html.push("</ol>"); inOl = false; }
+        };
+        const flushParagraph = () => {
+            if (!paragraph.length) return;
+            html.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
+            paragraph = [];
+        };
+
+        const shouldSkipLine = (line) => {
+            const value = String(line || "").trim();
+            if (!value) return false;
+            if (/back to main page/i.test(value) && /\[[^\]]+\]\([^)]+\)/.test(value)) return true;
+            if (/planned roadmap for the following releases/i.test(value)) return true;
+            if (/changelog for the past releases\+?/i.test(value)) return true;
+            return false;
+        };
+
+        const parseStandaloneHtmlImages = (line) => {
+            const value = String(line || "").trim();
+            if (!value) return [];
+            const matches = value.match(/<img\b[^>]*>/gi) || [];
+            if (!matches.length) return [];
+            const onlyImagesAndSpaces = value.replace(/<img\b[^>]*>/gi, "").trim();
+            return onlyImagesAndSpaces ? [] : matches;
+        };
+
+        const isBadgeImageTag = (imgTag) => /src=["']https?:\/\/img\.shields\.io\//i.test(String(imgTag || ""));
+        const parseMarkdownBadgeLine = (line) => {
+            const value = String(line || "").trim();
+            const match = value.match(/^\[!\[([^\]]*)\]\((https?:\/\/img\.shields\.io\/[^)]+)\)\]\(([^)]+)\)\s*$/i);
+            if (!match) return null;
+            return {alt: match[1] || "", image: match[2] || "", link: match[3] || ""};
+        };
+
+        for (let i = 0; i < lines.length; i++) {
+            const rawLine = lines[i] || "";
+            const trimmed = rawLine.trim();
+
+            if (shouldSkipLine(trimmed)) {
+                flushParagraph();
+                closeLists();
+                continue;
+            }
+
+            if (inCode) {
+                if (/^```/.test(trimmed)) {
+                    const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
+                    html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+                    inCode = false;
+                    codeLang = "";
+                    codeLines = [];
+                } else {
+                    codeLines.push(rawLine);
+                }
+                continue;
+            }
+
+            const codeFence = trimmed.match(/^```([\w-]+)?\s*$/);
+            if (codeFence) {
+                flushParagraph();
+                closeLists();
+                inCode = true;
+                codeLang = codeFence[1] || "";
+                codeLines = [];
+                continue;
+            }
+
+            if (!trimmed) {
+                flushParagraph();
+                closeLists();
+                continue;
+            }
+
+            if (/^<br\s*\/?>$/i.test(trimmed)) {
+                continue;
+            }
+
+            const markdownBadge = parseMarkdownBadgeLine(trimmed);
+            if (markdownBadge) {
+                flushParagraph();
+                closeLists();
+                const badges = [markdownBadge];
+                let j = i + 1;
+                while (j < lines.length) {
+                    const nextLine = String(lines[j] || "").trim();
+                    if (!nextLine || shouldSkipLine(nextLine)) {
+                        j++;
+                        continue;
+                    }
+                    const nextBadge = parseMarkdownBadgeLine(nextLine);
+                    if (!nextBadge) break;
+                    badges.push(nextBadge);
+                    j++;
+                }
+                const badgesHtml = badges.map((badge) => {
+                    const href = escapeHtml(resolveDocUrl(badge.link, false));
+                    const src = escapeHtml(resolveDocUrl(badge.image, true));
+                    const alt = escapeHtml(badge.alt);
+                    return `<a href="${href}" target="_blank" rel="noopener noreferrer"><img src="${src}" alt="${alt}"></a>`;
+                }).join("");
+                html.push(`<div class="html-badges">${badgesHtml}</div>`);
+                i = j - 1;
+                continue;
+            }
+
+            const inlineImages = parseStandaloneHtmlImages(trimmed);
+            if (inlineImages.length > 0) {
+                flushParagraph();
+                closeLists();
+                const imageTags = [...inlineImages.map(rewriteHtmlTagUrls)];
+                const allBadges = imageTags.every(isBadgeImageTag);
+                if (!allBadges) {
+                    html.push(imageTags.join(""));
+                    continue;
+                }
+                let j = i + 1;
+                while (j < lines.length) {
+                    const nextLine = String(lines[j] || "").trim();
+                    if (!nextLine || shouldSkipLine(nextLine)) {
+                        j++;
+                        continue;
+                    }
+                    const nextImages = parseStandaloneHtmlImages(nextLine);
+                    if (!nextImages.length) break;
+                    const rewritten = nextImages.map(rewriteHtmlTagUrls);
+                    if (!rewritten.every(isBadgeImageTag)) break;
+                    imageTags.push(...rewritten);
+                    j++;
+                }
+                html.push(`<div class="html-badges">${imageTags.join("")}</div>`);
+                i = j - 1;
+                continue;
+            }
+
+            if (/^<[^>]+>/.test(trimmed)) {
+                flushParagraph();
+                closeLists();
+                html.push(rewriteHtmlTagUrls(rawLine));
+                continue;
+            }
+
+            const admonition = trimmed.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i);
+            if (admonition) {
+                flushParagraph();
+                closeLists();
+                const kind = admonition[1].toLowerCase();
+                const content = [];
+                let j = i + 1;
+                while (j < lines.length && String(lines[j] || "").trim() !== "") {
+                    content.push(String(lines[j] || "").trim());
+                    j++;
+                }
+                const body = content.length ? `<p>${content.map(renderInlineMarkdown).join("<br>")}</p>` : "";
+                html.push(`<div class="admonition ${kind}"><div class="admonition-title">${admonition[1].toUpperCase()}</div>${body}</div>`);
+                i = j - 1;
+                continue;
+            }
+
+            if (rawLine.includes("|") && i + 1 < lines.length && isTableDivider(lines[i + 1])) {
+                flushParagraph();
+                closeLists();
+                const headerCells = splitTableRow(rawLine);
+                let j = i + 2;
+                const bodyRows = [];
+                while (j < lines.length && String(lines[j] || "").includes("|")) {
+                    const rowCells = splitTableRow(lines[j]);
+                    if (!rowCells.length) break;
+                    bodyRows.push(rowCells);
+                    j++;
+                }
+                const thead = `<thead><tr>${headerCells.map((c) => `<th>${renderInlineMarkdown(c)}</th>`).join("")}</tr></thead>`;
+                const tbodyRows = bodyRows.map((row) => `<tr>${row.map((c) => `<td>${renderInlineMarkdown(c)}</td>`).join("")}</tr>`).join("");
+                html.push(`<table>${thead}<tbody>${tbodyRows}</tbody></table>`);
+                i = j - 1;
+                continue;
+            }
+
+            const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+            if (heading) {
+                flushParagraph();
+                closeLists();
+                const level = heading[1].length;
+                html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+                continue;
+            }
+
+            if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
+                flushParagraph();
+                closeLists();
+                if (html.length === 0) {
+                    continue;
+                }
+                if (html.length > 0 && html[html.length - 1] === "<hr>") {
+                    continue;
+                }
+                html.push("<hr>");
+                continue;
+            }
+
+            const quote = trimmed.match(/^>\s?(.*)$/);
+            if (quote) {
+                flushParagraph();
+                closeLists();
+                const quotedLines = [String(quote[1] || "").trim()];
+                let j = i + 1;
+                while (j < lines.length) {
+                    const next = String(lines[j] || "");
+                    const m = next.trim().match(/^>\s?(.*)$/);
+                    if (!m) break;
+                    quotedLines.push(String(m[1] || "").trim());
+                    j++;
+                }
+                const qAdmonition = quotedLines[0].match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i);
+                if (qAdmonition) {
+                    const kind = qAdmonition[1].toLowerCase();
+                    const bodyLines = quotedLines.slice(1).filter((line) => line !== "");
+                    const body = bodyLines.length ? `<p>${bodyLines.map(renderInlineMarkdown).join("<br>")}</p>` : "";
+                    html.push(`<div class="admonition ${kind}"><div class="admonition-title">${qAdmonition[1].toUpperCase()}</div>${body}</div>`);
+                } else {
+                    html.push(`<blockquote><p>${quotedLines.map(renderInlineMarkdown).join("<br>")}</p></blockquote>`);
+                }
+                i = j - 1;
+                continue;
+            }
+
+            const ulItem = trimmed.match(/^[-*+]\s+(.+)$/);
+            if (ulItem) {
+                flushParagraph();
+                if (inOl) { html.push("</ol>"); inOl = false; }
+                if (!inUl) { html.push("<ul>"); inUl = true; }
+                html.push(`<li>${renderInlineMarkdown(ulItem[1])}</li>`);
+                continue;
+            }
+
+            const olItem = trimmed.match(/^\d+\.\s+(.+)$/);
+            if (olItem) {
+                flushParagraph();
+                if (inUl) { html.push("</ul>"); inUl = false; }
+                if (!inOl) { html.push("<ol>"); inOl = true; }
+                html.push(`<li>${renderInlineMarkdown(olItem[1])}</li>`);
+                continue;
+            }
+
+            paragraph.push(trimmed);
+        }
+
+        flushParagraph();
+        closeLists();
+        if (inCode) {
+            const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
+            html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        }
+        return html.join("\n");
+    }
+
+    async function loadDocument() {
+        const titleEl = document.getElementById("doc-title");
+        const metaEl = document.getElementById("doc-meta");
+        const contentEl = document.getElementById("doc-content");
+        titleEl.textContent = DOC_TITLE;
+        metaEl.textContent = "Loading...";
+        contentEl.innerHTML = "";
+        try {
+            const response = await fetch(DOC_API_URL);
+            const data = await response.json();
+            if (!response.ok) {
+                metaEl.textContent = "";
+                contentEl.innerHTML = `<p>${escapeHtml(data?.detail || "Unable to load document.")}</p>`;
+                return;
+            }
+            CURRENT_DOC_PATH = data.path || "";
+            metaEl.textContent = data.path || "";
+            contentEl.innerHTML = renderMarkdown(data.content || "");
+            document.title = `${DOC_TITLE} - {{ tool_name }}`;
+        } catch (error) {
+            metaEl.textContent = "";
+            contentEl.innerHTML = "<p>Unable to load document.</p>";
+        }
+    }
+
+    function buildHelpLabel(relativePath) {
+        const clean = String(relativePath || "").replace(/\\/g, "/");
+        if (clean.toLowerCase() === "00_gpth_complete_pipeline.md") {
+            return "8. Google Photos Takeout Helper (GPTH)";
+        }
+        const parts = clean.split("/");
+        const file = parts[parts.length - 1] || clean;
+        const name = file.replace(/\.md$/i, "").replace(/[-_]+/g, " ").trim();
+        if (!name) return file;
+        const numbered = name.match(/^(\d+)\s+(.+)$/);
+        if (numbered) {
+            const num = numbered[1];
+            const rawTitle = numbered[2];
+            const titled = rawTitle
+                .split(/\s+/)
+                .filter(Boolean)
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+            return `${num}. ${titled}`;
+        }
+        return name
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+    }
+
+    async function loadHelpNavigation() {
+        const navEl = document.getElementById("help-nav-list");
+        if (!navEl) return;
+        navEl.innerHTML = "";
+        const currentPath = window.location.pathname;
+        const addLink = (label, url) => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = url;
+            a.textContent = label;
+            if (url === currentPath) a.classList.add("active");
+            li.appendChild(a);
+            navEl.appendChild(li);
+        };
+
+        addLink("🏠 Home", "/docs/view/help");
+        const fallbackDocs = [
+            "0-configuration-file.md",
+            "1-command-line-interface.md",
+            "2-arguments-description-short.md",
+            "2-arguments-description.md",
+            "3-automatic-migration.md",
+            "4-google-takeout.md",
+            "5-synology-photos.md",
+            "6-immich-photos.md",
+            "7-other-features.md",
+            "00_GPTH_complete_pipeline.md"
+        ];
+        const preferredOrder = {
+            "0-configuration-file.md": 10,
+            "1-command-line-interface.md": 20,
+            "2-arguments-description-short.md": 30,
+            "2-arguments-description.md": 40,
+            "3-automatic-migration.md": 50,
+            "4-google-takeout.md": 60,
+            "5-synology-photos.md": 70,
+            "6-immich-photos.md": 80,
+            "7-other-features.md": 90,
+            "00_gpth_complete_pipeline.md": 100,
+        };
+        try {
+            const response = await fetch(HELP_INDEX_API_URL);
+            const data = await response.json();
+            if (!response.ok || !Array.isArray(data?.documents)) throw new Error("Help index unavailable");
+            const docs = data.documents.filter((doc) => {
+                const url = String(doc.url || "");
+                return Boolean(url) && url !== "/docs/view/help/help.md";
+            });
+            if (!docs.length) throw new Error("Help index empty");
+            docs.sort((a, b) => {
+                const aPath = String(a.relative_path || a.name || "").replace(/\\/g, "/").toLowerCase();
+                const bPath = String(b.relative_path || b.name || "").replace(/\\/g, "/").toLowerCase();
+                const aKey = Object.prototype.hasOwnProperty.call(preferredOrder, aPath) ? preferredOrder[aPath] : 9999;
+                const bKey = Object.prototype.hasOwnProperty.call(preferredOrder, bPath) ? preferredOrder[bPath] : 9999;
+                if (aKey !== bKey) return aKey - bKey;
+                return aPath.localeCompare(bPath);
+            });
+            docs.forEach((doc) => {
+                const url = String(doc.url || "");
+                addLink(buildHelpLabel(doc.relative_path || doc.name || url), url);
+            });
+        } catch (error) {
+            fallbackDocs.forEach((docPath) => {
+                const url = `/docs/view/help/${docPath}`;
+                addLink(buildHelpLabel(docPath), url);
+            });
+        }
+    }
+
+    function setupSidebar() {
+        const isHelpDoc = window.location.pathname.startsWith("/docs/view/help");
+        const layout = document.querySelector(".layout");
+        const sidebar = document.querySelector(".sidebar");
+        if (!layout || !sidebar) return;
+        if (!isHelpDoc) {
+            sidebar.classList.add("hidden");
+            layout.classList.add("layout--no-sidebar");
+            return;
+        }
+        sidebar.classList.remove("hidden");
+        layout.classList.remove("layout--no-sidebar");
+        loadHelpNavigation();
+    }
+
+    setupSidebar();
+    loadDocument();
+</script>
+</body>
+</html>

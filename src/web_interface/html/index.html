@@ -17,6 +17,20 @@
             </div>
             <h2 class="hero__subtitle">Web Interface for CLI Execution</h2>
             <p>Migrate your photos between different cloud services. Process your Google Photos Takeout to fix metadata. Manage your photo library.</p>
+            <div class="hero__docs">
+                <button type="button" id="open-readme-btn" class="ghost-btn hero__doc-btn" title="Open Readme">
+                    📝 Readme
+                </button>
+                <button type="button" id="open-changelog-btn" class="ghost-btn hero__doc-btn" title="Open Release Notes">
+                    📜 Release Notes
+                </button>
+                <button type="button" id="open-roadmap-btn" class="ghost-btn hero__doc-btn" title="Open Roadmap">
+                    🗺️ Roadmap
+                </button>
+                <button type="button" id="open-help-btn" class="ghost-btn hero__doc-btn" title="Open Help">
+                    📚 Help
+                </button>
+            </div>
         </div>
         <img class="hero__logo" src="/assets/logos/logo_17_1024x1024.png" alt="PhotoMigrator logo">
     </header>
@@ -226,6 +240,17 @@
         <div class="confirm-dialog__actions">
             <button type="button" id="notice-dialog-close" class="run-btn">OK</button>
         </div>
+    </div>
+</dialog>
+
+<dialog id="doc-dialog" class="doc-dialog">
+    <div class="doc-dialog__card">
+        <div class="doc-dialog__header">
+            <h3 id="doc-dialog-title" class="doc-dialog__title">Document</h3>
+            <button type="button" id="doc-dialog-close" class="ghost-btn">Close</button>
+        </div>
+        <div id="doc-dialog-meta" class="doc-dialog__meta"></div>
+        <article id="doc-dialog-content" class="doc-markdown"></article>
     </div>
 </dialog>
 
@@ -591,6 +616,172 @@
             .replace(/>/g, "&gt;")
             .replace(/\"/g, "&quot;")
             .replace(/'/g, "&#39;");
+    }
+
+    function renderInlineMarkdown(text) {
+        let html = escapeHtml(String(text || ""));
+        html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+        html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+        return html;
+    }
+
+    function renderMarkdownGithub(markdownText) {
+        const source = String(markdownText || "").replace(/\r\n/g, "\n");
+        const lines = source.split("\n");
+        const html = [];
+        let paragraph = [];
+        let inUl = false;
+        let inOl = false;
+        let inCode = false;
+        let codeLang = "";
+        let codeLines = [];
+
+        const closeLists = () => {
+            if (inUl) {
+                html.push("</ul>");
+                inUl = false;
+            }
+            if (inOl) {
+                html.push("</ol>");
+                inOl = false;
+            }
+        };
+
+        const flushParagraph = () => {
+            if (!paragraph.length) return;
+            html.push(`<p>${paragraph.map((line) => renderInlineMarkdown(line)).join("<br>")}</p>`);
+            paragraph = [];
+        };
+
+        for (const rawLine of lines) {
+            const line = rawLine || "";
+            const trimmed = line.trim();
+
+            if (inCode) {
+                if (/^```/.test(trimmed)) {
+                    const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
+                    html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+                    inCode = false;
+                    codeLang = "";
+                    codeLines = [];
+                } else {
+                    codeLines.push(line);
+                }
+                continue;
+            }
+
+            const codeFence = trimmed.match(/^```([\w-]+)?\s*$/);
+            if (codeFence) {
+                flushParagraph();
+                closeLists();
+                inCode = true;
+                codeLang = codeFence[1] || "";
+                codeLines = [];
+                continue;
+            }
+
+            if (!trimmed) {
+                flushParagraph();
+                closeLists();
+                continue;
+            }
+
+            const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+            if (heading) {
+                flushParagraph();
+                closeLists();
+                const level = heading[1].length;
+                html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+                continue;
+            }
+
+            if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
+                flushParagraph();
+                closeLists();
+                html.push("<hr>");
+                continue;
+            }
+
+            const quote = trimmed.match(/^>\s?(.*)$/);
+            if (quote) {
+                flushParagraph();
+                closeLists();
+                html.push(`<blockquote><p>${renderInlineMarkdown(quote[1])}</p></blockquote>`);
+                continue;
+            }
+
+            const ulItem = trimmed.match(/^[-*+]\s+(.+)$/);
+            if (ulItem) {
+                flushParagraph();
+                if (inOl) {
+                    html.push("</ol>");
+                    inOl = false;
+                }
+                if (!inUl) {
+                    html.push("<ul>");
+                    inUl = true;
+                }
+                html.push(`<li>${renderInlineMarkdown(ulItem[1])}</li>`);
+                continue;
+            }
+
+            const olItem = trimmed.match(/^\d+\.\s+(.+)$/);
+            if (olItem) {
+                flushParagraph();
+                if (inUl) {
+                    html.push("</ul>");
+                    inUl = false;
+                }
+                if (!inOl) {
+                    html.push("<ol>");
+                    inOl = true;
+                }
+                html.push(`<li>${renderInlineMarkdown(olItem[1])}</li>`);
+                continue;
+            }
+
+            paragraph.push(trimmed);
+        }
+
+        flushParagraph();
+        closeLists();
+        if (inCode) {
+            const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
+            html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        }
+        return html.join("\n");
+    }
+
+    async function openDocumentation(docName) {
+        const dialog = document.getElementById("doc-dialog");
+        const titleEl = document.getElementById("doc-dialog-title");
+        const metaEl = document.getElementById("doc-dialog-meta");
+        const contentEl = document.getElementById("doc-dialog-content");
+        const normalized = String(docName || "").trim().toLowerCase();
+        const prettyTitle = normalized === "changelog" ? "CHANGELOG.md" : "README.md";
+        titleEl.textContent = prettyTitle;
+        metaEl.textContent = "Loading...";
+        contentEl.innerHTML = "";
+        dialog.showModal();
+
+        try {
+            const response = await fetch(`/api/docs/${normalized}`);
+            const data = await response.json();
+            if (!response.ok) {
+                const detail = data && data.detail ? String(data.detail) : "Unable to load document.";
+                metaEl.textContent = "";
+                contentEl.innerHTML = `<p>${escapeHtml(detail)}</p>`;
+                return;
+            }
+            metaEl.textContent = data.path || "";
+            contentEl.innerHTML = renderMarkdownGithub(data.content || "");
+        } catch (error) {
+            console.error(error);
+            metaEl.textContent = "";
+            contentEl.innerHTML = "<p>Unable to load document.</p>";
+        }
     }
 
     function stripAnsi(text) {
@@ -3406,6 +3597,21 @@
 
     function bindUi() {
         bindCollapseButtons();
+        document.getElementById("open-help-btn").addEventListener("click", () => {
+            window.open("/docs/view/help", "_blank", "noopener,noreferrer");
+        });
+        document.getElementById("open-readme-btn").addEventListener("click", () => {
+            window.open("/docs/view/readme", "_blank", "noopener,noreferrer");
+        });
+        document.getElementById("open-changelog-btn").addEventListener("click", () => {
+            window.open("/docs/view/changelog", "_blank", "noopener,noreferrer");
+        });
+        document.getElementById("open-roadmap-btn").addEventListener("click", () => {
+            window.open("/docs/view/roadmap", "_blank", "noopener,noreferrer");
+        });
+        document.getElementById("doc-dialog-close").addEventListener("click", () => {
+            forceCloseDialogById("doc-dialog");
+        });
         document.getElementById("run-btn").addEventListener("click", runCommand);
         document.getElementById("stop-btn").addEventListener("click", stopCommand);
         document.getElementById("copy-log-btn").addEventListener("click", copyLogToClipboard);

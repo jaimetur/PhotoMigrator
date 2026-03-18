@@ -3,8 +3,8 @@
 > [!IMPORTANT]  
 > ### ✅ Prerequisites:
 > - You have to make sure that you have the following tools installed on your system:
->   - Python 3.8 or higher - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-python/install-python.md)
->   - Git - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-git/install-git.md)
+>   - Python 3.8 or higher - [Install Instructions](/help/install-python/install-python.md)
+>   - Git - [Install Instructions](/help/install-git/install-git.md)
 
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
 
@@ -51,7 +51,7 @@ Find below the needed steps:
 
 Open the file `Config.ini` included in the package with any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md).
+> For more information, refer to [Configuration File](/help/0-configuration-file.md).
 
 
 ### 🚀 7. Run the Tool to show the command line help:
@@ -65,7 +65,7 @@ Or if you prefer to execute the tool directly from the built package just use:
 
 ---
 
-## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
+## 🏠 [Back to Main Page](/README.md)
 
 ---
 ## 🎖️ Credits:

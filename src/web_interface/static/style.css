@@ -9,6 +9,10 @@
     --accent: #1f6f5f;
     --accent-soft: #d9ece6;
     --shadow: 0 14px 35px rgba(18, 29, 32, 0.09);
+    --hero-doc-bg: linear-gradient(135deg, #d6edf2 0%, #b7dce6 100%);
+    --hero-doc-border: #8fbfc9;
+    --hero-doc-text: #14363d;
+    --hero-doc-hover: linear-gradient(135deg, #c8e6ee 0%, #a7d2db 100%);
 }
 
 body[data-theme="emerald"] {
@@ -27,6 +31,10 @@ body[data-theme="emerald"] {
     --optional-bg: #e3f4ec;
     --optional-text: #1f5b42;
     --optional-border: #add6c2;
+    --hero-doc-bg: linear-gradient(135deg, #def4e9 0%, #c1e5d4 100%);
+    --hero-doc-border: #9dd0b8;
+    --hero-doc-text: #194635;
+    --hero-doc-hover: linear-gradient(135deg, #d1efdf 0%, #b3dfc8 100%);
 }
 
 body[data-theme="ocean"] {
@@ -45,6 +53,10 @@ body[data-theme="ocean"] {
     --optional-bg: #dfeeff;
     --optional-text: #1c4f90;
     --optional-border: #b8d2f1;
+    --hero-doc-bg: linear-gradient(135deg, #e0ecff 0%, #c5dcfb 100%);
+    --hero-doc-border: #a8c8ef;
+    --hero-doc-text: #173b69;
+    --hero-doc-hover: linear-gradient(135deg, #d2e4ff 0%, #b7d5f7 100%);
 }
 
 body[data-theme="dark"] {
@@ -63,6 +75,10 @@ body[data-theme="dark"] {
     --optional-bg: #2a3948;
     --optional-text: #d5e2ef;
     --optional-border: #445a70;
+    --hero-doc-bg: linear-gradient(135deg, #5a6f88 0%, #445972 100%);
+    --hero-doc-border: #6f88a8;
+    --hero-doc-text: #eaf1f8;
+    --hero-doc-hover: linear-gradient(135deg, #647a95 0%, #4f6782 100%);
 }
 
 body[data-theme="sunset"] {
@@ -81,6 +97,10 @@ body[data-theme="sunset"] {
     --optional-bg: #fae6de;
     --optional-text: #8a3f2b;
     --optional-border: #e8c1b2;
+    --hero-doc-bg: linear-gradient(135deg, #fde4da 0%, #f4cbbd 100%);
+    --hero-doc-border: #e6ad96;
+    --hero-doc-text: #6b2c1e;
+    --hero-doc-hover: linear-gradient(135deg, #fbd9cc 0%, #efbca7 100%);
 }
 
 * {
@@ -162,6 +182,27 @@ body {
 .hero p {
     margin: 8px 0 0;
     opacity: 0.92;
+}
+
+.hero__docs {
+    margin-top: 18px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.hero__doc-btn {
+    border-color: var(--hero-doc-border);
+    background: var(--hero-doc-bg);
+    color: var(--hero-doc-text);
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(18, 36, 48, 0.16);
+}
+
+.hero__doc-btn:hover {
+    background: var(--hero-doc-hover);
+    border-color: var(--hero-doc-border);
+    color: var(--hero-doc-text);
 }
 
 .panel {
@@ -489,6 +530,19 @@ textarea.field__input {
     background: #fff;
     color: var(--text-main);
     border: 1px solid var(--border);
+}
+
+.hero__docs .hero__doc-btn {
+    background: var(--hero-doc-bg);
+    border-color: var(--hero-doc-border);
+    color: var(--hero-doc-text);
+}
+
+.hero__docs .hero__doc-btn:hover,
+.hero__docs .hero__doc-btn:focus-visible {
+    background: var(--hero-doc-hover);
+    border-color: var(--hero-doc-border);
+    color: var(--hero-doc-text);
 }
 
 .browse-btn {
@@ -1429,6 +1483,124 @@ body.is-resizing-log {
     margin-bottom: 10px;
 }
 
+.doc-dialog {
+    border: none;
+    padding: 0;
+    background: transparent;
+    width: min(92vw, 1200px);
+    max-height: min(90vh, 900px);
+}
+
+.doc-dialog::backdrop {
+    background: rgba(8, 14, 22, 0.58);
+}
+
+.doc-dialog__card {
+    background: #fff;
+    color: #1f2a30;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+    height: 100%;
+    max-height: min(88vh, 860px);
+}
+
+.doc-dialog__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.doc-dialog__title {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+}
+
+.doc-dialog__meta {
+    font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.doc-markdown {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    background: #fbfdfc;
+    overflow: auto;
+    line-height: 1.55;
+}
+
+.doc-markdown h1,
+.doc-markdown h2,
+.doc-markdown h3,
+.doc-markdown h4,
+.doc-markdown h5,
+.doc-markdown h6 {
+    margin: 1.1em 0 0.5em;
+    line-height: 1.25;
+}
+
+.doc-markdown h1,
+.doc-markdown h2 {
+    border-bottom: 1px solid #dce2e8;
+    padding-bottom: 0.25em;
+}
+
+.doc-markdown p {
+    margin: 0.6em 0;
+}
+
+.doc-markdown ul,
+.doc-markdown ol {
+    margin: 0.5em 0 0.8em 1.3em;
+    padding: 0;
+}
+
+.doc-markdown blockquote {
+    margin: 0.8em 0;
+    padding: 0.2em 0.9em;
+    border-left: 4px solid #c9d4e3;
+    color: #4d5a66;
+    background: #f7f9fc;
+}
+
+.doc-markdown code {
+    font-family: "JetBrains Mono", Consolas, monospace;
+    background: #eef2f6;
+    border: 1px solid #d9e1eb;
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
+}
+
+.doc-markdown pre {
+    background: #0d1a1f;
+    color: #d8f5df;
+    border-radius: 8px;
+    padding: 10px;
+    overflow: auto;
+}
+
+.doc-markdown pre code {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    padding: 0;
+}
+
+.doc-markdown a {
+    color: #1f5ea8;
+    text-decoration: none;
+}
+
+.doc-markdown a:hover {
+    text-decoration: underline;
+}
+
 .folder-current-row {
     display: grid;
     grid-template-columns: minmax(220px, 1fr) auto;
@@ -1938,4 +2110,41 @@ body[data-theme="dark"] .folder-select-all {
     background: #1f2933;
     border-color: #334355;
     color: #e8edf3;
+}
+
+body[data-theme="dark"] .doc-dialog__card {
+    background: #1b232c;
+    color: #e8edf3;
+    border-color: #334355;
+}
+
+body[data-theme="dark"] .doc-dialog__meta {
+    color: #aebdd0;
+}
+
+body[data-theme="dark"] .doc-markdown {
+    background: #202a34;
+    border-color: #3a4a5e;
+    color: #e8edf3;
+}
+
+body[data-theme="dark"] .doc-markdown h1,
+body[data-theme="dark"] .doc-markdown h2 {
+    border-bottom-color: #435469;
+}
+
+body[data-theme="dark"] .doc-markdown blockquote {
+    border-left-color: #4d6480;
+    color: #c5d2e1;
+    background: #263340;
+}
+
+body[data-theme="dark"] .doc-markdown code {
+    background: #2c3b49;
+    border-color: #415468;
+    color: #f4d7a1;
+}
+
+body[data-theme="dark"] .doc-markdown a {
+    color: #8fc2ff;
 }

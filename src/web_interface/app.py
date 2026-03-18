@@ -700,6 +700,49 @@ def _save_state_payload(values: Dict[str, Any], ui_state: Dict[str, Any]) -> Non
     STATE_FILE_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
+def _resolve_doc_path(doc_name: str) -> Path:
+    normalized = str(doc_name or "").strip().lower()
+    allowed = {
+        "readme": "README.md",
+        "changelog": "CHANGELOG.md",
+        "roadmap": "ROADMAP.md",
+        "config": "Config.ini",
+        "help": "help/help.md",
+    }
+    filename = allowed.get(normalized)
+    if not filename:
+        raise HTTPException(status_code=400, detail="Unsupported document. Use 'readme', 'changelog', 'roadmap', 'config' or 'help'.")
+
+    candidates = [
+        Path("/app") / filename,
+        PROJECT_ROOT / filename,
+    ]
+    for candidate in candidates:
+        try:
+            if candidate.exists() and candidate.is_file():
+                return candidate
+        except Exception:
+            continue
+    raise HTTPException(status_code=404, detail=f"Document not found: {filename}")
+
+
+def _resolve_help_doc_path(doc_file: str) -> Path:
+    requested = str(doc_file or "").strip().replace("\\", "/")
+    if not requested.lower().endswith(".md"):
+        raise HTTPException(status_code=400, detail="Only markdown files are allowed.")
+
+    target = (PROJECT_ROOT / "help" / requested).resolve()
+    help_root = (PROJECT_ROOT / "help").resolve()
+    try:
+        target.relative_to(help_root)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid help document path.")
+
+    if not target.exists() or not target.is_file():
+        raise HTTPException(status_code=404, detail=f"Help document not found: {requested}")
+    return target
+
+
 @app.on_event("startup")
 def _startup() -> None:
     global PARSER_SCHEMA
@@ -716,6 +759,45 @@ def home(request: Request) -> HTMLResponse:
             "tool_version": TOOL_VERSION,
             "tool_date": TOOL_DATE,
             "takeout_special_folders": list(TAKEOUT_SPECIAL_FOLDER_NAMES),
+        },
+    )
+
+
+@app.get("/docs/view/{doc_name}", response_class=HTMLResponse)
+def docs_view(request: Request, doc_name: str) -> HTMLResponse:
+    normalized = str(doc_name or "").strip().lower()
+    if normalized not in {"readme", "changelog", "roadmap", "config", "help"}:
+        raise HTTPException(status_code=404, detail="Document not found")
+    pretty_title = "README.md"
+    if normalized == "changelog":
+        pretty_title = "CHANGELOG.md"
+    elif normalized == "roadmap":
+        pretty_title = "ROADMAP.md"
+    elif normalized == "config":
+        pretty_title = "Config.ini"
+    elif normalized == "help":
+        pretty_title = "HELP.md"
+    return templates.TemplateResponse(
+        "doc_view.html",
+        {
+            "request": request,
+            "doc_name": pretty_title,
+            "doc_api_url": f"/api/docs/{normalized}",
+            "tool_name": TOOL_NAME,
+        },
+    )
+
+
+@app.get("/docs/view/help/{doc_file:path}", response_class=HTMLResponse)
+def docs_view_help_file(request: Request, doc_file: str) -> HTMLResponse:
+    path = _resolve_help_doc_path(doc_file)
+    return templates.TemplateResponse(
+        "doc_view.html",
+        {
+            "request": request,
+            "doc_name": path.name,
+            "doc_api_url": f"/api/docs/help/{doc_file}",
+            "tool_name": TOOL_NAME,
         },
     )
 
@@ -747,6 +829,48 @@ def save_config(payload: ConfigUpdateRequest) -> Dict[str, Any]:
     CONFIG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
     CONFIG_FILE_PATH.write_text(payload.content or "", encoding="utf-8")
     return {"saved": True, "path": str(CONFIG_FILE_PATH)}
+
+
+@app.get("/api/docs/{doc_name}")
+def get_markdown_doc(doc_name: str) -> Dict[str, Any]:
+    path = _resolve_doc_path(doc_name)
+    content = path.read_text(encoding="utf-8", errors="replace")
+    return {
+        "name": doc_name,
+        "path": str(path),
+        "content": content,
+    }
+
+
+@app.get("/api/docs/help/{doc_file:path}")
+def get_help_markdown_doc(doc_file: str) -> Dict[str, Any]:
+    path = _resolve_help_doc_path(doc_file)
+    content = path.read_text(encoding="utf-8", errors="replace")
+    return {
+        "name": path.name,
+        "path": str(path),
+        "content": content,
+    }
+
+
+@app.get("/api/docs/help-index")
+def get_help_docs_index() -> Dict[str, Any]:
+    help_root = (PROJECT_ROOT / "help").resolve()
+    docs: List[Dict[str, str]] = []
+    if help_root.exists() and help_root.is_dir():
+        for file_path in sorted(help_root.rglob("*.md"), key=lambda p: str(p).lower()):
+            try:
+                rel = file_path.resolve().relative_to(help_root).as_posix()
+            except Exception:
+                continue
+            docs.append(
+                {
+                    "name": file_path.name,
+                    "relative_path": rel,
+                    "url": f"/docs/view/help/{rel}",
+                }
+            )
+    return {"root": str(help_root), "documents": docs}
 
 
 @app.get("/api/fs/list")

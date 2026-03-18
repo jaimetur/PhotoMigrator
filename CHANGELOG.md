@@ -1,6 +1,6 @@
 # 🗓️ CHANGELOG
-[Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for the following releases
-[Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) for the past releases+
+[Planned Roadmap](/ROADMAP.md) for the following releases
+[Changelog](/CHANGELOG.md) for the past releases
 
 ---
 
@@ -37,6 +37,7 @@
   - Other bug fixing.
 
 #### 📚 Documentation: 
+  - Included Documentation links on Web interface.
   - Updated documentation with all changes.
 
 ---
@@ -843,7 +844,7 @@
   - Documentation is now included as part of the distribution packages.
 
 #### 🖥️ Live Dashboard Preview:
-    ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+    ![Live Dashboard](/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ---
 

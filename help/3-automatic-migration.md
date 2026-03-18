@@ -70,11 +70,11 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
 
 ## ⚙️ Config.ini
 You can see how to configure the Config.ini file in this help section:
-[Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) 
+[Configuration File](/help/0-configuration-file.md) 
 
 
 ## Live Dashboard Preview:
-![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg)
+![Live Dashboard](/assets/screenshots/live_dashboard.jpg)
 
 
 ## **Examples of use:**
@@ -141,7 +141,13 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 ---
 
-## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
+## ⚙️ Config.ini
+You can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-configuration-file.md) 
+
+---
+
+## 🏠 [Back to Main Page](/README.md)
 
     
 ---
