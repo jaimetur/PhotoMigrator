@@ -22,7 +22,8 @@
   - Allow page reload while task is running.
   
 #### 🐛 Bug fixes:
-  - Fixed exiftool not embebed on docker-dev version.
+  - Fixed Exiftool command line overflowing max length (#1052).
+  - Fixed Exiftool not embebed on docker-dev version.
   - Other bug fixing.
 
 #### 📚 Documentation: 
