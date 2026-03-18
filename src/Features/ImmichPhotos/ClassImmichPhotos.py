@@ -1276,11 +1276,21 @@ class ClassImmichPhotos:
         photo_ext = os.path.splitext(photo_file_path)[1].lower()
         if photo_ext not in ['.heic', '.heif', '.jpg', '.jpeg']:
             return None
-        photo_stem = os.path.splitext(photo_file_path)[0]
+        folder = os.path.dirname(photo_file_path) or "."
+        photo_base = os.path.splitext(os.path.basename(photo_file_path))[0]
+        try:
+            entries = os.listdir(folder)
+        except Exception:
+            return None
+
+        lower_to_real = {name.lower(): name for name in entries}
         for video_ext in (self.ALLOWED_IMMICH_VIDEO_EXTENSIONS or []):
-            candidate = f"{photo_stem}{video_ext.lower()}"
-            if os.path.isfile(candidate):
-                return candidate
+            expected_name_lower = f"{photo_base}{video_ext}".lower()
+            real_name = lower_to_real.get(expected_name_lower)
+            if real_name:
+                candidate = os.path.join(folder, real_name)
+                if os.path.isfile(candidate):
+                    return candidate
         return None
 
     def _link_live_photo_assets(self, photo_asset_id, video_asset_id, log_level=None):

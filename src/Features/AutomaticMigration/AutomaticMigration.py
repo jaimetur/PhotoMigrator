@@ -433,6 +433,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
         return found
 
+    def path_key(path):
+        """
+        OS-agnostic normalized key for case-insensitive path comparisons.
+        """
+        return os.path.normpath(path).replace("\\", "/").lower()
+
     def find_immich_live_video_companion(photo_file_path, pulled_file_paths):
         """
         Finds the companion video path for a given photo path within pulled files when target is Immich.
@@ -443,9 +449,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         if photo_ext not in ['.heic', '.heif', '.jpg', '.jpeg']:
             return None
         photo_stem = os.path.splitext(photo_file_path)[0]
-        candidate_paths = {os.path.normcase(os.path.normpath(p)): p for p in pulled_file_paths}
+        candidate_paths = {path_key(p): p for p in pulled_file_paths}
         for video_ext in (getattr(target_client, "ALLOWED_IMMICH_VIDEO_EXTENSIONS", []) or []):
-            candidate_norm = os.path.normcase(os.path.normpath(f"{photo_stem}{video_ext.lower()}"))
+            candidate_norm = path_key(f"{photo_stem}{video_ext.lower()}")
             if candidate_norm in candidate_paths:
                 return candidate_paths[candidate_norm]
         return None
@@ -787,7 +793,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                             immich_live_companion = find_immich_live_video_companion(local_file_path, pulled_file_paths)
                             for idx, pulled_file_path in enumerate(pulled_file_paths):
-                                if immich_live_companion and os.path.normcase(os.path.normpath(pulled_file_path)) == os.path.normcase(os.path.normpath(immich_live_companion)):
+                                if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
                                     continue
                                 normalized_asset_type = infer_asset_type_from_path(pulled_file_path, asset_type)
                                 count_push_stats = (idx == 0)
@@ -807,7 +813,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     'album_name': album_name,
                                     'count_push_stats': count_push_stats,
                                 }
-                                if immich_live_companion and os.path.normcase(os.path.normpath(pulled_file_path)) == os.path.normcase(os.path.normpath(local_file_path)):
+                                if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                     asset_dict['live_photo_video_path'] = immich_live_companion
                                 # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                                 unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
@@ -908,7 +914,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         immich_live_companion = find_immich_live_video_companion(local_file_path, pulled_file_paths)
                         for idx, pulled_file_path in enumerate(pulled_file_paths):
-                            if immich_live_companion and os.path.normcase(os.path.normpath(pulled_file_path)) == os.path.normcase(os.path.normpath(immich_live_companion)):
+                            if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
                                 continue
                             normalized_asset_type = infer_asset_type_from_path(pulled_file_path, asset_type)
                             count_push_stats = (idx == 0)
@@ -929,7 +935,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 'album_name': None,
                                 'count_push_stats': count_push_stats,
                             }
-                            if immich_live_companion and os.path.normcase(os.path.normpath(pulled_file_path)) == os.path.normcase(os.path.normpath(local_file_path)):
+                            if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                 asset_dict['live_photo_video_path'] = immich_live_companion
                             unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                             if not unique:
