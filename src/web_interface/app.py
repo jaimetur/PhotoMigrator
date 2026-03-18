@@ -174,9 +174,10 @@ class FolderDeleteRequest(BaseModel):
 
 
 class JobData:
-    def __init__(self, command: List[str], process: subprocess.Popen[str]) -> None:
+    def __init__(self, command: List[str], process: subprocess.Popen[str], tab: str | None = None) -> None:
         self.command = command
         self.command_string = subprocess.list2cmdline(command)
+        self.tab = str(tab or "").strip() or None
         self.process = process
         self.stop_requested = False
         self.awaiting_confirmation = False
@@ -864,7 +865,7 @@ def run_cli(payload: RunRequest) -> Dict[str, Any]:
     )
 
     with JOBS_LOCK:
-        JOBS[job_id] = JobData(command=command, process=process)
+        JOBS[job_id] = JobData(command=command, process=process, tab=payload.tab)
 
     thread = threading.Thread(target=_run_job, args=(job_id, process), daemon=True)
     thread.start()
@@ -888,6 +889,7 @@ def get_job(job_id: str) -> Dict[str, Any]:
         can_stop = bool(job.status in {"running", "stopping"} and job.process is not None)
         return {
             "job_id": job_id,
+            "tab": job.tab,
             "status": job.status,
             "return_code": job.return_code,
             "started_at": job.started_at,
@@ -897,6 +899,26 @@ def get_job(job_id: str) -> Dict[str, Any]:
             "can_stop": can_stop,
             "awaiting_confirmation": bool(can_send_input and job.awaiting_confirmation),
             "output": output,
+        }
+
+
+@app.get("/api/jobs/_active")
+def get_active_job() -> Dict[str, Any]:
+    with JOBS_LOCK:
+        active_jobs = [
+            (job_id, job)
+            for job_id, job in JOBS.items()
+            if job.status in {"running", "stopping"}
+        ]
+        if not active_jobs:
+            return {"job_id": None}
+        job_id, job = max(active_jobs, key=lambda item: item[1].started_at or "")
+        return {
+            "job_id": job_id,
+            "tab": job.tab,
+            "status": job.status,
+            "started_at": job.started_at,
+            "command": job.command_string,
         }
 
 

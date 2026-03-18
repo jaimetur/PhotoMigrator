@@ -16,8 +16,14 @@
   - New docker-compose.yml and .env file to easily configure and deploy the tool with docker compose.
     
 #### 🚀 Enhancements:
+  - Web Live Dashboard on Automatic Migration feature.
+  - Adjusted Goggle Photos Panel layout.
+  - Enhancements in Execution Log windows to parse progress bar properly.
+  - Allow page reload while task is running.
   
 #### 🐛 Bug fixes:
+  - Fixed exiftool not embebed on docker-dev version.
+  - Other bug fixing.
 
 #### 📚 Documentation: 
   - Updated documentation with all changes.

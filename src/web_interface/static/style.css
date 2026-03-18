@@ -95,7 +95,7 @@ body {
 }
 
 .page {
-    width: min(98vw, 1760px);
+    width: min(99vw, 1860px);
     margin: 0 auto;
     padding: 24px;
     display: grid;
@@ -668,6 +668,11 @@ body[data-theme="ocean"] .desc-card {
     border-color: #c5d8f0;
 }
 
+body[data-theme="ocean"] .panel {
+    background: linear-gradient(145deg, #f4f8ff, #eef5ff 52%, #f8fbff);
+    border-color: #c9d9ef;
+}
+
 body[data-theme="sunset"] .desc-card {
     background: linear-gradient(145deg, #fff1e8, #fde9df 52%, #fff5ee);
     border-color: #e7c5b8;
@@ -739,6 +744,61 @@ body[data-theme="dark"] .theme-card__name {
     font-size: 1rem;
 }
 
+/* Desktop layout for Google Photos subcards:
+   left column: takeout + structure + runtime
+   right column: processing flags */
+.module-grid.google-layout .google-subpanel--takeout {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.module-grid.google-layout .google-subpanel--flags {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+}
+
+.module-grid.google-layout .google-subpanel--structure {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.module-grid.google-layout .google-subpanel--runtime {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+/* Google Photos subcards: wider argument name, narrower control column. */
+.module-grid.google-layout .arg-row {
+    grid-template-columns: minmax(270px, 360px) minmax(0, 1fr);
+    align-items: center;
+}
+
+.module-grid.google-layout .arg-label {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 0;
+    padding-top: 0;
+    width: 100%;
+    align-self: center;
+}
+
+.module-grid.google-layout .arg-label__text {
+    min-width: 0;
+}
+
+.module-grid.google-layout .arg-label .arg-badge {
+    justify-self: end;
+    white-space: nowrap;
+}
+
+.module-grid.google-layout .field__input {
+    width: 100%;
+    max-width: none;
+}
+
+
 .arg-block {
     border: 1px dashed #d6ded9;
     border-radius: 10px;
@@ -756,6 +816,12 @@ body[data-theme="dark"] .theme-card__name {
     color: #51626a;
     font-size: 0.86rem;
     line-height: 1.35;
+}
+
+.module-grid.google-layout .arg-block__help {
+    margin: 4px 0 0 0;
+    font-size: 0.82rem;
+    line-height: 1.2;
 }
 
 .migration-layout {
@@ -1512,6 +1578,22 @@ body[data-theme="sunset"] .folder-item--select {
 
     .module-grid.google-layout {
         grid-template-columns: 1fr;
+    }
+
+    .module-grid.google-layout .google-subpanel--takeout,
+    .module-grid.google-layout .google-subpanel--flags,
+    .module-grid.google-layout .google-subpanel--structure,
+    .module-grid.google-layout .google-subpanel--runtime {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .module-grid.google-layout .arg-row {
+        grid-template-columns: 1fr;
+    }
+
+    .module-grid.google-layout .field__input {
+        max-width: none;
     }
 
     .arg-block__help {
