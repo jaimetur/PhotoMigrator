@@ -461,6 +461,26 @@ textarea.field__input {
     flex-wrap: wrap;
 }
 
+.command-preview-panel {
+    margin-top: 10px;
+}
+
+.command-preview-panel h3 {
+    margin: 0 0 6px;
+    font-size: 0.98rem;
+}
+
+#command-preview-inline {
+    border-radius: 10px;
+    background: #0d1a1f;
+    color: #d8f5df;
+    padding: 10px;
+    min-height: 3.2rem;
+    font-family: "JetBrains Mono", Consolas, monospace;
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;
+}
+
 .module-actions .run-btn {
     margin-top: 0;
 }
@@ -533,6 +553,56 @@ textarea.field__input {
     margin: 0;
     color: var(--text-muted);
     line-height: 1.4;
+    white-space: pre-line;
+}
+
+.desc-card p .desc-line {
+    display: block;
+}
+
+.desc-card p .desc-example {
+    display: block;
+    margin-top: 10px;
+    padding: 6px 8px;
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    opacity: 1;
+}
+
+.desc-card p .desc-important {
+    display: block;
+    margin-top: 10px;
+    padding: 6px 8px;
+    border-left: 3px solid #b54708;
+    border-radius: 6px;
+    background: #fff1db;
+    color: #7a2e0e;
+    font-weight: 700;
+}
+
+body[data-theme="dark"] .desc-card p .desc-important {
+    border-left-color: #f4a340;
+    background: #3a2a18;
+    color: #ffd8a3;
+}
+
+.desc-card p .desc-optional-title {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+.desc-card p .desc-optional-item {
+    display: block;
+    margin-top: 2px;
+}
+
+.desc-card p .desc-optional-name {
+    color: var(--accent);
+    font-weight: 700;
 }
 
 .desc-card--bottom {
@@ -831,6 +901,7 @@ body[data-theme="dark"] .theme-card__name {
     color: #51626a;
     font-size: 0.86rem;
     line-height: 1.35;
+    white-space: pre-line;
 }
 
 .module-grid.google-layout .arg-block__help {
@@ -845,7 +916,19 @@ body[data-theme="dark"] .theme-card__name {
     padding: 12px;
     background: #fff;
     display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
     gap: 10px;
+}
+
+.migration-main {
+    display: grid;
+    gap: 10px;
+}
+
+.migration-layout > .desc-card {
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .migration-endpoint {
@@ -1594,6 +1677,10 @@ body[data-theme="sunset"] .folder-item--select {
     }
 
     .migration-endpoint {
+        grid-template-columns: 1fr;
+    }
+
+    .migration-layout {
         grid-template-columns: 1fr;
     }
 

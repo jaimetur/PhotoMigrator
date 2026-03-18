@@ -62,6 +62,10 @@
             <div id="migration-panel" class="module-special hidden"></div>
 
             <form id="module-form" class="form-grid module-grid"></form>
+            <div class="command-preview-panel">
+                <h3>Command Preview</h3>
+                <div id="command-preview-inline" class="command"></div>
+            </div>
             <div class="module-actions">
                 <button id="run-btn" type="button" class="run-btn">Run module</button>
                 <button id="stop-btn" type="button" class="run-btn run-btn--danger" disabled>Stop module</button>
@@ -282,7 +286,8 @@
         "download-albums": "Albums Name(s)",
         "upload-all": "Input Folder",
         "download-all": "Output Folder",
-        "rename-albums": "Rename Pattern(s)",
+        "rename-albums": "Rename Pattern",
+        "replacement-pattern": "Replacement Pattern",
         "remove-albums": "Albums Name Pattern",
         "find-duplicates": "Find Duplicates Input",
         "process-duplicates": "Duplicates CSV",
@@ -346,18 +351,28 @@
         synology_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
             "upload-all": [{dest: "albums-folders", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         immich_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
             "upload-all": [{dest: "albums-folders", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         standalone_features: {},
         google_takeout: {}
     };
+    const MIGRATION_FILTER_DESTS = [
+        "filter-by-type",
+        "filter-from-date",
+        "filter-to-date",
+        "filter-by-country",
+        "filter-by-city",
+        "filter-by-person"
+    ];
 
     let stateValues = {};
     let uiState = {collapsed_panels: {}};
@@ -387,27 +402,104 @@
             .join(" ");
     }
 
-    function uiHelpText(field) {
+    function uiHelpText(field, options = {}) {
+        const forOptional = Boolean(options?.forOptional);
+        const clientName = String(options?.clientName || "").trim();
         if (field?.dest === "no-request-user-confirmation") {
             return "Request user confirmation before executing any feature.";
         }
-        const raw = (field?.help || "");
-        return raw.replaceAll("--no-request-user-confirmation", "--request-user-confirmation");
+        const raw = (field?.help || "").replaceAll("--no-request-user-confirmation", "--request-user-confirmation");
+        const lines = String(raw).replace(/\r\n/g, "\n").split("\n");
+        const cleaned = [];
+
+        lines.forEach((line) => {
+            let text = String(line || "").trim();
+            if (!text) {
+                cleaned.push("");
+                return;
+            }
+
+            text = text
+                .replace(/^CAUTION!!!\s*/i, "")
+                .replace(/^ATTENTION!!!:?\s*/i, "");
+
+            text = text.replace(/Requires\s+'--client'\.?\s*/gi, "").trim();
+            text = text.replace(/You must provide the photo client using '--client'\.?\s*/gi, "").trim();
+            if (clientName) {
+                text = text.replace(/Synology Photos/gi, `${clientName} Photos`);
+            }
+            if (forOptional && /^Example:/i.test(text)) return;
+            if (/^Example:/i.test(text)) {
+                text = text
+                    .replace(/--client\s*=\s*(?:synology|immich|google-takeout)\s*/gi, "")
+                    .replace(/\s{2,}/g, " ")
+                    .trim();
+            }
+            if (!text) return;
+            cleaned.push(text);
+        });
+
+        const compact = [];
+        let prevBlank = false;
+        cleaned.forEach((line) => {
+            const isBlank = !line || !line.trim();
+            if (isBlank && prevBlank) return;
+            compact.push(line);
+            prevBlank = isBlank;
+        });
+
+        return compact.join("\n").trim();
     }
 
-    function optionalArgsDescription(optionalFields) {
+    function optionalArgsItems(optionalFields, options = {}) {
         const dedup = new Map();
         (optionalFields || []).forEach((field) => {
             if (field?.dest && !dedup.has(field.dest)) dedup.set(field.dest, field);
         });
-        const parts = [];
+        const items = [];
         dedup.forEach((field) => {
             const label = ARG_LABELS[field.dest] || uiOptionName(field);
-            const help = uiHelpText(field).replace(/\s+/g, " ").trim();
-            if (help) parts.push(`${label}: ${help}`);
+            const help = uiHelpText(field, {forOptional: true, clientName: options.clientName}).replace(/\s+/g, " ").trim();
+            if (help) items.push({label, help});
         });
-        if (!parts.length) return "";
-        return ` Optional arguments: ${parts.join(" | ")}`;
+        return items;
+    }
+
+    function formatDescriptionHtml(mainField, optionalFields = [], options = {}) {
+        const mainHelp = uiHelpText(mainField, {clientName: options.clientName});
+        const mainLines = String(mainHelp || "").replace(/\r\n/g, "\n").split("\n");
+        const mainHtml = [];
+        let hasPreviousContent = false;
+
+        mainLines.forEach((line) => {
+            const text = String(line || "").trim();
+            if (!text) {
+                if (hasPreviousContent) mainHtml.push("<br>");
+                return;
+            }
+            const escaped = escapeHtml(text);
+            if (/^Example:/i.test(text)) {
+                mainHtml.push(`<span class="desc-example"><em>${escaped}</em></span>`);
+            } else if (/^IMPORTANT(?:!+)?\s*:?/i.test(text)) {
+                mainHtml.push(`<span class="desc-important">${escaped}</span>`);
+            } else {
+                mainHtml.push(`<span class="desc-line">${escaped}</span>`);
+            }
+            hasPreviousContent = true;
+        });
+
+        const optionalItems = optionalArgsItems(optionalFields, {clientName: options.clientName});
+        if (!optionalItems.length) return mainHtml.join("");
+
+        const optionalHtml = [
+            '<span class="desc-optional-title">Optional arguments:</span>',
+            ...optionalItems.map((item) =>
+                `<span class="desc-optional-item">· <span class="desc-optional-name">${escapeHtml(item.label)}</span>: ${escapeHtml(item.help)}</span>`
+            )
+        ];
+
+        if (mainHtml.length) mainHtml.push("<br>");
+        return `${mainHtml.join("")}${optionalHtml.join("")}`;
     }
 
     function parseFindDuplicatesValue(rawValue) {
@@ -430,6 +522,33 @@
         if (!normalizedFolders.length) return "";
         const actionCli = String(actionUi || "list").toLowerCase() === "delete" ? "remove" : String(actionUi || "list").toLowerCase();
         return [actionCli, ...normalizedFolders].join(", ");
+    }
+
+    function parseRenameAlbumsValue(rawValue) {
+        const text = String(rawValue || "").replace(/\r\n/g, "\n").trim();
+        if (!text) return {pattern: "", replacement: ""};
+
+        const commaIndex = text.indexOf(",");
+        if (commaIndex >= 0) {
+            return {
+                pattern: text.slice(0, commaIndex).trim(),
+                replacement: text.slice(commaIndex + 1).trim()
+            };
+        }
+
+        const lines = text.split("\n").map((item) => item.trim()).filter(Boolean);
+        return {
+            pattern: lines[0] || "",
+            replacement: lines[1] || ""
+        };
+    }
+
+    function composeRenameAlbumsValue(pattern, replacement) {
+        const patternText = String(pattern || "").trim();
+        const replacementText = String(replacement || "").trim();
+        if (!patternText && !replacementText) return "";
+        if (!replacementText) return patternText;
+        return `${patternText}, ${replacementText}`;
     }
 
     function applyTheme(themeKey, persist = true) {
@@ -1009,8 +1128,29 @@
         wrapper.className = "input-row";
         let input;
         const persisted = stateValues[field.dest];
+        const effectiveDest = field.dest.startsWith("am-") ? field.dest.slice(3) : field.dest;
+        const isMigrationOverride = field.dest.startsWith("am-");
+        const filterPlaceholderByDest = {
+            "filter-from-date": "Example: 2024-01-31, 31/01/2024, 2024",
+            "filter-to-date": "Example: 2025-12-31, 31/12/2025, 2025",
+            "filter-by-country": "Example: Spain",
+            "filter-by-city": "Example: Madrid",
+            "filter-by-person": "Example: Peter"
+        };
 
-        if (field.kind === "flag") {
+        if (effectiveDest === "filter-by-type") {
+            input = document.createElement("select");
+            input.className = "field__input";
+            if (isMigrationOverride) {
+                input.add(new Option("(Use General Arguments value)", ""));
+            } else {
+                input.add(new Option("(default: all)", ""));
+            }
+            input.add(new Option("all", "all"));
+            input.add(new Option("image", "image"));
+            input.add(new Option("video", "video"));
+            input.value = persisted === undefined || persisted === null ? "" : String(persisted).toLowerCase();
+        } else if (field.kind === "flag") {
             input = document.createElement("input");
             input.type = "checkbox";
             input.className = "field__check";
@@ -1051,6 +1191,9 @@
             input.className = "field__input";
             if (persisted !== undefined) input.value = String(persisted);
             else input.value = field.default === null ? "" : (typeof field.default === "string" ? field.default : "");
+            if (filterPlaceholderByDest[effectiveDest]) {
+                input.placeholder = filterPlaceholderByDest[effectiveDest];
+            }
         }
 
         input.dataset.dest = field.dest;
@@ -1494,7 +1637,72 @@
         }
         const otpIndex = argSpecs.findIndex((s) => s.field.dest === "one-time-password");
         if (otpIndex >= 0) argSpecs.splice(otpIndex, 1);
-        if (!argSpecs.length) {
+        const isRenameAlbumsSelected = selected && selected.dest === "rename-albums";
+        const renderArgSpecs = isRenameAlbumsSelected
+            ? argSpecs.filter((spec) => spec.field.dest !== "rename-albums" && spec.field.dest !== "replacement-pattern")
+            : argSpecs;
+
+        if (isRenameAlbumsSelected) {
+            const parsedRename = parseRenameAlbumsValue(stateValues["rename-albums"]);
+
+            const hiddenRename = document.createElement("input");
+            hiddenRename.type = "hidden";
+            hiddenRename.dataset.dest = "rename-albums";
+            left.appendChild(hiddenRename);
+
+            const patternRow = document.createElement("div");
+            patternRow.className = "arg-row";
+            const patternLabel = document.createElement("label");
+            patternLabel.className = "arg-label";
+            patternLabel.textContent = "Rename Pattern";
+            const patternBadge = document.createElement("span");
+            patternBadge.className = "arg-badge arg-badge--required";
+            patternBadge.textContent = "Required";
+            patternLabel.appendChild(patternBadge);
+            patternRow.appendChild(patternLabel);
+            const patternInput = document.createElement("input");
+            patternInput.type = "text";
+            patternInput.className = "field__input";
+            patternInput.placeholder = "Album name pattern (text or regex)";
+            patternInput.value = parsedRename.pattern || "";
+            patternRow.appendChild(patternInput);
+            left.appendChild(patternRow);
+
+            const replacementRow = document.createElement("div");
+            replacementRow.className = "arg-row";
+            const replacementLabel = document.createElement("label");
+            replacementLabel.className = "arg-label";
+            replacementLabel.textContent = "Replacement Pattern";
+            const replacementBadge = document.createElement("span");
+            replacementBadge.className = "arg-badge arg-badge--required";
+            replacementBadge.textContent = "Required";
+            replacementLabel.appendChild(replacementBadge);
+            replacementRow.appendChild(replacementLabel);
+            const replacementInput = document.createElement("input");
+            replacementInput.type = "text";
+            replacementInput.className = "field__input";
+            replacementInput.placeholder = "Replacement pattern (text or regex)";
+            replacementInput.dataset.dest = "replacement-pattern";
+            replacementInput.value = String(stateValues["replacement-pattern"] || parsedRename.replacement || "");
+            replacementRow.appendChild(replacementInput);
+            left.appendChild(replacementRow);
+
+            const syncRenameAlbumsValue = () => {
+                hiddenRename.value = composeRenameAlbumsValue(patternInput.value, replacementInput.value);
+                stateValues["rename-albums"] = hiddenRename.value;
+                stateValues["replacement-pattern"] = replacementInput.value;
+                queueSaveState();
+                queueCommandPreview();
+            };
+
+            patternInput.addEventListener("input", syncRenameAlbumsValue);
+            patternInput.addEventListener("change", syncRenameAlbumsValue);
+            replacementInput.addEventListener("input", syncRenameAlbumsValue);
+            replacementInput.addEventListener("change", syncRenameAlbumsValue);
+            syncRenameAlbumsValue();
+        }
+
+        if (!renderArgSpecs.length && !isRenameAlbumsSelected) {
             const noArgs = document.createElement("div");
             noArgs.className = "arg-row";
             const lbl = document.createElement("label");
@@ -1507,7 +1715,7 @@
             noArgs.appendChild(tag);
             left.appendChild(noArgs);
         } else {
-            argSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
+            renderArgSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
         }
         if (otpField && (tabKey === "synology_photos" || tabKey === "immich_photos")) {
             left.appendChild(createArgumentRow(normalizeFieldForContext(otpField, tabKey)));
@@ -1521,13 +1729,15 @@
         rightName.className = "desc-card__name";
         rightName.textContent = selected ? uiFeatureName(selected) : "-";
         const rightHelp = document.createElement("p");
-        const optionalFieldsForDescription = argSpecs
+        const optionalFieldsForDescription = renderArgSpecs
             .filter((spec) => !spec.required)
             .map((spec) => spec.field);
         if (otpField && (tabKey === "synology_photos" || tabKey === "immich_photos")) {
             optionalFieldsForDescription.push(normalizeFieldForContext(otpField, tabKey));
         }
-        rightHelp.textContent = `${uiHelpText(selected)}${optionalArgsDescription(optionalFieldsForDescription)}`;
+        rightHelp.innerHTML = formatDescriptionHtml(selected, optionalFieldsForDescription, {
+            clientName: tabKey === "synology_photos" ? "Synology" : (tabKey === "immich_photos" ? "Immich" : "")
+        });
         right.appendChild(rightTitle);
         right.appendChild(rightName);
         right.appendChild(rightHelp);
@@ -1682,7 +1892,7 @@
         const optionalFieldsForDescription = argSpecs
             .filter((spec) => !spec.required)
             .map((spec) => spec.field);
-        help.textContent = `${uiHelpText(selected)}${optionalArgsDescription(optionalFieldsForDescription)}`;
+        help.innerHTML = formatDescriptionHtml(selected, optionalFieldsForDescription);
         right.appendChild(title);
         right.appendChild(name);
         right.appendChild(help);
@@ -1704,6 +1914,8 @@
 
         const wrap = document.createElement("div");
         wrap.className = "migration-layout";
+        const left = document.createElement("div");
+        left.className = "migration-main";
 
         const parseMigrationEndpoint = (rawValue, fallbackKind) => {
             const text = String(rawValue || "").trim();
@@ -1833,8 +2045,8 @@
             return row;
         };
 
-        wrap.appendChild(createMigrationEndpointRow("source", true));
-        wrap.appendChild(createMigrationEndpointRow("target", true));
+        left.appendChild(createMigrationEndpointRow("source", true));
+        left.appendChild(createMigrationEndpointRow("target", true));
 
         const flagsCard = document.createElement("div");
         flagsCard.className = "flags-card";
@@ -1847,7 +2059,72 @@
             flagsCard.appendChild(createArgumentRow(byDest[dest]));
         });
 
-        wrap.appendChild(flagsCard);
+        left.appendChild(flagsCard);
+
+        const filtersCard = document.createElement("div");
+        filtersCard.className = "flags-card";
+        const filtersTitle = document.createElement("h3");
+        filtersTitle.textContent = "Migration Filters";
+        filtersCard.appendChild(filtersTitle);
+        const filtersHint = document.createElement("div");
+        filtersHint.className = "arg-inline-help";
+        filtersHint.textContent = "If empty, value from General Arguments will be used.";
+        filtersCard.appendChild(filtersHint);
+
+        MIGRATION_FILTER_DESTS.forEach((dest) => {
+            const baseField = getFieldByDest(dest);
+            if (!baseField) return;
+            const overrideDest = `am-${dest}`;
+            const overrideValue = stateValues[overrideDest];
+            const inheritedValue = stateValues[dest];
+            const overrideField = {
+                ...baseField,
+                dest: overrideDest,
+                default: overrideValue === undefined ? (inheritedValue ?? "") : overrideValue
+            };
+            filtersCard.appendChild(createArgumentRow(overrideField, false));
+        });
+
+        left.appendChild(filtersCard);
+
+        const right = document.createElement("div");
+        right.className = "desc-card";
+        const title = document.createElement("h3");
+        title.textContent = "Selected feature";
+        const name = document.createElement("div");
+        name.className = "desc-card__name";
+        name.textContent = "Automatic Migration";
+
+        const migrationDescriptionField = {
+            dest: "automatic-migration",
+            help: "Run an end-to-end migration from <SOURCE> to <TARGET> including albums and non-album assets.\n"
+                + "SOURCE and TARGET can be cloud endpoints (synology/immich with account) or local folders.\n"
+                + "By default migration runs in parallel with live dashboard enabled.\n"
+                + "IMPORTANT: Configure Config.ini credentials/API keys before running cloud migrations.\n"
+                + "\n"
+                + "Example: --source=synology-2 --target=immich-1\n"
+                + "Example: --source=/homes/MyTakeout --target=synology-1"
+        };
+        const optionalFieldsForDescription = [
+            byDest["move-assets"],
+            byDest["dashboard"],
+            byDest["parallel-migration"],
+            getFieldByDest("filter-by-type"),
+            getFieldByDest("filter-from-date"),
+            getFieldByDest("filter-to-date"),
+            getFieldByDest("filter-by-country"),
+            getFieldByDest("filter-by-city"),
+            getFieldByDest("filter-by-person")
+        ].filter(Boolean);
+
+        const help = document.createElement("p");
+        help.innerHTML = formatDescriptionHtml(migrationDescriptionField, optionalFieldsForDescription);
+        right.appendChild(title);
+        right.appendChild(name);
+        right.appendChild(help);
+
+        wrap.appendChild(left);
+        wrap.appendChild(right);
         panel.appendChild(wrap);
         panel.classList.remove("hidden");
         bindStateForInputs();
@@ -1940,6 +2217,15 @@
             const selected = (schema.tabs.standalone_features || []).find((f) => f.dest === standaloneActionDest);
             if (selected && selected.kind === "flag") values[selected.dest] = true;
             selectedActionDest = standaloneActionDest || null;
+        } else if (activeModuleTab === "automatic_migration") {
+            MIGRATION_FILTER_DESTS.forEach((dest) => {
+                const overrideDest = `am-${dest}`;
+                const overrideRaw = values[overrideDest];
+                if (overrideRaw === undefined || overrideRaw === null) return;
+                if (String(overrideRaw).trim() !== "") {
+                    values[dest] = overrideRaw;
+                }
+            });
         }
         return { tab: activeModuleTab, values, selected_action_dest: selectedActionDest };
     }
@@ -2041,6 +2327,14 @@
         }, 140);
     }
 
+    function setCommandPreviewText(text) {
+        const value = String(text || "");
+        const outputPreview = document.getElementById("command-preview");
+        const inlinePreview = document.getElementById("command-preview-inline");
+        if (outputPreview) outputPreview.textContent = value;
+        if (inlinePreview) inlinePreview.textContent = value;
+    }
+
     async function refreshCommandPreview() {
         if (!schema) return;
         const reqId = ++commandPreviewSeq;
@@ -2055,14 +2349,14 @@
             if (reqId !== commandPreviewSeq) return;
             if (!response.ok) {
                 const detail = data && data.detail ? String(data.detail) : "Preview unavailable";
-                document.getElementById("command-preview").textContent = `Preview unavailable: ${detail}`;
+                setCommandPreviewText(`Preview unavailable: ${detail}`);
                 return;
             }
-            document.getElementById("command-preview").textContent = data.command || "";
+            setCommandPreviewText(data.command || "");
         } catch (error) {
             if (reqId !== commandPreviewSeq) return;
             console.error(error);
-            document.getElementById("command-preview").textContent = "Preview unavailable";
+            setCommandPreviewText("Preview unavailable");
         }
     }
 
@@ -2249,7 +2543,7 @@
         currentJob = data.job_id;
         setActiveJobInUiState(currentJob, payload.tab);
         await saveStateNow();
-        document.getElementById("command-preview").textContent = data.command;
+        setCommandPreviewText(data.command);
         document.getElementById("output").textContent = "";
         if (currentJobIsAutomatic) {
             renderWebDashboard("", "running", {});

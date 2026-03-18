@@ -307,86 +307,113 @@ def parse_arguments():
     # -----------------------------------
     PARSER.add_argument("-uAlb", "--upload-albums", metavar="<ALBUMS_FOLDER>", default="",
                         help="Upload albums from <ALBUMS_FOLDER>. One album per subfolder.\n"
-                             "You must provide the photo client using '--client'.")
+                             "You must provide the photo client using '--client'.\n"
+                             "Example: --client=immich --upload-albums ./My_Albums_Folder")
 
     PARSER.add_argument("-dAlb", "--download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
                         help="Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder).\n"
                              "You must provide the photo client using '--client'.\n"
                              "- Use 'ALL' to download ALL albums.\n"
                              "- Use patterns: e.g. --download-albums 'dron*'\n"
-                             "- Multiple albums can be separated by comma or space and quoted.")
+                             "- Multiple albums can be separated by comma or space and quoted.\n"
+                             "Example: --client=synology --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary")
 
     PARSER.add_argument("-uAll", "--upload-all", metavar="<INPUT_FOLDER>", default="",
                         help="Upload all assets from <INPUT_FOLDER> to the selected client.\n"
                              "You must provide the photo client using '--client'.\n"
                              "- A new Album will be created per subfolder found in 'Albums' subfolder.\n"
-                             "- If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too.")
+                             "- If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those folders too.\n"
+                             "Example: --client=immich --upload-all ./MyLibrary")
 
     PARSER.add_argument("-dAll", "--download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="Download all albums and all non-album assets into <OUTPUT_FOLDER>.\n"
                              "You must provide the photo client using '--client'.\n"
                              "- Albums are downloaded under <OUTPUT_FOLDER>/Albums/<AlbumName> (flattened).\n"
-                             "- Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure.")
+                             "- Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure.\n"
+                             "Example: --client=synology --download-all ./MyLibrary")
 
     PARSER.add_argument("-renAlb", "--rename-albums",
                         metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>",
                         nargs="+", default="",
                         help="CAUTION!!! Rename albums matching a pattern using replacement pattern.\n"
-                             "Requires '--client'.")
+                             "Requires '--client'.\n"
+                             "Arguments must be passed as two values separated by comma.\n"
+                             "Example: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\"\n"
+                             "This converts dates from YYYY.MM.DD format to YYYY-MM-DD.")
 
     PARSER.add_argument("-rAlb", "--remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
                         help="CAUTION!!! Remove albums matching pattern.\n"
                              "Requires '--client'.\n"
-                             "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.")
+                             "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.\n"
+                             "Example: --client=synology --remove-albums \"^Temp\" --remove-albums-assets")
 
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! Remove ALL albums.\n"
                              "Requires '--client'.\n"
-                             "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.")
+                             "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.\n"
+                             "Example: --client=immich --remove-all-albums --remove-albums-assets")
 
     PARSER.add_argument("-rAll", "--remove-all-assets", action="store_true", default="",
                         help="CAUTION!!! Remove ALL assets (photos/videos) and ALL albums.\n"
-                             "Requires '--client'.")
+                             "Requires '--client'.\n"
+                             "Example: --client=synology --remove-all-assets")
 
     PARSER.add_argument("-rEmpAlb", "--remove-empty-albums", action="store_true", default="",
                         help="Remove empty albums.\n"
-                             "Requires '--client'.")
+                             "Requires '--client'.\n"
+                             "Example: --client=immich --remove-empty-albums")
 
     PARSER.add_argument("-rDupAlb", "--remove-duplicates-albums", action="store_true", default="",
                         help="Remove duplicated albums (same name and size).\n"
-                             "Requires '--client'.")
+                             "Requires '--client'.\n"
+                             "Example: --client=synology --remove-duplicates-albums")
 
     PARSER.add_argument("-mDupAlb", "--merge-duplicates-albums", action="store_true", default="",
                         help="Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.\n"
-                             "Requires '--client'.")
+                             "Requires '--client'.\n"
+                             "Example: --client=immich --merge-duplicates-albums")
 
     PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
                         help="Remove orphan assets.\n"
-                             "Requires '--client'. IMPORTANT: requires a valid ADMIN_API_KEY in Config.ini.")
+                             "Requires '--client'. IMPORTANT: requires a valid ADMIN_API_KEY in Config.ini.\n"
+                             "Example: --client=immich --remove-orphan-assets")
 
     PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="",
-                        help="Allow login into Synology Photos using 2FA with an OTP token.")
+                        help="Allow login into Synology Photos using 2FA with an OTP token.\n"
+                             "Example: --client=synology --download-all ./MyLibrary --one-time-password")
 
     # OTHERS STAND-ALONE FEATURES:
     # ---------------------------
     PARSER.add_argument("-fixSym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="",
-                        help="Try to fix broken symbolic links for albums in <FOLDER_TO_FIX>.\n"
-                             "Useful if you moved folders inside OUTPUT_TAKEOUT_FOLDER and some albums appear empty.")
+                        help="Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links.\n"
+                             "Useful after moving/renaming folders in OUTPUT_TAKEOUT_FOLDER when some albums appear empty.\n"
+                             "The tool searches for valid target files within the same folder tree and relinks when possible.\n"
+                             "IMPORTANT: Links are only fixed when a valid target can be inferred from current files.\n"
+                             "Example: --fix-symlinks-broken ./OUTPUT_FOLDER")
 
     PARSER.add_argument("-renFldcb", "--rename-folders-content-based", metavar="<ALBUMS_FOLDER>", default="",
-                        help="Rename and homogenize all album folders found in <ALBUMS_FOLDER> based on content dates.")
+                        help="Rename and homogenize album folder names in <ALBUMS_FOLDER> using content dates.\n"
+                             "Output format is: 'yyyy - Album Name' or 'yyyy--yyyy - Album Name' when a range is detected.\n"
+                             "Date and range separators can be customized with '--date-separator' and '--range-separator'.\n"
+                             "IMPORTANT: This modifies original folder names in place; create a backup if needed.\n"
+                             "Example: --rename-folders-content-based ./MyLocalPhotoLibrary")
 
     PARSER.add_argument("-findDup", "--find-duplicates",
                         metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]",
                         nargs="+", default=["list", ""],
-                        help="Find duplicates in specified folders.\n"
-                             "<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list'\n"
-                             "<DUPLICATES_FOLDER> are one or more folders where duplicates will be searched. "
-                             "The order matters: the first folder has higher priority as the 'principal' file.")
+                        help="Find duplicates in one or more folders using file size and content checks.\n"
+                             "<ACTION> can be 'list', 'move' or 'delete' (CLI internally uses 'remove'). Default: 'list'.\n"
+                             "When multiple folders are provided, order matters: files in the first folder have priority to be kept.\n"
+                             "Result is exported to a CSV to review duplicates and selected action per item.\n"
+                             "IMPORTANT: 'move' and 'delete' modify files; start with 'list' if you want to review first.\n"
+                             "Example: --find-duplicates move ./Albums ./ALL_PHOTOS")
 
     PARSER.add_argument("-procDup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="",
-                        help="Process a revised duplicates CSV (Action column) and execute actions per duplicate set. "
-                             "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate.")
+                        help="Process a revised duplicates CSV and execute actions from the 'Action' column.\n"
+                             "Use this after '--find-duplicates' to apply manual decisions in your reviewed CSV.\n"
+                             "Valid actions: restore_duplicate / remove_duplicate / replace_duplicate.\n"
+                             "IMPORTANT: remove_duplicate and replace_duplicate are irreversible operations.\n"
+                             "Example: --process-duplicates ./Duplicates/Duplicates_revised.csv")
 
     # Parse args and create a global-like ARGS dict (with '-' keys)
     args = PARSER.parse_args()

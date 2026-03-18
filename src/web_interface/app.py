@@ -133,9 +133,11 @@ FEATURE_SCOPED_DESTS = {
 MODULE_DEPENDENCIES_REQUIRED = {
     "synology_photos": {
         "download-albums": {"output-folder"},
+        "rename-albums": {"replacement-pattern"},
     },
     "immich_photos": {
         "download-albums": {"output-folder"},
+        "rename-albums": {"replacement-pattern"},
     },
 }
 

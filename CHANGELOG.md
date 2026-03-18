@@ -22,6 +22,7 @@
   - Adjusted Goggle Photos Panel layout.
   - Enhancements in Execution Log windows to parse progress bar properly.
   - Allow page reload while task is running.
+  - Enhancements in Web interface layout and feature descriptions.
   
 #### 🐛 Bug fixes:
   - Added validation for `--google-takeout` path to block reserved special-folder names (`Archive`, `Trash`, `Locked folder`) and abort early with a clear message; same validation is enforced in Web UI folder selection (Issue #1008).
