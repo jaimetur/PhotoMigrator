@@ -2593,6 +2593,24 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
                     mod_time = get_date(file_path, extracted_dates, step_name)
                     if LOGGER.isEnabledFor(logging.DEBUG):
                         LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
+
+                    # Skip files already placed in the expected date structure to avoid re-nesting
+                    # (e.g. year/month/year/month).
+                    current_dir_name = Path(path).name
+                    parent_dir_name = Path(path).parent.name
+                    if type == 'year':
+                        if current_dir_name == mod_time.strftime('%Y'):
+                            continue
+                    elif type == 'year/month':
+                        if (
+                            current_dir_name == mod_time.strftime('%m')
+                            and parent_dir_name == mod_time.strftime('%Y')
+                        ):
+                            continue
+                    elif type == 'year-month':
+                        if current_dir_name == mod_time.strftime('%Y-%m'):
+                            continue
+
                     # Determine target folder
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
@@ -2606,8 +2624,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
                     if os.path.abspath(file_path) != os.path.abspath(dest_path):
                         # shutil.move(file_path, dest_path)     # Safer but slower. Can be used to move files between different disks.
                         Path(file_path).rename(dest_path)       # Faster but only valid if src and dst are in the same disk,
-                    # Update replacements list
-                    replacements.append((str(file_path), str(dest_path)))
+                        # Update replacements list only when a move actually happened
+                        replacements.append((str(file_path), str(dest_path)))
         LOGGER.info(f"{step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
         return replacements
 
