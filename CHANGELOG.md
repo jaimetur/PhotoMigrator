@@ -39,6 +39,7 @@
   - Fixed Exiftool command line overflowing max length (#1052).
   - Fixed Exiftool not embebed on docker-dev version.
   - Fixed `Download All` (Immich/Synology) creating redundant `ALL_PHOTOS/YYYY/MM/YYYY/MM` folders by avoiding a duplicate date-organization pass after assets are already downloaded directly into `YYYY/MM`.
+  - Fixed Immich album deletion status handling to treat HTTP `204 No Content` (and any `2xx`) as success, avoiding false warnings like `Failed to remove album ... Status: 204`.
   - Other bug fixing.
 
 #### 📚 Documentation: 

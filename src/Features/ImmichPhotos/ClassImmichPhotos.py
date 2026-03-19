@@ -433,8 +433,8 @@ class ClassImmichPhotos:
             url = f"{self.IMMICH_URL}/api/albums/{album_id}"
             try:
                 response = requests.delete(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
-                if response.status_code == 200:
-                    LOGGER.info(f"Album '{album_name}' with ID={album_id} removed.")
+                if 200 <= response.status_code < 300:
+                    LOGGER.info(f"Album '{album_name}' with ID={album_id} removed (status: {response.status_code}).")
                     return True
                 else:
                     LOGGER.warning(f"Failed to remove album: '{album_name}' with ID: {album_id}. Status: {response.status_code}")
