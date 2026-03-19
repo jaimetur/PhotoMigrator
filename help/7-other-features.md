@@ -125,4 +125,4 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
 ## 🎖️ Credits:
 I hope this can be useful for any of you. Enjoy it!
 
-<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
+<span style="color:grey">(c) 2024-2026 by Jaime Tur (@jaimetur).</span>  

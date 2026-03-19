@@ -187,7 +187,7 @@ body {
 .hero__docs {
     margin-top: 18px;
     display: flex;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
@@ -196,6 +196,9 @@ body {
     background: var(--hero-doc-bg);
     color: var(--hero-doc-text);
     font-weight: 700;
+    font-size: 1rem;
+    padding: 11px 16px;
+    line-height: 1.15;
     box-shadow: 0 3px 10px rgba(18, 36, 48, 0.16);
 }
 

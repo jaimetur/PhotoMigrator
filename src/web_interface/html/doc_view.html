@@ -14,14 +14,17 @@
             color: #24292f;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
         }
+        * {
+            box-sizing: border-box;
+        }
         .page {
-            width: min(99vw, 1520px);
+            width: min(97vw, 1520px);
             margin: 0 auto;
             padding: 24px;
         }
         .layout {
             display: grid;
-            grid-template-columns: 300px minmax(0, 1fr);
+            grid-template-columns: 385px minmax(0, 1fr);
             gap: 14px;
             align-items: start;
         }
@@ -71,6 +74,91 @@
             color: #0550ae;
             font-weight: 700;
         }
+        .nav-list a.nav-subitem {
+            padding-left: 22px;
+            font-size: 0.86rem;
+            color: #3f4f60;
+        }
+        .nav-section {
+            border: 1px solid #e6ebf1;
+            border-radius: 8px;
+            background: #fbfdff;
+            overflow: hidden;
+        }
+        .nav-section__head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 4px;
+        }
+        .nav-section__head > a {
+            display: block;
+            border-radius: 8px;
+            padding: 6px 8px;
+            color: #24292f;
+            text-decoration: none;
+            border: 1px solid transparent;
+            line-height: 1.35;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .nav-section__head > a:hover {
+            background: #f6f8fa;
+            border-color: #d0d7de;
+        }
+        .nav-section__head > a.active {
+            background: #eaf4ff;
+            border-color: #8ec2ff;
+            color: #0550ae;
+            font-weight: 700;
+        }
+        .nav-section__toggle {
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #4a5a6a;
+            width: 24px;
+            height: 24px;
+            line-height: 1;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-section__toggle:hover {
+            background: #f3f7fb;
+        }
+        .nav-section__toggle-placeholder {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+        .nav-section__children {
+            list-style: none;
+            margin: 0;
+            padding: 0 0 4px;
+            border-top: 1px dashed #dde5ee;
+        }
+        .nav-section__children li {
+            margin: 0;
+        }
+        .nav-section__children a {
+            display: block;
+            padding: 6px 8px 6px 26px;
+            font-size: 0.86rem;
+            color: #3f4f60;
+            text-decoration: none;
+        }
+        .nav-section__children a:hover {
+            background: #f6f8fa;
+        }
+        .nav-section.is-collapsed .nav-section__children {
+            display: none;
+        }
         .content {
             min-width: 0;
         }
@@ -105,12 +193,40 @@
         }
         .btn {
             border: 1px solid #d0d7de;
-            border-radius: 8px;
-            background: #fff;
-            color: #24292f;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #f3f6fa 100%);
+            color: #1f2d3a;
             font-size: 0.9rem;
-            padding: 8px 10px;
+            font-weight: 700;
+            padding: 8px 12px;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(28, 44, 64, 0.12);
+            transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.18s ease;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(0.98);
+            box-shadow: 0 6px 16px rgba(28, 44, 64, 0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn--back {
+            border-color: #9cc3f0;
+            background: linear-gradient(135deg, #eaf3ff 0%, #d7e9ff 100%);
+            color: #184d8f;
+        }
+        .btn--close {
+            border-color: #edb0b0;
+            background: linear-gradient(135deg, #fff2f2 0%, #ffdede 100%);
+            color: #9a2f2f;
+        }
+        .btn__icon {
+            font-size: 0.95rem;
+            line-height: 1;
         }
         .markdown {
             background: #fff;
@@ -249,6 +365,14 @@
             .sidebar {
                 position: static;
                 max-height: none;
+                padding: 12px;
+            }
+            .page {
+                width: min(98vw, 1520px);
+                padding: 18px;
+            }
+            .markdown {
+                padding: 18px;
             }
         }
     </style>
@@ -258,7 +382,8 @@
     <div class="topbar">
         <h1 id="doc-title" class="title">Loading...</h1>
         <div class="topbar__actions">
-            <button type="button" class="btn" onclick="window.close()">Close Tab</button>
+            <button type="button" class="btn btn--back" onclick="goBack()"><span class="btn__icon">↩</span><span>Back</span></button>
+            <button type="button" class="btn btn--close" onclick="window.close()"><span class="btn__icon">✕</span><span>Close</span></button>
         </div>
     </div>
     <div id="doc-meta" class="meta"></div>
@@ -473,6 +598,7 @@
         let inCode = false;
         let codeLang = "";
         let codeLines = [];
+        const headingIdCounter = new Map();
 
         const closeLists = () => {
             if (inUl) { html.push("</ul>"); inUl = false; }
@@ -482,6 +608,25 @@
             if (!paragraph.length) return;
             html.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
             paragraph = [];
+        };
+
+        const buildHeadingId = (rawHeadingText) => {
+            const base = String(rawHeadingText || "")
+                .replace(/<[^>]*>/g, " ")
+                .replace(/`([^`]+)`/g, "$1")
+                .replace(/\*\*([^*]+)\*\*/g, "$1")
+                .replace(/\*([^*]+)\*/g, "$1")
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+                .replace(/&[a-z]+;/gi, " ")
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, " ")
+                .trim()
+                .replace(/\s+/g, "-")
+                .replace(/-+/g, "-");
+            const safeBase = base || "section";
+            const seen = headingIdCounter.get(safeBase) || 0;
+            headingIdCounter.set(safeBase, seen + 1);
+            return seen === 0 ? safeBase : `${safeBase}-${seen + 1}`;
         };
 
         const shouldSkipLine = (line) => {
@@ -658,7 +803,8 @@
                 flushParagraph();
                 closeLists();
                 const level = heading[1].length;
-                html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+                const headingId = buildHeadingId(heading[2]);
+                html.push(`<h${level} id="${escapeHtml(headingId)}">${renderInlineMarkdown(heading[2])}</h${level}>`);
                 continue;
             }
 
@@ -731,6 +877,14 @@
         return html.join("\n");
     }
 
+    function goBack() {
+        if (window.history.length > 1) {
+            window.history.back();
+            return;
+        }
+        window.location.assign("/docs/view/help");
+    }
+
     async function loadDocument() {
         const titleEl = document.getElementById("doc-title");
         const metaEl = document.getElementById("doc-meta");
@@ -758,8 +912,11 @@
 
     function buildHelpLabel(relativePath) {
         const clean = String(relativePath || "").replace(/\\/g, "/");
-        if (clean.toLowerCase() === "00_gpth_complete_pipeline.md") {
+        if (clean.toLowerCase().endsWith("gpth_process_explanations/00_gpth_complete_pipeline.md")) {
             return "8. Google Photos Takeout Helper (GPTH)";
+        }
+        if (clean.toLowerCase() === "2-arguments-description-short.md") {
+            return "2. Arguments Description";
         }
         const parts = clean.split("/");
         const file = parts[parts.length - 1] || clean;
@@ -788,40 +945,193 @@
         if (!navEl) return;
         navEl.innerHTML = "";
         const currentPath = window.location.pathname;
-        const addLink = (label, url) => {
+        const currentPathWithHash = `${window.location.pathname}${window.location.hash || ""}`;
+        const NAV_STATE_KEY = "help_nav_sections_state_v1";
+        const readNavState = () => {
+            try {
+                const raw = localStorage.getItem(NAV_STATE_KEY);
+                if (!raw) return {};
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === "object" ? parsed : {};
+            } catch (_error) {
+                return {};
+            }
+        };
+        const writeNavState = (state) => {
+            try {
+                localStorage.setItem(NAV_STATE_KEY, JSON.stringify(state || {}));
+            } catch (_error) {
+                // Ignore storage failures.
+            }
+        };
+        const navState = readNavState();
+        const normalizeSectionKey = (url) => {
+            const raw = String(url || "").trim();
+            const hashIndex = raw.indexOf("#");
+            return hashIndex >= 0 ? raw.slice(0, hashIndex) : raw;
+        };
+        const isActiveUrl = (url) => url === currentPath || url === currentPathWithHash;
+        const addFlatSection = (label, url) => {
+            const li = document.createElement("li");
+            li.className = "nav-section";
+            const head = document.createElement("div");
+            head.className = "nav-section__head";
+            const link = document.createElement("a");
+            link.href = url;
+            link.textContent = label;
+            if (isActiveUrl(url)) link.classList.add("active");
+            const placeholder = document.createElement("span");
+            placeholder.className = "nav-section__toggle-placeholder";
+            head.appendChild(link);
+            head.appendChild(placeholder);
+            li.appendChild(head);
+            navEl.appendChild(li);
+        };
+        const addLink = (label, url, isSubitem = false) => {
+            if (!isSubitem) {
+                addFlatSection(label, url);
+                return;
+            }
             const li = document.createElement("li");
             const a = document.createElement("a");
             a.href = url;
             a.textContent = label;
-            if (url === currentPath) a.classList.add("active");
+            if (isSubitem) a.classList.add("nav-subitem");
+            if (isActiveUrl(url)) a.classList.add("active");
             li.appendChild(a);
+            navEl.appendChild(li);
+        };
+        const addCollapsibleSection = (label, url, children) => {
+            const li = document.createElement("li");
+            li.className = "nav-section";
+
+            const head = document.createElement("div");
+            head.className = "nav-section__head";
+
+            const parentLink = document.createElement("a");
+            parentLink.href = url;
+            parentLink.textContent = label;
+            const hasActiveChild = (children || []).some((child) => isActiveUrl(child.url));
+            if (isActiveUrl(url) || hasActiveChild) parentLink.classList.add("active");
+            head.appendChild(parentLink);
+
+            const sectionKey = normalizeSectionKey(url);
+            if (navState[sectionKey] === false) {
+                li.classList.remove("is-collapsed");
+            } else {
+                li.classList.add("is-collapsed");
+            }
+
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "nav-section__toggle";
+            toggle.textContent = li.classList.contains("is-collapsed") ? "▸" : "▾";
+            toggle.textContent = "▸";
+            toggle.textContent = li.classList.contains("is-collapsed") ? "▸" : "▾";
+            toggle.title = "Expand/collapse section";
+            toggle.setAttribute("aria-label", `Toggle ${label}`);
+            toggle.addEventListener("click", (event) => {
+                event.preventDefault();
+                li.classList.toggle("is-collapsed");
+                const collapsed = li.classList.contains("is-collapsed");
+                toggle.textContent = collapsed ? "▸" : "▾";
+            });
+            toggle.addEventListener("click", () => {
+                const collapsed = li.classList.contains("is-collapsed");
+                toggle.textContent = collapsed ? "▸" : "▾";
+                navState[sectionKey] = collapsed;
+                writeNavState(navState);
+            });
+            head.appendChild(toggle);
+
+            const childList = document.createElement("ul");
+            childList.className = "nav-section__children";
+            (children || []).forEach((child) => {
+                const childLi = document.createElement("li");
+                const childLink = document.createElement("a");
+                childLink.href = child.url;
+                childLink.textContent = child.label;
+                if (isActiveUrl(child.url)) childLink.classList.add("active");
+                childLi.appendChild(childLink);
+                childList.appendChild(childLi);
+            });
+
+            li.appendChild(head);
+            li.appendChild(childList);
             navEl.appendChild(li);
         };
 
         addLink("🏠 Home", "/docs/view/help");
-        const fallbackDocs = [
+        const baseDocs = [
             "0-configuration-file.md",
             "1-command-line-interface.md",
             "2-arguments-description-short.md",
-            "2-arguments-description.md",
             "3-automatic-migration.md",
             "4-google-takeout.md",
             "5-synology-photos.md",
             "6-immich-photos.md",
             "7-other-features.md",
-            "00_GPTH_complete_pipeline.md"
+            "gpth_process_explanations/00_GPTH_complete_pipeline.md"
         ];
+        const argumentsSubDocs = [
+            {path: "2-arguments-description-short.md", label: "2.1 Short Description"},
+            {path: "2-arguments-description.md", label: "2.2 Long Description"},
+        ];
+        const gpthSubDocs = [
+            {path: "gpth_process_explanations/01_GPTH_fix_incorrect_file_extension.md", label: "8.1 Fix Extensions"},
+            {path: "gpth_process_explanations/02_GPTH_discover_and_clasify_media_files.md", label: "8.2 Discover Media"},
+            {path: "gpth_process_explanations/03_GPTH_remove_duplicates_media_files.md", label: "8.3 Remove Duplicates"},
+            {path: "gpth_process_explanations/04_GPTH_extract_dates_from_media_files.md", label: "8.4 Extract Dates"},
+            {path: "gpth_process_explanations/05_GPTH_write_EXIF_data.md", label: "8.5 Write EXIF Data"},
+            {path: "gpth_process_explanations/06_GPTH_find_and_merge_album_relationships.md", label: "8.6 Find Albums"},
+            {path: "gpth_process_explanations/07_GPTH_move_files_to_output_folder.md", label: "8.7 Move Files"},
+            {path: "gpth_process_explanations/08_GPTH_update_creation_time_windows_only.md", label: "8.8 Update Creation Time"},
+        ];
+        const otherFeaturesSubDocs = [
+            {anchor: "find-duplicates-extra-feature", label: "7.1 Find Duplicates"},
+            {anchor: "process-duplicates-extra-feature", label: "7.2 Process Duplicates"},
+            {anchor: "fix-symbolic-links-broken-extra-feature", label: "7.3 Fix Symbolic Links Broken"},
+            {anchor: "folder-rename-content-based-extra-feature", label: "7.4 Folder Rename Content Based"},
+        ];
+        const synologySubDocs = [
+            {anchor: "upload-albums-from-local-folder-into-synology-photos", label: "5.1 Upload Albums"},
+            {anchor: "download-albums-from-synology-photos", label: "5.2 Download Albums"},
+            {anchor: "upload-all-from-local-folder-into-synology-photos", label: "5.3 Upload All"},
+            {anchor: "download-all-from-synology-photos", label: "5.4 Download All"},
+            {anchor: "remove-all-assets-from-synology-photos", label: "5.5 Remove All Assets"},
+            {anchor: "remove-all-albums-from-synology-photos", label: "5.6 Remove All Albums"},
+            {anchor: "remove-albums-by-name-pattern-from-synology-photos", label: "5.7 Remove Albums by Pattern"},
+            {anchor: "rename-albums-by-name-pattern-from-synology-photos", label: "5.8 Rename Albums by Pattern"},
+            {anchor: "remove-empty-albums-from-synology-photos", label: "5.9 Remove Empty Albums"},
+            {anchor: "remove-duplicates-albums-from-synology-photos", label: "5.10 Remove Duplicates Albums"},
+            {anchor: "merge-duplicates-albums-from-synology-photos", label: "5.11 Merge Duplicates Albums"},
+        ];
+        const immichSubDocs = [
+            {anchor: "upload-albums-from-local-folder-into-immich-photos", label: "6.1 Upload Albums"},
+            {anchor: "download-albums-from-immich-photos", label: "6.2 Download Albums"},
+            {anchor: "upload-all-from-local-folder-into-immich-photos", label: "6.3 Upload All"},
+            {anchor: "download-all-from-immich-photos", label: "6.4 Download All"},
+            {anchor: "remove-all-assets-from-immich-photos", label: "6.5 Remove All Assets"},
+            {anchor: "remove-all-albums-from-immich-photos", label: "6.6 Remove All Albums"},
+            {anchor: "remove-albums-by-name-pattern-from-immich-photos", label: "6.7 Remove Albums by Pattern"},
+            {anchor: "rename-albums-by-name-pattern-from-immich-photos", label: "6.8 Rename Albums by Pattern"},
+            {anchor: "remove-empty-albums-from-immich-photos", label: "6.9 Remove Empty Albums"},
+            {anchor: "remove-duplicates-albums-from-immich-photos", label: "6.10 Remove Duplicates Albums"},
+            {anchor: "merge-duplicates-albums-from-immich-photos", label: "6.11 Merge Duplicates Albums"},
+            {anchor: "remove-orphans-assets-from-immich-photos", label: "6.12 Remove Orphans Assets"},
+        ];
+        const fallbackDocs = [...baseDocs];
         const preferredOrder = {
             "0-configuration-file.md": 10,
             "1-command-line-interface.md": 20,
             "2-arguments-description-short.md": 30,
-            "2-arguments-description.md": 40,
+            "2-arguments-description.md": 31,
             "3-automatic-migration.md": 50,
             "4-google-takeout.md": 60,
             "5-synology-photos.md": 70,
             "6-immich-photos.md": 80,
             "7-other-features.md": 90,
-            "00_gpth_complete_pipeline.md": 100,
+            "gpth_process_explanations/00_gpth_complete_pipeline.md": 100,
         };
         try {
             const response = await fetch(HELP_INDEX_API_URL);
@@ -832,22 +1142,114 @@
                 return Boolean(url) && url !== "/docs/view/help/help.md";
             });
             if (!docs.length) throw new Error("Help index empty");
-            docs.sort((a, b) => {
-                const aPath = String(a.relative_path || a.name || "").replace(/\\/g, "/").toLowerCase();
-                const bPath = String(b.relative_path || b.name || "").replace(/\\/g, "/").toLowerCase();
+            const normalizePath = (value) => String(value || "").replace(/\\/g, "/").toLowerCase();
+            const docsByPath = new Map();
+            docs.forEach((doc) => {
+                const rawPath = String(doc.relative_path || doc.name || "").replace(/\\/g, "/");
+                const key = normalizePath(rawPath);
+                if (!key) return;
+                docsByPath.set(key, {
+                    path: rawPath,
+                    url: String(doc.url || ""),
+                });
+            });
+
+            baseDocs.forEach((path) => {
+                const key = normalizePath(path);
+                const doc = docsByPath.get(key);
+                if (!doc || !doc.url) return;
+                addLink(buildHelpLabel(doc.path), doc.url);
+                if (key === "2-arguments-description-short.md") {
+                    const items = [];
+                    argumentsSubDocs.forEach((sub) => {
+                        const subKey = normalizePath(sub.path);
+                        const subDoc = docsByPath.get(subKey);
+                        if (!subDoc || !subDoc.url) return;
+                        items.push({label: sub.label, url: subDoc.url});
+                        if (subKey !== key) docsByPath.delete(subKey);
+                    });
+                    if (items.length) {
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                    }
+                }
+                if (key === "7-other-features.md") {
+                    const items = otherFeaturesSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
+                    navEl.lastElementChild?.remove();
+                    addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                }
+                if (key === "5-synology-photos.md") {
+                    const items = synologySubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
+                    navEl.lastElementChild?.remove();
+                    addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                }
+                if (key === "6-immich-photos.md") {
+                    const items = immichSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
+                    navEl.lastElementChild?.remove();
+                    addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                }
+                if (key === "gpth_process_explanations/00_gpth_complete_pipeline.md") {
+                    const items = [];
+                    gpthSubDocs.forEach((sub) => {
+                        const subKey = normalizePath(sub.path);
+                        const subDoc = docsByPath.get(subKey);
+                        if (!subDoc || !subDoc.url) return;
+                        items.push({label: sub.label, url: subDoc.url});
+                        docsByPath.delete(subKey);
+                    });
+                    navEl.lastElementChild?.remove();
+                    addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                }
+                docsByPath.delete(key);
+            });
+
+            const remaining = Array.from(docsByPath.values());
+            remaining.sort((a, b) => {
+                const aPath = normalizePath(a.path);
+                const bPath = normalizePath(b.path);
                 const aKey = Object.prototype.hasOwnProperty.call(preferredOrder, aPath) ? preferredOrder[aPath] : 9999;
                 const bKey = Object.prototype.hasOwnProperty.call(preferredOrder, bPath) ? preferredOrder[bPath] : 9999;
                 if (aKey !== bKey) return aKey - bKey;
                 return aPath.localeCompare(bPath);
             });
-            docs.forEach((doc) => {
-                const url = String(doc.url || "");
-                addLink(buildHelpLabel(doc.relative_path || doc.name || url), url);
-            });
+            remaining.forEach((doc) => addLink(buildHelpLabel(doc.path), doc.url));
         } catch (error) {
             fallbackDocs.forEach((docPath) => {
                 const url = `/docs/view/help/${docPath}`;
-                addLink(buildHelpLabel(docPath), url);
+                const sub = gpthSubDocs.find((item) => item.path.toLowerCase() === docPath.toLowerCase());
+                if (sub) {
+                    addLink(sub.label, url, true);
+                } else {
+                    addLink(buildHelpLabel(docPath), url);
+                    if (String(docPath).toLowerCase() === "2-arguments-description-short.md") {
+                        const items = argumentsSubDocs.map((argSub) => ({label: argSub.label, url: `/docs/view/help/${argSub.path}`}));
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(docPath), url, items);
+                    }
+                    if (String(docPath).toLowerCase() === "7-other-features.md") {
+                        const items = otherFeaturesSubDocs.map((otherSub) => ({label: otherSub.label, url: `${url}#${otherSub.anchor}`}));
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(docPath), url, items);
+                    }
+                    if (String(docPath).toLowerCase() === "5-synology-photos.md") {
+                        const items = synologySubDocs.map((subDoc) => ({label: subDoc.label, url: `${url}#${subDoc.anchor}`}));
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(docPath), url, items);
+                    }
+                    if (String(docPath).toLowerCase() === "6-immich-photos.md") {
+                        const items = immichSubDocs.map((subDoc) => ({label: subDoc.label, url: `${url}#${subDoc.anchor}`}));
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(docPath), url, items);
+                    }
+                    if (String(docPath).toLowerCase() === "gpth_process_explanations/00_gpth_complete_pipeline.md") {
+                        const items = gpthSubDocs.map((gpthSub) => ({
+                            label: gpthSub.label,
+                            url: `/docs/view/help/${gpthSub.path}`
+                        }));
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(docPath), url, items);
+                    }
+                }
             });
         }
     }

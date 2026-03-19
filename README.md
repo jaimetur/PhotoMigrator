@@ -390,7 +390,7 @@ If you want to Contribute to this project please, first read the file [CONTRIBUT
 ## 🎖️ Credits
 I hope this can be useful for any of you. Enjoy it!
 
-<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
+<span style="color:grey">(c) 2024-2026 by Jaime Tur (@jaimetur).</span>  
 Part of this Tool is based on [GPTH Tool](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)/[Wacheee](https://github.com/Wacheee) and v4.x.x by [Xentraxx](https://github.com/Xentraxx)
   
 ---

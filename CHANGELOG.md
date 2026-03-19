@@ -38,6 +38,7 @@
 
 #### 📚 Documentation: 
   - Included Documentation links on Web interface.
+  - Made link relatives to current release.
   - Updated documentation with all changes.
 
 ---

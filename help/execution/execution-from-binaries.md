@@ -23,4 +23,4 @@ Open the file `Config.ini` included in the package with any text editor and upda
 I hope this can be useful for any of you.  
 Enjoy it!
 
-<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span> 
+<span style="color:grey">(c) 2024-2026 by Jaime Tur (@jaimetur).</span> 

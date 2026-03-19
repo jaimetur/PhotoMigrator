@@ -56,7 +56,7 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - [Synology Photos](/docs/view/help/5-synology-photos.md)
 - [Immich Photos](/docs/view/help/6-immich-photos.md)
 - [Other Features](/docs/view/help/7-other-features.md)
-- [Google Photos Takeout Helper (GPTH)](/docs/view/help/00_GPTH_complete_pipeline.md)
+- [Google Photos Takeout Helper (GPTH)](/docs/view/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
 
 ### Arguments Reference
 - [Arguments Description (Short)](/docs/view/help/2-arguments-description-short.md)
