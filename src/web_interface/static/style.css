@@ -107,15 +107,22 @@ body[data-theme="sunset"] {
     box-sizing: border-box;
 }
 
+html {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     margin: 0;
     background: var(--bg-page);
     color: var(--text-main);
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .page {
-    width: min(99vw, 1860px);
+    width: min(100%, 1860px);
     margin: 0 auto;
     padding: 24px;
     display: grid;
