@@ -873,6 +873,15 @@
         const result = [];
         const keyToIndex = new Map();
 
+        // Preserve decorative separators used by logger summaries, e.g.:
+        // "INFO     =================================================="
+        // We keep them out of progress collapsing logic.
+        const isPureSeparatorLine = (rawLine) => {
+            const clean = stripAnsi(rawLine || "").replace(/\r/g, "").trimEnd();
+            const withoutLevel = clean.replace(/^[A-Z]+\s*:?\s*/, "").trim();
+            return Boolean(withoutLevel) && /^[=\-_\s]{6,}$/.test(withoutLevel);
+        };
+
         const customBarRegex = /^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+\/\d+\s+\d+(?:\.\d+)?%\s*$/;
         const tqdmMarkerRegex = /(\d{1,3}%\|[^|]*\|\s*\d+\/\d+)/;
         const customPartialRegex = /^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$/;
@@ -881,6 +890,10 @@
 
         for (let i = 0; i < lines.length; i += 1) {
             const line = lines[i];
+            if (isPureSeparatorLine(line)) {
+                result.push(line);
+                continue;
+            }
             const clean = stripAnsi(line).replace(/\r/g, "").trimEnd();
             let progressKey = null;
             let partialProgress = false;
