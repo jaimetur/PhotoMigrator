@@ -30,28 +30,28 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 
 ## 🌐 Web Interface
 ### Automatic Migration Feature:
-![Live Dashboard](/assets/screenshots/web-interface-automatic-migration.png?raw=true)  
+![Automatic Migration](/assets/screenshots/web-interface-automatic-migration.png?raw=true)  
 
 ### Google Photos Feature:
-![Live Dashboard](/assets/screenshots/web-interface-google-photos.png?raw=true)  
+![Google Photos](/assets/screenshots/web-interface-google-photos.png?raw=true)  
 
 ### Synology Photos Feature:
-![Live Dashboard](/assets/screenshots/web-interface-synology-photos.png?raw=true)  
+![Synology Photos](/assets/screenshots/web-interface-synology-photos.png?raw=true)  
 
 ### Immich Photos Feature:
-![Live Dashboard](/assets/screenshots/web-interface-immich-photos.png?raw=true)  
+![Immich Photos](/assets/screenshots/web-interface-immich-photos.png?raw=true)  
 
 ### Other Features:
-![Live Dashboard](/assets/screenshots/web-interface-other-features.png?raw=true)  
+![Other Features](/assets/screenshots/web-interface-other-features.png?raw=true)  
 
 ### General Arguments:
-![Live Dashboard](/assets/screenshots/web-interface-general-arguments.png?raw=true)  
+![General Arguments](/assets/screenshots/web-interface-general-arguments.png?raw=true)  
 
 ### Configuration File:
-![Live Dashboard](/assets/screenshots/web-interface-configuration-file.png?raw=true)  
+![Configuration File](/assets/screenshots/web-interface-configuration-file.png?raw=true)  
 
 ### Theme Selector:
-![Live Dashboard](/assets/screenshots/web-interface-theme-selector.png?raw=true)  
+![Theme Selector](/assets/screenshots/web-interface-theme-selector.png?raw=true)  
 
 ## 🖥️ Automatic Migration on Terminal
 ![Live Dashboard](/assets/screenshots/live_dashboard.jpg?raw=true)  
