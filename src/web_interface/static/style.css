@@ -110,6 +110,8 @@ body[data-theme="sunset"] {
 html {
     max-width: 100%;
     overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 body {
@@ -127,6 +129,10 @@ body {
     padding: 24px;
     display: grid;
     gap: 18px;
+}
+
+.page > * {
+    min-width: 0;
 }
 
 .hero {
@@ -275,6 +281,10 @@ body {
 
 .panel--collapsed .panel-body {
     display: none;
+}
+
+.panel-body > * {
+    min-width: 0;
 }
 
 .tabs {
