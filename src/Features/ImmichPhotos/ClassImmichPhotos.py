@@ -21,7 +21,6 @@ from tabulate import tabulate
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
-from Features.GoogleTakeout.ClassTakeoutFolder import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
 from Utils.StandaloneUtils import change_working_dir
@@ -1928,7 +1927,7 @@ class ClassImmichPhotos:
     def pull_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads assets not associated to any album from Immich Photos into output_folder/<NO_ALBUMS_FOLDER>/.
-        Then organizes them by year/month inside that folder.
+        Assets are stored directly using year/month subfolders.
 
         Args:
             output_folder (str): The output folder where the album assets will be downloaded.
@@ -1965,9 +1964,6 @@ class ClassImmichPhotos:
 
                 asset_time = asset.get('fileCreatedAt')
                 total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=log_level)
-
-            # Now organize them by date (year/month)
-            organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
             LOGGER.info(f"Download of assets without associated albums completed.")
             LOGGER.info(f"Total Assets downloaded: {total_assets_downloaded}")

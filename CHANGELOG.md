@@ -37,6 +37,7 @@
   - Fixed download/migration EXIF date overwrite behavior: EXIF date tags are now only filled when missing, preserving existing shooting dates (Issue #1029).
   - Fixed Exiftool command line overflowing max length (#1052).
   - Fixed Exiftool not embebed on docker-dev version.
+  - Fixed `Download All` (Immich/Synology) creating redundant `ALL_PHOTOS/YYYY/MM/YYYY/MM` folders by avoiding a duplicate date-organization pass after assets are already downloaded directly into `YYYY/MM`.
   - Other bug fixing.
 
 #### 📚 Documentation: 

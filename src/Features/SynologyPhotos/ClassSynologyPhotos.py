@@ -18,7 +18,6 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
-from Features.GoogleTakeout.ClassTakeoutFolder import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
 
@@ -2307,7 +2306,7 @@ class ClassSynologyPhotos:
     def pull_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
         """
         Downloads assets not associated to any album from Synology Photos into output_folder/<NO_ALBUMS_FOLDER>/.
-        Then organizes them by year/month inside that folder.
+        Assets are stored directly using year/month subfolders.
 
         Args:
             no_albums_folder (str): The output folder where the album assets will be downloaded.
@@ -2350,9 +2349,6 @@ class ClassSynologyPhotos:
 
 
                     total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=logging.INFO)
-
-                # Now organize them by date (year/month)
-                organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
                 LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
                 # self.logout(log_level=log_level)
