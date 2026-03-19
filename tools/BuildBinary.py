@@ -2,7 +2,7 @@
 # Add 'src/' folder to sys.path to import any module from 'src/'.
 import os, sys
 current_dir = os.path.dirname(__file__)
-src_path = os.path.abspath(os.path.join(current_dir, "src"))
+src_path = os.path.abspath(os.path.join(current_dir, os.pardir, "src"))
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 # ------------------------------------------------------------
@@ -245,7 +245,7 @@ def _resolve_internal_path(path_to_resolve, step_name=''):
     - Nuitka (onefile or standalone)
     - Direct Python (from cwd or from dirname(__file__))
     """
-    # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
+    # IMPORTANT: Don't use LOGGER in this function because is also used by tools/BuildBinary.py which has not any LOGGER created.
     compiled_source = globals().get("__compiled__")
     DEBUG_MODE = GV.LOG_LEVEL <= logging.DEBUG  # Set to False to silence
     if DEBUG_MODE:

@@ -79,7 +79,7 @@ def resolve_internal_path(path_to_resolve, step_name=''):
     - Nuitka (onefile or standalone)
     - Plain Python (from cwd or from dirname(__file__))
     """
-    # IMPORTANT: Don't use LOGGER in this function because it is also used by build-binary.py which does not have any LOGGER created.
+    # IMPORTANT: Don't use LOGGER in this function because it is also used by tools/BuildBinary.py which does not have any LOGGER created.
     compiled_source = globals().get("__compiled__")
     DEBUG_MODE = GV.LOG_LEVEL <= logging.DEBUG  # Set to False to silence
     if DEBUG_MODE:
