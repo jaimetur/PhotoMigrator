@@ -183,7 +183,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         LOGGER.info(f"")
         LOGGER.info(f"*** Automatic Migration Mode *** detected")
-        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning('-' * terminal_width)
         if not isinstance(source_client, ClassTakeoutFolder):
             LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
         else:
