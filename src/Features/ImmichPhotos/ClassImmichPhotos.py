@@ -1302,9 +1302,20 @@ class ClassImmichPhotos:
                 payload = json.dumps({"livePhotoVideoId": str(video_asset_id)})
                 headers = dict(self.HEADERS_WITH_CREDENTIALS)
                 headers["Content-Type"] = "application/json"
-                resp = requests.patch(url, headers=headers, data=payload, verify=False)
-                resp.raise_for_status()
-                return True
+                # Immich may expose eventual consistency just after upload; retry transient 404s.
+                retry_delays = [0.2, 0.5, 1.0, 2.0]
+                attempts = len(retry_delays) + 1
+                for attempt in range(attempts):
+                    try:
+                        resp = requests.patch(url, headers=headers, data=payload, verify=False)
+                        resp.raise_for_status()
+                        return True
+                    except requests.HTTPError as e:
+                        status_code = e.response.status_code if e.response is not None else None
+                        if status_code == 404 and attempt < len(retry_delays):
+                            time.sleep(retry_delays[attempt])
+                            continue
+                        raise
             except Exception as e:
                 LOGGER.warning(f"Unable to link live photo assets (photo={photo_asset_id}, video={video_asset_id}): {e}")
                 return False
@@ -1319,10 +1330,11 @@ class ClassImmichPhotos:
             if not companion_video or not os.path.isfile(companion_video):
                 return self.push_asset(photo_file_path, log_level=log_level)
 
-            video_asset_id, _ = self.push_asset(companion_video, log_level=log_level)
+            video_asset_id, video_is_dup = self.push_asset(companion_video, log_level=log_level)
             photo_asset_id, photo_is_dup = self.push_asset(photo_file_path, log_level=log_level)
 
-            if photo_asset_id and video_asset_id:
+            # Linking duplicated assets is unreliable and can produce 404s depending on Immich duplicate policy.
+            if photo_asset_id and video_asset_id and not photo_is_dup and not video_is_dup:
                 self._link_live_photo_assets(photo_asset_id=photo_asset_id, video_asset_id=video_asset_id, log_level=log_level)
 
             return photo_asset_id, photo_is_dup

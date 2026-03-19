@@ -40,6 +40,8 @@
   - Fixed Exiftool not embebed on docker-dev version.
   - Fixed `Download All` (Immich/Synology) creating redundant `ALL_PHOTOS/YYYY/MM/YYYY/MM` folders by avoiding a duplicate date-organization pass after assets are already downloaded directly into `YYYY/MM`.
   - Fixed Immich album deletion status handling to treat HTTP `204 No Content` (and any `2xx`) as success, avoiding false warnings like `Failed to remove album ... Status: 204`.
+  - Fixed Immich Live Photo linking reliability during uploads by retrying transient `404` responses when setting `livePhotoVideoId`, and skipping link attempts when either media component was uploaded as duplicate.
+  - Fixed Web Interface log color classification to prioritize the explicit line log level prefix (e.g. `WARNING:`), preventing warning lines from being painted as errors when message text contains words like `Client Error`.
   - Other bug fixing.
 
 #### 📚 Documentation: 

@@ -331,6 +331,9 @@
         "parallel-migration": "Parallel Migration"
     };
 
+    ARG_LABELS["sfrcb-date-separator"] = "date-separator";
+    ARG_LABELS["sfrcb-range-separator"] = "range-separator";
+
     const FEATURE_LABELS = {
         "upload-albums": "Upload Albums",
         "download-albums": "Download Albums",
@@ -397,6 +400,10 @@
         "filter-by-country",
         "filter-by-city",
         "filter-by-person"
+    ];
+    const STANDALONE_RENAME_CONTENT_BASED_OVERRIDE_DESTS = [
+        "date-separator",
+        "range-separator"
     ];
 
     let stateValues = {};
@@ -976,11 +983,13 @@
         const normalized = cleaned.trimStart();
         const normalizedLower = normalized.toLowerCase();
 
-        if (/\berror\s*:/.test(normalizedLower)) return "log-error";
-        if (/\bcritical\s*:/.test(normalizedLower)) return "log-critical";
-        if (/\bwarning\s*:/.test(normalizedLower)) return "log-warning";
-        if (/\bdebug\s*:/.test(normalizedLower)) return "log-debug";
-        if (/\bverbose\s*:/.test(normalizedLower)) return "log-verbose";
+        // Prioritize explicit log-level prefixes at line start to avoid false
+        // classification when message text contains words like "Error".
+        if (/^(critical)\s*:/.test(normalizedLower)) return "log-critical";
+        if (/^(error)\s*:/.test(normalizedLower)) return "log-error";
+        if (/^(warning)\s*:/.test(normalizedLower)) return "log-warning";
+        if (/^(debug)\s*:/.test(normalizedLower)) return "log-debug";
+        if (/^(verbose)\s*:/.test(normalizedLower)) return "log-verbose";
 
         if (automaticMigrationMode) {
             if (/\bduplicat(?:e|ed|es|ion)?\b/.test(normalizedLower) || /\bdupplicat(?:e|ed|es|ion)?\b/.test(normalizedLower)) {
@@ -1381,8 +1390,12 @@
         wrapper.className = "input-row";
         let input;
         const persisted = stateValues[field.dest];
-        const effectiveDest = field.dest.startsWith("am-") ? field.dest.slice(3) : field.dest;
-        const isMigrationOverride = field.dest.startsWith("am-");
+        const scopedOverrideMatch = String(field.dest || "").match(/^(am|sfrcb)-(.+)$/);
+        const effectiveDest = scopedOverrideMatch ? scopedOverrideMatch[2] : field.dest;
+        const isScopedOverride = Boolean(scopedOverrideMatch);
+        const hasScopedPersistedValue = persisted !== undefined
+            && persisted !== null
+            && (!isScopedOverride || String(persisted).trim() !== "");
         const filterPlaceholderByDest = {
             "filter-from-date": "Example: 2024-01-31, 31/01/2024, 2024",
             "filter-to-date": "Example: 2025-12-31, 31/12/2025, 2025",
@@ -1395,7 +1408,7 @@
         if (effectiveDest === "filter-by-type") {
             input = document.createElement("select");
             input.className = "field__input";
-            if (isMigrationOverride) {
+            if (isScopedOverride) {
                 input.add(new Option("(Use General Arguments value)", ""));
             } else {
                 input.add(new Option("(default: all)", ""));
@@ -1443,7 +1456,7 @@
             input = document.createElement("input");
             input.type = "text";
             input.className = "field__input";
-            if (persisted !== undefined) input.value = String(persisted);
+            if (hasScopedPersistedValue) input.value = String(persisted);
             else input.value = field.default === null ? "" : (typeof field.default === "string" ? field.default : "");
             if (filterPlaceholderByDest[effectiveDest]) {
                 input.placeholder = filterPlaceholderByDest[effectiveDest];
@@ -2129,20 +2142,58 @@
             foldersInput.addEventListener("change", syncFindDuplicatesValue);
             actionInput.addEventListener("change", syncFindDuplicatesValue);
             syncFindDuplicatesValue();
-        } else if (!argSpecs.length) {
-            const noArgs = document.createElement("div");
-            noArgs.className = "arg-row";
-            const lbl = document.createElement("label");
-            lbl.className = "arg-label";
-            lbl.textContent = "Arguments";
-            noArgs.appendChild(lbl);
-            const tag = document.createElement("span");
-            tag.className = "flag-tag";
-            tag.textContent = "No extra arguments required";
-            noArgs.appendChild(tag);
-            left.appendChild(noArgs);
         } else {
-            argSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
+            if (!argSpecs.length) {
+                const noArgs = document.createElement("div");
+                noArgs.className = "arg-row";
+                const lbl = document.createElement("label");
+                lbl.className = "arg-label";
+                lbl.textContent = "Arguments";
+                noArgs.appendChild(lbl);
+                const tag = document.createElement("span");
+                tag.className = "flag-tag";
+                tag.textContent = "No extra arguments required";
+                noArgs.appendChild(tag);
+                left.appendChild(noArgs);
+            } else {
+                argSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
+            }
+
+            if (selected && selected.dest === "rename-folders-content-based") {
+                const namingCard = document.createElement("div");
+                namingCard.className = "flags-card";
+                const namingTitle = document.createElement("h3");
+                namingTitle.textContent = "Date/Ranges Separators";
+                namingCard.appendChild(namingTitle);
+                const namingHint = document.createElement("div");
+                namingHint.className = "arg-inline-help";
+                namingHint.textContent = "If empty, value from General Arguments will be used.";
+                namingCard.appendChild(namingHint);
+
+                STANDALONE_RENAME_CONTENT_BASED_OVERRIDE_DESTS.forEach((dest) => {
+                    const baseField = getFieldByDest(dest);
+                    if (!baseField) return;
+                    const overrideDest = `sfrcb-${dest}`;
+                    const overrideValue = stateValues[overrideDest];
+                    const inheritedValue = stateValues[dest];
+                    const hasOverrideValue = overrideValue !== undefined
+                        && overrideValue !== null
+                        && String(overrideValue).trim() !== "";
+                    const inheritedOrBaseDefault = (inheritedValue !== undefined
+                        && inheritedValue !== null
+                        && String(inheritedValue).trim() !== "")
+                        ? inheritedValue
+                        : (baseField.default ?? "");
+                    const overrideField = {
+                        ...baseField,
+                        dest: overrideDest,
+                        default: hasOverrideValue ? overrideValue : inheritedOrBaseDefault
+                    };
+                    namingCard.appendChild(createArgumentRow(overrideField, false));
+                });
+
+                left.appendChild(namingCard);
+            }
         }
 
         const right = document.createElement("div");
@@ -2480,6 +2531,16 @@
         } else if (activeModuleTab === "standalone_features") {
             const selected = (schema.tabs.standalone_features || []).find((f) => f.dest === standaloneActionDest);
             if (selected && selected.kind === "flag") values[selected.dest] = true;
+            if (selected && selected.dest === "rename-folders-content-based") {
+                STANDALONE_RENAME_CONTENT_BASED_OVERRIDE_DESTS.forEach((dest) => {
+                    const overrideDest = `sfrcb-${dest}`;
+                    const overrideRaw = values[overrideDest];
+                    if (overrideRaw === undefined || overrideRaw === null) return;
+                    if (String(overrideRaw).trim() !== "") {
+                        values[dest] = overrideRaw;
+                    }
+                });
+            }
             selectedActionDest = standaloneActionDest || null;
         } else if (activeModuleTab === "automatic_migration") {
             MIGRATION_FILTER_DESTS.forEach((dest) => {
