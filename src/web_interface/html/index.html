@@ -321,9 +321,9 @@
         "configuration-file": "Configuration File",
         "albums-folders": "Albums Folders",
         "no-request-user-confirmation": "request-user-confirmation",
-        "remove-albums-assets": "Remove Album Assets",
-        "one-time-password": "One-Time Password",
-        "account-id": "Account ID",
+        "remove-albums-assets": "remove-album-assets",
+        "one-time-password": "one-time-password",
+        "account-id": "account-id",
         "source": "Source",
         "target": "Target",
         "move-assets": "Move Assets",
@@ -425,6 +425,55 @@
             .split("-")
             .map((part) => part ? (part[0].toUpperCase() + part.slice(1)) : part)
             .join(" ");
+    }
+
+    function dangerousModuleConfirmationForPayload(payload) {
+        if (!payload || !payload.tab) return null;
+        const action = String(payload.selected_action_dest || "").trim().toLowerCase();
+
+        if (payload.tab === "synology_photos" || payload.tab === "immich_photos") {
+            const clientLabel = payload.tab === "synology_photos" ? "Synology Photos" : "Immich Photos";
+            const removeAlbumAssets = Boolean(payload?.values?.["remove-albums-assets"]);
+            let message = "";
+            if (action === "rename-albums") {
+                message = `This module will rename albums in ${clientLabel} whose names match your pattern, using the replacement pattern.`;
+            } else if (action === "remove-albums") {
+                message = removeAlbumAssets
+                    ? `This module will delete albums in ${clientLabel} whose names match your pattern, and it will also delete all assets inside those albums.`
+                    : `This module will delete albums in ${clientLabel} whose names match your pattern. Assets will be kept unless they are removed by other operations.`;
+            } else if (action === "remove-all-albums") {
+                message = removeAlbumAssets
+                    ? `This module will delete ALL albums in ${clientLabel} and also delete all assets associated with those albums.`
+                    : `This module will delete ALL albums in ${clientLabel}. Associated assets will be kept unless they are removed by other operations.`;
+            } else if (action === "remove-all-assets") {
+                message = `This module will delete ALL assets (photos/videos) and ALL albums in ${clientLabel}.`;
+            } else if (action === "remove-empty-albums") {
+                message = `This module will delete all empty albums in ${clientLabel}.`;
+            } else if (action === "remove-duplicates-albums") {
+                message = `This module will delete duplicated albums in ${clientLabel} (same name and size).`;
+            } else if (action === "merge-duplicates-albums") {
+                message = `This module will merge duplicated albums in ${clientLabel} by moving assets into the most relevant album and removing duplicates.`;
+            } else if (action === "remove-orphan-assets") {
+                message = "This module will delete orphan assets from the Immich database (assets referenced in DB but missing on disk).";
+            }
+            if (!message) return null;
+            return {
+                title: "Dangerous Module",
+                message: `${message} Do you want to continue?`,
+                acceptLabel: "Run module",
+                danger: true
+            };
+        }
+
+        if (payload.tab === "standalone_features" && action === "rename-folders-content-based") {
+            return {
+                title: "Dangerous Module",
+                message: "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?",
+                acceptLabel: "Run module",
+                danger: true
+            };
+        }
+        return null;
     }
 
     function uiHelpText(field, options = {}) {
@@ -1326,7 +1375,8 @@
             "filter-to-date": "Example: 2025-12-31, 31/12/2025, 2025",
             "filter-by-country": "Example: Spain",
             "filter-by-city": "Example: Madrid",
-            "filter-by-person": "Example: Peter"
+            "filter-by-person": "Example: Peter",
+            "remove-albums": "Album name pattern (text or regex). Example: ^Temp|^Test"
         };
 
         if (effectiveDest === "filter-by-type") {
@@ -1449,12 +1499,6 @@
             row.appendChild(createInput(field));
         }
 
-        if (field.dest === "account-id" && field.help) {
-            const inlineHelp = document.createElement("div");
-            inlineHelp.className = "arg-inline-help";
-            inlineHelp.textContent = uiHelpText(field);
-            row.appendChild(inlineHelp);
-        }
         return row;
     }
 
@@ -1567,16 +1611,24 @@
         return field;
     }
 
-    function parseRequiredFromHelp(helpText) {
+    function parseRequiredFromHelp(helpText, options = {}) {
         if (!helpText) return [];
+        const ignoreDests = new Set((options.ignoreDests || []).filter(Boolean).map((dest) => String(dest).toLowerCase()));
         const found = new Set();
-        const regex = /--([a-z0-9-]+)/gi;
-        let match = regex.exec(helpText);
-        while (match !== null) {
-            const dest = match[1].toLowerCase();
-            if (dest !== "client") found.add(dest);
-            match = regex.exec(helpText);
-        }
+        const lines = String(helpText).replace(/\r\n/g, "\n").split("\n");
+        lines.forEach((line) => {
+            const text = String(line || "").trim();
+            if (!text) return;
+            if (/^Example:/i.test(text)) return;
+            if (!/\brequired?\b/i.test(text) && !/\brequires\b/i.test(text)) return;
+            const regex = /--([a-z0-9-]+)/gi;
+            let match = regex.exec(text);
+            while (match !== null) {
+                const dest = String(match[1] || "").toLowerCase();
+                if (dest && dest !== "client" && !ignoreDests.has(dest)) found.add(dest);
+                match = regex.exec(text);
+            }
+        });
         return [...found];
     }
 
@@ -1598,7 +1650,7 @@
 
         const mapped = (MODULE_DEPENDENCIES[tabKey] || {})[selectedField?.dest || ""] || [];
         mapped.forEach((item) => pushSpec(item.dest, item.required === true, true));
-        parseRequiredFromHelp(selectedField?.help || "").forEach((dest) => pushSpec(dest, true, true));
+        parseRequiredFromHelp(selectedField?.help || "", {ignoreDests: [selectedField?.dest]}).forEach((dest) => pushSpec(dest, true, true));
         return specs;
     }
 
@@ -1906,7 +1958,15 @@
             noArgs.appendChild(tag);
             left.appendChild(noArgs);
         } else {
-            renderArgSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
+            renderArgSpecs.forEach((spec) => {
+                if (spec.field.dest === "account-id" && spec.field.help) {
+                    const accountHelp = document.createElement("div");
+                    accountHelp.className = "arg-inline-help";
+                    accountHelp.textContent = uiHelpText(spec.field);
+                    left.appendChild(accountHelp);
+                }
+                left.appendChild(createArgumentRow(spec.field, spec.required));
+            });
         }
         if (otpField && (tabKey === "synology_photos" || tabKey === "immich_photos")) {
             left.appendChild(createArgumentRow(normalizeFieldForContext(otpField, tabKey)));
@@ -2454,14 +2514,14 @@
             if (selected && selected.kind !== "flag") required.add(selected.dest);
             const mapped = (MODULE_DEPENDENCIES[payload.tab] || {})[selected?.dest || ""] || [];
             mapped.filter((item) => item.required === true).forEach((item) => required.add(item.dest));
-            parseRequiredFromHelp(selected?.help || "").forEach((dest) => required.add(dest));
+            parseRequiredFromHelp(selected?.help || "", {ignoreDests: [selected?.dest]}).forEach((dest) => required.add(dest));
             return required;
         }
 
         if (payload.tab === "standalone_features") {
             const selected = (schema.tabs.standalone_features || []).find((f) => f.dest === payload.selected_action_dest);
             if (selected && selected.kind !== "flag") required.add(selected.dest);
-            parseRequiredFromHelp(selected?.help || "").forEach((dest) => required.add(dest));
+            parseRequiredFromHelp(selected?.help || "", {ignoreDests: [selected?.dest]}).forEach((dest) => required.add(dest));
             return required;
         }
 
@@ -2714,10 +2774,20 @@
         const validationErrors = validatePayloadBeforeRun(payload);
         if (validationErrors.length) {
             setStatus(`Status: validation error (${validationErrors[0]})`, true);
+            await showNoticeDialog({
+                title: "Missing Required Arguments",
+                message: validationErrors.join("\n"),
+                closeLabel: "OK"
+            });
             if (activeModuleTab === "automatic_migration") {
                 renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
             }
             return;
+        }
+        const dangerousPrompt = dangerousModuleConfirmationForPayload(payload);
+        if (dangerousPrompt) {
+            const confirmed = await askForConfirmation(dangerousPrompt);
+            if (!confirmed) return;
         }
         const response = await fetch("/api/run", {
             method: "POST",
@@ -2728,6 +2798,11 @@
         if (!response.ok) {
             const detail = data && data.detail ? String(data.detail) : "Unable to run command";
             setStatus(`Status: validation error (${detail})`, true);
+            await showNoticeDialog({
+                title: "Run Error",
+                message: detail,
+                closeLabel: "OK"
+            });
             updateRunStopButtons("idle");
             return;
         }

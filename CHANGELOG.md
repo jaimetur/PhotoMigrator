@@ -23,6 +23,9 @@
   - Enhancements in Execution Log windows to parse progress bar properly.
   - Allow page reload while task is running.
   - Enhancements in Web interface layout and feature descriptions.
+  - Added confirmation dialog on those modules that remove/rename/merge assets/albums on Synology/Immich Photos features.
+  - Added confirmation dialog on Auto Rename Folders Content Based feature.
+  - Improved Immich `Remove Orphan Assets` module to detect unsupported newer Immich API versions and abort gracefully with a clear message instead of failing with a raw 404 error.
   
 #### 🐛 Bug fixes:
   - Added validation for `--google-takeout` path to block reserved special-folder names (`Archive`, `Trash`, `Locked folder`) and abort early with a clear message; same validation is enforced in Web UI folder selection (Issue #1008).

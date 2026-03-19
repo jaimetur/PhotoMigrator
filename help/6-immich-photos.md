@@ -287,6 +287,8 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 
 ## <span style="color:blue">Remove Orphans Assets from Immich Photos:</span>
 - **From:** v3.0.0
+> [!WARNING]
+> This functionality was removed from Immich starting with version **v1.133.0** (**May 23, 2025**) and is no longer available in newer Immich versions.
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
   - Also, you have to use the argument _**`--remove-orphan-assets`**_
@@ -297,8 +299,9 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - The Tool will connect automatically to your Immich Photos account and will remove all Orphan assets found.
 - **Example of use:**
   ```
-  With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
+  ./PhotoMigrator.run --client=immich --remove-orphan-assets
   ```
+  With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
 
 ---
 

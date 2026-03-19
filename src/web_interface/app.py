@@ -571,6 +571,29 @@ def _value_is_provided(dest: str, values: Dict[str, Any]) -> bool:
     return str(raw_value or "").strip() != ""
 
 
+def _parse_required_dests_from_help(help_text: str, ignore_dests: set[str] | None = None) -> set[str]:
+    if not help_text:
+        return set()
+    ignored = {str(item or "").strip().lower() for item in (ignore_dests or set()) if str(item or "").strip()}
+    required: set[str] = set()
+    lines = str(help_text).replace("\r\n", "\n").split("\n")
+    for line in lines:
+        text = str(line or "").strip()
+        if not text:
+            continue
+        if re.match(r"^Example:", text, flags=re.IGNORECASE):
+            continue
+        if not re.search(r"\brequired?\b", text, flags=re.IGNORECASE) and not re.search(r"\brequires\b", text, flags=re.IGNORECASE):
+            continue
+        for match in re.findall(r"--([a-z0-9-]+)", text, flags=re.IGNORECASE):
+            dest = str(match or "").strip().lower()
+            if not dest or dest == "client" or dest in ignored:
+                continue
+            if dest in PARSER_FIELDS_BY_DEST:
+                required.add(dest)
+    return required
+
+
 def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> set[str]:
     required: set[str] = set()
     if tab == "google_takeout":
@@ -589,10 +612,12 @@ def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> s
         for dep in MODULE_DEPENDENCIES_REQUIRED.get(tab, {}).get(selected_action_dest, set()):
             required.add(dep)
         if selected_field:
-            for match in re.findall(r"--([a-z0-9-]+)", selected_field.get("help", "") or "", flags=re.IGNORECASE):
-                dest = match.lower()
-                if dest != "client" and dest in PARSER_FIELDS_BY_DEST:
-                    required.add(dest)
+            required.update(
+                _parse_required_dests_from_help(
+                    selected_field.get("help", "") or "",
+                    ignore_dests={selected_field.get("dest", "")},
+                )
+            )
     return required
 
 

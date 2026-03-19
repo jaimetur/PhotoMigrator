@@ -2516,8 +2516,43 @@ class ClassImmichPhotos:
             immich_parsed_url = urlparse(self.IMMICH_URL)
             base_url = f'{immich_parsed_url.scheme}://{immich_parsed_url.netloc}'
             api_url = f'{base_url}/api'
+            server_info_url = f'{api_url}/server-info'
             file_report_url = api_url + '/reports'
             headers = {'x-api-key': self.IMMICH_API_KEY_ADMIN}
+
+            def parse_version_tuple(version_text):
+                """
+                Parse version text like 'v1.133.0' into tuple (1, 133, 0).
+                """
+                match = re.search(r'(\d+)\.(\d+)\.(\d+)', str(version_text or ''))
+                if not match:
+                    return None
+                return int(match.group(1)), int(match.group(2)), int(match.group(3))
+
+            # Immich removed /api/reports in newer versions (from v1.133.0).
+            # Detect version first to avoid noisy 404 errors and abort gracefully.
+            try:
+                server_info_response = requests.get(server_info_url, headers=headers, timeout=15)
+                if server_info_response.ok:
+                    server_info = server_info_response.json() or {}
+                    detected_version = (
+                        server_info.get('serverVersion')
+                        or server_info.get('version')
+                        or server_info.get('appVersion')
+                        or server_info.get('build')
+                        or ''
+                    )
+                    parsed_version = parse_version_tuple(detected_version)
+                    if parsed_version and parsed_version >= (1, 133, 0):
+                        LOGGER.warning(
+                            f"'Remove Orphan Assets' is not supported on Immich {detected_version}: "
+                            f"endpoint '/api/reports' was removed in newer Immich versions. "
+                            f"Module aborted without changes."
+                        )
+                        return 0
+            except Exception:
+                # If version can't be detected, continue and fallback to endpoint probing below.
+                pass
 
             print()
             spinner = Halo(text='Retrieving list of orphaned media assets...', spinner='dots')
@@ -2529,7 +2564,15 @@ class ClassImmichPhotos:
                 response.raise_for_status()
                 spinner.succeed('Success!')
             except requests.exceptions.RequestException as e:
-                spinner.fail(f'Failed to fetch assets: {str(e)}')
+                status_code = getattr(getattr(e, 'response', None), 'status_code', None)
+                if status_code == 404:
+                    spinner.fail("Not supported by current Immich API (404).")
+                    LOGGER.warning(
+                        f"'Remove Orphan Assets' endpoint '/api/reports' is not available on this Immich server. "
+                        f"Your version likely removed this API. Module aborted without changes."
+                    )
+                else:
+                    spinner.fail(f'Failed to fetch assets: {str(e)}')
                 # logout_immich
                 # self.logout(log_level=log_level)
                 return 0
