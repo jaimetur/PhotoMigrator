@@ -179,6 +179,7 @@ Main characteristics:
 Web interface source code:
 - `src/web_interface/app.py`
 - `src/web_interface/html/index.html`
+- `src/web_interface/html/doc_view.html`
 - `src/web_interface/static/style.css`
 
 ## Deploy Web Interface with Docker Compose
