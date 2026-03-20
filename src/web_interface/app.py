@@ -90,6 +90,36 @@ CLOUD_DESTS = {
     "one-time-password",
 }
 
+CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
+    "google_photos": {"upload-albums", "download-albums", "upload-all", "download-all"},
+    "synology_photos": {
+        "upload-albums",
+        "download-albums",
+        "upload-all",
+        "download-all",
+        "rename-albums",
+        "remove-albums",
+        "remove-all-albums",
+        "remove-all-assets",
+        "remove-empty-albums",
+        "remove-duplicates-albums",
+        "merge-duplicates-albums",
+    },
+    "nextcloud_photos": {
+        "upload-albums",
+        "download-albums",
+        "upload-all",
+        "download-all",
+        "rename-albums",
+        "remove-albums",
+        "remove-all-albums",
+        "remove-all-assets",
+        "remove-empty-albums",
+        "remove-duplicates-albums",
+        "merge-duplicates-albums",
+    },
+}
+
 STANDALONE_DESTS = {
     "fix-symlinks-broken",
     "rename-folders-content-based",
@@ -527,13 +557,16 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
 
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
         cloud_action_dests = {dest for dest in tab_dests if dest != "one-time-password"}
+        available_actions = cloud_action_dests.intersection(
+            CLOUD_ACTIONS_AVAILABLE_BY_TAB.get(tab, cloud_action_dests)
+        )
         if selected_action_dest:
-            if selected_action_dest not in cloud_action_dests:
+            if selected_action_dest not in available_actions:
                 raise HTTPException(status_code=400, detail=f"Invalid selected action for tab {tab}: {selected_action_dest}")
             allowed_dests.add(selected_action_dest)
         else:
             # Backward-compatible fallback for older UI payloads.
-            allowed_dests.update(cloud_action_dests)
+            allowed_dests.update(available_actions)
         if "one-time-password" in tab_dests:
             allowed_dests.add("one-time-password")
     elif tab == "standalone_features":

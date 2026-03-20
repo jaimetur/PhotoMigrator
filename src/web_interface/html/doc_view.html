@@ -304,11 +304,16 @@
             color: #c9d1d9;
             border-radius: 8px;
             padding: 12px;
-            overflow: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: pre;
         }
         .markdown pre code {
             background: transparent;
             padding: 0;
+            white-space: inherit;
+            overflow-wrap: normal;
+            word-break: normal;
         }
         .markdown img {
             max-width: 100%;

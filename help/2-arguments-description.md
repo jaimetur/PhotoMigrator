@@ -30,20 +30,20 @@ There is also a [shorter version](/help/2-arguments-description-short.md) of thi
 ## ⚙️ General Options
 Following general arguments have different purposes depending on the Execution Mode.
 
-| Argument                                  | Parameter         |  Type  |                  Valid Values                  | Description                                             |
-|-------------------------------------------|-------------------|:------:|:----------------------------------------------:|---------------------------------------------------------|
-| `-i`,<br>`--input-folder`                 | `<INPUT_FOLDER>`  |  path  |                `existing path`                 | Folder containing assets to be processed.               |
-| `-o`,<br>`--output-folder`                | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                  | Folder where processed assets or results will be saved. |
+| Argument                                  | Parameter         |  Type  |                                     Valid Values                                     | Description                                             |
+|-------------------------------------------|-------------------|:------:|:------------------------------------------------------------------------------------:|---------------------------------------------------------|
+| `-i`,<br>`--input-folder`                 | `<INPUT_FOLDER>`  |  path  |                                   `existing path`                                    | Folder containing assets to be processed.               |
+| `-o`,<br>`--output-folder`                | `<OUTPUT_FOLDER>` |  path  |                                     `valid path`                                     | Folder where processed assets or results will be saved. |
 | `-client`,<br>`--client`                  | `<CLIENT>`        | string | `google-takeout`, <br>`google-photos`, <br>`synology`, <br>`immich`, <br>`nextcloud` | Specifies the service to interact with.                 |
-| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`        | ID of the configured account in `Config.ini`.           |
-| `-from`,<br>`--filter-from-date`          | `<FROM_DATE>`     |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
-| `-to`,<br>`--filter-to-date`              | `<TO_DATE>`       |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
-| `-type`,<br>`--filter-by-type`            | `<TYPE>`          | string |  `image`, `video`, `all` <br>`(default: all)`  | Filters assets by type.                                 |
-| `-country`,<br>`--filter-by-country`      | `<COUNTRY>`       | string |                 `country-name`                 | Filters assets by country.                              |
-| `-city`,<br>`--filter-by-city`            | `<CITY>`          | string |                  `city-name`                   | Filters assets by city.                                 |
-| `-person`,<br>`--filter-by-person`        | `<PERSON>`        | string |                 `person-name`                  | Filters assets by person name.                          |
-| `-AlbFolder`,<br>`--albums-folders`       | `<ALBUMS_FOLDER>` |  path  |                `existing path`                 | Creates albums for subfolders inside.                   |
-| `-rAlbAsset`,<br>`--remove-albums-assets` |                   |  flag  |                                                | Removes assets inside albums when albums are removed.   |
+| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |                           `1`, `2`, `3` <br>`(default: 1)`                           | ID of the configured account in `Config.ini`.           |
+| `-from`,<br>`--filter-from-date`          | `<FROM_DATE>`     |  date  |                       `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`                        | Filters assets from this date onward.                   |
+| `-to`,<br>`--filter-to-date`              | `<TO_DATE>`       |  date  |                       `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`                        | Filters assets up to this date.                         |
+| `-type`,<br>`--filter-by-type`            | `<TYPE>`          | string |                     `image`, `video`, `all` <br>`(default: all)`                     | Filters assets by type.                                 |
+| `-country`,<br>`--filter-by-country`      | `<COUNTRY>`       | string |                                    `country-name`                                    | Filters assets by country.                              |
+| `-city`,<br>`--filter-by-city`            | `<CITY>`          | string |                                     `city-name`                                      | Filters assets by city.                                 |
+| `-person`,<br>`--filter-by-person`        | `<PERSON>`        | string |                                    `person-name`                                     | Filters assets by person name.                          |
+| `-AlbFolder`,<br>`--albums-folders`       | `<ALBUMS_FOLDER>` |  path  |                                   `existing path`                                    | Creates albums for subfolders inside.                   |
+| `-rAlbAsset`,<br>`--remove-albums-assets` |                   |  flag  |                                                                                      | Removes assets inside albums when albums are removed.   |
 
 #### 🧪 Examples:
 ```bash
@@ -56,13 +56,13 @@ PhotoMigrator.run --filter-by-type=video --log-level=debug
 ## 🚀 Automatic Migration
 Following arguments allow you to execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
 
-| Argument                               | Parameter  |       Type        |                 Valid Values                  | Description                                             |
-|----------------------------------------|------------|:-----------------:|:---------------------------------------------:|---------------------------------------------------------|
+| Argument                               | Parameter  |       Type        |                                    Valid Values                                     | Description                                             |
+|----------------------------------------|------------|:-----------------:|:-----------------------------------------------------------------------------------:|---------------------------------------------------------|
 | `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich`, <br>`nextcloud`, <br>`google-photos` | Defines the source for the automatic migration process. |
 | `-target`,<br>`--target`               | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich`, <br>`nextcloud`, <br>`google-photos` | Defines the target for the automatic migration process. |
-| `-move`,<br>`--move-assets`            | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enable / Disables move assets instead of copying them.  |
-| `-dashboard`,<br>`--dashboard`         | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
-| `-parallel`,<br>`--parallel-migration` | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables parallel asset migration.            |
+| `-move`,<br>`--move-assets`            | `<bool>`   |       bool        |                       `true`, `false` <br>`(default: false)`                        | Enable / Disables move assets instead of copying them.  |
+| `-dashboard`,<br>`--dashboard`         | `<bool>`   |       bool        |                       `true`, `false` <br>`(default: false)`                        | Enables / Disables the live dashboard during migration. |
+| `-parallel`,<br>`--parallel-migration` | `<bool>`   |       bool        |                       `true`, `false` <br>`(default: false)`                        | Enables / Disables parallel asset migration.            |
 
 #### 🧪 Examples:
 ```bash

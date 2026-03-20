@@ -33,20 +33,20 @@ PhotoMigrator.run --version
 ## ⚙️ General Options
 Following general arguments have different purposes depending on the Execution Mode.
 
-| Argument                                  | Description                                                         |
-|-------------------------------------------|---------------------------------------------------------------------|
-| `-i`,<br>`--input-folder`                 | Input folder to process                                             |
-| `-o`,<br>`--output-folder`                | Output folder to store results                                      |
+| Argument                                  | Description                                                                          |
+|-------------------------------------------|--------------------------------------------------------------------------------------|
+| `-i`,<br>`--input-folder`                 | Input folder to process                                                              |
+| `-o`,<br>`--output-folder`                | Output folder to store results                                                       |
 | `-client`,<br>`--client`                  | Service client: `google-takeout`, `google-photos`, `synology`, `immich`, `nextcloud` |
-| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`                                  |
-| `-from`,<br>`--filter-from-date`          | Filter assets from this date                                        |
-| `-to`,<br>`--filter-to-date`              | Filter assets up to this date                                       |
-| `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`                      |
-| `-country`,<br>`--filter-by-country`      | Filter assets by country                                            |
-| `-city`,<br>`--filter-by-city`            | Filter assets by city                                               |
-| `-person`,<br>`--filter-by-person`        | Filter assets by person                                             |
-| `-AlbFolder`,<br>`--albums-folders`       | Use subfolders in folder as albums                                  |
-| `-rAlbAsset`,<br>`--remove-albums-assets` | Remove assets inside deleted albums                                 |
+| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`                                                   |
+| `-from`,<br>`--filter-from-date`          | Filter assets from this date                                                         |
+| `-to`,<br>`--filter-to-date`              | Filter assets up to this date                                                        |
+| `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`                                       |
+| `-country`,<br>`--filter-by-country`      | Filter assets by country                                                             |
+| `-city`,<br>`--filter-by-city`            | Filter assets by city                                                                |
+| `-person`,<br>`--filter-by-person`        | Filter assets by person                                                              |
+| `-AlbFolder`,<br>`--albums-folders`       | Use subfolders in folder as albums                                                   |
+| `-rAlbAsset`,<br>`--remove-albums-assets` | Remove assets inside deleted albums                                                  |
 
 #### 🧪 Examples:
 ```bash
@@ -59,13 +59,13 @@ PhotoMigrator.run --filter-by-type=video --log-level=debug
 ## 🚀 Automatic Migration Process
 Following arguments allow you to execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
 
-| Argument                               | Description                                                                  |
-|----------------------------------------|------------------------------------------------------------------------------|
+| Argument                               | Description                                                                                   |
+|----------------------------------------|-----------------------------------------------------------------------------------------------|
 | `-source`,<br>`--source` `<SOURCE>`    | Source service or folder: `immich`, `synology`, `nextcloud`, `google-photos`, or `local path` |
 | `-target`,<br>`--target` `<TARGET>`    | Target service or folder: `immich`, `synology`, `nextcloud`, `google-photos`, or `local path` |
-| `-move`,<br>`--move-assets`            | Move instead of copy files (`true` or `false`)                               |
-| `-dashboard`,<br>`--dashboard`         | Show live dashboard during migration (`true` or `false`)                     |
-| `-parallel`,<br>`--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)                  |
+| `-move`,<br>`--move-assets`            | Move instead of copy files (`true` or `false`)                                                |
+| `-dashboard`,<br>`--dashboard`         | Show live dashboard during migration (`true` or `false`)                                      |
+| `-parallel`,<br>`--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)                                   |
 
 #### 🧪 Examples:
 ```bash
