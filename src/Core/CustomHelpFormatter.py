@@ -294,13 +294,13 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             if help_text.find("Upload albums from <ALBUMS_FOLDER>") != -1:
                 text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
-                SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
+                SYNOLOGY/IMMICH/NEXTCLOUD/GOOGLE PHOTOS MANAGEMENT:
                 ----------------------------------{Style.RESET_ALL}
-                To use following features, it is mandatory to use the argument '--client=[synology, immich]' to specify which Photo Service do you want to use.   
+                To use following features, it is mandatory to use the argument '--client=[synology, immich, nextcloud, google-photos]' to specify which Photo Service do you want to use.  
 
                 You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.                  
 
-                Following arguments allow you to interact with Synology/Immich Photos. 
+                Following arguments allow you to interact with Synology/Immich/NextCloud/Google Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 text_to_insert = wrap_text(text_to_insert) + '\n\n'

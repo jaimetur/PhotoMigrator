@@ -132,6 +132,10 @@ FEATURE_SCOPED_DESTS = {
 }
 
 MODULE_DEPENDENCIES_REQUIRED = {
+    "google_photos": {
+        "download-albums": {"output-folder"},
+        "rename-albums": {"replacement-pattern"},
+    },
     "synology_photos": {
         "download-albums": {"output-folder"},
         "rename-albums": {"replacement-pattern"},
@@ -140,12 +144,18 @@ MODULE_DEPENDENCIES_REQUIRED = {
         "download-albums": {"output-folder"},
         "rename-albums": {"replacement-pattern"},
     },
+    "nextcloud_photos": {
+        "download-albums": {"output-folder"},
+        "rename-albums": {"replacement-pattern"},
+    },
 }
 
 TAB_TO_CATEGORY = {
     "google_takeout": "google_takeout",
+    "google_photos": "google_photos",
     "synology_photos": "synology_photos",
     "immich_photos": "immich_photos",
+    "nextcloud_photos": "nextcloud_photos",
     "standalone_features": "standalone_features",
     "automatic_migration": "automatic_migration",
 }
@@ -440,7 +450,7 @@ def _find_forbidden_special_folder_in_path(path_value: Any) -> str | None:
 
 
 def _is_automatic_migration_cloud_endpoint(value: str) -> bool:
-    return bool(re.fullmatch(r"(?:synology|immich)(?:-photos)?(?:-[123])?", value.strip().lower()))
+    return bool(re.fullmatch(r"(?:synology|immich|nextcloud|google)(?:-?photos)?(?:-[123])?", value.strip().lower()))
 
 
 def _bool_from_value(value: Any) -> bool:
@@ -494,8 +504,10 @@ def _load_parser_schema() -> Dict[str, Any]:
         "feature_scoped": [field for field in fields if field["dest"] in FEATURE_SCOPED_DESTS],
         "tabs": {
             "google_takeout": [field for field in fields if field["tab"] == "google_takeout"],
+            "google_photos": cloud_common,
             "synology_photos": cloud_common,
             "immich_photos": cloud_common,
+            "nextcloud_photos": cloud_common,
             "standalone_features": [field for field in fields if field["tab"] == "standalone_features"],
             "automatic_migration": [field for field in fields if field["tab"] == "automatic_migration"],
         },
@@ -513,7 +525,7 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
     allowed_dests.update(FEATURE_SCOPED_DESTS)
     tab_dests = {field["dest"] for field in PARSER_SCHEMA["tabs"][tab]}
 
-    if tab in {"synology_photos", "immich_photos"}:
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
         cloud_action_dests = {dest for dest in tab_dests if dest != "one-time-password"}
         if selected_action_dest:
             if selected_action_dest not in cloud_action_dests:
@@ -570,10 +582,14 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
             continue
         args.extend([long_option, text])
 
-    if tab == "synology_photos":
+    if tab == "google_photos":
+        args.extend(["--client", "google-photos"])
+    elif tab == "synology_photos":
         args.extend(["--client", "synology"])
     elif tab == "immich_photos":
         args.extend(["--client", "immich"])
+    elif tab == "nextcloud_photos":
+        args.extend(["--client", "nextcloud"])
     elif tab == "google_takeout":
         args.extend(["--client", "google-takeout"])
 
@@ -677,7 +693,7 @@ def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> s
         required.update({"source", "target"})
         return required
 
-    if tab in {"synology_photos", "immich_photos", "standalone_features"} and selected_action_dest:
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "standalone_features"} and selected_action_dest:
         tab_fields = {field["dest"]: field for field in PARSER_SCHEMA["tabs"].get(tab, [])}
         selected_field = tab_fields.get(selected_action_dest)
         if selected_field and selected_field.get("kind") != "flag":

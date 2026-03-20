@@ -1,0 +1,2 @@
+from .ClassNextCloudPhotos import ClassNextCloudPhotos
+

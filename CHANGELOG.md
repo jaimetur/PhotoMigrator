@@ -10,13 +10,28 @@
 #### 🚨 Breaking Changes:
   
 #### 🌟 New Features:
+  - Added full NextCloud Photos integration (WebDAV-based) across CLI, execution modes, automatic migration, and web interface.
+  - Added a dedicated `NextCloud Photos` tab in the web interface, placed between `Immich Photos` and `Other Features`.
+  - Added `ClassNextCloudPhotos` backend service with album/assets upload, download, cleanup, and rename/remove workflows.
+  - Added Google Photos integration (official Library API based) across CLI, execution modes, automatic migration, and web interface.
+  - Added a dedicated `Google Photos` tab in the web interface (next to `Google Takeout`).
+  - Added `ClassGooglePhotos` backend service with OAuth refresh-token auth and supported upload/download modules.
 
 #### 🚀 Enhancements:
+  - Added NextCloud credentials/settings support in `Config.ini` and config loader (`[NextCloud Photos]` section with account 1/2/3 and WebDAV root).
+  - Extended automatic migration endpoint parsing in web UI to support `nextcloud[-photos][-1..3]` for both source and target.
+  - Added Google Photos OAuth credentials support in `Config.ini` and config loader (`[Google Photos]` section with account 1/2/3).
+  - Extended automatic migration endpoint parsing in web UI to support `google[-photos][-1..3]` for both source and target.
+  - Updated CLI/source-target validation and help text to include `nextcloud` and `google-photos` as cloud clients.
   
 #### 🐛 Bug fixes:
+  - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
   - Other bug fixing.
 
 #### 📚 Documentation: 
+  - Added NextCloud Photos help page and linked it from README/help index.
+  - Added Google Photos help page and linked it from README/help index.
+  - Updated CLI/configuration/automatic-migration docs to include NextCloud and Google Photos support.
   - Updated documentation with all changes.
 
 ---

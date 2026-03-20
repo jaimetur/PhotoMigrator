@@ -53,9 +53,11 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - [Configuration File](/docs/view/help/0-configuration-file.md)
 - [Automatic Migration](/docs/view/help/3-automatic-migration.md)
 - [Google Takeout](/docs/view/help/4-google-takeout.md)
+- [Google Photos](/docs/view/help/8-google-photos.md)
 - [Synology Photos](/docs/view/help/5-synology-photos.md)
 - [Immich Photos](/docs/view/help/6-immich-photos.md)
-- [Other Features](/docs/view/help/7-other-features.md)
+- [NextCloud Photos](/docs/view/help/7-nextcloud-photos.md)
+- [Other Features](/docs/view/help/9-other-features.md)
 - [Google Photos Takeout Helper (GPTH)](/docs/view/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
 
 ### Arguments Reference

@@ -16,6 +16,8 @@ from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomCon
 from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE, FOLDERNAME_EXTRACTED_DATES
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
+from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
+from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import remove_empty_dirs, contains_zip_files, normalize_path
 from Utils.GeneralUtils import confirm_continue
@@ -145,6 +147,26 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 return ClassImmichPhotos(account_id=3)
             elif client_type.lower() in ['immich-photos', 'immich'] and ARGS['account-id'] > 1:
                 return ClassImmichPhotos(account_id=ARGS['account-id'])
+
+            # Return ClassNextCloudPhotos
+            elif client_type.lower() in ['nextcloud-photos', 'nextcloud', 'nextcloud-photos-1', 'nextcloud-photos1', 'nextcloud-1', 'nextcloud1'] and not ARGS['account-id'] > 1:
+                return ClassNextCloudPhotos(account_id=1)
+            elif client_type.lower() in ['nextcloud-photos-2', 'nextcloud-photos2', 'nextcloud-2', 'nextcloud2']:
+                return ClassNextCloudPhotos(account_id=2)
+            elif client_type.lower() in ['nextcloud-photos-3', 'nextcloud-photos3', 'nextcloud-3', 'nextcloud3']:
+                return ClassNextCloudPhotos(account_id=3)
+            elif client_type.lower() in ['nextcloud-photos', 'nextcloud'] and ARGS['account-id'] > 1:
+                return ClassNextCloudPhotos(account_id=ARGS['account-id'])
+
+            # Return ClassGooglePhotos
+            elif client_type.lower() in ['google-photos', 'googlephotos', 'google-photos-1', 'googlephotos-1', 'google-1', 'google1'] and not ARGS['account-id'] > 1:
+                return ClassGooglePhotos(account_id=1)
+            elif client_type.lower() in ['google-photos-2', 'googlephotos-2', 'google-2', 'google2']:
+                return ClassGooglePhotos(account_id=2)
+            elif client_type.lower() in ['google-photos-3', 'googlephotos-3', 'google-3', 'google3']:
+                return ClassGooglePhotos(account_id=3)
+            elif client_type.lower() in ['google-photos', 'googlephotos'] and ARGS['account-id'] > 1:
+                return ClassGooglePhotos(account_id=ARGS['account-id'])
 
             # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (contains_zip_files(client_type, log_level=logging.WARNING) or contains_takeout_structure(client_type, log_level=logging.INFO)):

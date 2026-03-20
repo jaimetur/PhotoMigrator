@@ -34,7 +34,7 @@ Following general arguments have different purposes depending on the Execution M
 |-------------------------------------------|-------------------|:------:|:----------------------------------------------:|---------------------------------------------------------|
 | `-i`,<br>`--input-folder`                 | `<INPUT_FOLDER>`  |  path  |                `existing path`                 | Folder containing assets to be processed.               |
 | `-o`,<br>`--output-folder`                | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                  | Folder where processed assets or results will be saved. |
-| `-client`,<br>`--client`                  | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich` | Specifies the service to interact with.                 |
+| `-client`,<br>`--client`                  | `<CLIENT>`        | string | `google-takeout`, <br>`google-photos`, <br>`synology`, <br>`immich`, <br>`nextcloud` | Specifies the service to interact with.                 |
 | `-id`,<br>`--account-id`                  | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`        | ID of the configured account in `Config.ini`.           |
 | `-from`,<br>`--filter-from-date`          | `<FROM_DATE>`     |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
 | `-to`,<br>`--filter-to-date`              | `<TO_DATE>`       |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
@@ -58,8 +58,8 @@ Following arguments allow you to execute the Automatic Migration Process to migr
 
 | Argument                               | Parameter  |       Type        |                 Valid Values                  | Description                                             |
 |----------------------------------------|------------|:-----------------:|:---------------------------------------------:|---------------------------------------------------------|
-| `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process. |
-| `-target`,<br>`--target`               | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the target for the automatic migration process. |
+| `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich`, <br>`nextcloud`, <br>`google-photos` | Defines the source for the automatic migration process. |
+| `-target`,<br>`--target`               | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich`, <br>`nextcloud`, <br>`google-photos` | Defines the target for the automatic migration process. |
 | `-move`,<br>`--move-assets`            | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enable / Disables move assets instead of copying them.  |
 | `-dashboard`,<br>`--dashboard`         | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
 | `-parallel`,<br>`--parallel-migration` | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables parallel asset migration.            |
@@ -111,12 +111,12 @@ PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTakeout=true
 ```
 
 ---
-## 🖼️ Synology / Immich Management
-To use following features, it is mandatory to use the argument `--client=[synology, immich]` to specify which Photo Service do you want to use.  
+## 🖼️ Synology / Immich / NextCloud / Google Photos Management
+To use following features, it is mandatory to use the argument `--client=[synology, immich, nextcloud, google-photos]` to specify which Photo Service do you want to use.  
 You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in `Config.ini`.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
-Following arguments allow you to interact with Synology/Immich Photos.
+Following arguments allow you to interact with Synology/Immich/NextCloud/Google Photos.
 
 | Argument                                    | Parameter                                       |       Type        |   Valid Values   | Description                                               |
 |---------------------------------------------|-------------------------------------------------|:-----------------:|:----------------:|-----------------------------------------------------------|

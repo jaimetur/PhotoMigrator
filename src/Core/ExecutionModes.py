@@ -7,8 +7,10 @@ from datetime import datetime, timedelta
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import START_TIME, ARGS, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, LOG_LEVEL, TIMESTAMP, VERBOSE_LEVEL_NUM, LOGGER
 from Features.AutomaticMigration.AutomaticMigration import mode_AUTOMATIC_MIGRATION
+from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
+from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates, process_duplicates_actions
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
@@ -36,6 +38,20 @@ def _normalize_merge_duplicates_result(result):
         # Backward/edge compatibility: some implementations return a single int.
         return result, 0
     return 0, 0
+
+
+def _build_cloud_client_obj(client_name: str):
+    normalized = str(client_name or "").strip().lower()
+    if normalized == "immich":
+        return ClassImmichPhotos(account_id=ARGS['account-id'])
+    if normalized == "synology":
+        return ClassSynologyPhotos(account_id=ARGS['account-id'])
+    if normalized == "google-photos":
+        return ClassGooglePhotos(account_id=ARGS['account-id'])
+    if normalized == "nextcloud":
+        return ClassNextCloudPhotos(account_id=ARGS['account-id'])
+    LOGGER.info(f"Cloud service not valid ({client_name}). Valid clients are ['immich', 'synology', 'nextcloud', 'google-photos']. Exiting program.")
+    sys.exit(0)
 
 # -------------------------------------------------------------
 # Determine the Execution mode based on the provided arguments:
@@ -73,7 +89,7 @@ def detect_and_run_execution_mode():
         mode_google_takeout()
 
 
-    # Synology/Immich Photos Modes:
+    # Synology/Immich/NextCloud/Google Photos Modes:
     elif ARGS['upload-albums'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
         EXECUTION_MODE = 'upload-albums'
@@ -292,14 +308,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Client not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
@@ -388,14 +397,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Client not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
@@ -485,14 +487,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Client not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
@@ -574,14 +569,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
@@ -651,14 +639,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
@@ -720,14 +701,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
@@ -789,14 +763,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Merge Duplicates Album' Mode detected. Only this module will be run!!!")
@@ -856,7 +823,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rOrphan, --remove-orphan-assets'.")
 
-    if client.lower() == 'synology':
+    if client.lower() in {'synology', 'nextcloud', 'google-photos'}:
         LOGGER.warning(f"This feature is not available for {client} Photos. Exiting program.")
         sys.exit(0)
 
@@ -868,14 +835,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Remove Orphan Assets' Mode detected. Only this module will be run!!!")
@@ -936,14 +896,7 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
@@ -1009,14 +962,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Rename Albums' Mode detected. Only this module will be run!!!")
@@ -1088,14 +1034,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
@@ -1162,14 +1101,7 @@ def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client_obj Object
-    if client.lower() == 'immich':
-        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client.lower() == 'synology':
-        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
-    else:
-        LOGGER.info(f"Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
-        sys.exit(0)
+    cloud_client_obj = _build_cloud_client_obj(client)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")

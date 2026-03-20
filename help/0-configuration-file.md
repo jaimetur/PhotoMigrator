@@ -30,6 +30,31 @@ You can see the default Configuration File ('Config.ini' by default) below:
 >IMMICH_API_KEY_USER_3       = API_KEY_USER_3                                # Account 3: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
 >IMMICH_USERNAME_3           = username_3                                    # Account 3: Your username for Immich Photos (mandatory if not API_KEY is providen)
 >IMMICH_PASSWORD_3           = password_3                                    # Account 3: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>
+># Configuration for NextCloud Photos
+>[NextCloud Photos]
+>NEXTCLOUD_URL               = http://192.168.1.11:8080                      # Your NextCloud base URL (without trailing '/')
+>NEXTCLOUD_USERNAME_1        = username_1                                    # Account 1: Your username for NextCloud
+>NEXTCLOUD_PASSWORD_1        = password_1                                    # Account 1: Your password for NextCloud
+>NEXTCLOUD_WEBDAV_ROOT_1     = /Photos                                       # Account 1: WebDAV root folder used by PhotoMigrator
+>NEXTCLOUD_USERNAME_2        = username_2                                    # Account 2: Your username for NextCloud
+>NEXTCLOUD_PASSWORD_2        = password_2                                    # Account 2: Your password for NextCloud
+>NEXTCLOUD_WEBDAV_ROOT_2     = /Photos                                       # Account 2: WebDAV root folder used by PhotoMigrator
+>NEXTCLOUD_USERNAME_3        = username_3                                    # Account 3: Your username for NextCloud
+>NEXTCLOUD_PASSWORD_3        = password_3                                    # Account 3: Your password for NextCloud
+>NEXTCLOUD_WEBDAV_ROOT_3     = /Photos                                       # Account 3: WebDAV root folder used by PhotoMigrator
+>
+># Configuration for Google Photos
+>[Google Photos]
+>GOOGLE_PHOTOS_CLIENT_ID_1       = client_id_1                               # OAuth Client ID for Google Photos account 1
+>GOOGLE_PHOTOS_CLIENT_SECRET_1   = client_secret_1                           # OAuth Client Secret for Google Photos account 1
+>GOOGLE_PHOTOS_REFRESH_TOKEN_1   = refresh_token_1                           # OAuth Refresh Token for Google Photos account 1
+>GOOGLE_PHOTOS_CLIENT_ID_2       = client_id_2                               # OAuth Client ID for Google Photos account 2
+>GOOGLE_PHOTOS_CLIENT_SECRET_2   = client_secret_2                           # OAuth Client Secret for Google Photos account 2
+>GOOGLE_PHOTOS_REFRESH_TOKEN_2   = refresh_token_2                           # OAuth Refresh Token for Google Photos account 2
+>GOOGLE_PHOTOS_CLIENT_ID_3       = client_id_3                               # OAuth Client ID for Google Photos account 3
+>GOOGLE_PHOTOS_CLIENT_SECRET_3   = client_secret_3                           # OAuth Client Secret for Google Photos account 3
+>GOOGLE_PHOTOS_REFRESH_TOKEN_3   = refresh_token_3                           # OAuth Refresh Token for Google Photos account 3
 >```
 
 ## Google Takeout Section:
@@ -71,6 +96,25 @@ In this section you have to provide:
 > If you choose username/password authentication method, then, you don't need to provide any API_KEY for that account.  
 >
 > If you choose API_KEY authentication method, then, you don't need to provide any username/password for that account.  
+
+## NextCloud Photos Section:
+In this section you have to provide:
+- **NEXTCLOUD_URL:** NextCloud base URL (for example `http://192.168.1.11`).
+- **NEXTCLOUD_USERNAME_1/2/3:** NextCloud username per account id.
+- **NEXTCLOUD_PASSWORD_1/2/3:** NextCloud password per account id.
+- **NEXTCLOUD_WEBDAV_ROOT_1/2/3:** Root folder where PhotoMigrator stores albums/no-albums in WebDAV.
+
+> [!NOTE]
+> NextCloud support is based on WebDAV operations and does not require API keys.
+
+## Google Photos Section:
+In this section you have to provide:
+- **GOOGLE_PHOTOS_CLIENT_ID_1/2/3:** OAuth client id per account.
+- **GOOGLE_PHOTOS_CLIENT_SECRET_1/2/3:** OAuth client secret per account.
+- **GOOGLE_PHOTOS_REFRESH_TOKEN_1/2/3:** OAuth refresh token per account.
+
+> [!NOTE]
+> Google Photos support is limited by current official Library API capabilities.
 
 ---
 

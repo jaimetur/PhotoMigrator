@@ -5,13 +5,8 @@
     
 ---
 
-## Release: v4.0.0 
+## Release: v5.0.0 
 #### 🌟 New Features:
-  - Include Nextcloud Support (initially just for downloading)
-    - Create Class ClassNextCloud with the same methods and behavior as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
-  - Include native support for Google Photos through API  
-    (See [this link](https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef))
-    - Create Class ClassGooglePhotos with the same methods and behavior as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
   - Include Apple Support (initially just for downloading)
     - Create Class ClassApplePhotos with the same methods and behavior as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
   - Include Test Cases to check all features

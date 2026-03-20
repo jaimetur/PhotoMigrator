@@ -265,9 +265,11 @@
 <script>
     const MODULE_TAB_NAMES = {
         automatic_migration: "AUTOMATIC MIGRATION",
-        google_takeout: "GOOGLE PHOTOS",
+        google_takeout: "GOOGLE TAKEOUT",
+        google_photos: "GOOGLE PHOTOS",
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
+        nextcloud_photos: "NEXTCLOUD PHOTOS",
         standalone_features: "OTHER FEATURES"
     };
 
@@ -390,6 +392,20 @@
             "remove-albums": [{dest: "remove-albums-assets", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
+        nextcloud_photos: {
+            "download-albums": [{dest: "output-folder", required: true}],
+            "upload-all": [{dest: "albums-folders", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}],
+            "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
+        },
+        google_photos: {
+            "download-albums": [{dest: "output-folder", required: true}],
+            "upload-all": [{dest: "albums-folders", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}],
+            "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
+        },
         standalone_features: {},
         google_takeout: {}
     };
@@ -438,8 +454,10 @@
         if (!payload || !payload.tab) return null;
         const action = String(payload.selected_action_dest || "").trim().toLowerCase();
 
-        if (payload.tab === "synology_photos" || payload.tab === "immich_photos") {
-            const clientLabel = payload.tab === "synology_photos" ? "Synology Photos" : "Immich Photos";
+        if (payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos" || payload.tab === "google_photos") {
+            const clientLabel = payload.tab === "synology_photos"
+                ? "Synology Photos"
+                : (payload.tab === "immich_photos" ? "Immich Photos" : (payload.tab === "nextcloud_photos" ? "NextCloud Photos" : "Google Photos"));
             const removeAlbumAssets = Boolean(payload?.values?.["remove-albums-assets"]);
             let message = "";
             if (action === "rename-albums") {
@@ -512,7 +530,7 @@
             if (forOptional && /^Example:/i.test(text)) return;
             if (/^Example:/i.test(text)) {
                 text = text
-                    .replace(/--client\s*=\s*(?:synology|immich|google-takeout)\s*/gi, "")
+                    .replace(/--client\s*=\s*(?:synology|immich|nextcloud|google-photos|google-takeout)\s*/gi, "")
                     .replace(/\s{2,}/g, " ")
                     .trim();
             }
@@ -1613,8 +1631,10 @@
             ...(schema.general_tabs.general || []),
             ...(schema.feature_scoped || []),
             ...(schema.tabs.google_takeout || []),
+            ...(schema.tabs.google_photos || []),
             ...(schema.tabs.synology_photos || []),
             ...(schema.tabs.immich_photos || []),
+            ...(schema.tabs.nextcloud_photos || []),
             ...(schema.tabs.standalone_features || []),
             ...(schema.tabs.automatic_migration || [])
         ];
@@ -1626,7 +1646,7 @@
 
     function normalizeFieldForContext(field, tabKey) {
         if (!field) return field;
-        if ((tabKey === "synology_photos" || tabKey === "immich_photos") && field.dest === "account-id") {
+        if ((tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos") && field.dest === "account-id") {
             return {
                 ...field,
                 kind: "select",
@@ -1893,7 +1913,7 @@
         left.appendChild(selectRow);
 
         const argSpecs = buildArgumentSpecs(tabKey, selected, true);
-        if (tabKey === "synology_photos" || tabKey === "immich_photos") {
+        if (tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos") {
             const accountField = getFieldByDest("account-id");
             if (accountField) {
                 const normalizedAccountField = normalizeFieldForContext(accountField, tabKey);
@@ -2013,7 +2033,7 @@
             optionalFieldsForDescription.push(normalizeFieldForContext(otpField, tabKey));
         }
         rightHelp.innerHTML = formatDescriptionHtml(selected, optionalFieldsForDescription, {
-            clientName: tabKey === "synology_photos" ? "Synology" : (tabKey === "immich_photos" ? "Immich" : "")
+            clientName: tabKey === "google_photos" ? "Google Photos" : (tabKey === "synology_photos" ? "Synology" : (tabKey === "immich_photos" ? "Immich" : (tabKey === "nextcloud_photos" ? "NextCloud" : "")))
         });
         right.appendChild(rightTitle);
         right.appendChild(rightName);
@@ -2241,6 +2261,10 @@
             if (synMatch) return {kind: "synology", account: synMatch[1] || "1", path: ""};
             const immichMatch = text.match(/^immich(?:-photos)?(?:-([123]))?$/i);
             if (immichMatch) return {kind: "immich", account: immichMatch[1] || "1", path: ""};
+            const nextcloudMatch = text.match(/^nextcloud(?:-photos)?(?:-([123]))?$/i);
+            if (nextcloudMatch) return {kind: "nextcloud", account: nextcloudMatch[1] || "1", path: ""};
+            const googleMatch = text.match(/^google(?:-?photos)?(?:-([123]))?$/i);
+            if (googleMatch) return {kind: "google", account: googleMatch[1] || "1", path: ""};
 
             return {kind: "folder", account: "1", path: text};
         };
@@ -2249,6 +2273,8 @@
             if (state.kind === "folder") return String(state.path || "").trim();
             if (state.kind === "synology") return `synology-photos-${state.account || "1"}`;
             if (state.kind === "immich") return `immich-photos-${state.account || "1"}`;
+            if (state.kind === "nextcloud") return `nextcloud-photos-${state.account || "1"}`;
+            if (state.kind === "google") return `google-photos-${state.account || "1"}`;
             return "";
         };
 
@@ -2272,6 +2298,8 @@
             typeSelect.className = "field__input migration-endpoint__type";
             typeSelect.add(new Option("Synology Photos", "synology"));
             typeSelect.add(new Option("Immich Photos", "immich"));
+            typeSelect.add(new Option("NextCloud Photos", "nextcloud"));
+            typeSelect.add(new Option("Google Photos", "google"));
             typeSelect.add(new Option("Select Folder", "folder"));
 
             const secondaryWrap = document.createElement("div");
@@ -2413,11 +2441,11 @@
         const migrationDescriptionField = {
             dest: "automatic-migration",
             help: "Run an end-to-end migration from <SOURCE> to <TARGET> including albums and non-album assets.\n"
-                + "SOURCE and TARGET can be cloud endpoints (synology/immich with account) or local folders.\n"
+                + "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders.\n"
                 + "By default migration runs in parallel with live dashboard enabled.\n"
                 + "IMPORTANT: Configure Config.ini credentials/API keys before running cloud migrations.\n"
                 + "\n"
-                + "Example: --source=synology-2 --target=immich-1\n"
+                + "Example: --source=synology-2 --target=google-photos-1\n"
                 + "Example: --source=/homes/MyTakeout --target=synology-1"
         };
         const optionalFieldsForDescription = [
@@ -2471,7 +2499,7 @@
         hideSpecialPanels();
 
         const moduleForm = document.getElementById("module-form");
-        if (activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos") {
+        if (activeModuleTab === "google_photos" || activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos" || activeModuleTab === "nextcloud_photos") {
             moduleForm.classList.remove("google-layout");
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.add("hidden");
@@ -2524,7 +2552,7 @@
     function buildRunPayload() {
         const values = collectValues();
         let selectedActionDest = null;
-        if (activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos") {
+        if (activeModuleTab === "google_photos" || activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos" || activeModuleTab === "nextcloud_photos") {
             const selected = (schema.tabs[activeModuleTab] || []).find((f) => f.dest === cloudActionDest);
             if (selected && selected.kind === "flag") values[selected.dest] = true;
             selectedActionDest = cloudActionDest || null;
@@ -2583,7 +2611,7 @@
             return required;
         }
 
-        if (payload.tab === "synology_photos" || payload.tab === "immich_photos") {
+        if (payload.tab === "google_photos" || payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos") {
             const selected = (schema.tabs[payload.tab] || []).find((f) => f.dest === payload.selected_action_dest);
             if (selected && selected.kind !== "flag") required.add(selected.dest);
             const mapped = (MODULE_DEPENDENCIES[payload.tab] || {})[selected?.dest || ""] || [];
@@ -2606,7 +2634,7 @@
         const errors = [];
         if (!payload || !payload.tab) return ["Missing tab."];
 
-        if ((payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "standalone_features")
+        if ((payload.tab === "google_photos" || payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos" || payload.tab === "standalone_features")
             && !payload.selected_action_dest) {
             errors.push("Please select a feature/module to run.");
         }

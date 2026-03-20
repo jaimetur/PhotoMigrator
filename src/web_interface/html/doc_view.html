@@ -1071,7 +1071,9 @@
             "4-google-takeout.md",
             "5-synology-photos.md",
             "6-immich-photos.md",
-            "7-other-features.md",
+            "7-nextcloud-photos.md",
+            "8-google-photos.md",
+            "9-other-features.md",
             "gpth_process_explanations/00_GPTH_complete_pipeline.md"
         ];
         const argumentsSubDocs = [
@@ -1089,10 +1091,29 @@
             {path: "gpth_process_explanations/08_GPTH_update_creation_time_windows_only.md", label: "8.8 Update Creation Time"},
         ];
         const otherFeaturesSubDocs = [
-            {anchor: "find-duplicates-extra-feature", label: "7.1 Find Duplicates"},
-            {anchor: "process-duplicates-extra-feature", label: "7.2 Process Duplicates"},
-            {anchor: "fix-symbolic-links-broken-extra-feature", label: "7.3 Fix Symbolic Links Broken"},
-            {anchor: "folder-rename-content-based-extra-feature", label: "7.4 Folder Rename Content Based"},
+            {anchor: "find-duplicates-extra-feature", label: "9.1 Find Duplicates"},
+            {anchor: "process-duplicates-extra-feature", label: "9.2 Process Duplicates"},
+            {anchor: "fix-symbolic-links-broken-extra-feature", label: "9.3 Fix Symbolic Links Broken"},
+            {anchor: "folder-rename-content-based-extra-feature", label: "9.4 Folder Rename Content Based"},
+        ];
+        const nextcloudSubDocs = [
+            {anchor: "upload-albums-from-local-folder-into-nextcloud-photos", label: "7.1 Upload Albums"},
+            {anchor: "download-albums-from-nextcloud-photos", label: "7.2 Download Albums"},
+            {anchor: "upload-all-from-local-folder-into-nextcloud-photos", label: "7.3 Upload All"},
+            {anchor: "download-all-from-nextcloud-photos", label: "7.4 Download All"},
+            {anchor: "remove-all-assets-from-nextcloud-photos", label: "7.5 Remove All Assets"},
+            {anchor: "remove-all-albums-from-nextcloud-photos", label: "7.6 Remove All Albums"},
+            {anchor: "remove-albums-by-name-pattern-from-nextcloud-photos", label: "7.7 Remove Albums by Pattern"},
+            {anchor: "rename-albums-by-name-pattern-from-nextcloud-photos", label: "7.8 Rename Albums by Pattern"},
+            {anchor: "remove-empty-albums-from-nextcloud-photos", label: "7.9 Remove Empty Albums"},
+            {anchor: "remove-duplicates-albums-from-nextcloud-photos", label: "7.10 Remove Duplicates Albums"},
+            {anchor: "merge-duplicates-albums-from-nextcloud-photos", label: "7.11 Merge Duplicates Albums"},
+        ];
+        const googlePhotosSubDocs = [
+            {anchor: "upload-albums", label: "8.1 Upload Albums"},
+            {anchor: "download-albums", label: "8.2 Download Albums"},
+            {anchor: "upload-all", label: "8.3 Upload All"},
+            {anchor: "download-all", label: "8.4 Download All"},
         ];
         const synologySubDocs = [
             {anchor: "upload-albums-from-local-folder-into-synology-photos", label: "5.1 Upload Albums"},
@@ -1131,8 +1152,10 @@
             "4-google-takeout.md": 60,
             "5-synology-photos.md": 70,
             "6-immich-photos.md": 80,
-            "7-other-features.md": 90,
-            "gpth_process_explanations/00_gpth_complete_pipeline.md": 100,
+            "7-nextcloud-photos.md": 90,
+            "8-google-photos.md": 100,
+            "9-other-features.md": 110,
+            "gpth_process_explanations/00_gpth_complete_pipeline.md": 120,
         };
         try {
             const response = await fetch(HELP_INDEX_API_URL);
@@ -1174,7 +1197,17 @@
                         addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                     }
                 }
-                if (key === "7-other-features.md") {
+                if (key === "7-nextcloud-photos.md") {
+                    const items = nextcloudSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
+                    navEl.lastElementChild?.remove();
+                    addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                }
+                if (key === "8-google-photos.md") {
+                    const items = googlePhotosSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
+                    navEl.lastElementChild?.remove();
+                    addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                }
+                if (key === "9-other-features.md") {
                     const items = otherFeaturesSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
@@ -1227,7 +1260,17 @@
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "7-other-features.md") {
+                    if (String(docPath).toLowerCase() === "7-nextcloud-photos.md") {
+                        const items = nextcloudSubDocs.map((sub) => ({label: sub.label, url: `${url}#${sub.anchor}`}));
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(docPath), url, items);
+                    }
+                    if (String(docPath).toLowerCase() === "8-google-photos.md") {
+                        const items = googlePhotosSubDocs.map((sub) => ({label: sub.label, url: `${url}#${sub.anchor}`}));
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(docPath), url, items);
+                    }
+                    if (String(docPath).toLowerCase() === "9-other-features.md") {
                         const items = otherFeaturesSubDocs.map((otherSub) => ({label: otherSub.label, url: `${url}#${otherSub.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);

@@ -33,20 +33,20 @@ PhotoMigrator.run --version
 ## ⚙️ General Options
 Following general arguments have different purposes depending on the Execution Mode.
 
-| Argument                                  | Description                                            |
-|-------------------------------------------|--------------------------------------------------------|
-| `-i`,<br>`--input-folder`                 | Input folder to process                                |
-| `-o`,<br>`--output-folder`                | Output folder to store results                         |
-| `-client`,<br>`--client`                  | Service client: `google-takeout`, `synology`, `immich` |
-| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`                     |
-| `-from`,<br>`--filter-from-date`          | Filter assets from this date                           |
-| `-to`,<br>`--filter-to-date`              | Filter assets up to this date                          |
-| `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`         |
-| `-country`,<br>`--filter-by-country`      | Filter assets by country                               |
-| `-city`,<br>`--filter-by-city`            | Filter assets by city                                  |
-| `-person`,<br>`--filter-by-person`        | Filter assets by person                                |
-| `-AlbFolder`,<br>`--albums-folders`       | Use subfolders in folder as albums                     |
-| `-rAlbAsset`,<br>`--remove-albums-assets` | Remove assets inside deleted albums                    |
+| Argument                                  | Description                                                         |
+|-------------------------------------------|---------------------------------------------------------------------|
+| `-i`,<br>`--input-folder`                 | Input folder to process                                             |
+| `-o`,<br>`--output-folder`                | Output folder to store results                                      |
+| `-client`,<br>`--client`                  | Service client: `google-takeout`, `google-photos`, `synology`, `immich`, `nextcloud` |
+| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`                                  |
+| `-from`,<br>`--filter-from-date`          | Filter assets from this date                                        |
+| `-to`,<br>`--filter-to-date`              | Filter assets up to this date                                       |
+| `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`                      |
+| `-country`,<br>`--filter-by-country`      | Filter assets by country                                            |
+| `-city`,<br>`--filter-by-city`            | Filter assets by city                                               |
+| `-person`,<br>`--filter-by-person`        | Filter assets by person                                             |
+| `-AlbFolder`,<br>`--albums-folders`       | Use subfolders in folder as albums                                  |
+| `-rAlbAsset`,<br>`--remove-albums-assets` | Remove assets inside deleted albums                                 |
 
 #### 🧪 Examples:
 ```bash
@@ -59,13 +59,13 @@ PhotoMigrator.run --filter-by-type=video --log-level=debug
 ## 🚀 Automatic Migration Process
 Following arguments allow you to execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
 
-| Argument                               | Description                                                     |
-|----------------------------------------|-----------------------------------------------------------------|
-| `-source`,<br>`--source` `<SOURCE>`    | Source service or folder: `immich`, `synology`, or `local path` |
-| `-target`,<br>`--target` `<TARGET>`    | Target service or folder: `immich`, `synology`, or `local path` |
-| `-move`,<br>`--move-assets`            | Move instead of copy files (`true` or `false`)                  |
-| `-dashboard`,<br>`--dashboard`         | Show live dashboard during migration (`true` or `false`)        |
-| `-parallel`,<br>`--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)     |
+| Argument                               | Description                                                                  |
+|----------------------------------------|------------------------------------------------------------------------------|
+| `-source`,<br>`--source` `<SOURCE>`    | Source service or folder: `immich`, `synology`, `nextcloud`, `google-photos`, or `local path` |
+| `-target`,<br>`--target` `<TARGET>`    | Target service or folder: `immich`, `synology`, `nextcloud`, `google-photos`, or `local path` |
+| `-move`,<br>`--move-assets`            | Move instead of copy files (`true` or `false`)                               |
+| `-dashboard`,<br>`--dashboard`         | Show live dashboard during migration (`true` or `false`)                     |
+| `-parallel`,<br>`--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)                  |
 
 #### 🧪 Examples:
 ```bash
@@ -113,12 +113,12 @@ PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTakeout=true
 ```
 
 ---
-## 🖼️ Synology / Immich Photo Management
-To use following features, it is mandatory to use the argument `--client=[synology, immich]` to specify which Photo Service do you want to use.  
+## 🖼️ Synology / Immich / NextCloud / Google Photos Management
+To use following features, it is mandatory to use the argument `--client=[synology, immich, nextcloud, google-photos]` to specify which Photo Service do you want to use.  
 You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in Config.ini.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
-Following arguments allow you to interact with Synology/Immich Photos.
+Following arguments allow you to interact with Synology/Immich/NextCloud/Google Photos.
 
 | Argument                                    | Description                                    |
 |---------------------------------------------|------------------------------------------------|
@@ -298,4 +298,3 @@ Processes duplicates based on a CSV file with actions.
 I hope this can be useful for any of you. Enjoy it!
 
 <span style="color:grey">(c) 2024-2026 by Jaime Tur (@jaimetur).</span>  
-

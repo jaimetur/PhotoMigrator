@@ -19,9 +19,13 @@ choices_for_log_formats             = ['log', 'txt', 'all']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
 choices_for_AUTOMATIC_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
-                                       'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3']
+                                       'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3',
+                                       'nextcloud-photos', 'nextcloud', 'nextcloud-photos-1', 'nextcloud-photos1', 'nextcloud-1', 'nextcloud1', 'nextcloud-photos-2', 'nextcloud-photos2', 'nextcloud-2', 'nextcloud2', 'nextcloud-photos-3', 'nextcloud-photos3', 'nextcloud-3', 'nextcloud3',
+                                       'google-photos', 'googlephotos', 'google-photos-1', 'googlephotos-1', 'google-1', 'google1', 'google-photos-2', 'googlephotos-2', 'google-2', 'google2', 'google-photos-3', 'googlephotos-3', 'google-3', 'google3']
 choices_for_AUTOMATIC_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
-                                       'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3']
+                                       'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3',
+                                       'nextcloud-photos', 'nextcloud', 'nextcloud-photos-1', 'nextcloud-photos1', 'nextcloud-1', 'nextcloud1', 'nextcloud-photos-2', 'nextcloud-photos2', 'nextcloud-2', 'nextcloud2', 'nextcloud-photos-3', 'nextcloud-photos3', 'nextcloud-3', 'nextcloud3',
+                                       'google-photos', 'googlephotos', 'google-photos-1', 'googlephotos-1', 'google-1', 'google1', 'google-photos-2', 'googlephotos-2', 'google-2', 'google2', 'google-photos-3', 'googlephotos-3', 'google-3', 'google3']
 valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
 
 
@@ -111,7 +115,7 @@ def parse_arguments():
                         help="Specify the output folder to save the result of the processing action.")
 
     PARSER.add_argument("-client", "--client",
-                        metavar="= ['google-takeout', 'synology', 'immich']",
+                        metavar="= ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']",
                         default='google-takeout',  # If not provided, default is 'google-takeout'
                         type=validate_client,      # Validates client string
                         help="Set the client to use for the selected feature.")
@@ -158,7 +162,7 @@ def parse_arguments():
                         help="Select the <SOURCE> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) "
                              "from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums).\n\n"
                              "Possible values:\n"
-                             "  ['synology', 'immich']-[id] or <INPUT_FOLDER>\n"
+                             "  ['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <INPUT_FOLDER>\n"
                              "  [id] = [1, 2] select which account to use from the Config.ini file.\n\n"
                              "Examples:\n"
                              "  --source=immich-1   -> Select Immich Photos account 1 as Source.\n"
@@ -170,7 +174,7 @@ def parse_arguments():
                         help="Select the <TARGET> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) "
                              "from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums).\n\n"
                              "Possible values:\n"
-                             "  ['synology', 'immich']-[id] or <OUTPUT_FOLDER>\n"
+                             "  ['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <OUTPUT_FOLDER>\n"
                              "  [id] = [1, 2] select which account to use from the Config.ini file.\n\n"
                              "Examples:\n"
                              "  --target=immich-1   -> Select Immich Photos account 1 as Target.\n"
@@ -461,7 +465,7 @@ def validate_client(valor):
     """
     Validate the photo client selection.
     """
-    valid_clients = ['google-takeout', 'synology', 'immich']
+    valid_clients = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']
     try:
         valor_lower = valor.lower()
     except Exception:
@@ -502,7 +506,7 @@ def validate_client_arg(ARGS, PARSER):
                 PARSER.error(
                     f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
                     f"The flag '--{flag}' requires that '--client' is also specified "
-                    f"(synology or immich).\n{Style.RESET_ALL}"
+                    f"(synology, immich, nextcloud or google-photos).\n{Style.RESET_ALL}"
                 )
                 exit(1)
 

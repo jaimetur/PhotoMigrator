@@ -1,0 +1,2 @@
+from .ClassGooglePhotos import ClassGooglePhotos
+
