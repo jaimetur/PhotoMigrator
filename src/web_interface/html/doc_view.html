@@ -604,6 +604,8 @@
         let inCode = false;
         let codeLang = "";
         let codeLines = [];
+        let codeFenceDelimiter = "";
+        let codeFenceInQuote = false;
         const headingIdCounter = new Map();
 
         const closeLists = () => {
@@ -672,25 +674,45 @@
             }
 
             if (inCode) {
-                if (/^```/.test(trimmed)) {
+                let codeRawLine = rawLine;
+                if (codeFenceInQuote) {
+                    const quoteMatch = rawLine.match(/^>\s?(.*)$/);
+                    if (quoteMatch) codeRawLine = quoteMatch[1];
+                }
+                const codeTrimmed = codeRawLine.trim();
+                if (codeFenceDelimiter && codeTrimmed.startsWith(codeFenceDelimiter)) {
                     const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
                     html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
                     inCode = false;
                     codeLang = "";
                     codeLines = [];
+                    codeFenceDelimiter = "";
+                    codeFenceInQuote = false;
                 } else {
-                    codeLines.push(rawLine);
+                    codeLines.push(codeRawLine);
                 }
                 continue;
             }
 
-            const codeFence = trimmed.match(/^```([\w-]+)?\s*$/);
+            let codeFenceText = trimmed;
+            let codeFence = codeFenceText.match(/^(?:```|''')([\w-]+)?\s*$/);
+            let openingFenceInQuote = false;
+            if (!codeFence) {
+                const quoteMatch = rawLine.match(/^>\s?(.*)$/);
+                if (quoteMatch) {
+                    codeFenceText = String(quoteMatch[1] || "").trim();
+                    codeFence = codeFenceText.match(/^(?:```|''')([\w-]+)?\s*$/);
+                    openingFenceInQuote = Boolean(codeFence);
+                }
+            }
             if (codeFence) {
                 flushParagraph();
                 closeLists();
                 inCode = true;
                 codeLang = codeFence[1] || "";
                 codeLines = [];
+                codeFenceDelimiter = codeFenceText.startsWith("'''") ? "'''" : "```";
+                codeFenceInQuote = openingFenceInQuote;
                 continue;
             }
 

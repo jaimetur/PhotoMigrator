@@ -29,6 +29,8 @@
   - Added a safeguard in `organize_files_by_date` to skip files already organized in the expected date folder structure (`year`, `year/month`, `year-month`) and avoid redundant re-nesting.
   - Improved Web Interface execution log buffering for long-running jobs with progress bars: progress refresh updates no longer flood line history, the in-memory log is compacted by progress key, and default web log buffer size was increased and made configurable via `PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES`.
   - Simplified docker-compose.yml file.
+  - Horizontal scroll on log panel when lines are too large.
+  - Improved markdown render for code blocks.
   
 #### 🐛 Bug fixes:
   - Added validation for `--google-takeout` path to block reserved special-folder names (`Archive`, `Trash`, `Locked folder`) and abort early with a clear message; same validation is enforced in Web UI folder selection (Issue #1008).

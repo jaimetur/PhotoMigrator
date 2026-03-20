@@ -534,6 +534,9 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
         available_actions = cloud_action_dests.intersection(
             CLOUD_ACTIONS_AVAILABLE_BY_TAB.get(tab, cloud_action_dests)
         )
+        if not available_actions:
+            # Safety net for mapping/parser mismatches: keep cloud actions reachable.
+            available_actions = cloud_action_dests
         if selected_action_dest:
             if selected_action_dest not in available_actions:
                 raise HTTPException(status_code=400, detail=f"Invalid selected action for tab {tab}: {selected_action_dest}")

@@ -265,7 +265,7 @@
 <script>
     const MODULE_TAB_NAMES = {
         automatic_migration: "AUTOMATIC MIGRATION",
-        google_takeout: "GOOGLE PHOTOS",
+        google_takeout: "GOOGLE TAKEOUT",
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
         standalone_features: "OTHER FEATURES"
@@ -393,6 +393,28 @@
         standalone_features: {},
         google_takeout: {}
     };
+
+    const CLOUD_ACTIONS_AVAILABLE = {
+        synology_photos: [
+            "upload-albums",
+            "download-albums",
+            "upload-all",
+            "download-all",
+            "rename-albums",
+            "remove-albums",
+            "remove-all-albums",
+            "remove-all-assets",
+            "remove-empty-albums",
+            "remove-duplicates-albums",
+            "merge-duplicates-albums"
+        ]
+    };
+
+    function isCloudActionAvailable(tabKey, dest) {
+        const allowed = CLOUD_ACTIONS_AVAILABLE[tabKey];
+        return !allowed || allowed.includes(dest);
+    }
+
     const MIGRATION_FILTER_DESTS = [
         "filter-by-type",
         "filter-from-date",
@@ -693,6 +715,8 @@
         let inCode = false;
         let codeLang = "";
         let codeLines = [];
+        let codeFenceDelimiter = "";
+        let codeFenceInQuote = false;
 
         const closeLists = () => {
             if (inUl) {
@@ -702,29 +726,8 @@
             if (inOl) {
                 html.push("</ol>");
                 inOl = false;
-        }
-    };
-
-    const CLOUD_ACTIONS_AVAILABLE = {
-        synology_photos: [
-            "upload-albums",
-            "download-albums",
-            "upload-all",
-            "download-all",
-            "rename-albums",
-            "remove-albums",
-            "remove-all-albums",
-            "remove-all-assets",
-            "remove-empty-albums",
-            "remove-duplicates-albums",
-            "merge-duplicates-albums"
-        ]
-    };
-
-    function isCloudActionAvailable(tabKey, dest) {
-        const allowed = CLOUD_ACTIONS_AVAILABLE[tabKey];
-        return !allowed || allowed.includes(dest);
-    }
+            }
+        };
 
         const flushParagraph = () => {
             if (!paragraph.length) return;
@@ -737,25 +740,45 @@
             const trimmed = line.trim();
 
             if (inCode) {
-                if (/^```/.test(trimmed)) {
+                let codeRawLine = line;
+                if (codeFenceInQuote) {
+                    const quoteMatch = line.match(/^>\s?(.*)$/);
+                    if (quoteMatch) codeRawLine = quoteMatch[1];
+                }
+                const codeTrimmed = codeRawLine.trim();
+                if (codeFenceDelimiter && codeTrimmed.startsWith(codeFenceDelimiter)) {
                     const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
                     html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
                     inCode = false;
                     codeLang = "";
                     codeLines = [];
+                    codeFenceDelimiter = "";
+                    codeFenceInQuote = false;
                 } else {
-                    codeLines.push(line);
+                    codeLines.push(codeRawLine);
                 }
                 continue;
             }
 
-            const codeFence = trimmed.match(/^```([\w-]+)?\s*$/);
+            let codeFenceText = trimmed;
+            let codeFence = codeFenceText.match(/^(?:```|''')([\w-]+)?\s*$/);
+            let openingFenceInQuote = false;
+            if (!codeFence) {
+                const quoteMatch = line.match(/^>\s?(.*)$/);
+                if (quoteMatch) {
+                    codeFenceText = String(quoteMatch[1] || "").trim();
+                    codeFence = codeFenceText.match(/^(?:```|''')([\w-]+)?\s*$/);
+                    openingFenceInQuote = Boolean(codeFence);
+                }
+            }
             if (codeFence) {
                 flushParagraph();
                 closeLists();
                 inCode = true;
                 codeLang = codeFence[1] || "";
                 codeLines = [];
+                codeFenceDelimiter = codeFenceText.startsWith("'''") ? "'''" : "```";
+                codeFenceInQuote = openingFenceInQuote;
                 continue;
             }
 
@@ -1869,7 +1892,10 @@
     function renderCloudActionPanel(tabKey) {
         const panel = document.getElementById("cloud-action-panel");
         const fields = (schema.tabs[tabKey] || []);
-        const actions = fields.filter((f) => f.dest !== "one-time-password" && isCloudActionAvailable(tabKey, f.dest));
+        const baseActions = fields.filter((f) => f.dest !== "one-time-password");
+        let actions = baseActions.filter((f) => isCloudActionAvailable(tabKey, f.dest));
+        // Safety net: if availability mapping gets out of sync with parser dests, keep UI usable.
+        if (!actions.length) actions = baseActions;
         const otpField = fields.find((f) => f.dest === "one-time-password");
         const persistedCloudDest = uiState?.cloud_action_dest?.[tabKey];
         if (!cloudActionDest && persistedCloudDest && actions.find((f) => f.dest === persistedCloudDest)) {
