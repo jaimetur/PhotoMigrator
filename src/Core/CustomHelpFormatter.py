@@ -254,6 +254,17 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 subsequent_indent=" " * IDENT_ARGUMENT_DESCRIPTION
             )
 
+            # Insert section header: GENERAL ARGUMENTS
+            if help_text.find("Specify the input folder that you want to process.") != -1:
+                text_to_insert = textwrap.dedent(f"""
+                {Fore.YELLOW}
+                GENERAL ARGUMENTS:
+                ------------------{Style.RESET_ALL}
+                Following general arguments have different purposses depending on the Execution Mode. 
+                """)
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
+
             # Insert section header: AUTOMATIC MIGRATION PROCESS
             if help_text.find("Select the <SOURCE> for the AUTOMATIC-MIGRATION Process") != -1:
                 text_to_insert = textwrap.dedent(f"""
@@ -262,17 +273,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 ----------------------------{Style.RESET_ALL}
                 Following arguments allow you execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service. 
 
-                """)
-                text_to_insert = wrap_text(text_to_insert) + '\n\n'
-                parts.insert(-1, f"{text_to_insert}")
-
-            # Insert section header: GENERAL ARGUMENTS
-            if help_text.find("Specify the input folder that you want to process.") != -1:
-                text_to_insert = textwrap.dedent(f"""
-                {Fore.YELLOW}
-                GENERAL ARGUMENTS:
-                ------------------{Style.RESET_ALL}
-                Following general arguments have different purposses depending on the Execution Mode. 
                 """)
                 text_to_insert = wrap_text(text_to_insert) + '\n\n'
                 parts.insert(-1, f"{text_to_insert}")
@@ -290,32 +290,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 text_to_insert = wrap_text(text_to_insert) + '\n\n'
                 parts.insert(-1, f"{text_to_insert}")
 
-            # Insert section header: SYNOLOGY PHOTOS MANAGEMENT (legacy/detection string)
-            if help_text.find("and will create one Album per subfolder into Synology Photos.") != -1:
-                text_to_insert = textwrap.dedent(f"""
-                {Fore.YELLOW}
-                SYNOLOGY PHOTOS MANAGEMENT:
-                ---------------------------{Style.RESET_ALL}
-                Following arguments allow you to interact with Synology Photos. 
-                If more than one optional arguments are detected, only the first one will be executed.
-                """)
-                text_to_insert = wrap_text(text_to_insert) + '\n\n'
-                parts.insert(-1, f"{text_to_insert}")
-
-            # Insert section header: IMMICH PHOTOS MANAGEMENT (legacy/detection string)
-            if help_text.find("and will create one Album per subfolder into Immich Photos.") != -1:
-                text_to_insert = textwrap.dedent(f"""
-                {Fore.YELLOW}
-                IMMICH PHOTOS MANAGEMENT:
-                -------------------------{Style.RESET_ALL}
-                Following arguments allow you to interact with Immich Photos. 
-                If more than one optional arguments are detected, only the first one will be executed.
-                """)
-                text_to_insert = wrap_text(text_to_insert) + '\n\n'
-                parts.insert(-1, f"{text_to_insert}")
-
             # Insert section header: SYNOLOGY/IMMICH PHOTOS MANAGEMENT
-            if help_text.find("The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>") != -1:
+            if help_text.find("Upload albums from <ALBUMS_FOLDER>") != -1:
                 text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
@@ -331,7 +307,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 parts.insert(-1, f"{text_to_insert}")
 
             # Insert section header: OTHER STANDALONE FEATURES
-            if help_text.find("The Tool will try to fix all symbolic links for Albums") != -1:
+            if help_text.find("Scan <FOLDER_TO_FIX> recursively and try to repair broken symbolic links") != -1:
                 text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 OTHER STANDALONE FEATURES:

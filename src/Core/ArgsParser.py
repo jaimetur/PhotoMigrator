@@ -209,14 +209,15 @@ def parse_arguments():
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------
     PARSER.add_argument("-gTakeout", "--google-takeout", metavar="<TAKEOUT_FOLDER>", default="",
-                        help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. "
+                        help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it.\n"
                              "If any Zip file is found inside it, the Zip will be extracted to the folder "
                              "'<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input.\n"
                              "The processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'.\n"
                              "This argument is mandatory to run the Google Takeout Processor feature.")
 
     PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFFIX>", default="processed",
-                        help="Specify the suffix for the output folder. Default: 'processed'")
+                        help="Specify the suffix for the output folder. Default: 'processed'\n"
+                             "The output folder will have the same name as input folder followed by this suffix and the execution timestamp.")
 
     PARSER.add_argument("-gafs", "--google-albums-folders-structure",
                         metavar=f"{choices_for_folder_structure}",
