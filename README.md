@@ -244,6 +244,9 @@ APP_DIR=../
 # Any delete request outside these roots will be rejected.
 PHOTOMIGRATOR_WEB_DELETE_ROOTS=/app/data,/app/config,/app/volumes
 
+# Max. Lines in buffer for the Web Interface Log panel
+PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES=100000
+
 # Docker image tag to pull
 IMAGE_TAG=latest-stable
 ```
@@ -260,11 +263,6 @@ services:
       - "${PORT}:6078"
     env_file:
       - .env
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - PHOTOMIGRATOR_WEB_DELETE_ROOTS=${PHOTOMIGRATOR_WEB_DELETE_ROOTS}
     volumes:
       - ${CONFIG_DIR}:/app/config
       - ${DATA_DIR}:/app/data

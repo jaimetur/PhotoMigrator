@@ -18,9 +18,10 @@ body:
   id: version
   attributes:
     label: Version
-    description: What version of our software are you running?
+    description: What tool version are you running?
     options:
-    - v3.7.1 (latest-stable)
+    - v3.8.0 (latest-stable)
+    - v3.7.1
     - v3.7.0
     - v3.6.2
     - v3.6.1
@@ -56,16 +57,17 @@ body:
 - type: dropdown
   id: os-arch
   attributes:
-    label: Operating System / Archiecture
-    description: What Operating System and Architecture are you running?
+    label: Platform
+    description: In which platform are you running the tool?
     options:
-    - docker-version
+    - Web Interface
     - linux-x86
     - linux-arm64
     - macos-x86
     - macos-arm64
     - windows-x86
     - windows-arm64
+    - docker-version
     default: 0
   validations:
     required: true
@@ -76,6 +78,7 @@ body:
     description: What Feature of the tool is affected by this Bug?
     options:
     - Global (all features will be affected)
+    - Web Interface
     - Logging / Text Messages
     - Documentation
     - Automatic Migration
@@ -89,6 +92,15 @@ body:
     - Docker Running
     - Other
     default: 0
+  validations:
+    required: true
+- type: textarea
+  id: command-executed
+  attributes:
+    label: Command executed
+    description: Paste the command executed with all the arguments used
+    placeholder: Introduce the command executed (if you are running the web interface it can be copied directly from the Command Preview section
+    value: /usr/local/bin/python /app/src/PhotoMigrator.py --configuration-file /app/config/Config.ini --no-request-user-confirmation --source synology-photos-1 --target immich-photos-1
   validations:
     required: true
 - type: textarea

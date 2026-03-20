@@ -1,5 +1,6 @@
 import argparse
 from collections import deque
+from dataclasses import dataclass
 import json
 import os
 import re
@@ -183,9 +184,12 @@ class JobData:
         self.stop_requested = False
         self.awaiting_confirmation = False
         self.status = "running"
-        self.output: Deque[str] = deque()  # last completed lines in memory
+        self.output: Deque["OutputLine"] = deque()  # last completed logical lines in memory
         self.output_chars = 0
+        self.dropped_output_lines = 0
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
+        self.pending_cr = False            # track split CRLF across chunk boundaries
+        self.progress_lines: Dict[str, "OutputLine"] = {}
         self.total_output_chars = 0        # full execution chars
         self.output_file = _create_job_output_file()
         self.output_fp: TextIO | None = open(self.output_file, "a", encoding="utf-8", errors="replace")
@@ -194,11 +198,33 @@ class JobData:
         self.finished_at: str | None = None
 
 
-MAX_JOB_OUTPUT_LINES = 20_000
-TAIL_CONFIRM_CHARS = 4_000
-API_OUTPUT_TAIL_LINES = 20_000
-API_FULL_OUTPUT_LIMIT_CHARS = 8_000_000
+@dataclass
+class OutputLine:
+    text: str
+    progress_key: str | None = None
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+        return value if value > 0 else default
+    except ValueError:
+        return default
+
+
 WEB_JOB_LOG_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_JOB_LOG_DIR", "/tmp/photomigrator-web-jobs"))
+MAX_JOB_OUTPUT_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES", 100_000)
+TAIL_CONFIRM_CHARS = 4_000
+ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
+PROGRESS_CUSTOM_FULL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%\s*$")
+PROGRESS_TQDM_RE = re.compile(r"(\d{1,3}%\|[^|]*\|\s*\d+/\d+)")
+PROGRESS_CUSTOM_PARTIAL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$")
+PROGRESS_TQDM_PARTIAL_RE = re.compile(r"(\d{1,3}%\|[^|]*)")
+PROGRESS_STEP_PREFIX_RE = re.compile(r"^(.*?\[\s*step\s+\d+/\d+\][^:]*:)", re.IGNORECASE)
+PROGRESS_SEPARATOR_RE = re.compile(r"^[=\-_\s]{6,}$")
 
 
 def _create_job_output_file() -> Path:
@@ -218,6 +244,41 @@ def _close_job_output_file(job: JobData) -> None:
             job.output_fp = None
 
 
+def _strip_ansi(text: str) -> str:
+    return ANSI_ESCAPE_RE.sub("", str(text or ""))
+
+
+def _extract_progress_key(line: str) -> str | None:
+    clean = _strip_ansi(line).replace("\r", "").strip()
+    if not clean:
+        return None
+    without_level = re.sub(r"^[A-Z]+\s*:?\s*", "", clean).strip()
+    if without_level and PROGRESS_SEPARATOR_RE.match(without_level):
+        return None
+
+    m = PROGRESS_CUSTOM_FULL_RE.match(clean)
+    if m:
+        return str(m.group(1) or "").strip().lower() or None
+
+    m = PROGRESS_TQDM_RE.search(clean)
+    if m and m.start() >= 0:
+        return clean[:m.start()].strip().lower() or None
+
+    m = PROGRESS_CUSTOM_PARTIAL_RE.match(clean)
+    if m:
+        return str(m.group(1) or "").strip().lower() or None
+
+    m = PROGRESS_TQDM_PARTIAL_RE.search(clean)
+    if m and m.start() >= 0:
+        return clean[:m.start()].strip().lower() or None
+
+    m = PROGRESS_STEP_PREFIX_RE.match(clean)
+    if m:
+        return str(m.group(1) or "").strip().lower() or None
+
+    return None
+
+
 def _append_job_output(job: JobData, text: str) -> None:
     if not text:
         return
@@ -229,21 +290,51 @@ def _append_job_output(job: JobData, text: str) -> None:
             pass
     job.total_output_chars += len(text)
 
-    # Keep last completed lines in memory (line-based, not char-based).
-    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
-    payload = f"{job.partial_line}{normalized}"
-    parts = payload.split("\n")
-    completed = parts[:-1]
-    job.partial_line = parts[-1]
+    # Keep last completed logical lines in memory (line-based, not char-based).
+    # '\r' rewrites the same line and does not create a new history line.
+    current = job.partial_line
+    completed: List[str] = []
+    for ch in text:
+        if job.pending_cr:
+            if ch == "\n":
+                completed.append(current)
+                current = ""
+                job.pending_cr = False
+                continue
+            current = ""
+            job.pending_cr = False
+
+        if ch == "\n":
+            completed.append(current)
+            current = ""
+        elif ch == "\r":
+            job.pending_cr = True
+        else:
+            current += ch
+    job.partial_line = current
 
     for line in completed:
         line_with_nl = f"{line}\n"
-        job.output.append(line_with_nl)
+        progress_key = _extract_progress_key(line_with_nl)
+        if progress_key and progress_key in job.progress_lines:
+            prev_entry = job.progress_lines[progress_key]
+            prev_len = len(prev_entry.text)
+            prev_entry.text = line_with_nl
+            job.output_chars += len(line_with_nl) - prev_len
+            continue
+
+        entry = OutputLine(text=line_with_nl, progress_key=progress_key)
+        job.output.append(entry)
         job.output_chars += len(line_with_nl)
+        if progress_key:
+            job.progress_lines[progress_key] = entry
 
     while len(job.output) > MAX_JOB_OUTPUT_LINES:
         removed = job.output.popleft()
-        job.output_chars -= len(removed)
+        job.output_chars -= len(removed.text)
+        job.dropped_output_lines += 1
+        if removed.progress_key and job.progress_lines.get(removed.progress_key) is removed:
+            del job.progress_lines[removed.progress_key]
 
 
 def _get_job_output_tail(job: JobData, max_chars: int) -> str:
@@ -255,7 +346,8 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
     if partial:
         chunks.append(partial)
         total += len(partial)
-    for chunk in reversed(job.output):
+    for entry in reversed(job.output):
+        chunk = entry.text
         chunks.append(chunk)
         total += len(chunk)
         if total >= max_chars:
@@ -263,39 +355,20 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
     return "".join(reversed(chunks))[-max_chars:]
 
 
-def _read_tail_lines(path: Path, max_lines: int) -> str:
-    if max_lines <= 0 or not path.exists():
-        return ""
-    try:
-        with open(path, "r", encoding="utf-8", errors="replace") as f:
-            return "".join(deque(f, maxlen=max_lines))
-    except Exception:
-        return ""
-
-
 def _read_job_output_for_api(job: JobData) -> str:
-    path = getattr(job, "output_file", None)
-    if not path:
-        # Fallback from in-memory line buffer.
-        base = "".join(job.output)
-        if job.partial_line:
-            base += job.partial_line
+    # Always serve compact in-memory output so progress refreshes don't consume history.
+    base = "".join(entry.text for entry in job.output)
+    if job.partial_line:
+        base += job.partial_line
+
+    if job.dropped_output_lines <= 0:
         return base
 
-    try:
-        if job.total_output_chars <= API_FULL_OUTPUT_LIMIT_CHARS:
-            return path.read_text(encoding="utf-8", errors="replace")
-        tail = _read_tail_lines(path, API_OUTPUT_TAIL_LINES)
-        notice = (
-            f"[web-interface] Output too large ({job.total_output_chars} chars). "
-            f"Showing last {API_OUTPUT_TAIL_LINES} lines.\n"
-        )
-        return notice + tail
-    except Exception:
-        base = "".join(job.output)
-        if job.partial_line:
-            base += job.partial_line
-        return base
+    notice = (
+        f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
+        f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines).\n"
+    )
+    return notice + base
 
 
 PARSER_SCHEMA: Dict[str, Any] = {}
@@ -1068,6 +1141,26 @@ def run_cli(payload: RunRequest) -> Dict[str, Any]:
     return {"job_id": job_id, "command": subprocess.list2cmdline(command)}
 
 
+@app.get("/api/jobs/_active")
+def get_active_job() -> Dict[str, Any]:
+    with JOBS_LOCK:
+        active_jobs = [
+            (job_id, job)
+            for job_id, job in JOBS.items()
+            if job.status in {"running", "stopping"}
+        ]
+        if not active_jobs:
+            return {"job_id": None}
+        job_id, job = max(active_jobs, key=lambda item: item[1].started_at or "")
+        return {
+            "job_id": job_id,
+            "tab": job.tab,
+            "status": job.status,
+            "started_at": job.started_at,
+            "command": job.command_string,
+        }
+
+
 @app.get("/api/jobs/{job_id}")
 def get_job(job_id: str) -> Dict[str, Any]:
     with JOBS_LOCK:
@@ -1094,26 +1187,6 @@ def get_job(job_id: str) -> Dict[str, Any]:
             "can_stop": can_stop,
             "awaiting_confirmation": bool(can_send_input and job.awaiting_confirmation),
             "output": output,
-        }
-
-
-@app.get("/api/jobs/_active")
-def get_active_job() -> Dict[str, Any]:
-    with JOBS_LOCK:
-        active_jobs = [
-            (job_id, job)
-            for job_id, job in JOBS.items()
-            if job.status in {"running", "stopping"}
-        ]
-        if not active_jobs:
-            return {"job_id": None}
-        job_id, job = max(active_jobs, key=lambda item: item[1].started_at or "")
-        return {
-            "job_id": job_id,
-            "tab": job.tab,
-            "status": job.status,
-            "started_at": job.started_at,
-            "command": job.command_string,
         }
 
 

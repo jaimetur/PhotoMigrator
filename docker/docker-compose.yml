@@ -7,11 +7,6 @@ services:
       - "${PORT}:6078"
     env_file:
       - .env
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - PHOTOMIGRATOR_WEB_DELETE_ROOTS=${PHOTOMIGRATOR_WEB_DELETE_ROOTS}
     volumes:
       - ${CONFIG_DIR}:/app/config
       - ${DATA_DIR}:/app/data

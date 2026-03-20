@@ -27,6 +27,8 @@
   - Added confirmation dialog on Auto Rename Folders Content Based feature.
   - Improved Immich `Remove Orphan Assets` module to detect unsupported newer Immich API versions and abort gracefully with a clear message instead of failing with a raw 404 error.
   - Added a safeguard in `organize_files_by_date` to skip files already organized in the expected date folder structure (`year`, `year/month`, `year-month`) and avoid redundant re-nesting.
+  - Improved Web Interface execution log buffering for long-running jobs with progress bars: progress refresh updates no longer flood line history, the in-memory log is compacted by progress key, and default web log buffer size was increased and made configurable via `PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES`.
+  - Simplified docker-compose.yml file.
   
 #### 🐛 Bug fixes:
   - Added validation for `--google-takeout` path to block reserved special-folder names (`Archive`, `Trash`, `Locked folder`) and abort early with a clear message; same validation is enforced in Web UI folder selection (Issue #1008).
@@ -42,6 +44,7 @@
   - Fixed Immich album deletion status handling to treat HTTP `204 No Content` (and any `2xx`) as success, avoiding false warnings like `Failed to remove album ... Status: 204`.
   - Fixed Immich Live Photo linking reliability during uploads by retrying transient `404` responses when setting `livePhotoVideoId`, and skipping link attempts when either media component was uploaded as duplicate.
   - Fixed Web Interface log color classification to prioritize the explicit line log level prefix (e.g. `WARNING:`), preventing warning lines from being painted as errors when message text contains words like `Client Error`.
+  - Fixed Web Interface active-job reconnect endpoint routing conflict by prioritizing `/api/jobs/_active` over dynamic `/api/jobs/{job_id}` matching, preventing false `{"detail":"Job not found"}` responses when querying active jobs.
   - Other bug fixing.
 
 #### 📚 Documentation: 

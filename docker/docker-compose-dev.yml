@@ -3,16 +3,12 @@ services:
     build:
       context: ${APP_DIR}
       dockerfile: docker/dockerfile
-    container_name: photomigrator-dev
+    container_name: ${CONTAINER_NAME}-dev
     ports:
       - "${PORT_DEV}:6078"
     env_file:
       - .env
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - PHOTOMIGRATOR_WEB_DELETE_ROOTS=${PHOTOMIGRATOR_WEB_DELETE_ROOTS}
       - PYTHONUNBUFFERED=1
     command: >
       sh -lc "
