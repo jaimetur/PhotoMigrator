@@ -9,6 +9,7 @@ import requests
 from Core.ConfigReader import load_config
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import (
+    ARGS,
     CONFIGURATION_FILE,
     FOLDERNAME_ALBUMS,
     FOLDERNAME_NO_ALBUMS,
@@ -41,6 +42,13 @@ class ClassGooglePhotos:
         self.no_albums_root_name = FOLDERNAME_NO_ALBUMS
         self.ALLOWED_PHOTO_EXTENSIONS = [ext.lower() for ext in PHOTO_EXT]
         self.ALLOWED_VIDEO_EXTENSIONS = [ext.lower() for ext in VIDEO_EXT]
+        self.type = ARGS.get("filter-by-type", None)
+        self.from_date = ARGS.get("filter-from-date", None)
+        self.to_date = ARGS.get("filter-to-date", None)
+        self.country = ARGS.get("filter-by-country", None)
+        self.city = ARGS.get("filter-by-city", None)
+        self.person = ARGS.get("filter-by-person", None)
+        self._warned_unsupported_filters = False
 
     def get_client_name(self, log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -152,6 +160,43 @@ class ClassGooglePhotos:
         if album_name:
             payload["album_name"] = album_name
         return payload
+
+    def _to_datetime_utc(self, text: str) -> Optional[datetime]:
+        value = str(text or "").strip()
+        if not value:
+            return None
+        try:
+            normalized = value.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(normalized)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(timezone.utc)
+        except Exception:
+            return None
+
+    def _asset_matches_filters(self, asset_datetime: str, asset_type: str, selected_type: str = "all") -> bool:
+        selected = str(selected_type or "all").lower()
+        a_type = str(asset_type or "").lower()
+        if selected in ("image", "images", "photo", "photos") and a_type not in ("photo", "image"):
+            return False
+        if selected in ("video", "videos") and a_type != "video":
+            return False
+
+        asset_dt = self._to_datetime_utc(asset_datetime)
+        from_dt = self._to_datetime_utc(self.from_date)
+        to_dt = self._to_datetime_utc(self.to_date)
+        if from_dt and asset_dt and asset_dt < from_dt:
+            return False
+        if to_dt and asset_dt and asset_dt > to_dt:
+            return False
+
+        if not self._warned_unsupported_filters and (self.country or self.city or self.person):
+            self._warned_unsupported_filters = True
+            LOGGER.warning(
+                f"{MSG_TAGS['WARNING']}Google Photos public API does not provide country/city/person indexed filters in this integration. "
+                f"Those filters are ignored for Google Photos."
+            )
+        return True
 
     def _list_albums(self) -> List[Dict[str, str]]:
         albums: List[Dict[str, str]] = []
@@ -314,34 +359,40 @@ class ClassGooglePhotos:
 
     def get_assets_by_filters(self, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            selected = str(type or "all").lower()
+            selected = str(type or self.type or "all").lower()
             assets = []
             for item in self._search_media_items(album_id=""):
                 filename = str(item.get("filename", ""))
                 mime = str(item.get("mimeType", ""))
                 if not self._is_supported_media(filename, mime):
                     continue
-                if selected in ("image", "images", "photo", "photos") and not self._is_photo(filename, mime):
+                payload = self._build_asset_payload(item)
+                if not self._asset_matches_filters(
+                    asset_datetime=payload.get("asset_datetime", ""),
+                    asset_type=payload.get("type", ""),
+                    selected_type=selected,
+                ):
                     continue
-                if selected in ("video", "videos") and not self._is_video(filename, mime):
-                    continue
-                assets.append(self._build_asset_payload(item))
+                assets.append(payload)
             return assets
 
     def get_all_assets_from_album(self, album_id, album_name=None, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            selected = str(type or "all").lower()
+            selected = str(type or self.type or "all").lower()
             assets = []
             for item in self._search_media_items(album_id=str(album_id)):
                 filename = str(item.get("filename", ""))
                 mime = str(item.get("mimeType", ""))
                 if not self._is_supported_media(filename, mime):
                     continue
-                if selected in ("image", "images", "photo", "photos") and not self._is_photo(filename, mime):
+                payload = self._build_asset_payload(item, album_name=album_name or "")
+                if not self._asset_matches_filters(
+                    asset_datetime=payload.get("asset_datetime", ""),
+                    asset_type=payload.get("type", ""),
+                    selected_type=selected,
+                ):
                     continue
-                if selected in ("video", "videos") and not self._is_video(filename, mime):
-                    continue
-                assets.append(self._build_asset_payload(item, album_name=album_name or ""))
+                assets.append(payload)
             return assets
 
     def get_all_assets_from_album_shared(self, album_id, album_name=None, type="all", album_passphrase=None, log_level=logging.WARNING):
@@ -349,7 +400,7 @@ class ClassGooglePhotos:
 
     def get_all_assets_without_albums(self, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            selected = str(type or "all").lower()
+            selected = str(type or self.type or "all").lower()
             all_items: Dict[str, Dict] = {}
             for item in self._search_media_items(album_id=""):
                 item_id = str(item.get("id", "")).strip()
@@ -371,11 +422,14 @@ class ClassGooglePhotos:
                 mime = str(item.get("mimeType", ""))
                 if not self._is_supported_media(filename, mime):
                     continue
-                if selected in ("image", "images", "photo", "photos") and not self._is_photo(filename, mime):
+                payload = self._build_asset_payload(item)
+                if not self._asset_matches_filters(
+                    asset_datetime=payload.get("asset_datetime", ""),
+                    asset_type=payload.get("type", ""),
+                    selected_type=selected,
+                ):
                     continue
-                if selected in ("video", "videos") and not self._is_video(filename, mime):
-                    continue
-                assets.append(self._build_asset_payload(item))
+                assets.append(payload)
             return assets
 
     def get_all_assets_from_all_albums(self, log_level=logging.WARNING):

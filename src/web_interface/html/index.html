@@ -1108,7 +1108,7 @@
             return cls
                 ? `<span class="log-line ${cls}">${safe}</span>`
                 : `<span class="log-line">${safe}</span>`;
-        }).join("\n");
+        }).join("");
         outputEl.innerHTML = html;
         if (autoScrollEnabled || force) {
             outputEl.scrollTop = outputEl.scrollHeight;

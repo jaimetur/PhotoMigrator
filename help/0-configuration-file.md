@@ -9,52 +9,54 @@ You can see the default Configuration File ('Config.ini' by default) below:
 >
 ># Configuration for Synology Photos
 >[Synology Photos]
->SYNOLOGY_URL                = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
->SYNOLOGY_USERNAME_1         = username_1                                    # Account 1: Your username for Synology Photos
->SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
->SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
->SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
->SYNOLOGY_USERNAME_3         = username_3                                    # Account 3: Your username for Synology Photos
->SYNOLOGY_PASSWORD_3         = password_3                                    # Account 3: Your password for Synology Photos
+>SYNOLOGY_URL                       = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
+>SYNOLOGY_USERNAME_1                = username_1                                    # Account 1: Your username for Synology Photos
+>SYNOLOGY_PASSWORD_1                = password_1                                    # Account 1: Your password for Synology Photos
+>SYNOLOGY_USERNAME_2                = username_2                                    # Account 2: Your username for Synology Photos
+>SYNOLOGY_PASSWORD_2                = password_2                                    # Account 2: Your password for Synology Photos
+>SYNOLOGY_USERNAME_3                = username_3                                    # Account 3: Your username for Synology Photos
+>SYNOLOGY_PASSWORD_3                = password_3                                    # Account 3: Your password for Synology Photos
 >
 ># Configuration for Immich Photos
 >[Immich Photos]
->IMMICH_URL                  = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
->IMMICH_API_KEY_ADMIN        = YOUR_ADMIN_API_KEY                            # Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->IMMICH_API_KEY_USER_1       = API_KEY_USER_1                                # Account 1: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->IMMICH_USERNAME_1           = username_1                                    # Account 1: Your username for Immich Photos (mandatory if not API_KEY is providen)
->IMMICH_PASSWORD_1           = password_1                                    # Account 1: Your password for Immich Photos (mandatory if not API_KEY is providen)
->IMMICH_API_KEY_USER_2       = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->IMMICH_USERNAME_2           = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
->IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
->IMMICH_API_KEY_USER_3       = API_KEY_USER_3                                # Account 3: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->IMMICH_USERNAME_3           = username_3                                    # Account 3: Your username for Immich Photos (mandatory if not API_KEY is providen)
->IMMICH_PASSWORD_3           = password_3                                    # Account 3: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_URL                         = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
+>IMMICH_API_KEY_ADMIN               = YOUR_ADMIN_API_KEY                            # Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>IMMICH_API_KEY_USER_1              = API_KEY_USER_1                                # Account 1: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>IMMICH_USERNAME_1                  = username_1                                    # Account 1: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_PASSWORD_1                  = password_1                                    # Account 1: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_API_KEY_USER_2              = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>IMMICH_USERNAME_2                  = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_PASSWORD_2                  = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_API_KEY_USER_3              = API_KEY_USER_3                                # Account 3: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>IMMICH_USERNAME_3                  = username_3                                    # Account 3: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_PASSWORD_3                  = password_3                                    # Account 3: Your password for Immich Photos (mandatory if not API_KEY is providen)
 >
 ># Configuration for NextCloud Photos
 >[NextCloud Photos]
->NEXTCLOUD_URL               = http://192.168.1.11:8080                      # Your NextCloud base URL (without trailing '/')
->NEXTCLOUD_USERNAME_1        = username_1                                    # Account 1: Your username for NextCloud
->NEXTCLOUD_PASSWORD_1        = password_1                                    # Account 1: Your password for NextCloud
->NEXTCLOUD_WEBDAV_ROOT_1     = /Photos                                       # Account 1: WebDAV root folder used by PhotoMigrator
->NEXTCLOUD_USERNAME_2        = username_2                                    # Account 2: Your username for NextCloud
->NEXTCLOUD_PASSWORD_2        = password_2                                    # Account 2: Your password for NextCloud
->NEXTCLOUD_WEBDAV_ROOT_2     = /Photos                                       # Account 2: WebDAV root folder used by PhotoMigrator
->NEXTCLOUD_USERNAME_3        = username_3                                    # Account 3: Your username for NextCloud
->NEXTCLOUD_PASSWORD_3        = password_3                                    # Account 3: Your password for NextCloud
->NEXTCLOUD_WEBDAV_ROOT_3     = /Photos                                       # Account 3: WebDAV root folder used by PhotoMigrator
+>NEXTCLOUD_URL                      = http://192.168.1.11:8080                      # Your NextCloud base URL (without trailing '/')
+>NEXTCLOUD_MAX_PARALLEL_UPLOADS     = 12                                            # Parallel uploads (recommended 8-16 in LAN)
+>NEXTCLOUD_USE_SYSTEM_PROXY         = false                                         # false=recommended in LAN, true only if HTTP(S)_PROXY is required
+>NEXTCLOUD_USERNAME_1               = username_1                                    # Account 1: Your username for NextCloud
+>NEXTCLOUD_PASSWORD_1               = password_1                                    # Account 1: Your password for NextCloud
+>NEXTCLOUD_WEBDAV_ROOT_1            = /Photos                                       # Account 1: WebDAV root folder used by PhotoMigrator
+>NEXTCLOUD_USERNAME_2               = username_2                                    # Account 2: Your username for NextCloud
+>NEXTCLOUD_PASSWORD_2               = password_2                                    # Account 2: Your password for NextCloud
+>NEXTCLOUD_WEBDAV_ROOT_2            = /Photos                                       # Account 2: WebDAV root folder used by PhotoMigrator
+>NEXTCLOUD_USERNAME_3               = username_3                                    # Account 3: Your username for NextCloud
+>NEXTCLOUD_PASSWORD_3               = password_3                                    # Account 3: Your password for NextCloud
+>NEXTCLOUD_WEBDAV_ROOT_3            = /Photos                                       # Account 3: WebDAV root folder used by PhotoMigrator
 >
 ># Configuration for Google Photos
 >[Google Photos]
->GOOGLE_PHOTOS_CLIENT_ID_1       = client_id_1                               # OAuth Client ID for Google Photos account 1
->GOOGLE_PHOTOS_CLIENT_SECRET_1   = client_secret_1                           # OAuth Client Secret for Google Photos account 1
->GOOGLE_PHOTOS_REFRESH_TOKEN_1   = refresh_token_1                           # OAuth Refresh Token for Google Photos account 1
->GOOGLE_PHOTOS_CLIENT_ID_2       = client_id_2                               # OAuth Client ID for Google Photos account 2
->GOOGLE_PHOTOS_CLIENT_SECRET_2   = client_secret_2                           # OAuth Client Secret for Google Photos account 2
->GOOGLE_PHOTOS_REFRESH_TOKEN_2   = refresh_token_2                           # OAuth Refresh Token for Google Photos account 2
->GOOGLE_PHOTOS_CLIENT_ID_3       = client_id_3                               # OAuth Client ID for Google Photos account 3
->GOOGLE_PHOTOS_CLIENT_SECRET_3   = client_secret_3                           # OAuth Client Secret for Google Photos account 3
->GOOGLE_PHOTOS_REFRESH_TOKEN_3   = refresh_token_3                           # OAuth Refresh Token for Google Photos account 3
+>GOOGLE_PHOTOS_CLIENT_ID_1          = client_id_1                                   # OAuth Client ID for Google Photos account 1
+>GOOGLE_PHOTOS_CLIENT_SECRET_1      = client_secret_1                               # OAuth Client Secret for Google Photos account 1
+>GOOGLE_PHOTOS_REFRESH_TOKEN_1      = refresh_token_1                               # OAuth Refresh Token for Google Photos account 1
+>GOOGLE_PHOTOS_CLIENT_ID_2          = client_id_2                                   # OAuth Client ID for Google Photos account 2
+>GOOGLE_PHOTOS_CLIENT_SECRET_2      = client_secret_2                               # OAuth Client Secret for Google Photos account 2
+>GOOGLE_PHOTOS_REFRESH_TOKEN_2      = refresh_token_2                               # OAuth Refresh Token for Google Photos account 2
+>GOOGLE_PHOTOS_CLIENT_ID_3          = client_id_3                                   # OAuth Client ID for Google Photos account 3
+>GOOGLE_PHOTOS_CLIENT_SECRET_3      = client_secret_3                               # OAuth Client Secret for Google Photos account 3
+>GOOGLE_PHOTOS_REFRESH_TOKEN_3      = refresh_token_3                               # OAuth Refresh Token for Google Photos account 3
 >```
 
 ## Google Takeout Section:
@@ -100,12 +102,22 @@ In this section you have to provide:
 ## NextCloud Photos Section:
 In this section you have to provide:
 - **NEXTCLOUD_URL:** NextCloud base URL (for example `http://192.168.1.11`).
+- **NEXTCLOUD_MAX_PARALLEL_UPLOADS:** Number of parallel uploads (global default for all accounts).
+- **NEXTCLOUD_USE_SYSTEM_PROXY:** Whether PhotoMigrator should use system/container proxy variables (`HTTP_PROXY`/`HTTPS_PROXY`).
 - **NEXTCLOUD_USERNAME_1/2/3:** NextCloud username per account id.
 - **NEXTCLOUD_PASSWORD_1/2/3:** NextCloud password per account id.
 - **NEXTCLOUD_WEBDAV_ROOT_1/2/3:** Root folder where PhotoMigrator stores albums/no-albums in WebDAV.
 
 > [!NOTE]
 > NextCloud support is based on WebDAV operations and does not require API keys.
+>
+> For best performance in local networks, use `NEXTCLOUD_USE_SYSTEM_PROXY = false` and tune `NEXTCLOUD_MAX_PARALLEL_UPLOADS` (usually `8-16`).
+
+> [!WARNING]
+> Setting `NEXTCLOUD_MAX_PARALLEL_UPLOADS` too high can saturate the server or trigger throttling/errors.
+> If upload stability drops, reduce it (for example from `16` to `8`).
+>
+> Enable `NEXTCLOUD_USE_SYSTEM_PROXY = true` only when an outbound proxy is explicitly required by your environment.
 
 ## Google Photos Section:
 In this section you have to provide:

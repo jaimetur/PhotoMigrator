@@ -60,6 +60,57 @@ def dir_exists(dir):
     """
     return os.path.isdir(dir)
 
+
+def _normalize_patterns(patterns):
+    if patterns is None:
+        return []
+    if isinstance(patterns, str):
+        value = patterns.strip()
+        return [value] if value else []
+    return [str(item).strip() for item in patterns if str(item).strip()]
+
+
+def get_subfolders(input_folder, exclusion_subfolders=None, log_level=None):
+    """
+    Returns direct child subfolders under `input_folder`, excluding folder names
+    that match any provided glob pattern.
+    """
+    with set_log_level(LOGGER, log_level):
+        root = Path(input_folder)
+        if not root.is_dir():
+            return []
+        patterns = _normalize_patterns(exclusion_subfolders)
+        result = []
+        for entry in sorted(root.iterdir(), key=lambda p: p.name.lower()):
+            if not entry.is_dir():
+                continue
+            if any(fnmatch.fnmatch(entry.name, pattern) for pattern in patterns):
+                continue
+            result.append(str(entry))
+        return result
+
+
+def get_all_files_paths(input_folder, exclusion_folders=None, log_level=None):
+    """
+    Returns recursive file paths under `input_folder`, skipping directories whose
+    basename matches any provided glob pattern.
+    """
+    with set_log_level(LOGGER, log_level):
+        root = Path(input_folder)
+        if not root.exists():
+            return []
+        patterns = _normalize_patterns(exclusion_folders)
+        files = []
+        for current_root, dirs, filenames in os.walk(root):
+            dirs[:] = [
+                d for d in dirs
+                if not any(fnmatch.fnmatch(d, pattern) for pattern in patterns)
+            ]
+            for filename in filenames:
+                files.append(str(Path(current_root) / filename))
+        return files
+
+
 def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_level=None):
     """
     Deletes all subdirectories (and their contents) inside the given base directory and all its subdirectories,

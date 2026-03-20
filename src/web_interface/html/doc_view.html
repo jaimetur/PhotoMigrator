@@ -546,11 +546,20 @@
             const targetAttrs = isInternal ? "" : ` target="_blank" rel="noopener noreferrer"`;
             return `<a href="${escapeHtml(resolvedLink)}"${targetAttrs}><img src="${escapeHtml(resolvedImg)}" alt="${escapeHtml(alt)}"></a>`;
         });
-        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt, url) =>
-            `<img src="${escapeHtml(resolveDocUrl(url, true))}" alt="${escapeHtml(alt)}">`
+        const parseMdTarget = (rawTarget) => {
+            const text = String(rawTarget || "").trim();
+            const decoded = text
+                .replace(/&quot;/gi, '"')
+                .replace(/&#39;/gi, "'");
+            // Supports: url, <url>, url "title", url 'title'
+            const m = decoded.match(/^<?([^>\s]+)>?(?:\s+["'][^"']*["'])?$/);
+            return m ? m[1] : decoded;
+        };
+        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt, rawTarget) =>
+            `<img src="${escapeHtml(resolveDocUrl(parseMdTarget(rawTarget), true))}" alt="${escapeHtml(alt)}">`
         );
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
-            const resolved = resolveDocUrl(url, false);
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, rawTarget) => {
+            const resolved = resolveDocUrl(parseMdTarget(rawTarget), false);
             const isInternal = resolved.startsWith("/") && !resolved.startsWith("//");
             const targetAttrs = isInternal ? "" : ` target="_blank" rel="noopener noreferrer"`;
             return `<a href="${escapeHtml(resolved)}"${targetAttrs}>${escapeHtml(label)}</a>`;
@@ -599,8 +608,7 @@
         }
         const html = [];
         let paragraph = [];
-        let inUl = false;
-        let inOl = false;
+        const listStack = [];
         let inCode = false;
         let codeLang = "";
         let codeLines = [];
@@ -608,9 +616,13 @@
         let codeFenceInQuote = false;
         const headingIdCounter = new Map();
 
+        const closeOneList = () => {
+            const top = listStack.pop();
+            if (!top) return;
+            html.push(top.type === "ol" ? "</ol>" : "</ul>");
+        };
         const closeLists = () => {
-            if (inUl) { html.push("</ul>"); inUl = false; }
-            if (inOl) { html.push("</ol>"); inOl = false; }
+            while (listStack.length) closeOneList();
         };
         const flushParagraph = () => {
             if (!paragraph.length) return;
@@ -875,21 +887,27 @@
                 continue;
             }
 
-            const ulItem = trimmed.match(/^[-*+]\s+(.+)$/);
-            if (ulItem) {
+            const listItem = rawLine.match(/^([ \t]*)([-*+]|\d+\.)\s+(.+)$/);
+            if (listItem) {
                 flushParagraph();
-                if (inOl) { html.push("</ol>"); inOl = false; }
-                if (!inUl) { html.push("<ul>"); inUl = true; }
-                html.push(`<li>${renderInlineMarkdown(ulItem[1])}</li>`);
-                continue;
-            }
+                const indentText = String(listItem[1] || "").replace(/\t/g, "    ");
+                const indent = indentText.length;
+                const marker = String(listItem[2] || "");
+                const content = String(listItem[3] || "");
+                const type = /^\d+\.$/.test(marker) ? "ol" : "ul";
 
-            const olItem = trimmed.match(/^\d+\.\s+(.+)$/);
-            if (olItem) {
-                flushParagraph();
-                if (inUl) { html.push("</ul>"); inUl = false; }
-                if (!inOl) { html.push("<ol>"); inOl = true; }
-                html.push(`<li>${renderInlineMarkdown(olItem[1])}</li>`);
+                while (listStack.length && indent < listStack[listStack.length - 1].indent) {
+                    closeOneList();
+                }
+                if (listStack.length && indent === listStack[listStack.length - 1].indent && listStack[listStack.length - 1].type !== type) {
+                    closeOneList();
+                }
+                if (!listStack.length || indent > listStack[listStack.length - 1].indent || listStack[listStack.length - 1].type !== type) {
+                    html.push(type === "ol" ? "<ol>" : "<ul>");
+                    listStack.push({type, indent});
+                }
+
+                html.push(`<li>${renderInlineMarkdown(content)}</li>`);
                 continue;
             }
 
@@ -972,8 +990,22 @@
         const navEl = document.getElementById("help-nav-list");
         if (!navEl) return;
         navEl.innerHTML = "";
-        const currentPath = window.location.pathname;
-        const currentPathWithHash = `${window.location.pathname}${window.location.hash || ""}`;
+        const normalizeComparableUrl = (url) => {
+            const value = String(url || "").trim();
+            if (!value) return "";
+            try {
+                const parsed = new URL(value, window.location.origin);
+                const hash = parsed.hash ? decodeURIComponent(parsed.hash) : "";
+                return `${parsed.pathname}${hash}`;
+            } catch (_error) {
+                return value;
+            }
+        };
+        const getCurrentPath = () => String(window.location.pathname || "");
+        const getCurrentPathWithHash = () => {
+            const hash = window.location.hash ? decodeURIComponent(window.location.hash) : "";
+            return `${getCurrentPath()}${hash}`;
+        };
         const NAV_STATE_KEY = "help_nav_sections_state_v1";
         const readNavState = () => {
             try {
@@ -998,7 +1030,24 @@
             const hashIndex = raw.indexOf("#");
             return hashIndex >= 0 ? raw.slice(0, hashIndex) : raw;
         };
-        const isActiveUrl = (url) => url === currentPath || url === currentPathWithHash;
+        const isActiveUrl = (url) => {
+            const target = normalizeComparableUrl(url);
+            return target === getCurrentPath() || target === getCurrentPathWithHash();
+        };
+        const applyActiveSelection = () => {
+            const allLinks = navEl.querySelectorAll("a[href]");
+            allLinks.forEach((link) => {
+                const rawHref = link.getAttribute("href") || link.href || "";
+                link.classList.toggle("active", isActiveUrl(rawHref));
+            });
+            navEl.querySelectorAll(".nav-section").forEach((section) => {
+                const parentLink = section.querySelector(".nav-section__head > a");
+                if (!parentLink) return;
+                const parentHref = parentLink.getAttribute("href") || parentLink.href || "";
+                const hasActiveChild = Boolean(section.querySelector(".nav-section__children a.active"));
+                parentLink.classList.toggle("active", isActiveUrl(parentHref) || hasActiveChild);
+            });
+        };
         const addFlatSection = (label, url) => {
             const li = document.createElement("li");
             li.className = "nav-section";
@@ -1323,6 +1372,19 @@
                 }
             });
         }
+        applyActiveSelection();
+        if (!window.__helpNavActiveBound) {
+            const refresh = () => {
+                if (typeof window.__applyHelpNavActiveSelection === "function") {
+                    window.__applyHelpNavActiveSelection();
+                }
+            };
+            window.addEventListener("hashchange", refresh);
+            window.addEventListener("popstate", refresh);
+            navEl.addEventListener("click", () => setTimeout(refresh, 0));
+            window.__helpNavActiveBound = true;
+        }
+        window.__applyHelpNavActiveSelection = applyActiveSelection;
     }
 
     function setupSidebar() {

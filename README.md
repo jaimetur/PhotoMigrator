@@ -13,7 +13,7 @@
 
 
 # 📸 **PhotoMigrator**
-This tool has been designed to Interact and Manage different Photo Services such as Google Photos, Synology Photos, Immich Photos, Apple Photos & NextCloud, and allow users to do an <span style="color:green">**Automatic Migration**</span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
+This tool has been designed to Interact and Manage different Photo Services such as Google Photos, Synology Photos, Immich Photos, NextCloud Photos & Google Takeout, and allow users to do an <span style="color:green">**Automatic Migration**</span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 The Tool supports multiple accounts for the same service, so you can migrate your assets between different accounts of the same service.
 
@@ -113,9 +113,9 @@ Currently, the Features Supported per each Photo Cloud Service are:
 >- [**(Google Photos Documentation)**](/help/8-google-photos.md)
 
 > [!IMPORTANT]  
->- **NextCloud Photos** is available in v4.0.0 using WebDAV-based integration.
+>- **NextCloud Photos** is available since v4.0.0 using WebDAV-based integration.
 >
->- **Google Photos** is available with partial support due current official API limitations.
+>- **Google Photos** is available since v4.0.0 with partial support due current official API limitations.
 
 
 ## 🧩 4. Other Standalone Features  
@@ -133,35 +133,6 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
 > For more info you can check the feature documentation in below link:
 >
 > [**(Other Standalone Features Documentation)**](/help/9-other-features.md)
-
-
-## 💾 Download
-Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
-
-- [Latest Stable Release](https://github.com/jaimetur/PhotoMigrator/releases/latest)
-- [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
-- [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
-
-Or check the [Changelog](/CHANGELOG.md) to choose any specific release. 
-
-> [!NOTE]  
-> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly from Windows systems, MacOs or within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
-> 
-> You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
-
-
-## ⚙️ Configuration File
-In order to connect to the different Photo Cloud Services, you must configure the connection settings using the Configuration file `Config.ini` provided with the Tool.  
-
-You can see how to configure the Configuration File in this help section:
-[Configuration File](/help/0-configuration-file.md) 
-
-
-## ⌨️ Command Line Interface
-This Tool is based on commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
-
-You can check the whole list of features and arguments with the right syntax here:
-[Command Line Interface (CLI)](/help/1-command-line-interface.md)
 
 
 ## 🌐 Web Interface (New)
@@ -291,6 +262,13 @@ docker compose up -d
 Then open:
 - `http://localhost:6078`
 
+
+## ⌨️ Command Line Interface
+This Tool is based on commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
+
+You can check the whole list of features and arguments with the right syntax here:
+[Command Line Interface (CLI)](/help/1-command-line-interface.md)
+
 ## Arguments Description
 Check all arguments descriptions and usage examples in the [Arguments Description](/help/2-arguments-description.md)  or in the [shorter version](/help/2-arguments-description-short.md).
 
@@ -308,6 +286,8 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [Other Features](/help/9-other-features.md)  
 - [GPTH Tool Pipeline Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
 
+
+---
 
 ## ▶️ Execution Methods
 There are three different methods to execute this Tool:
@@ -344,6 +324,29 @@ Below tables show the pros and cons of each method together with a comparative r
 
 ---
 
+## 💾 Download
+Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
+
+- [Latest Stable Release](https://github.com/jaimetur/PhotoMigrator/releases/latest)
+- [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
+- [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
+
+Or check the [Changelog](/CHANGELOG.md) to choose any specific release. 
+
+> [!NOTE]  
+> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly from Windows systems, MacOs or within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
+> 
+> You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
+
+
+## ⚙️ Configuration File
+In order to connect to the different Photo Cloud Services, you must configure the connection settings using the Configuration file `Config.ini` provided with the Tool.  
+
+You can see how to configure the Configuration File in this help section:
+[Configuration File](/help/0-configuration-file.md) 
+
+---
+
 ## 📝 CHANGELOG
 The Historical Change Log can be checked in the following link:
 [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md)
@@ -357,8 +360,9 @@ By participating in this project, you agree to abide by our [Code of Conduct](ht
 
 ## 📢 Disclaimer
 
-- ⚠️ The project is under **very active** development.
-- ⚠️ Expect bugs and breaking changes.
+> [!CAUTION]
+>- ⚠️ The project is under **very active** development.
+>- ⚠️ Expect bugs and breaking changes.
   
 ---
 

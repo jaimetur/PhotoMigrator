@@ -314,7 +314,12 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"{client} Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
-        cloud_client_obj.login(log_level=logging.WARNING)
+        try:
+            cloud_client_obj.login(log_level=logging.WARNING)
+        except Exception as error:
+            LOGGER.error(f"Login failed for {client} Photos: {error}")
+            LOGGER.error("Please verify credentials and endpoint settings in Config.ini.")
+            return
         LOGGER.info(f"Find Albums in Folder    : {input_folder}")
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client_obj.push_albums(input_folder=input_folder, log_level=logging.WARNING)

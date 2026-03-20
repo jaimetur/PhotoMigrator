@@ -2,18 +2,22 @@ import logging
 import os
 import re
 import shutil
+import threading
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
-from urllib.parse import quote, urljoin
+from urllib.parse import quote, unquote, urljoin
 
 import requests
+from requests.adapters import HTTPAdapter
 
 from Core import GlobalVariables as GV
 from Core.ConfigReader import load_config
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import (
+    ARGS,
     CONFIGURATION_FILE,
     FOLDERNAME_ALBUMS,
     FOLDERNAME_NO_ALBUMS,
@@ -38,8 +42,18 @@ class ClassNextCloudPhotos:
         self.no_albums_root_name = FOLDERNAME_NO_ALBUMS
         self.session: Optional[requests.Session] = None
         self.timeout_seconds = 60
+        self.max_parallel_uploads = 12
+        self.use_system_proxy = False
+        self._worker_local = threading.local()
         self.ALLOWED_PHOTO_EXTENSIONS = [ext.lower() for ext in PHOTO_EXT]
         self.ALLOWED_VIDEO_EXTENSIONS = [ext.lower() for ext in VIDEO_EXT]
+        self.type = ARGS.get("filter-by-type", None)
+        self.from_date = ARGS.get("filter-from-date", None)
+        self.to_date = ARGS.get("filter-to-date", None)
+        self.country = ARGS.get("filter-by-country", None)
+        self.city = ARGS.get("filter-by-city", None)
+        self.person = ARGS.get("filter-by-person", None)
+        self._warned_unsupported_filters = False
 
     def get_client_name(self, log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -54,6 +68,19 @@ class ClassNextCloudPhotos:
             self.username = section.get(f"NEXTCLOUD_USERNAME_{suffix}", "").strip()
             self.password = section.get(f"NEXTCLOUD_PASSWORD_{suffix}", "").strip()
             self.webdav_root = section.get(f"NEXTCLOUD_WEBDAV_ROOT_{suffix}", "/Photos").strip() or "/Photos"
+            raw_parallel = section.get(
+                f"NEXTCLOUD_MAX_PARALLEL_UPLOADS_{suffix}",
+                section.get("NEXTCLOUD_MAX_PARALLEL_UPLOADS", str(self.max_parallel_uploads)),
+            )
+            raw_use_proxy = section.get(
+                f"NEXTCLOUD_USE_SYSTEM_PROXY_{suffix}",
+                section.get("NEXTCLOUD_USE_SYSTEM_PROXY", str(self.use_system_proxy)),
+            )
+            try:
+                self.max_parallel_uploads = max(1, min(32, int(str(raw_parallel).strip())))
+            except Exception:
+                self.max_parallel_uploads = 12
+            self.use_system_proxy = str(raw_use_proxy).strip().lower() in {"1", "true", "yes", "y", "on"}
             if not self.webdav_root.startswith("/"):
                 self.webdav_root = f"/{self.webdav_root}"
             self.webdav_root = re.sub(r"/+", "/", self.webdav_root.rstrip("/"))
@@ -68,9 +95,7 @@ class ClassNextCloudPhotos:
     def login(self, config_file=CONFIGURATION_FILE, log_level=None):
         with set_log_level(LOGGER, log_level):
             self.read_config_file(config_file=config_file, log_level=log_level)
-            self.session = requests.Session()
-            self.session.auth = (self.username, self.password)
-            self.session.headers.update({"User-Agent": f"{GV.TOOL_NAME}/{GV.TOOL_VERSION_WITHOUT_V}"})
+            self.session = self._build_session()
             self._ensure_dir("/")
             self._ensure_dir(self._albums_root())
             self._ensure_dir(self._no_albums_root())
@@ -93,7 +118,8 @@ class ClassNextCloudPhotos:
             raise RuntimeError("NextCloud session is not initialized. Call login() first.")
 
     def _dav_url(self, remote_path: str) -> str:
-        clean = str(remote_path or "").replace("\\", "/")
+        # Normalize to a decoded path first to avoid double-encoding (%2520, etc.)
+        clean = unquote(str(remote_path or "").replace("\\", "/"))
         clean = re.sub(r"/+", "/", clean).strip()
         if not clean.startswith("/"):
             clean = f"/{clean}"
@@ -102,13 +128,67 @@ class ClassNextCloudPhotos:
         full = full.replace(" ", "%20")
         return urljoin(f"{self.base_url}/", full.lstrip("/"))
 
-    def _request(self, method: str, remote_path: str, expected=(200, 201, 204, 207), **kwargs):
+    def _photos_dav_url(self, remote_path: str) -> str:
+        # Normalize to a decoded path first to avoid double-encoding (%2520, etc.)
+        clean = unquote(str(remote_path or "").replace("\\", "/"))
+        clean = re.sub(r"/+", "/", clean).strip()
+        if not clean.startswith("/"):
+            clean = f"/{clean}"
+        root = f"/remote.php/dav/photos/{quote(self.username, safe='')}"
+        full = f"{root}{quote(clean, safe='/._-() ')}"
+        full = full.replace(" ", "%20")
+        return urljoin(f"{self.base_url}/", full.lstrip("/"))
+
+    def _request_url(self, method: str, url: str, expected=(200, 201, 204, 207), **kwargs):
         self._require_session()
-        url = self._dav_url(remote_path)
         response = self.session.request(method=method, url=url, timeout=self.timeout_seconds, **kwargs)
         if response.status_code not in expected:
+            if int(response.status_code) == 401:
+                raise RuntimeError(
+                    "NextCloud authentication failed (401 Unauthorized). "
+                    "Check NEXTCLOUD_URL, username/password (or app password), and WebDAV permissions."
+                )
             raise RuntimeError(
-                f"NextCloud WebDAV {method} failed for '{remote_path}' "
+                f"NextCloud WebDAV {method} failed for '{url}' "
+                f"(status={response.status_code}, body={response.text[:350]})"
+            )
+        return response
+
+    def _request(self, method: str, remote_path: str, expected=(200, 201, 204, 207), **kwargs):
+        return self._request_url(method=method, url=self._dav_url(remote_path), expected=expected, **kwargs)
+
+    def _request_photos(self, method: str, remote_path: str, expected=(200, 201, 204, 207), **kwargs):
+        return self._request_url(method=method, url=self._photos_dav_url(remote_path), expected=expected, **kwargs)
+
+    def _get_worker_session(self) -> requests.Session:
+        session = getattr(self._worker_local, "session", None)
+        if session is None:
+            session = self._build_session()
+            self._worker_local.session = session
+        return session
+
+    def _build_session(self) -> requests.Session:
+        session = requests.Session()
+        # Avoid accidental proxy routing from container env vars unless explicitly enabled.
+        session.trust_env = bool(self.use_system_proxy)
+        session.auth = (self.username, self.password)
+        session.headers.update({"User-Agent": f"{GV.TOOL_NAME}/{GV.TOOL_VERSION_WITHOUT_V}"})
+        pool_size = max(8, self.max_parallel_uploads * 2)
+        adapter = HTTPAdapter(pool_connections=pool_size, pool_maxsize=pool_size)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        return session
+
+    def _request_url_with_session(self, session: requests.Session, method: str, url: str, expected=(200, 201, 204, 207), **kwargs):
+        response = session.request(method=method, url=url, timeout=self.timeout_seconds, **kwargs)
+        if response.status_code not in expected:
+            if int(response.status_code) == 401:
+                raise RuntimeError(
+                    "NextCloud authentication failed (401 Unauthorized). "
+                    "Check NEXTCLOUD_URL, username/password (or app password), and WebDAV permissions."
+                )
+            raise RuntimeError(
+                f"NextCloud WebDAV {method} failed for '{url}' "
                 f"(status={response.status_code}, body={response.text[:350]})"
             )
         return response
@@ -135,6 +215,43 @@ class ClassNextCloudPhotos:
         except Exception:
             return datetime.now(timezone.utc).isoformat()
 
+    def _to_datetime_utc(self, text: str) -> Optional[datetime]:
+        value = str(text or "").strip()
+        if not value:
+            return None
+        try:
+            normalized = value.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(normalized)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(timezone.utc)
+        except Exception:
+            return None
+
+    def _asset_matches_filters(self, asset_datetime: str, asset_type: str, selected_type: str = "all") -> bool:
+        selected = str(selected_type or "all").lower()
+        a_type = str(asset_type or "").lower()
+        if selected in ("image", "images", "photo", "photos") and a_type not in ("photo", "image"):
+            return False
+        if selected in ("video", "videos") and a_type != "video":
+            return False
+
+        asset_dt = self._to_datetime_utc(asset_datetime)
+        from_dt = self._to_datetime_utc(self.from_date)
+        to_dt = self._to_datetime_utc(self.to_date)
+        if from_dt and asset_dt and asset_dt < from_dt:
+            return False
+        if to_dt and asset_dt and asset_dt > to_dt:
+            return False
+
+        if not self._warned_unsupported_filters and (self.country or self.city or self.person):
+            self._warned_unsupported_filters = True
+            LOGGER.warning(
+                f"{MSG_TAGS['WARNING']}NextCloud WebDAV integration does not expose country/city/person indexed filters. "
+                f"Those filters are ignored for NextCloud."
+            )
+        return True
+
     def _split_relative_from_href(self, href: str) -> str:
         marker = f"/remote.php/dav/files/{self.username}"
         idx = href.find(marker)
@@ -142,7 +259,7 @@ class ClassNextCloudPhotos:
             return "/"
         rel = href[idx + len(marker):]
         rel = rel or "/"
-        return rel
+        return unquote(rel)
 
     def _propfind(self, remote_path: str, depth: int = 1) -> List[Dict[str, str]]:
         xml_body = (
@@ -238,6 +355,23 @@ class ClassNextCloudPhotos:
             self._request("PUT", remote_path, expected=(200, 201, 204), data=fp)
         return remote_path
 
+    def _upload_file_fast(self, local_path: str, remote_path: str) -> str:
+        # Same as _upload_file but assumes parent folder already exists.
+        with open(local_path, "rb") as fp:
+            self._request("PUT", remote_path, expected=(200, 201, 204), data=fp)
+        return remote_path
+
+    def _upload_file_fast_with_session(self, session: requests.Session, local_path: str, remote_path: str) -> str:
+        with open(local_path, "rb") as fp:
+            self._request_url_with_session(
+                session=session,
+                method="PUT",
+                url=self._dav_url(remote_path),
+                expected=(200, 201, 204),
+                data=fp,
+            )
+        return remote_path
+
     def _download_file(self, remote_path: str, local_path: str) -> str:
         self._ensure_local_parent(local_path)
         response = self._request("GET", remote_path, expected=(200, 206), stream=True)
@@ -266,6 +400,61 @@ class ClassNextCloudPhotos:
             source_remote_path,
             expected=(201, 204),
             headers={"Destination": destination_url, "Overwrite": "T"},
+        )
+
+    def _native_albums_home(self) -> str:
+        return "/albums"
+
+    def _native_album_path(self, album_name: str) -> str:
+        return f"{self._native_albums_home().rstrip('/')}/{album_name}"
+
+    def _ensure_native_album(self, album_name: str) -> str:
+        album_path = self._native_album_path(album_name)
+        self._request_photos("MKCOL", album_path, expected=(201, 405, 409))
+        return album_path
+
+    def _native_album_existing_file_names(self, album_path: str) -> set[str]:
+        xml_body = (
+            '<?xml version="1.0"?>'
+            '<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/></d:prop></d:propfind>'
+        )
+        response = self._request_photos(
+            "PROPFIND",
+            album_path,
+            expected=(207,),
+            headers={"Depth": "1", "Content-Type": "application/xml"},
+            data=xml_body,
+        )
+        root = ET.fromstring(response.text)
+        ns = {"d": "DAV:"}
+        names: set[str] = set()
+        for item in root.findall("d:response", ns):
+            href_node = item.find("d:href", ns)
+            if href_node is None:
+                continue
+            href = href_node.text or ""
+            name = Path(href.rstrip("/")).name
+            if name and name != Path(album_path).name:
+                names.add(name)
+        return names
+
+    def _copy_file_to_native_album(self, source_remote_path: str, album_path: str, destination_name: str):
+        destination_url = self._photos_dav_url(f"{album_path.rstrip('/')}/{destination_name}")
+        self._request(
+            "COPY",
+            source_remote_path,
+            expected=(201, 204, 412),
+            headers={"Destination": destination_url, "Overwrite": "F"},
+        )
+
+    def _copy_file_to_native_album_with_session(self, session: requests.Session, source_remote_path: str, album_path: str, destination_name: str):
+        destination_url = self._photos_dav_url(f"{album_path.rstrip('/')}/{destination_name}")
+        self._request_url_with_session(
+            session=session,
+            method="COPY",
+            url=self._dav_url(source_remote_path),
+            expected=(201, 204, 412),
+            headers={"Destination": destination_url, "Overwrite": "F"},
         )
 
     def _list_album_directories(self, log_level=None) -> List[Dict[str, str]]:
@@ -324,33 +513,38 @@ class ClassNextCloudPhotos:
 
     def get_assets_by_filters(self, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            selected = str(type or "all").lower()
+            selected = str(type or self.type or "all").lower()
             entries = list(self._iter_files_recursive(self.webdav_root))
             assets = []
             for entry in entries:
                 filename = entry.get("name", "")
                 if not self._is_supported_media(filename):
                     continue
-                if selected in ("image", "images", "photo", "photos") and not self._is_photo(filename):
+                payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""))
+                if not self._asset_matches_filters(
+                    asset_datetime=payload.get("asset_datetime", ""),
+                    asset_type=payload.get("type", ""),
+                    selected_type=selected,
+                ):
                     continue
-                if selected in ("video", "videos") and not self._is_video(filename):
-                    continue
-                assets.append(self._build_asset_payload(entry["path"], filename, entry.get("last_modified", "")))
+                assets.append(payload)
             return assets
 
     def get_all_assets_from_album(self, album_id, album_name=None, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            selected = str(type or "all").lower()
+            selected = str(type or self.type or "all").lower()
             assets = []
             for entry in self._iter_files_recursive(str(album_id)):
                 filename = entry.get("name", "")
                 if not self._is_supported_media(filename):
                     continue
-                if selected in ("image", "images", "photo", "photos") and not self._is_photo(filename):
-                    continue
-                if selected in ("video", "videos") and not self._is_video(filename):
-                    continue
                 payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""))
+                if not self._asset_matches_filters(
+                    asset_datetime=payload.get("asset_datetime", ""),
+                    asset_type=payload.get("type", ""),
+                    selected_type=selected,
+                ):
+                    continue
                 payload["album_name"] = album_name or Path(str(album_id).rstrip("/")).name
                 assets.append(payload)
             return assets
@@ -360,17 +554,20 @@ class ClassNextCloudPhotos:
 
     def get_all_assets_without_albums(self, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            selected = str(type or "all").lower()
+            selected = str(type or self.type or "all").lower()
             assets = []
             for entry in self._iter_files_recursive(self._no_albums_root()):
                 filename = entry.get("name", "")
                 if not self._is_supported_media(filename):
                     continue
-                if selected in ("image", "images", "photo", "photos") and not self._is_photo(filename):
+                payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""))
+                if not self._asset_matches_filters(
+                    asset_datetime=payload.get("asset_datetime", ""),
+                    asset_type=payload.get("type", ""),
+                    selected_type=selected,
+                ):
                     continue
-                if selected in ("video", "videos") and not self._is_video(filename):
-                    continue
-                assets.append(self._build_asset_payload(entry["path"], filename, entry.get("last_modified", "")))
+                assets.append(payload)
             return assets
 
     def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
@@ -442,9 +639,16 @@ class ClassNextCloudPhotos:
             total_albums_skipped = 0
             total_assets_uploaded = 0
             total_duplicates_skipped = 0
-            for folder in tqdm(subfolders, desc=f"{MSG_TAGS['INFO']}Uploading Albums to NextCloud", unit=" album"):
+            for index, folder in enumerate(
+                tqdm(subfolders, desc=f"{MSG_TAGS['INFO']}Uploading Albums to NextCloud", unit=" album"),
+                start=1,
+            ):
                 album_name = os.path.basename(folder)
                 media_files = [f for f in get_all_files_paths(folder) if self._is_supported_media(f)]
+                LOGGER.info(
+                    f"{MSG_TAGS['INFO']}Processing album {index}/{len(subfolders)}: "
+                    f"'{album_name}' ({len(media_files)} supported assets)"
+                )
                 if not media_files:
                     total_albums_skipped += 1
                     continue
@@ -452,13 +656,76 @@ class ClassNextCloudPhotos:
                 if not exists or not album_id:
                     album_id = self.create_album(album_name=album_name, log_level=log_level)
                     total_albums_uploaded += 1
+                # Native Nextcloud Photos album (separate from files WebDAV folder tree)
+                native_enabled = True
+                native_album_path = ""
+                existing_album_files = {
+                    Path(item.get("path", "")).name
+                    for item in self._propfind(str(album_id), depth=1)
+                    if item.get("is_dir") != "true"
+                }
+                existing_native_files = set()
+                try:
+                    native_album_path = self._ensure_native_album(album_name=album_name)
+                    existing_native_files = self._native_album_existing_file_names(native_album_path)
+                except Exception as error:
+                    native_enabled = False
+                    LOGGER.warning(
+                        f"{MSG_TAGS['WARNING']}Native album sync disabled for '{album_name}': {error}. "
+                        f"Continuing with folder-only upload."
+                    )
+                native_added = 0
+                album_uploaded = 0
+                planned_uploads: List[Tuple[str, str, str, bool]] = []
+                seen_names = set(existing_album_files)
                 for file_path in media_files:
-                    remote_file = f"{str(album_id).rstrip('/')}/{os.path.basename(file_path)}"
-                    if self._exists(remote_file):
+                    file_name = os.path.basename(file_path)
+                    remote_file = f"{str(album_id).rstrip('/')}/{file_name}"
+                    if file_name in seen_names:
                         total_duplicates_skipped += 1
                         continue
-                    self._upload_file(file_path, remote_file)
-                    total_assets_uploaded += 1
+                    seen_names.add(file_name)
+                    should_copy_native = native_enabled and file_name not in existing_native_files
+                    planned_uploads.append((file_path, file_name, remote_file, should_copy_native))
+
+                if planned_uploads:
+                    workers = max(1, min(self.max_parallel_uploads, len(planned_uploads)))
+
+                    def _upload_worker(item: Tuple[str, str, str, bool]):
+                        local_file, local_name, remote_target, copy_native = item
+                        session = self._get_worker_session()
+                        self._upload_file_fast_with_session(session, local_file, remote_target)
+                        native_added_local = 0
+                        if copy_native:
+                            self._copy_file_to_native_album_with_session(
+                                session=session,
+                                source_remote_path=remote_target,
+                                album_path=native_album_path,
+                                destination_name=local_name,
+                            )
+                            native_added_local = 1
+                        return local_name, native_added_local
+
+                    with ThreadPoolExecutor(max_workers=workers) as executor:
+                        futures = [executor.submit(_upload_worker, item) for item in planned_uploads]
+                        for future in as_completed(futures):
+                            try:
+                                uploaded_name, native_inc = future.result()
+                            except Exception as error:
+                                LOGGER.warning(
+                                    f"{MSG_TAGS['WARNING']}Failed upload in album '{album_name}': {error}"
+                                )
+                                continue
+                            total_assets_uploaded += 1
+                            album_uploaded += 1
+                            existing_album_files.add(uploaded_name)
+                            if native_inc:
+                                native_added += native_inc
+                                existing_native_files.add(uploaded_name)
+                LOGGER.info(
+                    f"{MSG_TAGS['INFO']}Album '{album_name}': "
+                    f"uploaded={album_uploaded}, native-album adds={native_added}, duplicates-skipped={total_duplicates_skipped}"
+                )
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, 0, total_duplicates_skipped
 
     def push_no_albums(self, input_folder, subfolders_exclusion=f"{FOLDERNAME_ALBUMS}", remove_duplicates=False, log_level=logging.WARNING):
@@ -466,13 +733,51 @@ class ClassNextCloudPhotos:
             files = [f for f in get_all_files_paths(input_folder=input_folder, exclusion_folders=subfolders_exclusion) if self._is_supported_media(f)]
             uploaded = 0
             duplicates = 0
-            for file_path in tqdm(files, desc=f"{MSG_TAGS['INFO']}Uploading Assets without Albums to NextCloud", unit=" asset"):
-                remote_file = f"{self._no_albums_root().rstrip('/')}/{os.path.basename(file_path)}"
-                if self._exists(remote_file):
+            no_albums_root = self._no_albums_root()
+            self._ensure_dir(no_albums_root)
+
+            existing_names = {
+                Path(item.get("path", "")).name
+                for item in self._propfind(no_albums_root, depth=1)
+                if item.get("is_dir") != "true"
+            }
+
+            planned_uploads: List[Tuple[str, str, str]] = []
+            seen_names = set(existing_names)
+            for file_path in files:
+                file_name = os.path.basename(file_path)
+                if file_name in seen_names:
                     duplicates += 1
                     continue
-                self._upload_file(file_path, remote_file)
-                uploaded += 1
+                seen_names.add(file_name)
+                remote_file = f"{no_albums_root.rstrip('/')}/{file_name}"
+                planned_uploads.append((file_path, file_name, remote_file))
+
+            if planned_uploads:
+                workers = max(1, min(self.max_parallel_uploads, len(planned_uploads)))
+
+                def _upload_worker(item: Tuple[str, str, str]):
+                    local_file, local_name, remote_target = item
+                    session = self._get_worker_session()
+                    self._upload_file_fast_with_session(session, local_file, remote_target)
+                    return local_name
+
+                with ThreadPoolExecutor(max_workers=workers) as executor:
+                    futures = [executor.submit(_upload_worker, item) for item in planned_uploads]
+                    for future in tqdm(
+                        as_completed(futures),
+                        total=len(planned_uploads),
+                        desc=f"{MSG_TAGS['INFO']}Uploading Assets without Albums to NextCloud",
+                        unit=" asset",
+                    ):
+                        try:
+                            uploaded_name = future.result()
+                        except Exception as error:
+                            LOGGER.warning(f"{MSG_TAGS['WARNING']}Failed upload without album: {error}")
+                            continue
+                        uploaded += 1
+                        existing_names.add(uploaded_name)
+
             return uploaded, duplicates
 
     def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
