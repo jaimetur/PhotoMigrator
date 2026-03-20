@@ -126,7 +126,7 @@ def parse_arguments():
                         const=1,       # If user passes --account-id with no value, use 1
                         default=1,     # If not provided, default is 1
                         type=validate_account_id,
-                        help="Set the account ID for Synology Photos or Immich Photos (default: 1). "
+                        help="Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1).\n"
                              "This value must exist in the Config.ini as suffix of USERNAME/PASSWORD or API_KEY_USER.\n"
                              "Example for Immich ID=2:\n"
                              "  IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini.")
@@ -167,6 +167,7 @@ def parse_arguments():
                              "Examples:\n"
                              "  --source=immich-1   -> Select Immich Photos account 1 as Source.\n"
                              "  --source=synology-2 -> Select Synology Photos account 2 as Source.\n"
+                             "  --source=nextcloud-3 -> Select NextCloud Photos account 3 as Source.\n"
                              "  --source=/home/local_folder -> Select this local folder as Source.\n"
                              "  --source=/home/Takeout -> Select this Takeout folder as Source. (zipped and unzipped format supported)")
 
@@ -179,6 +180,7 @@ def parse_arguments():
                              "Examples:\n"
                              "  --target=immich-1   -> Select Immich Photos account 1 as Target.\n"
                              "  --target=synology-2 -> Select Synology Photos account 2 as Target.\n"
+                             "  --target=nextcloud-1 -> Select NextCloud Photos account 1 as Target.\n"
                              "  --target=/home/local_folder -> Select this local folder as Target.")
 
     PARSER.add_argument("-move", "--move-assets",

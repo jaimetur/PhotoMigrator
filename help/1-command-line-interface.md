@@ -30,7 +30,8 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-dateSep <DATE_SEPARATOR>] [-rangeSep <RANGE_OF_DATES_SEPARATOR>] [-fnAlbums <ALBUMS_FOLDER>]
                      [-fnNoAlbums <NO_ALBUMS_FOLDER>] [-fnLogs <LOG_FOLDER>] [-fnDuplicat <DUPLICATES_OUTPUT_FOLDER>]
                      [-fnExtDates <EXTRACTED_DATES_FOLDER>] [-exeGpthTool <GPTH_PATH>] [-exeExifTool <EXIFTOOL_PATH>]
-                     [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>] [-client = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']]
+                     [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+                     [-client = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']]
                      [-id [= [1-3]]]
                      [-from <FROM_DATE>] [-to <TO_DATE>] [-type = [image,video,all]]
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
@@ -50,7 +51,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
 
-PhotoMigrator v3.8.0 - 2026-03-17
+PhotoMigrator v4.0.0 - 2026-03-20
 
           Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
           such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -108,8 +109,8 @@ Following general arguments have different purposses depending on the Execution 
 -client      ; --client = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']
                Set the client to use for the selected feature.
 -id          ; --account-id = [1-3]
-               Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1). This value must exist in the
-               Config.ini as suffix of USERNAME/PASSWORD or API_KEY_USER.
+               Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1).
+               This value must exist in the Config.ini as suffix of USERNAME/PASSWORD or API_KEY_USER.
                Example for Immich ID=2:
                  IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini.
 -from        ; --filter-from-date <FROM_DATE>
@@ -145,12 +146,12 @@ Service to other, or from two different accounts within the same Photo Cloud ser
                  ['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <INPUT_FOLDER>
                  [id] = [1, 2] select which account to use from the Config.ini file.
 
-                Examples:
-                  --source=immich-1   -> Select Immich Photos account 1 as Source.
-                  --source=synology-2 -> Select Synology Photos account 2 as Source.
-                  --source=nextcloud-3 -> Select NextCloud Photos account 3 as Source.
-                  --source=/home/local_folder -> Select this local folder as Source.
-                  --source=/home/Takeout -> Select this Takeout folder as Source. (zipped and unzipped format supported)
+               Examples:
+                 --source=immich-1   -> Select Immich Photos account 1 as Source.
+                 --source=synology-2 -> Select Synology Photos account 2 as Source.
+                 --source=nextcloud-3 -> Select NextCloud Photos account 3 as Source.
+                 --source=/home/local_folder -> Select this local folder as Source.
+                 --source=/home/Takeout -> Select this Takeout folder as Source. (zipped and unzipped format supported)
 -target      ; --target <TARGET>
                Select the <TARGET> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) from
                the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums).
@@ -159,11 +160,11 @@ Service to other, or from two different accounts within the same Photo Cloud ser
                  ['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <OUTPUT_FOLDER>
                  [id] = [1, 2] select which account to use from the Config.ini file.
 
-                Examples:
-                  --target=immich-1   -> Select Immich Photos account 1 as Target.
-                  --target=synology-2 -> Select Synology Photos account 2 as Target.
-                  --target=nextcloud-1 -> Select NextCloud Photos account 1 as Target.
-                  --target=/home/local_folder -> Select this local folder as Target.
+               Examples:
+                 --target=immich-1   -> Select Immich Photos account 1 as Target.
+                 --target=synology-2 -> Select Synology Photos account 2 as Target.
+                 --target=nextcloud-1 -> Select NextCloud Photos account 1 as Target.
+                 --target=/home/local_folder -> Select this local folder as Target.
 -move        ; --move-assets = [true,false]
                If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copied.
                (default: False).
@@ -249,9 +250,9 @@ for the rest of the arguments for this extra mode.
 
 
 SYNOLOGY/IMMICH/NEXTCLOUD/GOOGLE PHOTOS MANAGEMENT:
-----------------------------------
-To use following features, it is mandatory to use the argument '--client=[synology, immich, nextcloud, google-photos]' to specify which Photo
-Service do you want to use.
+---------------------------------------------------
+To use following features, it is mandatory to use the argument '--client=[synology, immich, nextcloud, google-photos]'
+to specify which Photo Service do you want to use.
 
 You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in
 Config.ini.

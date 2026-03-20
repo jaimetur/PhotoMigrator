@@ -295,7 +295,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
                 SYNOLOGY/IMMICH/NEXTCLOUD/GOOGLE PHOTOS MANAGEMENT:
-                ----------------------------------{Style.RESET_ALL}
+                ---------------------------------------------------{Style.RESET_ALL}
                 To use following features, it is mandatory to use the argument '--client=[synology, immich, nextcloud, google-photos]' to specify which Photo Service do you want to use.  
 
                 You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.                  
