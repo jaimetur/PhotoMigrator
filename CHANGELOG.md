@@ -23,7 +23,7 @@
   - Added Google Photos OAuth credentials support in `Config.ini` and config loader (`[Google Photos]` section with account 1/2/3).
   - Extended automatic migration endpoint parsing in web UI to support `google[-photos][-1..3]` for both source and target.
   - Updated CLI/source-target validation and help text to include `nextcloud` and `google-photos` as cloud clients.
-  
+
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
   - Other bug fixing.
@@ -61,7 +61,9 @@
   - Added a safeguard in `organize_files_by_date` to skip files already organized in the expected date folder structure (`year`, `year/month`, `year-month`) and avoid redundant re-nesting.
   - Improved Web Interface execution log buffering for long-running jobs with progress bars: progress refresh updates no longer flood line history, the in-memory log is compacted by progress key, and default web log buffer size was increased and made configurable via `PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES`.
   - Simplified docker-compose.yml file.
-  
+  - Horizontal scroll on log panel when lines are too large.
+  - Improved markdown render for code blocks.
+
 #### 🐛 Bug fixes:
   - Added validation for `--google-takeout` path to block reserved special-folder names (`Archive`, `Trash`, `Locked folder`) and abort early with a clear message; same validation is enforced in Web UI folder selection (Issue #1008).
   - Fixed a queue accounting bug in `Automatic Migration` that could stall execution when processing album folders still marked as active (`.active`) in parallel workers (Issue #1009).
