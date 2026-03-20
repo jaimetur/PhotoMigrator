@@ -66,9 +66,10 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_3   = your_refresh_token_3
 > 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id`**_ to specify the account 2 or 3 as needed. 
 
-> [!WARNING]
-> Google Photos public API has functional limits.
+> [!IMPORTANT]
+> Google Photos public API has functional limits with scope and capability restrictions.
 > Unsupported management actions are exposed for CLI/UI compatibility but run as no-op with warning.
+> ⚠️ ** Some operations in PhotoMigrator are intentionally no-op for Google Photos because the public API does not support them.**
 
 ## <span style="color:blue">How to get Google OAuth credentials</span>
 To use Google Photos modules you need:
@@ -102,10 +103,6 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > [!NOTE]
 > If the OAuth app is in **Testing** mode, only configured test users can authorize it.
 > Refresh tokens may be invalidated if you revoke app access or rotate client secrets.
-
-> [!WARNING]
-> Google Photos API has scope and capability restrictions.
-> Some operations in PhotoMigrator are intentionally no-op for Google Photos because the public API does not support them.
 
 
 ## <span style="color:blue">Upload Albums:</span>

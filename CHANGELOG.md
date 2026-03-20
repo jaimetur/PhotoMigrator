@@ -65,6 +65,7 @@
   - Simplified docker-compose.yml file.
   - Horizontal scroll on log panel when lines are too large.
   - Improved markdown render for code blocks.
+  - Improved markdown render to detect italic font and bold+italic.
 
 #### 🐛 Bug fixes:
   - Added validation for `--google-takeout` path to block reserved special-folder names (`Archive`, `Trash`, `Locked folder`) and abort early with a clear message; same validation is enforced in Web UI folder selection (Issue #1008).

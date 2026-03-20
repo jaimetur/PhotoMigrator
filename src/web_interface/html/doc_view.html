@@ -533,7 +533,7 @@
         const rawText = String(text || "");
         const htmlTokens = [];
         const tokenized = rawText.replace(/<\/?[a-zA-Z][^>]*>/g, (tag) => {
-            const token = `__HTML_TOKEN_${htmlTokens.length}__`;
+            const token = `@@HTMLTOKEN${htmlTokens.length}@@`;
             htmlTokens.push(rewriteHtmlTagUrls(tag));
             return token;
         });
@@ -565,10 +565,14 @@
             return `<a href="${escapeHtml(resolved)}"${targetAttrs}>${escapeHtml(label)}</a>`;
         });
         html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-        html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-        html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+        html = html.replace(/_\*\*([^*\n][\s\S]*?)\*\*_/g, "<em><strong>$1</strong></em>");
+        html = html.replace(/\*\*_([^_\n][\s\S]*?)_\*\*/g, "<strong><em>$1</em></strong>");
+        html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+        html = html.replace(/__([^_\n]+)__/g, "<strong>$1</strong>");
+        html = html.replace(/(^|[^\w])\*([^*\n]+)\*(?=[^\w]|$)/g, "$1<em>$2</em>");
+        html = html.replace(/(^|[^\w])_([^_\n]+)_(?=[^\w]|$)/g, "$1<em>$2</em>");
         htmlTokens.forEach((tag, index) => {
-            const token = `__HTML_TOKEN_${index}__`;
+            const token = `@@HTMLTOKEN${index}@@`;
             html = html.replaceAll(token, tag);
         });
         return html;
@@ -959,7 +963,7 @@
     function buildHelpLabel(relativePath) {
         const clean = String(relativePath || "").replace(/\\/g, "/");
         if (clean.toLowerCase().endsWith("gpth_process_explanations/00_gpth_complete_pipeline.md")) {
-            return "8. Google Photos Takeout Helper (GPTH)";
+            return "10. Google Photos Takeout Helper (GPTH)";
         }
         if (clean.toLowerCase() === "2-arguments-description-short.md") {
             return "2. Arguments Description";
@@ -1157,14 +1161,14 @@
             {path: "2-arguments-description.md", label: "2.2 Long Description"},
         ];
         const gpthSubDocs = [
-            {path: "gpth_process_explanations/01_GPTH_fix_incorrect_file_extension.md", label: "8.1 Fix Extensions"},
-            {path: "gpth_process_explanations/02_GPTH_discover_and_clasify_media_files.md", label: "8.2 Discover Media"},
-            {path: "gpth_process_explanations/03_GPTH_remove_duplicates_media_files.md", label: "8.3 Remove Duplicates"},
-            {path: "gpth_process_explanations/04_GPTH_extract_dates_from_media_files.md", label: "8.4 Extract Dates"},
-            {path: "gpth_process_explanations/05_GPTH_write_EXIF_data.md", label: "8.5 Write EXIF Data"},
-            {path: "gpth_process_explanations/06_GPTH_find_and_merge_album_relationships.md", label: "8.6 Find Albums"},
-            {path: "gpth_process_explanations/07_GPTH_move_files_to_output_folder.md", label: "8.7 Move Files"},
-            {path: "gpth_process_explanations/08_GPTH_update_creation_time_windows_only.md", label: "8.8 Update Creation Time"},
+            {path: "gpth_process_explanations/01_GPTH_fix_incorrect_file_extension.md", label: "10.1 Fix Extensions"},
+            {path: "gpth_process_explanations/02_GPTH_discover_and_clasify_media_files.md", label: "10.2 Discover Media"},
+            {path: "gpth_process_explanations/03_GPTH_remove_duplicates_media_files.md", label: "10.3 Remove Duplicates"},
+            {path: "gpth_process_explanations/04_GPTH_extract_dates_from_media_files.md", label: "10.4 Extract Dates"},
+            {path: "gpth_process_explanations/05_GPTH_write_EXIF_data.md", label: "10.5 Write EXIF Data"},
+            {path: "gpth_process_explanations/06_GPTH_find_and_merge_album_relationships.md", label: "10.6 Find Albums"},
+            {path: "gpth_process_explanations/07_GPTH_move_files_to_output_folder.md", label: "10.7 Move Files"},
+            {path: "gpth_process_explanations/08_GPTH_update_creation_time_windows_only.md", label: "10.8 Update Creation Time"},
         ];
         const otherFeaturesSubDocs = [
             {anchor: "find-duplicates-extra-feature", label: "9.1 Find Duplicates"},
