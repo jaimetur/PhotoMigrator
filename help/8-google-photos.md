@@ -70,6 +70,43 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_3   = your_refresh_token_3
 > Google Photos public API has functional limits.
 > Unsupported management actions are exposed for CLI/UI compatibility but run as no-op with warning.
 
+## <span style="color:blue">How to get Google OAuth credentials</span>
+To use Google Photos modules you need:
+- `GOOGLE_PHOTOS_CLIENT_ID_<N>`
+- `GOOGLE_PHOTOS_CLIENT_SECRET_<N>`
+- `GOOGLE_PHOTOS_REFRESH_TOKEN_<N>`
+
+Follow these steps:
+1. Create or select a project in Google Cloud Console.
+2. Enable **Google Photos Library API** for that project.
+3. Configure **OAuth consent screen** (External/Internal as needed).
+4. Create an OAuth client in **Credentials**:
+   - Recommended for local testing: **Desktop app**.
+5. Copy generated values:
+   - `Client ID` -> `GOOGLE_PHOTOS_CLIENT_ID_<N>`
+   - `Client Secret` -> `GOOGLE_PHOTOS_CLIENT_SECRET_<N>`
+6. Generate a refresh token with OAuth authorization flow:
+   - Request OAuth with `access_type=offline` and `prompt=consent`.
+   - Authorize with the Google account you want to use in PhotoMigrator.
+   - Exchange authorization code for tokens and copy `refresh_token`.
+7. Put all three values in `Config.ini` under `[Google Photos]`.
+
+Example:
+```ini
+[Google Photos]
+GOOGLE_PHOTOS_CLIENT_ID_1       = 1234567890-abcdefg.apps.googleusercontent.com
+GOOGLE_PHOTOS_CLIENT_SECRET_1   = GOCSPX-xxxxxxxxxxxxxxxx
+GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+> [!NOTE]
+> If the OAuth app is in **Testing** mode, only configured test users can authorize it.
+> Refresh tokens may be invalidated if you revoke app access or rotate client secrets.
+
+> [!WARNING]
+> Google Photos API has scope and capability restrictions.
+> Some operations in PhotoMigrator are intentionally no-op for Google Photos because the public API does not support them.
+
 
 ## <span style="color:blue">Upload Albums:</span>
 - **From:** v4.0.0
@@ -99,6 +136,9 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_3   = your_refresh_token_3
   ```bash
   ./PhotoMigrator.run --client=google-photos --download-albums "Album 1, Album 2" --output-folder ./Downloads
   ```
+
+> [!NOTE]
+> Due current Google Photos API restrictions/scopes, download operations can be limited to media items accessible by the app context (commonly app-created data, depending on granted scopes).
 
 
 ## <span style="color:blue">Upload All:</span>
@@ -131,6 +171,9 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_3   = your_refresh_token_3
   ```bash
   ./PhotoMigrator.run --client=google-photos --download-all ./MyLibrary
   ```
+
+> [!NOTE]
+> Due current Google Photos API restrictions/scopes, download operations can be limited to media items accessible by the app context (commonly app-created data, depending on granted scopes).
 
 
 ## <span style="color:blue">Remove All Assets:</span>
