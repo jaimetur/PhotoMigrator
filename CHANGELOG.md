@@ -29,6 +29,7 @@
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
+  - Fixed `Automatic Migration` cloud-session initialization for NextCloud and Google Photos clients by enabling lazy thread-safe auto-login on first API call, preventing `session is not initialized. Call login() first` errors in source/target worker flows.
   - Other bug fixing.
 
 #### 📚 Documentation: 

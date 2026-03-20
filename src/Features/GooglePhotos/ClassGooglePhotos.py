@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -37,6 +38,7 @@ class ClassGooglePhotos:
         self.client_secret = ""
         self.refresh_token = ""
         self.access_token = ""
+        self._session_lock = threading.Lock()
 
         self.albums_root_name = FOLDERNAME_ALBUMS
         self.no_albums_root_name = FOLDERNAME_NO_ALBUMS
@@ -117,8 +119,14 @@ class ClassGooglePhotos:
             return True
 
     def _require_session(self):
+        if self.session is not None:
+            return
+        with self._session_lock:
+            if self.session is None:
+                # Keep the same behavior as Synology/Immich/NextCloud clients: lazy login on first API call.
+                self.login(log_level=logging.ERROR)
         if self.session is None:
-            raise RuntimeError("Google Photos session is not initialized. Call login() first.")
+            raise RuntimeError("Google Photos session could not be initialized.")
 
     def _request(self, method: str, url: str, expected=(200,), **kwargs):
         self._require_session()
@@ -249,6 +257,7 @@ class ClassGooglePhotos:
                 break
 
     def _create_upload_token(self, file_path: str) -> str:
+        self._require_session()
         with open(file_path, "rb") as fp:
             file_bytes = fp.read()
         headers = {

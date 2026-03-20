@@ -45,6 +45,7 @@ class ClassNextCloudPhotos:
         self.max_parallel_uploads = 12
         self.use_system_proxy = False
         self._worker_local = threading.local()
+        self._session_lock = threading.Lock()
         self.ALLOWED_PHOTO_EXTENSIONS = [ext.lower() for ext in PHOTO_EXT]
         self.ALLOWED_VIDEO_EXTENSIONS = [ext.lower() for ext in VIDEO_EXT]
         self.type = ARGS.get("filter-by-type", None)
@@ -114,8 +115,14 @@ class ClassNextCloudPhotos:
             return True
 
     def _require_session(self):
+        if self.session is not None:
+            return
+        with self._session_lock:
+            if self.session is None:
+                # Keep the same behavior as Synology/Immich clients: lazy login on first API call.
+                self.login(log_level=logging.ERROR)
         if self.session is None:
-            raise RuntimeError("NextCloud session is not initialized. Call login() first.")
+            raise RuntimeError("NextCloud session could not be initialized.")
 
     def _dav_url(self, remote_path: str) -> str:
         # Normalize to a decoded path first to avoid double-encoding (%2520, etc.)
@@ -161,6 +168,8 @@ class ClassNextCloudPhotos:
         return self._request_url(method=method, url=self._photos_dav_url(remote_path), expected=expected, **kwargs)
 
     def _get_worker_session(self) -> requests.Session:
+        # Ensure config/session has been initialized before creating worker sessions.
+        self._require_session()
         session = getattr(self._worker_local, "session", None)
         if session is None:
             session = self._build_session()
