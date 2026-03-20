@@ -23,6 +23,8 @@
   - Added Google Photos OAuth credentials support in `Config.ini` and config loader (`[Google Photos]` section with account 1/2/3).
   - Extended automatic migration endpoint parsing in web UI to support `google[-photos][-1..3]` for both source and target.
   - Updated CLI/source-target validation and help text to include `nextcloud` and `google-photos` as cloud clients.
+  - Improved name-pattern handling across cloud modules: wildcard-only patterns like `*` are now accepted for album selection, and literal patterns with special regex characters (for example album names containing parentheses) now work for matching/replacing without requiring manual escaping.
+  - Improved album rename matching for literal album names containing regex metacharacters (such as parentheses), so rename workflows work without manual escaping.
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.

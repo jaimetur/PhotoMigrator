@@ -1,5 +1,6 @@
 import base64
 import ctypes
+import fnmatch
 import hashlib
 import json
 import logging
@@ -623,16 +624,47 @@ def sha1_checksum(file_path):
 
 def match_pattern(string, pattern):
     """
-    Returns True if the regex pattern is found in the given string.
+    Returns True if pattern matches the given string.
+    Tries regex first, then glob, then literal matching.
     """
-    return re.search(pattern, string) is not None
+    text = str(string or "")
+    expr = str(pattern or "")
+    if not expr:
+        return False
+    try:
+        if re.search(expr, text) is not None:
+            return True
+    except re.error:
+        pass
+
+    if fnmatch.fnmatch(text, expr):
+        return True
+
+    # Final fallback for "plain text" patterns that may contain regex metacharacters
+    # (e.g. album names with parentheses).
+    return re.search(re.escape(expr), text) is not None
 
 
 def replace_pattern(string, pattern, pattern_to_replace):
     """
-    Replaces all occurrences of the regex pattern in the string with replace_pattern.
+    Replaces occurrences of pattern in string.
+    Tries regex replacement first; if no effective change, falls back to literal replacement.
     """
-    return re.sub(pattern, pattern_to_replace, string)
+    text = str(string or "")
+    expr = str(pattern or "")
+    repl = str(pattern_to_replace or "")
+    try:
+        replaced = re.sub(expr, repl, text)
+    except re.error:
+        replaced = text
+
+    if replaced != text:
+        return replaced
+
+    if expr and expr in text:
+        return text.replace(expr, repl)
+
+    return text
 
 
 def has_any_filter():

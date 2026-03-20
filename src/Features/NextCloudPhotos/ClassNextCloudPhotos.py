@@ -861,7 +861,25 @@ class ClassNextCloudPhotos:
         with set_log_level(LOGGER, log_level):
             target = os.path.join(output_folder, self.no_albums_root_name)
             os.makedirs(target, exist_ok=True)
-            return self._download_remote_folder(self._no_albums_root(), target, log_level=log_level)
+            downloaded = 0
+            for asset in self.get_all_assets_without_albums(log_level=log_level):
+                asset_id = asset.get("id", "")
+                asset_filename = asset.get("filename", "")
+                asset_time = asset.get("asset_datetime", "")
+                created_dt = self._to_datetime_utc(asset_time) or datetime.now(timezone.utc)
+                year_str = created_dt.strftime("%Y")
+                month_str = created_dt.strftime("%m")
+                target_folder = os.path.join(target, year_str, month_str)
+                os.makedirs(target_folder, exist_ok=True)
+                self.pull_asset(
+                    asset_id=asset_id,
+                    asset_filename=asset_filename,
+                    asset_time=asset_time,
+                    download_folder=target_folder,
+                    log_level=log_level,
+                )
+                downloaded += 1
+            return downloaded
 
     def pull_ALL(self, output_folder="Downloads_NextCloud", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
@@ -934,6 +952,25 @@ class ClassNextCloudPhotos:
                 try:
                     destination_url = self._dav_url(dst)
                     self._request("MOVE", src, expected=(201, 204), headers={"Destination": destination_url, "Overwrite": "F"})
+
+                    # Try to rename native Nextcloud Photos album too (if it exists).
+                    # Keep the main rename successful even if native album MOVE is not supported/fails.
+                    try:
+                        native_src = self._native_album_path(old_name)
+                        native_dst = self._native_album_path(new_name)
+                        native_destination_url = self._photos_dav_url(native_dst)
+                        self._request_photos(
+                            "MOVE",
+                            native_src,
+                            expected=(201, 204),
+                            headers={"Destination": native_destination_url, "Overwrite": "F"},
+                        )
+                    except Exception as native_error:
+                        LOGGER.warning(
+                            f"{MSG_TAGS['WARNING']}Folder renamed but native Nextcloud album rename failed "
+                            f"('{old_name}' -> '{new_name}'): {native_error}"
+                        )
+
                     renamed += 1
                 except Exception as error:
                     LOGGER.warning(f"{MSG_TAGS['WARNING']}Failed to rename album '{old_name}' -> '{new_name}': {error}")

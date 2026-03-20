@@ -612,11 +612,16 @@ class ClassGooglePhotos:
             os.makedirs(target, exist_ok=True)
             downloaded = 0
             for asset in self.get_all_assets_without_albums(log_level=log_level):
+                created_dt = self._to_datetime_utc(asset.get("asset_datetime", "")) or datetime.now(timezone.utc)
+                year_str = created_dt.strftime("%Y")
+                month_str = created_dt.strftime("%m")
+                target_folder = os.path.join(target, year_str, month_str)
+                os.makedirs(target_folder, exist_ok=True)
                 self.pull_asset(
                     asset_id=asset["id"],
                     asset_filename=asset["filename"],
                     asset_time=asset["asset_datetime"],
-                    download_folder=target,
+                    download_folder=target_folder,
                     log_level=log_level,
                 )
                 downloaded += 1
