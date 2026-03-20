@@ -75,7 +75,7 @@ body:
   id: feature-affected
   attributes:
     label: Feature Affected
-    description: What Feature of the tool is affected by this Bug?
+    description: 'What Feature of the tool is affected by this Bug?'
     options:
     - Global (all features will be affected)
     - Web Interface
@@ -98,26 +98,24 @@ body:
   id: command-executed
   attributes:
     label: Command executed
-    description: Paste the command executed with all the arguments used
-    placeholder: Introduce the command executed (if you are running the web interface it can be copied directly from the Command Preview section
-    value: /usr/local/bin/python /app/src/PhotoMigrator.py --configuration-file /app/config/Config.ini --no-request-user-confirmation --source synology-photos-1 --target immich-photos-1
+    description: 'Introduce the command executed (if you are running the web interface it can be copied directly from the Command Preview section)'
+    placeholder: 'Example: /usr/local/bin/python /app/src/PhotoMigrator.py --configuration-file /app/config/Config.ini --no-request-user-confirmation --source synology-photos-1 --target immich-photos-1'
   validations:
     required: true
 - type: textarea
   id: what-happened
   attributes:
     label: What happened?
-    description: Also tell us, what did you expect to happen?
-    placeholder: Tell us what you see!
-    value: A bug happened!
+    description: 'Tell us what happened'
+    placeholder: 'Tell us what you see!. Also tell us, what did you expect to happen?'
   validations:
     required: true
 - type: textarea
   id: logs
   attributes:
     label: Relevant log output
-    description: Please copy and paste any relevant log output. This will be automatically
-      formatted into code, so no need for backticks.
+    description: 'Please copy and paste any relevant log output. This will be automatically
+      formatted into code, so no need for backticks.'
     render: shell
 - type: checkboxes
   id: terms

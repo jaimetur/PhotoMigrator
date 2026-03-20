@@ -18,7 +18,7 @@ body:
   id: version
   attributes:
     label: Version
-    description: What tool version are you running?
+    description: 'What tool version are you running?'
     options:
     - v3.8.0 (latest-stable)
     - v3.7.1
@@ -58,7 +58,7 @@ body:
   id: feature-affected
   attributes:
     label: Feature Affected
-    description: What Feature of the tool will be affected by this Improvement Request?
+    description: 'What Feature of the tool will be affected by this Improvement Request?'
     options:
     - Global (all features will be affected)
     - Web Interface
@@ -80,10 +80,9 @@ body:
 - type: textarea
   id: improvement-description
   attributes:
-    label: Improvement Description
-    description: Tell us, with the maximum level of detail, this improvement request
-    placeholder: Feature description
-    value: Improvement description
+    label: 'Improvement Description'
+    description: 'Improvement description'
+    placeholder: 'Tell us, with the maximum level of detail, this improvement request'
   validations:
     required: true
 - type: checkboxes
