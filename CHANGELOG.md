@@ -25,6 +25,7 @@
   - Updated CLI/source-target validation and help text to include `nextcloud` and `google-photos` as cloud clients.
   - Improved name-pattern handling across cloud modules: wildcard-only patterns like `*` are now accepted for album selection, and literal patterns with special regex characters (for example album names containing parentheses) now work for matching/replacing without requiring manual escaping.
   - Improved album rename matching for literal album names containing regex metacharacters (such as parentheses), so rename workflows work without manual escaping.
+  - Improved markdown render to detect italic font and bold+italic.
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
@@ -65,7 +66,6 @@
   - Simplified docker-compose.yml file.
   - Horizontal scroll on log panel when lines are too large.
   - Improved markdown render for code blocks.
-  - Improved markdown render to detect italic font and bold+italic.
 
 #### 🐛 Bug fixes:
   - Added validation for `--google-takeout` path to block reserved special-folder names (`Archive`, `Trash`, `Locked folder`) and abort early with a clear message; same validation is enforced in Web UI folder selection (Issue #1008).
