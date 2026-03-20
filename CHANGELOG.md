@@ -4,6 +4,23 @@
 
 ---
 
+## Release: v4.0.0
+### Release Date: 2026-03-20
+  
+#### 🚨 Breaking Changes:
+  
+#### 🌟 New Features:
+
+#### 🚀 Enhancements:
+  
+#### 🐛 Bug fixes:
+  - Other bug fixing.
+
+#### 📚 Documentation: 
+  - Updated documentation with all changes.
+
+---
+
 ## Release: v3.8.0
 ### Release Date: 2026-03-17
   
