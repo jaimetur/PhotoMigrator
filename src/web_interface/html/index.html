@@ -702,8 +702,29 @@
             if (inOl) {
                 html.push("</ol>");
                 inOl = false;
-            }
-        };
+        }
+    };
+
+    const CLOUD_ACTIONS_AVAILABLE = {
+        synology_photos: [
+            "upload-albums",
+            "download-albums",
+            "upload-all",
+            "download-all",
+            "rename-albums",
+            "remove-albums",
+            "remove-all-albums",
+            "remove-all-assets",
+            "remove-empty-albums",
+            "remove-duplicates-albums",
+            "merge-duplicates-albums"
+        ]
+    };
+
+    function isCloudActionAvailable(tabKey, dest) {
+        const allowed = CLOUD_ACTIONS_AVAILABLE[tabKey];
+        return !allowed || allowed.includes(dest);
+    }
 
         const flushParagraph = () => {
             if (!paragraph.length) return;
@@ -1848,7 +1869,7 @@
     function renderCloudActionPanel(tabKey) {
         const panel = document.getElementById("cloud-action-panel");
         const fields = (schema.tabs[tabKey] || []);
-        const actions = fields.filter((f) => f.dest !== "one-time-password");
+        const actions = fields.filter((f) => f.dest !== "one-time-password" && isCloudActionAvailable(tabKey, f.dest));
         const otpField = fields.find((f) => f.dest === "one-time-password");
         const persistedCloudDest = uiState?.cloud_action_dest?.[tabKey];
         if (!cloudActionDest && persistedCloudDest && actions.find((f) => f.dest === persistedCloudDest)) {

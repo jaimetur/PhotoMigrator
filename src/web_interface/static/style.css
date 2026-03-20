@@ -1330,7 +1330,8 @@ body[data-theme="dark"] .theme-card__name {
     height: 760px;
     min-height: 420px;
     max-height: 1520px;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: auto;
     padding: 12px;
     font-size: 0.85rem;
     line-height: 1.4;
@@ -1374,9 +1375,10 @@ body.is-resizing-log {
 }
 
 .log-line {
-    display: inline;
-    white-space: pre-wrap;
-    word-break: break-word;
+    display: block;
+    white-space: pre;
+    word-break: normal;
+    overflow-wrap: normal;
 }
 
 .log-verbose {
@@ -1602,7 +1604,9 @@ body.is-resizing-log {
     color: #d8f5df;
     border-radius: 8px;
     padding: 10px;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: pre;
 }
 
 .doc-markdown pre code {
@@ -1610,6 +1614,9 @@ body.is-resizing-log {
     border: 0;
     color: inherit;
     padding: 0;
+    white-space: inherit;
+    overflow-wrap: normal;
+    word-break: normal;
 }
 
 .doc-markdown a {
