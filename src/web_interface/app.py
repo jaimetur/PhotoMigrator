@@ -3061,31 +3061,46 @@ def admin_db_tables(current_user: Dict[str, Any] = Depends(_require_admin)) -> D
 @app.get("/api/admin/access-logs")
 def admin_access_logs(
     limit: int = Query(200, ge=1, le=2000),
+    username: str = Query("", max_length=256),
     current_user: Dict[str, Any] = Depends(_require_admin),
 ) -> Dict[str, Any]:
     _ensure_access_logs_table()
+    username_filter = str(username or "").strip()
     conn = _db_connect()
     try:
-        rows = conn.execute(
-            """
-            SELECT id, user_id, username, ip_address, created_at
-            FROM access_logs
-            ORDER BY created_at DESC
-            LIMIT ?
-            """,
-            (int(limit),),
-        ).fetchall()
+        if username_filter:
+            rows = conn.execute(
+                """
+                SELECT id, user_id, username, ip_address, created_at
+                FROM access_logs
+                WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (username_filter, int(limit)),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT id, user_id, username, ip_address, created_at
+                FROM access_logs
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (int(limit),),
+            ).fetchall()
     finally:
         conn.close()
-    return {"logs": [dict(row) for row in rows], "limit": int(limit)}
+    return {"logs": [dict(row) for row in rows], "limit": int(limit), "username": username_filter}
 
 
 @app.get("/api/admin/access_logs")
 def admin_access_logs_legacy(
     limit: int = Query(200, ge=1, le=2000),
+    username: str = Query("", max_length=256),
     current_user: Dict[str, Any] = Depends(_require_admin),
 ) -> Dict[str, Any]:
-    return admin_access_logs(limit=limit, current_user=current_user)
+    return admin_access_logs(limit=limit, username=username, current_user=current_user)
 
 
 @app.get("/api/admin/db/table/{table_name}")

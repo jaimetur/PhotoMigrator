@@ -95,6 +95,9 @@
     <section class="admin-section">
         <h2>Access Logs</h2>
         <div class="admin-db-toolbar">
+            <select id="access-logs-user-filter" class="field__input">
+                <option value="">All Users</option>
+            </select>
             <button id="access-logs-refresh" type="button" class="ghost-btn">Refresh Logs</button>
         </div>
         <div id="access-logs-status" class="status">Access logs: loading...</div>
@@ -262,6 +265,7 @@
         const statusEl = document.getElementById("admin-status");
         statusEl.textContent = "Status: loading users...";
         const data = await apiFetch("/api/admin/users");
+        updateAccessLogUserFilter(data.users || []);
         const tbody = document.querySelector("#users-table tbody");
         tbody.innerHTML = "";
         for (const user of data.users || []) {
@@ -335,6 +339,26 @@
             tbody.appendChild(tr);
         }
         statusEl.textContent = `Status: loaded ${data.users?.length || 0} users`;
+    }
+
+    function updateAccessLogUserFilter(users) {
+        const select = document.getElementById("access-logs-user-filter");
+        if (!select) return;
+        const current = String(select.value || "");
+        const usernames = [...new Set((users || [])
+            .map((u) => String(u?.username || "").trim())
+            .filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b));
+        select.innerHTML = "";
+        select.add(new Option("All Users", ""));
+        usernames.forEach((name) => {
+            select.add(new Option(name, name));
+        });
+        if (current && usernames.includes(current)) {
+            select.value = current;
+        } else {
+            select.value = "";
+        }
     }
 
     async function loadDbTables() {
@@ -550,15 +574,21 @@
 
     async function loadAccessLogs() {
         const statusEl = document.getElementById("access-logs-status");
+        const select = document.getElementById("access-logs-user-filter");
+        const username = String(select?.value || "").trim();
+        const querySuffix = username ? `&username=${encodeURIComponent(username)}` : "";
         statusEl.textContent = "Access logs: loading...";
         try {
             let rows = [];
             try {
-                const data = await apiFetch("/api/admin/access-logs?limit=300");
+                const data = await apiFetch(`/api/admin/access-logs?limit=300${querySuffix}`);
                 rows = data.logs || [];
             } catch (primaryError) {
                 const fallback = await apiFetch("/api/admin/db/table/access_logs?limit=300&offset=0");
                 rows = fallback.rows || [];
+                if (username) {
+                    rows = rows.filter((row) => String(row?.username || "").trim().toLowerCase() === username.toLowerCase());
+                }
             }
             const tbody = document.querySelector("#access-logs-table tbody");
             tbody.innerHTML = "";
@@ -627,6 +657,7 @@
     document.getElementById("backup-save").addEventListener("click", saveBackupConfig);
     document.getElementById("backup-run-now").addEventListener("click", runBackupNow);
     document.getElementById("access-logs-refresh").addEventListener("click", loadAccessLogs);
+    document.getElementById("access-logs-user-filter").addEventListener("change", loadAccessLogs);
 
     document.getElementById("password-dialog-cancel").addEventListener("click", closePasswordDialog);
     document.getElementById("admin-notice-close").addEventListener("click", () => {
