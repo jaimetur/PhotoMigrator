@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tool_name }} Login</title>
+    <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="login-page" data-theme="ocean">
+<main class="login-card">
+    <h1>{{ tool_name }}</h1>
+    <p class="login-subtitle">Version {{ tool_version }}</p>
+    <form id="login-form" class="login-form" autocomplete="off">
+        <label>
+            <span>Username</span>
+            <input id="username" type="text" required autocomplete="off" spellcheck="false">
+        </label>
+        <label>
+            <span>Password</span>
+            <input id="password" type="password" required autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+        </label>
+        <button type="submit" class="run-btn">Login</button>
+    </form>
+    <p class="login-default-note">Default account available: <code>admin</code> / <code>admin123</code>.</p>
+    <p id="login-status" class="status">Status: ready</p>
+</main>
+
+<script>
+    const form = document.getElementById("login-form");
+    const statusEl = document.getElementById("login-status");
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        statusEl.textContent = "Status: authenticating...";
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({username, password})
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(String(data?.detail || "Invalid credentials"));
+            }
+            statusEl.textContent = "Status: login successful";
+            window.location.href = "/";
+        } catch (error) {
+            statusEl.textContent = `Status: ${String(error)}`;
+        }
+    });
+</script>
+</body>
+</html>

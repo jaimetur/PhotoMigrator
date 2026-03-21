@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tool_name }} Admin</title>
+    <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="admin-page">
+<main class="admin-wrapper">
+    <header class="admin-header">
+        <h1>Administration Panel</h1>
+        <div class="admin-header__actions">
+            <a href="/" class="ghost-btn">Back to Web UI</a>
+            <button id="logout-btn" class="ghost-btn">Logout</button>
+        </div>
+    </header>
+
+    <section class="admin-section">
+        <h2>Create User</h2>
+        <form id="create-user-form" class="admin-form-grid" autocomplete="off">
+            <input id="new-username" placeholder="username" required>
+            <input id="new-password" type="password" placeholder="password" required autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+            <select id="new-role">
+                <option value="user" selected>User</option>
+                <option value="admin">Admin</option>
+                <option value="demo">Demo</option>
+            </select>
+            <select id="new-must-change-password" title="Force password change on first login">
+                <option value="" selected>Force Password Change</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+            <input id="new-data-subpath" placeholder="data subpath (default username)">
+            <input id="new-volume1-subpath" placeholder="volumes subpath (default username)">
+            <label class="admin-checkbox"><input id="new-active" type="checkbox" checked> Active</label>
+            <button type="submit" class="run-btn admin-create-btn">Create</button>
+        </form>
+    </section>
+
+    <section class="admin-section">
+        <h2>Users</h2>
+        <div id="admin-status" class="status">Status: loading...</div>
+        <table class="admin-table" id="users-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Role</th>
+                <th>Active</th>
+                <th>Force Password Change</th>
+                <th>/app/data subpath</th>
+                <th>/app/volumes subpath</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section class="admin-section">
+        <h2>Database Manager</h2>
+        <div class="admin-db-toolbar">
+            <select id="db-table-select" class="field__input"></select>
+            <button id="db-table-load" type="button" class="ghost-btn">Load Table</button>
+            <button id="db-table-refresh" type="button" class="ghost-btn">Refresh Tables</button>
+        </div>
+        <p class="admin-db-hint">You can edit cells and click Save row, or Delete row. Inserts use JSON object syntax.</p>
+        <div class="admin-db-insert">
+            <textarea id="db-insert-json" class="field__input" rows="3" placeholder='{"column":"value"}'></textarea>
+            <button id="db-insert-btn" type="button" class="run-btn">Insert Row</button>
+        </div>
+        <div id="db-table-meta" class="status">Table status: idle</div>
+        <div id="db-table-container" class="admin-db-table-wrap"></div>
+    </section>
+
+    <section class="admin-section">
+        <h2>Backups Scheduler</h2>
+        <div class="admin-backup-grid">
+            <label class="admin-checkbox"><input id="backup-enabled" type="checkbox"> Enabled</label>
+            <select id="backup-mode" class="field__input">
+                <option value="hourly">Every hour</option>
+                <option value="daily_2am">Every day (2:00 AM)</option>
+                <option value="weekly_monday_2am">Every week (Monday 2:00 AM)</option>
+            </select>
+            <input id="backup-keep-last" class="field__input" type="number" min="1" placeholder="Keep last N backups">
+            <input id="backup-dir" class="field__input" type="text" value="/app/config/backups" placeholder="/app/config/backups">
+            <button id="backup-save" type="button" class="run-btn">Save Schedule</button>
+            <button id="backup-run-now" type="button" class="run-btn">Run Backup Now</button>
+        </div>
+        <div id="backup-status" class="status">Backup status: idle</div>
+    </section>
+</main>
+
+<dialog id="admin-notice-dialog" class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h3 id="admin-notice-title" class="confirm-dialog__title">Notice</h3>
+        <p id="admin-notice-message" class="confirm-dialog__message">Message</p>
+        <div class="confirm-dialog__actions">
+            <button type="button" id="admin-notice-close" class="run-btn">OK</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="admin-confirm-dialog" class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h3 id="admin-confirm-title" class="confirm-dialog__title">Confirm Action</h3>
+        <p id="admin-confirm-message" class="confirm-dialog__message">Are you sure?</p>
+        <div class="confirm-dialog__actions">
+            <button type="button" id="admin-confirm-cancel" class="ghost-btn">Cancel</button>
+            <button type="button" id="admin-confirm-accept" class="run-btn run-btn--danger">Delete</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="password-dialog" class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h3 id="password-dialog-title" class="confirm-dialog__title">Reset Password</h3>
+        <p class="confirm-dialog__message">Set a new password and confirm it.</p>
+        <div class="admin-password-grid">
+            <input id="password-new" class="field__input" type="password" placeholder="New password" autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+            <input id="password-confirm" class="field__input" type="password" placeholder="Confirm new password" autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+        </div>
+        <div id="password-dialog-status" class="status">Status: idle</div>
+        <div class="confirm-dialog__actions">
+            <button type="button" id="password-dialog-cancel" class="ghost-btn">Cancel</button>
+            <button type="button" id="password-dialog-save" class="run-btn run-btn--danger">Save Password</button>
+        </div>
+    </div>
+</dialog>
+
+<script>
+    const THEMES = new Set(["ocean", "emerald", "dark", "sunset"]);
+    let activePasswordUserId = null;
+    let dbTablesCache = [];
+    let dbCurrentTable = "";
+    let dbCurrentColumns = [];
+
+    async function apiFetch(url, options = {}) {
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+            window.location.href = "/login";
+            throw new Error("Unauthorized");
+        }
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(String(data?.detail || "Request failed"));
+        }
+        return data;
+    }
+
+    function showAdminNotice({title, message}) {
+        const dialog = document.getElementById("admin-notice-dialog");
+        const titleEl = document.getElementById("admin-notice-title");
+        const messageEl = document.getElementById("admin-notice-message");
+        titleEl.textContent = title || "Notice";
+        messageEl.textContent = message || "";
+        dialog.showModal();
+    }
+
+    function askAdminConfirmation({title, message, acceptLabel = "Delete"}) {
+        const dialog = document.getElementById("admin-confirm-dialog");
+        const titleEl = document.getElementById("admin-confirm-title");
+        const messageEl = document.getElementById("admin-confirm-message");
+        const acceptBtn = document.getElementById("admin-confirm-accept");
+        const cancelBtn = document.getElementById("admin-confirm-cancel");
+        titleEl.textContent = title || "Confirm Action";
+        messageEl.textContent = message || "Please confirm this action.";
+        acceptBtn.textContent = acceptLabel;
+        return new Promise((resolve) => {
+            const cleanup = () => {
+                acceptBtn.removeEventListener("click", onAccept);
+                cancelBtn.removeEventListener("click", onCancel);
+                dialog.removeEventListener("cancel", onCancel);
+            };
+            const onAccept = () => {
+                cleanup();
+                if (dialog.open) dialog.close();
+                resolve(true);
+            };
+            const onCancel = () => {
+                cleanup();
+                if (dialog.open) dialog.close();
+                resolve(false);
+            };
+            acceptBtn.addEventListener("click", onAccept);
+            cancelBtn.addEventListener("click", onCancel);
+            dialog.addEventListener("cancel", onCancel);
+            dialog.showModal();
+        });
+    }
+
+    function rowActionButton(label, onClick, className = "") {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = className || "ghost-btn";
+        btn.textContent = label;
+        btn.addEventListener("click", onClick);
+        return btn;
+    }
+
+    function tableActionButton(label, onClick, className = "") {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = className || "ghost-btn";
+        btn.textContent = label;
+        btn.addEventListener("click", onClick);
+        return btn;
+    }
+
+    function applyTheme(theme) {
+        const safe = THEMES.has(theme) ? theme : "ocean";
+        document.body.setAttribute("data-theme", safe);
+    }
+
+    async function loadThemeFromState() {
+        try {
+            const data = await apiFetch("/api/state");
+            const theme = data?.ui_state?.theme || "ocean";
+            applyTheme(theme);
+        } catch (_error) {
+            applyTheme("ocean");
+        }
+    }
+
+    function openPasswordDialog(user) {
+        activePasswordUserId = user.id;
+        document.getElementById("password-dialog-title").textContent = `Reset Password: ${user.username}`;
+        document.getElementById("password-new").value = "";
+        document.getElementById("password-confirm").value = "";
+        document.getElementById("password-dialog-status").textContent = "Status: idle";
+        document.getElementById("password-dialog").showModal();
+    }
+
+    function closePasswordDialog() {
+        activePasswordUserId = null;
+        const dialog = document.getElementById("password-dialog");
+        if (dialog.open) dialog.close();
+    }
+
+    async function loadUsers() {
+        const statusEl = document.getElementById("admin-status");
+        statusEl.textContent = "Status: loading users...";
+        const data = await apiFetch("/api/admin/users");
+        const tbody = document.querySelector("#users-table tbody");
+        tbody.innerHTML = "";
+        for (const user of data.users || []) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>${user.role}</td>
+                <td>${user.is_active ? "yes" : "no"}</td>
+                <td>${user.must_change_password ? "yes" : "no"}</td>
+                <td>${user.data_subpath || ""}</td>
+                <td>${user.volume1_subpath || ""}</td>
+                <td></td>
+            `;
+            const actions = tr.querySelector("td:last-child");
+            const roleSelect = document.createElement("select");
+            roleSelect.className = "admin-role-select";
+            roleSelect.innerHTML = `
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+                <option value="demo">demo</option>
+            `;
+            roleSelect.value = user.role || "user";
+            roleSelect.title = "Select user role";
+            roleSelect.addEventListener("change", async () => {
+                try {
+                    await apiFetch(`/api/admin/users/${user.id}`, {
+                        method: "PUT",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({role: roleSelect.value})
+                    });
+                    await loadUsers();
+                } catch (error) {
+                    showAdminNotice({title: "Warning", message: String(error)});
+                    roleSelect.value = user.role || "user";
+                }
+            });
+            actions.appendChild(roleSelect);
+
+            const activeBtnClass = user.is_active ? "admin-action-btn admin-action-btn--active" : "admin-action-btn admin-action-btn--inactive";
+            const activeBtnLabel = user.is_active ? "Active" : "Inactive";
+            actions.appendChild(rowActionButton(activeBtnLabel, async () => {
+                try {
+                    await apiFetch(`/api/admin/users/${user.id}`, {
+                        method: "PUT",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({is_active: !user.is_active})
+                    });
+                    await loadUsers();
+                } catch (error) {
+                    showAdminNotice({title: "Warning", message: String(error)});
+                }
+            }, activeBtnClass));
+            actions.appendChild(rowActionButton("Reset Password", async () => {
+                openPasswordDialog(user);
+            }, "admin-action-btn admin-action-btn--neutral"));
+            actions.appendChild(rowActionButton("Delete", async () => {
+                const confirmed = await askAdminConfirmation({
+                    title: "Delete User",
+                    message: `This will permanently delete user '${user.username}'. Do you want to continue?`,
+                    acceptLabel: "Delete User"
+                });
+                if (!confirmed) return;
+                try {
+                    await apiFetch(`/api/admin/users/${user.id}`, {method: "DELETE"});
+                    await loadUsers();
+                } catch (error) {
+                    showAdminNotice({title: "Warning", message: String(error)});
+                }
+            }, "admin-action-btn admin-action-btn--danger"));
+            tbody.appendChild(tr);
+        }
+        statusEl.textContent = `Status: loaded ${data.users?.length || 0} users`;
+    }
+
+    async function loadDbTables() {
+        const statusEl = document.getElementById("db-table-meta");
+        statusEl.textContent = "Table status: loading table list...";
+        try {
+            const data = await apiFetch("/api/admin/db/tables");
+            dbTablesCache = data.tables || [];
+            const select = document.getElementById("db-table-select");
+            select.innerHTML = "";
+            dbTablesCache.forEach((table) => {
+                const opt = new Option(`${table.name} (${table.row_count})`, table.name);
+                select.add(opt);
+            });
+            if (!dbCurrentTable || !dbTablesCache.some((t) => t.name === dbCurrentTable)) {
+                dbCurrentTable = dbTablesCache[0]?.name || "";
+            }
+            select.value = dbCurrentTable;
+            statusEl.textContent = `Table status: loaded ${dbTablesCache.length} tables`;
+        } catch (error) {
+            statusEl.textContent = `Table status: ${String(error)}`;
+            throw error;
+        }
+    }
+
+    async function loadDbTableRows(tableName = null) {
+        const targetTable = tableName || document.getElementById("db-table-select").value;
+        if (!targetTable) {
+            document.getElementById("db-table-meta").textContent = "Table status: no table selected";
+            return;
+        }
+        dbCurrentTable = targetTable;
+        const statusEl = document.getElementById("db-table-meta");
+        statusEl.textContent = `Table status: loading '${targetTable}'...`;
+        const data = await apiFetch(`/api/admin/db/table/${encodeURIComponent(targetTable)}?limit=200&offset=0`);
+        dbCurrentColumns = data.columns || [];
+        const rows = data.rows || [];
+        const container = document.getElementById("db-table-container");
+        container.innerHTML = "";
+        if (!rows.length) {
+            container.innerHTML = `<div class="folder-error">No rows in table '${targetTable}'.</div>`;
+            statusEl.textContent = `Table status: '${targetTable}' loaded (0 rows)`;
+            return;
+        }
+
+        const table = document.createElement("table");
+        table.className = "admin-table";
+        const thead = document.createElement("thead");
+        const headRow = document.createElement("tr");
+        if (data.has_rowid) {
+            const thId = document.createElement("th");
+            thId.textContent = "_rowid";
+            headRow.appendChild(thId);
+        }
+        dbCurrentColumns.forEach((col) => {
+            const th = document.createElement("th");
+            th.textContent = col.name;
+            headRow.appendChild(th);
+        });
+        const thActions = document.createElement("th");
+        thActions.textContent = "Actions";
+        headRow.appendChild(thActions);
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        rows.forEach((row) => {
+            const tr = document.createElement("tr");
+            if (data.has_rowid) {
+                const tdId = document.createElement("td");
+                tdId.textContent = String(row._rowid ?? "");
+                tr.appendChild(tdId);
+            }
+            dbCurrentColumns.forEach((col) => {
+                const td = document.createElement("td");
+                const input = document.createElement("input");
+                input.className = "field__input";
+                input.type = "text";
+                input.value = row[col.name] === null || row[col.name] === undefined ? "" : String(row[col.name]);
+                input.dataset.col = col.name;
+                td.appendChild(input);
+                tr.appendChild(td);
+            });
+            const tdActions = document.createElement("td");
+            const rowid = row._rowid;
+            tdActions.appendChild(tableActionButton("Save row", async () => {
+                if (rowid === undefined || rowid === null) {
+                    showAdminNotice({title: "Warning", message: "This table does not expose rowid; inline update is unavailable."});
+                    return;
+                }
+                const values = {};
+                tr.querySelectorAll("input[data-col]").forEach((el) => {
+                    values[el.dataset.col] = el.value;
+                });
+                try {
+                    await apiFetch(`/api/admin/db/table/${encodeURIComponent(targetTable)}/update`, {
+                        method: "PUT",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({rowid, values})
+                    });
+                    statusEl.textContent = `Table status: row ${rowid} updated`;
+                } catch (error) {
+                    showAdminNotice({title: "DB Update Error", message: String(error)});
+                }
+            }, "ghost-btn"));
+            tdActions.appendChild(tableActionButton("Delete row", async () => {
+                if (rowid === undefined || rowid === null) {
+                    showAdminNotice({title: "Warning", message: "This table does not expose rowid; delete is unavailable."});
+                    return;
+                }
+                const confirmed = await askAdminConfirmation({
+                    title: "Delete DB Row",
+                    message: `Delete row ${rowid} from '${targetTable}'?`,
+                    acceptLabel: "Delete Row"
+                });
+                if (!confirmed) return;
+                try {
+                    await apiFetch(`/api/admin/db/table/${encodeURIComponent(targetTable)}/delete`, {
+                        method: "DELETE",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({rowid})
+                    });
+                    await loadDbTableRows(targetTable);
+                } catch (error) {
+                    showAdminNotice({title: "DB Delete Error", message: String(error)});
+                }
+            }, "admin-action-btn admin-action-btn--danger"));
+            tr.appendChild(tdActions);
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
+        statusEl.textContent = `Table status: '${targetTable}' loaded (${rows.length}/${data.total} rows)`;
+    }
+
+    async function insertDbRow() {
+        const table = dbCurrentTable || document.getElementById("db-table-select").value;
+        if (!table) {
+            showAdminNotice({title: "DB Insert Error", message: "Select a table first."});
+            return;
+        }
+        const raw = document.getElementById("db-insert-json").value.trim();
+        if (!raw) {
+            showAdminNotice({title: "DB Insert Error", message: "Provide JSON values to insert."});
+            return;
+        }
+        let payload;
+        try {
+            payload = JSON.parse(raw);
+        } catch (_error) {
+            showAdminNotice({title: "DB Insert Error", message: "Invalid JSON format."});
+            return;
+        }
+        try {
+            await apiFetch(`/api/admin/db/table/${encodeURIComponent(table)}/insert`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({values: payload})
+            });
+            document.getElementById("db-insert-json").value = "";
+            await loadDbTableRows(table);
+        } catch (error) {
+            showAdminNotice({title: "DB Insert Error", message: String(error)});
+        }
+    }
+
+    async function loadBackupConfig() {
+        try {
+            const data = await apiFetch("/api/admin/backups/config");
+            document.getElementById("backup-enabled").checked = Boolean(data.enabled);
+            document.getElementById("backup-mode").value = String(data.schedule_mode || "daily_2am");
+            document.getElementById("backup-keep-last").value = String(data.keep_last || 14);
+            document.getElementById("backup-dir").value = String(data.backup_dir || "/app/config/backups");
+            document.getElementById("backup-status").textContent =
+                `Backup status: ${data.last_status || "idle"} | Mode: ${data.schedule_mode || "-"} | Last run: ${data.last_run_at || "-"} | Next: ${data.next_run_at || "-"}`;
+        } catch (error) {
+            document.getElementById("backup-status").textContent = `Backup status: ${String(error)}`;
+            throw error;
+        }
+    }
+
+    async function saveBackupConfig() {
+        try {
+            const payload = {
+                enabled: document.getElementById("backup-enabled").checked,
+                schedule_mode: document.getElementById("backup-mode").value || "daily_2am",
+                keep_last: Number(document.getElementById("backup-keep-last").value || "14"),
+                backup_dir: document.getElementById("backup-dir").value || "/app/config/backups"
+            };
+            const res = await apiFetch("/api/admin/backups/config", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            document.getElementById("backup-status").textContent =
+                `Backup status: schedule saved | Next: ${res?.config?.next_run_at || "-"}`;
+        } catch (error) {
+            showAdminNotice({title: "Backup Error", message: String(error)});
+        }
+    }
+
+    async function runBackupNow() {
+        try {
+            const res = await apiFetch("/api/admin/backups/run-now", {method: "POST"});
+            const result = res?.result || {};
+            document.getElementById("backup-status").textContent =
+                `Backup status: ${result.status || "unknown"} | File: ${result.backup_file || "-"}`;
+            await loadBackupConfig();
+        } catch (error) {
+            showAdminNotice({title: "Backup Error", message: String(error)});
+        }
+    }
+
+    document.getElementById("create-user-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const statusEl = document.getElementById("admin-status");
+        const password = document.getElementById("new-password").value;
+        statusEl.textContent = "Status: creating user...";
+        try {
+            await apiFetch("/api/admin/users", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    username: document.getElementById("new-username").value.trim(),
+                    password,
+                    role: document.getElementById("new-role").value,
+                    is_active: document.getElementById("new-active").checked,
+                    must_change_password: document.getElementById("new-must-change-password").value === "true",
+                    data_subpath: document.getElementById("new-data-subpath").value.trim(),
+                    volume1_subpath: document.getElementById("new-volume1-subpath").value.trim()
+                })
+            });
+            event.target.reset();
+            document.getElementById("new-active").checked = true;
+            document.getElementById("new-must-change-password").value = "";
+            await loadUsers();
+        } catch (error) {
+            const message = String(error || "Unable to create user.");
+            statusEl.textContent = `Status: ${message}`;
+            showAdminNotice({title: "Create User Error", message});
+        }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+        await apiFetch("/api/auth/logout", {method: "POST"});
+        window.location.href = "/login";
+    });
+    document.getElementById("db-table-refresh").addEventListener("click", async () => {
+        await loadDbTables();
+        await loadDbTableRows();
+    });
+    document.getElementById("db-table-load").addEventListener("click", async () => {
+        await loadDbTableRows();
+    });
+    document.getElementById("db-insert-btn").addEventListener("click", insertDbRow);
+    document.getElementById("db-table-select").addEventListener("change", async (event) => {
+        dbCurrentTable = event.target.value || "";
+        await loadDbTableRows(dbCurrentTable);
+    });
+    document.getElementById("backup-save").addEventListener("click", saveBackupConfig);
+    document.getElementById("backup-run-now").addEventListener("click", runBackupNow);
+
+    document.getElementById("password-dialog-cancel").addEventListener("click", closePasswordDialog);
+    document.getElementById("admin-notice-close").addEventListener("click", () => {
+        const dialog = document.getElementById("admin-notice-dialog");
+        if (dialog.open) dialog.close();
+    });
+    document.getElementById("password-dialog-save").addEventListener("click", async () => {
+        const statusEl = document.getElementById("password-dialog-status");
+        const passNew = document.getElementById("password-new").value;
+        const passConfirm = document.getElementById("password-confirm").value;
+        if (!activePasswordUserId) return;
+        if (passNew !== passConfirm) {
+            statusEl.textContent = "Status: passwords do not match";
+            return;
+        }
+        statusEl.textContent = "Status: saving...";
+        try {
+            await apiFetch(`/api/admin/users/${activePasswordUserId}`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({password: passNew})
+            });
+            closePasswordDialog();
+            await loadUsers();
+        } catch (error) {
+            statusEl.textContent = `Status: ${String(error)}`;
+        }
+    });
+
+    Promise.resolve()
+        .then(loadThemeFromState)
+        .then(loadUsers)
+        .then(loadDbTables)
+        .then(() => loadDbTableRows())
+        .then(loadBackupConfig)
+        .catch((error) => {
+        document.getElementById("admin-status").textContent = `Status: ${String(error)}`;
+    });
+</script>
+</body>
+</html>
