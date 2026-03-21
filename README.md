@@ -160,8 +160,7 @@ Web interface source code:
 - `src/web_interface/static/style.css`
 
 > [!NOTE]
-> You can access to the new Web Interface (demo) on this link: [**PhotoMigrator Web Interface (demo)**](https://photomigrator.jaimetur.cloud)
-> --- 
+> You can access to the new Web Interface (demo) on this link: [**PhotoMigrator Web Interface (demo)**](https://photomigrator.jaimetur.cloud)  
 >    Username: demo
 >    Password: demo
 
