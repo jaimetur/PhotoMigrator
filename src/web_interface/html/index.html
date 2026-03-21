@@ -1099,11 +1099,66 @@
         }
 
         displayedRawOutput = collapseProgressLines(lastRawOutput);
-        const lines = (displayedRawOutput || "").split("\n");
+        const rawLines = (displayedRawOutput || "").split("\n");
+        const isProgressLikeLine = (value) => {
+            const clean = stripAnsi(String(value || "")).replace(/\r/g, "").trimEnd();
+            if (!clean) return false;
+            return (
+                /\d{1,3}%\|/.test(clean) ||
+                /\[\s*step\s+\d+\/\d+\]/i.test(clean) ||
+                /[â–ˆâ–“â–’â–‘]{3,}/.test(clean) ||
+                clean.includes("Ã¢â€“")
+            );
+        };
+        const isDownloadProgressLine = (value) => {
+            const clean = stripAnsi(String(value || "")).replace(/\r/g, "").trim();
+            if (!clean) return false;
+            const lower = clean.toLowerCase();
+            return (
+                lower.includes("downloading") &&
+                /\d{1,3}%/.test(clean) &&
+                clean.includes("|")
+            );
+        };
+        const nearestNonEmptyLine = (arr, startIndex, direction) => {
+            let i = startIndex + direction;
+            while (i >= 0 && i < arr.length) {
+                const v = stripAnsi(String(arr[i] || "")).replace(/\r/g, "");
+                if (v.trim() !== "") return arr[i];
+                i += direction;
+            }
+            return "";
+        };
+        const lines = [];
+        let previousWasEmpty = false;
+        for (let i = 0; i < rawLines.length; i += 1) {
+            const line = rawLines[i];
+            const cleaned = stripAnsi(String(line || "")).replace(/\r/g, "");
+            const isEmpty = cleaned.trim() === "";
+            const prev = i > 0 ? rawLines[i - 1] : "";
+            const next = i + 1 < rawLines.length ? rawLines[i + 1] : "";
+            if (isEmpty) {
+                const prevNonEmpty = nearestNonEmptyLine(rawLines, i, -1);
+                const nextNonEmpty = nearestNonEmptyLine(rawLines, i, +1);
+                // Drop synthetic empties around progress updates emitted by tqdm.
+                if (isProgressLikeLine(prev) || isProgressLikeLine(next)) continue;
+                if (
+                    isProgressLikeLine(prevNonEmpty) ||
+                    isProgressLikeLine(nextNonEmpty) ||
+                    isDownloadProgressLine(prevNonEmpty) ||
+                    isDownloadProgressLine(nextNonEmpty)
+                ) {
+                    continue;
+                }
+                if (previousWasEmpty) continue;
+            }
+            lines.push(line);
+            previousWasEmpty = isEmpty;
+        }
         const automaticMigrationMode = Boolean(currentJobIsAutomatic);
         const html = lines.map((line) => {
             const cleaned = stripAnsi(line).replace(/\r/g, "");
-            const safe = escapeHtml(cleaned);
+            const safe = cleaned === "" ? "<br>" : escapeHtml(cleaned);
             const cls = classifyLogLine(cleaned, {automaticMigrationMode});
             return cls
                 ? `<span class="log-line ${cls}">${safe}</span>`

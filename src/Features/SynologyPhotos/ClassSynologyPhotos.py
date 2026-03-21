@@ -2287,7 +2287,11 @@ class ClassSynologyPhotos:
                     album_folder_name = f'{album_name}'
                     album_folder_path = os.path.join(output_folder, album_folder_name)
 
-                    for asset in album_assets:
+                    for asset in tqdm(
+                        album_assets,
+                        desc=f"{MSG_TAGS['INFO']}   Downloading '{album_name}' Assets",
+                        unit=" assets",
+                    ):
                         asset_id = asset.get('id')
                         asset_time = asset.get('time')
                         asset_filename = asset.get('filename')

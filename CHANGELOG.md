@@ -26,6 +26,7 @@
   - Improved name-pattern handling across cloud modules: wildcard-only patterns like `*` are now accepted for album selection, and literal patterns with special regex characters (for example album names containing parentheses) now work for matching/replacing without requiring manual escaping.
   - Improved album rename matching for literal album names containing regex metacharacters (such as parentheses), so rename workflows work without manual escaping.
   - Improved markdown render to detect italic font and bold+italic.
+  - Improved album download progress visualization for cloud clients (NextCloud, Synology, Immich, Google Photos) by showing a nested per-album assets progress bar labeled as `Downloading '<AlbumName>' Assets`.
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.

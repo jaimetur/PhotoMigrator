@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 from urllib.parse import quote, unquote, urljoin
 
+import piexif
 import requests
 from requests.adapters import HTTPAdapter
 
@@ -27,7 +28,8 @@ from Core.GlobalVariables import (
     VIDEO_EXT,
 )
 from Utils.FileUtils import get_all_files_paths, get_subfolders
-from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata
+from Utils.DateUtils import guess_date_from_filename
+from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm
 
 
 class ClassNextCloudPhotos:
@@ -43,9 +45,12 @@ class ClassNextCloudPhotos:
         self.session: Optional[requests.Session] = None
         self.timeout_seconds = 60
         self.max_parallel_uploads = 12
+        self.max_parallel_downloads = 12
         self.use_system_proxy = False
         self._worker_local = threading.local()
         self._session_lock = threading.Lock()
+        self._ensured_dirs_lock = threading.Lock()
+        self._ensured_dirs = {"/"}
         self.ALLOWED_PHOTO_EXTENSIONS = [ext.lower() for ext in PHOTO_EXT]
         self.ALLOWED_VIDEO_EXTENSIONS = [ext.lower() for ext in VIDEO_EXT]
         self.type = ARGS.get("filter-by-type", None)
@@ -77,11 +82,26 @@ class ClassNextCloudPhotos:
                 f"NEXTCLOUD_USE_SYSTEM_PROXY_{suffix}",
                 section.get("NEXTCLOUD_USE_SYSTEM_PROXY", str(self.use_system_proxy)),
             )
+            raw_parallel_downloads = section.get(
+                f"NEXTCLOUD_MAX_PARALLEL_DOWNLOADS_{suffix}",
+                section.get("NEXTCLOUD_MAX_PARALLEL_DOWNLOADS", str(self.max_parallel_downloads)),
+            )
             try:
                 self.max_parallel_uploads = max(1, min(32, int(str(raw_parallel).strip())))
             except Exception:
                 self.max_parallel_uploads = 12
+            try:
+                self.max_parallel_downloads = max(1, min(32, int(str(raw_parallel_downloads).strip())))
+            except Exception:
+                self.max_parallel_downloads = 12
             self.use_system_proxy = str(raw_use_proxy).strip().lower() in {"1", "true", "yes", "y", "on"}
+            # Accept host-only values in config and normalize to absolute URL.
+            if self.base_url and not re.match(r"^https?://", self.base_url, flags=re.IGNORECASE):
+                LOGGER.warning(
+                    f"{MSG_TAGS['WARNING']}NEXTCLOUD_URL has no scheme. Auto-prefixing with 'http://'. "
+                    f"Current value: '{self.base_url}'"
+                )
+                self.base_url = f"http://{self.base_url}"
             if not self.webdav_root.startswith("/"):
                 self.webdav_root = f"/{self.webdav_root}"
             self.webdav_root = re.sub(r"/+", "/", self.webdav_root.rstrip("/"))
@@ -93,13 +113,28 @@ class ClassNextCloudPhotos:
             if not self.password:
                 raise ValueError(f"Missing NEXTCLOUD_PASSWORD_{suffix} in [NextCloud Photos]")
 
+            LOGGER.info("NextCloud Config Read:")
+            LOGGER.info("----------------------")
+            LOGGER.info(f"NEXTCLOUD_URL              : {self.base_url}")
+            LOGGER.info(f"NEXTCLOUD_USERNAME         : {self.username}")
+            LOGGER.info(f"NEXTCLOUD_PASSWORD         : {'*' * len(self.password)}")
+            LOGGER.info(f"NEXTCLOUD_WEBDAV_ROOT      : {self.webdav_root}")
+            LOGGER.info("")
+
     def login(self, config_file=CONFIGURATION_FILE, log_level=None):
         with set_log_level(LOGGER, log_level):
             self.read_config_file(config_file=config_file, log_level=log_level)
+            LOGGER.info("Authenticating on NextCloud Photos and getting Session...")
             self.session = self._build_session()
+            self._worker_local = threading.local()
+            with self._ensured_dirs_lock:
+                self._ensured_dirs = {"/"}
             self._ensure_dir("/")
             self._ensure_dir(self._albums_root())
             self._ensure_dir(self._no_albums_root())
+            LOGGER.info("Authentication Successfully with user/password found in Config file. Session initialized.")
+            LOGGER.info(f"User ID: '{self.username}' found.")
+            LOGGER.info("")
             LOGGER.info(f"{MSG_TAGS['INFO']}Logged in to NextCloud account {self.account_id}.")
             return True
 
@@ -111,17 +146,23 @@ class ClassNextCloudPhotos:
                 except Exception:
                     pass
             self.session = None
+            self._worker_local = threading.local()
+            with self._ensured_dirs_lock:
+                self._ensured_dirs = {"/"}
             LOGGER.info(f"{MSG_TAGS['INFO']}Logged out from NextCloud account {self.account_id}.")
             return True
 
     def _require_session(self):
-        if self.session is not None:
+        has_runtime_config = bool(self.base_url and self.username and re.match(r"^https?://", self.base_url, flags=re.IGNORECASE))
+        if self.session is not None and has_runtime_config:
             return
         with self._session_lock:
-            if self.session is None:
+            has_runtime_config = bool(self.base_url and self.username and re.match(r"^https?://", self.base_url, flags=re.IGNORECASE))
+            if self.session is None or not has_runtime_config:
                 # Keep the same behavior as Synology/Immich clients: lazy login on first API call.
                 self.login(log_level=logging.ERROR)
-        if self.session is None:
+        has_runtime_config = bool(self.base_url and self.username and re.match(r"^https?://", self.base_url, flags=re.IGNORECASE))
+        if self.session is None or not has_runtime_config:
             raise RuntimeError("NextCloud session could not be initialized.")
 
     def _dav_url(self, remote_path: str) -> str:
@@ -162,9 +203,13 @@ class ClassNextCloudPhotos:
         return response
 
     def _request(self, method: str, remote_path: str, expected=(200, 201, 204, 207), **kwargs):
+        # Ensure config/session is initialized before building absolute DAV URLs.
+        self._require_session()
         return self._request_url(method=method, url=self._dav_url(remote_path), expected=expected, **kwargs)
 
     def _request_photos(self, method: str, remote_path: str, expected=(200, 201, 204, 207), **kwargs):
+        # Ensure config/session is initialized before building absolute Photos DAV URLs.
+        self._require_session()
         return self._request_url(method=method, url=self._photos_dav_url(remote_path), expected=expected, **kwargs)
 
     def _get_worker_session(self) -> requests.Session:
@@ -201,6 +246,11 @@ class ClassNextCloudPhotos:
                 f"(status={response.status_code}, body={response.text[:350]})"
             )
         return response
+
+    @staticmethod
+    def _normalize_dir_path(remote_path: str) -> str:
+        normalized = re.sub(r"/+", "/", str(remote_path or "/")).rstrip("/")
+        return normalized or "/"
 
     def _albums_root(self) -> str:
         return f"{self.webdav_root}/{self.albums_root_name}"
@@ -321,16 +371,22 @@ class ClassNextCloudPhotos:
         return response.status_code in (200, 204)
 
     def _ensure_dir(self, remote_path: str):
-        normalized = re.sub(r"/+", "/", str(remote_path or "/")).rstrip("/")
-        if normalized == "":
-            normalized = "/"
+        normalized = self._normalize_dir_path(remote_path)
+        with self._ensured_dirs_lock:
+            if normalized in self._ensured_dirs:
+                return
         current = ""
         for part in normalized.split("/"):
             if part == "":
                 continue
             current = f"{current}/{part}"
-            if not self._exists(current):
-                self._request("MKCOL", current, expected=(201, 405))
+            with self._ensured_dirs_lock:
+                if current in self._ensured_dirs:
+                    continue
+            # Optimistic create is faster than HEAD+MKCOL for every upload.
+            self._request("MKCOL", current, expected=(201, 405, 409))
+            with self._ensured_dirs_lock:
+                self._ensured_dirs.add(current)
 
     def _iter_files_recursive(self, remote_path: str) -> Iterable[Dict[str, str]]:
         stack = [remote_path]
@@ -390,6 +446,21 @@ class ClassNextCloudPhotos:
                     fp.write(chunk)
         return local_path
 
+    def _download_file_with_session(self, session: requests.Session, remote_path: str, local_path: str) -> str:
+        self._ensure_local_parent(local_path)
+        response = self._request_url_with_session(
+            session=session,
+            method="GET",
+            url=self._dav_url(remote_path),
+            expected=(200, 206),
+            stream=True,
+        )
+        with open(local_path, "wb") as fp:
+            for chunk in response.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    fp.write(chunk)
+        return local_path
+
     def _ensure_local_parent(self, local_path: str):
         parent = os.path.dirname(local_path)
         if parent:
@@ -407,6 +478,17 @@ class ClassNextCloudPhotos:
         self._request(
             "COPY",
             source_remote_path,
+            expected=(201, 204),
+            headers={"Destination": destination_url, "Overwrite": "T"},
+        )
+
+    def _copy_remote_with_session(self, session: requests.Session, source_remote_path: str, destination_remote_path: str):
+        self._ensure_dir(self._remote_parent(destination_remote_path))
+        destination_url = self._dav_url(destination_remote_path)
+        self._request_url_with_session(
+            session=session,
+            method="COPY",
+            url=self._dav_url(source_remote_path),
             expected=(201, 204),
             headers={"Destination": destination_url, "Overwrite": "T"},
         )
@@ -593,12 +675,13 @@ class ClassNextCloudPhotos:
             else:
                 assets = list(asset_ids or [])
             added = 0
+            session = self._get_worker_session()
             for asset_id in assets:
                 src = str(asset_id)
                 name = Path(src).name
                 dst = f"{str(album_id).rstrip('/')}/{name}"
                 try:
-                    self._copy_remote(src, dst)
+                    self._copy_remote_with_session(session=session, source_remote_path=src, destination_remote_path=dst)
                     added += 1
                 except Exception as error:
                     LOGGER.warning(f"{MSG_TAGS['WARNING']}Unable to add asset '{src}' to album '{album_id}': {error}")
@@ -627,16 +710,107 @@ class ClassNextCloudPhotos:
             if not os.path.isfile(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}")
             remote_path = f"{self._no_albums_root().rstrip('/')}/{os.path.basename(file_path)}"
-            remote_path = self._upload_file(file_path, remote_path)
+            self._ensure_dir(self._remote_parent(remote_path))
+            session = self._get_worker_session()
+            remote_path = self._upload_file_fast_with_session(session=session, local_path=file_path, remote_path=remote_path)
             return remote_path, False
 
     def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_NextCloud", album_passphrase=None, log_level=None):
         with set_log_level(LOGGER, log_level):
             os.makedirs(download_folder, exist_ok=True)
             output_file = os.path.join(download_folder, str(asset_filename))
-            output_file = self._download_file(str(asset_id), output_file)
-            update_metadata(file_path=output_file, date_time=asset_time, log_level=log_level)
+            session = self._get_worker_session()
+            output_file = self._download_file_with_session(session=session, remote_path=str(asset_id), local_path=output_file)
             return output_file
+
+    def _normalize_asset_time_for_metadata(self, asset_time) -> str:
+        if isinstance(asset_time, (int, float)):
+            return datetime.fromtimestamp(asset_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        value = str(asset_time or "").strip()
+        if not value:
+            return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        try:
+            datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+            return value
+        except Exception:
+            pass
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if parsed.tzinfo is not None:
+                parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+            return parsed.strftime("%Y-%m-%d %H:%M:%S")
+        except Exception:
+            pass
+        try:
+            parsed = datetime.strptime(value, "%a, %d %b %Y %H:%M:%S %Z")
+            return parsed.strftime("%Y-%m-%d %H:%M:%S")
+        except Exception:
+            return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+    def _extract_exif_datetime(self, file_path: str) -> Optional[datetime]:
+        try:
+            exif_dict = piexif.load(file_path)
+        except Exception:
+            return None
+
+        candidates = [
+            exif_dict.get("Exif", {}).get(piexif.ExifIFD.DateTimeOriginal),
+            exif_dict.get("Exif", {}).get(piexif.ExifIFD.DateTimeDigitized),
+            exif_dict.get("0th", {}).get(piexif.ImageIFD.DateTime),
+        ]
+        for value in candidates:
+            if not value:
+                continue
+            if isinstance(value, bytes):
+                value = value.decode("utf-8", errors="ignore")
+            text = str(value).strip()
+            if not text:
+                continue
+            try:
+                parsed = datetime.strptime(text, "%Y:%m:%d %H:%M:%S")
+                return parsed.replace(tzinfo=timezone.utc)
+            except Exception:
+                continue
+        return None
+
+    def _resolve_download_datetime(self, downloaded_file: str, fallback_asset_time) -> datetime:
+        try:
+            if self._is_photo(downloaded_file):
+                exif_dt = self._extract_exif_datetime(downloaded_file)
+                if exif_dt is not None:
+                    return exif_dt
+        except Exception:
+            pass
+
+        try:
+            guessed = guess_date_from_filename(downloaded_file, step_name="", log_level=logging.ERROR)
+            if guessed is not None:
+                if guessed.tzinfo is None:
+                    guessed = guessed.replace(tzinfo=timezone.utc)
+                else:
+                    guessed = guessed.astimezone(timezone.utc)
+                return guessed
+        except Exception:
+            pass
+
+        fallback_dt = self._to_datetime_utc(fallback_asset_time)
+        if fallback_dt is not None:
+            return fallback_dt
+        return datetime.now(timezone.utc)
+
+    @staticmethod
+    def _unique_local_path(folder: str, filename: str) -> str:
+        base = Path(filename).stem
+        ext = Path(filename).suffix
+        candidate = os.path.join(folder, filename)
+        if not os.path.exists(candidate):
+            return candidate
+        counter = 1
+        while True:
+            candidate = os.path.join(folder, f"{base} ({counter}){ext}")
+            if not os.path.exists(candidate):
+                return candidate
+            counter += 1
 
     def push_albums(self, input_folder, subfolders_exclusion=FOLDERNAME_NO_ALBUMS, remove_duplicates=False, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
@@ -839,30 +1013,59 @@ class ClassNextCloudPhotos:
                 total_duplicates_assets_skipped,
             )
 
-    def _download_remote_folder(self, remote_folder: str, local_folder: str, log_level=None) -> int:
-        downloaded = 0
-        for entry in self._iter_files_recursive(remote_folder):
+    def _download_remote_folder(self, remote_folder: str, local_folder: str, progress_desc: str = "", log_level=None) -> int:
+        entries = list(self._iter_files_recursive(remote_folder))
+        if not entries:
+            return 0
+
+        workers = max(1, min(self.max_parallel_downloads, len(entries)))
+
+        def _download_worker(entry: Dict[str, str]) -> str:
             rel = str(entry["path"]).replace(str(remote_folder).rstrip("/") + "/", "")
             target = os.path.join(local_folder, rel.replace("/", os.sep))
-            self._download_file(entry["path"], target)
-            downloaded += 1
+            session = self._get_worker_session()
+            return self._download_file_with_session(session=session, remote_path=entry["path"], local_path=target)
+
+        downloaded = 0
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [executor.submit(_download_worker, entry) for entry in entries]
+            for future in tqdm(
+                as_completed(futures),
+                total=len(futures),
+                desc=progress_desc or f"{MSG_TAGS['INFO']}Downloading Assets from NextCloud",
+                unit=" asset",
+            ):
+                future.result()
+                downloaded += 1
         return downloaded
 
     def pull_albums(self, albums_name="ALL", output_folder="Downloads_NextCloud", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             target_names = [n.lower() for n in convert_to_list(albums_name, log_level=log_level)] if albums_name != "ALL" else ["all"]
             albums = self._list_album_directories(log_level=log_level)
+            selected_albums = []
+            for album in albums:
+                name = album["albumName"]
+                if "all" not in target_names and not any(match_pattern(name, pattern) for pattern in target_names):
+                    continue
+                selected_albums.append(album)
             downloaded_albums = 0
             downloaded_assets = 0
             root = os.path.join(output_folder, self.albums_root_name)
             os.makedirs(root, exist_ok=True)
-            for album in albums:
+            for album in tqdm(
+                selected_albums,
+                desc=f"{MSG_TAGS['INFO']}Downloading Albums from NextCloud",
+                unit=" album",
+            ):
                 name = album["albumName"]
-                if "all" not in target_names:
-                    if not any(match_pattern(name, pattern) for pattern in target_names):
-                        continue
                 local_album = os.path.join(root, name)
-                downloaded_assets += self._download_remote_folder(album["id"], local_album, log_level=log_level)
+                downloaded_assets += self._download_remote_folder(
+                    album["id"],
+                    local_album,
+                    progress_desc=f"{MSG_TAGS['INFO']}   Downloading '{name}' Assets",
+                    log_level=log_level,
+                )
                 downloaded_albums += 1
             return downloaded_albums, downloaded_assets
 
@@ -870,24 +1073,55 @@ class ClassNextCloudPhotos:
         with set_log_level(LOGGER, log_level):
             target = os.path.join(output_folder, self.no_albums_root_name)
             os.makedirs(target, exist_ok=True)
-            downloaded = 0
-            for asset in self.get_all_assets_without_albums(log_level=log_level):
+            assets = self.get_all_assets_without_albums(log_level=log_level)
+            if not assets:
+                return 0
+
+            temp_download_root = os.path.join(target, "_TMP_DOWNLOAD")
+            os.makedirs(temp_download_root, exist_ok=True)
+
+            tasks = []
+            for asset in assets:
                 asset_id = asset.get("id", "")
                 asset_filename = asset.get("filename", "")
                 asset_time = asset.get("asset_datetime", "")
-                created_dt = self._to_datetime_utc(asset_time) or datetime.now(timezone.utc)
-                year_str = created_dt.strftime("%Y")
-                month_str = created_dt.strftime("%m")
-                target_folder = os.path.join(target, year_str, month_str)
-                os.makedirs(target_folder, exist_ok=True)
-                self.pull_asset(
-                    asset_id=asset_id,
-                    asset_filename=asset_filename,
-                    asset_time=asset_time,
-                    download_folder=target_folder,
+                tasks.append((asset_id, asset_filename, asset_time))
+
+            workers = max(1, min(self.max_parallel_downloads, len(tasks)))
+
+            def _pull_worker(task: Tuple[str, str, str]) -> str:
+                aid, name, time_value = task
+                downloaded_file = self.pull_asset(
+                    asset_id=aid,
+                    asset_filename=name,
+                    asset_time=time_value,
+                    download_folder=temp_download_root,
                     log_level=log_level,
                 )
-                downloaded += 1
+                resolved_dt = self._resolve_download_datetime(downloaded_file, fallback_asset_time=time_value)
+                year_str = resolved_dt.strftime("%Y")
+                month_str = resolved_dt.strftime("%m")
+                target_folder = os.path.join(target, year_str, month_str)
+                os.makedirs(target_folder, exist_ok=True)
+                target_file = self._unique_local_path(target_folder, os.path.basename(downloaded_file))
+                os.replace(downloaded_file, target_file)
+                return target_file
+
+            downloaded = 0
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                futures = [executor.submit(_pull_worker, task) for task in tasks]
+                for future in tqdm(
+                    as_completed(futures),
+                    total=len(futures),
+                    desc=f"{MSG_TAGS['INFO']}Downloading Assets without Albums from NextCloud",
+                    unit=" asset",
+                ):
+                    future.result()
+                    downloaded += 1
+            try:
+                shutil.rmtree(temp_download_root)
+            except Exception:
+                pass
             return downloaded
 
     def pull_ALL(self, output_folder="Downloads_NextCloud", log_level=logging.WARNING):

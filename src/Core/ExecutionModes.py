@@ -302,7 +302,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
     LOGGER.info(f"Argument detected  : '-uAlb, --upload-albums'.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["upload-albums"].replace('<ALBUMS_FOLDER>', f"'{ARGS['upload-albums']}'"))
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -396,7 +396,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"Argument detected  : '-AlbFolder, --albums-folders'.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["upload-all"].replace('<INPUT_FOLDER>', f"{input_folder}"))
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -407,7 +407,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         # login
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         LOGGER.info(f"Uploading Assets in Folder    : {input_folder}")
         # Call the Function
@@ -486,7 +486,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
     LOGGER.info(f"Albums to extract: {albums_name}")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["download-albums"].replace("<ALBUMS_NAME>", albums_str).replace("<OUTPUT_FOLDER>", output_folder))
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -498,7 +498,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
         LOGGER.info(f"{client} Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"")
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info(f"")
@@ -568,7 +568,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
     LOGGER.info(f"Argument detected  : 'dAll, --download-all'.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["download-all"].replace('<OUTPUT_FOLDER>', output_folder))
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -579,7 +579,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
         # login
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
@@ -638,7 +638,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
     LOGGER.info(f"The Tool will look for any empty album in your {client} Photos account and will remove them (if any empty album is found).")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-empty-albums"])
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -650,7 +650,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
         LOGGER.info(f"{client} Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"")
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
         albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
@@ -700,7 +700,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
     LOGGER.info(f"The Tool will look for any duplicated album (based on assets counts and assets size) in your {client} Photos account and will remove them (if any duplicated album is found).")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-duplicates-albums"])
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -712,7 +712,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
         LOGGER.info(f"{client} Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"")
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
         albums_removed = cloud_client_obj.remove_duplicates_albums(log_level=logging.WARNING)
@@ -762,7 +762,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
     LOGGER.info(f"The Tool will look for any duplicated album in your {client} Photos account, merge their content into the most relevant one, and remove the duplicates.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["merge-duplicates-albums"])
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -775,7 +775,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
 
         # Login
         LOGGER.info(f"")
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
 
         # Call the Function using 'count' as strategy (you can change to 'size')
@@ -834,7 +834,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
 
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-orphan-assets"])
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -846,7 +846,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
         LOGGER.info(f"{client} Photos: 'Remove Orphan Assets' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"")
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
         assets_removed = cloud_client_obj.remove_orphan_assets(user_confirmation=False, log_level=logging.WARNING)
@@ -895,7 +895,7 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=None):
     LOGGER.info(f"Flag detected  : '-rAll, --remove-all-assets'.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-all-assets"])
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -907,7 +907,7 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"{client} Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"")
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
         assets_removed, albums_removed = cloud_client_obj.remove_all_assets(log_level=logging.WARNING)
@@ -961,7 +961,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None
     LOGGER.info(f"Argument detected  : '-renAlb, --rename-albums'.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["rename-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>',albums_name_replacement_pattern))
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
 
     if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
@@ -973,7 +973,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"{client} Photos: 'Rename Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"")
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
         albums_renamed = cloud_client_obj.rename_albums(pattern=albums_name_pattern, pattern_to_replace=albums_name_replacement_pattern, log_level=logging.WARNING)
@@ -1029,7 +1029,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
     LOGGER.info(f"Argument detected  : '-rAlb, --remove-albums'.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern))
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
     if remove_albums_assets:
         LOGGER.info(f"Flag detected  : '-rAlbAsset, --remove-albums-assets'.")
         LOGGER.info(f"Since, flag '-rAlbAsset, --remove-albums-assets' have been detected, ALL the Assets associated to any removed Albums will also be removed.")
@@ -1045,7 +1045,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         LOGGER.info(f"{client} Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"")
-        LOGGER.info(f"Reading Configuration file and Login into Immich Photos...")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
         albums_removed, assets_removed = cloud_client_obj.remove_albums_by_name(pattern=albums_name_pattern, removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
@@ -1096,7 +1096,7 @@ def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=
     LOGGER.info(f"Flag detected  : '-rAllAlb, --remove-all-albums'.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-all-albums"])
-    LOGGER.info('-' * (terminal_width-11))
+    LOGGER.info('-' * (terminal_width))
     if remove_albums_assets:
         LOGGER.info(f"Flag detected  : '-rAlbAsset, --remove-albums-assets'.")
         LOGGER.info(f"Since, flag '-rAlbAsset, --remove-albums-assets' have been detected, ALL the Assets associated to any removed Albums will also be removed.")
@@ -1160,7 +1160,7 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=None):
     if user_confirmation:
         LOGGER.info('-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["fix-symlinks-broken"].replace('<FOLDER_TO_FIX>', f"'{ARGS['fix-symlinks-broken']}'"))
-        LOGGER.info('-' * (terminal_width-11))
+        LOGGER.info('-' * (terminal_width))
         if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
@@ -1211,7 +1211,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=None):
     if user_confirmation:
         LOGGER.info('-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["find-duplicates"].replace('<DUPLICATES_FOLDER>', f"'{ARGS['duplicates-folders']}'"))
-        LOGGER.info('-' * (terminal_width-11))
+        LOGGER.info('-' * (terminal_width))
         if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
@@ -1265,7 +1265,7 @@ def mode_process_duplicates(user_confirmation=True, log_level=None):
     if user_confirmation:
         LOGGER.info('-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["process-duplicates"])
-        LOGGER.info('-' * (terminal_width-11))
+        LOGGER.info('-' * (terminal_width))
         if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
@@ -1314,7 +1314,7 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=None):
     if user_confirmation:
         LOGGER.info('-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["rename-folders-content-based"].replace('<ALBUMS_FOLDER>', f"'{ARGS['rename-folders-content-based']}'"))
-        LOGGER.info('-' * (terminal_width-11))
+        LOGGER.info('-' * (terminal_width))
         if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)

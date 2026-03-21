@@ -73,6 +73,13 @@ class ClassGooglePhotos:
             if not self.refresh_token:
                 raise ValueError(f"Missing GOOGLE_PHOTOS_REFRESH_TOKEN_{suffix} in [Google Photos]")
 
+            LOGGER.info("Google Photos Config Read:")
+            LOGGER.info("--------------------------")
+            LOGGER.info(f"GOOGLE_PHOTOS_CLIENT_ID        : {self.client_id}")
+            LOGGER.info(f"GOOGLE_PHOTOS_CLIENT_SECRET    : {'*' * len(self.client_secret)}")
+            LOGGER.info(f"GOOGLE_PHOTOS_REFRESH_TOKEN    : {'*' * len(self.refresh_token)}")
+            LOGGER.info("")
+
     def _refresh_access_token(self):
         response = requests.post(
             self.TOKEN_URL,
@@ -95,6 +102,7 @@ class ClassGooglePhotos:
     def login(self, config_file=CONFIGURATION_FILE, log_level=None):
         with set_log_level(LOGGER, log_level):
             self.read_config_file(config_file=config_file, log_level=log_level)
+            LOGGER.info("Authenticating on Google Photos and getting Session...")
             self._refresh_access_token()
             self.session = requests.Session()
             self.session.headers.update(
@@ -104,6 +112,9 @@ class ClassGooglePhotos:
                 }
             )
             self._list_albums()
+            LOGGER.info("Authentication Successfully with refresh token found in Config file. Access token properly set.")
+            LOGGER.info(f"User ID: 'google-account-{self.account_id}' found.")
+            LOGGER.info("")
             LOGGER.info(f"{MSG_TAGS['INFO']}Logged in to Google Photos account {self.account_id}.")
             return True
 
@@ -593,17 +604,30 @@ class ClassGooglePhotos:
         with set_log_level(LOGGER, log_level):
             target_names = [n.lower() for n in convert_to_list(albums_name, log_level=log_level)] if albums_name != "ALL" else ["all"]
             albums = self._list_albums()
-            downloaded_albums = 0
-            downloaded_assets = 0
-            root = os.path.join(output_folder, self.albums_root_name)
-            os.makedirs(root, exist_ok=True)
+            selected_albums = []
             for album in albums:
                 name = album["albumName"]
                 if "all" not in target_names and not any(match_pattern(name, pattern) for pattern in target_names):
                     continue
+                selected_albums.append(album)
+            downloaded_albums = 0
+            downloaded_assets = 0
+            root = os.path.join(output_folder, self.albums_root_name)
+            os.makedirs(root, exist_ok=True)
+            for album in tqdm(
+                selected_albums,
+                desc=f"{MSG_TAGS['INFO']}Downloading Albums from Google Photos",
+                unit=" albums",
+            ):
+                name = album["albumName"]
                 local_album = os.path.join(root, name)
                 os.makedirs(local_album, exist_ok=True)
-                for asset in self.get_all_assets_from_album(album_id=album["id"], album_name=name, log_level=log_level):
+                album_assets = self.get_all_assets_from_album(album_id=album["id"], album_name=name, log_level=log_level)
+                for asset in tqdm(
+                    album_assets,
+                    desc=f"{MSG_TAGS['INFO']}   Downloading '{name}' Assets",
+                    unit=" assets",
+                ):
                     self.pull_asset(
                         asset_id=asset["id"],
                         asset_filename=asset["filename"],

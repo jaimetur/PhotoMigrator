@@ -1910,15 +1910,17 @@ class ClassImmichPhotos:
             total_albums = len(albums_to_download)
 
             for album in tqdm(albums_to_download, desc=f"{MSG_TAGS['INFO']}Downloading Albums", unit=" albums"):
-            # for album in albums_to_download:
                 album_id = album.get("id")
                 album_name = album.get("albumName", f"album_{album_id}")
                 album_folder = os.path.join(output_folder, album_name)
                 os.makedirs(album_folder, exist_ok=True)
 
                 album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
-                for asset in album_assets:
-                # for asset in tqdm(album_assets, desc=f"{TAG_INFO}Downloading '{alb_name}'", unit=" assets"):
+                for asset in tqdm(
+                    album_assets,
+                    desc=f"{MSG_TAGS['INFO']}   Downloading '{album_name}' Assets",
+                    unit=" assets",
+                ):
                     asset_id = asset.get("id")
                     asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                     if asset_id:
