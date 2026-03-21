@@ -17,6 +17,13 @@
             </div>
             <h2 class="hero__subtitle">Web Interface for CLI Execution</h2>
             <p>Migrate your photos between different cloud services. Process your Google Photos Takeout to fix metadata. Manage your photo library.</p>
+            <div class="hero__session">
+                <span id="session-user-label" class="hero__session-user">User: {{ username }} ({{ role }})</span>
+                {% if is_admin %}
+                <a id="admin-link" href="/admin" target="_blank" rel="noopener noreferrer" class="ghost-btn hero__doc-btn hero__session-btn hero__session-btn--admin">Admin Panel</a>
+                {% endif %}
+                <button type="button" id="logout-btn" class="ghost-btn hero__doc-btn hero__session-btn hero__session-btn--logout">Logout</button>
+            </div>
             <div class="hero__docs">
                 <button type="button" id="open-readme-btn" class="ghost-btn hero__doc-btn" title="Open Readme">
                     📝 Readme
@@ -46,13 +53,15 @@
             <div class="tabs tabs--sub" id="general-tabs"></div>
             <div id="general-general" class="general-pane"><div id="general-core-panel" class="module-special"></div></div>
             <div id="general-config" class="general-pane hidden">
-            <p class="config-note">This editor is persisted to <code>/app/config/Config.ini</code>.</p>
-            <textarea id="config-editor" class="config-editor" spellcheck="false" wrap="off"></textarea>
+            <p class="config-note">This editor is persisted per user in database. Sensitive values are encrypted at rest.</p>
+            <div id="config-section-tabs" class="tabs tabs--sub"></div>
+            <div id="config-form-sections" class="config-form-sections"></div>
             <div class="config-actions">
-                <button type="button" id="load-config-btn" class="run-btn">Load config</button>
+                <button type="button" id="import-config-btn" class="run-btn">Import Config</button>
+                <button type="button" id="export-config-btn" class="run-btn">Export Config</button>
                 <button type="button" id="save-config-btn" class="run-btn run-btn--danger">Save config</button>
             </div>
-            <input id="config-file-input" type="file" accept=".ini,.txt,*/*" class="hidden-file-input">
+            <input id="config-import-input" type="file" accept=".cfg,.ini,.txt" class="hidden-file-input">
             <div id="config-status" class="status">Config status: idle</div>
             </div>
             <div id="general-theme" class="general-pane hidden">
@@ -275,8 +284,7 @@
 
     const GENERAL_TAB_NAMES = {
         general: "General Arguments",
-        config: "Configuration File",
-        theme: "Theme"
+        config: "Configuration"
     };
 
     const THEMES = {
@@ -286,6 +294,8 @@
         sunset: {name: "Sunset", description: "Warm palette"}
     };
     const TAKEOUT_SPECIAL_FOLDER_NAMES = {{ takeout_special_folders | tojson }};
+    let currentUser = null;
+    let allowedRoots = ["/app/data"];
 
     let schema = null;
     let activeModuleTab = "automatic_migration";
@@ -301,10 +311,46 @@
     let folderSelectionParentPath = "";
     let cloudActionDest = "";
     let standaloneActionDest = "";
+    let configSectionsData = [];
+    let configFormValues = {};
+    let activeConfigSection = "";
     let migrationEndpointsState = {
         source: {kind: "synology", account: "1", path: ""},
         target: {kind: "immich", account: "1", path: ""}
     };
+
+    async function apiFetch(url, options = {}) {
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+            window.location.href = "/login";
+            throw new Error("Unauthorized");
+        }
+        if (!response.ok) {
+            let detail = `HTTP ${response.status}`;
+            try {
+                const data = await response.clone().json();
+                if (data?.detail) detail = String(data.detail);
+            } catch (_error) {}
+            throw new Error(detail);
+        }
+        return response;
+    }
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+        const response = await nativeFetch(...args);
+        if (response.status === 401) {
+            window.location.href = "/login";
+        }
+        return response;
+    };
+
+    function getPrimaryRoot() {
+        return (Array.isArray(allowedRoots) && allowedRoots.length > 0) ? allowedRoots[0] : "/app/data";
+    }
+
+    function getSecondaryRoot() {
+        return (Array.isArray(allowedRoots) && allowedRoots.length > 1) ? allowedRoots[1] : getPrimaryRoot();
+    }
 
     const ARG_LABELS = {
         "output-folder": "Output Folder",
@@ -1968,8 +2014,7 @@
     function renderGeneralTab() {
         document.getElementById("general-general").classList.toggle("hidden", activeGeneralTab !== "general");
         document.getElementById("general-config").classList.toggle("hidden", activeGeneralTab !== "config");
-        document.getElementById("general-theme").classList.toggle("hidden", activeGeneralTab !== "theme");
-        if (activeGeneralTab === "theme") renderThemeTab();
+        document.getElementById("general-theme").classList.add("hidden");
     }
 
     function hideSpecialPanels() {
@@ -3178,36 +3223,272 @@
         handle.dataset.boundResize = "1";
     }
 
+    function buildConfigFormValuesFromSections(sections) {
+        const values = {};
+        (sections || []).forEach((section) => {
+            const sectionName = String(section?.name || "");
+            if (!sectionName) return;
+            values[sectionName] = {};
+            (section.fields || []).forEach((field) => {
+                const key = String(field?.key || "");
+                if (!key) return;
+                values[sectionName][key] = String(field?.value || "");
+            });
+        });
+        return values;
+    }
+
+    function renderConfigSectionTabs() {
+        const mapping = {};
+        configSectionsData.forEach((section) => {
+            const name = String(section?.name || "").trim();
+            if (!name) return;
+            mapping[name] = String(section?.display_name || name);
+        });
+        if (!activeConfigSection || !mapping[activeConfigSection]) {
+            activeConfigSection = Object.keys(mapping)[0] || "";
+        }
+        if (!uiState.config_active_section || !mapping[uiState.config_active_section]) {
+            uiState.config_active_section = activeConfigSection;
+        }
+        renderTabs("config-section-tabs", mapping, activeConfigSection, (key) => {
+            syncVisibleConfigInputsToState();
+            activeConfigSection = key;
+            uiState.config_active_section = key;
+            queueSaveState();
+            renderActiveConfigSection();
+            renderConfigSectionTabs();
+        });
+    }
+
+    function renderActiveConfigSection() {
+        const root = document.getElementById("config-form-sections");
+        root.innerHTML = "";
+        const section = (configSectionsData || []).find((item) => String(item?.name || "") === activeConfigSection);
+        if (!section) {
+            root.innerHTML = `<div class="folder-error">No config section selected.</div>`;
+            return;
+        }
+
+        const card = document.createElement("section");
+        card.className = "config-section-card";
+        const title = document.createElement("h4");
+        title.textContent = section.display_name || section.name || "Section";
+        card.appendChild(title);
+        if (section.description) {
+            const desc = document.createElement("p");
+            desc.className = "config-section-desc";
+            desc.textContent = section.description;
+            card.appendChild(desc);
+        }
+
+        (section.fields || []).forEach((field) => {
+            const row = document.createElement("div");
+            row.className = "config-field-row";
+
+            const inputColumn = document.createElement("div");
+            inputColumn.className = "config-field-input-col";
+
+            const name = document.createElement("label");
+            name.className = "config-field-key";
+            const displayKey = String(field.key || "") === "timezone"
+                ? "TIMEZONE"
+                : String(field.key || "");
+            name.textContent = displayKey;
+            inputColumn.appendChild(name);
+
+            const sectionName = section.name || "";
+            const key = field.key || "";
+            const currentValue = String(configFormValues?.[sectionName]?.[key] ?? field.value ?? "");
+            const hasChoices = Array.isArray(field?.choices) && field.choices.length > 0;
+            const input = hasChoices ? document.createElement("select") : document.createElement("input");
+            input.className = "field__input";
+            if (!hasChoices) {
+                input.type = field.sensitive ? "password" : "text";
+                if (field.sensitive) {
+                    input.autocomplete = "off";
+                    input.setAttribute("data-lpignore", "true");
+                    input.setAttribute("data-1p-ignore", "true");
+                    input.spellcheck = false;
+                }
+                input.value = currentValue;
+            } else {
+                const preferred = "Europe/Madrid";
+                if (field.choices.includes(preferred)) {
+                    input.add(new Option(preferred, preferred));
+                }
+                field.choices.forEach((choice) => {
+                    if (choice === preferred) return;
+                    input.add(new Option(choice, choice));
+                });
+                input.value = currentValue || preferred;
+            }
+            input.dataset.section = sectionName;
+            input.dataset.key = key;
+            const updateConfigValue = () => {
+                if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
+                configFormValues[sectionName][key] = input.value || "";
+                if (sectionName === "Web Interface" && key === "THEME") {
+                    applyTheme(configFormValues[sectionName][key] || "ocean", true);
+                }
+            };
+            input.addEventListener("input", updateConfigValue);
+            input.addEventListener("change", updateConfigValue);
+            inputColumn.appendChild(input);
+            row.appendChild(inputColumn);
+
+            const helpPanel = document.createElement("aside");
+            helpPanel.className = "desc-card config-field-help-panel";
+            const helpText = document.createElement("p");
+            helpText.textContent = field.help || "No additional help for this field.";
+            helpPanel.appendChild(helpText);
+            row.appendChild(helpPanel);
+
+            card.appendChild(row);
+        });
+        root.appendChild(card);
+    }
+
+    function renderConfigFormSections(data) {
+        configSectionsData = Array.isArray(data?.sections) ? data.sections : [];
+        configFormValues = buildConfigFormValuesFromSections(configSectionsData);
+        if (uiState?.config_active_section && configSectionsData.some((section) => section?.name === uiState.config_active_section)) {
+            activeConfigSection = uiState.config_active_section;
+        } else {
+            activeConfigSection = configSectionsData[0]?.name || "";
+        }
+        renderConfigSectionTabs();
+        renderActiveConfigSection();
+    }
+
+    function collectConfigFormValues() {
+        return JSON.parse(JSON.stringify(configFormValues || {}));
+    }
+
+    function syncVisibleConfigInputsToState() {
+        document.querySelectorAll("#config-form-sections [data-section][data-key]").forEach((el) => {
+            const section = String(el.dataset.section || "");
+            const key = String(el.dataset.key || "");
+            if (!section || !key) return;
+            if (!configFormValues[section]) configFormValues[section] = {};
+            configFormValues[section][key] = String(el.value || "");
+        });
+    }
+
+    function applyThemeFromConfigValues() {
+        const theme = String(
+            configFormValues?.["Web Interface"]?.["THEME"]
+            || uiState?.theme
+            || "ocean"
+        );
+        if (THEMES[theme]) {
+            applyTheme(theme, true);
+        }
+    }
+
     async function loadConfig() {
-        const response = await fetch("/api/config");
+        const response = await apiFetch(`/api/config/form?t=${Date.now()}`);
         const data = await response.json();
-        document.getElementById("config-editor").value = data.content || "";
+        renderConfigFormSections(data);
+        applyThemeFromConfigValues();
         document.getElementById("config-status").textContent = `Config status: loaded (${data.path})`;
+        return data;
     }
 
-    function loadConfigFromLocalFile() {
-        document.getElementById("config-file-input").click();
+    function importConfigFromFile() {
+        document.getElementById("config-import-input").click();
     }
 
-    async function onConfigFilePicked(event) {
+    async function onConfigImportPicked(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
         try {
             const content = await file.text();
-            document.getElementById("config-editor").value = content || "";
-            document.getElementById("config-status").textContent = `Config status: loaded from local file (${file.name})`;
+            const response = await apiFetch("/api/config/import", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({content})
+            });
+            const data = await response.json();
+            if (Array.isArray(data?.sections)) {
+                renderConfigFormSections(data);
+                applyThemeFromConfigValues();
+            } else {
+                await loadConfig();
+                applyThemeFromConfigValues();
+            }
+            applyThemeFromConfigValues();
+            const safePath = data?.path || "db://users/current/Config.ini";
+            document.getElementById("config-status").textContent = `Config status: imported (${safePath})`;
         } catch (error) {
-            console.error(error);
-            document.getElementById("config-status").textContent = "Config status: failed to load local file";
+            document.getElementById("config-status").textContent = `Config status: import failed (${String(error)})`;
         } finally {
             event.target.value = "";
+        }
+    }
+
+    async function exportConfigToFile() {
+        try {
+            if (String(currentUser?.role || "").trim().toLowerCase() === "demo") {
+                await showNoticeDialog({
+                    title: "Export Not Allowed",
+                    message: "Demo accounts cannot export configuration."
+                });
+                return;
+            }
+            syncVisibleConfigInputsToState();
+            let payload;
+            try {
+                const response = await apiFetch(`/api/config/export-content?t=${Date.now()}`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({values: collectConfigFormValues()})
+                });
+                payload = await response.json();
+            } catch (error) {
+                const message = String(error || "");
+                const isMethodError = message.includes("405") || message.toLowerCase().includes("method not allowed");
+                if (!isMethodError) throw error;
+                const fallback = await apiFetch(`/api/config/export-content?t=${Date.now()}`);
+                payload = await fallback.json();
+            }
+            const filename = String(payload?.filename || "Config.ini");
+            const content = String(payload?.content || "");
+
+            if (window.showSaveFilePicker) {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [
+                        {
+                            description: "Configuration file",
+                            accept: {"text/plain": [".cfg", ".ini", ".txt"]}
+                        }
+                    ]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(content);
+                await writable.close();
+            } else {
+                const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+                const fileUrl = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = fileUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(fileUrl), 10000);
+            }
+            document.getElementById("config-status").textContent = `Config status: exported (${filename})`;
+        } catch (error) {
+            document.getElementById("config-status").textContent = `Config status: export failed (${String(error)})`;
         }
     }
 
     async function saveConfig() {
         const confirmed = await askForConfirmation({
             title: "Overwrite Configuration?",
-            message: "This will overwrite the active configuration file (/app/config/Config.ini) with the current editor content.",
+            message: "This will overwrite your user Config.ini stored in database.",
             acceptLabel: "Overwrite",
             danger: true
         });
@@ -3215,19 +3496,42 @@
             document.getElementById("config-status").textContent = "Config status: save canceled by user";
             return;
         }
-        const content = document.getElementById("config-editor").value;
-        const response = await fetch("/api/config", {
+        syncVisibleConfigInputsToState();
+        const values = collectConfigFormValues();
+        const response = await apiFetch("/api/config/form", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({content})
+            body: JSON.stringify({values})
         });
         const data = await response.json();
+        applyThemeFromConfigValues();
         document.getElementById("config-status").textContent = `Config status: saved (${data.path})`;
+    }
+
+    async function loadCurrentUser() {
+        const response = await apiFetch("/api/me");
+        currentUser = await response.json();
+        allowedRoots = Array.isArray(currentUser?.allowed_roots) && currentUser.allowed_roots.length
+            ? currentUser.allowed_roots
+            : ["/app/data"];
+        const label = document.getElementById("session-user-label");
+        if (label && currentUser) {
+            label.textContent = `User: ${currentUser.username} (${currentUser.role})`;
+        }
+        const adminLink = document.getElementById("admin-link");
+        if (adminLink) {
+            const canSeeAdmin = String(currentUser?.role || "").trim().toLowerCase() === "admin" || currentUser?.is_admin === true;
+            adminLink.classList.toggle("hidden", !canSeeAdmin);
+        }
+        const filePathInput = document.getElementById("file-path-input");
+        if (filePathInput) {
+            filePathInput.value = getPrimaryRoot();
+        }
     }
 
     async function loadState() {
         try {
-            const response = await fetch("/api/state");
+            const response = await apiFetch("/api/state");
             const data = await response.json();
             stateValues = data.values || {};
             uiState = data.ui_state || {collapsed_panels: {}};
@@ -3254,19 +3558,19 @@
     }
 
     async function listFolders(path) {
-        const response = await fetch(`/api/fs/list?path=${encodeURIComponent(path)}`);
+        const response = await apiFetch(`/api/fs/list?path=${encodeURIComponent(path)}`);
         if (!response.ok) throw new Error(await response.text());
         return response.json();
     }
 
     async function listCsvFiles(path) {
-        const response = await fetch(`/api/fs/list-files?path=${encodeURIComponent(path)}`);
+        const response = await apiFetch(`/api/fs/list-files?path=${encodeURIComponent(path)}`);
         if (!response.ok) throw new Error(await response.text());
         return response.json();
     }
 
     async function createFolder(parentPath, folderName) {
-        const response = await fetch("/api/fs/mkdir", {
+        const response = await apiFetch("/api/fs/mkdir", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({path: parentPath, name: folderName})
@@ -3300,9 +3604,19 @@
             const homeBtn = document.createElement("button");
             homeBtn.type = "button";
             homeBtn.className = "folder-quick-btn folder-quick-btn--home";
-            homeBtn.textContent = "Home";
-            homeBtn.addEventListener("click", () => renderFileList("/app/data"));
+            homeBtn.textContent = "Home (data)";
+            homeBtn.addEventListener("click", () => renderFileList(getPrimaryRoot()));
             quickActions.appendChild(homeBtn);
+
+            const volumesRoot = getSecondaryRoot();
+            if (volumesRoot !== getPrimaryRoot()) {
+                const homeVolumesBtn = document.createElement("button");
+                homeVolumesBtn.type = "button";
+                homeVolumesBtn.className = "folder-quick-btn folder-quick-btn--home";
+                homeVolumesBtn.textContent = "Home (volumes)";
+                homeVolumesBtn.addEventListener("click", () => renderFileList(volumesRoot));
+                quickActions.appendChild(homeVolumesBtn);
+            }
             listEl.appendChild(quickActions);
 
             if (data.parent) {
@@ -3382,12 +3696,12 @@
         fileTargetInput = inputEl;
         fileSelectedPath = "";
         const dialog = document.getElementById("file-dialog");
-        let initial = "/app/data";
+        let initial = getPrimaryRoot();
         const rawValue = String(inputEl?.value || "").trim();
         if (rawValue.startsWith("/")) {
             if (rawValue.toLowerCase().endsWith(".csv")) {
                 const slash = rawValue.lastIndexOf("/");
-                initial = slash > 0 ? rawValue.slice(0, slash) : "/app/data";
+                initial = slash > 0 ? rawValue.slice(0, slash) : getPrimaryRoot();
                 fileSelectedPath = rawValue;
             } else {
                 initial = rawValue;
@@ -3584,9 +3898,19 @@
             const homeBtn = document.createElement("button");
             homeBtn.type = "button";
             homeBtn.className = "folder-quick-btn folder-quick-btn--home";
-            homeBtn.textContent = "Home";
-            homeBtn.addEventListener("click", () => renderFolderList("/app/data"));
+            homeBtn.textContent = "Home (data)";
+            homeBtn.addEventListener("click", () => renderFolderList(getPrimaryRoot()));
             quickActions.appendChild(homeBtn);
+
+            const volumesRoot = getSecondaryRoot();
+            if (volumesRoot !== getPrimaryRoot()) {
+                const homeVolumesBtn = document.createElement("button");
+                homeVolumesBtn.type = "button";
+                homeVolumesBtn.className = "folder-quick-btn folder-quick-btn--home";
+                homeVolumesBtn.textContent = "Home (volumes)";
+                homeVolumesBtn.addEventListener("click", () => renderFolderList(volumesRoot));
+                quickActions.appendChild(homeVolumesBtn);
+            }
 
             const createBtn = document.createElement("button");
             createBtn.type = "button";
@@ -3715,7 +4039,7 @@
         const dialog = document.getElementById("folder-dialog");
         const candidates = parseFolderListValue(inputEl.value || "");
         const initialCandidate = candidates.length > 0 ? candidates[candidates.length - 1] : "";
-        const initial = initialCandidate.startsWith("/") ? initialCandidate : "/app/data";
+        const initial = initialCandidate.startsWith("/") ? initialCandidate : getPrimaryRoot();
         renderFolderList(initial);
         dialog.showModal();
     }
@@ -3907,11 +4231,16 @@
         document.getElementById("run-btn").addEventListener("click", runCommand);
         document.getElementById("stop-btn").addEventListener("click", stopCommand);
         document.getElementById("copy-log-btn").addEventListener("click", copyLogToClipboard);
-        document.getElementById("load-config-btn").addEventListener("click", loadConfigFromLocalFile);
-        document.getElementById("config-file-input").addEventListener("change", onConfigFilePicked);
+        document.getElementById("import-config-btn").addEventListener("click", importConfigFromFile);
+        document.getElementById("config-import-input").addEventListener("change", onConfigImportPicked);
+        document.getElementById("export-config-btn").addEventListener("click", exportConfigToFile);
         document.getElementById("job-input-yes").addEventListener("click", () => sendJobInput("yes"));
         document.getElementById("job-input-no").addEventListener("click", () => sendJobInput("no"));
         document.getElementById("save-config-btn").addEventListener("click", saveConfig);
+        document.getElementById("logout-btn").addEventListener("click", async () => {
+            await apiFetch("/api/auth/logout", {method: "POST"});
+            window.location.href = "/login";
+        });
         const autoScrollCheck = document.getElementById("auto-scroll-check");
         autoScrollCheck.checked = uiState.auto_scroll !== false;
         autoScrollCheck.addEventListener("change", () => {
@@ -3938,7 +4267,7 @@
             closeFolderDialogs();
         });
         document.getElementById("folder-use-current").addEventListener("click", () => {
-            const current = folderSelectionParentPath || "/app/data";
+            const current = folderSelectionParentPath || getPrimaryRoot();
             if (!folderTargetInput) return;
             const dest = folderTargetInput.dataset.dest;
             if (shouldValidateSpecialFoldersForDest(dest)) {
@@ -3972,12 +4301,12 @@
             const selected = parseFolderListValue(pathInput ? pathInput.value : "");
             const dest = folderTargetInput.dataset.dest;
             if (selected.length === 0) {
-                setFolderCurrentMessage(folderSelectionParentPath || "/app/data", "Select at least one folder first.");
+                setFolderCurrentMessage(folderSelectionParentPath || getPrimaryRoot(), "Select at least one folder first.");
                 return;
             }
             if (!folderDialogAllowsMultiSelect && selected.length > 1) {
                 setFolderCurrentMessage(
-                    folderSelectionParentPath || "/app/data",
+                    folderSelectionParentPath || getPrimaryRoot(),
                     "This argument only accepts one folder. Select exactly one."
                 );
                 return;
@@ -4027,12 +4356,13 @@
     }
 
     async function boot() {
+        await loadCurrentUser();
         await loadState();
         applyTheme(uiState.theme || "ocean", false);
         bindUi();
         applyPanelCollapseState();
         await loadConfig(); // Keep editor synced with active Config.ini by default
-        const response = await fetch("/api/schema");
+        const response = await apiFetch("/api/schema");
         schema = await response.json();
         renderAll();
         await tryResumeActiveJob();

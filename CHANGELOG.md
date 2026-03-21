@@ -16,6 +16,10 @@
   - Added Google Photos integration (official Library API based) across CLI, execution modes, automatic migration, and web interface.
   - Added a dedicated `Google Photos` tab in the web interface (next to `Google Takeout`).
   - Added `ClassGooglePhotos` backend service with OAuth refresh-token auth and supported upload/download modules.
+  - Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).
+  - Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.
+  - Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.
+  - Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments.
 
 #### 🚀 Enhancements:
   - Added NextCloud credentials/settings support in `Config.ini` and config loader (`[NextCloud Photos]` section with account 1/2/3 and WebDAV root).
@@ -27,6 +31,7 @@
   - Improved album rename matching for literal album names containing regex metacharacters (such as parentheses), so rename workflows work without manual escaping.
   - Improved markdown render to detect italic font and bold+italic.
   - Improved album download progress visualization for cloud clients (NextCloud, Synology, Immich, Google Photos) by showing a nested per-album assets progress bar labeled as `Downloading '<AlbumName>' Assets`.
+  - Restricted folder/file browser API access to each user's assigned subfolders only, and enforced the same path restrictions at command execution time.
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
