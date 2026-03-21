@@ -51,6 +51,8 @@ class ClassNextCloudPhotos:
         self._session_lock = threading.Lock()
         self._ensured_dirs_lock = threading.Lock()
         self._ensured_dirs = {"/"}
+        self._native_album_lock = threading.Lock()
+        self._native_album_cache: Dict[str, str] = {}
         self.ALLOWED_PHOTO_EXTENSIONS = [ext.lower() for ext in PHOTO_EXT]
         self.ALLOWED_VIDEO_EXTENSIONS = [ext.lower() for ext in VIDEO_EXT]
         self.type = ARGS.get("filter-by-type", None)
@@ -129,6 +131,8 @@ class ClassNextCloudPhotos:
             self._worker_local = threading.local()
             with self._ensured_dirs_lock:
                 self._ensured_dirs = {"/"}
+            with self._native_album_lock:
+                self._native_album_cache = {}
             self._ensure_dir("/")
             self._ensure_dir(self._albums_root())
             self._ensure_dir(self._no_albums_root())
@@ -149,6 +153,8 @@ class ClassNextCloudPhotos:
             self._worker_local = threading.local()
             with self._ensured_dirs_lock:
                 self._ensured_dirs = {"/"}
+            with self._native_album_lock:
+                self._native_album_cache = {}
             LOGGER.info(f"{MSG_TAGS['INFO']}Logged out from NextCloud account {self.account_id}.")
             return True
 
@@ -504,6 +510,19 @@ class ClassNextCloudPhotos:
         self._request_photos("MKCOL", album_path, expected=(201, 405, 409))
         return album_path
 
+    def _get_or_create_native_album(self, album_name: str) -> str:
+        key = str(album_name or "").strip()
+        if not key:
+            return ""
+        with self._native_album_lock:
+            cached = self._native_album_cache.get(key.lower())
+            if cached:
+                return cached
+        album_path = self._ensure_native_album(key)
+        with self._native_album_lock:
+            self._native_album_cache[key.lower()] = album_path
+        return album_path
+
     def _native_album_existing_file_names(self, album_path: str) -> set[str]:
         xml_body = (
             '<?xml version="1.0"?>'
@@ -574,6 +593,13 @@ class ClassNextCloudPhotos:
         with set_log_level(LOGGER, log_level):
             target = f"{self._albums_root()}/{album_name}".replace("//", "/")
             self._ensure_dir(target)
+            try:
+                self._get_or_create_native_album(album_name)
+            except Exception as error:
+                LOGGER.warning(
+                    f"{MSG_TAGS['WARNING']}Unable to create native Nextcloud album '{album_name}'. "
+                    f"Folder album was created successfully. {error}"
+                )
             return target
 
     def remove_album(self, album_id, album_name=None, log_level=None):
@@ -676,12 +702,29 @@ class ClassNextCloudPhotos:
                 assets = list(asset_ids or [])
             added = 0
             session = self._get_worker_session()
+            resolved_album_name = str(album_name or Path(str(album_id).rstrip("/")).name)
+            native_album_path = ""
+            if resolved_album_name:
+                try:
+                    native_album_path = self._get_or_create_native_album(resolved_album_name)
+                except Exception as error:
+                    LOGGER.warning(
+                        f"{MSG_TAGS['WARNING']}Unable to prepare native Nextcloud album '{resolved_album_name}'. "
+                        f"Continuing with folder album only. {error}"
+                    )
             for asset_id in assets:
                 src = str(asset_id)
                 name = Path(src).name
                 dst = f"{str(album_id).rstrip('/')}/{name}"
                 try:
                     self._copy_remote_with_session(session=session, source_remote_path=src, destination_remote_path=dst)
+                    if native_album_path:
+                        self._copy_file_to_native_album_with_session(
+                            session=session,
+                            source_remote_path=dst,
+                            album_path=native_album_path,
+                            destination_name=name,
+                        )
                     added += 1
                 except Exception as error:
                     LOGGER.warning(f"{MSG_TAGS['WARNING']}Unable to add asset '{src}' to album '{album_id}': {error}")
