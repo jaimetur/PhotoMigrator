@@ -367,6 +367,7 @@ def _extract_client_ip(request: Request) -> str:
 
 
 def _record_access_log(user_id: int, username: str, ip_address: str) -> None:
+    _ensure_access_logs_table()
     conn = _db_connect()
     try:
         conn.execute(
@@ -376,6 +377,29 @@ def _record_access_log(user_id: int, username: str, ip_address: str) -> None:
             """,
             (int(user_id), str(username or ""), str(ip_address or "unknown"), _utc_now_iso()),
         )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _ensure_access_logs_table() -> None:
+    conn = _db_connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS access_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                username TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+            )
+            """
+        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON access_logs(created_at DESC)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_access_logs_username ON access_logs(username)")
         conn.commit()
     finally:
         conn.close()
@@ -920,6 +944,7 @@ def _init_web_db(template_schema: List[Dict[str, Any]]) -> None:
         conn.commit()
     finally:
         conn.close()
+    _ensure_access_logs_table()
 
 
 def _fetch_user_by_id(user_id: int) -> Dict[str, Any] | None:
@@ -3038,6 +3063,7 @@ def admin_access_logs(
     limit: int = Query(200, ge=1, le=2000),
     current_user: Dict[str, Any] = Depends(_require_admin),
 ) -> Dict[str, Any]:
+    _ensure_access_logs_table()
     conn = _db_connect()
     try:
         rows = conn.execute(
@@ -3052,6 +3078,14 @@ def admin_access_logs(
     finally:
         conn.close()
     return {"logs": [dict(row) for row in rows], "limit": int(limit)}
+
+
+@app.get("/api/admin/access_logs")
+def admin_access_logs_legacy(
+    limit: int = Query(200, ge=1, le=2000),
+    current_user: Dict[str, Any] = Depends(_require_admin),
+) -> Dict[str, Any]:
+    return admin_access_logs(limit=limit, current_user=current_user)
 
 
 @app.get("/api/admin/db/table/{table_name}")

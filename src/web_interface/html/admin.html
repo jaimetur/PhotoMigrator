@@ -552,10 +552,16 @@
         const statusEl = document.getElementById("access-logs-status");
         statusEl.textContent = "Access logs: loading...";
         try {
-            const data = await apiFetch("/api/admin/access-logs?limit=300");
+            let rows = [];
+            try {
+                const data = await apiFetch("/api/admin/access-logs?limit=300");
+                rows = data.logs || [];
+            } catch (primaryError) {
+                const fallback = await apiFetch("/api/admin/db/table/access_logs?limit=300&offset=0");
+                rows = fallback.rows || [];
+            }
             const tbody = document.querySelector("#access-logs-table tbody");
             tbody.innerHTML = "";
-            const rows = data.logs || [];
             rows.forEach((row) => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
