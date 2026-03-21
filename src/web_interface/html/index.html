@@ -3321,7 +3321,8 @@
                     if (choice === preferred) return;
                     input.add(new Option(choice, choice));
                 });
-                input.value = currentValue || preferred;
+                const fallbackValue = currentValue || preferred;
+                input.value = field.choices.includes(fallbackValue) ? fallbackValue : preferred;
             }
             input.dataset.section = sectionName;
             input.dataset.key = key;

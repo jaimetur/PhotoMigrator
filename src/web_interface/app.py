@@ -352,6 +352,35 @@ def _db_connect() -> sqlite3.Connection:
     return conn
 
 
+def _extract_client_ip(request: Request) -> str:
+    forwarded_for = str(request.headers.get("x-forwarded-for") or "").strip()
+    if forwarded_for:
+        first = forwarded_for.split(",")[0].strip()
+        if first:
+            return first
+    real_ip = str(request.headers.get("x-real-ip") or "").strip()
+    if real_ip:
+        return real_ip
+    if request.client and request.client.host:
+        return str(request.client.host)
+    return "unknown"
+
+
+def _record_access_log(user_id: int, username: str, ip_address: str) -> None:
+    conn = _db_connect()
+    try:
+        conn.execute(
+            """
+            INSERT INTO access_logs (user_id, username, ip_address, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (int(user_id), str(username or ""), str(ip_address or "unknown"), _utc_now_iso()),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def _pbkdf2_hash_password(password: str) -> str:
     salt = secrets.token_bytes(16)
     iterations = 240_000
@@ -751,6 +780,20 @@ def _init_web_db(template_schema: List[Dict[str, Any]]) -> None:
             )
             """
         )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS access_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                username TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+            )
+            """
+        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON access_logs(created_at DESC)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_access_logs_username ON access_logs(username)")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS backup_schedules (
@@ -2221,13 +2264,14 @@ def login_page(request: Request, session_token: str | None = Cookie(default=None
 
 
 @app.post("/api/auth/login")
-def api_login(payload: LoginRequest, response: Response) -> Dict[str, Any]:
+def api_login(payload: LoginRequest, response: Response, request: Request) -> Dict[str, Any]:
     username = str(payload.username or "").strip()
     password = str(payload.password or "")
     user = _fetch_user_by_username(username)
     if not user or not bool(user.get("is_active")) or not _pbkdf2_verify_password(password, str(user.get("password_hash") or "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = _create_session_for_user(int(user["id"]))
+    _record_access_log(int(user["id"]), str(user.get("username") or username), _extract_client_ip(request))
     response.set_cookie(
         key=WEB_SESSION_COOKIE,
         value=token,
@@ -2987,6 +3031,27 @@ def admin_db_tables(current_user: Dict[str, Any] = Depends(_require_admin)) -> D
     finally:
         conn.close()
     return {"tables": out}
+
+
+@app.get("/api/admin/access-logs")
+def admin_access_logs(
+    limit: int = Query(200, ge=1, le=2000),
+    current_user: Dict[str, Any] = Depends(_require_admin),
+) -> Dict[str, Any]:
+    conn = _db_connect()
+    try:
+        rows = conn.execute(
+            """
+            SELECT id, user_id, username, ip_address, created_at
+            FROM access_logs
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (int(limit),),
+        ).fetchall()
+    finally:
+        conn.close()
+    return {"logs": [dict(row) for row in rows], "limit": int(limit)}
 
 
 @app.get("/api/admin/db/table/{table_name}")

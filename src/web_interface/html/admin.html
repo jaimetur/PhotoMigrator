@@ -91,6 +91,25 @@
         </div>
         <div id="backup-status" class="status">Backup status: idle</div>
     </section>
+
+    <section class="admin-section">
+        <h2>Access Logs</h2>
+        <div class="admin-db-toolbar">
+            <button id="access-logs-refresh" type="button" class="ghost-btn">Refresh Logs</button>
+        </div>
+        <div id="access-logs-status" class="status">Access logs: loading...</div>
+        <table class="admin-table" id="access-logs-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>Username</th>
+                <th>IP Address</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
 </main>
 
 <dialog id="admin-notice-dialog" class="confirm-dialog">
@@ -529,6 +548,30 @@
         }
     }
 
+    async function loadAccessLogs() {
+        const statusEl = document.getElementById("access-logs-status");
+        statusEl.textContent = "Access logs: loading...";
+        try {
+            const data = await apiFetch("/api/admin/access-logs?limit=300");
+            const tbody = document.querySelector("#access-logs-table tbody");
+            tbody.innerHTML = "";
+            const rows = data.logs || [];
+            rows.forEach((row) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${row.id ?? ""}</td>
+                    <td>${row.created_at || ""}</td>
+                    <td>${row.username || ""}</td>
+                    <td>${row.ip_address || ""}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            statusEl.textContent = `Access logs: loaded ${rows.length} entries`;
+        } catch (error) {
+            statusEl.textContent = `Access logs: ${String(error)}`;
+        }
+    }
+
     document.getElementById("create-user-form").addEventListener("submit", async (event) => {
         event.preventDefault();
         const statusEl = document.getElementById("admin-status");
@@ -577,6 +620,7 @@
     });
     document.getElementById("backup-save").addEventListener("click", saveBackupConfig);
     document.getElementById("backup-run-now").addEventListener("click", runBackupNow);
+    document.getElementById("access-logs-refresh").addEventListener("click", loadAccessLogs);
 
     document.getElementById("password-dialog-cancel").addEventListener("click", closePasswordDialog);
     document.getElementById("admin-notice-close").addEventListener("click", () => {
@@ -612,6 +656,7 @@
         .then(loadDbTables)
         .then(() => loadDbTableRows())
         .then(loadBackupConfig)
+        .then(loadAccessLogs)
         .catch((error) => {
         document.getElementById("admin-status").textContent = `Status: ${String(error)}`;
     });
