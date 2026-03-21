@@ -586,9 +586,10 @@
             } catch (primaryError) {
                 const fallback = await apiFetch("/api/admin/db/table/access_logs?limit=300&offset=0");
                 rows = fallback.rows || [];
-                if (username) {
-                    rows = rows.filter((row) => String(row?.username || "").trim().toLowerCase() === username.toLowerCase());
-                }
+            }
+            if (username) {
+                const wanted = username.toLowerCase();
+                rows = rows.filter((row) => String(row?.username || "").trim().toLowerCase() === wanted);
             }
             const tbody = document.querySelector("#access-logs-table tbody");
             tbody.innerHTML = "";
