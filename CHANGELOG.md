@@ -10,8 +10,8 @@
 #### 🚨 Breaking Changes:
   
 #### 🌟 New Features:
-  - Added full NextCloud Photos integration (WebDAV-based) across CLI, execution modes, automatic migration, and web interface.
-  - Added a dedicated `NextCloud Photos` tab in the web interface, placed between `Immich Photos` and `Other Features`.
+  - Added full NextCloud Photos integration (WebDAV-based) across CLI, execution modes, automatic migration, and web interface (Issue: #567).
+  - Added a dedicated `NextCloud Photos` tab in the web interface, placed between `Immich Photos` and `Other Features` (Issue: #567).
   - Added `ClassNextCloudPhotos` backend service with album/assets upload, download, cleanup, and rename/remove workflows.
   - Added Google Photos integration (official Library API based) across CLI, execution modes, automatic migration, and web interface.
   - Added a dedicated `Google Photos` tab in the web interface (next to `Google Takeout`).
