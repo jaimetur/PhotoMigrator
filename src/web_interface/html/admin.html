@@ -104,10 +104,10 @@
         <table class="admin-table" id="access-logs-table">
             <thead>
             <tr>
-                <th>ID</th>
-                <th>Timestamp</th>
-                <th>Username</th>
-                <th>IP Address</th>
+                <th id="access-logs-sort-id" data-sort-col="id">ID</th>
+                <th id="access-logs-sort-created" data-sort-col="created_at">Timestamp</th>
+                <th id="access-logs-sort-username" data-sort-col="username">Username</th>
+                <th id="access-logs-sort-ip" data-sort-col="ip_address">IP Address</th>
             </tr>
             </thead>
             <tbody></tbody>
@@ -158,6 +158,8 @@
     let dbTablesCache = [];
     let dbCurrentTable = "";
     let dbCurrentColumns = [];
+    let accessLogsRows = [];
+    let accessLogsSort = {column: "created_at", direction: "desc"};
 
     async function apiFetch(url, options = {}) {
         const response = await fetch(url, options);
@@ -591,22 +593,79 @@
                 const wanted = username.toLowerCase();
                 rows = rows.filter((row) => String(row?.username || "").trim().toLowerCase() === wanted);
             }
-            const tbody = document.querySelector("#access-logs-table tbody");
-            tbody.innerHTML = "";
-            rows.forEach((row) => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${row.id ?? ""}</td>
-                    <td>${row.created_at || ""}</td>
-                    <td>${row.username || ""}</td>
-                    <td>${row.ip_address || ""}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+            accessLogsRows = rows;
+            renderAccessLogsTable();
             statusEl.textContent = `Access logs: loaded ${rows.length} entries`;
         } catch (error) {
             statusEl.textContent = `Access logs: ${String(error)}`;
         }
+    }
+
+    function formatAccessTimestamp(rawValue) {
+        const text = String(rawValue || "").trim();
+        if (!text) return "";
+        const match = text.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/);
+        if (match) return `${match[1]} - ${match[2]}`;
+        return text;
+    }
+
+    function sortAccessLogsRows(rows) {
+        const sorted = [...(rows || [])];
+        const {column, direction} = accessLogsSort;
+        sorted.sort((a, b) => {
+            let left = a?.[column];
+            let right = b?.[column];
+            if (column === "id") {
+                left = Number(left || 0);
+                right = Number(right || 0);
+            } else {
+                left = String(left || "").toLowerCase();
+                right = String(right || "").toLowerCase();
+            }
+            if (left < right) return direction === "asc" ? -1 : 1;
+            if (left > right) return direction === "asc" ? 1 : -1;
+            return 0;
+        });
+        return sorted;
+    }
+
+    function renderAccessLogsSortHeaders() {
+        document.querySelectorAll("#access-logs-table thead th[data-sort-col]").forEach((th) => {
+            const col = String(th.dataset.sortCol || "");
+            const base = String(th.textContent || "").replace(/\s+[▲▼]$/, "");
+            if (col === accessLogsSort.column) {
+                th.textContent = `${base} ${accessLogsSort.direction === "asc" ? "▲" : "▼"}`;
+            } else {
+                th.textContent = base;
+            }
+        });
+    }
+
+    function renderAccessLogsTable() {
+        const tbody = document.querySelector("#access-logs-table tbody");
+        tbody.innerHTML = "";
+        const rows = sortAccessLogsRows(accessLogsRows);
+        rows.forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${row.id ?? ""}</td>
+                <td>${formatAccessTimestamp(row.created_at)}</td>
+                <td>${row.username || ""}</td>
+                <td>${row.ip_address || ""}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        renderAccessLogsSortHeaders();
+    }
+
+    function toggleAccessLogsSort(column) {
+        if (accessLogsSort.column === column) {
+            accessLogsSort.direction = accessLogsSort.direction === "asc" ? "desc" : "asc";
+        } else {
+            accessLogsSort.column = column;
+            accessLogsSort.direction = column === "created_at" ? "desc" : "asc";
+        }
+        renderAccessLogsTable();
     }
 
     document.getElementById("create-user-form").addEventListener("submit", async (event) => {
@@ -659,6 +718,10 @@
     document.getElementById("backup-run-now").addEventListener("click", runBackupNow);
     document.getElementById("access-logs-refresh").addEventListener("click", loadAccessLogs);
     document.getElementById("access-logs-user-filter").addEventListener("change", loadAccessLogs);
+    document.querySelectorAll("#access-logs-table thead th[data-sort-col]").forEach((th) => {
+        th.style.cursor = "pointer";
+        th.addEventListener("click", () => toggleAccessLogsSort(String(th.dataset.sortCol || "")));
+    });
 
     document.getElementById("password-dialog-cancel").addEventListener("click", closePasswordDialog);
     document.getElementById("admin-notice-close").addEventListener("click", () => {
