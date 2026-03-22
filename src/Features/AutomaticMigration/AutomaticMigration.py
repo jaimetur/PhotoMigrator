@@ -1706,6 +1706,23 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     layout["pushs_panel"].update(build_push_panel())
                     layout["logs_panel"].update(build_log_panel())
 
+                except ModuleNotFoundError as error:
+                    missing = str(getattr(error, "name", "") or "")
+                    if "rich._unicode_data.unicode" in missing:
+                        LOGGER.warning(
+                            f"{step_name}Live Dashboard disabled because bundled binary is missing Rich unicode tables "
+                            f"({missing}). Continuing without dashboard."
+                        )
+                        ARGS['dashboard'] = False
+                        return
+                    err = traceback.format_exc()
+                    LOGGER.warning(f"{step_name}Exception during Live Dashboard execution:\n{err}")
+                    try:
+                        console.show_cursor()
+                    except:
+                        pass
+                    original_stdout.write(err)
+                    raise
                 except Exception:
                     # Catch any exception from Live Dashboard
                     err = traceback.format_exc()

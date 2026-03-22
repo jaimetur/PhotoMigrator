@@ -706,6 +706,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         pyinstaller_command.extend(("--distpath", dist_path))
         pyinstaller_command.extend(("--workpath", build_path))
         pyinstaller_command.extend(("--add-data", gpth_tool + ':gpth_tool'))
+        # Rich resolves Unicode tables dynamically at runtime; force-include them in frozen binaries.
+        pyinstaller_command.extend(["--collect-submodules", "rich._unicode_data"])
+        pyinstaller_command.extend(["--collect-data", "rich"])
 
         # If INCLUDE_EXIF_TOOL is True, unzip, adjust permissions, and include ExifTool files in the compiled binary
         if INCLUDE_EXIF_TOOL:
@@ -807,6 +810,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             '--lto=yes',
             '--nofollow-imports',
             '--nofollow-import-to=unused_module',
+            '--include-package=rich',
+            '--include-package=rich._unicode_data',
 
             # '--remove-output',
             f'--output-dir={dist_path}',
