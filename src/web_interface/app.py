@@ -49,12 +49,13 @@ WEB_BOOTSTRAP_ADMIN_PASS = os.environ.get("PHOTOMIGRATOR_BOOTSTRAP_ADMIN_PASS", 
 WEB_USER_ROOT_DATA = Path(os.environ.get("PHOTOMIGRATOR_WEB_USER_ROOT_DATA", "/app/data")).resolve()
 WEB_USER_ROOT_VOLUME1 = Path(os.environ.get("PHOTOMIGRATOR_WEB_USER_ROOT_VOLUME1", "/app/volumes")).resolve()
 CONFIG_SECTIONS_ORDER = [
+    "TimeZone",
+    "Web Interface",
     "Google Takeout",
     "Google Photos",
     "Synology Photos",
     "Immich Photos",
     "NextCloud Photos",
-    "TimeZone",
 ]
 TIMEZONE_DEFAULT = "Europe/Madrid"
 TIMEZONE_CHOICES = sorted(list(available_timezones()))
@@ -235,6 +236,8 @@ class RunRequest(BaseModel):
 
 class ConfigUpdateRequest(BaseModel):
     content: str = ""
+    admin_username: str = ""
+    admin_password: str = ""
 
 
 class StateUpdateRequest(BaseModel):
@@ -283,6 +286,14 @@ class AdminUserUpdateRequest(BaseModel):
 
 class ConfigFormSaveRequest(BaseModel):
     values: Dict[str, Dict[str, str]] = Field(default_factory=dict)
+    admin_username: str = ""
+    admin_password: str = ""
+
+
+class ConfigAdminOverrideRequest(BaseModel):
+    action: str = ""
+    admin_username: str = ""
+    admin_password: str = ""
 
 
 class AdminDbInsertRequest(BaseModel):
@@ -458,6 +469,84 @@ def _is_sensitive_config_key(key: str) -> bool:
     return bool(re.search(r"(PASSWORD|SECRET|TOKEN|API_KEY|APIKEY|PASSWD)", str(key or "").upper()))
 
 
+def _looks_like_template_placeholder(key: str, value: str) -> bool:
+    raw = str(value or "").strip()
+    if not raw:
+        return False
+    if re.fullmatch(r"\*+", raw):
+        return True
+    upper = raw.upper()
+    if upper in {
+        "YOUR_ADMIN_API_KEY",
+        "YOUR_API_KEY",
+        "API_KEY_USER_1",
+        "API_KEY_USER_2",
+        "API_KEY_USER_3",
+        "USERNAME_1",
+        "USERNAME_2",
+        "USERNAME_3",
+        "PASSWORD_1",
+        "PASSWORD_2",
+        "PASSWORD_3",
+        "APP_PASSWORD_1",
+        "APP_PASSWORD_2",
+        "APP_PASSWORD_3",
+    }:
+        return True
+    key_upper = str(key or "").upper()
+    if "API_KEY" in key_upper and "API_KEY" in upper:
+        return True
+    if "USERNAME" in key_upper and re.fullmatch(r"USERNAME(?:[_-]?\d+)?", upper):
+        return True
+    if "PASSWORD" in key_upper and re.fullmatch(r"(?:APP_)?PASSWORD(?:[_-]?\d+)?", upper):
+        return True
+    return False
+
+
+def _sanitize_config_form_value(section_name: str, key: str, value: str, default_value: str, sensitive: bool) -> str:
+    raw = str(value or "")
+    stripped = raw.strip()
+    if not stripped:
+        return ""
+    if sensitive and re.fullmatch(r"\*+", stripped):
+        return ""
+    if stripped == str(default_value or "").strip() and _looks_like_template_placeholder(key, stripped):
+        return ""
+    return raw
+
+
+def _immich_field_sort_key(field: Dict[str, Any], index: int) -> tuple[int, int, int]:
+    key = str(field.get("key") or "").strip()
+    normalized = key.upper()
+    if normalized == "IMMICH_URL":
+        return 0, 0, index
+    if normalized == "IMMICH_API_KEY_ADMIN":
+        return 1, 0, index
+    match = re.fullmatch(r"IMMICH_(USERNAME|PASSWORD|API_KEY_USER)_(\d+)", normalized)
+    if not match:
+        return 9, 0, index
+    field_kind = str(match.group(1))
+    account_id = int(match.group(2))
+    kind_order = {"USERNAME": 0, "PASSWORD": 1, "API_KEY_USER": 2}
+    return 2, account_id * 10 + kind_order.get(field_kind, 9), index
+
+
+def _sort_section_fields(section_name: str, fields: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    ordered = list(fields or [])
+    if section_name == "Immich Photos":
+        indexed_fields = list(enumerate(ordered))
+        indexed_fields.sort(key=lambda item: _immich_field_sort_key(item[1], item[0]))
+        return [field_item for _, field_item in indexed_fields]
+    return ordered
+
+
+def _sort_form_schema_sections(form_schema: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    schema = list(form_schema or [])
+    order_index = {name: idx for idx, name in enumerate(CONFIG_SECTIONS_ORDER)}
+    schema.sort(key=lambda item: order_index.get(str(item.get("name") or ""), len(order_index) + 1000))
+    return schema
+
+
 def _encrypt_value(value: str) -> str:
     plain = str(value or "").encode("utf-8")
     nonce = secrets.token_bytes(16)
@@ -557,16 +646,17 @@ def _parse_template_to_form_schema(template_content: str) -> List[Dict[str, Any]
 
     if not sections:
         return []
-    order_index = {name: idx for idx, name in enumerate(CONFIG_SECTIONS_ORDER)}
-    sections.sort(key=lambda item: order_index.get(str(item.get("name")), len(order_index) + 1000))
-    return sections
+    for section in sections:
+        section_name = str(section.get("name") or "")
+        section["fields"] = _sort_section_fields(section_name, section.get("fields", []))
+    return _sort_form_schema_sections(sections)
 
 
 def _extend_form_schema_with_web_interface_theme(form_schema: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     schema = list(form_schema or [])
     for section in schema:
         if str(section.get("name") or "") == WEB_INTERFACE_SECTION_NAME:
-            return schema
+            return _sort_form_schema_sections(schema)
     schema.append(
         {
             "name": WEB_INTERFACE_SECTION_NAME,
@@ -581,7 +671,7 @@ def _extend_form_schema_with_web_interface_theme(form_schema: List[Dict[str, Any
             ],
         }
     )
-    return schema
+    return _sort_form_schema_sections(schema)
 
 
 def _parse_ini_text_to_values(config_text: str, *, strict: bool = False) -> Dict[str, Dict[str, str]]:
@@ -680,14 +770,37 @@ def _serialize_values_to_ini_with_comments(values: Dict[str, Dict[str, str]], te
         pad = max(1, comment_column - len(base))
         return f"{base}{' ' * pad}{comment}"
 
-    output_lines: List[str] = []
+    output_lines: List[str] = ["# Config.ini File"]
+    timezone_value = str(values.get("TimeZone", {}).get("timezone", TIMEZONE_DEFAULT) or TIMEZONE_DEFAULT)
+    output_lines.append("[TimeZone]")
+    output_lines.append(f"timezone = {timezone_value}")
+    output_lines.append("")
+    output_lines.append("# Web Interface user preferences")
+    output_lines.append(f"[{WEB_INTERFACE_SECTION_NAME}]")
+    theme_value = str(
+        values.get(WEB_INTERFACE_SECTION_NAME, {}).get(WEB_INTERFACE_THEME_KEY, WEB_INTERFACE_THEME_DEFAULT)
+        or WEB_INTERFACE_THEME_DEFAULT
+    )
+    output_lines.append(_aligned_line(
+        f"{WEB_INTERFACE_THEME_KEY} = {theme_value}",
+        f"# Theme for Web UI ({', '.join(WEB_INTERFACE_THEME_CHOICES)})",
+    ))
+    output_lines.append("")
+
     current_section = ""
+    skipped_sections = {"TimeZone", WEB_INTERFACE_SECTION_NAME}
     for original_line in str(template_content or "").splitlines():
         line = str(original_line or "")
         stripped = line.strip()
+        if stripped == "# Config.ini File":
+            continue
         if stripped.startswith("[") and stripped.endswith("]"):
             current_section = stripped[1:-1].strip()
+            if current_section in skipped_sections:
+                continue
             output_lines.append(line)
+            continue
+        if current_section in skipped_sections:
             continue
         if "=" in line and current_section:
             key_part, rhs = line.split("=", 1)
@@ -700,17 +813,9 @@ def _serialize_values_to_ini_with_comments(values: Dict[str, Dict[str, str]], te
                 new_line = _aligned_line(f"{key_part.rstrip()} = {value}", comment)
                 output_lines.append(new_line)
                 continue
+        if stripped == "" and output_lines and output_lines[-1].strip() == "":
+            continue
         output_lines.append(line)
-    if WEB_INTERFACE_SECTION_NAME in values:
-        web_values = values.get(WEB_INTERFACE_SECTION_NAME, {})
-        output_lines.append("")
-        output_lines.append("# Web Interface user preferences")
-        output_lines.append(f"[{WEB_INTERFACE_SECTION_NAME}]")
-        theme_value = str(web_values.get(WEB_INTERFACE_THEME_KEY, WEB_INTERFACE_THEME_DEFAULT) or WEB_INTERFACE_THEME_DEFAULT)
-        output_lines.append(_aligned_line(
-            f"{WEB_INTERFACE_THEME_KEY} = {theme_value}",
-            f"# Theme for Web UI ({', '.join(WEB_INTERFACE_THEME_CHOICES)})",
-        ))
     return "\n".join(output_lines).rstrip() + "\n"
 
 
@@ -913,6 +1018,24 @@ def _init_web_db(template_schema: List[Dict[str, Any]]) -> None:
                 "INSERT INTO user_configs (user_id, config_json, updated_at) VALUES (?, ?, ?)",
                 (user_id, json.dumps(encrypted_defaults, ensure_ascii=False), now),
             )
+        config_rows = cur.execute("SELECT user_id, config_json FROM user_configs").fetchall()
+        for row in config_rows:
+            user_id = int(row["user_id"])
+            raw_json = str(row["config_json"] or "{}")
+            try:
+                encrypted_payload = json.loads(raw_json)
+            except Exception:
+                encrypted_payload = {}
+            plain_values = _decrypt_config_values(encrypted_payload if isinstance(encrypted_payload, dict) else {})
+            reordered_values = _merge_values_with_schema(plain_values, template_schema)
+            reordered_encrypted = _encrypt_config_values(reordered_values, template_schema)
+            reordered_json = json.dumps(reordered_encrypted, ensure_ascii=False)
+            if reordered_json == raw_json:
+                continue
+            cur.execute(
+                "UPDATE user_configs SET config_json = ?, updated_at = ? WHERE user_id = ?",
+                (reordered_json, now, user_id),
+            )
         for user_row in all_users:
             user_id = int(user_row["id"])
             existing_state = cur.execute("SELECT user_id FROM user_states WHERE user_id = ?", (user_id,)).fetchone()
@@ -1034,6 +1157,82 @@ def _require_admin(current_user: Dict[str, Any] = Depends(_require_user)) -> Dic
 def _ensure_export_allowed(current_user: Dict[str, Any]) -> None:
     if str(current_user.get("role") or "").strip().lower() == "demo":
         raise HTTPException(status_code=403, detail="Demo accounts cannot export configuration.")
+
+
+DEMO_CONFIG_ALLOWED_FIELDS = {
+    ("TimeZone", "timezone"),
+    (WEB_INTERFACE_SECTION_NAME, WEB_INTERFACE_THEME_KEY),
+}
+
+
+def _is_demo_user(current_user: Dict[str, Any]) -> bool:
+    return str(current_user.get("role") or "").strip().lower() == "demo"
+
+
+def _validate_admin_override_credentials(admin_username: str, admin_password: str) -> Dict[str, Any]:
+    username = str(admin_username or "").strip()
+    password = str(admin_password or "")
+    if not username or not password:
+        raise HTTPException(status_code=403, detail="Admin credentials are required.")
+    user = _fetch_user_by_username(username)
+    if not user:
+        raise HTTPException(status_code=403, detail="Invalid admin credentials.")
+    if str(user.get("role") or "").strip().lower() != "admin" or not bool(user.get("is_active")):
+        raise HTTPException(status_code=403, detail="Invalid admin credentials.")
+    if not _pbkdf2_verify_password(password, str(user.get("password_hash") or "")):
+        raise HTTPException(status_code=403, detail="Invalid admin credentials.")
+    return user
+
+
+def _demo_config_has_disallowed_changes(
+    current_user: Dict[str, Any],
+    incoming_values: Dict[str, Dict[str, str]],
+    form_schema: List[Dict[str, Any]],
+) -> bool:
+    current_values = _merge_values_with_schema(_get_user_config_values(current_user), form_schema)
+    new_values = _merge_values_with_schema(incoming_values or {}, form_schema)
+    for section in form_schema:
+        section_name = str(section.get("name") or "")
+        if not section_name:
+            continue
+        for field in section.get("fields", []):
+            key = str(field.get("key") or "")
+            if not key:
+                continue
+            before = str(current_values.get(section_name, {}).get(key, "") or "").strip()
+            after = str(new_values.get(section_name, {}).get(key, "") or "").strip()
+            if before == after:
+                continue
+            if (section_name, key) in DEMO_CONFIG_ALLOWED_FIELDS:
+                continue
+            return True
+    return False
+
+
+def _require_demo_admin_override(
+    current_user: Dict[str, Any],
+    *,
+    action: str,
+    admin_username: str = "",
+    admin_password: str = "",
+) -> None:
+    if not _is_demo_user(current_user):
+        return
+    _validate_admin_override_credentials(admin_username, admin_password)
+
+
+def _enforce_demo_save_policy(
+    current_user: Dict[str, Any],
+    merged_values: Dict[str, Dict[str, str]],
+    *,
+    admin_username: str = "",
+    admin_password: str = "",
+) -> None:
+    if not _is_demo_user(current_user):
+        return
+    if not _demo_config_has_disallowed_changes(current_user, merged_values, CONFIG_FORM_SCHEMA):
+        return
+    _validate_admin_override_credentials(admin_username, admin_password)
 
 
 def _get_user_allowed_roots(current_user: Dict[str, Any]) -> List[Path]:
@@ -1189,6 +1388,11 @@ def _materialize_user_config_to_file(current_user: Dict[str, Any], form_schema: 
     return file_path
 
 
+def _user_config_db_path(current_user: Dict[str, Any]) -> str:
+    username = str(current_user.get("username") or "").strip() or "user"
+    return f"db://users/{username}/Config.ini"
+
+
 def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, Dict[str, str]] | None = None) -> Dict[str, Any]:
     effective = merged if merged is not None else _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
     sections: List[Dict[str, Any]] = []
@@ -1200,20 +1404,29 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
         if section_name not in CONFIG_SECTIONS_ORDER and section_name != WEB_INTERFACE_SECTION_NAME:
             continue
         fields: List[Dict[str, Any]] = []
-        for field in section.get("fields", []):
+        source_fields = list(section.get("fields", []))
+        if section_name == "Immich Photos":
+            indexed_fields = list(enumerate(source_fields))
+            indexed_fields.sort(key=lambda item: _immich_field_sort_key(item[1], item[0]))
+            source_fields = [field_item for _, field_item in indexed_fields]
+        for field in source_fields:
             key = str(field.get("key") or "")
             if not key:
                 continue
+            raw_value = str(effective.get(section_name, {}).get(key, ""))
+            default_value = str(field.get("default") or "")
+            sensitive = bool(field.get("sensitive"))
+            display_value = _sanitize_config_form_value(section_name, key, raw_value, default_value, sensitive)
             fields.append(
                 {
                     "key": key,
-                    "value": str(effective.get(section_name, {}).get(key, "")),
+                    "value": display_value,
                     "help": (
                         "Select the time zone used by PhotoMigrator to display timestamps and process date/time-based operations."
                         if section_name == "TimeZone" and key == "timezone"
                         else str(field.get("help") or "")
                     ),
-                    "sensitive": bool(field.get("sensitive")),
+                    "sensitive": sensitive,
                     "choices": (
                         TIMEZONE_CHOICES
                         if section_name == "TimeZone" and key == "timezone"
@@ -1241,7 +1454,7 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
             }
         )
     sections.sort(key=lambda item: section_order.get(str(item.get("name") or ""), 9999))
-    return {"path": f"db://users/{current_user['id']}/Config.ini", "sections": sections, "updated_at": _utc_now_iso()}
+    return {"path": _user_config_db_path(current_user), "sections": sections, "updated_at": _utc_now_iso()}
 
 
 def _read_user_state_payload(current_user: Dict[str, Any]) -> Dict[str, Any]:
@@ -2433,7 +2646,7 @@ def get_schema(current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[st
 def get_config(current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
     merged = _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
     content = _serialize_values_to_ini_with_comments(merged, CONFIG_TEMPLATE_CONTENT)
-    return {"path": f"db://users/{current_user['id']}/Config.ini", "content": content}
+    return {"path": _user_config_db_path(current_user), "content": content}
 
 
 @app.get("/api/config/form")
@@ -2441,18 +2654,46 @@ def get_config_form(current_user: Dict[str, Any] = Depends(_require_user)) -> Di
     return _build_config_form_response(current_user)
 
 
+@app.post("/api/config/admin-override")
+def config_admin_override(
+    payload: ConfigAdminOverrideRequest,
+    current_user: Dict[str, Any] = Depends(_require_user),
+) -> Dict[str, Any]:
+    if not _is_demo_user(current_user):
+        return {"authorized": True, "required": False}
+    admin_user = _validate_admin_override_credentials(payload.admin_username, payload.admin_password)
+    return {
+        "authorized": True,
+        "required": True,
+        "action": str(payload.action or "").strip().lower(),
+        "admin_username": str(admin_user.get("username") or ""),
+    }
+
+
 @app.post("/api/config/form")
 def save_config_form(payload: ConfigFormSaveRequest, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
     incoming = payload.values or {}
     merged = _merge_values_with_schema(incoming, CONFIG_FORM_SCHEMA)
     merged = _sanitize_config_values_for_user(merged, CONFIG_FORM_SCHEMA, current_user)
+    _enforce_demo_save_policy(
+        current_user,
+        merged,
+        admin_username=payload.admin_username,
+        admin_password=payload.admin_password,
+    )
     _save_user_config_values(current_user, merged, CONFIG_FORM_SCHEMA)
     _sync_user_theme_to_state(current_user, merged)
-    return {"saved": True, "path": f"db://users/{current_user['id']}/Config.ini"}
+    return {"saved": True, "path": _user_config_db_path(current_user)}
 
 
 @app.post("/api/config/import")
 def import_config(payload: ConfigUpdateRequest, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
+    _require_demo_admin_override(
+        current_user,
+        action="import",
+        admin_username=payload.admin_username,
+        admin_password=payload.admin_password,
+    )
     parsed_values = _parse_ini_text_to_values(payload.content or "", strict=True)
     merged = _merge_values_with_schema(parsed_values, CONFIG_FORM_SCHEMA)
     _save_user_config_values(current_user, merged, CONFIG_FORM_SCHEMA)
@@ -2491,7 +2732,12 @@ def export_config_content_from_values(
     payload: ConfigFormSaveRequest,
     current_user: Dict[str, Any] = Depends(_require_user),
 ) -> Dict[str, Any]:
-    _ensure_export_allowed(current_user)
+    _require_demo_admin_override(
+        current_user,
+        action="export",
+        admin_username=payload.admin_username,
+        admin_password=payload.admin_password,
+    )
     merged = _merge_values_with_schema(payload.values or {}, CONFIG_FORM_SCHEMA)
     content = _serialize_values_to_ini_with_comments(merged, CONFIG_TEMPLATE_CONTENT)
     filename = f"Config_{str(current_user.get('username') or 'user')}.ini"
@@ -2499,8 +2745,16 @@ def export_config_content_from_values(
 
 
 @app.post("/api/config/export-to-storage")
-def export_config_to_storage(current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
-    _ensure_export_allowed(current_user)
+def export_config_to_storage(
+    payload: ConfigFormSaveRequest,
+    current_user: Dict[str, Any] = Depends(_require_user),
+) -> Dict[str, Any]:
+    _require_demo_admin_override(
+        current_user,
+        action="export",
+        admin_username=payload.admin_username,
+        admin_password=payload.admin_password,
+    )
     merged = _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
     content = _serialize_values_to_ini_with_comments(merged, CONFIG_TEMPLATE_CONTENT)
     primary_root = _ensure_user_roots_exist(current_user)[0]
@@ -2539,9 +2793,15 @@ def save_config(payload: ConfigUpdateRequest, current_user: Dict[str, Any] = Dep
     parsed_values = _parse_ini_text_to_values(payload.content or "")
     merged = _merge_values_with_schema(parsed_values, CONFIG_FORM_SCHEMA)
     merged = _sanitize_config_values_for_user(merged, CONFIG_FORM_SCHEMA, current_user)
+    _enforce_demo_save_policy(
+        current_user,
+        merged,
+        admin_username=payload.admin_username,
+        admin_password=payload.admin_password,
+    )
     _save_user_config_values(current_user, merged, CONFIG_FORM_SCHEMA)
     _sync_user_theme_to_state(current_user, merged)
-    return {"saved": True, "path": f"db://users/{current_user['id']}/Config.ini"}
+    return {"saved": True, "path": _user_config_db_path(current_user)}
 
 
 @app.get("/api/docs/{doc_name}")
@@ -2551,7 +2811,7 @@ def get_markdown_doc(doc_name: str, current_user: Dict[str, Any] = Depends(_requ
         content = _serialize_values_to_ini_with_comments(merged, CONFIG_TEMPLATE_CONTENT)
         return {
             "name": "config",
-            "path": f"db://users/{current_user['id']}/Config.ini",
+            "path": _user_config_db_path(current_user),
             "content": content,
         }
     path = _resolve_doc_path(doc_name)

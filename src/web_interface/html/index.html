@@ -252,6 +252,24 @@
     </div>
 </dialog>
 
+<dialog id="config-admin-override-dialog" class="confirm-dialog">
+    <div class="confirm-dialog__card">
+        <h3 id="config-admin-override-title" class="confirm-dialog__title">Admin Authorization Required</h3>
+        <p id="config-admin-override-message" class="confirm-dialog__message">
+            Demo role cannot perform this configuration action directly. Enter an active admin username and password.
+        </p>
+        <div class="admin-password-grid">
+            <input id="config-admin-override-username" class="field__input" type="text" placeholder="Admin username" autocomplete="off" spellcheck="false">
+            <input id="config-admin-override-password" class="field__input" type="password" placeholder="Admin password" autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+        </div>
+        <div id="config-admin-override-status" class="status">Status: waiting for credentials</div>
+        <div class="confirm-dialog__actions">
+            <button type="button" id="config-admin-override-cancel" class="ghost-btn">Cancel</button>
+            <button type="button" id="config-admin-override-accept" class="run-btn run-btn--danger">Authorize</button>
+        </div>
+    </div>
+</dialog>
+
 <dialog id="doc-dialog" class="doc-dialog">
     <div class="doc-dialog__card">
         <div class="doc-dialog__header">
@@ -314,6 +332,7 @@
     let configSectionsData = [];
     let configFormValues = {};
     let activeConfigSection = "";
+    let pendingConfigAdminOverride = null;
     let migrationEndpointsState = {
         source: {kind: "synology", account: "1", path: ""},
         target: {kind: "immich", account: "1", path: ""}
@@ -3387,6 +3406,107 @@
         }
     }
 
+    function isDemoRole() {
+        return String(currentUser?.role || "").trim().toLowerCase() === "demo";
+    }
+
+    function buildAdminOverridePayload(credentials) {
+        if (!credentials) return {};
+        return {
+            admin_username: String(credentials.username || ""),
+            admin_password: String(credentials.password || "")
+        };
+    }
+
+    function requestConfigAdminOverride(actionName) {
+        const dialog = document.getElementById("config-admin-override-dialog");
+        const titleEl = document.getElementById("config-admin-override-title");
+        const messageEl = document.getElementById("config-admin-override-message");
+        const statusEl = document.getElementById("config-admin-override-status");
+        const usernameEl = document.getElementById("config-admin-override-username");
+        const passwordEl = document.getElementById("config-admin-override-password");
+        const cancelBtn = document.getElementById("config-admin-override-cancel");
+        const acceptBtn = document.getElementById("config-admin-override-accept");
+        const actionLabel = String(actionName || "save");
+
+        titleEl.textContent = "Demo Role Restricted";
+        messageEl.textContent =
+            actionLabel === "save"
+                ? "The demo role cannot save configuration changes except TimeZone and Theme. " +
+                  "To save any other configuration field, enter active admin credentials."
+                : `The demo role cannot ${actionLabel} configuration directly. ` +
+                  "Only an active admin can authorize this action. Enter admin username and password.";
+        statusEl.textContent = "Status: waiting for credentials";
+        usernameEl.value = "";
+        passwordEl.value = "";
+
+        return new Promise((resolve) => {
+            const cleanup = () => {
+                acceptBtn.removeEventListener("click", onAccept);
+                cancelBtn.removeEventListener("click", onCancel);
+                dialog.removeEventListener("cancel", onCancel);
+                dialog.removeEventListener("click", onBackdropClick);
+                usernameEl.removeEventListener("keydown", onKeyDown);
+                passwordEl.removeEventListener("keydown", onKeyDown);
+            };
+            const onCancel = () => {
+                cleanup();
+                dialog.close();
+                resolve(null);
+            };
+            const onBackdropClick = (event) => {
+                const rect = dialog.getBoundingClientRect();
+                const inside =
+                    event.clientX >= rect.left &&
+                    event.clientX <= rect.right &&
+                    event.clientY >= rect.top &&
+                    event.clientY <= rect.bottom;
+                if (!inside) onCancel();
+            };
+            const onKeyDown = (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    onAccept();
+                }
+            };
+            const onAccept = async () => {
+                const username = String(usernameEl.value || "").trim();
+                const password = String(passwordEl.value || "");
+                if (!username || !password) {
+                    statusEl.textContent = "Status: enter admin username and password";
+                    return;
+                }
+                statusEl.textContent = "Status: validating admin credentials...";
+                acceptBtn.disabled = true;
+                cancelBtn.disabled = true;
+                try {
+                    await apiFetch("/api/config/admin-override", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({action: actionLabel, admin_username: username, admin_password: password})
+                    });
+                    cleanup();
+                    dialog.close();
+                    resolve({username, password});
+                } catch (error) {
+                    statusEl.textContent = `Status: ${String(error)}`;
+                } finally {
+                    acceptBtn.disabled = false;
+                    cancelBtn.disabled = false;
+                }
+            };
+
+            acceptBtn.addEventListener("click", onAccept);
+            cancelBtn.addEventListener("click", onCancel);
+            dialog.addEventListener("cancel", onCancel);
+            dialog.addEventListener("click", onBackdropClick);
+            usernameEl.addEventListener("keydown", onKeyDown);
+            passwordEl.addEventListener("keydown", onKeyDown);
+            dialog.showModal();
+            usernameEl.focus();
+        });
+    }
+
     async function loadConfig() {
         const response = await apiFetch(`/api/config/form?t=${Date.now()}`);
         const data = await response.json();
@@ -3396,7 +3516,16 @@
         return data;
     }
 
-    function importConfigFromFile() {
+    async function importConfigFromFile() {
+        pendingConfigAdminOverride = null;
+        if (isDemoRole()) {
+            const credentials = await requestConfigAdminOverride("import");
+            if (!credentials) {
+                document.getElementById("config-status").textContent = "Config status: import canceled";
+                return;
+            }
+            pendingConfigAdminOverride = credentials;
+        }
         document.getElementById("config-import-input").click();
     }
 
@@ -3405,10 +3534,21 @@
         if (!file) return;
         try {
             const content = await file.text();
+            let credentials = pendingConfigAdminOverride;
+            if (isDemoRole() && !credentials) {
+                credentials = await requestConfigAdminOverride("import");
+                if (!credentials) {
+                    document.getElementById("config-status").textContent = "Config status: import canceled";
+                    return;
+                }
+            }
             const response = await apiFetch("/api/config/import", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({content})
+                body: JSON.stringify({
+                    content,
+                    ...buildAdminOverridePayload(credentials)
+                })
             });
             const data = await response.json();
             if (Array.isArray(data?.sections)) {
@@ -3424,18 +3564,20 @@
         } catch (error) {
             document.getElementById("config-status").textContent = `Config status: import failed (${String(error)})`;
         } finally {
+            pendingConfigAdminOverride = null;
             event.target.value = "";
         }
     }
 
     async function exportConfigToFile() {
         try {
-            if (String(currentUser?.role || "").trim().toLowerCase() === "demo") {
-                await showNoticeDialog({
-                    title: "Export Not Allowed",
-                    message: "Demo accounts cannot export configuration."
-                });
-                return;
+            let credentials = null;
+            if (isDemoRole()) {
+                credentials = await requestConfigAdminOverride("export");
+                if (!credentials) {
+                    document.getElementById("config-status").textContent = "Config status: export canceled";
+                    return;
+                }
             }
             syncVisibleConfigInputsToState();
             let payload;
@@ -3443,13 +3585,16 @@
                 const response = await apiFetch(`/api/config/export-content?t=${Date.now()}`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({values: collectConfigFormValues()})
+                    body: JSON.stringify({
+                        values: collectConfigFormValues(),
+                        ...buildAdminOverridePayload(credentials)
+                    })
                 });
                 payload = await response.json();
             } catch (error) {
                 const message = String(error || "");
                 const isMethodError = message.includes("405") || message.toLowerCase().includes("method not allowed");
-                if (!isMethodError) throw error;
+                if (!isMethodError || isDemoRole()) throw error;
                 const fallback = await apiFetch(`/api/config/export-content?t=${Date.now()}`);
                 payload = await fallback.json();
             }
@@ -3499,10 +3644,21 @@
         }
         syncVisibleConfigInputsToState();
         const values = collectConfigFormValues();
+        let credentials = null;
+        if (isDemoRole()) {
+            credentials = await requestConfigAdminOverride("save");
+            if (!credentials) {
+                document.getElementById("config-status").textContent =
+                    "Config status: saving with demo restrictions (only TimeZone/Theme changes are allowed)";
+            }
+        }
         const response = await apiFetch("/api/config/form", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({values})
+            body: JSON.stringify({
+                values,
+                ...buildAdminOverridePayload(credentials)
+            })
         });
         const data = await response.json();
         applyThemeFromConfigValues();

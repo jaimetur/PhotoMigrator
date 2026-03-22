@@ -296,7 +296,8 @@ body {
 }
 
 .admin-wrapper {
-    width: min(98vw, 1400px);
+    width: min(100%, 1400px);
+    min-width: 0;
     display: grid;
     gap: 14px;
 }
@@ -728,7 +729,7 @@ body[data-theme="dark"] .tab-btn.active {
 .form-grid {
     display: grid;
     gap: 10px;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 .module-grid.hidden {
@@ -2271,6 +2272,60 @@ body[data-theme="sunset"] .folder-item--select {
 }
 
 @media (max-width: 540px) {
+    .login-page,
+    .admin-page {
+        padding: 10px;
+    }
+
+    .login-card {
+        padding: 16px;
+    }
+
+    .page {
+        padding: 10px;
+    }
+
+    .panel {
+        padding: 14px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bar-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .bar-metrics {
+        justify-content: flex-start;
+        white-space: normal;
+    }
+
+    .admin-wrapper {
+        width: 100%;
+        gap: 10px;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .admin-header__actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .admin-section {
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        min-width: 640px;
+    }
+
     .general-groups {
         grid-template-columns: 1fr;
     }
