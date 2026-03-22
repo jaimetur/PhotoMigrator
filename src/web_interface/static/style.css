@@ -905,6 +905,10 @@ textarea.field__input {
     margin-top: 0;
 }
 
+.upload-action-btn {
+    min-width: 190px;
+}
+
 .ghost-btn {
     background: #fff;
     color: var(--text-main);
@@ -1862,6 +1866,21 @@ body.is-resizing-log {
     grid-template-columns: minmax(220px, 1fr) auto;
     gap: 8px;
     margin-bottom: 10px;
+}
+
+#folder-upload-help {
+    margin-bottom: 10px;
+}
+
+#folder-upload-help.hidden,
+#folder-upload-local.hidden {
+    display: none;
+}
+
+#folder-use-current.hidden,
+#folder-use-selected.hidden,
+#folder-dialog .folder-toolbar.hidden {
+    display: none;
 }
 
 .doc-dialog {

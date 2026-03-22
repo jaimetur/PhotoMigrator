@@ -82,6 +82,7 @@
 
             <div id="cloud-action-panel" class="module-special hidden"></div>
             <div id="standalone-action-panel" class="module-special hidden"></div>
+            <div id="upload-folder-panel" class="module-special hidden"></div>
             <div id="migration-panel" class="module-special hidden"></div>
 
             <form id="module-form" class="form-grid module-grid"></form>
@@ -182,13 +183,17 @@
 
 <dialog id="folder-dialog" class="folder-dialog">
     <div class="folder-dialog__header">
-        <h3>Select folder</h3>
+        <h3 id="folder-dialog-title">Select folder</h3>
         <div class="folder-dialog__actions">
             <button type="button" id="folder-close" class="action-btn action-btn--close" onclick="closeFolderDialogs()">Close</button>
         </div>
     </div>
+    <div id="folder-upload-help" class="arg-inline-help hidden">
+        Upload behavior: ZIP extraction follows the "Extract ZIPs on upload" option (Yes/No) in Upload to Server.
+    </div>
     <div class="folder-current-row">
         <div id="folder-current" class="folder-current"></div>
+        <button type="button" id="folder-upload-local" class="action-btn action-btn--select hidden">Upload Here</button>
         <button type="button" id="folder-use-current" class="action-btn action-btn--select">Use Current</button>
     </div>
     <div class="folder-toolbar">
@@ -252,6 +257,9 @@
     </div>
 </dialog>
 
+<input id="upload-folder-local-input" type="file" class="hidden-file-input" webkitdirectory directory multiple>
+<input id="upload-zip-local-input" type="file" class="hidden-file-input" accept=".zip,application/zip">
+
 <dialog id="config-admin-override-dialog" class="confirm-dialog">
     <div class="confirm-dialog__card">
         <h3 id="config-admin-override-title" class="confirm-dialog__title">Admin Authorization Required</h3>
@@ -297,7 +305,8 @@
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
         nextcloud_photos: "NEXTCLOUD PHOTOS",
-        standalone_features: "OTHER FEATURES"
+        standalone_features: "OTHER FEATURES",
+        upload_folder: "UPLOAD TO SERVER"
     };
 
     const GENERAL_TAB_NAMES = {
@@ -327,6 +336,7 @@
     let folderSelectionPaths = new Set();
     let folderSelectionLastIndex = null;
     let folderSelectionParentPath = "";
+    let folderDialogMode = "default";
     let cloudActionDest = "";
     let standaloneActionDest = "";
     let configSectionsData = [];
@@ -2039,6 +2049,7 @@
     function hideSpecialPanels() {
         document.getElementById("cloud-action-panel").classList.add("hidden");
         document.getElementById("standalone-action-panel").classList.add("hidden");
+        document.getElementById("upload-folder-panel").classList.add("hidden");
         document.getElementById("migration-panel").classList.add("hidden");
     }
 
@@ -2418,6 +2429,180 @@
         bindStateForInputs();
     }
 
+    async function uploadLocalFolderFiles(files, targetPath, extractZip) {
+        const formData = new FormData();
+        formData.append("target_path", String(targetPath || ""));
+        formData.append("extract_zip", extractZip ? "true" : "false");
+        Array.from(files || []).forEach((file) => {
+            const relativePath = String(file.webkitRelativePath || file.name || "").trim();
+            if (!relativePath) return;
+            formData.append("files", file, relativePath);
+        });
+        if (!formData.getAll("files").length) {
+            throw new Error("No files found in selected local folder.");
+        }
+        const response = await fetch("/api/fs/upload-folder", {
+            method: "POST",
+            body: formData
+        });
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (_error) {
+            data = null;
+        }
+        if (!response.ok) {
+            const detail = data?.detail
+                ? (typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail))
+                : `HTTP ${response.status}`;
+            throw new Error(detail);
+        }
+        return data || {};
+    }
+
+    function uploadExtractModeFromState(rawValue) {
+        if (rawValue === true) return "yes";
+        if (rawValue === false) return "no";
+        const normalized = String(rawValue || "").trim().toLowerCase();
+        return normalized === "yes" ? "yes" : "no";
+    }
+
+    function renderUploadFolderPanel() {
+        const panel = document.getElementById("upload-folder-panel");
+        panel.innerHTML = "";
+
+        const wrap = document.createElement("div");
+        wrap.className = "selector-layout";
+
+        const left = document.createElement("div");
+        left.className = "selector-main";
+
+        const targetRow = document.createElement("div");
+        targetRow.className = "arg-row";
+        const targetLabel = document.createElement("label");
+        targetLabel.className = "arg-label";
+        targetLabel.textContent = "Destination Folder";
+        targetRow.appendChild(targetLabel);
+
+        const targetWrap = document.createElement("div");
+        targetWrap.className = "input-row";
+        const targetInput = document.createElement("input");
+        targetInput.type = "text";
+        targetInput.className = "field__input";
+        targetInput.dataset.dest = "upload-folder-target-path";
+        targetInput.placeholder = "Select destination folder";
+        targetInput.value = String(stateValues["upload-folder-target-path"] || "");
+        targetWrap.appendChild(targetInput);
+        const browseBtn = document.createElement("button");
+        browseBtn.type = "button";
+        browseBtn.className = "ghost-btn browse-btn";
+        browseBtn.textContent = "...";
+        browseBtn.title = "Open folder selector";
+        browseBtn.setAttribute("aria-label", "Open folder selector");
+        browseBtn.addEventListener("click", () => openFolderDialog(targetInput, {mode: "upload_folder"}));
+        targetWrap.appendChild(browseBtn);
+        targetRow.appendChild(targetWrap);
+        left.appendChild(targetRow);
+
+        const extractRow = document.createElement("div");
+        extractRow.className = "arg-row";
+        const extractLabel = document.createElement("label");
+        extractLabel.className = "arg-label";
+        extractLabel.textContent = "Extract ZIPs on upload";
+        const extractBadge = document.createElement("span");
+        extractBadge.className = "arg-badge arg-badge--optional";
+        extractBadge.textContent = "Optional";
+        extractLabel.appendChild(extractBadge);
+        extractRow.appendChild(extractLabel);
+
+        const extractWrap = document.createElement("div");
+        const extractInput = document.createElement("select");
+        extractInput.className = "field__input";
+        extractInput.dataset.dest = "upload-folder-extract-zips";
+        extractInput.add(new Option("No", "no"));
+        extractInput.add(new Option("Yes", "yes"));
+        extractInput.value = uploadExtractModeFromState(stateValues["upload-folder-extract-zips"]);
+        extractWrap.appendChild(extractInput);
+        extractRow.appendChild(extractWrap);
+        left.appendChild(extractRow);
+
+        const actionRow = document.createElement("div");
+        actionRow.className = "arg-row";
+        const actionButtonsWrap = document.createElement("div");
+        actionButtonsWrap.className = "input-row";
+        const uploadFolderBtn = document.createElement("button");
+        uploadFolderBtn.type = "button";
+        uploadFolderBtn.className = "run-btn upload-action-btn";
+        uploadFolderBtn.textContent = "Upload Local Folder";
+        uploadFolderBtn.addEventListener("click", async () => {
+            const destination = String(targetInput.value || "").trim();
+            if (!destination) {
+                await showNoticeDialog({
+                    title: "Destination Required",
+                    message: "Please select a destination folder inside container first."
+                });
+                return;
+            }
+            const picker = document.getElementById("upload-folder-local-input");
+            picker.dataset.targetPath = destination;
+            picker.dataset.extractZip = extractInput.value === "yes" ? "1" : "0";
+            picker.value = "";
+            picker.click();
+        });
+        const uploadZipBtn = document.createElement("button");
+        uploadZipBtn.type = "button";
+        uploadZipBtn.className = "run-btn upload-action-btn";
+        uploadZipBtn.textContent = "Upload Local Zip";
+        uploadZipBtn.addEventListener("click", async () => {
+            const destination = String(targetInput.value || "").trim();
+            if (!destination) {
+                await showNoticeDialog({
+                    title: "Destination Required",
+                    message: "Please select a destination folder inside container first."
+                });
+                return;
+            }
+            const picker = document.getElementById("upload-zip-local-input");
+            picker.dataset.targetPath = destination;
+            picker.dataset.extractZip = extractInput.value === "yes" ? "1" : "0";
+            picker.value = "";
+            picker.click();
+        });
+        actionButtonsWrap.appendChild(uploadFolderBtn);
+        actionButtonsWrap.appendChild(uploadZipBtn);
+        actionRow.appendChild(actionButtonsWrap);
+        left.appendChild(actionRow);
+
+        const statusRow = document.createElement("div");
+        statusRow.id = "upload-folder-status";
+        statusRow.className = "status";
+        statusRow.textContent = "Upload status: idle";
+        left.appendChild(statusRow);
+
+        const right = document.createElement("div");
+        right.className = "desc-card";
+        const title = document.createElement("h3");
+        title.textContent = "Selected feature";
+        const name = document.createElement("div");
+        name.className = "desc-card__name";
+        name.textContent = "Upload to Server";
+        const text = document.createElement("p");
+        text.innerHTML =
+            "Use this feature to upload local content (folder or ZIP) into the selected destination path in the server container.<br><br>" +
+            "Choose destination folder in container and upload local content.<br>" +
+            "If <strong>Extract ZIPs on upload</strong> is set to Yes, uploaded .zip files are extracted in server and the .zip file is removed.<br>" +
+            "If set to No, .zip files are kept as uploaded.";
+        right.appendChild(title);
+        right.appendChild(name);
+        right.appendChild(text);
+
+        wrap.appendChild(left);
+        wrap.appendChild(right);
+        panel.appendChild(wrap);
+        panel.classList.remove("hidden");
+        bindStateForInputs();
+    }
+
     function renderMigrationPanel() {
         const panel = document.getElementById("migration-panel");
         const fields = schema.tabs.automatic_migration || [];
@@ -2676,6 +2861,8 @@
         renderBulkArgumentPanel("general-core-panel", schema.general_tabs.general || []);
         renderGeneralTab();
         hideSpecialPanels();
+        const moduleActions = document.querySelector(".module-actions");
+        if (moduleActions) moduleActions.style.display = "";
 
         const moduleForm = document.getElementById("module-form");
         if (activeModuleTab === "google_photos" || activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos" || activeModuleTab === "nextcloud_photos") {
@@ -2688,6 +2875,13 @@
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.add("hidden");
             renderStandaloneActionPanel();
+        } else if (activeModuleTab === "upload_folder") {
+            moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("selector-mode");
+            moduleForm.classList.add("hidden");
+            renderUploadFolderPanel();
+            if (moduleActions) moduleActions.style.display = "none";
+            setCommandPreviewText("Upload mode active: this feature runs direct upload (no CLI command preview).");
         } else if (activeModuleTab === "automatic_migration") {
             moduleForm.classList.remove("google-layout");
             moduleForm.classList.remove("selector-mode");
@@ -2869,6 +3063,10 @@
 
     async function refreshCommandPreview() {
         if (!schema) return;
+        if (activeModuleTab === "upload_folder") {
+            setCommandPreviewText("Upload mode active: this feature runs direct upload (no CLI command preview).");
+            return;
+        }
         const reqId = ++commandPreviewSeq;
         const payload = buildRunPayload();
         try {
@@ -3048,6 +3246,13 @@
 
     async function runCommand() {
         if (currentJob && pollTimer) return;
+        if (activeModuleTab === "upload_folder") {
+            await showNoticeDialog({
+                title: "Upload to Server",
+                message: "Use Upload Local Folder or Upload Local Zip in the Upload to Server panel."
+            });
+            return;
+        }
         const payload = buildRunPayload();
         currentRunPayload = payload;
         currentJobIsAutomatic = payload.tab === "automatic_migration";
@@ -4187,8 +4392,26 @@
         }
     }
 
-    function openFolderDialog(inputEl) {
+    function applyFolderDialogModeUi() {
+        const title = document.getElementById("folder-dialog-title");
+        const uploadHelp = document.getElementById("folder-upload-help");
+        const uploadBtn = document.getElementById("folder-upload-local");
+        const useCurrentBtn = document.getElementById("folder-use-current");
+        const useSelectedBtn = document.getElementById("folder-use-selected");
+        const toolbar = document.querySelector("#folder-dialog .folder-toolbar");
+        const isUploadMode = folderDialogMode === "upload_folder";
+        if (title) title.textContent = isUploadMode ? "Select destination folder" : "Select folder";
+        if (uploadHelp) uploadHelp.classList.toggle("hidden", !isUploadMode);
+        if (uploadBtn) uploadBtn.classList.toggle("hidden", !isUploadMode);
+        if (useCurrentBtn) useCurrentBtn.classList.toggle("hidden", isUploadMode);
+        if (useSelectedBtn) useSelectedBtn.classList.toggle("hidden", isUploadMode);
+        if (toolbar) toolbar.classList.toggle("hidden", isUploadMode);
+    }
+
+    function openFolderDialog(inputEl, options = {}) {
         folderTargetInput = inputEl;
+        folderDialogMode = String(options?.mode || "default");
+        applyFolderDialogModeUi();
         folderDialogAllowsMultiSelect = folderDialogSupportsMultiSelection(inputEl);
         folderSelectionPaths.clear();
         folderSelectionLastIndex = null;
@@ -4354,6 +4577,8 @@
         forceCloseDialogById("notice-dialog");
         forceCloseDialogById("file-dialog");
         forceCloseDialogById("folder-dialog");
+        folderDialogMode = "default";
+        applyFolderDialogModeUi();
         folderSelectionPaths.clear();
         folderSelectionLastIndex = null;
         folderSelectionParentPath = "";
@@ -4410,6 +4635,58 @@
             });
         document.getElementById("folder-close").addEventListener("click", closeFolderDialogs);
         document.getElementById("file-close").addEventListener("click", closeFolderDialogs);
+        const handleUploadSelection = async (event) => {
+            const input = event.target;
+            const files = input?.files;
+            const targetPath = String(input?.dataset?.targetPath || stateValues["upload-folder-target-path"] || "").trim();
+            const fallbackExtract = uploadExtractModeFromState(stateValues["upload-folder-extract-zips"]) === "yes" ? "1" : "0";
+            const extractZip = String(input?.dataset?.extractZip || fallbackExtract) === "1";
+            const statusEl = document.getElementById("upload-folder-status");
+            if (!files || !files.length) return;
+            if (!targetPath) {
+                await showNoticeDialog({
+                    title: "Destination Required",
+                    message: "Please select a destination folder inside container first."
+                });
+                input.value = "";
+                return;
+            }
+            if (statusEl) statusEl.textContent = "Upload status: uploading...";
+            try {
+                const result = await uploadLocalFolderFiles(files, targetPath, extractZip);
+                const uploaded = Number(result?.uploaded_files || 0);
+                const extractedArchives = Number(result?.extracted_archives || 0);
+                const extractedFiles = Number(result?.extracted_files || 0);
+                const failedCount = Array.isArray(result?.failed) ? result.failed.length : 0;
+                if (statusEl) {
+                    statusEl.textContent =
+                        `Upload status: done | Uploaded: ${uploaded} | ` +
+                        `${extractZip ? `Extracted ZIPs: ${extractedArchives} (${extractedFiles} files) | ` : ""}` +
+                        `Failed: ${failedCount}`;
+                }
+                if (failedCount > 0) {
+                    await showNoticeDialog({
+                        title: "Upload Completed with Warnings",
+                        message:
+                            `Uploaded: ${uploaded}\n` +
+                            `${extractZip ? `Extracted ZIPs: ${extractedArchives}\n` : ""}` +
+                            `Failed: ${failedCount}`
+                    });
+                }
+            } catch (error) {
+                if (statusEl) statusEl.textContent = `Upload status: failed (${String(error)})`;
+                await showNoticeDialog({
+                    title: "Upload Failed",
+                    message: String(error)
+                });
+            } finally {
+                input.value = "";
+                delete input.dataset.targetPath;
+                delete input.dataset.extractZip;
+            }
+        };
+        document.getElementById("upload-folder-local-input").addEventListener("change", handleUploadSelection);
+        document.getElementById("upload-zip-local-input").addEventListener("change", handleUploadSelection);
         document.getElementById("file-select").addEventListener("click", () => {
             if (!fileTargetInput || !fileSelectedPath) return;
             fileTargetInput.value = fileSelectedPath;
@@ -4491,6 +4768,19 @@
             folderSelectionPaths.clear();
             folderSelectionLastIndex = null;
             folderSelectionParentPath = "";
+            document.getElementById("folder-dialog").close();
+        });
+        document.getElementById("folder-upload-local").addEventListener("click", async () => {
+            if (!folderTargetInput) return;
+            const current = folderSelectionParentPath || getPrimaryRoot();
+            applyFolderSelectionToTargetInput([current]);
+            folderTargetInput.dispatchEvent(new Event("input", {bubbles: true}));
+            folderTargetInput.dispatchEvent(new Event("change", {bubbles: true}));
+            const dest = folderTargetInput.dataset.dest;
+            if (dest) {
+                stateValues[dest] = folderTargetInput.value;
+                queueSaveState();
+            }
             document.getElementById("folder-dialog").close();
         });
         setupOutputResizer();

@@ -20,6 +20,7 @@
   - Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.
   - Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.
   - Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments.
+  - Added a new `Upload to Server` tab in the web interface with destination-folder picker, separate `Upload Local Folder` and `Upload Local Zip` actions, and optional ZIP extraction mode (`Extract ZIPs on upload`: Yes/No).
 
 #### 🚀 Enhancements:
   - Added NextCloud credentials/settings support in `Config.ini` and config loader (`[NextCloud Photos]` section with account 1/2/3 and WebDAV root).

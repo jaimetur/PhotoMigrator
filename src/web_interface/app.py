@@ -16,12 +16,13 @@ import sys
 import threading
 import time
 import uuid
+import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Deque, Dict, List, TextIO
 from zoneinfo import available_timezones
 
-from fastapi import Cookie, Depends, FastAPI, HTTPException, Query, Request, Response, status
+from fastapi import Cookie, Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -1296,6 +1297,43 @@ def _resolve_user_path(raw_path: str | None, current_user: Dict[str, Any]) -> Pa
             continue
     allowed = ", ".join(str(root) for root in roots)
     raise HTTPException(status_code=403, detail=f"Path outside allowed user roots. Allowed roots: {allowed}")
+
+
+def _normalize_upload_relative_path(raw_path: str) -> Path:
+    candidate = str(raw_path or "").replace("\\", "/").strip()
+    if not candidate:
+        raise HTTPException(status_code=400, detail="Uploaded file is missing a name/path.")
+    candidate = candidate.lstrip("/")
+    if not candidate or candidate in {".", ".."}:
+        raise HTTPException(status_code=400, detail=f"Invalid uploaded path: {raw_path}")
+    path_obj = Path(candidate)
+    if path_obj.is_absolute():
+        raise HTTPException(status_code=400, detail=f"Invalid uploaded path: {raw_path}")
+    parts = path_obj.parts
+    if not parts:
+        raise HTTPException(status_code=400, detail=f"Invalid uploaded path: {raw_path}")
+    if any(part in {"", ".", ".."} for part in parts):
+        raise HTTPException(status_code=400, detail=f"Invalid uploaded path: {raw_path}")
+    return path_obj
+
+
+def _safe_extract_zip(zip_path: Path, destination: Path) -> int:
+    extracted_files = 0
+    with zipfile.ZipFile(zip_path, "r") as archive:
+        for member in archive.infolist():
+            if member.is_dir():
+                continue
+            normalized = _normalize_upload_relative_path(member.filename)
+            target = (destination / normalized).resolve()
+            try:
+                target.relative_to(destination)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Zip entry outside destination: {member.filename}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with archive.open(member, "r") as src, target.open("wb") as dst:
+                shutil.copyfileobj(src, dst)
+            extracted_files += 1
+    return extracted_files
 
 
 def _get_user_config_values(current_user: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
@@ -2989,6 +3027,72 @@ def remove_directories(payload: FolderDeleteRequest, current_user: Dict[str, Any
     if not removed:
         raise HTTPException(status_code=400, detail={"removed": removed, "failed": failed})
     return {"removed": removed, "failed": failed}
+
+
+@app.post("/api/fs/upload-folder")
+async def upload_folder_content(
+    target_path: str = Form(...),
+    extract_zip: bool = Form(False),
+    files: List[UploadFile] = File(...),
+    current_user: Dict[str, Any] = Depends(_require_user),
+) -> Dict[str, Any]:
+    target_dir = _resolve_user_path(target_path, current_user)
+    if not target_dir.exists() or not target_dir.is_dir():
+        raise HTTPException(status_code=400, detail=f"Target path is not a directory: {target_dir}")
+    if not files:
+        raise HTTPException(status_code=400, detail="No files were uploaded.")
+
+    uploaded_files = 0
+    extracted_archives = 0
+    extracted_files = 0
+    failed: List[Dict[str, str]] = []
+
+    for upload in files:
+        raw_name = str(upload.filename or "").strip()
+        try:
+            relative_path = _normalize_upload_relative_path(raw_name)
+            destination_file = (target_dir / relative_path).resolve()
+            try:
+                destination_file.relative_to(target_dir)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Upload path outside destination: {raw_name}")
+
+            destination_file.parent.mkdir(parents=True, exist_ok=True)
+            with destination_file.open("wb") as output_fp:
+                while True:
+                    chunk = await upload.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    output_fp.write(chunk)
+            uploaded_files += 1
+
+            if extract_zip and destination_file.suffix.lower() == ".zip":
+                archive_destination = destination_file.parent
+                extracted_files += _safe_extract_zip(destination_file, archive_destination)
+                extracted_archives += 1
+                try:
+                    destination_file.unlink()
+                except Exception:
+                    pass
+        except Exception as error:
+            detail = str(error.detail) if isinstance(error, HTTPException) else str(error)
+            failed.append({"file": raw_name or "<unnamed>", "detail": detail})
+        finally:
+            try:
+                await upload.close()
+            except Exception:
+                pass
+
+    if uploaded_files == 0 and failed:
+        raise HTTPException(status_code=400, detail={"uploaded_files": 0, "failed": failed})
+
+    return {
+        "target_path": str(target_dir),
+        "uploaded_files": uploaded_files,
+        "extracted_archives": extracted_archives,
+        "extracted_files": extracted_files,
+        "failed": failed,
+    }
 
 
 @app.post("/api/preview")

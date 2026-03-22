@@ -30,5 +30,6 @@ windows-curses; platform_system == "Windows" and platform_machine == "AMD64"
 
 # Requirements for PhotoMigrator Web
 fastapi==0.115.14
+python-multipart==0.0.20
 uvicorn[standard]==0.34.2
 jinja2==3.1.6
