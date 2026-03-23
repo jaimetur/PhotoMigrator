@@ -32,6 +32,7 @@
   - Improved album rename matching for literal album names containing regex metacharacters (such as parentheses), so rename workflows work without manual escaping.
   - Improved markdown render to detect italic font and bold+italic.
   - Improved album download progress visualization for cloud clients (NextCloud, Synology, Immich, Google Photos) by showing a nested per-album assets progress bar labeled as `Downloading '<AlbumName>' Assets`.
+  - Improved album upload progress visualization for cloud clients (NextCloud, Synology, Immich, Google Photos) by showing a nested per-album assets progress bar labeled as `Uploading '<AlbumName>' Assets`.
   - Restricted folder/file browser API access to each user's assigned subfolders only, and enforced the same path restrictions at command execution time.
   - Enhancements in Web UI.
   - Forbidden Import/Export/Save configuration file in demo roles.

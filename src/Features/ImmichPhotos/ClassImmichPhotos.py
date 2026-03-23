@@ -1646,14 +1646,18 @@ class ClassImmichPhotos:
                             continue
 
                         consumed_live_companions = set()
-                        for file in os.listdir(subpath):
-                            file_path = os.path.join(subpath, file)
+                        album_file_paths = [os.path.join(subpath, file) for file in os.listdir(subpath)]
+                        for file_path in tqdm(
+                            album_file_paths,
+                            desc=f"{MSG_TAGS['INFO']}   Uploading '{album_name}' Assets",
+                            unit=" assets",
+                        ):
                             if not os.path.isfile(file_path):
                                 continue
                             norm_file_path = os.path.normcase(os.path.normpath(file_path))
                             if norm_file_path in consumed_live_companions:
                                 continue
-                            ext = os.path.splitext(file)[-1].lower()
+                            ext = os.path.splitext(file_path)[-1].lower()
                             if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
                                 continue
 

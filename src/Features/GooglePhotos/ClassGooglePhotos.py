@@ -527,7 +527,11 @@ class ClassGooglePhotos:
                 if not exists or not album_id:
                     album_id = self.create_album(album_name=album_name, log_level=log_level)
                     total_albums_uploaded += 1
-                for file_path in media_files:
+                for file_path in tqdm(
+                    media_files,
+                    desc=f"{MSG_TAGS['INFO']}   Uploading '{album_name}' Assets",
+                    unit=" assets",
+                ):
                     upload_token = self._create_upload_token(file_path)
                     media_id, is_dup = self._batch_create_media_item(upload_token, os.path.basename(file_path), album_id=album_id)
                     if is_dup or str(media_id).startswith("duplicate::"):
@@ -553,6 +557,9 @@ class ClassGooglePhotos:
     def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             albums_folders = convert_to_list(albums_folders, log_level=log_level)
+            albums_folder_included = any(str(folder or "").strip().lower() == self.albums_root_name.lower() for folder in albums_folders)
+            if not albums_folder_included:
+                albums_folders.append(self.albums_root_name)
             total_albums_uploaded = 0
             total_albums_skipped = 0
             total_assets_uploaded = 0
@@ -560,26 +567,17 @@ class ClassGooglePhotos:
             total_assets_uploaded_without_albums = 0
             total_duplicates_assets_skipped = 0
 
-            if albums_folders:
-                for albums_folder in albums_folders:
-                    if not albums_folder:
-                        continue
-                    abs_folder = albums_folder if os.path.isabs(albums_folder) else os.path.join(input_folder, albums_folder)
-                    if not os.path.isdir(abs_folder):
-                        continue
-                    a_up, a_skip, assets_up, _, dup_skip = self.push_albums(abs_folder, subfolders_exclusion="", remove_duplicates=remove_duplicates, log_level=log_level)
-                    total_albums_uploaded += a_up
-                    total_albums_skipped += a_skip
-                    total_assets_uploaded_within_albums += assets_up
-                    total_duplicates_assets_skipped += dup_skip
-            else:
-                default_albums = os.path.join(input_folder, self.albums_root_name)
-                if os.path.isdir(default_albums):
-                    a_up, a_skip, assets_up, _, dup_skip = self.push_albums(default_albums, subfolders_exclusion="", remove_duplicates=remove_duplicates, log_level=log_level)
-                    total_albums_uploaded += a_up
-                    total_albums_skipped += a_skip
-                    total_assets_uploaded_within_albums += assets_up
-                    total_duplicates_assets_skipped += dup_skip
+            for albums_folder in albums_folders:
+                if not albums_folder:
+                    continue
+                abs_folder = albums_folder if os.path.isabs(albums_folder) else os.path.join(input_folder, albums_folder)
+                if not os.path.isdir(abs_folder):
+                    continue
+                a_up, a_skip, assets_up, _, dup_skip = self.push_albums(abs_folder, subfolders_exclusion="", remove_duplicates=remove_duplicates, log_level=log_level)
+                total_albums_uploaded += a_up
+                total_albums_skipped += a_skip
+                total_assets_uploaded_within_albums += assets_up
+                total_duplicates_assets_skipped += dup_skip
 
             uploaded_no_albums, duplicates_no_albums = self.push_no_albums(
                 input_folder=input_folder,

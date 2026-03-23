@@ -2039,11 +2039,15 @@ class ClassSynologyPhotos:
                             total_albums_skipped += 1
                             continue
 
-                        for file in os.listdir(subpath):
-                            file_path = os.path.join(subpath, file)
+                        album_file_paths = [os.path.join(subpath, file) for file in os.listdir(subpath)]
+                        for file_path in tqdm(
+                            album_file_paths,
+                            desc=f"{MSG_TAGS['INFO']}   Uploading '{album_name}' Assets",
+                            unit=" assets",
+                        ):
                             if not os.path.isfile(file_path):
                                 continue
-                            ext = os.path.splitext(file)[-1].lower()
+                            ext = os.path.splitext(file_path)[-1].lower()
                             if ext not in self.ALLOWED_EXTENSIONS:
                                 continue
 

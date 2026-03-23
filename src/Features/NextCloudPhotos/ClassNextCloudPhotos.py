@@ -172,26 +172,22 @@ class ClassNextCloudPhotos:
             raise RuntimeError("NextCloud session could not be initialized.")
 
     def _dav_url(self, remote_path: str) -> str:
+        return self._dav_namespace_url(remote_path=remote_path, namespace="files")
+
+    def _dav_namespace_url(self, remote_path: str, namespace: str = "files") -> str:
         # Normalize to a decoded path first to avoid double-encoding (%2520, etc.)
         clean = unquote(str(remote_path or "").replace("\\", "/"))
         clean = re.sub(r"/+", "/", clean).strip()
         if not clean.startswith("/"):
             clean = f"/{clean}"
-        root = f"/remote.php/dav/files/{quote(self.username, safe='')}"
+        namespace_value = "photos" if str(namespace or "").lower() == "photos" else "files"
+        root = f"/remote.php/dav/{namespace_value}/{quote(self.username, safe='')}"
         full = f"{root}{quote(clean, safe='/._-() ')}"
         full = full.replace(" ", "%20")
         return urljoin(f"{self.base_url}/", full.lstrip("/"))
 
     def _photos_dav_url(self, remote_path: str) -> str:
-        # Normalize to a decoded path first to avoid double-encoding (%2520, etc.)
-        clean = unquote(str(remote_path or "").replace("\\", "/"))
-        clean = re.sub(r"/+", "/", clean).strip()
-        if not clean.startswith("/"):
-            clean = f"/{clean}"
-        root = f"/remote.php/dav/photos/{quote(self.username, safe='')}"
-        full = f"{root}{quote(clean, safe='/._-() ')}"
-        full = full.replace(" ", "%20")
-        return urljoin(f"{self.base_url}/", full.lstrip("/"))
+        return self._dav_namespace_url(remote_path=remote_path, namespace="photos")
 
     def _request_url(self, method: str, url: str, expected=(200, 201, 204, 207), **kwargs):
         self._require_session()
@@ -317,8 +313,9 @@ class ClassNextCloudPhotos:
             )
         return True
 
-    def _split_relative_from_href(self, href: str) -> str:
-        marker = f"/remote.php/dav/files/{self.username}"
+    def _split_relative_from_href(self, href: str, namespace: str = "files") -> str:
+        namespace_value = "photos" if str(namespace or "").lower() == "photos" else "files"
+        marker = f"/remote.php/dav/{namespace_value}/{quote(self.username, safe='')}"
         idx = href.find(marker)
         if idx < 0:
             return "/"
@@ -326,20 +323,30 @@ class ClassNextCloudPhotos:
         rel = rel or "/"
         return unquote(rel)
 
-    def _propfind(self, remote_path: str, depth: int = 1) -> List[Dict[str, str]]:
+    def _propfind(self, remote_path: str, depth: int = 1, namespace: str = "files") -> List[Dict[str, str]]:
         xml_body = (
             '<?xml version="1.0"?>'
             '<d:propfind xmlns:d="DAV:"><d:prop>'
             "<d:resourcetype/><d:getcontentlength/><d:getlastmodified/>"
             "</d:prop></d:propfind>"
         )
-        response = self._request(
-            "PROPFIND",
-            remote_path,
-            expected=(207,),
-            headers={"Depth": str(depth), "Content-Type": "application/xml"},
-            data=xml_body,
-        )
+        namespace_value = "photos" if str(namespace or "").lower() == "photos" else "files"
+        if namespace_value == "photos":
+            response = self._request_photos(
+                "PROPFIND",
+                remote_path,
+                expected=(207,),
+                headers={"Depth": str(depth), "Content-Type": "application/xml"},
+                data=xml_body,
+            )
+        else:
+            response = self._request(
+                "PROPFIND",
+                remote_path,
+                expected=(207,),
+                headers={"Depth": str(depth), "Content-Type": "application/xml"},
+                data=xml_body,
+            )
         root = ET.fromstring(response.text)
         ns = {"d": "DAV:"}
         items: List[Dict[str, str]] = []
@@ -356,7 +363,7 @@ class ClassNextCloudPhotos:
             content_length = prop.find("d:getcontentlength", ns)
             last_modified = prop.find("d:getlastmodified", ns)
             href = href_node.text or ""
-            rel_path = self._split_relative_from_href(href)
+            rel_path = self._split_relative_from_href(href, namespace=namespace_value)
             name = Path(rel_path.rstrip("/")).name
             items.append(
                 {
@@ -366,6 +373,7 @@ class ClassNextCloudPhotos:
                     "is_dir": "true" if collection is not None else "false",
                     "size": (content_length.text or "0") if content_length is not None else "0",
                     "last_modified": (last_modified.text or "") if last_modified is not None else "",
+                    "source_namespace": namespace_value,
                 }
             )
         return items
@@ -394,11 +402,12 @@ class ClassNextCloudPhotos:
             with self._ensured_dirs_lock:
                 self._ensured_dirs.add(current)
 
-    def _iter_files_recursive(self, remote_path: str) -> Iterable[Dict[str, str]]:
+    def _iter_files_recursive(self, remote_path: str, namespace: str = "files") -> Iterable[Dict[str, str]]:
         stack = [remote_path]
+        namespace_value = "photos" if str(namespace or "").lower() == "photos" else "files"
         while stack:
             current = stack.pop()
-            entries = self._propfind(current, depth=1)
+            entries = self._propfind(current, depth=1, namespace=namespace_value)
             for entry in entries:
                 p = entry["path"]
                 if p.rstrip("/") == current.rstrip("/"):
@@ -452,12 +461,19 @@ class ClassNextCloudPhotos:
                     fp.write(chunk)
         return local_path
 
-    def _download_file_with_session(self, session: requests.Session, remote_path: str, local_path: str) -> str:
+    def _download_file_with_session(
+        self,
+        session: requests.Session,
+        remote_path: str,
+        local_path: str,
+        namespace: str = "files",
+    ) -> str:
         self._ensure_local_parent(local_path)
+        namespace_value = "photos" if str(namespace or "").lower() == "photos" else "files"
         response = self._request_url_with_session(
             session=session,
             method="GET",
-            url=self._dav_url(remote_path),
+            url=self._dav_namespace_url(remote_path=remote_path, namespace=namespace_value),
             expected=(200, 206),
             stream=True,
         )
@@ -577,8 +593,47 @@ class ClassNextCloudPhotos:
                     continue
                 if entry["is_dir"] != "true":
                     continue
-                albums.append({"id": entry["path"], "albumName": entry["name"]})
+                albums.append({"id": entry["path"], "albumName": entry["name"], "source_namespace": "files"})
             albums.sort(key=lambda a: a["albumName"].lower())
+            return albums
+
+    def _list_native_album_directories(self, log_level=None) -> List[Dict[str, str]]:
+        with set_log_level(LOGGER, log_level):
+            albums_root = self._native_albums_home()
+            try:
+                entries = self._propfind(albums_root, depth=1, namespace="photos")
+            except Exception as error:
+                LOGGER.warning(
+                    f"{MSG_TAGS['WARNING']}Unable to list native Nextcloud albums from '{albums_root}'. "
+                    f"Continuing with folder-based albums only. {error}"
+                )
+                return []
+            albums = []
+            for entry in entries:
+                if entry["path"].rstrip("/") == albums_root.rstrip("/"):
+                    continue
+                if entry["is_dir"] != "true":
+                    continue
+                albums.append({"id": entry["path"], "albumName": entry["name"], "source_namespace": "photos"})
+            albums.sort(key=lambda a: a["albumName"].lower())
+            return albums
+
+    def _list_download_album_directories(self, log_level=None) -> List[Dict[str, str]]:
+        with set_log_level(LOGGER, log_level):
+            merged: Dict[str, Dict[str, str]] = {}
+            for album in self._list_album_directories(log_level=log_level):
+                key = str(album.get("albumName", "")).strip().lower()
+                if not key:
+                    continue
+                merged[key] = album
+            for album in self._list_native_album_directories(log_level=log_level):
+                key = str(album.get("albumName", "")).strip().lower()
+                if not key:
+                    continue
+                # Native album wins when names collide.
+                merged[key] = album
+            albums = list(merged.values())
+            albums.sort(key=lambda a: str(a.get("albumName", "")).lower())
             return albums
 
     def _build_asset_payload(self, remote_path: str, name: str, last_modified: str) -> Dict[str, str]:
@@ -607,10 +662,10 @@ class ClassNextCloudPhotos:
             return self._remove_remote(str(album_id))
 
     def get_albums_owned_by_user(self, filter_assets=True, log_level=None):
-        return self._list_album_directories(log_level=log_level)
+        return self._list_download_album_directories(log_level=log_level)
 
     def get_albums_including_shared_with_user(self, filter_assets=True, log_level=None):
-        return self._list_album_directories(log_level=log_level)
+        return self._list_download_album_directories(log_level=log_level)
 
     def get_album_assets_size(self, album_id, type="all", log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -651,7 +706,9 @@ class ClassNextCloudPhotos:
         with set_log_level(LOGGER, log_level):
             selected = str(type or self.type or "all").lower()
             assets = []
-            for entry in self._iter_files_recursive(str(album_id)):
+            album_path = str(album_id)
+            source_namespace = "photos" if album_path.startswith("/albums/") else "files"
+            for entry in self._iter_files_recursive(album_path, namespace=source_namespace):
                 filename = entry.get("name", "")
                 if not self._is_supported_media(filename):
                     continue
@@ -763,7 +820,14 @@ class ClassNextCloudPhotos:
             os.makedirs(download_folder, exist_ok=True)
             output_file = os.path.join(download_folder, str(asset_filename))
             session = self._get_worker_session()
-            output_file = self._download_file_with_session(session=session, remote_path=str(asset_id), local_path=output_file)
+            remote_path = str(asset_id)
+            source_namespace = "photos" if remote_path.startswith("/albums/") else "files"
+            output_file = self._download_file_with_session(
+                session=session,
+                remote_path=remote_path,
+                local_path=output_file,
+                namespace=source_namespace,
+            )
             return output_file
 
     def _normalize_asset_time_for_metadata(self, asset_time) -> str:
@@ -934,7 +998,12 @@ class ClassNextCloudPhotos:
 
                     with ThreadPoolExecutor(max_workers=workers) as executor:
                         futures = [executor.submit(_upload_worker, item) for item in planned_uploads]
-                        for future in as_completed(futures):
+                        for future in tqdm(
+                            as_completed(futures),
+                            total=len(futures),
+                            desc=f"{MSG_TAGS['INFO']}   Uploading '{album_name}' Assets",
+                            unit=" assets",
+                        ):
                             try:
                                 uploaded_name, native_inc = future.result()
                             except Exception as error:
@@ -1009,6 +1078,9 @@ class ClassNextCloudPhotos:
     def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             albums_folders = convert_to_list(albums_folders, log_level=log_level)
+            albums_folder_included = any(str(folder or "").strip().lower() == self.albums_root_name.lower() for folder in albums_folders)
+            if not albums_folder_included:
+                albums_folders.append(self.albums_root_name)
             total_albums_uploaded = 0
             total_albums_skipped = 0
             total_assets_uploaded = 0
@@ -1016,26 +1088,17 @@ class ClassNextCloudPhotos:
             total_assets_uploaded_without_albums = 0
             total_duplicates_assets_skipped = 0
 
-            if albums_folders:
-                for albums_folder in albums_folders:
-                    if not albums_folder:
-                        continue
-                    abs_folder = albums_folder if os.path.isabs(albums_folder) else os.path.join(input_folder, albums_folder)
-                    if not os.path.isdir(abs_folder):
-                        continue
-                    a_up, a_skip, assets_up, _, dup_skip = self.push_albums(abs_folder, subfolders_exclusion="", remove_duplicates=remove_duplicates, log_level=log_level)
-                    total_albums_uploaded += a_up
-                    total_albums_skipped += a_skip
-                    total_assets_uploaded_within_albums += assets_up
-                    total_duplicates_assets_skipped += dup_skip
-            else:
-                default_albums = os.path.join(input_folder, self.albums_root_name)
-                if os.path.isdir(default_albums):
-                    a_up, a_skip, assets_up, _, dup_skip = self.push_albums(default_albums, subfolders_exclusion="", remove_duplicates=remove_duplicates, log_level=log_level)
-                    total_albums_uploaded += a_up
-                    total_albums_skipped += a_skip
-                    total_assets_uploaded_within_albums += assets_up
-                    total_duplicates_assets_skipped += dup_skip
+            for albums_folder in albums_folders:
+                if not albums_folder:
+                    continue
+                abs_folder = albums_folder if os.path.isabs(albums_folder) else os.path.join(input_folder, albums_folder)
+                if not os.path.isdir(abs_folder):
+                    continue
+                a_up, a_skip, assets_up, _, dup_skip = self.push_albums(abs_folder, subfolders_exclusion="", remove_duplicates=remove_duplicates, log_level=log_level)
+                total_albums_uploaded += a_up
+                total_albums_skipped += a_skip
+                total_assets_uploaded_within_albums += assets_up
+                total_duplicates_assets_skipped += dup_skip
 
             uploaded_no_albums, duplicates_no_albums = self.push_no_albums(
                 input_folder=input_folder,
@@ -1056,8 +1119,16 @@ class ClassNextCloudPhotos:
                 total_duplicates_assets_skipped,
             )
 
-    def _download_remote_folder(self, remote_folder: str, local_folder: str, progress_desc: str = "", log_level=None) -> int:
-        entries = list(self._iter_files_recursive(remote_folder))
+    def _download_remote_folder(
+        self,
+        remote_folder: str,
+        local_folder: str,
+        progress_desc: str = "",
+        log_level=None,
+        source_namespace: str = "files",
+    ) -> int:
+        namespace_value = "photos" if str(source_namespace or "").lower() == "photos" else "files"
+        entries = list(self._iter_files_recursive(remote_folder, namespace=namespace_value))
         if not entries:
             return 0
 
@@ -1067,7 +1138,13 @@ class ClassNextCloudPhotos:
             rel = str(entry["path"]).replace(str(remote_folder).rstrip("/") + "/", "")
             target = os.path.join(local_folder, rel.replace("/", os.sep))
             session = self._get_worker_session()
-            return self._download_file_with_session(session=session, remote_path=entry["path"], local_path=target)
+            entry_namespace = str(entry.get("source_namespace") or namespace_value).lower()
+            return self._download_file_with_session(
+                session=session,
+                remote_path=entry["path"],
+                local_path=target,
+                namespace=entry_namespace,
+            )
 
         downloaded = 0
         with ThreadPoolExecutor(max_workers=workers) as executor:
@@ -1085,7 +1162,7 @@ class ClassNextCloudPhotos:
     def pull_albums(self, albums_name="ALL", output_folder="Downloads_NextCloud", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             target_names = [n.lower() for n in convert_to_list(albums_name, log_level=log_level)] if albums_name != "ALL" else ["all"]
-            albums = self._list_album_directories(log_level=log_level)
+            albums = self._list_download_album_directories(log_level=log_level)
             selected_albums = []
             for album in albums:
                 name = album["albumName"]
@@ -1108,6 +1185,7 @@ class ClassNextCloudPhotos:
                     local_album,
                     progress_desc=f"{MSG_TAGS['INFO']}   Downloading '{name}' Assets",
                     log_level=log_level,
+                    source_namespace=album.get("source_namespace", "files"),
                 )
                 downloaded_albums += 1
             return downloaded_albums, downloaded_assets
