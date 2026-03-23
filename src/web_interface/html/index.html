@@ -347,6 +347,8 @@
         source: {kind: "synology", account: "1", path: ""},
         target: {kind: "immich", account: "1", path: ""}
     };
+    const NEXTCLOUD_DEFAULT_PHOTOS_FOLDER = "/Photos/ALL_Photos";
+    const NEXTCLOUD_DEFAULT_ALBUMS_FOLDER = "/Photos/Albums";
 
     async function apiFetch(url, options = {}) {
         const response = await fetch(url, options);
@@ -1497,8 +1499,8 @@
         document.getElementById("web-dashboard-route").textContent = `${sourceLabel}  ->  ${targetLabel}`;
         const pullTitle = document.getElementById("dash-pull-title");
         const pushTitle = document.getElementById("dash-push-title");
-        if (pullTitle) pullTitle.textContent = `⬇️ Pull Panel (${sourceLabel})`;
-        if (pushTitle) pushTitle.textContent = `⬆️ Push Panel (${targetLabel})`;
+        if (pullTitle) pullTitle.textContent = `⬇️ Pull Panel - ${sourceLabel}`;
+        if (pushTitle) pushTitle.textContent = `⬆️ Push Panel - ${targetLabel}`;
         const chip = document.getElementById("web-dashboard-chip");
         const normalizedStatus = webDashboardState.status;
         chip.textContent = normalizedStatus.toUpperCase();
@@ -3550,9 +3552,42 @@
             }
             input.dataset.section = sectionName;
             input.dataset.key = key;
+            const applyNextcloudDefaultsFromUsername = () => {
+                if (sectionName !== "NextCloud Photos") return;
+                const match = /^NEXTCLOUD_USERNAME_(\d+)$/.exec(String(key || ""));
+                if (!match) return;
+                const usernameValue = String(input.value || "").trim();
+                const accountId = match[1];
+                const targets = [
+                    [`NEXTCLOUD_PHOTOS_FOLDER_${accountId}`, NEXTCLOUD_DEFAULT_PHOTOS_FOLDER],
+                    [`NEXTCLOUD_ALBUMS_FOLDER_${accountId}`, NEXTCLOUD_DEFAULT_ALBUMS_FOLDER],
+                ];
+                if (!usernameValue) {
+                    targets.forEach(([targetKey]) => {
+                        if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
+                        configFormValues[sectionName][targetKey] = "";
+                        const targetEl = document.querySelector(
+                            `#config-form-sections [data-section="${sectionName}"][data-key="${targetKey}"]`
+                        );
+                        if (targetEl) targetEl.value = "";
+                    });
+                    return;
+                }
+                targets.forEach(([targetKey, defaultValue]) => {
+                    if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
+                    const currentTarget = String(configFormValues[sectionName][targetKey] || "").trim();
+                    if (currentTarget) return;
+                    configFormValues[sectionName][targetKey] = defaultValue;
+                    const targetEl = document.querySelector(
+                        `#config-form-sections [data-section="${sectionName}"][data-key="${targetKey}"]`
+                    );
+                    if (targetEl) targetEl.value = defaultValue;
+                });
+            };
             const updateConfigValue = () => {
                 if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
                 configFormValues[sectionName][key] = input.value || "";
+                applyNextcloudDefaultsFromUsername();
                 if (sectionName === "Web Interface" && key === "THEME") {
                     applyTheme(configFormValues[sectionName][key] || "ocean", true);
                 }
@@ -3695,6 +3730,12 @@
                     resolve({username, password});
                 } catch (error) {
                     statusEl.textContent = `Status: ${String(error)}`;
+                    await showNoticeDialog({
+                        title: "Admin Authorization Failed",
+                        message:
+                            "Invalid admin credentials or insufficient permissions. " +
+                            "Please verify username/password and try again."
+                    });
                 } finally {
                     acceptBtn.disabled = false;
                     cancelBtn.disabled = false;
@@ -3857,17 +3898,31 @@
                     "Config status: saving with demo restrictions (only TimeZone/Theme changes are allowed)";
             }
         }
-        const response = await apiFetch("/api/config/form", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                values,
-                ...buildAdminOverridePayload(credentials)
-            })
-        });
-        const data = await response.json();
-        applyThemeFromConfigValues();
-        document.getElementById("config-status").textContent = `Config status: saved (${data.path})`;
+        try {
+            const response = await apiFetch("/api/config/form", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    values,
+                    ...buildAdminOverridePayload(credentials)
+                })
+            });
+            const data = await response.json();
+            applyThemeFromConfigValues();
+            document.getElementById("config-status").textContent = `Config status: saved (${data.path})`;
+            await showNoticeDialog({
+                title: "Configuration Saved",
+                message: "Config.ini has been overwritten successfully in the user database."
+            });
+        } catch (error) {
+            document.getElementById("config-status").textContent = `Config status: save failed (${String(error)})`;
+            await showNoticeDialog({
+                title: "Save Failed",
+                message:
+                    "Configuration could not be saved.\n\n" +
+                    `Reason: ${String(error)}`
+            });
+        }
     }
 
     async function loadCurrentUser() {

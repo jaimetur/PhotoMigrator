@@ -35,25 +35,32 @@ You can see the default Configuration File ('Config.ini' by default) below:
 >[NextCloud Photos]
 >NEXTCLOUD_URL                      = http://192.168.1.11:8080                      # Your NextCloud base URL (without trailing '/')
 >NEXTCLOUD_MAX_PARALLEL_UPLOADS     = 12                                            # Parallel uploads (recommended 8-16 in LAN)
+>NEXTCLOUD_MAX_PARALLEL_DOWNLOADS   = 16                                            # Parallel downloads (recommended 12-24 in LAN)
 >NEXTCLOUD_USE_SYSTEM_PROXY         = false                                         # false=recommended in LAN, true only if HTTP(S)_PROXY is required
 >NEXTCLOUD_USERNAME_1               = username_1                                    # Account 1: Your username for NextCloud
 >NEXTCLOUD_PASSWORD_1               = password_1                                    # Account 1: Your password for NextCloud
->NEXTCLOUD_WEBDAV_ROOT_1            = /Photos                                       # Account 1: WebDAV root folder used by PhotoMigrator
+>NEXTCLOUD_PHOTOS_FOLDER_1          = /Photos/ALL_Photos                            # Account 1: Folder used for assets without albums and Download All assets scan
+>NEXTCLOUD_ALBUMS_FOLDER_1          = /Photos/Albums                                # Account 1: Folder used for folder-based albums
 >NEXTCLOUD_USERNAME_2               = username_2                                    # Account 2: Your username for NextCloud
 >NEXTCLOUD_PASSWORD_2               = password_2                                    # Account 2: Your password for NextCloud
->NEXTCLOUD_WEBDAV_ROOT_2            = /Photos                                       # Account 2: WebDAV root folder used by PhotoMigrator
+>NEXTCLOUD_PHOTOS_FOLDER_2          = /Photos/ALL_Photos                            # Account 2: Folder used for assets without albums and Download All assets scan
+>NEXTCLOUD_ALBUMS_FOLDER_2          = /Photos/Albums                                # Account 2: Folder used for folder-based albums
 >NEXTCLOUD_USERNAME_3               = username_3                                    # Account 3: Your username for NextCloud
 >NEXTCLOUD_PASSWORD_3               = password_3                                    # Account 3: Your password for NextCloud
->NEXTCLOUD_WEBDAV_ROOT_3            = /Photos                                       # Account 3: WebDAV root folder used by PhotoMigrator
+>NEXTCLOUD_PHOTOS_FOLDER_3          = /Photos/ALL_Photos                            # Account 3: Folder used for assets without albums and Download All assets scan
+>NEXTCLOUD_ALBUMS_FOLDER_3          = /Photos/Albums                                # Account 3: Folder used for folder-based albums
 >
 ># Configuration for Google Photos
 >[Google Photos]
+>GOOGLE_PHOTOS_ACCOUNT_NAME_1       = username_1                                   # Optional display label for Google Photos account 1
 >GOOGLE_PHOTOS_CLIENT_ID_1          = client_id_1                                   # OAuth Client ID for Google Photos account 1
 >GOOGLE_PHOTOS_CLIENT_SECRET_1      = client_secret_1                               # OAuth Client Secret for Google Photos account 1
 >GOOGLE_PHOTOS_REFRESH_TOKEN_1      = refresh_token_1                               # OAuth Refresh Token for Google Photos account 1
+>GOOGLE_PHOTOS_ACCOUNT_NAME_2       = username_2                                   # Optional display label for Google Photos account 2
 >GOOGLE_PHOTOS_CLIENT_ID_2          = client_id_2                                   # OAuth Client ID for Google Photos account 2
 >GOOGLE_PHOTOS_CLIENT_SECRET_2      = client_secret_2                               # OAuth Client Secret for Google Photos account 2
 >GOOGLE_PHOTOS_REFRESH_TOKEN_2      = refresh_token_2                               # OAuth Refresh Token for Google Photos account 2
+>GOOGLE_PHOTOS_ACCOUNT_NAME_3       = username_3                                   # Optional display label for Google Photos account 3
 >GOOGLE_PHOTOS_CLIENT_ID_3          = client_id_3                                   # OAuth Client ID for Google Photos account 3
 >GOOGLE_PHOTOS_CLIENT_SECRET_3      = client_secret_3                               # OAuth Client Secret for Google Photos account 3
 >GOOGLE_PHOTOS_REFRESH_TOKEN_3      = refresh_token_3                               # OAuth Refresh Token for Google Photos account 3
@@ -103,24 +110,27 @@ In this section you have to provide:
 In this section you have to provide:
 - **NEXTCLOUD_URL:** NextCloud base URL (for example `http://192.168.1.11`).
 - **NEXTCLOUD_MAX_PARALLEL_UPLOADS:** Number of parallel uploads (global default for all accounts).
+- **NEXTCLOUD_MAX_PARALLEL_DOWNLOADS:** Number of parallel downloads (global default for all accounts).
 - **NEXTCLOUD_USE_SYSTEM_PROXY:** Whether PhotoMigrator should use system/container proxy variables (`HTTP_PROXY`/`HTTPS_PROXY`).
 - **NEXTCLOUD_USERNAME_1/2/3:** NextCloud username per account id.
 - **NEXTCLOUD_PASSWORD_1/2/3:** NextCloud password per account id.
-- **NEXTCLOUD_WEBDAV_ROOT_1/2/3:** Root folder where PhotoMigrator stores albums/no-albums in WebDAV.
+- **NEXTCLOUD_PHOTOS_FOLDER_1/2/3:** Folder for assets without albums. `Download All` scans this folder recursively.
+- **NEXTCLOUD_ALBUMS_FOLDER_1/2/3:** Folder where PhotoMigrator creates/reads folder-based albums.
 
 > [!NOTE]
 > NextCloud support is based on WebDAV operations and does not require API keys.
 >
-> For best performance in local networks, use `NEXTCLOUD_USE_SYSTEM_PROXY = false` and tune `NEXTCLOUD_MAX_PARALLEL_UPLOADS` (usually `8-16`).
+> For best performance in local networks, use `NEXTCLOUD_USE_SYSTEM_PROXY = false` and tune `NEXTCLOUD_MAX_PARALLEL_UPLOADS` (usually `8-16`) and `NEXTCLOUD_MAX_PARALLEL_DOWNLOADS` (usually `12-24`).
 
 > [!WARNING]
-> Setting `NEXTCLOUD_MAX_PARALLEL_UPLOADS` too high can saturate the server or trigger throttling/errors.
-> If upload stability drops, reduce it (for example from `16` to `8`).
+> Setting `NEXTCLOUD_MAX_PARALLEL_UPLOADS` / `NEXTCLOUD_MAX_PARALLEL_DOWNLOADS` too high can saturate the server or trigger throttling/errors.
+> If stability drops, reduce them (for example from `16` to `8`).
 >
 > Enable `NEXTCLOUD_USE_SYSTEM_PROXY = true` only when an outbound proxy is explicitly required by your environment.
 
 ## Google Photos Section:
 In this section you have to provide:
+- **GOOGLE_PHOTOS_ACCOUNT_NAME_1/2/3:** Optional label shown in dashboard/logs (for example your Google account email or alias).
 - **GOOGLE_PHOTOS_CLIENT_ID_1/2/3:** OAuth client id per account.
 - **GOOGLE_PHOTOS_CLIENT_SECRET_1/2/3:** OAuth client secret per account.
 - **GOOGLE_PHOTOS_REFRESH_TOKEN_1/2/3:** OAuth refresh token per account.

@@ -23,7 +23,6 @@
   - Added a new `Upload to Server` tab in the web interface with destination-folder picker, separate `Upload Local Folder` and `Upload Local Zip` actions, and optional ZIP extraction mode (`Extract ZIPs on upload`: Yes/No).
 
 #### 🚀 Enhancements:
-  - Added NextCloud credentials/settings support in `Config.ini` and config loader (`[NextCloud Photos]` section with account 1/2/3 and WebDAV root).
   - Extended automatic migration endpoint parsing in web UI to support `nextcloud[-photos][-1..3]` for both source and target.
   - Added Google Photos OAuth credentials support in `Config.ini` and config loader (`[Google Photos]` section with account 1/2/3).
   - Extended automatic migration endpoint parsing in web UI to support `google[-photos][-1..3]` for both source and target.
@@ -36,11 +35,13 @@
   - Restricted folder/file browser API access to each user's assigned subfolders only, and enforced the same path restrictions at command execution time.
   - Enhancements in Web UI.
   - Forbidden Import/Export/Save configuration file in demo roles.
+  - Added NextCloud dual-folder configuration in `Config.ini` and config loader with per-account `NEXTCLOUD_PHOTOS_FOLDER_<id>` (assets/no-albums) and `NEXTCLOUD_ALBUMS_FOLDER_<id>` (folder-based albums).
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
   - Fixed `Automatic Migration` cloud-session initialization for NextCloud and Google Photos clients by enabling lazy thread-safe auto-login on first API call, preventing `session is not initialized. Call login() first` errors in source/target worker flows.
   - Fixed `Automatic Migration` dashboard crash in frozen binaries when Rich unicode tables are missing (`ModuleNotFoundError: rich._unicode_data.unicode17-0-0`) by adding packaging includes for `rich._unicode_data` and graceful dashboard fallback.
+  - Fixed NextCloud `Download All`/`Download Assets` path behavior to scan `NEXTCLOUD_PHOTOS_FOLDER_<id>` recursively while excluding `NEXTCLOUD_ALBUMS_FOLDER_<id>` when nested, preventing duplicate album downloads and supporting direct `/Photos` layouts.
   - Other bug fixing.
 
 #### 📚 Documentation: 

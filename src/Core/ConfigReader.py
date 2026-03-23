@@ -124,23 +124,32 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
         ],
         'NextCloud Photos': [
             'NEXTCLOUD_URL',
+            'NEXTCLOUD_MAX_PARALLEL_UPLOADS',
+            'NEXTCLOUD_MAX_PARALLEL_DOWNLOADS',
+            'NEXTCLOUD_USE_SYSTEM_PROXY',
             'NEXTCLOUD_USERNAME_1',
             'NEXTCLOUD_PASSWORD_1',
-            'NEXTCLOUD_WEBDAV_ROOT_1',
+            'NEXTCLOUD_PHOTOS_FOLDER_1',
+            'NEXTCLOUD_ALBUMS_FOLDER_1',
             'NEXTCLOUD_USERNAME_2',
             'NEXTCLOUD_PASSWORD_2',
-            'NEXTCLOUD_WEBDAV_ROOT_2',
+            'NEXTCLOUD_PHOTOS_FOLDER_2',
+            'NEXTCLOUD_ALBUMS_FOLDER_2',
             'NEXTCLOUD_USERNAME_3',
             'NEXTCLOUD_PASSWORD_3',
-            'NEXTCLOUD_WEBDAV_ROOT_3',
+            'NEXTCLOUD_PHOTOS_FOLDER_3',
+            'NEXTCLOUD_ALBUMS_FOLDER_3',
         ],
         'Google Photos': [
+            'GOOGLE_PHOTOS_ACCOUNT_NAME_1',
             'GOOGLE_PHOTOS_CLIENT_ID_1',
             'GOOGLE_PHOTOS_CLIENT_SECRET_1',
             'GOOGLE_PHOTOS_REFRESH_TOKEN_1',
+            'GOOGLE_PHOTOS_ACCOUNT_NAME_2',
             'GOOGLE_PHOTOS_CLIENT_ID_2',
             'GOOGLE_PHOTOS_CLIENT_SECRET_2',
             'GOOGLE_PHOTOS_REFRESH_TOKEN_2',
+            'GOOGLE_PHOTOS_ACCOUNT_NAME_3',
             'GOOGLE_PHOTOS_CLIENT_ID_3',
             'GOOGLE_PHOTOS_CLIENT_SECRET_3',
             'GOOGLE_PHOTOS_REFRESH_TOKEN_3',
@@ -158,7 +167,6 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
         ],
         'TimeZone': ['timezone']
     }
-
     # Read all defined keys
     for section, keys in config_keys.items():
         if section == section_to_load or section_to_load.lower() == 'all':

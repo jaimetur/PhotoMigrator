@@ -1413,6 +1413,18 @@ def _merge_values_with_schema(values: Dict[str, Dict[str, str]], form_schema: Li
                 if base_value.strip() not in WEB_INTERFACE_THEME_CHOICES:
                     base_value = WEB_INTERFACE_THEME_DEFAULT
             merged[section_name][key] = base_value
+
+    nextcloud_section = merged.get("NextCloud Photos", {})
+    if isinstance(nextcloud_section, dict):
+        for account_id in ("1", "2", "3"):
+            username_key = f"NEXTCLOUD_USERNAME_{account_id}"
+            password_key = f"NEXTCLOUD_PASSWORD_{account_id}"
+            photos_key = f"NEXTCLOUD_PHOTOS_FOLDER_{account_id}"
+            albums_key = f"NEXTCLOUD_ALBUMS_FOLDER_{account_id}"
+            if not str(nextcloud_section.get(username_key, "") or "").strip():
+                nextcloud_section[password_key] = ""
+                nextcloud_section[photos_key] = ""
+                nextcloud_section[albums_key] = ""
     return merged
 
 
@@ -1493,6 +1505,16 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
         )
     sections.sort(key=lambda item: section_order.get(str(item.get("name") or ""), 9999))
     return {"path": _user_config_db_path(current_user), "sections": sections, "updated_at": _utc_now_iso()}
+
+
+def _editable_config_schema(form_schema: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    allowed = set(CONFIG_SECTIONS_ORDER + [WEB_INTERFACE_SECTION_NAME])
+    filtered: List[Dict[str, Any]] = []
+    for section in form_schema or []:
+        section_name = str(section.get("name") or "")
+        if section_name in allowed:
+            filtered.append(section)
+    return filtered
 
 
 def _read_user_state_payload(current_user: Dict[str, Any]) -> Dict[str, Any]:
@@ -2358,6 +2380,17 @@ def _is_config_path_key(key: str) -> bool:
     return any(token in lowered for token in tokens)
 
 
+def _is_remote_cloud_config_path(section_name: str, key: str) -> bool:
+    section = str(section_name or "").strip().lower()
+    key_upper = str(key or "").strip().upper()
+    if section == "nextcloud photos" and (
+        key_upper.startswith("NEXTCLOUD_PHOTOS_FOLDER_")
+        or key_upper.startswith("NEXTCLOUD_ALBUMS_FOLDER_")
+    ):
+        return True
+    return False
+
+
 def _sanitize_config_values_for_user(
     values: Dict[str, Dict[str, str]],
     form_schema: List[Dict[str, Any]],
@@ -2374,6 +2407,9 @@ def _sanitize_config_values_for_user(
             key = str(field.get("key") or "")
             raw_value = str(section_values.get(key, "") or "")
             text = raw_value.strip()
+            if _is_remote_cloud_config_path(section_name, key):
+                sanitized[section_name][key] = raw_value
+                continue
             if not text or not _is_config_path_key(key):
                 sanitized[section_name][key] = raw_value
                 continue
@@ -2711,16 +2747,23 @@ def config_admin_override(
 @app.post("/api/config/form")
 def save_config_form(payload: ConfigFormSaveRequest, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
     incoming = payload.values or {}
-    merged = _merge_values_with_schema(incoming, CONFIG_FORM_SCHEMA)
-    merged = _sanitize_config_values_for_user(merged, CONFIG_FORM_SCHEMA, current_user)
+    editable_schema = _editable_config_schema(CONFIG_FORM_SCHEMA)
+    merged_editable = _merge_values_with_schema(incoming, editable_schema)
+    merged_editable = _sanitize_config_values_for_user(merged_editable, editable_schema, current_user)
+
+    current_full = _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
+    for section in editable_schema:
+        section_name = str(section.get("name") or "")
+        current_full[section_name] = dict(merged_editable.get(section_name, {}))
+
     _enforce_demo_save_policy(
         current_user,
-        merged,
+        current_full,
         admin_username=payload.admin_username,
         admin_password=payload.admin_password,
     )
-    _save_user_config_values(current_user, merged, CONFIG_FORM_SCHEMA)
-    _sync_user_theme_to_state(current_user, merged)
+    _save_user_config_values(current_user, current_full, CONFIG_FORM_SCHEMA)
+    _sync_user_theme_to_state(current_user, current_full)
     return {"saved": True, "path": _user_config_db_path(current_user)}
 
 

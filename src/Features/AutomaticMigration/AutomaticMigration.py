@@ -1,11 +1,13 @@
 import functools
 import logging
 import os
+import re
 import shutil
 import sys
 import threading
 import time
 import traceback
+import unicodedata
 from collections import deque
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -31,6 +33,22 @@ class SharedData:
         self.info = info
         self.counters = counters
         self.logs_queue = logs_queue
+
+
+def _pull_has_content(pulled_result) -> bool:
+    if isinstance(pulled_result, bool):
+        return pulled_result
+    if isinstance(pulled_result, (int, float)):
+        return pulled_result > 0
+    if isinstance(pulled_result, str):
+        return bool(pulled_result.strip())
+    if isinstance(pulled_result, (list, tuple, set, dict)):
+        return len(pulled_result) > 0
+    return bool(pulled_result)
+
+
+def _is_nextcloud_photo_not_found_error(error: Exception) -> bool:
+    return "photo not found for user" in str(error or "").lower()
 
 
 def restore_log_info_on_exception(func):
@@ -622,11 +640,44 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             blocked_assets = []
             total_albums_blocked_count = 0
             total_assets_blocked_count = 0
+            all_albums = []
             try:
                 LOGGER.info(f"Retrieving Albums on '{source_client_name}' matching filters criteria (if any). This process may take some time, please be patient...")
                 all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving All Albums from '{source_client_name}'. - {e}")
+
+            # Defensive dedupe for NextCloud sources:
+            # when same logical album exists both as native PhotosDAV album and as folder album,
+            # keep only one (prefer native).
+            if isinstance(source_client, ClassNextCloudPhotos):
+                def _album_key(name: str) -> str:
+                    normalized = unicodedata.normalize("NFKC", str(name or "")).casefold().strip()
+                    normalized = re.sub(r"^\d+[-_\s]+", "", normalized).strip()
+                    normalized = re.sub(r"[_\-\s]+", " ", normalized).strip()
+                    normalized = re.sub(r"\s*\((copy|\d+)\)\s*$", "", normalized).strip()
+                    normalized = re.sub(r"\s+", " ", normalized).strip()
+                    return normalized
+
+                dedup: dict[str, dict] = {}
+                for album in all_albums:
+                    key = _album_key(album.get("albumName", ""))
+                    if not key:
+                        continue
+                    existing = dedup.get(key)
+                    if existing is None:
+                        dedup[key] = album
+                        continue
+                    existing_ns = str(existing.get("source_namespace", "")).strip().lower()
+                    current_ns = str(album.get("source_namespace", "")).strip().lower()
+                    if current_ns == "photos" and existing_ns != "photos":
+                        dedup[key] = album
+                if len(dedup) != len(all_albums):
+                    LOGGER.info(
+                        f"NextCloud albums deduplicated by name: before={len(all_albums)}, after={len(dedup)}"
+                    )
+                all_albums = sorted(list(dedup.values()), key=lambda a: str(a.get("albumName", "")).lower())
+
             LOGGER.info(f"{len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")
             for album in all_albums:
                 album_id = album['id']
@@ -763,7 +814,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # 4) Mostrar o retornar contadores
             # ----------------------------------------------------------------------------
             LOGGER.info(f"")
-            LOGGER.info(f"🚀 All assets pulled and pushed successfully!")
+            total_failed_assets = (
+                SHARED_DATA.counters['total_pull_failed_assets']
+                + SHARED_DATA.counters['total_push_failed_assets']
+            )
+            if total_failed_assets > 0:
+                LOGGER.warning(f"{MSG_TAGS['WARNING']}Migration finished with partial failures.")
+            else:
+                LOGGER.info(f"🚀 All assets pulled and pushed successfully!")
             LOGGER.info(f"")
             LOGGER.info(f"----- MIGRATION FINISHED  -----")
             LOGGER.info(f"{source_client_name} --> {target_client_name}")
@@ -859,13 +917,36 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # Crear archivo de bloqueo antes de la descarga
                         with open(lock_file, 'w') as lock:
                             lock.write("Pulling Asset")
-                        # Descargar el asset
-                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, album_passphrase=album_passphrase, log_level=logging.ERROR)
-                        # Eliminar archivo de bloqueo después de la descarga
-                        os.remove(lock_file)
+                        # Descargar el asset (tolerante por-asset para no abortar todo el álbum).
+                        skipped_not_found = False
+                        try:
+                            pulled_assets = source_client.pull_asset(
+                                asset_id=asset_id,
+                                asset_filename=asset_filename,
+                                asset_time=asset_datetime,
+                                download_folder=album_folder,
+                                album_passphrase=album_passphrase,
+                                log_level=logging.ERROR,
+                            )
+                        except Exception as e:
+                            if _is_nextcloud_photo_not_found_error(e):
+                                skipped_not_found = True
+                                LOGGER.warning(
+                                    f"Asset Pull Skip : '{os.path.basename(asset_filename)}' from Album '{album_name}' - "
+                                    f"Photo not found for user"
+                                )
+                            else:
+                                LOGGER.error(
+                                    f"Asset Pull Error: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e}"
+                                )
+                            pulled_assets = 0
+                        finally:
+                            # Eliminar archivo de bloqueo después de la descarga
+                            if os.path.exists(lock_file):
+                                os.remove(lock_file)
 
                         # Actualizamos Contadores de descargas
-                        if pulled_assets > 0:
+                        if _pull_has_content(pulled_assets):
                             pulled_file_paths = collect_pulled_asset_paths(album_folder, asset_filename)
                             if not pulled_file_paths:
                                 pulled_file_paths = [local_file_path]
@@ -908,6 +989,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
                                             safe_remove_local_file(companion_to_cleanup)
                         else:
+                            if skipped_not_found:
+                                SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                                if asset_type.lower() in video_labels:
+                                    SHARED_DATA.counters['total_pull_failed_videos'] += 1
+                                else:
+                                    SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                                continue
                             LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}' from Album '{album_name}'")
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
                             if asset_type.lower() in video_labels:
@@ -916,12 +1004,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 SHARED_DATA.counters['total_pull_failed_photos'] += 1
 
                 except Exception as e:
-                    LOGGER.error(f"Asset Pull Error: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
-                    SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                    if asset_type.lower() in video_labels:
-                        SHARED_DATA.counters['total_pull_failed_videos'] += 1
-                    else:
-                        SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                    LOGGER.error(f"Album Pull Error: '{album_name}' - {e}")
+                    SHARED_DATA.counters['total_pull_failed_albums'] += 1
                     continue
                 finally:
                     # Eliminar archivo .active después de la descarga
@@ -971,7 +1055,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
-                        LOGGER.error(f"Asset Pull Error: '{os.path.basename(local_file_path)}' - {e} \n{traceback.format_exc()}")
+                        if _is_nextcloud_photo_not_found_error(e):
+                            LOGGER.warning(
+                                f"Asset Pull Skip : '{os.path.basename(local_file_path)}' - Photo not found for user"
+                            )
+                        else:
+                            LOGGER.error(f"Asset Pull Error: '{os.path.basename(local_file_path)}' - {e}")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -980,7 +1069,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         continue
 
                     # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
-                    if pulled_assets > 0:
+                    if _pull_has_content(pulled_assets):
                         pulled_file_paths = collect_pulled_asset_paths(temp_folder, asset_filename)
                         if not pulled_file_paths:
                             pulled_file_paths = [local_file_path]

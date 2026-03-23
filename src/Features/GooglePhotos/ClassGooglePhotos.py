@@ -34,6 +34,7 @@ class ClassGooglePhotos:
         self.session: Optional[requests.Session] = None
         self.timeout_seconds = 60
 
+        self.account_name = ""
         self.client_id = ""
         self.client_secret = ""
         self.refresh_token = ""
@@ -54,7 +55,17 @@ class ClassGooglePhotos:
 
     def get_client_name(self, log_level=None):
         with set_log_level(LOGGER, log_level):
-            return self.client_name
+            label = str(self.account_name or "").strip()
+            if not label:
+                try:
+                    config = load_config(config_file=CONFIGURATION_FILE, section_to_load="Google Photos")
+                    section = config.get("Google Photos", {})
+                    label = str(section.get(f"GOOGLE_PHOTOS_ACCOUNT_NAME_{self.account_id}", "") or "").strip()
+                except Exception:
+                    label = ""
+            if not label:
+                label = str(self.account_id)
+            return f"{self.client_name} ({label})"
 
     def read_config_file(self, config_file=CONFIGURATION_FILE, log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -62,6 +73,7 @@ class ClassGooglePhotos:
             section = config.get("Google Photos", {})
             suffix = str(self.account_id)
 
+            self.account_name = section.get(f"GOOGLE_PHOTOS_ACCOUNT_NAME_{suffix}", "").strip()
             self.client_id = section.get(f"GOOGLE_PHOTOS_CLIENT_ID_{suffix}", "").strip()
             self.client_secret = section.get(f"GOOGLE_PHOTOS_CLIENT_SECRET_{suffix}", "").strip()
             self.refresh_token = section.get(f"GOOGLE_PHOTOS_REFRESH_TOKEN_{suffix}", "").strip()

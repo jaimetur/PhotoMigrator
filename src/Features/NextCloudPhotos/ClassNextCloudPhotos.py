@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import threading
+import unicodedata
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -38,10 +39,11 @@ class ClassNextCloudPhotos:
         self.base_url = ""
         self.username = ""
         self.password = ""
-        self.webdav_root = ""
+        self.photos_folder = ""
+        self.albums_folder = ""
         self.client_name = "NextCloud Photos"
-        self.albums_root_name = FOLDERNAME_ALBUMS
-        self.no_albums_root_name = FOLDERNAME_NO_ALBUMS
+        self.local_albums_root_name = FOLDERNAME_ALBUMS
+        self.local_no_albums_root_name = FOLDERNAME_NO_ALBUMS
         self.session: Optional[requests.Session] = None
         self.timeout_seconds = 60
         self.max_parallel_uploads = 12
@@ -65,7 +67,17 @@ class ClassNextCloudPhotos:
 
     def get_client_name(self, log_level=None):
         with set_log_level(LOGGER, log_level):
-            return self.client_name
+            label = str(self.username or "").strip()
+            if not label:
+                try:
+                    config = load_config(config_file=CONFIGURATION_FILE, section_to_load="NextCloud Photos")
+                    section = config.get("NextCloud Photos", {})
+                    label = str(section.get(f"NEXTCLOUD_USERNAME_{self.account_id}", "") or "").strip()
+                except Exception:
+                    label = ""
+            if not label:
+                label = str(self.account_id)
+            return f"{self.client_name} ({label})"
 
     def read_config_file(self, config_file=CONFIGURATION_FILE, log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -75,7 +87,16 @@ class ClassNextCloudPhotos:
             self.base_url = section.get("NEXTCLOUD_URL", "").strip().rstrip("/")
             self.username = section.get(f"NEXTCLOUD_USERNAME_{suffix}", "").strip()
             self.password = section.get(f"NEXTCLOUD_PASSWORD_{suffix}", "").strip()
-            self.webdav_root = section.get(f"NEXTCLOUD_WEBDAV_ROOT_{suffix}", "/Photos").strip() or "/Photos"
+            default_photos_folder = "/Photos/ALL_Photos"
+            default_albums_folder = "/Photos/Albums"
+            configured_photos_folder = section.get(f"NEXTCLOUD_PHOTOS_FOLDER_{suffix}", "").strip()
+            configured_albums_folder = section.get(f"NEXTCLOUD_ALBUMS_FOLDER_{suffix}", "").strip()
+            if self.username:
+                self.photos_folder = configured_photos_folder or default_photos_folder
+                self.albums_folder = configured_albums_folder or default_albums_folder
+            else:
+                self.photos_folder = configured_photos_folder
+                self.albums_folder = configured_albums_folder
             raw_parallel = section.get(
                 f"NEXTCLOUD_MAX_PARALLEL_UPLOADS_{suffix}",
                 section.get("NEXTCLOUD_MAX_PARALLEL_UPLOADS", str(self.max_parallel_uploads)),
@@ -104,9 +125,9 @@ class ClassNextCloudPhotos:
                     f"Current value: '{self.base_url}'"
                 )
                 self.base_url = f"http://{self.base_url}"
-            if not self.webdav_root.startswith("/"):
-                self.webdav_root = f"/{self.webdav_root}"
-            self.webdav_root = re.sub(r"/+", "/", self.webdav_root.rstrip("/"))
+            if self.username:
+                self.photos_folder = self._normalize_remote_folder(self.photos_folder, default=default_photos_folder)
+                self.albums_folder = self._normalize_remote_folder(self.albums_folder, default=default_albums_folder)
 
             if not self.base_url:
                 raise ValueError("Missing NEXTCLOUD_URL in [NextCloud Photos]")
@@ -120,7 +141,10 @@ class ClassNextCloudPhotos:
             LOGGER.info(f"NEXTCLOUD_URL              : {self.base_url}")
             LOGGER.info(f"NEXTCLOUD_USERNAME         : {self.username}")
             LOGGER.info(f"NEXTCLOUD_PASSWORD         : {'*' * len(self.password)}")
-            LOGGER.info(f"NEXTCLOUD_WEBDAV_ROOT      : {self.webdav_root}")
+            LOGGER.info(f"NEXTCLOUD_PHOTOS_FOLDER    : {self.photos_folder}")
+            LOGGER.info(f"NEXTCLOUD_ALBUMS_FOLDER    : {self.albums_folder}")
+            LOGGER.info(f"NEXTCLOUD_MAX_PAR_UPLOADS  : {self.max_parallel_uploads}")
+            LOGGER.info(f"NEXTCLOUD_MAX_PAR_DOWNLOADS: {self.max_parallel_downloads}")
             LOGGER.info("")
 
     def login(self, config_file=CONFIGURATION_FILE, log_level=None):
@@ -200,9 +224,36 @@ class ClassNextCloudPhotos:
                 )
             raise RuntimeError(
                 f"NextCloud WebDAV {method} failed for '{url}' "
-                f"(status={response.status_code}, body={response.text[:350]})"
+                f"(status={response.status_code}, body={self._compact_response_body(response.text)})"
             )
         return response
+
+    @staticmethod
+    def _is_not_found_runtime_error(error: Exception) -> bool:
+        text = str(error or "")
+        lowered = text.lower()
+        if "status=404" in lowered:
+            return True
+        if "exception:notfound" in lowered or "exception\\notfound" in lowered:
+            return True
+        if "could not be located" in lowered:
+            return True
+        return False
+
+    @staticmethod
+    def _compact_response_body(body: str, limit: int = 220) -> str:
+        clean = re.sub(r"\s+", " ", str(body or "")).strip()
+        return clean[:limit]
+
+    @staticmethod
+    def _compact_runtime_error(error: Exception, limit: int = 240) -> str:
+        text = re.sub(r"\s+", " ", str(error or "")).strip()
+        if "photo not found for user" in text.lower():
+            return "Photo not found for user"
+        status_match = re.search(r"status\s*=\s*(\d+)", text, flags=re.IGNORECASE)
+        if status_match:
+            return f"HTTP {status_match.group(1)}"
+        return text[:limit]
 
     def _request(self, method: str, remote_path: str, expected=(200, 201, 204, 207), **kwargs):
         # Ensure config/session is initialized before building absolute DAV URLs.
@@ -245,7 +296,7 @@ class ClassNextCloudPhotos:
                 )
             raise RuntimeError(
                 f"NextCloud WebDAV {method} failed for '{url}' "
-                f"(status={response.status_code}, body={response.text[:350]})"
+                f"(status={response.status_code}, body={self._compact_response_body(response.text)})"
             )
         return response
 
@@ -254,11 +305,43 @@ class ClassNextCloudPhotos:
         normalized = re.sub(r"/+", "/", str(remote_path or "/")).rstrip("/")
         return normalized or "/"
 
+    @staticmethod
+    def _normalize_remote_folder(remote_path: str, default: str) -> str:
+        clean = re.sub(r"/+", "/", str(remote_path or "").replace("\\", "/")).strip()
+        if not clean:
+            clean = str(default or "/")
+        if not clean.startswith("/"):
+            clean = f"/{clean}"
+        clean = re.sub(r"/+", "/", clean).rstrip("/")
+        return clean or "/"
+
+    @staticmethod
+    def _is_path_under(remote_path: str, base_path: str) -> bool:
+        path_clean = re.sub(r"/+", "/", str(remote_path or "").replace("\\", "/")).rstrip("/")
+        base_clean = re.sub(r"/+", "/", str(base_path or "").replace("\\", "/")).rstrip("/")
+        if not path_clean or not base_clean:
+            return False
+        return path_clean == base_clean or path_clean.startswith(f"{base_clean}/")
+
+    @staticmethod
+    def _album_name_dedupe_key(album_name: str) -> str:
+        raw = str(album_name or "")
+        if not raw:
+            return ""
+        normalized = unicodedata.normalize("NFKC", raw).casefold().strip()
+        # Strip typical Nextcloud synthetic prefixes.
+        normalized = re.sub(r"^\d+[-_\s]+", "", normalized).strip()
+        # Treat common separators as equivalent and normalize noisy suffixes from duplicate copies.
+        normalized = re.sub(r"[_\-\s]+", " ", normalized).strip()
+        normalized = re.sub(r"\s*\((copy|\d+)\)\s*$", "", normalized).strip()
+        normalized = re.sub(r"\s+", " ", normalized).strip()
+        return normalized
+
     def _albums_root(self) -> str:
-        return f"{self.webdav_root}/{self.albums_root_name}"
+        return self.albums_folder
 
     def _no_albums_root(self) -> str:
-        return f"{self.webdav_root}/{self.no_albums_root_name}"
+        return self.photos_folder
 
     def _is_photo(self, filename: str) -> bool:
         return Path(filename).suffix.lower() in self.ALLOWED_PHOTO_EXTENSIONS
@@ -407,7 +490,16 @@ class ClassNextCloudPhotos:
         namespace_value = "photos" if str(namespace or "").lower() == "photos" else "files"
         while stack:
             current = stack.pop()
-            entries = self._propfind(current, depth=1, namespace=namespace_value)
+            try:
+                entries = self._propfind(current, depth=1, namespace=namespace_value)
+            except Exception as error:
+                if self._is_not_found_runtime_error(error):
+                    LOGGER.warning(
+                        f"{MSG_TAGS['WARNING']}NextCloud folder not found while listing '{current}' "
+                        f"(namespace={namespace_value}). Skipping. {error}"
+                    )
+                    continue
+                raise
             for entry in entries:
                 p = entry["path"]
                 if p.rstrip("/") == current.rstrip("/"):
@@ -559,9 +651,13 @@ class ClassNextCloudPhotos:
             if href_node is None:
                 continue
             href = href_node.text or ""
-            name = Path(href.rstrip("/")).name
+            name = unquote(Path(href.rstrip("/")).name)
             if name and name != Path(album_path).name:
-                names.add(name)
+                # Nextcloud PhotosDAV may expose entries as "<numeric-id>-<original-name>".
+                # Store both raw and normalized names to avoid duplicate uploads on re-runs.
+                lowered = str(name).casefold()
+                names.add(lowered)
+                names.add(re.sub(r"^\d+-", "", lowered))
         return names
 
     def _copy_file_to_native_album(self, source_remote_path: str, album_path: str, destination_name: str):
@@ -586,7 +682,16 @@ class ClassNextCloudPhotos:
     def _list_album_directories(self, log_level=None) -> List[Dict[str, str]]:
         with set_log_level(LOGGER, log_level):
             albums_root = self._albums_root()
-            entries = self._propfind(albums_root, depth=1)
+            try:
+                entries = self._propfind(albums_root, depth=1)
+            except Exception as error:
+                if self._is_not_found_runtime_error(error):
+                    LOGGER.warning(
+                        f"{MSG_TAGS['WARNING']}NextCloud albums folder '{albums_root}' was not found. "
+                        f"Continuing with empty albums list. {error}"
+                    )
+                    return []
+                raise
             albums = []
             for entry in entries:
                 if entry["path"].rstrip("/") == albums_root.rstrip("/"):
@@ -622,12 +727,12 @@ class ClassNextCloudPhotos:
         with set_log_level(LOGGER, log_level):
             merged: Dict[str, Dict[str, str]] = {}
             for album in self._list_album_directories(log_level=log_level):
-                key = str(album.get("albumName", "")).strip().lower()
+                key = self._album_name_dedupe_key(album.get("albumName", ""))
                 if not key:
                     continue
                 merged[key] = album
             for album in self._list_native_album_directories(log_level=log_level):
-                key = str(album.get("albumName", "")).strip().lower()
+                key = self._album_name_dedupe_key(album.get("albumName", ""))
                 if not key:
                     continue
                 # Native album wins when names collide.
@@ -686,7 +791,7 @@ class ClassNextCloudPhotos:
     def get_assets_by_filters(self, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             selected = str(type or self.type or "all").lower()
-            entries = list(self._iter_files_recursive(self.webdav_root))
+            entries = list(self._iter_files_recursive(self._no_albums_root()))
             assets = []
             for entry in entries:
                 filename = entry.get("name", "")
@@ -730,9 +835,13 @@ class ClassNextCloudPhotos:
         with set_log_level(LOGGER, log_level):
             selected = str(type or self.type or "all").lower()
             assets = []
+            albums_root = self._albums_root().rstrip("/")
             for entry in self._iter_files_recursive(self._no_albums_root()):
                 filename = entry.get("name", "")
                 if not self._is_supported_media(filename):
+                    continue
+                asset_path = str(entry.get("path", ""))
+                if albums_root and self._is_path_under(asset_path, albums_root):
                     continue
                 payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""))
                 if not self._asset_matches_filters(
@@ -975,7 +1084,8 @@ class ClassNextCloudPhotos:
                         total_duplicates_skipped += 1
                         continue
                     seen_names.add(file_name)
-                    should_copy_native = native_enabled and file_name not in existing_native_files
+                    normalized_name = str(file_name).casefold()
+                    should_copy_native = native_enabled and normalized_name not in existing_native_files
                     planned_uploads.append((file_path, file_name, remote_file, should_copy_native))
 
                 if planned_uploads:
@@ -1016,7 +1126,9 @@ class ClassNextCloudPhotos:
                             existing_album_files.add(uploaded_name)
                             if native_inc:
                                 native_added += native_inc
-                                existing_native_files.add(uploaded_name)
+                                uploaded_normalized = str(uploaded_name).casefold()
+                                existing_native_files.add(uploaded_normalized)
+                                existing_native_files.add(re.sub(r"^\d+-", "", uploaded_normalized))
                 LOGGER.info(
                     f"{MSG_TAGS['INFO']}Album '{album_name}': "
                     f"uploaded={album_uploaded}, native-album adds={native_added}, duplicates-skipped={total_duplicates_skipped}"
@@ -1078,9 +1190,12 @@ class ClassNextCloudPhotos:
     def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             albums_folders = convert_to_list(albums_folders, log_level=log_level)
-            albums_folder_included = any(str(folder or "").strip().lower() == self.albums_root_name.lower() for folder in albums_folders)
+            albums_folder_included = any(
+                str(folder or "").strip().lower() == self.local_albums_root_name.lower()
+                for folder in albums_folders
+            )
             if not albums_folder_included:
-                albums_folders.append(self.albums_root_name)
+                albums_folders.append(self.local_albums_root_name)
             total_albums_uploaded = 0
             total_albums_skipped = 0
             total_assets_uploaded = 0
@@ -1102,7 +1217,7 @@ class ClassNextCloudPhotos:
 
             uploaded_no_albums, duplicates_no_albums = self.push_no_albums(
                 input_folder=input_folder,
-                subfolders_exclusion=self.albums_root_name,
+                subfolders_exclusion=self.local_albums_root_name,
                 remove_duplicates=remove_duplicates,
                 log_level=log_level,
             )
@@ -1147,6 +1262,8 @@ class ClassNextCloudPhotos:
             )
 
         downloaded = 0
+        failed = 0
+        failure_reasons: Dict[str, int] = {}
         with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = [executor.submit(_download_worker, entry) for entry in entries]
             for future in tqdm(
@@ -1155,8 +1272,20 @@ class ClassNextCloudPhotos:
                 desc=progress_desc or f"{MSG_TAGS['INFO']}Downloading Assets from NextCloud",
                 unit=" asset",
             ):
-                future.result()
-                downloaded += 1
+                try:
+                    future.result()
+                    downloaded += 1
+                except Exception as error:
+                    failed += 1
+                    reason = self._compact_runtime_error(error)
+                    failure_reasons[reason] = failure_reasons.get(reason, 0) + 1
+                    continue
+        if failed > 0:
+            reasons_text = ", ".join([f"{reason}={count}" for reason, count in sorted(failure_reasons.items(), key=lambda item: item[1], reverse=True)])
+            LOGGER.warning(
+                f"{MSG_TAGS['WARNING']}Completed with partial failures for folder '{remote_folder}': "
+                f"downloaded={downloaded}, failed={failed}, reasons=[{reasons_text}]"
+            )
         return downloaded
 
     def pull_albums(self, albums_name="ALL", output_folder="Downloads_NextCloud", log_level=logging.WARNING):
@@ -1171,7 +1300,7 @@ class ClassNextCloudPhotos:
                 selected_albums.append(album)
             downloaded_albums = 0
             downloaded_assets = 0
-            root = os.path.join(output_folder, self.albums_root_name)
+            root = os.path.join(output_folder, self.local_albums_root_name)
             os.makedirs(root, exist_ok=True)
             for album in tqdm(
                 selected_albums,
@@ -1192,7 +1321,7 @@ class ClassNextCloudPhotos:
 
     def pull_no_albums(self, output_folder="Downloads_NextCloud", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            target = os.path.join(output_folder, self.no_albums_root_name)
+            target = os.path.join(output_folder, self.local_no_albums_root_name)
             os.makedirs(target, exist_ok=True)
             assets = self.get_all_assets_without_albums(log_level=log_level)
             if not assets:
@@ -1352,4 +1481,3 @@ class ClassNextCloudPhotos:
                 if self._remove_remote(album["id"]):
                     removed_albums += 1
             return removed_albums, removed_assets
-

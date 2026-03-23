@@ -49,16 +49,20 @@ The credentials are loaded from the `Config.ini` section below:
 [NextCloud Photos]
 NEXTCLOUD_URL                   = http://192.168.1.11:8080
 NEXTCLOUD_MAX_PARALLEL_UPLOADS  = 12
+NEXTCLOUD_MAX_PARALLEL_DOWNLOADS= 16
 NEXTCLOUD_USE_SYSTEM_PROXY      = false
 NEXTCLOUD_USERNAME_1            = username_1
 NEXTCLOUD_PASSWORD_1            = app_password_1
-NEXTCLOUD_WEBDAV_ROOT_1         = /Photos
+NEXTCLOUD_PHOTOS_FOLDER_1       = /Photos/ALL_Photos
+NEXTCLOUD_ALBUMS_FOLDER_1       = /Photos/Albums
 NEXTCLOUD_USERNAME_2            = username_2
 NEXTCLOUD_PASSWORD_2            = app_password_2
-NEXTCLOUD_WEBDAV_ROOT_2         = /Photos
+NEXTCLOUD_PHOTOS_FOLDER_2       = /Photos/ALL_Photos
+NEXTCLOUD_ALBUMS_FOLDER_2       = /Photos/Albums
 NEXTCLOUD_USERNAME_3            = username_3
 NEXTCLOUD_PASSWORD_3            = app_password_3
-NEXTCLOUD_WEBDAV_ROOT_3         = /Photos
+NEXTCLOUD_PHOTOS_FOLDER_3       = /Photos/ALL_Photos
+NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 ```
 
 > [!NOTE]  
@@ -69,6 +73,9 @@ NEXTCLOUD_WEBDAV_ROOT_3         = /Photos
 > [!TIP]
 > `NEXTCLOUD_MAX_PARALLEL_UPLOADS` controls parallel uploads.
 > Recommended values in LAN are usually between `8` and `16`.
+>
+> `NEXTCLOUD_MAX_PARALLEL_DOWNLOADS` controls parallel downloads.
+> Recommended values in LAN are usually between `12` and `24`.
 >
 > `NEXTCLOUD_USE_SYSTEM_PROXY=false` means PhotoMigrator connects directly and ignores `HTTP_PROXY` / `HTTPS_PROXY`.
 
@@ -85,7 +92,7 @@ NEXTCLOUD_WEBDAV_ROOT_3         = /Photos
   - Configure `Config.ini` with valid NextCloud URL and account credentials (App Password recommended).
 - **Explanation:**
   - The Tool creates one album per subfolder inside `<ALBUMS_FOLDER>` and uploads supported assets.
-  - In NextCloud implementation, files are uploaded to WebDAV under `Photos/Albums/<AlbumName>`, and native Photos album association is handled automatically when supported.
+  - In NextCloud implementation, files are uploaded under `NEXTCLOUD_ALBUMS_FOLDER_<id>/<AlbumName>`, and native Photos album association is handled automatically when supported.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.run --client=nextcloud --upload-albums ./My_Albums_Folder
@@ -118,11 +125,12 @@ NEXTCLOUD_WEBDAV_ROOT_3         = /Photos
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --upload-all <INPUT_FOLDER>`
 - **Pre-Requisites:**
-  - Configure `Config.ini` with valid NextCloud credentials and WebDAV root.
+  - Configure `Config.ini` with valid NextCloud credentials and `NEXTCLOUD_PHOTOS_FOLDER_<id>` / `NEXTCLOUD_ALBUMS_FOLDER_<id>`.
 - **Explanation:**
   - Uploads all supported assets from `<INPUT_FOLDER>`.
   - If `<INPUT_FOLDER>/Albums` exists, each subfolder is treated as an album.
-  - Assets outside `Albums` are uploaded as no-album assets.
+  - Assets outside `Albums` are uploaded into `NEXTCLOUD_PHOTOS_FOLDER_<id>`.
+  - Album subfolders are uploaded into `NEXTCLOUD_ALBUMS_FOLDER_<id>`.
   - You can also provide extra albums folders via `-AlbFolder, --albums-folders`.
 - **Example of use:**
   ```bash
@@ -137,9 +145,10 @@ NEXTCLOUD_WEBDAV_ROOT_3         = /Photos
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
-  - Downloads all albums and no-album assets.
+  - Downloads all albums and assets from `NEXTCLOUD_PHOTOS_FOLDER_<id>`.
   - Albums are downloaded under `<OUTPUT_FOLDER>/Albums`.
-  - Assets without albums are downloaded under `<OUTPUT_FOLDER>/ALL_PHOTOS`.
+  - Assets are downloaded under `<OUTPUT_FOLDER>/ALL_PHOTOS`.
+  - If `NEXTCLOUD_ALBUMS_FOLDER_<id>` is inside `NEXTCLOUD_PHOTOS_FOLDER_<id>`, the albums subtree is excluded from the assets scan to avoid duplicate downloads.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.run --client=nextcloud --download-all ./MyLibrary
