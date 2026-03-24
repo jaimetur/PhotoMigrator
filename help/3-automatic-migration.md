@@ -1,4 +1,4 @@
-# <span style="color:green">🚀 Automatic Migration Feature</span>
+# 🚀 Automatic Migration Feature
 
 From version 3.0.0 onwards, the Tool supports a new Feature called '**Automatic Migration**'. 
 
@@ -64,11 +64,6 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
 
 > [!IMPORTANT]  
 > It is important that you configure properly the file `Config.ini` (included with the tool), to set properly the accounts for your Photo Cloud Service.  
-
-
-## ⚙️ Config.ini
-You can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/0-configuration-file.md) 
 
 
 ## Live Dashboard Preview:
@@ -138,15 +133,12 @@ In this example, the Tool will do an Automatic Migration Process which has two s
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
 ---
-
 ## ⚙️ Config.ini
 You can see how to configure the Config.ini file in this help section:
 [Configuration File](/help/0-configuration-file.md) 
 
 ---
-
 ## 🏠 [Back to Main Page](/README.md)
-
     
 ---
 ## 🎖️ Credits:

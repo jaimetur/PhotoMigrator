@@ -1,4 +1,4 @@
-# <span style="color:green">🖼️ Immich Photos Management</span>
+# 🖼️ Immich Photos Management
 
 From version 3.0.0 onwards, the Tool can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
 
@@ -48,7 +48,7 @@ The available filters are:
 
 The credentials/API Key need to be loaded from the `Config.ini` file that  have this format:
 
-#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
+#### Example 'Config.ini' for Immich Photos:
 
 ```
 # Configuration for Immich Photos
@@ -75,7 +75,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id`**_ to specify the account 2 or 3 as needed. 
 
 
-## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
+## Upload Albums (from Local Folder) into Immich Photos:
 - **From:** v3.0.0 
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -92,7 +92,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Immich Photos account and process the folder `./My_Albums_Folder` and per each subfolder found on it that contains at least one file supported by Immich Photos, will create a new Album in Immich Photos with the same name of the Album Folder
     
 
-## <span style="color:blue">Download Albums from Immich Photos:</span>
+## Download Albums from Immich Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -117,7 +117,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
   
 
-## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
+## Upload All (from Local Folder) into Immich Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -137,7 +137,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Immich Photos account and process the folder ./MyLibrary and will upload all supported assets found on it, creating a new Album per each subfolder found within `./MyLibrary/<ALBUMS_FOLDER>` folder.
 
 
-## <span style="color:blue">Download All from Immich Photos:</span>
+## Download All from Immich Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -156,7 +156,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Immich Photos account and download ALL your library into the local folder `./MyLibrary`.
   
 
-## <span style="color:blue">Remove All Assets from Immich Photos:</span>
+## Remove All Assets from Immich Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -175,7 +175,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 > This process is irreversible and will clean all from your Immich Photos account. Use it if you are completely sure of what you are doing.
   
 
-## <span style="color:blue">Remove All Albums from Immich Photos:</span>
+## Remove All Albums from Immich Photos:
 - **From:** v3.0.0 
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -196,7 +196,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completely sure of what you are doing.
 
 
-## <span style="color:blue">Remove Albums by Name Pattern from Immich Photos:</span>
+## Remove Albums by Name Pattern from Immich Photos:
 - **From:** v3.3.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -217,7 +217,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 > This process is irreversible and will remove all the Albums (and optionally also all the assets included) whose name matches with the provided pattern from your Immich Photos account. Use it if you are completely sure of what you are doing.
      
 
-## <span style="color:blue">Rename Albums by Name Pattern from Immich Photos:</span>
+## Rename Albums by Name Pattern from Immich Photos:
 - **From:** v3.3.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -234,7 +234,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Immich Photos account and will rename all Albums whose name contains a date like this ("2023-08-15 - Vacation photos") replacing the date with the string "DATE", as a result the new album name would be: "DATE - Vacation photos".
   
 
-## <span style="color:blue">Remove Empty Albums from Immich Photos:</span>
+## Remove Empty Albums from Immich Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -251,7 +251,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Immich Photos account and will remove all Empty Albums found.
 
 
-## <span style="color:blue">Remove Duplicates Albums from Immich Photos:</span>
+## Remove Duplicates Albums from Immich Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -268,7 +268,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one.
 
 
-## <span style="color:blue">Merge Duplicates Albums from Immich Photos:</span>
+## Merge Duplicates Albums from Immich Photos:
 - **From:** v3.3.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
@@ -285,7 +285,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one transferring all the assets from the removed albums into the main one.
 
 
-## <span style="color:blue">Remove Orphans Assets from Immich Photos:</span>
+## Remove Orphans Assets from Immich Photos:
 - **From:** v3.0.0
 > [!WARNING]
 > This functionality was removed from Immich starting with version **v1.133.0** (**May 23, 2025**) and is no longer available in newer Immich versions.
@@ -304,15 +304,12 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
 
 ---
-
 ## ⚙️ Config.ini
 You can see how to configure the Config.ini file in this help section:
 [Configuration File](/help/0-configuration-file.md) 
 
 ---
-
 ## 🏠 [Back to Main Page](/README.md)
-
 
 ---
 ## 🎖️ Credits:

@@ -1,4 +1,4 @@
-# <span style="color:green">🗃️ Google Takeout Management</span>
+# 🗃️ Google Takeout Management
 
 From version 1.0.0 onwards, the Tool can process your Google Photos Takeout files to embed timestamp and GPS data among to other tags within each photo/video found on it.
 
@@ -188,15 +188,13 @@ In this example, the tool will do the Takeout Processing with the following step
 4. Download all ZIP files (use .zip format and 50 GB of filesize)
 
 > [!TIP]
-> ## <span style="color:dark">Additional Tip</span>
+> ## Additional Tip
 > When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files.  
 >
 > On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS.
 
 ---
-
 ## 🏠 [Back to Main Page](/README.md)
-
 
 ---
 ## 🎖️ Credits:

@@ -44,7 +44,7 @@
 
     <section class="panel" data-panel-id="general-panel">
         <div class="panel-head">
-            <h2>General Panel</h2>
+            <h2>Configuration Panel</h2>
             <button type="button" class="collapse-btn" data-collapse-target="general-panel" aria-label="Collapse panel">
                 <span class="collapse-btn__icon">▲</span>
             </button>
@@ -52,7 +52,7 @@
         <div class="panel-body">
             <div class="tabs tabs--sub" id="general-tabs"></div>
             <div id="general-general" class="general-pane"><div id="general-core-panel" class="module-special"></div></div>
-            <div id="general-config" class="general-pane hidden">
+            <div id="general-features-config" class="general-pane hidden">
             <p class="config-note">This editor is persisted per user in database. Sensitive values are encrypted at rest.</p>
             <div id="config-section-tabs" class="tabs tabs--sub"></div>
             <div id="config-form-sections" class="config-form-sections"></div>
@@ -64,15 +64,20 @@
             <input id="config-import-input" type="file" accept=".cfg,.ini,.txt" class="hidden-file-input">
             <div id="config-status" class="status">Config status: idle</div>
             </div>
-            <div id="general-theme" class="general-pane hidden">
-                <div id="theme-panel" class="theme-panel"></div>
+            <div id="general-app-settings" class="general-pane hidden">
+                <p class="config-note">Application-level preferences for this user.</p>
+                <div id="app-settings-sections" class="config-form-sections"></div>
+                <div class="config-actions">
+                    <button type="button" id="save-app-settings-btn" class="run-btn run-btn--danger">Save app settings</button>
+                </div>
+                <div id="app-settings-status" class="status">App settings status: idle</div>
             </div>
         </div>
     </section>
 
     <section class="panel" data-panel-id="feature-panel">
         <div class="panel-head">
-            <h2>Feature Selector</h2>
+            <h2>Features Selector</h2>
             <button type="button" class="collapse-btn" data-collapse-target="feature-panel" aria-label="Collapse panel">
                 <span class="collapse-btn__icon">▲</span>
             </button>
@@ -297,6 +302,7 @@
     </label>
 </template>
 
+<script src="/static/markdown_renderer.js"></script>
 <script>
     const MODULE_TAB_NAMES = {
         automatic_migration: "AUTOMATIC MIGRATION",
@@ -310,8 +316,9 @@
     };
 
     const GENERAL_TAB_NAMES = {
-        general: "General Arguments",
-        config: "Configuration"
+        general: "GENERAL ARGUMENTS",
+        features_config: "FEATURES CONFIG",
+        app_settings: "APP SETTINGS"
     };
 
     const THEMES = {
@@ -340,9 +347,11 @@
     let cloudActionDest = "";
     let standaloneActionDest = "";
     let configSectionsData = [];
+    let appSettingsSectionsData = [];
     let configFormValues = {};
     let activeConfigSection = "";
     let pendingConfigAdminOverride = null;
+    let appSettingsAutoSaveTimer = null;
     let migrationEndpointsState = {
         source: {kind: "synology", account: "1", path: ""},
         target: {kind: "immich", account: "1", path: ""}
@@ -805,162 +814,31 @@
             .replace(/'/g, "&#39;");
     }
 
-    function renderInlineMarkdown(text) {
-        let html = escapeHtml(String(text || ""));
-        html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-        html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-        html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-        html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-        return html;
+    function resolveDocUrlForModal(url, isImage = false) {
+        const raw = String(url || "").trim();
+        if (!raw) return "";
+        if (/^(https?:|mailto:|#)/i.test(raw)) return raw;
+        if (raw.startsWith("/")) return raw;
+
+        const normalized = raw.replace(/\\/g, "/").replace(/^\.\//, "");
+        const lower = normalized.toLowerCase();
+        if (lower === "readme.md" || lower.endsWith("/readme.md")) return "/docs/view/readme";
+        if (lower === "changelog.md" || lower.endsWith("/changelog.md")) return "/docs/view/changelog";
+        if (lower === "roadmap.md" || lower.endsWith("/roadmap.md")) return "/docs/view/roadmap";
+        if (lower === "config.ini" || lower.endsWith("/config.ini")) return "/docs/view/config";
+        if (lower.startsWith("help/") && lower.endsWith(".md")) return `/docs/view/help/${normalized.slice(5)}`;
+        if (normalized.startsWith("assets/")) return `/${normalized}`;
+
+        return isImage ? raw : raw;
     }
 
+    const docsMarkdownRenderer = window.MarkdownRenderer.create({
+        resolveUrl: resolveDocUrlForModal,
+        includeHeadingIds: false
+    });
+
     function renderMarkdownGithub(markdownText) {
-        const source = String(markdownText || "").replace(/\r\n/g, "\n");
-        const lines = source.split("\n");
-        const html = [];
-        let paragraph = [];
-        let inUl = false;
-        let inOl = false;
-        let inCode = false;
-        let codeLang = "";
-        let codeLines = [];
-        let codeFenceDelimiter = "";
-        let codeFenceInQuote = false;
-
-        const closeLists = () => {
-            if (inUl) {
-                html.push("</ul>");
-                inUl = false;
-            }
-            if (inOl) {
-                html.push("</ol>");
-                inOl = false;
-            }
-        };
-
-        const flushParagraph = () => {
-            if (!paragraph.length) return;
-            html.push(`<p>${paragraph.map((line) => renderInlineMarkdown(line)).join("<br>")}</p>`);
-            paragraph = [];
-        };
-
-        for (const rawLine of lines) {
-            const line = rawLine || "";
-            const trimmed = line.trim();
-
-            if (inCode) {
-                let codeRawLine = line;
-                if (codeFenceInQuote) {
-                    const quoteMatch = line.match(/^>\s?(.*)$/);
-                    if (quoteMatch) codeRawLine = quoteMatch[1];
-                }
-                const codeTrimmed = codeRawLine.trim();
-                if (codeFenceDelimiter && codeTrimmed.startsWith(codeFenceDelimiter)) {
-                    const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
-                    html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
-                    inCode = false;
-                    codeLang = "";
-                    codeLines = [];
-                    codeFenceDelimiter = "";
-                    codeFenceInQuote = false;
-                } else {
-                    codeLines.push(codeRawLine);
-                }
-                continue;
-            }
-
-            let codeFenceText = trimmed;
-            let codeFence = codeFenceText.match(/^(?:```|''')([\w-]+)?\s*$/);
-            let openingFenceInQuote = false;
-            if (!codeFence) {
-                const quoteMatch = line.match(/^>\s?(.*)$/);
-                if (quoteMatch) {
-                    codeFenceText = String(quoteMatch[1] || "").trim();
-                    codeFence = codeFenceText.match(/^(?:```|''')([\w-]+)?\s*$/);
-                    openingFenceInQuote = Boolean(codeFence);
-                }
-            }
-            if (codeFence) {
-                flushParagraph();
-                closeLists();
-                inCode = true;
-                codeLang = codeFence[1] || "";
-                codeLines = [];
-                codeFenceDelimiter = codeFenceText.startsWith("'''") ? "'''" : "```";
-                codeFenceInQuote = openingFenceInQuote;
-                continue;
-            }
-
-            if (!trimmed) {
-                flushParagraph();
-                closeLists();
-                continue;
-            }
-
-            const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
-            if (heading) {
-                flushParagraph();
-                closeLists();
-                const level = heading[1].length;
-                html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
-                continue;
-            }
-
-            if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
-                flushParagraph();
-                closeLists();
-                html.push("<hr>");
-                continue;
-            }
-
-            const quote = trimmed.match(/^>\s?(.*)$/);
-            if (quote) {
-                flushParagraph();
-                closeLists();
-                html.push(`<blockquote><p>${renderInlineMarkdown(quote[1])}</p></blockquote>`);
-                continue;
-            }
-
-            const ulItem = trimmed.match(/^[-*+]\s+(.+)$/);
-            if (ulItem) {
-                flushParagraph();
-                if (inOl) {
-                    html.push("</ol>");
-                    inOl = false;
-                }
-                if (!inUl) {
-                    html.push("<ul>");
-                    inUl = true;
-                }
-                html.push(`<li>${renderInlineMarkdown(ulItem[1])}</li>`);
-                continue;
-            }
-
-            const olItem = trimmed.match(/^\d+\.\s+(.+)$/);
-            if (olItem) {
-                flushParagraph();
-                if (inUl) {
-                    html.push("</ul>");
-                    inUl = false;
-                }
-                if (!inOl) {
-                    html.push("<ol>");
-                    inOl = true;
-                }
-                html.push(`<li>${renderInlineMarkdown(olItem[1])}</li>`);
-                continue;
-            }
-
-            paragraph.push(trimmed);
-        }
-
-        flushParagraph();
-        closeLists();
-        if (inCode) {
-            const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
-            html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
-        }
-        return html.join("\n");
+        return docsMarkdownRenderer.render(markdownText);
     }
 
     async function openDocumentation(docName) {
@@ -2044,8 +1922,8 @@
 
     function renderGeneralTab() {
         document.getElementById("general-general").classList.toggle("hidden", activeGeneralTab !== "general");
-        document.getElementById("general-config").classList.toggle("hidden", activeGeneralTab !== "config");
-        document.getElementById("general-theme").classList.add("hidden");
+        document.getElementById("general-features-config").classList.toggle("hidden", activeGeneralTab !== "features_config");
+        document.getElementById("general-app-settings").classList.toggle("hidden", activeGeneralTab !== "app_settings");
     }
 
     function hideSpecialPanels() {
@@ -2531,7 +2409,7 @@
         const actionRow = document.createElement("div");
         actionRow.className = "arg-row";
         const actionButtonsWrap = document.createElement("div");
-        actionButtonsWrap.className = "input-row";
+        actionButtonsWrap.className = "input-row upload-action-row";
         const uploadFolderBtn = document.createElement("button");
         uploadFolderBtn.type = "button";
         uploadFolderBtn.className = "run-btn upload-action-btn";
@@ -2846,7 +2724,7 @@
             queueSaveState();
             renderGeneralTabs();
             renderGeneralTab();
-            if (key === "config") loadConfig();
+            if (key === "features_config" || key === "app_settings") loadConfig();
         });
     }
 
@@ -3487,15 +3365,7 @@
         });
     }
 
-    function renderActiveConfigSection() {
-        const root = document.getElementById("config-form-sections");
-        root.innerHTML = "";
-        const section = (configSectionsData || []).find((item) => String(item?.name || "") === activeConfigSection);
-        if (!section) {
-            root.innerHTML = `<div class="folder-error">No config section selected.</div>`;
-            return;
-        }
-
+    function buildConfigSectionCard(section) {
         const card = document.createElement("section");
         card.className = "config-section-card";
         const title = document.createElement("h4");
@@ -3567,7 +3437,7 @@
                         if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
                         configFormValues[sectionName][targetKey] = "";
                         const targetEl = document.querySelector(
-                            `#config-form-sections [data-section="${sectionName}"][data-key="${targetKey}"]`
+                            `[data-section="${sectionName}"][data-key="${targetKey}"]`
                         );
                         if (targetEl) targetEl.value = "";
                     });
@@ -3579,7 +3449,7 @@
                     if (currentTarget) return;
                     configFormValues[sectionName][targetKey] = defaultValue;
                     const targetEl = document.querySelector(
-                        `#config-form-sections [data-section="${sectionName}"][data-key="${targetKey}"]`
+                        `[data-section="${sectionName}"][data-key="${targetKey}"]`
                     );
                     if (targetEl) targetEl.value = defaultValue;
                 });
@@ -3591,6 +3461,10 @@
                 if (sectionName === "Web Interface" && key === "THEME") {
                     applyTheme(configFormValues[sectionName][key] || "ocean", true);
                 }
+                const isAutoSaveField =
+                    (sectionName === "TimeZone" && key === "timezone")
+                    || (sectionName === "Web Interface" && key === "THEME");
+                if (isAutoSaveField) queueAutoSaveAppSettings();
             };
             input.addEventListener("input", updateConfigValue);
             input.addEventListener("change", updateConfigValue);
@@ -3606,12 +3480,48 @@
 
             card.appendChild(row);
         });
-        root.appendChild(card);
+        return card;
+    }
+
+    function renderActiveConfigSection() {
+        const root = document.getElementById("config-form-sections");
+        root.innerHTML = "";
+        const section = (configSectionsData || []).find((item) => String(item?.name || "") === activeConfigSection);
+        if (!section) {
+            root.innerHTML = `<div class="folder-error">No config section selected.</div>`;
+            return;
+        }
+        root.appendChild(buildConfigSectionCard(section));
+    }
+
+    function renderAppSettingsSections() {
+        const root = document.getElementById("app-settings-sections");
+        if (!root) return;
+        root.innerHTML = "";
+        if (!appSettingsSectionsData.length) {
+            root.innerHTML = `<div class="folder-error">No app settings available.</div>`;
+            return;
+        }
+        appSettingsSectionsData.forEach((section) => {
+            root.appendChild(buildConfigSectionCard(section));
+        });
     }
 
     function renderConfigFormSections(data) {
-        configSectionsData = Array.isArray(data?.sections) ? data.sections : [];
-        configFormValues = buildConfigFormValuesFromSections(configSectionsData);
+        const allSections = Array.isArray(data?.sections) ? data.sections : [];
+        const appSettingsNames = new Set(["TimeZone", "Web Interface"]);
+        const appSettingsOrder = {"Web Interface": 0, "TimeZone": 1};
+        appSettingsSectionsData = allSections
+            .filter((section) => appSettingsNames.has(String(section?.name || "")))
+            .sort((a, b) => {
+                const aName = String(a?.name || "");
+                const bName = String(b?.name || "");
+                const aOrder = Object.prototype.hasOwnProperty.call(appSettingsOrder, aName) ? appSettingsOrder[aName] : 999;
+                const bOrder = Object.prototype.hasOwnProperty.call(appSettingsOrder, bName) ? appSettingsOrder[bName] : 999;
+                return aOrder - bOrder;
+            });
+        configSectionsData = allSections.filter((section) => !appSettingsNames.has(String(section?.name || "")));
+        configFormValues = buildConfigFormValuesFromSections(allSections);
         if (uiState?.config_active_section && configSectionsData.some((section) => section?.name === uiState.config_active_section)) {
             activeConfigSection = uiState.config_active_section;
         } else {
@@ -3619,6 +3529,7 @@
         }
         renderConfigSectionTabs();
         renderActiveConfigSection();
+        renderAppSettingsSections();
     }
 
     function collectConfigFormValues() {
@@ -3626,13 +3537,46 @@
     }
 
     function syncVisibleConfigInputsToState() {
-        document.querySelectorAll("#config-form-sections [data-section][data-key]").forEach((el) => {
+        document.querySelectorAll("#config-form-sections [data-section][data-key], #app-settings-sections [data-section][data-key]").forEach((el) => {
             const section = String(el.dataset.section || "");
             const key = String(el.dataset.key || "");
             if (!section || !key) return;
             if (!configFormValues[section]) configFormValues[section] = {};
             configFormValues[section][key] = String(el.value || "");
         });
+    }
+
+    function setConfigStatusText(message) {
+        const configStatus = document.getElementById("config-status");
+        if (configStatus) configStatus.textContent = message;
+        const appStatus = document.getElementById("app-settings-status");
+        if (appStatus) appStatus.textContent = message.replace(/^Config status:/, "App settings status:");
+    }
+
+    async function autoSaveAppSettings() {
+        syncVisibleConfigInputsToState();
+        const values = collectConfigFormValues();
+        try {
+            const response = await apiFetch("/api/config/form", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({values})
+            });
+            const data = await response.json();
+            const stamp = new Date().toLocaleTimeString();
+            setConfigStatusText(`Config status: auto-saved (${data.path}) at ${stamp}`);
+        } catch (error) {
+            setConfigStatusText(`Config status: auto-save failed (${String(error)})`);
+        }
+    }
+
+    function queueAutoSaveAppSettings() {
+        if (appSettingsAutoSaveTimer) clearTimeout(appSettingsAutoSaveTimer);
+        setConfigStatusText("Config status: auto-saving app settings...");
+        appSettingsAutoSaveTimer = setTimeout(() => {
+            appSettingsAutoSaveTimer = null;
+            autoSaveAppSettings();
+        }, 450);
     }
 
     function applyThemeFromConfigValues() {
@@ -3758,7 +3702,7 @@
         const data = await response.json();
         renderConfigFormSections(data);
         applyThemeFromConfigValues();
-        document.getElementById("config-status").textContent = `Config status: loaded (${data.path})`;
+        setConfigStatusText(`Config status: loaded (${data.path})`);
         return data;
     }
 
@@ -3767,7 +3711,7 @@
         if (isDemoRole()) {
             const credentials = await requestConfigAdminOverride("import");
             if (!credentials) {
-                document.getElementById("config-status").textContent = "Config status: import canceled";
+                setConfigStatusText("Config status: import canceled");
                 return;
             }
             pendingConfigAdminOverride = credentials;
@@ -3784,7 +3728,7 @@
             if (isDemoRole() && !credentials) {
                 credentials = await requestConfigAdminOverride("import");
                 if (!credentials) {
-                    document.getElementById("config-status").textContent = "Config status: import canceled";
+                    setConfigStatusText("Config status: import canceled");
                     return;
                 }
             }
@@ -3806,9 +3750,9 @@
             }
             applyThemeFromConfigValues();
             const safePath = data?.path || "db://users/current/Config.ini";
-            document.getElementById("config-status").textContent = `Config status: imported (${safePath})`;
+            setConfigStatusText(`Config status: imported (${safePath})`);
         } catch (error) {
-            document.getElementById("config-status").textContent = `Config status: import failed (${String(error)})`;
+            setConfigStatusText(`Config status: import failed (${String(error)})`);
         } finally {
             pendingConfigAdminOverride = null;
             event.target.value = "";
@@ -3821,7 +3765,7 @@
             if (isDemoRole()) {
                 credentials = await requestConfigAdminOverride("export");
                 if (!credentials) {
-                    document.getElementById("config-status").textContent = "Config status: export canceled";
+                    setConfigStatusText("Config status: export canceled");
                     return;
                 }
             }
@@ -3871,9 +3815,9 @@
                 a.remove();
                 setTimeout(() => URL.revokeObjectURL(fileUrl), 10000);
             }
-            document.getElementById("config-status").textContent = `Config status: exported (${filename})`;
+            setConfigStatusText(`Config status: exported (${filename})`);
         } catch (error) {
-            document.getElementById("config-status").textContent = `Config status: export failed (${String(error)})`;
+            setConfigStatusText(`Config status: export failed (${String(error)})`);
         }
     }
 
@@ -3885,7 +3829,7 @@
             danger: true
         });
         if (!confirmed) {
-            document.getElementById("config-status").textContent = "Config status: save canceled by user";
+            setConfigStatusText("Config status: save canceled by user");
             return;
         }
         syncVisibleConfigInputsToState();
@@ -3894,8 +3838,9 @@
         if (isDemoRole()) {
             credentials = await requestConfigAdminOverride("save");
             if (!credentials) {
-                document.getElementById("config-status").textContent =
-                    "Config status: saving with demo restrictions (only TimeZone/Theme changes are allowed)";
+                setConfigStatusText(
+                    "Config status: saving with demo restrictions (only TimeZone/Theme changes are allowed)"
+                );
             }
         }
         try {
@@ -3909,13 +3854,13 @@
             });
             const data = await response.json();
             applyThemeFromConfigValues();
-            document.getElementById("config-status").textContent = `Config status: saved (${data.path})`;
+            setConfigStatusText(`Config status: saved (${data.path})`);
             await showNoticeDialog({
                 title: "Configuration Saved",
                 message: "Config.ini has been overwritten successfully in the user database."
             });
         } catch (error) {
-            document.getElementById("config-status").textContent = `Config status: save failed (${String(error)})`;
+            setConfigStatusText(`Config status: save failed (${String(error)})`);
             await showNoticeDialog({
                 title: "Save Failed",
                 message:
@@ -3958,6 +3903,8 @@
             }
             if (uiState.active_general_tab && GENERAL_TAB_NAMES[uiState.active_general_tab]) {
                 activeGeneralTab = uiState.active_general_tab;
+            } else if (uiState.active_general_tab === "config") {
+                activeGeneralTab = "features_config";
             }
             if (!THEMES[uiState.theme]) uiState.theme = "ocean";
             if (uiState.cloud_action_dest?.[activeModuleTab]) {
@@ -4674,6 +4621,7 @@
         document.getElementById("job-input-yes").addEventListener("click", () => sendJobInput("yes"));
         document.getElementById("job-input-no").addEventListener("click", () => sendJobInput("no"));
         document.getElementById("save-config-btn").addEventListener("click", saveConfig);
+        document.getElementById("save-app-settings-btn").addEventListener("click", saveConfig);
         document.getElementById("logout-btn").addEventListener("click", async () => {
             await apiFetch("/api/auth/logout", {method: "POST"});
             window.location.href = "/login";

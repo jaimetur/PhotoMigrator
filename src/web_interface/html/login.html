@@ -18,23 +18,47 @@
         </label>
         <label>
             <span>Password</span>
-            <input id="password" type="password" required autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+            <div class="login-password-wrap">
+                <input id="password" type="password" required autocomplete="off" data-lpignore="true" data-1p-ignore="true" spellcheck="false">
+                <button id="toggle-password" class="login-password-toggle" type="button" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
         </label>
         <button type="submit" class="run-btn">Login</button>
     </form>
+    {% if show_default_admin_hint %}
     <p class="login-default-note">Default account available: <code>admin</code> / <code>admin123</code>.</p>
+    {% endif %}
+    {% if show_demo_hint %}
+    <p class="login-default-note">Demo account available: <code>demo</code> / <code>demo</code>.</p>
+    {% endif %}
     <p id="login-status" class="status">Status: ready</p>
 </main>
 
 <script>
     const form = document.getElementById("login-form");
     const statusEl = document.getElementById("login-status");
+    const passwordEl = document.getElementById("password");
+    const togglePasswordEl = document.getElementById("toggle-password");
+
+    function setPasswordVisibility(visible) {
+        const isVisible = Boolean(visible);
+        passwordEl.type = isVisible ? "text" : "password";
+        togglePasswordEl.textContent = isVisible ? "Hide" : "Show";
+        togglePasswordEl.setAttribute("aria-label", isVisible ? "Hide password" : "Show password");
+        togglePasswordEl.setAttribute("aria-pressed", isVisible ? "true" : "false");
+    }
+
+    togglePasswordEl.addEventListener("click", () => {
+        const showPassword = passwordEl.type === "password";
+        setPasswordVisibility(showPassword);
+        passwordEl.focus();
+    });
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         statusEl.textContent = "Status: authenticating...";
         const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value;
+        const password = passwordEl.value;
         try {
             const response = await fetch("/api/auth/login", {
                 method: "POST",

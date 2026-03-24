@@ -1083,10 +1083,29 @@ def _fetch_user_by_id(user_id: int) -> Dict[str, Any] | None:
 def _fetch_user_by_username(username: str) -> Dict[str, Any] | None:
     conn = _db_connect()
     try:
-        row = conn.execute("SELECT * FROM users WHERE LOWER(username) = LOWER(?)", (str(username or "").strip(),)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))",
+            (str(username or "").strip(),),
+        ).fetchone()
         return dict(row) if row else None
     finally:
         conn.close()
+
+
+def _is_login_hint_account_available(
+    username: str,
+    password: str,
+    required_role: str | None = None,
+    require_active: bool = True,
+) -> bool:
+    user = _fetch_user_by_username(username)
+    if not user:
+        return False
+    if require_active and not bool(user.get("is_active")):
+        return False
+    if required_role is not None and str(user.get("role") or "").strip().lower() != str(required_role).strip().lower():
+        return False
+    return _pbkdf2_verify_password(str(password or ""), str(user.get("password_hash") or ""))
 
 
 def _create_session_for_user(user_id: int) -> str:
@@ -2565,12 +2584,16 @@ def _startup() -> None:
 def login_page(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
     if _user_from_session_token(session_token):
         return RedirectResponse(url="/", status_code=302)
+    show_default_admin_hint = _is_login_hint_account_available(username="admin", password="admin123")
+    show_demo_hint = _is_login_hint_account_available(username="demo", password="demo", required_role="demo")
     return templates.TemplateResponse(
         "login.html",
         {
             "request": request,
             "tool_name": TOOL_NAME,
             "tool_version": TOOL_VERSION,
+            "show_default_admin_hint": show_default_admin_hint,
+            "show_demo_hint": show_demo_hint,
         },
     )
 

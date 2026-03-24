@@ -139,7 +139,6 @@ In this section you have to provide:
 > Google Photos support is limited by current official Library API capabilities.
 
 ---
-
 ## 🏠 [Back to Main Page](/README.md)
 
 ---

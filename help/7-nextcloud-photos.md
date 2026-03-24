@@ -1,4 +1,4 @@
-# <span style="color:green">NextCloud Photos Management</span>
+# NextCloud Photos Management
 
 From version 4.0.0 onwards, the Tool can connect to your NextCloud account using WebDAV and manage your photo library.
 
@@ -84,7 +84,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > In LAN setups, enabling proxy by mistake can cause large per-request latency.
 
 
-## <span style="color:blue">Upload Albums (from Local Folder) into NextCloud Photos:</span>
+## Upload Albums (from Local Folder) into NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --upload-albums <ALBUMS_FOLDER>`
@@ -99,7 +99,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   ```
 
 
-## <span style="color:blue">Download Albums from NextCloud Photos:</span>
+## Download Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --download-albums <ALBUMS_NAME> --output-folder <OUTPUT_FOLDER>`
@@ -120,7 +120,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > `<ALBUMS_NAME>` must exist in your NextCloud library, otherwise nothing is downloaded.
 
 
-## <span style="color:blue">Upload All (from Local Folder) into NextCloud Photos:</span>
+## Upload All (from Local Folder) into NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --upload-all <INPUT_FOLDER>`
@@ -138,7 +138,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   ```
 
 
-## <span style="color:blue">Download All from NextCloud Photos:</span>
+## Download All from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --download-all <OUTPUT_FOLDER>`
@@ -155,7 +155,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   ```
 
 
-## <span style="color:blue">Remove All Assets from NextCloud Photos:</span>
+## Remove All Assets from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --remove-all-assets`
@@ -173,7 +173,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > This process is irreversible.
 
 
-## <span style="color:blue">Remove All Albums from NextCloud Photos:</span>
+## Remove All Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --remove-all-albums --remove-albums-assets`
@@ -191,7 +191,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > This process is irreversible.
 
 
-## <span style="color:blue">Remove Albums by Name Pattern from NextCloud Photos:</span>
+## Remove Albums by Name Pattern from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --remove-albums <ALBUMS_NAME_PATTERN> --remove-albums-assets`
@@ -209,7 +209,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > This process is irreversible.
 
 
-## <span style="color:blue">Rename Albums by Name Pattern from NextCloud Photos:</span>
+## Rename Albums by Name Pattern from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --rename-albums <ALBUMS_NAME_PATTERN> <ALBUMS_NAME_REPLACEMENT_PATTERN>`
@@ -223,7 +223,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   ```
 
 
-## <span style="color:blue">Remove Empty Albums from NextCloud Photos:</span>
+## Remove Empty Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --remove-empty-albums`
@@ -237,7 +237,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   ```
 
 
-## <span style="color:blue">Remove Duplicates Albums from NextCloud Photos:</span>
+## Remove Duplicates Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --remove-duplicates-albums`
@@ -254,7 +254,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > This operation is currently a no-op in NextCloud integration.
 
 
-## <span style="color:blue">Merge Duplicates Albums from NextCloud Photos:</span>
+## Merge Duplicates Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=nextcloud --merge-duplicates-albums`
@@ -271,11 +271,15 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > This operation is currently a no-op in NextCloud integration.
 
 ---
-
-## Config.ini
-You can see how to configure `Config.ini` here:
-[Configuration File](/help/0-configuration-file.md)
+## ⚙️ Config.ini
+You can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-configuration-file.md) 
 
 ---
+## 🏠 [Back to Main Page](/README.md)
+    
+---
+## 🎖️ Credits:
+I hope this can be useful for any of you. Enjoy it!
 
-## [Back to Main Page](/README.md)
+<span style="color:grey">(c) 2024-2026 by Jaime Tur (@jaimetur).</span>  

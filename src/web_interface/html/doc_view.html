@@ -247,7 +247,19 @@
         .markdown p { margin: 0.75em 0; }
         .markdown p[align="center"] { margin: 0.2em 0; }
         .markdown p[align="center"] br { display: none; }
-        .markdown ul, .markdown ol { margin: 0.6em 0 0.85em 1.3em; padding: 0; }
+        .markdown ul, .markdown ol {
+            margin: 0.6em 0 0.85em 0.85em;
+            padding-left: 2em;
+            list-style-position: outside;
+        }
+        .markdown li {
+            padding-left: 0.15em;
+        }
+        .markdown li > ul, .markdown li > ol {
+            margin-top: 0.35em;
+            margin-bottom: 0.35em;
+            margin-left: 0.6em;
+        }
         .markdown blockquote {
             margin: 0.8em 0;
             border-left: 4px solid #d0d7de;
@@ -405,6 +417,7 @@
     </div>
 </main>
 
+<script src="/static/markdown_renderer.js"></script>
 <script>
     const DOC_TITLE = "{{ doc_name }}";
     const DOC_API_URL = "{{ doc_api_url }}";
@@ -420,16 +433,6 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
-    }
-
-    function splitTableRow(line) {
-        const trimmed = String(line || "").trim().replace(/^\|/, "").replace(/\|$/, "");
-        return trimmed.split("|").map((cell) => cell.trim());
-    }
-
-    function isTableDivider(line) {
-        const cells = splitTableRow(line);
-        return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
     }
 
     function normalizePath(path) {
@@ -520,411 +523,13 @@
         return `${isImage ? REPO_RAW_BASE : REPO_BLOB_BASE}${normalized}`;
     }
 
-    function rewriteHtmlTagUrls(htmlSnippet) {
-        let out = String(htmlSnippet || "");
-        out = out.replace(/\s(src|href)=["']([^"']+)["']/gi, (_m, attr, url) => {
-            const resolved = resolveDocUrl(url, attr.toLowerCase() === "src");
-            return ` ${attr}="${escapeHtml(resolved)}"`;
-        });
-        return out;
-    }
-
-    function renderInlineMarkdown(text) {
-        const rawText = String(text || "");
-        const htmlTokens = [];
-        const tokenized = rawText.replace(/<\/?[a-zA-Z][^>]*>/g, (tag) => {
-            const token = `@@HTMLTOKEN${htmlTokens.length}@@`;
-            htmlTokens.push(rewriteHtmlTagUrls(tag));
-            return token;
-        });
-
-        let html = escapeHtml(tokenized);
-        html = html.replace(/\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^)]+)\)/g, (_m, alt, imgUrl, linkUrl) => {
-            const resolvedLink = resolveDocUrl(linkUrl, false);
-            const resolvedImg = resolveDocUrl(imgUrl, true);
-            const isInternal = resolvedLink.startsWith("/") && !resolvedLink.startsWith("//");
-            const targetAttrs = isInternal ? "" : ` target="_blank" rel="noopener noreferrer"`;
-            return `<a href="${escapeHtml(resolvedLink)}"${targetAttrs}><img src="${escapeHtml(resolvedImg)}" alt="${escapeHtml(alt)}"></a>`;
-        });
-        const parseMdTarget = (rawTarget) => {
-            const text = String(rawTarget || "").trim();
-            const decoded = text
-                .replace(/&quot;/gi, '"')
-                .replace(/&#39;/gi, "'");
-            // Supports: url, <url>, url "title", url 'title'
-            const m = decoded.match(/^<?([^>\s]+)>?(?:\s+["'][^"']*["'])?$/);
-            return m ? m[1] : decoded;
-        };
-        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt, rawTarget) =>
-            `<img src="${escapeHtml(resolveDocUrl(parseMdTarget(rawTarget), true))}" alt="${escapeHtml(alt)}">`
-        );
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, rawTarget) => {
-            const resolved = resolveDocUrl(parseMdTarget(rawTarget), false);
-            const isInternal = resolved.startsWith("/") && !resolved.startsWith("//");
-            const targetAttrs = isInternal ? "" : ` target="_blank" rel="noopener noreferrer"`;
-            return `<a href="${escapeHtml(resolved)}"${targetAttrs}>${escapeHtml(label)}</a>`;
-        });
-        html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-        html = html.replace(/_\*\*([^*\n][\s\S]*?)\*\*_/g, "<em><strong>$1</strong></em>");
-        html = html.replace(/\*\*_([^_\n][\s\S]*?)_\*\*/g, "<strong><em>$1</em></strong>");
-        html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
-        html = html.replace(/__([^_\n]+)__/g, "<strong>$1</strong>");
-        html = html.replace(/(^|[^\w])\*([^*\n]+)\*(?=[^\w]|$)/g, "$1<em>$2</em>");
-        html = html.replace(/(^|[^\w])_([^_\n]+)_(?=[^\w]|$)/g, "$1<em>$2</em>");
-        htmlTokens.forEach((tag, index) => {
-            const token = `@@HTMLTOKEN${index}@@`;
-            html = html.replaceAll(token, tag);
-        });
-        return html;
-    }
+    const markdownRenderer = window.MarkdownRenderer.create({
+        resolveUrl: resolveDocUrl,
+        includeHeadingIds: true
+    });
 
     function renderMarkdown(markdownText) {
-        const source = String(markdownText || "").replace(/\r\n/g, "\n");
-        const rawLines = source.split("\n");
-        const lines = [];
-        let skipNextTopSeparator = false;
-        for (let i = 0; i < rawLines.length; i++) {
-            const line = String(rawLines[i] || "");
-            const trimmed = line.trim();
-            const normalized = trimmed.toLowerCase();
-            const isRoadmapLinkLine =
-                normalized.includes("planned roadmap") &&
-                normalized.includes("following releases");
-            const isChangelogLinkLine =
-                normalized.includes("changelog") &&
-                normalized.includes("past releases");
-
-            if (isRoadmapLinkLine || isChangelogLinkLine) {
-                skipNextTopSeparator = true;
-                continue;
-            }
-
-            if (skipNextTopSeparator && (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed))) {
-                skipNextTopSeparator = false;
-                continue;
-            }
-
-            if (trimmed) {
-                skipNextTopSeparator = false;
-            }
-
-            lines.push(line);
-        }
-        const html = [];
-        let paragraph = [];
-        const listStack = [];
-        let inCode = false;
-        let codeLang = "";
-        let codeLines = [];
-        let codeFenceDelimiter = "";
-        let codeFenceInQuote = false;
-        const headingIdCounter = new Map();
-
-        const closeOneList = () => {
-            const top = listStack.pop();
-            if (!top) return;
-            html.push(top.type === "ol" ? "</ol>" : "</ul>");
-        };
-        const closeLists = () => {
-            while (listStack.length) closeOneList();
-        };
-        const flushParagraph = () => {
-            if (!paragraph.length) return;
-            html.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
-            paragraph = [];
-        };
-
-        const buildHeadingId = (rawHeadingText) => {
-            const base = String(rawHeadingText || "")
-                .replace(/<[^>]*>/g, " ")
-                .replace(/`([^`]+)`/g, "$1")
-                .replace(/\*\*([^*]+)\*\*/g, "$1")
-                .replace(/\*([^*]+)\*/g, "$1")
-                .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-                .replace(/&[a-z]+;/gi, " ")
-                .toLowerCase()
-                .replace(/[^a-z0-9\s-]/g, " ")
-                .trim()
-                .replace(/\s+/g, "-")
-                .replace(/-+/g, "-");
-            const safeBase = base || "section";
-            const seen = headingIdCounter.get(safeBase) || 0;
-            headingIdCounter.set(safeBase, seen + 1);
-            return seen === 0 ? safeBase : `${safeBase}-${seen + 1}`;
-        };
-
-        const shouldSkipLine = (line) => {
-            const value = String(line || "").trim();
-            if (!value) return false;
-            if (/back to main page/i.test(value) && /\[[^\]]+\]\([^)]+\)/.test(value)) return true;
-            if (/planned roadmap for the following releases/i.test(value)) return true;
-            if (/changelog for the past releases\+?/i.test(value)) return true;
-            return false;
-        };
-
-        const parseStandaloneHtmlImages = (line) => {
-            const value = String(line || "").trim();
-            if (!value) return [];
-            const matches = value.match(/<img\b[^>]*>/gi) || [];
-            if (!matches.length) return [];
-            const onlyImagesAndSpaces = value.replace(/<img\b[^>]*>/gi, "").trim();
-            return onlyImagesAndSpaces ? [] : matches;
-        };
-
-        const isBadgeImageTag = (imgTag) => /src=["']https?:\/\/img\.shields\.io\//i.test(String(imgTag || ""));
-        const parseMarkdownBadgeLine = (line) => {
-            const value = String(line || "").trim();
-            const match = value.match(/^\[!\[([^\]]*)\]\((https?:\/\/img\.shields\.io\/[^)]+)\)\]\(([^)]+)\)\s*$/i);
-            if (!match) return null;
-            return {alt: match[1] || "", image: match[2] || "", link: match[3] || ""};
-        };
-
-        for (let i = 0; i < lines.length; i++) {
-            const rawLine = lines[i] || "";
-            const trimmed = rawLine.trim();
-
-            if (shouldSkipLine(trimmed)) {
-                flushParagraph();
-                closeLists();
-                continue;
-            }
-
-            if (inCode) {
-                let codeRawLine = rawLine;
-                if (codeFenceInQuote) {
-                    const quoteMatch = rawLine.match(/^>\s?(.*)$/);
-                    if (quoteMatch) codeRawLine = quoteMatch[1];
-                }
-                const codeTrimmed = codeRawLine.trim();
-                if (codeFenceDelimiter && codeTrimmed.startsWith(codeFenceDelimiter)) {
-                    const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
-                    html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
-                    inCode = false;
-                    codeLang = "";
-                    codeLines = [];
-                    codeFenceDelimiter = "";
-                    codeFenceInQuote = false;
-                } else {
-                    codeLines.push(codeRawLine);
-                }
-                continue;
-            }
-
-            let codeFenceText = trimmed;
-            let codeFence = codeFenceText.match(/^(?:```|''')([\w-]+)?\s*$/);
-            let openingFenceInQuote = false;
-            if (!codeFence) {
-                const quoteMatch = rawLine.match(/^>\s?(.*)$/);
-                if (quoteMatch) {
-                    codeFenceText = String(quoteMatch[1] || "").trim();
-                    codeFence = codeFenceText.match(/^(?:```|''')([\w-]+)?\s*$/);
-                    openingFenceInQuote = Boolean(codeFence);
-                }
-            }
-            if (codeFence) {
-                flushParagraph();
-                closeLists();
-                inCode = true;
-                codeLang = codeFence[1] || "";
-                codeLines = [];
-                codeFenceDelimiter = codeFenceText.startsWith("'''") ? "'''" : "```";
-                codeFenceInQuote = openingFenceInQuote;
-                continue;
-            }
-
-            if (!trimmed) {
-                flushParagraph();
-                closeLists();
-                continue;
-            }
-
-            if (/^<br\s*\/?>$/i.test(trimmed)) {
-                continue;
-            }
-
-            const markdownBadge = parseMarkdownBadgeLine(trimmed);
-            if (markdownBadge) {
-                flushParagraph();
-                closeLists();
-                const badges = [markdownBadge];
-                let j = i + 1;
-                while (j < lines.length) {
-                    const nextLine = String(lines[j] || "").trim();
-                    if (!nextLine || shouldSkipLine(nextLine)) {
-                        j++;
-                        continue;
-                    }
-                    const nextBadge = parseMarkdownBadgeLine(nextLine);
-                    if (!nextBadge) break;
-                    badges.push(nextBadge);
-                    j++;
-                }
-                const badgesHtml = badges.map((badge) => {
-                    const href = escapeHtml(resolveDocUrl(badge.link, false));
-                    const src = escapeHtml(resolveDocUrl(badge.image, true));
-                    const alt = escapeHtml(badge.alt);
-                    return `<a href="${href}" target="_blank" rel="noopener noreferrer"><img src="${src}" alt="${alt}"></a>`;
-                }).join("");
-                html.push(`<div class="html-badges">${badgesHtml}</div>`);
-                i = j - 1;
-                continue;
-            }
-
-            const inlineImages = parseStandaloneHtmlImages(trimmed);
-            if (inlineImages.length > 0) {
-                flushParagraph();
-                closeLists();
-                const imageTags = [...inlineImages.map(rewriteHtmlTagUrls)];
-                const allBadges = imageTags.every(isBadgeImageTag);
-                if (!allBadges) {
-                    html.push(imageTags.join(""));
-                    continue;
-                }
-                let j = i + 1;
-                while (j < lines.length) {
-                    const nextLine = String(lines[j] || "").trim();
-                    if (!nextLine || shouldSkipLine(nextLine)) {
-                        j++;
-                        continue;
-                    }
-                    const nextImages = parseStandaloneHtmlImages(nextLine);
-                    if (!nextImages.length) break;
-                    const rewritten = nextImages.map(rewriteHtmlTagUrls);
-                    if (!rewritten.every(isBadgeImageTag)) break;
-                    imageTags.push(...rewritten);
-                    j++;
-                }
-                html.push(`<div class="html-badges">${imageTags.join("")}</div>`);
-                i = j - 1;
-                continue;
-            }
-
-            if (/^<[^>]+>/.test(trimmed)) {
-                flushParagraph();
-                closeLists();
-                html.push(rewriteHtmlTagUrls(rawLine));
-                continue;
-            }
-
-            const admonition = trimmed.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i);
-            if (admonition) {
-                flushParagraph();
-                closeLists();
-                const kind = admonition[1].toLowerCase();
-                const content = [];
-                let j = i + 1;
-                while (j < lines.length && String(lines[j] || "").trim() !== "") {
-                    content.push(String(lines[j] || "").trim());
-                    j++;
-                }
-                const body = content.length ? `<p>${content.map(renderInlineMarkdown).join("<br>")}</p>` : "";
-                html.push(`<div class="admonition ${kind}"><div class="admonition-title">${admonition[1].toUpperCase()}</div>${body}</div>`);
-                i = j - 1;
-                continue;
-            }
-
-            if (rawLine.includes("|") && i + 1 < lines.length && isTableDivider(lines[i + 1])) {
-                flushParagraph();
-                closeLists();
-                const headerCells = splitTableRow(rawLine);
-                let j = i + 2;
-                const bodyRows = [];
-                while (j < lines.length && String(lines[j] || "").includes("|")) {
-                    const rowCells = splitTableRow(lines[j]);
-                    if (!rowCells.length) break;
-                    bodyRows.push(rowCells);
-                    j++;
-                }
-                const thead = `<thead><tr>${headerCells.map((c) => `<th>${renderInlineMarkdown(c)}</th>`).join("")}</tr></thead>`;
-                const tbodyRows = bodyRows.map((row) => `<tr>${row.map((c) => `<td>${renderInlineMarkdown(c)}</td>`).join("")}</tr>`).join("");
-                html.push(`<table>${thead}<tbody>${tbodyRows}</tbody></table>`);
-                i = j - 1;
-                continue;
-            }
-
-            const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
-            if (heading) {
-                flushParagraph();
-                closeLists();
-                const level = heading[1].length;
-                const headingId = buildHeadingId(heading[2]);
-                html.push(`<h${level} id="${escapeHtml(headingId)}">${renderInlineMarkdown(heading[2])}</h${level}>`);
-                continue;
-            }
-
-            if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
-                flushParagraph();
-                closeLists();
-                if (html.length === 0) {
-                    continue;
-                }
-                if (html.length > 0 && html[html.length - 1] === "<hr>") {
-                    continue;
-                }
-                html.push("<hr>");
-                continue;
-            }
-
-            const quote = trimmed.match(/^>\s?(.*)$/);
-            if (quote) {
-                flushParagraph();
-                closeLists();
-                const quotedLines = [String(quote[1] || "").trim()];
-                let j = i + 1;
-                while (j < lines.length) {
-                    const next = String(lines[j] || "");
-                    const m = next.trim().match(/^>\s?(.*)$/);
-                    if (!m) break;
-                    quotedLines.push(String(m[1] || "").trim());
-                    j++;
-                }
-                const qAdmonition = quotedLines[0].match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i);
-                if (qAdmonition) {
-                    const kind = qAdmonition[1].toLowerCase();
-                    const bodyLines = quotedLines.slice(1).filter((line) => line !== "");
-                    const body = bodyLines.length ? `<p>${bodyLines.map(renderInlineMarkdown).join("<br>")}</p>` : "";
-                    html.push(`<div class="admonition ${kind}"><div class="admonition-title">${qAdmonition[1].toUpperCase()}</div>${body}</div>`);
-                } else {
-                    html.push(`<blockquote><p>${quotedLines.map(renderInlineMarkdown).join("<br>")}</p></blockquote>`);
-                }
-                i = j - 1;
-                continue;
-            }
-
-            const listItem = rawLine.match(/^([ \t]*)([-*+]|\d+\.)\s+(.+)$/);
-            if (listItem) {
-                flushParagraph();
-                const indentText = String(listItem[1] || "").replace(/\t/g, "    ");
-                const indent = indentText.length;
-                const marker = String(listItem[2] || "");
-                const content = String(listItem[3] || "");
-                const type = /^\d+\.$/.test(marker) ? "ol" : "ul";
-
-                while (listStack.length && indent < listStack[listStack.length - 1].indent) {
-                    closeOneList();
-                }
-                if (listStack.length && indent === listStack[listStack.length - 1].indent && listStack[listStack.length - 1].type !== type) {
-                    closeOneList();
-                }
-                if (!listStack.length || indent > listStack[listStack.length - 1].indent || listStack[listStack.length - 1].type !== type) {
-                    html.push(type === "ol" ? "<ol>" : "<ul>");
-                    listStack.push({type, indent});
-                }
-
-                html.push(`<li>${renderInlineMarkdown(content)}</li>`);
-                continue;
-            }
-
-            paragraph.push(trimmed);
-        }
-
-        flushParagraph();
-        closeLists();
-        if (inCode) {
-            const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
-            html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
-        }
-        return html.join("\n");
+        return markdownRenderer.render(markdownText);
     }
 
     function goBack() {

@@ -15,12 +15,12 @@
   - Added `ClassNextCloudPhotos` backend service with album/assets upload, download, cleanup, and rename/remove workflows.
   - Added Google Photos integration (official Library API based) across CLI, execution modes, automatic migration, and web interface.
   - Added a dedicated `Google Photos` tab in the web interface (next to `Google Takeout`).
-  - Added `ClassGooglePhotos` backend service with OAuth refresh-token auth and supported upload/download modules.
-  - Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).
   - Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.
   - Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.
   - Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments.
   - Added a new `Upload to Server` tab in the web interface with destination-folder picker, separate `Upload Local Folder` and `Upload Local Zip` actions, and optional ZIP extraction mode (`Extract ZIPs on upload`: Yes/No).
+  - Added `ClassGooglePhotos` backend service with OAuth refresh-token auth and supported upload/download modules.
+  - Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).
 
 #### 🚀 Enhancements:
   - Extended automatic migration endpoint parsing in web UI to support `nextcloud[-photos][-1..3]` for both source and target.
@@ -36,6 +36,7 @@
   - Enhancements in Web UI.
   - Forbidden Import/Export/Save configuration file in demo roles.
   - Added NextCloud dual-folder configuration in `Config.ini` and config loader with per-account `NEXTCLOUD_PHOTOS_FOLDER_<id>` (assets/no-albums) and `NEXTCLOUD_ALBUMS_FOLDER_<id>` (folder-based albums).
+  - Separated markdown render in a new static file
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
@@ -48,6 +49,7 @@
   - Added NextCloud Photos help page and linked it from README/help index.
   - Added Google Photos help page and linked it from README/help index.
   - Updated CLI/configuration/automatic-migration docs to include NextCloud and Google Photos support.
+  - Changed header styles in help documents.
   - Updated documentation with all changes.
 
 ---

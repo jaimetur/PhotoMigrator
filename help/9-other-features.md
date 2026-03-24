@@ -1,4 +1,4 @@
-# <span style="color:green">🛠️ Other Standalone Extra Features</span>
+# 🛠️ Other Standalone Extra Features
 
 Additionally, this Tool can be executed with 4 Standalone Extra Features: 
  
@@ -10,7 +10,7 @@ Additionally, this Tool can be executed with 4 Standalone Extra Features:
 If more than one Stand Alone Extra Feature is detected, only the first one will be executed
 
 
-# <span style="color:blue"> Find Duplicates (Extra Feature)</span>
+# Find Duplicates (Extra Feature)
 - **From:** v1.4.0
 - **Usage:**
   - To run this feature you have to use the argument `-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>`
@@ -34,7 +34,7 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
   and will move (because the selected action is `move`) the others duplicates files into the ´<DUPLICATES_FOLDER>´ folder.
 
 
-# <span style="color:blue"> Process Duplicates (Extra Feature)</span>
+# Process Duplicates (Extra Feature)
 - **From:** v1.6.0
 - **Usage:**
   - To run this feature you have to use the argument `-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>`
@@ -58,7 +58,7 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
   and for each duplicate, will do the given action according to Action column
 
 
-# <span style="color:blue"> Fix Symbolic Links Broken (Extra Feature)</span>
+# Fix Symbolic Links Broken (Extra Feature)
 - **From:** v1.5.0
 - **Usage:**
   - To run this feature you have to use the argument `-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>`.
@@ -80,7 +80,7 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
 > If you run the Tool without this argument and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
 
 
-# <span style="color:blue"> Folder Rename Content Based (Extra Feature)</span>
+# Folder Rename Content Based (Extra Feature)
 - **From:** v2.0.0
 - **Usage:**
   - To run this feature you have to use the argument `-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>`.
@@ -117,9 +117,7 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
 > If you don't want to lose your original subfolder names, you should make a backup before to run this feature.
 
 ---
-
 ## 🏠 [Back to Main Page](/README.md)
-
 
 ---
 ## 🎖️ Credits:

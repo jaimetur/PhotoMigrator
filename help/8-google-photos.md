@@ -1,4 +1,4 @@
-# <span style="color:green">Google Photos Management</span>
+# Google Photos Management
 
 From version 4.0.0 onwards, the Tool can connect to Google Photos using the official Library API (OAuth).
 
@@ -71,7 +71,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_3   = your_refresh_token_3
 > Unsupported management actions are exposed for CLI/UI compatibility but run as no-op with warning.
 > ⚠️ ** Some operations in PhotoMigrator are intentionally no-op for Google Photos because the public API does not support them.**
 
-## <span style="color:blue">How to get Google OAuth credentials</span>
+## How to get Google OAuth credentials
 To use Google Photos modules you need:
 - `GOOGLE_PHOTOS_CLIENT_ID_<N>`
 - `GOOGLE_PHOTOS_CLIENT_SECRET_<N>`
@@ -105,7 +105,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Refresh tokens may be invalidated if you revoke app access or rotate client secrets.
 
 
-## <span style="color:blue">Upload Albums:</span>
+## Upload Albums:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --upload-albums <ALBUMS_FOLDER>`
@@ -120,7 +120,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   ```
 
 
-## <span style="color:blue">Download Albums:</span>
+## Download Albums:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --download-albums <ALBUMS_NAME> --output-folder <OUTPUT_FOLDER>`
@@ -138,7 +138,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Due current Google Photos API restrictions/scopes, download operations can be limited to media items accessible by the app context (commonly app-created data, depending on granted scopes).
 
 
-## <span style="color:blue">Upload All:</span>
+## Upload All:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --upload-all <INPUT_FOLDER>`
@@ -154,7 +154,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   ```
 
 
-## <span style="color:blue">Download All:</span>
+## Download All:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --download-all <OUTPUT_FOLDER>`
@@ -173,7 +173,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Due current Google Photos API restrictions/scopes, download operations can be limited to media items accessible by the app context (commonly app-created data, depending on granted scopes).
 
 
-## <span style="color:blue">Remove All Assets:</span>
+## Remove All Assets:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --remove-all-assets`
@@ -190,7 +190,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Currently a no-op for Google Photos integration.
 
 
-## <span style="color:blue">Remove All Albums:</span>
+## Remove All Albums:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --remove-all-albums --remove-albums-assets`
@@ -207,7 +207,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Currently a no-op for Google Photos integration.
 
 
-## <span style="color:blue">Remove Albums by Name Pattern:</span>
+## Remove Albums by Name Pattern:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --remove-albums <ALBUMS_NAME_PATTERN> --remove-albums-assets`
@@ -224,7 +224,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Currently a no-op for Google Photos integration.
 
 
-## <span style="color:blue">Rename Albums by Name Pattern:</span>
+## Rename Albums by Name Pattern:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --rename-albums <ALBUMS_NAME_PATTERN> <ALBUMS_NAME_REPLACEMENT_PATTERN>`
@@ -241,7 +241,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Currently a no-op for Google Photos integration.
 
 
-## <span style="color:blue">Remove Empty Albums:</span>
+## Remove Empty Albums:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --remove-empty-albums`
@@ -258,7 +258,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Currently a no-op for Google Photos integration.
 
 
-## <span style="color:blue">Remove Duplicates Albums:</span>
+## Remove Duplicates Albums:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --remove-duplicates-albums`
@@ -275,7 +275,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Currently a no-op for Google Photos integration.
 
 
-## <span style="color:blue">Merge Duplicates Albums:</span>
+## Merge Duplicates Albums:
 - **From:** v4.0.0
 - **Usage:**
   - `./PhotoMigrator.run --client=google-photos --merge-duplicates-albums`
@@ -292,11 +292,15 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Currently a no-op for Google Photos integration.
 
 ---
-
-## Config.ini
-Configuration details:
-[Configuration File](/help/0-configuration-file.md)
+## ⚙️ Config.ini
+You can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-configuration-file.md) 
 
 ---
+## 🏠 [Back to Main Page](/README.md)
+    
+---
+## 🎖️ Credits:
+I hope this can be useful for any of you. Enjoy it!
 
-## [Back to Main Page](/README.md)
+<span style="color:grey">(c) 2024-2026 by Jaime Tur (@jaimetur).</span>  

@@ -151,14 +151,6 @@ Main characteristics:
 - Real command preview + execution output in the browser.
 - Backend powered by `FastAPI` + `uvicorn` on port `6078`.
 
-Web interface source code:
-- `src/web_interface/app.py`
-- `src/web_interface/html/login.html`
-- `src/web_interface/html/index.html`
-- `src/web_interface/html/admin.html`
-- `src/web_interface/html/doc_view.html`
-- `src/web_interface/static/style.css`
-
 > [!NOTE]
 > You can access to the new Web Interface (demo) on this link: 
 > 

@@ -287,7 +287,6 @@ Processes duplicates based on a CSV file with actions.
 ```
 
 ---
-
 ## 🏠 [Back to Main Page](/README.md)
 
 ---

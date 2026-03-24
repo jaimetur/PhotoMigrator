@@ -1,4 +1,4 @@
-# <span style="color:green">🖼️ Synology Photos Management</span>
+# 🖼️ Synology Photos Management
 
 From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login into Synology Photos App with your credentials. 
 
@@ -47,7 +47,7 @@ The available filters are:
 
 The credentials/API Key need to be loaded from the `Config.ini` file that  have this format:
 
-#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
+#### Example 'Config.ini' for Immich Photos:
 
 ```
 # Configuration for Synology Photos
@@ -70,7 +70,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 > If your Synology Photo Account requires 2FA Authentication, you must use the argument _**`-OTP, --one-time-password`**_ in order to enable the OTP Token request during authentication process. 
 
 
-## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
+## Upload Albums (from Local Folder) into Synology Photos:
 - **From:** v2.0.0 
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -87,7 +87,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   With this example, the Tool will connect to your Synology Photos account and process the folder `./My_Albums_Folder` and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
   
 
-## <span style="color:blue">Download Albums from Synology Photos:</span>
+## Download Albums from Synology Photos:
 - **From:** v2.3.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -112,7 +112,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 > \<ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will not extract anything. 
 
 
-## <span style="color:blue">Upload All (from Local Folder) into Synology Photos:</span>
+## Upload All (from Local Folder) into Synology Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -132,7 +132,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   With this example, the Tool will connect to your Synology Photos account and process the folder ./MyLibrary and will upload all supported assets found on it, creating a new Album per each subfolder found within `./MyLibrary/Albums` folder.
 
 
-## <span style="color:blue">Download All from Synology Photos:</span>
+## Download All from Synology Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -151,7 +151,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   With this example, the Tool will connect to your Synology Photos account and download ALL your library into the local folder ./MyLibrary.
   
 
-## <span style="color:blue">Remove All Assets from Synology Photos:</span>
+## Remove All Assets from Synology Photos:
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -170,7 +170,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 > This process is irreversible and will clean all from your Synology Photos account. Use it if you are completely sure of what you are doing.
   
 
-## <span style="color:blue">Remove All Albums from Synology Photos:</span>
+## Remove All Albums from Synology Photos:
 - **From:** v3.0.0 
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -191,7 +191,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Synology Photos account. Use it if you are completely sure of what you are doing.
 
 
-## <span style="color:blue">Remove Albums by Name Pattern from Synology Photos:</span>
+## Remove Albums by Name Pattern from Synology Photos:
 - **From:** v3.3.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -212,7 +212,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 > This process is irreversible and will remove all the Albums (and optionally also all the assets included) whose name matches with the provided pattern from your Synology Photos account. Use it if you are completely sure of what you are doing.
       
 
-## <span style="color:blue">Rename Albums by Name Pattern from Synology Photos:</span>
+## Rename Albums by Name Pattern from Synology Photos:
 - **From:** v3.3.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -229,7 +229,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   With this example, the Tool will connect to your Synology Photos account and will rename all Albums whose name contains a date like this ("2023-08-15 - Vacation photos") replacing the date with the string "DATE", as a result the new album name would be: "DATE - Vacation photos".
    
 
-## <span style="color:blue">Remove Empty Albums from Synology Photos:</span>
+## Remove Empty Albums from Synology Photos:
 - **From:** v2.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -246,7 +246,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   With this example, the Tool will connect to your Synology Photos account and will remove all Empty Albums found.
 
 
-## <span style="color:blue">Remove Duplicates Albums from Synology Photos:</span>
+## Remove Duplicates Albums from Synology Photos:
 - **From:** v2.0.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -263,7 +263,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one.
 
 
-## <span style="color:blue">Merge Duplicates Albums from Synology Photos:</span>
+## Merge Duplicates Albums from Synology Photos:
 - **From:** v3.3.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
@@ -280,15 +280,12 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one transferring all the assets from the removed albums into the main one.
 
 ---
-
 ## ⚙️ Config.ini
 You can see how to configure the Config.ini file in this help section:
 [Configuration File](/help/0-configuration-file.md) 
 
 ---
-
 ## 🏠 [Back to Main Page](/README.md)
-
 
 ---
 ## 🎖️ Credits:
