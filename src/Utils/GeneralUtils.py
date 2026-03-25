@@ -45,6 +45,7 @@ class TqdmLoggerConsole:
         self._buffer = ""
         self._console_state = {}
         self._progress_snapshots = {}
+        self._completed_progress = {}
 
     def _normalize_message(self, message: str) -> str:
         text = str(message or "")
@@ -195,6 +196,20 @@ class TqdmLoggerConsole:
 
     def _emit_live_progress(self, handler, message: str, progress_state):
         key, current, total, pct = progress_state
+        done = (total > 0 and current >= total) or pct >= 100.0
+        handler_id = id(handler)
+
+        # tqdm can emit the same final 100% frame twice (last refresh + close).
+        # Keep only one final line per progress key/current/total.
+        completed_by_key = self._completed_progress.setdefault(handler_id, {})
+        completed_state = (int(current), int(total))
+        if done:
+            if completed_by_key.get(key) == completed_state:
+                return
+            completed_by_key[key] = completed_state
+        else:
+            completed_by_key.pop(key, None)
+
         stream = getattr(handler, "stream", None)
         if stream is None:
             self._emit_record(handler, message)
@@ -222,7 +237,6 @@ class TqdmLoggerConsole:
             self._emit_record(handler, message)
             return
 
-        done = (total > 0 and current >= total) or pct >= 100.0
         if done:
             try:
                 stream.write("\n")
