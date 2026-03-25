@@ -643,7 +643,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             all_albums = []
             try:
                 LOGGER.info(f"Retrieving Albums on '{source_client_name}' matching filters criteria (if any). This process may take some time, please be patient...")
-                all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.WARNING)
+                all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.INFO)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving All Albums from '{source_client_name}'. - {e}")
 
@@ -699,12 +699,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
             all_no_albums_assets = []
             try:
-                all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
+                all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.INFO)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving Assets without albums from '{source_client_name}' - {e}")
             all_albums_assets = []
             try:
-                all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.WARNING)
+                all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.INFO)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving Albums's Assets from '{source_client_name}' - {e}")
 
@@ -1415,6 +1415,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
             LOGGER.info(f"Detected terminal height = {terminal_height}")
             LOGGER.info(f"Detected terminal width  = {terminal_width}")
+
+            # In web-interface mode, the browser dashboard is the canonical live renderer.
+            if os.environ.get("PHOTOMIGRATOR_WEB_MODE") == "1":
+                LOGGER.info("Using Web Interface Live Dashboard...")
+                ARGS['dashboard'] = False
+                return
 
             if terminal_height < MIN_TERMINAL_HEIGHT:
                 LOGGER.info(f"Cannot display Live Dashboard because the detected terminal height = {terminal_height} and the minumum needed height = {MIN_TERMINAL_HEIGHT}. Continuing without Live Dashboard...")

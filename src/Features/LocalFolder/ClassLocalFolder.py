@@ -103,6 +103,20 @@ class ClassLocalFolder:
 
         self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
 
+    @staticmethod
+    def _effective_analyzer_log_level(log_level=None):
+        """
+        Ensure analyzer bootstrap has at least INFO visibility so tqdm progress is
+        not hidden when callers pass WARNING/ERROR.
+        """
+        if log_level is None:
+            return logging.INFO
+        try:
+            value = int(log_level)
+        except (TypeError, ValueError):
+            return logging.INFO
+        return value if value <= logging.INFO else logging.INFO
+
 
     ###########################################################################
     #                           GENERAL UTILITY                               #
@@ -111,7 +125,8 @@ class ClassLocalFolder:
         """
         Ensure FolderAnalyzer is initialized lazily, reading filters from ARGS.
         """
-        with set_log_level(LOGGER, log_level):
+        effective_log_level = self._effective_analyzer_log_level(log_level)
+        with set_log_level(LOGGER, effective_log_level):
             if not hasattr(self, 'analyzer') or self.analyzer is None:
                 LOGGER.info(f"{step_name}Initializing analyzer for {self.base_folder}. This process may take long time. Please be patient…")
 
@@ -380,7 +395,8 @@ class ClassLocalFolder:
                         - 'id': Full path of the album folder.
                         - 'albumName': Name of the album folder.
         """
-        with set_log_level(LOGGER, log_level):
+        effective_log_level = self._effective_analyzer_log_level(log_level)
+        with set_log_level(LOGGER, effective_log_level):
             LOGGER.info("Retrieving owned albums.")
 
             cache_key = f"owned_{filter_assets}"
@@ -388,7 +404,7 @@ class ClassLocalFolder:
                 LOGGER.debug("Returning cached owned albums.")
                 return self.albums_owned_by_user[cache_key]
 
-            self._ensure_analyzer(log_level=log_level)
+            self._ensure_analyzer(log_level=effective_log_level)
 
             base = Path(self.albums_folder.resolve())
             owned = []
@@ -493,11 +509,12 @@ class ClassLocalFolder:
         Retrieves both owned and shared albums that contain at least one asset
         passing the current filters.
         """
-        with set_log_level(LOGGER, log_level):
+        effective_log_level = self._effective_analyzer_log_level(log_level)
+        with set_log_level(LOGGER, effective_log_level):
             try:
                 LOGGER.info("Retrieving owned and shared albums.")
                 # Inicializa el analyzer y sus folder_assets
-                self._ensure_analyzer(log_level=log_level)
+                self._ensure_analyzer(log_level=effective_log_level)
 
                 base_owned = Path(self.albums_folder.resolve())
                 base_shared = Path(self.shared_albums_folder.resolve())

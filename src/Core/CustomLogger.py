@@ -201,6 +201,32 @@ class LoggerCapture:
         pass  # not required for logging
 
 
+class SafeStreamHandler(logging.StreamHandler):
+    """
+    StreamHandler that never drops logs due to console encoding errors.
+
+    On Windows terminals using cp1252, emoji or other non-encodable chars can
+    raise UnicodeEncodeError and hide important progress lines. This handler
+    falls back to replacement characters instead.
+    """
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            stream = self.stream
+            terminator = self.terminator
+            try:
+                stream.write(msg + terminator)
+            except UnicodeEncodeError:
+                encoding = getattr(stream, "encoding", None) or "utf-8"
+                safe_msg = str(msg).encode(encoding, errors="replace").decode(encoding, errors="replace")
+                stream.write(safe_msg + terminator)
+            self.flush()
+        except RecursionError:
+            raise
+        except Exception:
+            self.handleError(record)
+
+
 def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip_logfile=False, skip_console=False, format='log'):
     """
     Configure a logger to write to console and to log files simultaneously.
@@ -223,7 +249,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
 
     if not skip_console:
         # Set up console handler (simple output without asctime)
-        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler = SafeStreamHandler(sys.stdout)
         console_handler.setLevel(log_level)
         console_handler.setFormatter(
             CustomConsoleFormatter(

@@ -489,4 +489,17 @@ def pre_parse_args():
 
 
 if __name__ == "__main__":
-    PhotoMigrator()
+    try:
+        PhotoMigrator()
+    except KeyboardInterrupt:
+        try:
+            print("")
+            if GV.LOGGER:
+                GV.LOGGER.warning("Execution interrupted by user (Ctrl+C).")
+            else:
+                custom_print("Execution interrupted by user (Ctrl+C).", log_level=logging.WARNING)
+        except Exception:
+            pass
+        finally:
+            logging.shutdown()
+        raise SystemExit(130)

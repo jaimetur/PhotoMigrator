@@ -23,6 +23,14 @@ from Core.GlobalVariables import VIDEO_EXT, PHOTO_EXT, MSG_TAGS, VERBOSE_LEVEL_N
 
 TQDM_DASHBOARD_PREFIX = "__TQDM__ "
 TQDM_DASHBOARD_META_PREFIX = "__TQDM_META__ "
+ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
+TQDM_PROGRESS_RE = re.compile(
+    r"(?P<pct>\d{1,3})%\|[^|]*\|\s*(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)"
+)
+CUSTOM_PROGRESS_RE = re.compile(
+    r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
+    r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+(?P<pct>\d+(?:\.\d+)?)%\s*$"
+)
 
 
 # ------------------------------------------------------------------
@@ -35,6 +43,8 @@ class TqdmLoggerConsole:
         self.level = level
         self.levelname = logging.getLevelName(level)
         self._buffer = ""
+        self._console_state = {}
+        self._progress_snapshots = {}
 
     def _normalize_message(self, message: str) -> str:
         text = str(message or "")
@@ -84,8 +94,8 @@ class TqdmLoggerConsole:
 
         return None
 
-    def _emit_record(self, handler, payload: str):
-        handler.emit(logging.LogRecord(
+    def _build_log_record(self, payload: str):
+        return logging.LogRecord(
             name=self.logger.name,
             level=self.level,
             pathname="",
@@ -93,12 +103,161 @@ class TqdmLoggerConsole:
             msg=payload,
             args=(),
             exc_info=None
-        ))
+        )
+
+    def _emit_record(self, handler, payload: str):
+        stream = getattr(handler, "stream", None)
+        encoding = getattr(stream, "encoding", None) if stream is not None else None
+        safe_payload = payload
+        if encoding:
+            try:
+                str(payload).encode(encoding)
+            except UnicodeEncodeError:
+                safe_payload = str(payload).encode(encoding, errors="replace").decode(encoding, errors="replace")
+        handler.emit(self._build_log_record(safe_payload))
+
+    def _strip_ansi(self, text: str) -> str:
+        return ANSI_ESCAPE_RE.sub("", str(text or ""))
+
+    def _parse_int(self, value, default=0):
+        try:
+            return int(str(value or "").replace(",", "").strip())
+        except (TypeError, ValueError):
+            return default
+
+    def _extract_progress_state(self, message: str):
+        """
+        Parse tqdm/custom progress lines and return:
+          (key, current, total, pct)
+        """
+        text = self._strip_ansi(str(message or "")).replace("\r", "").strip()
+        if not text:
+            return None
+
+        custom_match = CUSTOM_PROGRESS_RE.match(text)
+        if custom_match:
+            desc = str(custom_match.group("desc") or "").strip(" :-") or "Progress"
+            current = self._parse_int(custom_match.group("current"), 0)
+            total = self._parse_int(custom_match.group("total"), 0)
+            try:
+                pct = float(str(custom_match.group("pct") or "0").strip())
+            except ValueError:
+                pct = 0.0
+            return desc.lower(), current, total, pct
+
+        tqdm_match = TQDM_PROGRESS_RE.search(text)
+        if tqdm_match:
+            desc = text[:tqdm_match.start()].strip(" :-") or "Progress"
+            current = self._parse_int(tqdm_match.group("current"), 0)
+            total = self._parse_int(tqdm_match.group("total"), 0)
+            pct = float(self._parse_int(tqdm_match.group("pct"), 0))
+            return desc.lower(), current, total, pct
+
+        return None
+
+    def _is_tty_console_handler(self, handler) -> bool:
+        if not isinstance(handler, logging.StreamHandler) or isinstance(handler, logging.FileHandler):
+            return False
+        stream = getattr(handler, "stream", None)
+        if stream is None:
+            return False
+        isatty = getattr(stream, "isatty", None)
+        if not callable(isatty):
+            return False
+        try:
+            return bool(isatty())
+        except Exception:
+            return False
+
+    def _close_active_progress_line(self, handler):
+        state = self._console_state.get(id(handler))
+        if not state or not state.get("active"):
+            return
+        stream = getattr(handler, "stream", None)
+        if stream is None:
+            state["active"] = False
+            state["key"] = None
+            state["last_len"] = 0
+            return
+        try:
+            stream.write("\n")
+            stream.flush()
+        except Exception:
+            pass
+        state["active"] = False
+        state["key"] = None
+        state["last_len"] = 0
+
+    def _close_all_console_progress_lines(self):
+        for handler in self.logger.handlers:
+            if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+                self._close_active_progress_line(handler)
+
+    def _emit_live_progress(self, handler, message: str, progress_state):
+        key, current, total, pct = progress_state
+        stream = getattr(handler, "stream", None)
+        if stream is None:
+            self._emit_record(handler, message)
+            return
+
+        state = self._console_state.setdefault(
+            id(handler), {"active": False, "key": None, "last_len": 0}
+        )
+
+        if state["active"] and state.get("key") != key:
+            self._close_active_progress_line(handler)
+
+        record = self._build_log_record(message)
+        formatted = handler.format(record)
+        visible_len = len(self._strip_ansi(formatted))
+
+        try:
+            if state["active"]:
+                stream.write("\r")
+            stream.write(formatted)
+            if state["last_len"] > visible_len:
+                stream.write(" " * (state["last_len"] - visible_len))
+            stream.flush()
+        except Exception:
+            self._emit_record(handler, message)
+            return
+
+        done = (total > 0 and current >= total) or pct >= 100.0
+        if done:
+            try:
+                stream.write("\n")
+                stream.flush()
+            except Exception:
+                pass
+            state["active"] = False
+            state["key"] = None
+            state["last_len"] = 0
+            return
+
+        state["active"] = True
+        state["key"] = key
+        state["last_len"] = visible_len
+
+    def _should_emit_progress_snapshot(self, handler, progress_state) -> bool:
+        """
+        In non-live mode, collapse repeated updates that keep the same current/total
+        for the same logical progress key.
+        """
+        key, current, total, pct = progress_state
+        handler_id = id(handler)
+        by_key = self._progress_snapshots.setdefault(handler_id, {})
+        prev = by_key.get(key)
+        now = (int(current), int(total))
+        by_key[key] = now
+        if prev is None:
+            return True
+        return prev != now
 
     def _emit_to_handlers(self, message: str):
         if not message:
             return
         message = self._normalize_message(message)
+        progress_state = self._extract_progress_state(message)
 
         for handler in self.logger.handlers:
             if getattr(handler, "accept_tqdm", False):
@@ -109,6 +268,19 @@ class TqdmLoggerConsole:
                 continue
 
             if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+                env_live_tqdm = os.environ.get("PHOTOMIGRATOR_CLI_LIVE_TQDM")
+                if env_live_tqdm is None:
+                    live_tqdm_cli = self._is_tty_console_handler(handler)
+                else:
+                    live_tqdm_cli = env_live_tqdm == "1"
+                if progress_state and self._is_tty_console_handler(handler) and live_tqdm_cli:
+                    self._emit_live_progress(handler, message, progress_state)
+                    continue
+
+                if progress_state and not self._should_emit_progress_snapshot(handler, progress_state):
+                    continue
+
+                self._close_active_progress_line(handler)
                 self._emit_record(handler, message)
 
     def write(self, message):
@@ -118,10 +290,12 @@ class TqdmLoggerConsole:
         self._buffer += str(message)
         while True:
             split_idx = None
-            for sep in ("\r", "\n"):
-                idx = self._buffer.find(sep)
+            split_sep = None
+            for candidate_sep in ("\r", "\n"):
+                idx = self._buffer.find(candidate_sep)
                 if idx != -1 and (split_idx is None or idx < split_idx):
                     split_idx = idx
+                    split_sep = candidate_sep
             if split_idx is None:
                 break
 
@@ -129,12 +303,18 @@ class TqdmLoggerConsole:
             self._buffer = self._buffer[split_idx + 1:]
             if chunk:
                 self._emit_to_handlers(chunk)
+            if split_sep == "\n":
+                self._close_all_console_progress_lines()
 
     def flush(self):
         chunk = self._buffer.strip()
         self._buffer = ""
         if chunk:
             self._emit_to_handlers(chunk)
+
+    def close(self):
+        self.flush()
+        self._close_all_console_progress_lines()
 
     def isatty(self):
         """Trick tqdm into treating this as an interactive terminal."""
@@ -202,17 +382,50 @@ def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live
     return final_result
 
 
-# Redefine `tqdm` to use a logger-backed stream if `file` is not specified and we are in Automatic-Migration mode.
+def _console_stream_supports_unicode(logger) -> bool:
+    """
+    Best-effort detection for UTF-capable console handlers.
+    """
+    handlers = list(getattr(logger, "handlers", []) or [])
+    found_console = False
+    for handler in handlers:
+        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+            found_console = True
+            stream = getattr(handler, "stream", None)
+            encoding = str(getattr(stream, "encoding", "") or "").lower()
+            if "utf" in encoding:
+                return True
+    return not found_console
+
+
+# Redefine `tqdm` to use a logger-backed stream if `file` is not specified.
 def tqdm(*args, **kwargs):
     """
     Wrapper around `tqdm` that redirects progress output to the console logger handlers
-    when running in Automatic-Migration mode with dashboard enabled.
+    so CLI and web can render consistent progress lines.
     """
-    if GV.ARGS and GV.ARGS.get('AUTOMATIC-MIGRATION') and 'file' not in kwargs:
+    if 'file' not in kwargs and GV.LOGGER:
         handlers = list(getattr(GV.LOGGER, "handlers", []) or [])
-        has_dashboard_handler = any(getattr(handler, "accept_tqdm", False) for handler in handlers)
-        if GV.ARGS.get('dashboard') is True or has_dashboard_handler:
+        can_route_tqdm = any(
+            getattr(handler, "accept_tqdm", False) or (
+                isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
+            )
+            for handler in handlers
+        )
+        if can_route_tqdm:
             kwargs['file'] = TqdmLoggerConsole(GV.LOGGER, logging.INFO)
+            # Prefer Unicode block bars when terminal supports UTF.
+            # Fallback to plain ASCII for legacy encodings.
+            if 'ascii' not in kwargs:
+                force_ascii = os.environ.get("PHOTOMIGRATOR_TQDM_FORCE_ASCII", "0") == "1"
+                custom_ascii = os.environ.get("PHOTOMIGRATOR_TQDM_ASCII_CHARS")
+                if force_ascii or custom_ascii is not None:
+                    ascii_chars = custom_ascii if custom_ascii is not None else " .#"
+                    if not isinstance(ascii_chars, str) or len(ascii_chars) < 2:
+                        ascii_chars = " .#"
+                    kwargs['ascii'] = ascii_chars
+                else:
+                    kwargs['ascii'] = False if _console_stream_supports_unicode(GV.LOGGER) else " .#"
     return original_tqdm(*args, **kwargs)
 
 

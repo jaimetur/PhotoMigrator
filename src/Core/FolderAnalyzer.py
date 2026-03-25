@@ -39,6 +39,7 @@ class FolderAnalyzer:
         Initialize the FolderAnalyzer from a given folder or existing extracted_dates.
         If folder_path is provided, walk through all files.
         """
+        self.folder_path_input = os.path.abspath(folder_path) if folder_path else None
         self.folder_path = Path(folder_path).resolve().as_posix() if folder_path else None
         self.metadata_json_file = metadata_json_file
 
@@ -914,20 +915,43 @@ class FolderAnalyzer:
             - Displays progress with tqdm and estimated times.
             """
             with set_log_level(self.logger, log_level):
-                self.logger.info(f"{step_name}📅 Extracting Dates for '{self.folder_path}'...")
-                json_files = [f for f in self.file_list if Path(f).suffix.lower() == '.json']
+                folder_label = self.folder_path_input or self.folder_path
+                self.logger.info(f"{step_name}📅 Extracting Dates for '{folder_label}'...")
+                media_extensions = set(PHOTO_EXT).union(VIDEO_EXT)
+                total_files = len(self.file_list)
 
-                # Filter the file list to only include supported photo and video extensions
-                media_files = [f for f in self.file_list if Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
-
-                # Filter the file list to only include supported photo and video extensions, and exclude any symlinks (only real files).
-                # media_files = [f for f in self.file_list if not Path(f).is_symlink() and Path(f).suffix.lower() in set(PHOTO_EXT).union(VIDEO_EXT)]
-
-                symlinks = [f for f in self.file_list if Path(f).is_symlink()]
+                # Pre-scan files with visible progress to classify media/json and detect symlinks.
+                json_files = []
+                media_files = []
+                symlinks = []
+                with tqdm(
+                    total=total_files,
+                    desc=f"{MSG_TAGS['INFO']}{step_name}🔎 Scanning Files",
+                    unit="file",
+                    smoothing=0.1,
+                    dynamic_ncols=True,
+                    leave=True,
+                ) as scan_pbar:
+                    try:
+                        for file_path in self.file_list:
+                            suffix = Path(file_path).suffix.lower()
+                            if suffix == '.json':
+                                json_files.append(file_path)
+                            if suffix in media_extensions:
+                                media_files.append(file_path)
+                            try:
+                                if Path(file_path).is_symlink():
+                                    symlinks.append(file_path)
+                            except OSError:
+                                # Broken/inaccessible entries are ignored for symlink counting.
+                                pass
+                            scan_pbar.update(1)
+                    except KeyboardInterrupt:
+                        self.logger.warning(f"{step_name}Symlink scanning interrupted by user (Ctrl+C).")
+                        raise
 
                 file_blocks = [media_files[i:i + block_size] for i in range(0, len(media_files), block_size)]
                 total_blocks = len(file_blocks)
-                total_files = len(self.file_list)
                 total_media_files = len(media_files)
                 total_json_files = len(json_files)
                 total_symlinks = len(symlinks)
@@ -954,21 +978,25 @@ class FolderAnalyzer:
                     }
 
                     with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True) as pbar:
-                        for future in as_completed(future_to_index):
-                            result = future.result()
-                            self.extracted_dates.update(result)
-                            completed_blocks += 1
-                            elapsed = time.time() - start_time
-                            current_block_time = elapsed / completed_blocks
-                            avg_block_time = current_block_time if avg_block_time is None else (avg_block_time + current_block_time) / 2
-                            est_total = avg_block_time * total_blocks
-                            est_remain = est_total - elapsed
-                            pbar.set_postfix({
-                                "Elapsed": f"{int(elapsed // 60)}m",
-                                "ETA": f"{int(est_remain // 60)}m",
-                                "Total": f"{int(est_total // 60)}m"
-                            })
-                            pbar.update(1)
+                        try:
+                            for future in as_completed(future_to_index):
+                                result = future.result()
+                                self.extracted_dates.update(result)
+                                completed_blocks += 1
+                                elapsed = time.time() - start_time
+                                current_block_time = elapsed / completed_blocks
+                                avg_block_time = current_block_time if avg_block_time is None else (avg_block_time + current_block_time) / 2
+                                est_total = avg_block_time * total_blocks
+                                est_remain = est_total - elapsed
+                                pbar.set_postfix({
+                                    "Elapsed": f"{int(elapsed // 60)}m",
+                                    "ETA": f"{int(est_remain // 60)}m",
+                                    "Total": f"{int(est_total // 60)}m"
+                                })
+                                pbar.update(1)
+                        except KeyboardInterrupt:
+                            self.logger.warning(f"{step_name}Date extraction interrupted by user (Ctrl+C).")
+                            raise
 
         # Call the main function to start the process
         main()
