@@ -223,12 +223,12 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         LOGGER.info(f"")
         LOGGER.info(f"*** Automatic Migration Mode *** detected")
-        LOGGER.info('-' * terminal_width)
+        LOGGER.info('-' * (terminal_width-10))
         if not isinstance(source_client, ClassTakeoutFolder):
             LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
         else:
             LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
-        LOGGER.info('-' * (terminal_width))
+        LOGGER.info('-' * (terminal_width-10))
         LOGGER.info(f"Source Client  : {source_client_name}")
         LOGGER.info(f"Target Client  : {target_client_name}")
         LOGGER.info(f"Temp Folder    : {INTERMEDIATE_FOLDER}")
