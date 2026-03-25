@@ -1722,8 +1722,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             )
             bg_progress_rows = {}
             bg_progress_colors = ["bright_yellow", "bright_blue", "bright_magenta", "bright_green"]
-            bg_completed_retention_sec = 2.0
+            bg_completed_retention_sec = 5.0
             bg_progress_next_color_idx = 0
+            bg_progress_version = 0
 
             def _parse_int(value, default=0):
                 try:
@@ -1752,7 +1753,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 )
 
             def _upsert_bg_progress(desc, current, total):
-                nonlocal bg_progress_next_color_idx
+                nonlocal bg_progress_next_color_idx, bg_progress_version
                 total_value = max(1, int(total))
                 if int(total) <= 0:
                     return False
@@ -1778,6 +1779,22 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 info["bar"].update(info["task_id"], completed=done, total=total_value)
                 info["last_update"] = time.time()
                 info["completed"] = done >= total_value
+                bg_progress_version += 1
+                return True
+
+            def _prune_bg_progress_rows(now=None):
+                nonlocal bg_progress_version
+                if now is None:
+                    now = time.time()
+                to_delete = []
+                for key, info in bg_progress_rows.items():
+                    if info.get("completed") and now - float(info.get("last_update", now)) > bg_completed_retention_sec:
+                        to_delete.append(key)
+                if not to_delete:
+                    return False
+                for key in to_delete:
+                    bg_progress_rows.pop(key, None)
+                bg_progress_version += 1
                 return True
 
             def _consume_progress_line(line):
@@ -1819,24 +1836,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 return False
 
             def build_background_progress_panel():
-                now = time.time()
-                to_delete = []
-                for key, info in bg_progress_rows.items():
-                    if info.get("completed") and now - float(info.get("last_update", now)) > bg_completed_retention_sec:
-                        to_delete.append(key)
-                for key in to_delete:
-                    bg_progress_rows.pop(key, None)
-
                 table = Table.grid(expand=True)
                 table.add_column(justify="left", width=35, no_wrap=True, overflow="ellipsis")
                 table.add_column(justify="left", ratio=1, no_wrap=True)
 
                 if bg_progress_rows:
                     visible_limit = max(1, background_progress_panel_height - 2)
-                    ordered = sorted(
-                        bg_progress_rows.values(),
-                        key=lambda item: (1 if item.get("completed") else 0, -float(item.get("last_update", 0))),
-                    )
+                    ordered = list(bg_progress_rows.values())  # preserve creation order for visual stability
                     for info in ordered[:visible_limit]:
                         label = escape(str(info.get("label", "Progress")))
                         table.add_row(f"[{info['color']}]{label}:[/{info['color']}]", info["bar"])
@@ -1851,64 +1857,66 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             # Lista (o deque) para mantener todo el historial de logs ya mostrados
             logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
             ACCU_LOGS = deque(maxlen=max(2000, logs_panel_height))
+            logs_version = 0
 
+            def _drain_logs_queue():
+                """
+                Consume queued logs/events and updates in-memory states.
+                Returns True when log panel content changed.
+                """
+                nonlocal logs_version
+                changed = False
+                while True:
+                    try:
+                        line = SHARED_DATA.logs_queue.get_nowait()
+                    except Empty:
+                        break
+
+                    # Route tqdm/progress lines to Background Progress panel.
+                    if _consume_progress_line(line):
+                        continue
+
+                    clean_line = ansi_escape_re.sub("", str(line or "").replace("\r", "")).rstrip()
+                    if not clean_line:
+                        continue
+                    safe_line = clean_line
+
+                    line_lower = clean_line.lower()
+                    if "warning :" in line_lower:
+                        line_style = "yellow"
+                    elif "error   :" in line_lower:
+                        line_style = "red"
+                    elif "debug   :" in line_lower:
+                        line_style = "#EEEEEE"
+                    elif "delayed" in line_lower:
+                        line_style = "bright_black"
+                    elif "album created" in line_lower:
+                        line_style = "bright_white"
+                    elif "album pulled" in line_lower:
+                        line_style = "bright_cyan"
+                    elif "album pushed" in line_lower:
+                        line_style = "bright_green"
+                    elif "fail" in line_lower:
+                        line_style = "yellow"
+                    elif "pull" in line_lower and not "push" in line_lower:
+                        line_style = "cyan"
+                    elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
+                        line_style = "green"
+                    else:
+                        line_style = "bright_white"
+
+                    for visual_line in str(safe_line).splitlines():
+                        if visual_line.strip():
+                            ACCU_LOGS.append((visual_line, line_style))
+                            changed = True
+
+                if changed:
+                    logs_version += 1
+                return changed
 
             def build_log_panel():
-                """
-                Lee todos los mensajes pendientes en shared_data.logs_queue y los añade
-                a ACCU_LOGS, que conserva el historial completo.
-                Devuelve un Panel con todo el historial (de modo que se pueda hacer
-                scroll en la terminal si usas vertical_overflow='visible').
-                """
                 title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: '{FOLDERNAME_LOGS}/{os.path.basename(log_file)}')"
                 try:
-                    while True:
-                        # 1) Vaciamos la cola de logs, construyendo el historial completo
-                        try:
-                            line = SHARED_DATA.logs_queue.get_nowait()  # lee un mensaje de la cola
-                        except Empty:
-                            break
-
-                        # Route tqdm/progress lines to Background Progress panel.
-                        if _consume_progress_line(line):
-                            continue
-
-                        clean_line = ansi_escape_re.sub("", str(line or "").replace("\r", "")).rstrip()
-                        if not clean_line:
-                            continue
-                        safe_line = clean_line
-
-                        # Opcional: aplica color según la palabra “pull”/”push”
-                        line_lower = clean_line.lower()
-                        if "warning :" in line_lower:
-                            line_style = "yellow"
-                        elif "error   :" in line_lower:
-                            line_style = "red"
-                        elif "debug   :" in line_lower:
-                            line_style = "#EEEEEE"
-                        elif "delayed" in line_lower:
-                            line_style = "bright_black"
-                        elif "album created" in line_lower:
-                            line_style = "bright_white"
-                        elif "album pulled" in line_lower:
-                            line_style = "bright_cyan"
-                        elif "album pushed" in line_lower:
-                            line_style = "bright_green"
-                        elif "fail" in line_lower:
-                            line_style = "yellow"
-                        elif "pull" in line_lower and not "push" in line_lower:
-                            line_style = "cyan"
-                        elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
-                            line_style = "green"
-                        else:
-                            line_style = "bright_white"
-
-                        # Añadimos la versión coloreada al historial
-                        for visual_line in str(safe_line).splitlines():
-                            if visual_line.strip():
-                                ACCU_LOGS.append((visual_line, line_style))
-
-                    # 2) Unimos todo el historial en un solo string
                     if ACCU_LOGS:
                         logs_text = Text(no_wrap=True, overflow="crop")
                         logs_count = len(ACCU_LOGS)
@@ -1919,50 +1927,128 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                                 logs_text.append("\n")
                     else:
                         logs_text = Text("Initializing...", no_wrap=True, overflow="crop")
-
-                    # 3) Construimos el panel y lo devolvemos
-                    log_panel = Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
-                    return log_panel
-
+                    return Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
                 except Exception as e:
                     LOGGER.error(f"Building Log Panel: {e}")
                     return Panel("Error building log panel", title="📜 Logs Panel", border_style="bright_red", expand=True, title_align="left")
+
+            def _build_info_signature():
+                keys = (
+                    "total_assets", "total_photos", "total_videos", "total_albums", "total_albums_blocked",
+                    "total_metadata", "total_sidecar", "total_invalid", "assets_in_queue",
+                )
+                return tuple(SHARED_DATA.info.get(k) for k in keys)
+
+            def _build_pull_signature():
+                completed_keys = [cfg[1] for cfg in pull_bars.values()]
+                total_keys = [cfg[2] for cfg in pull_bars.values()]
+                failed_keys = list(failed_pulls.values())
+                return (
+                    tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
+                    tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),
+                )
+
+            def _build_push_signature():
+                completed_keys = [cfg[1] for cfg in push_bars.values()]
+                total_keys = [cfg[2] for cfg in push_bars.values()]
+                failed_keys = list(failed_pushs.values())
+                return (
+                    tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
+                    tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),
+                )
 
 
             # ─────────────────────────────────────────────────────────────────────────
             # 6) Main Live Loop
             # ─────────────────────────────────────────────────────────────────────────
             LOGGER.debug(f"{step_name}Dashboard initialized (parallel={parallel})")
-            with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
+            with Live(layout, refresh_per_second=4, auto_refresh=False, screen=True, console=console, vertical_overflow="crop") as live:
                 try:
+                    min_refresh_interval_sec = 1.0 / 60.0
+                    last_render_ts = 0.0
+                    last_info_signature = None
+                    last_pull_signature = None
+                    last_push_signature = None
+                    last_bg_version = -1
+                    last_logs_version = -1
+
                     update_title_panel()
+                    _drain_logs_queue()
+                    _prune_bg_progress_rows()
+                    SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=round((datetime.now() - step_start_time).total_seconds())))
                     layout["info_panel"].update(build_info_panel())
                     layout["pulls_panel"].update(build_pull_panel())
                     layout["pushs_panel"].update(build_push_panel())
                     layout["background_progress_panel"].update(build_background_progress_panel())
                     layout["logs_panel"].update(build_log_panel())
-                    # layout["logs_panel"].update(log_panel)  # inicializamos el panel solo una vez aquí
+                    live.refresh()
+                    last_render_ts = time.time()
+                    last_info_signature = _build_info_signature()
+                    last_pull_signature = _build_pull_signature()
+                    last_push_signature = _build_push_signature()
+                    last_bg_version = bg_progress_version
+                    last_logs_version = logs_version
 
                     # Continue the loop until migration_finished.is_set()
                     LOGGER.debug(f"{step_name}Starting Live loop")
                     while not migration_finished.is_set():
-                        SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=round((datetime.now() - step_start_time).total_seconds())))
-                        layout["info_panel"].update(build_info_panel())
-                        layout["pulls_panel"].update(build_pull_panel())
-                        layout["pushs_panel"].update(build_push_panel())
-                        layout["background_progress_panel"].update(build_background_progress_panel())
-                        layout["logs_panel"].update(build_log_panel())
-                        time.sleep(0.5)  # Evita un bucle demasiado agresivo
+                        dirty = False
+
+                        if _drain_logs_queue():
+                            dirty = True
+                        if _prune_bg_progress_rows():
+                            dirty = True
+
+                        info_signature = _build_info_signature()
+                        if info_signature != last_info_signature:
+                            layout["info_panel"].update(build_info_panel())
+                            last_info_signature = info_signature
+                            dirty = True
+
+                        pull_signature = _build_pull_signature()
+                        if pull_signature != last_pull_signature:
+                            layout["pulls_panel"].update(build_pull_panel())
+                            last_pull_signature = pull_signature
+                            dirty = True
+
+                        push_signature = _build_push_signature()
+                        if push_signature != last_push_signature:
+                            layout["pushs_panel"].update(build_push_panel())
+                            last_push_signature = push_signature
+                            dirty = True
+
+                        if bg_progress_version != last_bg_version:
+                            layout["background_progress_panel"].update(build_background_progress_panel())
+                            last_bg_version = bg_progress_version
+                            dirty = True
+
+                        if logs_version != last_logs_version:
+                            layout["logs_panel"].update(build_log_panel())
+                            last_logs_version = logs_version
+                            dirty = True
+
+                        now_ts = time.time()
+                        if dirty and (now_ts - last_render_ts >= min_refresh_interval_sec):
+                            SHARED_DATA.info["elapsed_time"] = str(timedelta(seconds=round((datetime.now() - step_start_time).total_seconds())))
+                            layout["info_panel"].update(build_info_panel())
+                            last_info_signature = _build_info_signature()
+                            live.refresh()
+                            last_render_ts = now_ts
+                        time.sleep(0.01)
 
                     # Pequeña pausa adicional para asegurar el dibujado final
                     time.sleep(1)
 
                     # Al terminar, asegurarse que todos los paneles finales se muestren
+                    _drain_logs_queue()
+                    _prune_bg_progress_rows()
+                    SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=round((datetime.now() - step_start_time).total_seconds())))
                     layout["info_panel"].update(build_info_panel(clean_queue_history=True))  # Limpiamos el histórico de la cola
                     layout["pulls_panel"].update(build_pull_panel())
                     layout["pushs_panel"].update(build_push_panel())
                     layout["background_progress_panel"].update(build_background_progress_panel())
                     layout["logs_panel"].update(build_log_panel())
+                    live.refresh()
 
                 except ModuleNotFoundError as error:
                     missing = str(getattr(error, "name", "") or "")

@@ -38,6 +38,7 @@
   - Forbidden Import/Export/Save configuration file in demo roles.
   - Added NextCloud dual-folder configuration in `Config.ini` and config loader with per-account `NEXTCLOUD_PHOTOS_FOLDER_<id>` (assets/no-albums) and `NEXTCLOUD_ALBUMS_FOLDER_<id>` (folder-based albums).
   - Separated markdown render in a new static file
+  - Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI.
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
