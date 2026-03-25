@@ -101,17 +101,19 @@
             <button id="access-logs-refresh" type="button" class="ghost-btn">Refresh Logs</button>
         </div>
         <div id="access-logs-status" class="status">Access logs: loading...</div>
-        <table class="admin-table" id="access-logs-table">
-            <thead>
-            <tr>
-                <th id="access-logs-sort-id" data-sort-col="id">ID</th>
-                <th id="access-logs-sort-created" data-sort-col="created_at">Timestamp</th>
-                <th id="access-logs-sort-username" data-sort-col="username">Username</th>
-                <th id="access-logs-sort-ip" data-sort-col="ip_address">IP Address</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="admin-access-logs-table-wrap">
+            <table class="admin-table" id="access-logs-table">
+                <thead>
+                <tr>
+                    <th id="access-logs-sort-id" data-sort-col="id">ID</th>
+                    <th id="access-logs-sort-created" data-sort-col="created_at">Timestamp</th>
+                    <th id="access-logs-sort-username" data-sort-col="username">Username</th>
+                    <th id="access-logs-sort-ip" data-sort-col="ip_address">IP Address</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </section>
 </main>
 

@@ -488,6 +488,12 @@ body {
     max-height: 420px;
 }
 
+.admin-access-logs-table-wrap {
+    max-height: 760px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
 .admin-backup-grid {
     display: grid;
     grid-template-columns: auto minmax(140px, 180px) minmax(140px, 180px) minmax(260px, 1fr) auto auto;
