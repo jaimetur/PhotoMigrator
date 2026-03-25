@@ -1721,7 +1721,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$"
             )
             bg_progress_rows = {}
-            bg_progress_colors = ["bright_magenta", "bright_yellow", "bright_blue", "bright_green"]
+            bg_progress_colors = ["bright_yellow", "bright_blue", "bright_magenta", "bright_green"]
             bg_completed_retention_sec = 2.0
             bg_progress_next_color_idx = 0
 
@@ -1828,7 +1828,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     bg_progress_rows.pop(key, None)
 
                 table = Table.grid(expand=True)
-                table.add_column(justify="left", width=26, no_wrap=True, overflow="ellipsis")
+                table.add_column(justify="left", width=35, no_wrap=True, overflow="ellipsis")
                 table.add_column(justify="left", ratio=1, no_wrap=True)
 
                 if bg_progress_rows:
