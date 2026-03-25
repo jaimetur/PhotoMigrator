@@ -10,7 +10,7 @@ dynamic = ["version"]       # Version is provided dynamically by setup.py
 
 description = "Photo Migration Tool"
 readme = "README.md"        # Path to project README
-requires-python = ">=3.7"   # Supported Python versions
+requires-python = ">=3.10"  # Supported Python versions
 
 [project.scripts]
 # Defines the console script that calls the main() function
@@ -20,4 +20,4 @@ photomigrator = "PhotoMigrator:main"
 GitHub = "https://github.com/jaimetur/PhotoMigrator"
 Documentation = "https://github.com/jaimetur/PhotoMigrator/tree/main/help"
 Source = "https://github.com/jaimetur/PhotoMigrator/tree/main/src"
-Changelog = "/CHANGELOG.md"
+Changelog = "https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md"

@@ -50,7 +50,7 @@ setup(
             "photomigrator = PhotoMigrator:main",
         ],
     },
-    python_requires=">=3.7",                        # Minimum supported Python version
+    python_requires=">=3.10",                       # Minimum supported Python version
     classifiers=[                                   # Package metadata
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
