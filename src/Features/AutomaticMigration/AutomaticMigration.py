@@ -11,7 +11,7 @@ import unicodedata
 from collections import deque
 from datetime import datetime, timedelta
 from pathlib import Path
-from queue import Queue
+from queue import Queue, Empty
 from typing import Union, cast
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
@@ -22,7 +22,7 @@ from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import remove_empty_dirs, contains_zip_files, normalize_path
-from Utils.GeneralUtils import confirm_continue
+from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
 terminal_width = shutil.get_terminal_size().columns
@@ -697,10 +697,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     except Exception as e:
                         LOGGER.error(f"Error Retrieving Shared Albums's Assets from '{source_client_name}' - {e}")
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
+            all_no_albums_assets = []
             try:
                 all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving Assets without albums from '{source_client_name}' - {e}")
+            all_albums_assets = []
             try:
                 all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.WARNING)
             except Exception as e:
@@ -1371,7 +1373,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
         from rich.table import Table
         from rich.panel import Panel
         from rich.live import Live
-        import queue
+        from rich.text import Text
+        from rich.markup import escape
         import textwrap
         import traceback
 
@@ -1448,7 +1451,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             # Crea el handler y configúralo con un formatter
             memory_handler = CustomInMemoryLogHandler(SHARED_DATA.logs_queue)
             memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
-            memory_handler.setLevel(log_level)
+            memory_handler.setLevel(log_level if log_level is not None else logging.INFO)
+            memory_handler.accept_tqdm = True
 
             # Agrega el handler al LOGGER
             LOGGER.addHandler(memory_handler)
@@ -1458,13 +1462,15 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             LOGGER.propagate = False
             log_file = get_logger_filename(LOGGER)
 
-            # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines), logs fill remainder
+            # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines),
+            # logs fill remainder, background_progress_panel (6 lines) at the bottom.
             layout.split_column(
                 Layout(name="empty_line_1", size=1),  # Línea vacía
                 Layout(name="header_panel", size=8),
                 Layout(name="title_panel", size=3),
                 Layout(name="content_panel", size=12),
                 Layout(name="logs_panel", ratio=1),
+                Layout(name="background_progress_panel", size=6),
                 Layout(name="empty_line_2", size=1),  # Línea vacía
             )
 
@@ -1473,10 +1479,11 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             header_panel_height = layout["header_panel"].size
             title_panel_height = layout["title_panel"].size
             content_panel_height = layout["content_panel"].size
+            background_progress_panel_height = layout["background_progress_panel"].size
             empty_line_2_height = layout["empty_line_2"].size
 
             # Calcular logs_panel en función del espacio restante
-            fixed_heights = sum([empty_line_1_height, header_panel_height, title_panel_height, content_panel_height, empty_line_2_height])
+            fixed_heights = sum([empty_line_1_height, header_panel_height, title_panel_height, content_panel_height, background_progress_panel_height, empty_line_2_height])
             logs_panel_height = terminal_height - fixed_heights  # Espacio restante
 
             # Asegurar que la línea vacía no tenga bordes ni contenido visible
@@ -1696,13 +1703,145 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
                 return Panel(table, title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
 
+            # -------------------------------------------------------------------------
+            # 5) Background Progress Panel (capture any tqdm emitted in background)
+            # -------------------------------------------------------------------------
+            ansi_escape_re = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+            tqdm_progress_re = re.compile(
+                r"(?P<pct>\d{1,3})%\|[^|]*\|\s*(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)"
+            )
+            custom_progress_re = re.compile(
+                r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
+                r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$"
+            )
+            bg_progress_rows = {}
+            bg_progress_colors = ["cyan", "magenta", "green", "yellow"]
+            bg_completed_retention_sec = 2.0
+
+            def _parse_int(value, default=0):
+                try:
+                    return int(str(value or "").replace(",", "").strip())
+                except (TypeError, ValueError):
+                    return default
+
+            def _normalize_desc(desc):
+                text = re.sub(r"\s+", " ", str(desc or "")).strip(" :-")
+                text = re.sub(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*", "", text, flags=re.IGNORECASE)
+                return text or "Progress"
+
+            def _create_bg_bar(color):
+                counter = "{task.completed}/{task.total}"
+                return Progress(
+                    BarColumn(
+                        bar_width=None,
+                        style=f"{color} dim",
+                        complete_style=f"{color} bold",
+                        finished_style=f"{color} bold",
+                        pulse_style="bar.pulse",
+                    ),
+                    TextColumn(f"[{color}]{counter:>15}[/{color}]"),
+                    console=console,
+                    expand=True,
+                )
+
+            def _upsert_bg_progress(desc, current, total):
+                total_value = max(1, int(total))
+                if int(total) <= 0:
+                    return False
+
+                label = _normalize_desc(desc)
+                key = f"{label.lower()}::{total_value}"
+                if key not in bg_progress_rows:
+                    color = bg_progress_colors[len(bg_progress_rows) % len(bg_progress_colors)]
+                    bar = _create_bg_bar(color)
+                    task_id = bar.add_task(label, completed=0, total=total_value)
+                    bg_progress_rows[key] = {
+                        "label": label,
+                        "color": color,
+                        "bar": bar,
+                        "task_id": task_id,
+                        "last_update": time.time(),
+                        "completed": False,
+                    }
+
+                info = bg_progress_rows[key]
+                done = max(0, min(int(current), total_value))
+                info["bar"].update(info["task_id"], completed=done, total=total_value)
+                info["last_update"] = time.time()
+                info["completed"] = done >= total_value
+                return True
+
+            def _consume_progress_line(line):
+                raw = str(line or "")
+                if not raw:
+                    return False
+
+                if raw.startswith(TQDM_DASHBOARD_META_PREFIX):
+                    payload = raw[len(TQDM_DASHBOARD_META_PREFIX):]
+                    parts = payload.split("\t")
+                    if len(parts) == 3:
+                        desc = parts[0]
+                        current = _parse_int(parts[1], 0)
+                        total = _parse_int(parts[2], 0)
+                        return _upsert_bg_progress(desc, current, total)
+                    return False
+
+                plain = ansi_escape_re.sub("", raw.replace("\r", "")).strip()
+                if plain.startswith(TQDM_DASHBOARD_PREFIX):
+                    plain = plain[len(TQDM_DASHBOARD_PREFIX):].strip()
+                plain = re.sub(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*", "", plain, flags=re.IGNORECASE)
+
+                custom_match = custom_progress_re.match(plain)
+                if custom_match:
+                    desc = custom_match.group("desc")
+                    current = _parse_int(custom_match.group("current"), 0)
+                    total = _parse_int(custom_match.group("total"), 0)
+                    return _upsert_bg_progress(desc, current, total)
+
+                tqdm_match = tqdm_progress_re.search(plain)
+                if tqdm_match:
+                    desc = plain[:tqdm_match.start()].strip(" :-")
+                    if not desc:
+                        return False
+                    current = _parse_int(tqdm_match.group("current"), 0)
+                    total = _parse_int(tqdm_match.group("total"), 0)
+                    return _upsert_bg_progress(desc, current, total)
+
+                return False
+
+            def build_background_progress_panel():
+                now = time.time()
+                to_delete = []
+                for key, info in bg_progress_rows.items():
+                    if info.get("completed") and now - float(info.get("last_update", now)) > bg_completed_retention_sec:
+                        to_delete.append(key)
+                for key in to_delete:
+                    bg_progress_rows.pop(key, None)
+
+                table = Table.grid(expand=True)
+                table.add_column(justify="left", width=26, no_wrap=True, overflow="ellipsis")
+                table.add_column(justify="left", ratio=1, no_wrap=True)
+
+                if bg_progress_rows:
+                    visible_limit = max(1, background_progress_panel_height - 2)
+                    ordered = sorted(
+                        bg_progress_rows.values(),
+                        key=lambda item: (1 if item.get("completed") else 0, -float(item.get("last_update", 0))),
+                    )
+                    for info in ordered[:visible_limit]:
+                        label = escape(str(info.get("label", "Progress")))
+                        table.add_row(f"[{info['color']}]{label}:[/{info['color']}]", info["bar"])
+                else:
+                    table.add_row("", "")
+
+                return Panel(table, title="⏳ Background Progress", border_style="bright_cyan", expand=True, padding=(0, 1))
 
             # ─────────────────────────────────────────────────────────────────────────
-            # 5) Logging Panel from Memmory Handler
+            # 6) Logging Panel from Memmory Handler
             # ─────────────────────────────────────────────────────────────────────────
             # Lista (o deque) para mantener todo el historial de logs ya mostrados
             logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
-            ACCU_LOGS = deque(maxlen=logs_panel_height)
+            ACCU_LOGS = deque(maxlen=max(2000, logs_panel_height))
 
 
             def build_log_panel():
@@ -1718,42 +1857,59 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         # 1) Vaciamos la cola de logs, construyendo el historial completo
                         try:
                             line = SHARED_DATA.logs_queue.get_nowait()  # lee un mensaje de la cola
-                        except queue.Empty:
+                        except Empty:
                             break
 
+                        # Route tqdm/progress lines to Background Progress panel.
+                        if _consume_progress_line(line):
+                            continue
+
+                        clean_line = ansi_escape_re.sub("", str(line or "").replace("\r", "")).rstrip()
+                        if not clean_line:
+                            continue
+                        safe_line = clean_line
+
                         # Opcional: aplica color según la palabra “pull”/”push”
-                        line_lower = line.lower()
+                        line_lower = clean_line.lower()
                         if "warning :" in line_lower:
-                            line_colored = f"[yellow]{line}[/yellow]"
+                            line_style = "yellow"
                         elif "error   :" in line_lower:
-                            line_colored = f"[red]{line}[/red]"
+                            line_style = "red"
                         elif "debug   :" in line_lower:
-                            line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
+                            line_style = "#EEEEEE"
                         elif "delayed" in line_lower:
-                            line_colored = f"[bright_black]{line}[/bright_black]"
+                            line_style = "bright_black"
                         elif "album created" in line_lower:
-                            line_colored = f"[bright_white]{line}[/bright_white]"
+                            line_style = "bright_white"
                         elif "album pulled" in line_lower:
-                            line_colored = f"[bright_cyan]{line}[/bright_cyan]"
+                            line_style = "bright_cyan"
                         elif "album pushed" in line_lower:
-                            line_colored = f"[bright_green]{line}[/bright_green]"
+                            line_style = "bright_green"
                         elif "fail" in line_lower:
-                            line_colored = f"[yellow]{line}[/yellow]"
+                            line_style = "yellow"
                         elif "pull" in line_lower and not "push" in line_lower:
-                            line_colored = f"[cyan]{line}[/cyan]"
+                            line_style = "cyan"
                         elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
-                            line_colored = f"[green]{line}[/green]"
+                            line_style = "green"
                         else:
-                            line_colored = f"[bright_white]{line}[/bright_white]"
+                            line_style = "bright_white"
 
                         # Añadimos la versión coloreada al historial
-                        ACCU_LOGS.append(line_colored)
+                        for visual_line in str(safe_line).splitlines():
+                            if visual_line.strip():
+                                ACCU_LOGS.append((visual_line, line_style))
 
                     # 2) Unimos todo el historial en un solo string
                     if ACCU_LOGS:
-                        logs_text = "\n".join(ACCU_LOGS)
+                        logs_text = Text(no_wrap=True, overflow="crop")
+                        logs_count = len(ACCU_LOGS)
+                        for idx, entry in enumerate(ACCU_LOGS):
+                            visual_line, visual_style = entry
+                            logs_text.append(visual_line, style=visual_style)
+                            if idx < logs_count - 1:
+                                logs_text.append("\n")
                     else:
-                        logs_text = "Initializing..."
+                        logs_text = Text("Initializing...", no_wrap=True, overflow="crop")
 
                     # 3) Construimos el panel y lo devolvemos
                     log_panel = Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
@@ -1761,6 +1917,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
                 except Exception as e:
                     LOGGER.error(f"Building Log Panel: {e}")
+                    return Panel("Error building log panel", title="📜 Logs Panel", border_style="bright_red", expand=True, title_align="left")
 
 
             # ─────────────────────────────────────────────────────────────────────────
@@ -1773,6 +1930,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     layout["info_panel"].update(build_info_panel())
                     layout["pulls_panel"].update(build_pull_panel())
                     layout["pushs_panel"].update(build_push_panel())
+                    layout["background_progress_panel"].update(build_background_progress_panel())
                     layout["logs_panel"].update(build_log_panel())
                     # layout["logs_panel"].update(log_panel)  # inicializamos el panel solo una vez aquí
 
@@ -1783,6 +1941,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         layout["info_panel"].update(build_info_panel())
                         layout["pulls_panel"].update(build_pull_panel())
                         layout["pushs_panel"].update(build_push_panel())
+                        layout["background_progress_panel"].update(build_background_progress_panel())
                         layout["logs_panel"].update(build_log_panel())
                         time.sleep(0.5)  # Evita un bucle demasiado agresivo
 
@@ -1793,6 +1952,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     layout["info_panel"].update(build_info_panel(clean_queue_history=True))  # Limpiamos el histórico de la cola
                     layout["pulls_panel"].update(build_pull_panel())
                     layout["pushs_panel"].update(build_push_panel())
+                    layout["background_progress_panel"].update(build_background_progress_panel())
                     layout["logs_panel"].update(build_log_panel())
 
                 except ModuleNotFoundError as error:

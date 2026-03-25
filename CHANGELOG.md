@@ -21,6 +21,7 @@
   - Added a new `Upload to Server` tab in the web interface with destination-folder picker, separate `Upload Local Folder` and `Upload Local Zip` actions, and optional ZIP extraction mode (`Extract ZIPs on upload`: Yes/No).
   - Added `ClassGooglePhotos` backend service with OAuth refresh-token auth and supported upload/download modules.
   - Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).
+  - Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel.
 
 #### 🚀 Enhancements:
   - Extended automatic migration endpoint parsing in web UI to support `nextcloud[-photos][-1..3]` for both source and target.

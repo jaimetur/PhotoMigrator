@@ -331,6 +331,7 @@ class JobData:
         self.owner_user_id = owner_user_id
         self.process = process
         self.stop_requested = False
+        self.stop_notice_emitted = False
         self.awaiting_confirmation = False
         self.status = "running"
         self.output: Deque["OutputLine"] = deque()  # last completed logical lines in memory
@@ -2470,6 +2471,16 @@ def _compute_next_backup_run(schedule_mode: str, base_dt: datetime | None = None
 
 def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
     job = JOBS[job_id]
+
+    def _emit_stop_notice() -> None:
+        if job.stop_notice_emitted:
+            return
+        # If a progress line is still in-flight (no trailing '\n' yet), force the notice
+        # into a fresh line so it is classified and colored as CRITICAL in the UI.
+        prefix = "\n" if (job.partial_line or job.pending_cr) else ""
+        _append_job_output(job, f"{prefix}CRITICAL: EXECUTION INTERRUPTED BY USER (Stop module).\n")
+        job.stop_notice_emitted = True
+
     try:
         assert process.stdout is not None
         while True:
@@ -2492,6 +2503,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
         with JOBS_LOCK:
             job.return_code = rc
             if job.stop_requested:
+                _emit_stop_notice()
                 job.status = "stopped"
             else:
                 job.status = "success" if rc == 0 else "failed"
@@ -2501,9 +2513,14 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
             _close_job_output_file(job)
     except Exception as exc:
         with JOBS_LOCK:
-            _append_job_output(job, f"\n[web-interface] Internal error: {exc}\n")
-            job.return_code = -1
-            job.status = "failed"
+            if job.stop_requested:
+                _emit_stop_notice()
+                job.return_code = process.returncode if process.returncode is not None else -1
+                job.status = "stopped"
+            else:
+                _append_job_output(job, f"\n[web-interface] Internal error: {exc}\n")
+                job.return_code = -1
+                job.status = "failed"
             job.finished_at = datetime.now(timezone.utc).isoformat()
             job.awaiting_confirmation = False
             job.process = None

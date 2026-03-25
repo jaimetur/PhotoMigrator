@@ -21,6 +21,9 @@ import Core.GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import VIDEO_EXT, PHOTO_EXT, MSG_TAGS, VERBOSE_LEVEL_NUM
 
+TQDM_DASHBOARD_PREFIX = "__TQDM__ "
+TQDM_DASHBOARD_META_PREFIX = "__TQDM_META__ "
+
 
 # ------------------------------------------------------------------
 # Integrate tqdm with the logger
@@ -31,45 +34,111 @@ class TqdmLoggerConsole:
         self.logger = logger
         self.level = level
         self.levelname = logging.getLevelName(level)
+        self._buffer = ""
+
+    def _normalize_message(self, message: str) -> str:
+        text = str(message or "")
+        if self.levelname == "VERBOSE":
+            return text.replace("VERBOSE : ", "")
+        if self.levelname == "DEBUG":
+            return text.replace("DEBUG   : ", "")
+        if self.levelname == "INFO":
+            return text.replace("INFO    : ", "")
+        if self.levelname == "WARNING":
+            return text.replace("WARNING : ", "")
+        if self.levelname == "ERROR":
+            return text.replace("ERROR   : ", "")
+        if self.levelname == "CRITICAL":
+            return text.replace("CRITICAL: ", "")
+        return text
+
+    def _build_meta_payload(self, message: str):
+        """
+        Build a structured tqdm frame for dashboard consumers.
+        Format: "__TQDM_META__ <desc>\\t<current>\\t<total>"
+        """
+        text = str(message or "").replace("\r", "").strip()
+        if not text:
+            return None
+
+        tqdm_match = re.search(
+            r"(?P<pct>\d{1,3})%\|[^|]*\|\s*(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)",
+            text,
+        )
+        if tqdm_match:
+            desc = text[:tqdm_match.start()].strip(" :-") or "Progress"
+            current = str(tqdm_match.group("current") or "0").replace(",", "")
+            total = str(tqdm_match.group("total") or "0").replace(",", "")
+            return f"{TQDM_DASHBOARD_META_PREFIX}{desc}\t{current}\t{total}"
+
+        custom_match = re.match(
+            r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
+            r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$",
+            text,
+        )
+        if custom_match:
+            desc = str(custom_match.group("desc") or "").strip(" :-") or "Progress"
+            current = str(custom_match.group("current") or "0").replace(",", "")
+            total = str(custom_match.group("total") or "0").replace(",", "")
+            return f"{TQDM_DASHBOARD_META_PREFIX}{desc}\t{current}\t{total}"
+
+        return None
+
+    def _emit_record(self, handler, payload: str):
+        handler.emit(logging.LogRecord(
+            name=self.logger.name,
+            level=self.level,
+            pathname="",
+            lineno=0,
+            msg=payload,
+            args=(),
+            exc_info=None
+        ))
+
+    def _emit_to_handlers(self, message: str):
+        if not message:
+            return
+        message = self._normalize_message(message)
+
+        for handler in self.logger.handlers:
+            if getattr(handler, "accept_tqdm", False):
+                payload = self._build_meta_payload(message)
+                if payload is None:
+                    payload = f"{TQDM_DASHBOARD_PREFIX}{message}"
+                self._emit_record(handler, payload)
+                continue
+
+            if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+                self._emit_record(handler, message)
 
     def write(self, message):
-        message = message.strip()
-        if message:
-            if self.levelname == "VERBOSE":
-                message = message.replace("VERBOSE : ", "")
-            elif self.levelname == "DEBUG":
-                message = message.replace("DEBUG   : ", "")
-            elif self.levelname == "INFO":
-                message = message.replace("INFO    : ", "")
-            elif self.levelname == "WARNING":
-                message = message.replace("WARNING : ", "")
-            elif self.levelname == "ERROR":
-                message = message.replace("ERROR   : ", "")
-            elif self.levelname == "CRITICAL":
-                message = message.replace("CRITICAL: ", "")
+        if message is None:
+            return
 
-            for handler in self.logger.handlers:
-                if isinstance(handler, logging.StreamHandler):  # Console handlers only
-                    handler.emit(logging.LogRecord(
-                        name=self.logger.name,
-                        level=self.level,
-                        pathname="",
-                        lineno=0,
-                        msg=message,
-                        args=(),
-                        exc_info=None
-                    ))
+        self._buffer += str(message)
+        while True:
+            split_idx = None
+            for sep in ("\r", "\n"):
+                idx = self._buffer.find(sep)
+                if idx != -1 and (split_idx is None or idx < split_idx):
+                    split_idx = idx
+            if split_idx is None:
+                break
+
+            chunk = self._buffer[:split_idx].strip()
+            self._buffer = self._buffer[split_idx + 1:]
+            if chunk:
+                self._emit_to_handlers(chunk)
 
     def flush(self):
-        pass  # Required for tqdm compatibility
+        chunk = self._buffer.strip()
+        self._buffer = ""
+        if chunk:
+            self._emit_to_handlers(chunk)
 
     def isatty(self):
         """Trick tqdm into treating this as an interactive terminal."""
         return True
-
-
-# Create a global instance of the wrapper
-TQDM_LOGGER_INSTANCE = TqdmLoggerConsole(GV.LOGGER, logging.INFO)
 
 
 ######################
@@ -87,36 +156,42 @@ def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live
     import io
     import cProfile
     import pstats
-    from concurrent.futures import ThreadPoolExecutor, TimeoutError
+    import threading
 
     profiler = cProfile.Profile()
+    done_event = threading.Event()
+    result_holder = {"result": None, "exc": None}
 
-    # Run the function UNDER profiler.runcall, so the wrapper (and its sleeps)
-    # do not get included in the profile
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(
-            profiler.runcall,
-            function_to_analyze, *args, **kwargs
-        )
+    def _profile_worker():
+        try:
+            result_holder["result"] = profiler.runcall(function_to_analyze, *args, **kwargs)
+        except BaseException as exc:
+            result_holder["exc"] = exc
+        finally:
+            done_event.set()
 
+    # Daemon thread is intentional: on Ctrl+C, main thread can exit immediately
+    # without waiting for profiling worker cleanup.
+    worker = threading.Thread(target=_profile_worker, daemon=True, name="profile_and_print_worker")
+    worker.start()
+
+    try:
         if live_stats:
             # While the task is not finished, dump stats every `interval`
-            while True:
-                try:
-                    # Wait at most `interval` seconds
-                    result = future.result(timeout=interval)
-                    break
-                except TimeoutError:
-                    # If it has not finished, print partial stats
-                    stream = io.StringIO()
-                    stats = pstats.Stats(profiler, stream=stream)
-                    stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
-                    GV.LOGGER.debug(f"{step_name_for_profile}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue())
-
-            final_result = result
+            while not done_event.wait(timeout=interval):
+                stream = io.StringIO()
+                stats = pstats.Stats(profiler, stream=stream)
+                stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
+                GV.LOGGER.debug(f"{step_name_for_profile}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue())
         else:
-            # If we don't want live stats, just wait until it finishes
-            final_result = future.result()
+            done_event.wait()
+    except KeyboardInterrupt:
+        GV.LOGGER.warning(f"{step_name_for_profile}Profiling interrupted by user (Ctrl+C).")
+        raise
+
+    if result_holder["exc"] is not None:
+        raise result_holder["exc"]
+    final_result = result_holder["result"]
 
     # Final report
     stream = io.StringIO()
@@ -127,15 +202,17 @@ def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live
     return final_result
 
 
-# Redefine `tqdm` to use `TQDM_LOGGER_INSTANCE` if `file` is not specified and we are in Automatic-Migration mode with dashboard=true
+# Redefine `tqdm` to use a logger-backed stream if `file` is not specified and we are in Automatic-Migration mode.
 def tqdm(*args, **kwargs):
     """
     Wrapper around `tqdm` that redirects progress output to the console logger handlers
     when running in Automatic-Migration mode with dashboard enabled.
     """
-    if GV.ARGS and GV.ARGS.get('AUTOMATIC-MIGRATION') and GV.ARGS.get('dashboard') == True:
-        if 'file' not in kwargs:  # If the user did not specify `file`, use `TQDM_LOGGER_INSTANCE`
-            kwargs['file'] = TQDM_LOGGER_INSTANCE
+    if GV.ARGS and GV.ARGS.get('AUTOMATIC-MIGRATION') and 'file' not in kwargs:
+        handlers = list(getattr(GV.LOGGER, "handlers", []) or [])
+        has_dashboard_handler = any(getattr(handler, "accept_tqdm", False) for handler in handlers)
+        if GV.ARGS.get('dashboard') is True or has_dashboard_handler:
+            kwargs['file'] = TqdmLoggerConsole(GV.LOGGER, logging.INFO)
     return original_tqdm(*args, **kwargs)
 
 
