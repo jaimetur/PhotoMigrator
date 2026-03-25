@@ -300,7 +300,7 @@ There are three different methods to execute this Tool:
 
 Below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide which one fits best with your needed: 
 
-- ### 🆚 Execution Methods Comparison
+### 🆚 Execution Methods Comparison
 
     | Execution Method  | Difficulty | Pros                                                                                                                                               | Cons                                                                                                                                                                                                         |
     |-------------------|:----------:|----------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -312,7 +312,7 @@ Below tables show the pros and cons of each method together with a comparative r
   🟢 *Easiest way*    ⭐ *Recommended*    🔴 *More difficult*
 
 
-- ### 🆚 Execution Methods Comparison Rating
+### 🆚 Execution Methods Comparison Rating
   | Feature                                               | Binaries<br>(*easiest way*) | Docker<br>(*balanced*) | Source<br>(*more difficult*) | Web Interface<br>(*recommended*) |
   |-------------------------------------------------------|-----------------------------|------------------------|------------------------------|----------------------------------|
   | Platform and architecture independence                | ⭐☆☆☆☆                       | ⭐⭐⭐⭐⭐                  | ⭐⭐⭐⭐⭐                        | ⭐⭐⭐⭐⭐                            |
