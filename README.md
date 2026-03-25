@@ -302,26 +302,27 @@ Below tables show the pros and cons of each method together with a comparative r
 
 - ### 🆚 Execution Methods Comparison
 
-    | Execution Method | Difficulty | Pros                                                                                                                                               | Cons                                                                                                                                                                                                         |
-    |------------------|:----------:|----------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    | **Binaries**     |     🟢     | ✅ Only basic knowledge on command line commands needed                                                                                             | ❌ Platform and architecture dependent<br>❌ Need basic knowledge of running command line instructions<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems                               |
-    | **Docker**       |     ⭐      | ✅ Platform and architecture independent<br>✅ Easy configuration via `docker.config` <br>✅ Automatically pulls latest image if `RELEASE_TAG=latest` | ❌ Need intermediate knowledge of running command line instructions<br>❌ Need to install Docker (if not already installed)<br>❌ All paths given as arguments must be relative to the execution folder         |
-    | **Source**       |     🔴     | ✅ Platform and architecture independent                                                                                                            | ❌ Need advance knowledge of running command line instructions<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release |
+    | Execution Method  | Difficulty | Pros                                                                                                                                               | Cons                                                                                                                                                                                                         |
+    |-------------------|:----------:|----------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+    | **Binaries**      |     🟢     | ✅ Only basic knowledge on command line commands needed                                                                                             | ❌ Platform and architecture dependent<br>❌ Need basic knowledge of running command line instructions<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems                               |
+    | **Docker**        |     ⭐      | ✅ Platform and architecture independent<br>✅ Easy configuration via `docker.config` <br>✅ Automatically pulls latest image if `RELEASE_TAG=latest` | ❌ Need intermediate knowledge of running command line instructions<br>❌ Need to install Docker (if not already installed)<br>❌ All paths given as arguments must be relative to the execution folder         |
+    | **Source**        |     🔴     | ✅ Platform and architecture independent                                                                                                            | ❌ Need advance knowledge of running command line instructions<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release |
+    | **Web Interface** |     🟢     | ✅ Platform and architecture independent<br>✅ Easy configuration via `.env` file <br>✅ Automatically pulls latest image if `IMAGE_TAG=latest`       | ❌ Inii Windows/MacOS you need to install Docker Desktop                                                                                                                                                      |
 
   🟢 *Easiest way*    ⭐ *Recommended*    🔴 *More difficult*
 
 
 - ### 🆚 Execution Methods Comparison Rating
-  | Feature                                               | Binaries<br>(*easiest way*) | Docker<br>(*recommended*) | Source<br>(*more difficult*) |
-  |-------------------------------------------------------|-----------------------------|---------------------------|------------------------------|
-  | Platform and architecture independence                | ⭐☆☆☆☆                       | ⭐⭐⭐⭐⭐                     | ⭐⭐⭐⭐⭐                        |
-  | Ease of updating to new release                       | ⭐⭐⭐☆☆                       | ⭐⭐⭐⭐⭐                     | ⭐☆☆☆☆                        |
-  | Allow paths arguments point outside execution folder  | ⭐⭐⭐⭐⭐                       | ⭐☆☆☆☆                     | ⭐⭐⭐⭐⭐                        |
-  | No Requires Technical knowledge (Command line syntax) | ⭐⭐⭐⭐⭐                       | ⭐⭐⭐☆☆                     | ⭐☆☆☆☆                        |
-  | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐                       | ⭐⭐⭐☆☆                     | ⭐☆☆☆☆                        |
-  | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆☆                       | ⭐⭐⭐⭐⭐                     | ⭐⭐⭐⭐⭐                        |
-  | **Average Rating**                                    | ⭐⭐⭐⭐☆                       | ⭐⭐⭐⭐☆                     | ⭐⭐⭐☆☆                        |
-  | **Average Score**                                     | 3.5                         | 3.7                       | 3.0                          |
+  | Feature                                               | Binaries<br>(*easiest way*) | Docker<br>(*balanced*) | Source<br>(*more difficult*) | Web Interface<br>(*recommended*) |
+  |-------------------------------------------------------|-----------------------------|------------------------|------------------------------|----------------------------------|
+  | Platform and architecture independence                | ⭐☆☆☆☆                       | ⭐⭐⭐⭐⭐                  | ⭐⭐⭐⭐⭐                        | ⭐⭐⭐⭐⭐                            |
+  | Ease of updating to new release                       | ⭐⭐⭐☆☆                       | ⭐⭐⭐⭐⭐                  | ⭐☆☆☆☆                        | ⭐⭐⭐⭐⭐                            |
+  | Allow paths arguments point outside execution folder  | ⭐⭐⭐⭐⭐                       | ⭐☆☆☆☆                  | ⭐⭐⭐⭐⭐                        | ⭐⭐⭐⭐☆                            |
+  | No Requires Technical knowledge (Command line syntax) | ⭐⭐⭐⭐⭐                       | ⭐⭐⭐☆☆                  | ⭐☆☆☆☆                        | ⭐⭐⭐⭐☆                            |
+  | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐                       | ⭐⭐⭐☆☆                  | ⭐☆☆☆☆                        | ⭐⭐⭐⭐☆                            |
+  | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆☆                       | ⭐⭐⭐⭐⭐                  | ⭐⭐⭐⭐⭐                        | ⭐⭐⭐⭐⭐                            |
+  | **Average Rating**                                    | ⭐⭐⭐⭐☆                       | ⭐⭐⭐⭐☆                  | ⭐⭐⭐☆☆                        | ⭐⭐⭐⭐☆                            |
+  | **Average Score**                                     | 3.5                         | 3.7                    | 3.0                          | 4.5                              |
 
 
 ---
