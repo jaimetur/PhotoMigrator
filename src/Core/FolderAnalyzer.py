@@ -130,10 +130,19 @@ class FolderAnalyzer:
             )
             if no_filters:
                 # include everything
-                for p in self.file_list:
-                    self.filtered_file_list.append(p)
-                    parent = Path(p).parent.resolve().as_posix()
-                    self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
+                with tqdm(
+                    total=len(self.file_list),
+                    desc=f"{MSG_TAGS['INFO']}{step_name}🔎 Scanning files with Filters",
+                    unit="file",
+                    smoothing=0.1,
+                    dynamic_ncols=True,
+                    leave=True,
+                ) as pbar:
+                    for p in self.file_list:
+                        self.filtered_file_list.append(p)
+                        parent = Path(p).parent.resolve().as_posix()
+                        self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
+                        pbar.update(1)
                 self.logger.info(f"{step_name}✅ No filters applied to Analyzer Object: {len(self.filtered_file_list)} files, {len(self.folder_assets)} folders.")
                 return
 
@@ -180,26 +189,37 @@ class FolderAnalyzer:
             self.file_sizes = {}
             self.folder_sizes = {}
 
-            for file_path in source_list:
-                file = Path(file_path)
+            with tqdm(
+                total=len(source_list),
+                desc=f"{MSG_TAGS['INFO']}{step_name}🧮 Computing Sizes",
+                unit="file",
+                smoothing=0.1,
+                dynamic_ncols=True,
+                leave=True,
+            ) as pbar:
+                for file_path in source_list:
+                    file = Path(file_path)
 
-                # skip files that no longer exist
-                if not file.exists():
-                    self.logger.debug(f"{step_name}Skipping missing file: {file_path}")
-                    continue
+                    # skip files that no longer exist
+                    if not file.exists():
+                        self.logger.debug(f"{step_name}Skipping missing file: {file_path}")
+                        pbar.update(1)
+                        continue
 
-                try:
-                    size = file.stat().st_size
-                except Exception as e:
-                    self.logger.warning(f"{step_name}Could not get size for {file_path}: {e}")
-                    continue
+                    try:
+                        size = file.stat().st_size
+                    except Exception as e:
+                        self.logger.warning(f"{step_name}Could not get size for {file_path}: {e}")
+                        pbar.update(1)
+                        continue
 
-                # store individual file size
-                self.file_sizes[file_path] = size
+                    # store individual file size
+                    self.file_sizes[file_path] = size
 
-                # accumulate into its parent folder
-                parent = file.parent.resolve().as_posix()
-                self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
+                    # accumulate into its parent folder
+                    parent = file.parent.resolve().as_posix()
+                    self.folder_sizes[parent] = self.folder_sizes.get(parent, 0) + size
+                    pbar.update(1)
 
             self.logger.info(f"{step_name}🧮 Computed sizes for {len(self.file_sizes)} files and {len(self.folder_sizes)} folders.")
 

@@ -1965,7 +1965,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             with Live(layout, refresh_per_second=4, auto_refresh=False, screen=True, console=console, vertical_overflow="crop") as live:
                 try:
                     min_refresh_interval_sec = 1.0 / 60.0
+                    elapsed_refresh_interval_sec = 1.0
                     last_render_ts = 0.0
+                    last_elapsed_update_ts = 0.0
                     last_info_signature = None
                     last_pull_signature = None
                     last_push_signature = None
@@ -1983,6 +1985,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     layout["logs_panel"].update(build_log_panel())
                     live.refresh()
                     last_render_ts = time.time()
+                    last_elapsed_update_ts = last_render_ts
                     last_info_signature = _build_info_signature()
                     last_pull_signature = _build_pull_signature()
                     last_push_signature = _build_push_signature()
@@ -2028,10 +2031,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                             dirty = True
 
                         now_ts = time.time()
-                        if dirty and (now_ts - last_render_ts >= min_refresh_interval_sec):
+                        if now_ts - last_elapsed_update_ts >= elapsed_refresh_interval_sec:
                             SHARED_DATA.info["elapsed_time"] = str(timedelta(seconds=round((datetime.now() - step_start_time).total_seconds())))
                             layout["info_panel"].update(build_info_panel())
                             last_info_signature = _build_info_signature()
+                            last_elapsed_update_ts = now_ts
+                            dirty = True
+
+                        if dirty and (now_ts - last_render_ts >= min_refresh_interval_sec):
                             live.refresh()
                             last_render_ts = now_ts
                         time.sleep(0.01)
