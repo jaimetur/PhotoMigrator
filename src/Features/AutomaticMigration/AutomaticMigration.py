@@ -1896,11 +1896,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         line_style = "bright_cyan"
                     elif "album pushed" in line_lower:
                         line_style = "bright_green"
+                    elif "duplicated" in line_lower:
+                        line_style = "#9da7ad"
                     elif "fail" in line_lower:
                         line_style = "yellow"
                     elif "pull" in line_lower and not "push" in line_lower:
                         line_style = "cyan"
-                    elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
+                    elif any(word in line_lower for word in ("push", "created")) and not "pull" in line_lower:
                         line_style = "green"
                     else:
                         line_style = "bright_white"
@@ -1957,6 +1959,38 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
                     tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),
                 )
+
+            def _wait_for_any_key_to_close_dashboard():
+                """
+                Keep final dashboard visible until user confirms close (interactive CLI only).
+                """
+                stdin_is_tty = bool(getattr(sys.stdin, "isatty", lambda: False)())
+                stdout_is_tty = bool(getattr(original_stdout, "isatty", lambda: False)())
+                if not (stdin_is_tty and stdout_is_tty):
+                    return
+                try:
+                    if os.name == "nt":
+                        import msvcrt
+                        # Flush pending keypresses (e.g., buffered Enter) to avoid instant close.
+                        while msvcrt.kbhit():
+                            msvcrt.getch()
+                        msvcrt.getch()
+                    else:
+                        import termios
+                        import tty
+                        fd = sys.stdin.fileno()
+                        old_settings = termios.tcgetattr(fd)
+                        try:
+                            termios.tcflush(fd, termios.TCIFLUSH)
+                            tty.setraw(fd)
+                            os.read(fd, 1)
+                        finally:
+                            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                except KeyboardInterrupt:
+                    pass
+                except Exception:
+                    # Never fail dashboard shutdown due to input handling issues.
+                    pass
 
 
             # ─────────────────────────────────────────────────────────────────────────
@@ -2057,6 +2091,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     layout["background_progress_panel"].update(build_background_progress_panel())
                     layout["logs_panel"].update(build_log_panel())
                     live.refresh()
+
+                    # Keep final result visible in CLI until the user closes it.
+                    LOGGER.info("Automatic Migration completed. Press any key to close the dashboard...")
+                    _drain_logs_queue()
+                    layout["logs_panel"].update(build_log_panel())
+                    live.refresh()
+                    _wait_for_any_key_to_close_dashboard()
 
                 except ModuleNotFoundError as error:
                     missing = str(getattr(error, "name", "") or "")

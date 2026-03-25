@@ -1905,11 +1905,19 @@ body.is-resizing-log {
 }
 
 .log-pull {
-    color: #7db7ff;
+    color: #42c7ff;
+}
+
+.log-pull-album {
+    color: #00e0ff;
 }
 
 .log-push {
-    color: #6fe39f;
+    color: #49f08f;
+}
+
+.log-push-album {
+    color: #00ff75;
 }
 
 .log-duplicate {

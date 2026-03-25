@@ -1027,10 +1027,26 @@
                 return "log-duplicate";
             }
             // Keep pull/push semantic coloring even for INFO lines, but only in automatic migration logs.
-            if (/(asset|album)\s+pull(?:ed| fail| error)?\s*:/.test(normalizedLower) || /\bpuller\b/.test(normalizedLower)) {
+            if (/\balbum pulled\b/.test(normalizedLower) || /\balbum\s+pull(?:ed| fail| error)?\s*:/.test(normalizedLower)) {
+                return "log-pull-album";
+            }
+            if (/\balbum pushed\b/.test(normalizedLower) || /\balbum\s+push(?:ed| fail| error)?\s*:/.test(normalizedLower)) {
+                return "log-push-album";
+            }
+            if (
+                /(asset|album)\s+pull(?:ed| fail| error)?\s*:/.test(normalizedLower)
+                || /\balbum pulled\b/.test(normalizedLower)
+                || /\basset pulled\b/.test(normalizedLower)
+                || /\bpuller\b/.test(normalizedLower)
+            ) {
                 return "log-pull";
             }
-            if (/(asset|album)\s+push(?:ed| fail| error)?\s*:/.test(normalizedLower) || /\bpusher\b/.test(normalizedLower)) {
+            if (
+                /(asset|album)\s+push(?:ed| fail| error)?\s*:/.test(normalizedLower)
+                || /\balbum pushed\b/.test(normalizedLower)
+                || /\basset pushed\b/.test(normalizedLower)
+                || /\bpusher\b/.test(normalizedLower)
+            ) {
                 return "log-push";
             }
         }
