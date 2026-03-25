@@ -1575,8 +1575,17 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
                 # 🔹 Definir el ancho de la barra de progreso dinámicamente
                 BAR_WIDTH = max(1, info_panel_width - 34)  # Asegurar que al menos sea 1
-                # 🔹 Obtener el tamaño actual de la cola
-                current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
+                # 🔹 Obtener backlog real (queued + in-flight) para evitar que qsize() aparente 0
+                #     cuando los push workers hacen get() pero aún están procesando.
+                raw_queue_size = int(SHARED_DATA.info.get('assets_in_queue', 0) or 0)
+                inferred_queue_size = max(
+                    0,
+                    int(SHARED_DATA.counters.get('total_pulled_assets', 0) or 0)
+                    - int(SHARED_DATA.counters.get('total_pushed_assets', 0) or 0)
+                    - int(SHARED_DATA.counters.get('total_push_failed_assets', 0) or 0)
+                    - int(SHARED_DATA.counters.get('total_push_duplicates_assets', 0) or 0)
+                )
+                current_queue_size = max(raw_queue_size, inferred_queue_size)
                 # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
                 filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
                 empty_blocks = BAR_WIDTH - filled_blocks
