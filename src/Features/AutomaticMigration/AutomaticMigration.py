@@ -1721,7 +1721,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$"
             )
             bg_progress_rows = {}
-            bg_progress_colors = ["cyan", "magenta", "green", "yellow"]
+            bg_progress_colors = ["bright_magenta", "bright_yellow", "bright_blue", "bright_green"]
             bg_completed_retention_sec = 2.0
 
             def _parse_int(value, default=0):
