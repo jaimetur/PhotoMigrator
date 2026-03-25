@@ -1919,8 +1919,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 try:
                     if ACCU_LOGS:
                         logs_text = Text(no_wrap=True, overflow="crop")
-                        logs_count = len(ACCU_LOGS)
-                        for idx, entry in enumerate(ACCU_LOGS):
+                        visible_logs = list(ACCU_LOGS)[-max(1, logs_panel_height):]
+                        logs_count = len(visible_logs)
+                        for idx, entry in enumerate(visible_logs):
                             visual_line, visual_style = entry
                             logs_text.append(visual_line, style=visual_style)
                             if idx < logs_count - 1:

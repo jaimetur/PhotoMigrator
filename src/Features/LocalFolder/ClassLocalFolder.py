@@ -12,7 +12,7 @@ from Core.CustomLogger import set_log_level
 from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch
-from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
+from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm
 from Utils.StandaloneUtils import change_working_dir
 
 """
@@ -523,22 +523,33 @@ class ClassLocalFolder:
                 shared_names = set()
 
                 # Solo iteramos las carpetas que tienen >=1 fichero filtrado
-                for folder_str, count in self.analyzer.folder_assets.items():
-                    if count <= 0:
-                        continue
-                    folder = Path(folder_str)
-                    # ¿Está bajo Albums/?
-                    try:
-                        rel = folder.relative_to(base_owned)
-                        owned_names.add(rel.parts[0])
-                    except ValueError:
-                        pass
-                    # ¿Está bajo Albums-shared/?
-                    try:
-                        rel = folder.relative_to(base_shared)
-                        shared_names.add(rel.parts[0])
-                    except ValueError:
-                        pass
+                folder_assets_items = list(self.analyzer.folder_assets.items())
+                with tqdm(
+                    total=len(folder_assets_items),
+                    desc="📚 Scanning Owned/Shared Albums",
+                    unit="folder",
+                    smoothing=0.1,
+                    dynamic_ncols=True,
+                    leave=True,
+                ) as pbar:
+                    for folder_str, count in folder_assets_items:
+                        if count <= 0:
+                            pbar.update(1)
+                            continue
+                        folder = Path(folder_str)
+                        # ¿Está bajo Albums/?
+                        try:
+                            rel = folder.relative_to(base_owned)
+                            owned_names.add(rel.parts[0])
+                        except ValueError:
+                            pass
+                        # ¿Está bajo Albums-shared/?
+                        try:
+                            rel = folder.relative_to(base_shared)
+                            shared_names.add(rel.parts[0])
+                        except ValueError:
+                            pass
+                        pbar.update(1)
 
                 # Construye el listado final
                 albums = [{"id": str((base_owned / name).resolve()), "albumName": name}
@@ -1123,46 +1134,61 @@ class ClassLocalFolder:
             sel_ext = self._get_selected_extensions(type)
 
             assets = []
-            for p in self.analyzer.filtered_file_list:
-                f = Path(p)
-                # only real files and symlinks should be considered
-                if not (f.is_file() or f.is_symlink()):
-                    continue
-
-                # skip any path under Albums or Shared albums
-                try:
-                    f.relative_to(albums_folder)
-                    continue
-                except ValueError:
-                    pass
-                try:
-                    f.relative_to(shared_albums_folder)
-                    continue
-                except ValueError:
-                    pass
-                # skip any path under _Duplicates
-                try:
-                    f.relative_to(duplicates_folder)
-                    continue
-                except ValueError:
-                    pass
-
-                ext = f.suffix.lower()
-                # local filter by requested type
-                if sel_ext == 'unsupported':
-                    if ext in self.ALLOWED_EXTENSIONS:
+            with tqdm(
+                total=len(self.analyzer.filtered_file_list),
+                desc="🔎 Scanning No-Album Assets",
+                unit="file",
+                smoothing=0.1,
+                dynamic_ncols=True,
+                leave=True,
+            ) as pbar:
+                for p in self.analyzer.filtered_file_list:
+                    f = Path(p)
+                    # only real files and symlinks should be considered
+                    if not (f.is_file() or f.is_symlink()):
+                        pbar.update(1)
                         continue
-                elif sel_ext is not None and ext not in sel_ext:
-                    continue
 
-                # record asset
-                assets.append({
-                    'id': str(f),
-                    'time': f.stat().st_mtime,
-                    'filename': f.name,
-                    'filepath': str(f),
-                    'type': self._determine_file_type(f),
-                })
+                    # skip any path under Albums or Shared albums
+                    try:
+                        f.relative_to(albums_folder)
+                        pbar.update(1)
+                        continue
+                    except ValueError:
+                        pass
+                    try:
+                        f.relative_to(shared_albums_folder)
+                        pbar.update(1)
+                        continue
+                    except ValueError:
+                        pass
+                    # skip any path under _Duplicates
+                    try:
+                        f.relative_to(duplicates_folder)
+                        pbar.update(1)
+                        continue
+                    except ValueError:
+                        pass
+
+                    ext = f.suffix.lower()
+                    # local filter by requested type
+                    if sel_ext == 'unsupported':
+                        if ext in self.ALLOWED_EXTENSIONS:
+                            pbar.update(1)
+                            continue
+                    elif sel_ext is not None and ext not in sel_ext:
+                        pbar.update(1)
+                        continue
+
+                    # record asset
+                    assets.append({
+                        'id': str(f),
+                        'time': f.stat().st_mtime,
+                        'filename': f.name,
+                        'filepath': str(f),
+                        'type': self._determine_file_type(f),
+                    })
+                    pbar.update(1)
 
             # include takeout metadata, sidecar, unsupported files also outside albums
             metadata = [{'id': a['id'], **a} for a in self.get_takeout_assets_by_filters('metadata')]
@@ -1278,9 +1304,18 @@ class ClassLocalFolder:
 
             combined_assets = []
             all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
-            for album in all_albums:
-                album_id = album["id"]
-                combined_assets.extend(self.get_all_assets_from_album(album_id, log_level))
+            with tqdm(
+                total=len(all_albums),
+                desc="📚 Gathering Albums Assets",
+                unit="album",
+                smoothing=0.1,
+                dynamic_ncols=True,
+                leave=True,
+            ) as pbar:
+                for album in all_albums:
+                    album_id = album["id"]
+                    combined_assets.extend(self.get_all_assets_from_album(album_id, log_level))
+                    pbar.update(1)
             self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
             return combined_assets
 
