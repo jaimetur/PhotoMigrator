@@ -1539,8 +1539,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 total_ratio = 3 + 4 + 4  # Suma de los ratios en split_row()
                 info_panel_ratio = 3  # Ratio de "info_panel"
 
-                # Estimación del ancho de info_panel antes de que Rich lo calcule
-                info_panel_width = (terminal_width * info_panel_ratio) // total_ratio
+                # Recompute with current terminal width on each render (supports resize).
+                current_terminal_width = max(40, int(getattr(console.size, "width", terminal_width) or terminal_width))
+                info_panel_width = max(30, (current_terminal_width * info_panel_ratio) // total_ratio)
 
                 # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
                 # # Histograma temporal de la cola con barras como estas "  ▁▂▃▄▅▆▇█"  o estas "▁▂▄▆█"
@@ -1574,7 +1575,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 # Barra de cola actual. Muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
                 # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
                 # 🔹 Definir el ancho de la barra de progreso dinámicamente
-                BAR_WIDTH = max(1, info_panel_width - 34)  # Asegurar que al menos sea 1
+                label_col_width = 20
+                panel_overhead = 8  # panel borders + paddings + table separators (approx)
+                counter_width = 8 if parallel else 7
+                BAR_WIDTH = max(3, info_panel_width - label_col_width - panel_overhead - counter_width)
                 # 🔹 Obtener backlog real (queued + in-flight) para evitar que qsize() aparente 0
                 #     cuando los push workers hacen get() pero aún están procesando.
                 raw_queue_size = int(SHARED_DATA.info.get('assets_in_queue', 0) or 0)
@@ -1618,7 +1622,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 # 🔹 Crear la tabla
                 table = Table.grid(expand=True)
                 table.add_column(justify="left", width=20, no_wrap=True)
-                table.add_column(justify="right", ratio=1)
+                table.add_column(justify="right", ratio=1, no_wrap=True, overflow="crop")
                 for label, value in info_data:
                     table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
 
