@@ -977,7 +977,7 @@ class FolderAnalyzer:
                         for idx, block in enumerate(file_blocks, 1)
                     }
 
-                    with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True) as pbar:
+                    with tqdm(total=total_blocks, desc=f"{MSG_TAGS['INFO']}{step_name}📊 Date Extraction Progress", unit="block", smoothing=0.1, dynamic_ncols=True, leave=True) as pbar:
                         try:
                             for future in as_completed(future_to_index):
                                 result = future.result()

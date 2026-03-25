@@ -1723,6 +1723,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             bg_progress_rows = {}
             bg_progress_colors = ["bright_magenta", "bright_yellow", "bright_blue", "bright_green"]
             bg_completed_retention_sec = 2.0
+            bg_progress_next_color_idx = 0
 
             def _parse_int(value, default=0):
                 try:
@@ -1751,6 +1752,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 )
 
             def _upsert_bg_progress(desc, current, total):
+                nonlocal bg_progress_next_color_idx
                 total_value = max(1, int(total))
                 if int(total) <= 0:
                     return False
@@ -1758,7 +1760,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 label = _normalize_desc(desc)
                 key = f"{label.lower()}::{total_value}"
                 if key not in bg_progress_rows:
-                    color = bg_progress_colors[len(bg_progress_rows) % len(bg_progress_colors)]
+                    color = bg_progress_colors[bg_progress_next_color_idx % len(bg_progress_colors)]
+                    bg_progress_next_color_idx += 1
                     bar = _create_bg_bar(color)
                     task_id = bar.add_task(label, completed=0, total=total_value)
                     bg_progress_rows[key] = {
