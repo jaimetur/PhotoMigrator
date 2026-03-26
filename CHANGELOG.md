@@ -40,6 +40,8 @@
   - Separated markdown render in a new static file
   - Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI.
   - Added vertical scroll to the `Access Logs` table in the Administration Panel, limiting visible height (about 20 recent entries) while keeping older entries accessible by scrolling.
+  - Improved `Background Progress` label normalization to keep only text after `:`, trim trailing `:` variants (`:`, ` :`, ` : `), and remove trailing path clauses such as `in ...` / `in folder ...` (Linux/Windows paths, quoted or unquoted).
+  - Improved `Background Progress` title normalization to keep only the text after `:` (when present) and then trim surrounding whitespace.
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.

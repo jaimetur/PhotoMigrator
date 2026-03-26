@@ -1409,6 +1409,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             MIN_TERMINAL_HEIGHT = 30
             MIN_TERMINAL_WIDTH = 100
 
+            # Background Progress Bar Tittle
+            BG_PROGRESS_BAR_TITTLE_WIDTH = 60
+
             # Calculate terminal_height and terminal_width
             terminal_height = console.size.height
             terminal_width = console.size.width
@@ -1746,8 +1749,21 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     return default
 
             def _normalize_desc(desc):
-                text = re.sub(r"\s+", " ", str(desc or "")).strip(" :-")
+                text = re.sub(r"\s+", " ", str(desc or ""))
                 text = re.sub(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*", "", text, flags=re.IGNORECASE)
+                if ":" in text:
+                    text = text.split(":", 1)[1]
+                # Remove trailing location clauses that include Linux/Windows paths,
+                # e.g. "in '/volume/...'", "in folder /volume/...", "at C:\\...".
+                text = re.sub(
+                    r"\s+\b(?:in|at|from)(?:\s+\w+){0,2}\s+[\"']?(?:[A-Za-z]:[\\/]|/)[^\"']*[\"']?\s*$",
+                    "",
+                    text,
+                    flags=re.IGNORECASE,
+                )
+                # Remove trailing separators like " :", ":" or " : ".
+                text = re.sub(r"\s*:\s*$", "", text)
+                text = text.strip()
                 return text or "Progress"
 
             def _create_bg_bar(color):
@@ -1850,7 +1866,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
             def build_background_progress_panel():
                 table = Table.grid(expand=True)
-                table.add_column(justify="left", width=35, no_wrap=True, overflow="ellipsis")
+                table.add_column(justify="left", width=BG_PROGRESS_BAR_TITTLE_WIDTH, no_wrap=True, overflow="ellipsis")
                 table.add_column(justify="left", ratio=1, no_wrap=True)
 
                 if bg_progress_rows:
@@ -1858,7 +1874,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ordered = list(bg_progress_rows.values())  # preserve creation order for visual stability
                     for info in ordered[:visible_limit]:
                         label = escape(str(info.get("label", "Progress")))
-                        table.add_row(f"[{info['color']}]{label}:[/{info['color']}]", info["bar"])
+                        table.add_row(f"[{info['color']}]{label}[/{info['color']}]", info["bar"])
                 else:
                     table.add_row("", "")
 
