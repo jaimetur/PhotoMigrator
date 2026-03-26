@@ -1493,7 +1493,6 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
             # Calcular logs_panel en función del espacio restante
             fixed_heights = sum([empty_line_1_height, header_panel_height, title_panel_height, content_panel_height, background_progress_panel_height, empty_line_2_height])
-            logs_panel_height = terminal_height - fixed_heights  # Espacio restante
 
             # Asegurar que la línea vacía no tenga bordes ni contenido visible
             layout["empty_line_1"].update("")
@@ -1736,9 +1735,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
                 r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$"
             )
+            indeterminate_tqdm_re = re.compile(
+                r"(?P<current>[0-9][0-9,]*)\s+(?P<unit>[A-Za-z][A-Za-z0-9_./-]*)\s+\[[^\]]+\]\s*$"
+            )
             bg_progress_rows = {}
             bg_progress_colors = ["bright_yellow", "bright_blue", "bright_magenta", "bright_green"]
             bg_completed_retention_sec = 5.0
+            bg_indeterminate_idle_retention_sec = 2.0
             bg_progress_next_color_idx = 0
             bg_progress_version = 0
 
@@ -1766,33 +1769,34 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 text = text.strip()
                 return text or "Progress"
 
-            def _create_bg_bar(color):
-                counter = "{task.completed}/{task.total}"
+            def _create_bg_bar(color, has_total=True):
+                counter = "{task.completed}/{task.total}" if has_total else "{task.completed}"
+                pulse_style = "bar.pulse" if has_total else f"{color} bold"
                 return Progress(
                     BarColumn(
                         bar_width=None,
                         style=f"{color} dim",
                         complete_style=f"{color} bold",
                         finished_style=f"{color} bold",
-                        pulse_style="bar.pulse",
+                        # pulse_style="bar.pulse",
+                        pulse_style=pulse_style,
                     ),
                     TextColumn(f"[{color}]{counter:>15}[/{color}]"),
                     console=console,
                     expand=True,
                 )
 
-            def _upsert_bg_progress(desc, current, total):
+            def _upsert_bg_progress(desc, current, total=None):
                 nonlocal bg_progress_next_color_idx, bg_progress_version
-                total_value = max(1, int(total))
-                if int(total) <= 0:
-                    return False
-
                 label = _normalize_desc(desc)
-                key = f"{label.lower()}::{total_value}"
+                current_value = max(0, int(current))
+                has_total = total is not None and int(total) > 0
+                total_value = max(1, int(total)) if has_total else None
+                key = f"{label.lower()}::{'determinate' if has_total else 'indeterminate'}::{total_value if has_total else 0}"
                 if key not in bg_progress_rows:
                     color = bg_progress_colors[bg_progress_next_color_idx % len(bg_progress_colors)]
                     bg_progress_next_color_idx += 1
-                    bar = _create_bg_bar(color)
+                    bar = _create_bg_bar(color, has_total=has_total)
                     task_id = bar.add_task(label, completed=0, total=total_value)
                     bg_progress_rows[key] = {
                         "label": label,
@@ -1801,13 +1805,18 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         "task_id": task_id,
                         "last_update": time.time(),
                         "completed": False,
+                        "has_total": has_total,
                     }
 
                 info = bg_progress_rows[key]
-                done = max(0, min(int(current), total_value))
-                info["bar"].update(info["task_id"], completed=done, total=total_value)
+                if info.get("has_total"):
+                    done = max(0, min(current_value, total_value))
+                    info["bar"].update(info["task_id"], completed=done, total=total_value)
+                    info["completed"] = done >= total_value
+                else:
+                    info["bar"].update(info["task_id"], completed=current_value, total=None)
+                    info["completed"] = False
                 info["last_update"] = time.time()
-                info["completed"] = done >= total_value
                 bg_progress_version += 1
                 return True
 
@@ -1817,7 +1826,11 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     now = time.time()
                 to_delete = []
                 for key, info in bg_progress_rows.items():
-                    if info.get("completed") and now - float(info.get("last_update", now)) > bg_completed_retention_sec:
+                    age = now - float(info.get("last_update", now))
+                    if info.get("completed") and age > bg_completed_retention_sec:
+                        to_delete.append(key)
+                        continue
+                    if not info.get("has_total") and age > bg_indeterminate_idle_retention_sec:
                         to_delete.append(key)
                 if not to_delete:
                     return False
@@ -1830,9 +1843,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 raw = str(line or "")
                 if not raw:
                     return False
+                plain = ansi_escape_re.sub("", raw.replace("\r", "")).strip()
+                if not plain:
+                    return False
 
-                if raw.startswith(TQDM_DASHBOARD_META_PREFIX):
-                    payload = raw[len(TQDM_DASHBOARD_META_PREFIX):]
+                if plain.startswith(TQDM_DASHBOARD_META_PREFIX):
+                    payload = plain[len(TQDM_DASHBOARD_META_PREFIX):]
                     parts = payload.split("\t")
                     if len(parts) == 3:
                         desc = parts[0]
@@ -1841,9 +1857,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         return _upsert_bg_progress(desc, current, total)
                     return False
 
-                plain = ansi_escape_re.sub("", raw.replace("\r", "")).strip()
                 if plain.startswith(TQDM_DASHBOARD_PREFIX):
                     plain = plain[len(TQDM_DASHBOARD_PREFIX):].strip()
+                elif plain.upper().startswith("TQDM "):
+                    plain = plain[5:].strip()
                 plain = re.sub(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*", "", plain, flags=re.IGNORECASE)
 
                 custom_match = custom_progress_re.match(plain)
@@ -1862,6 +1879,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     total = _parse_int(tqdm_match.group("total"), 0)
                     return _upsert_bg_progress(desc, current, total)
 
+                indeterminate_match = indeterminate_tqdm_re.search(plain)
+                if indeterminate_match:
+                    desc = plain[:indeterminate_match.start()].strip(" :-")
+                    if not desc:
+                        return False
+                    current = _parse_int(indeterminate_match.group("current"), 0)
+                    return _upsert_bg_progress(desc, current, total=None)
+
                 return False
 
             def build_background_progress_panel():
@@ -1870,7 +1895,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 table.add_column(justify="left", ratio=1, no_wrap=True)
 
                 if bg_progress_rows:
-                    visible_limit = max(1, background_progress_panel_height - 2)
+                    panel_height = int(getattr(layout["background_progress_panel"], "size", background_progress_panel_height) or background_progress_panel_height)
+                    visible_limit = max(1, panel_height - 2)
                     ordered = list(bg_progress_rows.values())  # preserve creation order for visual stability
                     for info in ordered[:visible_limit]:
                         label = escape(str(info.get("label", "Progress")))
@@ -1884,9 +1910,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             # 6) Logging Panel from Memmory Handler
             # ─────────────────────────────────────────────────────────────────────────
             # Lista (o deque) para mantener todo el historial de logs ya mostrados
-            logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
-            ACCU_LOGS = deque(maxlen=max(2000, logs_panel_height))
+            ACCU_LOGS = deque(maxlen=2000)
             logs_version = 0
+
+            def _current_logs_panel_height():
+                panel_size = getattr(layout["logs_panel"], "size", None)
+                if isinstance(panel_size, int) and panel_size > 0:
+                    return max(1, panel_size - 2)
+                return max(1, terminal_height - fixed_heights - 2)
 
             def _drain_logs_queue():
                 """
@@ -1911,6 +1942,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     safe_line = clean_line
 
                     line_lower = clean_line.lower()
+                    event_line = re.sub(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*", "", clean_line, flags=re.IGNORECASE).strip()
+                    event_lower = event_line.lower()
                     if "warning :" in line_lower:
                         line_style = "yellow"
                     elif "error   :" in line_lower:
@@ -1919,20 +1952,20 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         line_style = "#EEEEEE"
                     elif "delayed" in line_lower:
                         line_style = "bright_black"
-                    elif "album created" in line_lower:
-                        line_style = "bright_white"
-                    elif "album pulled" in line_lower:
-                        line_style = "bright_cyan"
-                    elif "album pushed" in line_lower:
-                        line_style = "bright_green"
-                    elif "duplicated" in line_lower:
-                        line_style = "#9da7ad"
-                    elif "fail" in line_lower:
-                        line_style = "yellow"
-                    elif "pull" in line_lower and not "push" in line_lower:
+                    elif event_lower.startswith("asset pulled"):
                         line_style = "cyan"
-                    elif any(word in line_lower for word in ("push", "created")) and not "pull" in line_lower:
+                    elif event_lower.startswith("asset pushed"):
                         line_style = "green"
+                    elif event_lower.startswith("album created"):
+                        line_style = "bright_white"
+                    elif event_lower.startswith("album pulled"):
+                        line_style = "bright_cyan"
+                    elif event_lower.startswith("album pushed"):
+                        line_style = "bright_green"
+                    elif event_lower.startswith("asset duplicated"):
+                        line_style = "#9da7ad"
+                    elif event_lower.startswith("asset fail") or event_lower.startswith("asset failed"):
+                        line_style = "yellow"
                     else:
                         line_style = "bright_white"
 
@@ -1946,6 +1979,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 return changed
 
             def build_log_panel():
+                logs_panel_height = _current_logs_panel_height()
                 title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: '{FOLDERNAME_LOGS}/{os.path.basename(log_file)}')"
                 try:
                     if ACCU_LOGS:
@@ -1988,6 +2022,17 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
                     tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),
                 )
+
+            def _sync_terminal_size():
+                nonlocal terminal_height, terminal_width
+                new_height = max(1, int(getattr(console.size, "height", terminal_height) or terminal_height))
+                new_width = max(1, int(getattr(console.size, "width", terminal_width) or terminal_width))
+                if new_height == terminal_height and new_width == terminal_width:
+                    return False
+                terminal_height = new_height
+                terminal_width = new_width
+                layout.size = terminal_height
+                return True
 
             def _wait_for_any_key_to_close_dashboard():
                 """
@@ -2060,6 +2105,19 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     LOGGER.debug(f"{step_name}Starting Live loop")
                     while not migration_finished.is_set():
                         dirty = False
+
+                        if _sync_terminal_size():
+                            layout["info_panel"].update(build_info_panel())
+                            layout["pulls_panel"].update(build_pull_panel())
+                            layout["pushs_panel"].update(build_push_panel())
+                            layout["background_progress_panel"].update(build_background_progress_panel())
+                            layout["logs_panel"].update(build_log_panel())
+                            last_info_signature = _build_info_signature()
+                            last_pull_signature = _build_pull_signature()
+                            last_push_signature = _build_push_signature()
+                            last_bg_version = bg_progress_version
+                            last_logs_version = logs_version
+                            dirty = True
 
                         if _drain_logs_queue():
                             dirty = True

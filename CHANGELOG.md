@@ -42,6 +42,9 @@
   - Added vertical scroll to the `Access Logs` table in the Administration Panel, limiting visible height (about 20 recent entries) while keeping older entries accessible by scrolling.
   - Improved `Background Progress` label normalization to keep only text after `:`, trim trailing `:` variants (`:`, ` :`, ` : `), and remove trailing path clauses such as `in ...` / `in folder ...` (Linux/Windows paths, quoted or unquoted).
   - Improved `Background Progress` title normalization to keep only the text after `:` (when present) and then trim surrounding whitespace.
+  - Improved CLI Live Dashboard Background Progress routing for Takeout post-processing `tqdm` lines by accepting additional prefixes (including `TQDM ...`) and indeterminate progress frames (for example `81 files [00:00, ...]`) so those updates are rendered in the `Background Progress` panel instead of the logs panel.
+  - Improved CLI Live Dashboard responsiveness on terminal resize by syncing layout dimensions on each refresh cycle and recalculating visible `Logs Panel` rows from the current panel height.
+  - Refined CLI Live Dashboard log coloring rules to style only explicit Automatic Migration events (`Asset Pulled`, `Asset Pushed`, `Asset Duplicated`, `Album Created`, `Album Pulled`, `Album Pushed`, `Asset Fail/Failed`) instead of broad keyword matches.
 
 #### 🐛 Bug fixes:
   - Fixed web command/help text normalization so `--client=nextcloud` examples are parsed consistently in UI descriptions.
