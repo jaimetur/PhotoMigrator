@@ -6,8 +6,10 @@ import zipfile
 # Cambia esto a False para renombrar realmente
 SIMULATE = False
 
+# Borra los zips originales tras extraerlos solo si está a True
+DELETE_SOURCE_ZIPS = False
+
 # Expresión regular para capturar la estructura del nombre
-#pattern = re.compile(r"^gpth-v(?P<version>[\d\.]+)-nightly-(?P<os>\w+)-(?P<arch>[\w_]+)(?P<ext>\.\w
 pattern = re.compile(r"^gpth-v(?P<version>[\d\.]+)-(?P<tag>\w+)-(?P<os>\w+)-(?P<arch>[\w_]+)(?P<ext>\.\w+)?$")
 
 
@@ -21,6 +23,7 @@ ARCH_MAP = {
 EXT_MAP = {
     "windows": ".exe"
 }
+
 
 def extract_zip_files_to_current_directory():
     execution_dir = os.getcwd()
@@ -49,15 +52,29 @@ def extract_zip_files_to_current_directory():
                         with zip_ref.open(member) as source, open(target_path, 'wb') as target:
                             target.write(source.read())
 
+            # Solo borrar el zip si está activado explícitamente
+            if DELETE_SOURCE_ZIPS:
+                print(f"Deleting source zip: {zip_path}")
+                if not SIMULATE:
+                    os.remove(zip_path)
+
     print("✅ Extracción completada.")
 
+
 def main():
-    print(f"\n==== INICIO (SIMULATE={'yes' if SIMULATE else 'no'}) ====\n")
-    
+    print(f"\n==== INICIO (SIMULATE={'yes' if SIMULATE else 'no'}, DELETE_SOURCE_ZIPS={'yes' if DELETE_SOURCE_ZIPS else 'no'}) ====\n")
+
     # Extract all zips in working dir
     extract_zip_files_to_current_directory()
 
     for filename in os.listdir():
+        if not os.path.isfile(filename):
+            continue
+
+        # No renombrar nunca los zips originales
+        if filename.lower().endswith(".zip"):
+            continue
+
         match = pattern.match(filename)
         if not match:
             continue
@@ -83,7 +100,7 @@ def main():
                 os.remove(new_name)
             os.rename(filename, new_name)
 
-    print(f"\n==== FINALIZADO (SIMULATE={'yes' if SIMULATE else 'no'}) ====")
+    print(f"\n==== FINALIZADO (SIMULATE={'yes' if SIMULATE else 'no'}, DELETE_SOURCE_ZIPS={'yes' if DELETE_SOURCE_ZIPS else 'no'}) ====")
 
 
 if __name__ == "__main__":
