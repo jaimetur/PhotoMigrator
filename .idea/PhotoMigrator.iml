@@ -8,8 +8,9 @@
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.github_ignore" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/.venv_mac" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 - PhotoMigrator" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.13 (PhotoMigrator)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

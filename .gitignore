@@ -181,6 +181,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.venv_mac
 env/
 venv/
 ENV/

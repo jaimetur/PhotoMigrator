@@ -1,6 +1,8 @@
 # Evita incluir archivos innecesarios en la imagen Docker
 
 # Entornos virtuales
+.venv/
+.venv_mac/
 venv/
 .env/
 
