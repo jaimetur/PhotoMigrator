@@ -45,17 +45,21 @@
   - Improved CLI Live Dashboard Background Progress routing for Takeout post-processing `tqdm` lines by accepting additional prefixes (including `TQDM ...`) and indeterminate progress frames (for example `81 files [00:00, ...]`) so those updates are rendered in the `Background Progress` panel instead of the logs panel.
   - Improved CLI Live Dashboard responsiveness on terminal resize by syncing layout dimensions on each refresh cycle and recalculating visible `Logs Panel` rows from the current panel height.
   - Refined CLI Live Dashboard log coloring rules to style only explicit Automatic Migration events (`Asset Pulled`, `Asset Pushed`, `Asset Duplicated`, `Album Created`, `Album Pulled`, `Album Pushed`, `Asset Fail/Failed`) instead of broad keyword matches.
-  - Updated GPTH to version 6.1.0 which includes several enhancements and bug fixing.
+  - Updated GPTH from version 5.0.5 to version 6.1.0 which includes several enhancements and bug fixing.
 
 #### 🚀 GPTH Enhancements:
+#### 6.1.0
   - Added `--all-photos-dir` CLI option to customize the non-album output directory name (default remains `ALL_PHOTOS`). Set it to an empty string (`--all-photos-dir ""`) to remove that extra directory level entirely. This makes album links more portable when migrating into existing folder structures.
+  - Added `--hardlink` flag (Windows only) for `shortcut` and `reverse-shortcut` album modes. When enabled, GPTH creates hard links instead of symlinks for shortcut entries.
   - `--transform-pixel-mp` now accepts an explicit output format: `mp4`, `jpg`, or `still`.
   - Step 6 Pixel motion-photo transformation now supports two modes:
     - `mp4`: rename `.MP` / `.MV` primary files to `.mp4`.
     - `jpg`: create motion `.jpg` files from Pixel motion photos.
     - `still`: keep only a still image (prefers sidecar `*.MP.jpg`, otherwise extracts embedded JPEG) and remove related `.MP` / `.MV` source files.
-    - `--transform-pixel-mp jpg` is currently **preview/experimental** and may be unstable depending on source file structure.
+  - ⚠️ `--transform-pixel-mp jpg` is currently **preview/experimental** and may be unstable depending on source file structure.
   - **Step 1: Pixel Motion Photo files (.MP, .MV) no longer unconditionally converted to .mp4** — Pixel Motion Photo files have `video/mp4` MIME type but `.MP`/`.MV` extensions. Previously, Step 1 unconditionally renamed them to `.mp4` due to the MIME/extension mismatch, making the `--transform-pixel-mp` flag ineffective. Step 1 now preserves `.MP`/`.MV` files, deferring to Step 6 which respects the flag: with `--transform-pixel-mp`, they are converted to `.mp4`; without the flag, they are left as-is.
+
+#### 6.0.0
   - Added progress bar to Step 5 (Find Albums) to show album association processing progress
   - **Step 1: Extension fixing now replaces the incorrect extension instead of appending** — Previously, a file like `vacation_sunset.heic` (actually JPEG) would be renamed to `vacation_sunset.heic.jpg`. Now it becomes `vacation_sunset.jpg`. The associated JSON sidecar and any supplemental-metadata JSON files are atomically renamed to match. This produces cleaner output filenames with no change in metadata accuracy, since all downstream steps already used only the final extension. The double-extension handling in the truncated filename fixer (Step 4) has been kept for natural Pixel-style suffixes (`.PANO.jpg`, `.MP.mp4`, etc.) which are not affected by this change.
   - **Step 3 progress bar now fills in real time** — Previously the hashing phase (`groupIdenticalFast2`) only printed a text message every 50 size groups (and only in verbose mode), so the progress bar appeared to jump to 100% instantly at the end. A `FillingBar` is now created before the bucket-processing loop and updated after each slice of size groups finishes, giving continuous visual feedback during the (potentially long) deduplication hashing phase.
@@ -89,9 +93,13 @@
   - Replaced custom `_Mutex` class with `Pool(1)` from `package:pool` in `MediaHashService` — same single-access semantics with less custom code.
   - Replaced hand-rolled `LinkedHashMap` LRU cache (~60 lines) with `LruCache` from `package:lru` in `MediaHashService`.
   - Added type-safe `toJson()` / `fromJson()` serialization to `MediaEntity`, `FileEntity`, and `AlbumEntity`, replacing ~260 lines of duck-typed `dynamic` casting in `ProgressSaverService`.
+
+#### 5.1.1
   - Fixed a bug where non-english year folder names could cause them to be classified as albums
   - Fixed ExifTool failing with `Bad format (282) for InteropIFD entry` or `Truncated InteropIFD directory` errors on certain images (Google Photos edited files with `-edited` suffix, WhatsApp images). Root cause: the UTC timezone offset tags (`OffsetTime*`) introduced in v5.0.9 trigger ExifTool's IFD traversal, which aborts on files with a corrupted InteropIFD structure. Fix: when either error is detected, the offset tags are stripped and the write is retried — date and GPS data are still written successfully, matching v5.0.8 behaviour for these files. (#108)
   - Improved error messaging for InteropIFD failures: the per-file warning now correctly distinguishes between a UTC timezone offset tag failure (date was already written natively — no data loss) and an actual date metadata write failure. A step-level summary is printed when one or more files are affected, with a description and the total count of affected files.
+
+#### 5.1.0
   - Upgraded mime package to 2.0.0 (contains bugfix)
   - Added german and spanish "Photos from" localization.
   - Fixed an issue with MacOS unicode normalisation (#99)
@@ -100,13 +108,21 @@
   - Added -editada suffix for spanish
   - bumped some dependencies
   - Will not allow any mode which requires symlink on a filesystem which does not support symlinks (#105)
+
+#### 5.0.9
   - Fixed a UTC conversion bug
   - Fixed that geodata was removed from exif
   - fixed a bug where a path join used a unix path seperator instead of being platform agnostic.
+
+#### 5.0.8
   - Updated upstream library to image 4.7.2 which contains fixes to the native writeExif() method.
+
+#### 5.0.7
   - ZIP extraction no longer deletes an existing extraction directory. GPTH Neo now refuses to extract into a non-empty folder to prevent accidental deletion of unrelated files.
   - Interactive mode: Added an explicit **DANGER** warning before confirming output directory cleanup (deletes recursively inside the chosen output folder).
   - Restore truncated media filenames from JSON sidecars (uses the JSON `title` field) after date extraction, renaming both the media file and its JSON metadata so later steps use the original name.
+
+#### 5.0.6
   - Fixed german unknown folder name from "unbekannt" to "Unbenannt" to correctly identify unknown folders (please create a bug report if those folders are exported in your language and provide us with the correct translation)
   - fixed unit tests
   - fixed partner sharing logic
@@ -117,7 +133,6 @@
   - Fixed major error which led to native exif write methods not being used when exiftool was not installed.
   - Fixed issue with App1 marker in image library when jpg has no exif block. Using own fork of image library until pull request to the source repo is accepted. Fixes issue #95
   - Minor Bug Fixing.
-
 
 
 #### 🐛 Bug fixes:
