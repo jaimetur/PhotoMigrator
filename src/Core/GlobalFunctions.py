@@ -56,6 +56,7 @@ def set_LOGGER(level_str=None):
     log_folder = resolve_external_path(GV.FOLDERNAME_LOGS)
     log_filename = f"{GV.TOOL_NAME}_{GV.TOOL_VERSION}_{GV.TIMESTAMP}"
     GV.LOG_FILENAME = os.path.join(current_directory, log_folder, log_filename)
+    skip_logfile = GV.ARGS.get('no-log-file', False) if GV.ARGS else False
 
     # 🔁 Evitar duplicación de mensajes eliminando handlers previos
     root_logger = logging.getLogger()
@@ -67,7 +68,7 @@ def set_LOGGER(level_str=None):
         log_folder=log_folder,
         log_filename=log_filename,
         log_level=GV.LOG_LEVEL_MIN,
-        skip_logfile=False,
+        skip_logfile=skip_logfile,
         skip_console=False,
         format=(GV.ARGS.get('log-format') if GV.ARGS else 'log')
     )

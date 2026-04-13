@@ -236,10 +236,10 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
     if not log_filename:
         log_filename = GV.TOOL_NAME
 
-    # Create logs folder if it does not exist
     # Resolve log_folder to an absolute path
     log_folder = resolve_external_path(log_folder)
-    os.makedirs(log_folder, exist_ok=True)
+    if not skip_logfile:
+        os.makedirs(log_folder, exist_ok=True)
 
     # Clear existing handlers to avoid duplicate logs
     GV.LOGGER = logging.getLogger('PhotoMigrator')

@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="34651093-bdc3-41c7-b8fa-acc9b4a6446a" name="Changes" comment="Commit from Mac" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="213" />
+  </component>
+  <component name="Git.Settings">
+    <favorite-branches>
+      <branch-storage>
+        <map>
+          <entry type="LOCAL">
+            <value>
+              <list>
+                <branch-info repo="$PROJECT_DIR$" source="3.4.4" />
+                <branch-info repo="$PROJECT_DIR$" source="3.6.0" />
+              </list>
+            </value>
+          </entry>
+        </map>
+      </branch-storage>
+    </favorite-branches>
+    <option name="PREVIEW_PUSH_PROTECTED_ONLY" value="true" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="4.0.0_background_progress" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="MIXED" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;jaimetur&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/jaimetur/PhotoMigrator.git&quot;,
+    &quot;accountId&quot;: &quot;4c07b2f2-0db8-4d26-b5da-2dc3cc91e957&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="31EbFmldMNICpwQrIxVHKVb6hn1" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.PhotoMigrator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.UpdateAll.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;4.0.0&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/jaimetur/Library/CloudStorage/GoogleDrive-jaimetur@gmail.com/Mi unidad/Dev/PycharmProjects/PhotoMigrator&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="Push.Settings">
+    <force-push-targets>
+      <force-push-target remote-path="origin" branch="3.8.0" />
+      <force-push-target remote-path="origin" branch="main" />
+    </force-push-targets>
+  </component>
+  <component name="RunManager" selected="Python.PhotoMigrator">
+    <configuration name="PhotoMigrator" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PhotoMigrator" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/PhotoMigrator.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.UpdateAll" />
+      <item itemvalue="Python.setup" />
+      <item itemvalue="Python.PhotoMigrator" />
+    </list>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-b63d5a1f7c97-b61e75351b1f-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.22158.340" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="project-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="34651093-bdc3-41c7-b8fa-acc9b4a6446a" name="Changes" comment="" />
+      <created>1755092079099</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1755092079099</updated>
+      <workItem from="1774973376308" duration="284000" />
+      <workItem from="1774973671654" duration="1341000" />
+      <workItem from="1774975043397" duration="1130000" />
+      <workItem from="1774986966990" duration="235000" />
+      <workItem from="1775042612762" duration="164000" />
+      <workItem from="1775042789647" duration="2665000" />
+      <workItem from="1775053222288" duration="596000" />
+      <workItem from="1775053862723" duration="1195000" />
+      <workItem from="1775265315339" duration="538000" />
+      <workItem from="1775265867326" duration="25000" />
+      <workItem from="1775554439179" duration="598000" />
+      <workItem from="1775558888794" duration="597000" />
+      <workItem from="1775597041149" duration="598000" />
+      <workItem from="1775612235853" duration="597000" />
+      <workItem from="1775725919637" duration="588000" />
+      <workItem from="1775760507139" duration="597000" />
+    </task>
+    <task id="LOCAL-00208" summary="Fixed `Automatic Migration` cloud-session initialization for NextCloud and Google Photos clients by enabling lazy thread-safe auto-login on first API call, preventing `session is not initialized. Call login() first` errors in source/target worker flows.">
+      <option name="closed" value="true" />
+      <created>1774051473982</created>
+      <option name="number" value="00208" />
+      <option name="presentableId" value="LOCAL-00208" />
+      <option name="project" value="LOCAL" />
+      <updated>1774051473983</updated>
+    </task>
+    <task id="LOCAL-00209" summary="Fixed `Automatic Migration` no create target albums when NextCloud was target">
+      <option name="closed" value="true" />
+      <created>1774051882492</created>
+      <option name="number" value="00209" />
+      <option name="presentableId" value="LOCAL-00209" />
+      <option name="project" value="LOCAL" />
+      <updated>1774051882492</updated>
+    </task>
+    <task id="LOCAL-00210" summary="Fixed `Automatic Migration` no create target albums when NextCloud was target">
+      <option name="closed" value="true" />
+      <created>1774052272164</created>
+      <option name="number" value="00210" />
+      <option name="presentableId" value="LOCAL-00210" />
+      <option name="project" value="LOCAL" />
+      <updated>1774052272164</updated>
+    </task>
+    <task id="LOCAL-00211" summary="- Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).&#10;- Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.&#10;- Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.&#10;- Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments.">
+      <option name="closed" value="true" />
+      <created>1774123491004</created>
+      <option name="number" value="00211" />
+      <option name="presentableId" value="LOCAL-00211" />
+      <option name="project" value="LOCAL" />
+      <updated>1774123491005</updated>
+    </task>
+    <task id="LOCAL-00212" summary="- Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).&#10;- Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.&#10;- Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.&#10;- Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments.">
+      <option name="closed" value="true" />
+      <created>1774123520772</created>
+      <option name="number" value="00212" />
+      <option name="presentableId" value="LOCAL-00212" />
+      <option name="project" value="LOCAL" />
+      <updated>1774123520772</updated>
+    </task>
+    <task id="LOCAL-00213" summary="- Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).&#10;- Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.&#10;- Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.&#10;- Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments.">
+      <option name="closed" value="true" />
+      <created>1774123669504</created>
+      <option name="number" value="00213" />
+      <option name="presentableId" value="LOCAL-00213" />
+      <option name="project" value="LOCAL" />
+      <updated>1774123669504</updated>
+    </task>
+    <task id="LOCAL-00214" summary="- Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).&#10;- Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.&#10;- Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.&#10;- Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments.">
+      <option name="closed" value="true" />
+      <created>1774123708957</created>
+      <option name="number" value="00214" />
+      <option name="presentableId" value="LOCAL-00214" />
+      <option name="project" value="LOCAL" />
+      <updated>1774123708957</updated>
+    </task>
+    <task id="LOCAL-00215" summary="- Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).&#10;- Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.&#10;- Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.&#10;- Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments.">
+      <option name="closed" value="true" />
+      <created>1774123792343</created>
+      <option name="number" value="00215" />
+      <option name="presentableId" value="LOCAL-00215" />
+      <option name="project" value="LOCAL" />
+      <updated>1774123792343</updated>
+    </task>
+    <task id="LOCAL-00216" summary="Access log in admin panel">
+      <option name="closed" value="true" />
+      <created>1774124565421</created>
+      <option name="number" value="00216" />
+      <option name="presentableId" value="LOCAL-00216" />
+      <option name="project" value="LOCAL" />
+      <updated>1774124565421</updated>
+    </task>
+    <task id="LOCAL-00217" summary="Access log in admin panel">
+      <option name="closed" value="true" />
+      <created>1774125493860</created>
+      <option name="number" value="00217" />
+      <option name="presentableId" value="LOCAL-00217" />
+      <option name="project" value="LOCAL" />
+      <updated>1774125493861</updated>
+    </task>
+    <task id="LOCAL-00218" summary="Access log in admin panel">
+      <option name="closed" value="true" />
+      <created>1774125619763</created>
+      <option name="number" value="00218" />
+      <option name="presentableId" value="LOCAL-00218" />
+      <option name="project" value="LOCAL" />
+      <updated>1774125619763</updated>
+    </task>
+    <task id="LOCAL-00219" summary="Access log in admin panel">
+      <option name="closed" value="true" />
+      <created>1774125745846</created>
+      <option name="number" value="00219" />
+      <option name="presentableId" value="LOCAL-00219" />
+      <option name="project" value="LOCAL" />
+      <updated>1774125745846</updated>
+    </task>
+    <task id="LOCAL-00220" summary="Access log in admin panel">
+      <option name="closed" value="true" />
+      <created>1774125968085</created>
+      <option name="number" value="00220" />
+      <option name="presentableId" value="LOCAL-00220" />
+      <option name="project" value="LOCAL" />
+      <updated>1774125968085</updated>
+    </task>
+    <task id="LOCAL-00221" summary="- Enhancements in Web UI.&#10;- Forbidden Import/Export/Save configuration file in demo roles.">
+      <option name="closed" value="true" />
+      <created>1774205233422</created>
+      <option name="number" value="00221" />
+      <option name="presentableId" value="LOCAL-00221" />
+      <option name="project" value="LOCAL" />
+      <updated>1774205233423</updated>
+    </task>
+    <task id="LOCAL-00222" summary="- Added a new `Upload to Server` tab in the web interface with destination-folder picker, separate `Upload Local Folder` and `Upload Local Zip` actions, and optional ZIP extraction mode (`Extract ZIPs on upload`: Yes/No).">
+      <option name="closed" value="true" />
+      <created>1774221905022</created>
+      <option name="number" value="00222" />
+      <option name="presentableId" value="LOCAL-00222" />
+      <option name="project" value="LOCAL" />
+      <updated>1774221905024</updated>
+    </task>
+    <task id="LOCAL-00223" summary="- Fixed `Automatic Migration` dashboard crash in frozen binaries when Rich unicode tables are missing (`ModuleNotFoundError: rich._unicode_data.unicode17-0-0`) by adding packaging includes for `rich._unicode_data` and graceful dashboard fallback.">
+      <option name="closed" value="true" />
+      <created>1774222752357</created>
+      <option name="number" value="00223" />
+      <option name="presentableId" value="LOCAL-00223" />
+      <option name="project" value="LOCAL" />
+      <updated>1774222752357</updated>
+    </task>
+    <task id="LOCAL-00224" summary="- Improved album upload progress visualization for cloud clients (NextCloud, Synology, Immich, Google Photos) by showing a nested per-album assets progress bar labeled as `Uploading '&lt;AlbumName&gt;' Assets`.">
+      <option name="closed" value="true" />
+      <created>1774228572131</created>
+      <option name="number" value="00224" />
+      <option name="presentableId" value="LOCAL-00224" />
+      <option name="project" value="LOCAL" />
+      <updated>1774228572131</updated>
+    </task>
+    <task id="LOCAL-00225" summary="- Added NextCloud dual-folder configuration in `Config.ini` and config loader with per-account `NEXTCLOUD_PHOTOS_FOLDER_&lt;id&gt;` (assets/no-albums) and `NEXTCLOUD_ALBUMS_FOLDER_&lt;id&gt;` (folder-based albums), keeping compatibility with legacy `NEXTCLOUD_WEBDAV_ROOT_&lt;id&gt;`.">
+      <option name="closed" value="true" />
+      <created>1774235717586</created>
+      <option name="number" value="00225" />
+      <option name="presentableId" value="LOCAL-00225" />
+      <option name="project" value="LOCAL" />
+      <updated>1774235717586</updated>
+    </task>
+    <task id="LOCAL-00226" summary="- Changed Web UI&#10;- Separated markdown render in a new static file&#10;- Changed header styles in help documents.">
+      <option name="closed" value="true" />
+      <created>1774388396371</created>
+      <option name="number" value="00226" />
+      <option name="presentableId" value="LOCAL-00226" />
+      <option name="project" value="LOCAL" />
+      <updated>1774388396371</updated>
+    </task>
+    <task id="LOCAL-00227" summary="- Try to add a Background Progress Panel">
+      <option name="closed" value="true" />
+      <created>1774407276890</created>
+      <option name="number" value="00227" />
+      <option name="presentableId" value="LOCAL-00227" />
+      <option name="project" value="LOCAL" />
+      <updated>1774407276891</updated>
+    </task>
+    <task id="LOCAL-00228" summary="- Try to add a Background Progress Panel">
+      <option name="closed" value="true" />
+      <created>1774412332010</created>
+      <option name="number" value="00228" />
+      <option name="presentableId" value="LOCAL-00228" />
+      <option name="project" value="LOCAL" />
+      <updated>1774412332010</updated>
+    </task>
+    <task id="LOCAL-00229" summary="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)">
+      <option name="closed" value="true" />
+      <created>1774412724290</created>
+      <option name="number" value="00229" />
+      <option name="presentableId" value="LOCAL-00229" />
+      <option name="project" value="LOCAL" />
+      <updated>1774412724290</updated>
+    </task>
+    <task id="LOCAL-00230" summary="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)">
+      <option name="closed" value="true" />
+      <created>1774413467259</created>
+      <option name="number" value="00230" />
+      <option name="presentableId" value="LOCAL-00230" />
+      <option name="project" value="LOCAL" />
+      <updated>1774413467259</updated>
+    </task>
+    <task id="LOCAL-00231" summary="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)">
+      <option name="closed" value="true" />
+      <created>1774413777865</created>
+      <option name="number" value="00231" />
+      <option name="presentableId" value="LOCAL-00231" />
+      <option name="project" value="LOCAL" />
+      <updated>1774413777865</updated>
+    </task>
+    <task id="LOCAL-00232" summary="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)">
+      <option name="closed" value="true" />
+      <created>1774414013306</created>
+      <option name="number" value="00232" />
+      <option name="presentableId" value="LOCAL-00232" />
+      <option name="project" value="LOCAL" />
+      <updated>1774414013307</updated>
+    </task>
+    <task id="LOCAL-00233" summary="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)">
+      <option name="closed" value="true" />
+      <created>1774414464837</created>
+      <option name="number" value="00233" />
+      <option name="presentableId" value="LOCAL-00233" />
+      <option name="project" value="LOCAL" />
+      <updated>1774414464837</updated>
+    </task>
+    <task id="LOCAL-00234" summary="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)">
+      <option name="closed" value="true" />
+      <created>1774414832564</created>
+      <option name="number" value="00234" />
+      <option name="presentableId" value="LOCAL-00234" />
+      <option name="project" value="LOCAL" />
+      <updated>1774414832564</updated>
+    </task>
+    <task id="LOCAL-00235" summary="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)">
+      <option name="closed" value="true" />
+      <created>1774415618424</created>
+      <option name="number" value="00235" />
+      <option name="presentableId" value="LOCAL-00235" />
+      <option name="project" value="LOCAL" />
+      <updated>1774415618424</updated>
+    </task>
+    <task id="LOCAL-00236" summary="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)">
+      <option name="closed" value="true" />
+      <created>1774415947893</created>
+      <option name="number" value="00236" />
+      <option name="presentableId" value="LOCAL-00236" />
+      <option name="project" value="LOCAL" />
+      <updated>1774415947893</updated>
+    </task>
+    <task id="LOCAL-00237" summary="- Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI.">
+      <option name="closed" value="true" />
+      <created>1774417099797</created>
+      <option name="number" value="00237" />
+      <option name="presentableId" value="LOCAL-00237" />
+      <option name="project" value="LOCAL" />
+      <updated>1774417099797</updated>
+    </task>
+    <task id="LOCAL-00238" summary="- Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI.">
+      <option name="closed" value="true" />
+      <created>1774418096391</created>
+      <option name="number" value="00238" />
+      <option name="presentableId" value="LOCAL-00238" />
+      <option name="project" value="LOCAL" />
+      <updated>1774418096391</updated>
+    </task>
+    <task id="LOCAL-00239" summary="- Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI.">
+      <option name="closed" value="true" />
+      <created>1774420220680</created>
+      <option name="number" value="00239" />
+      <option name="presentableId" value="LOCAL-00239" />
+      <option name="project" value="LOCAL" />
+      <updated>1774420220681</updated>
+    </task>
+    <task id="LOCAL-00240" summary="- Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI.">
+      <option name="closed" value="true" />
+      <created>1774421730203</created>
+      <option name="number" value="00240" />
+      <option name="presentableId" value="LOCAL-00240" />
+      <option name="project" value="LOCAL" />
+      <updated>1774421730203</updated>
+    </task>
+    <task id="LOCAL-00241" summary="- Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI.">
+      <option name="closed" value="true" />
+      <created>1774421979440</created>
+      <option name="number" value="00241" />
+      <option name="presentableId" value="LOCAL-00241" />
+      <option name="project" value="LOCAL" />
+      <updated>1774421979440</updated>
+    </task>
+    <task id="LOCAL-00242" summary="- Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI.">
+      <option name="closed" value="true" />
+      <created>1774422171249</created>
+      <option name="number" value="00242" />
+      <option name="presentableId" value="LOCAL-00242" />
+      <option name="project" value="LOCAL" />
+      <updated>1774422171249</updated>
+    </task>
+    <task id="LOCAL-00243" summary="Updated README.md">
+      <option name="closed" value="true" />
+      <created>1774423617803</created>
+      <option name="number" value="00243" />
+      <option name="presentableId" value="LOCAL-00243" />
+      <option name="project" value="LOCAL" />
+      <updated>1774423617803</updated>
+    </task>
+    <task id="LOCAL-00244" summary="Updated README.md">
+      <option name="closed" value="true" />
+      <created>1774423723778</created>
+      <option name="number" value="00244" />
+      <option name="presentableId" value="LOCAL-00244" />
+      <option name="project" value="LOCAL" />
+      <updated>1774423723778</updated>
+    </task>
+    <task id="LOCAL-00245" summary="Updated README.md">
+      <option name="closed" value="true" />
+      <created>1774423810235</created>
+      <option name="number" value="00245" />
+      <option name="presentableId" value="LOCAL-00245" />
+      <option name="project" value="LOCAL" />
+      <updated>1774423810235</updated>
+    </task>
+    <task id="LOCAL-00246" summary="Updated README.md">
+      <option name="closed" value="true" />
+      <created>1774423998298</created>
+      <option name="number" value="00246" />
+      <option name="presentableId" value="LOCAL-00246" />
+      <option name="project" value="LOCAL" />
+      <updated>1774423998298</updated>
+    </task>
+    <task id="LOCAL-00247" summary="Updated README.md">
+      <option name="closed" value="true" />
+      <created>1774426758199</created>
+      <option name="number" value="00247" />
+      <option name="presentableId" value="LOCAL-00247" />
+      <option name="project" value="LOCAL" />
+      <updated>1774426758199</updated>
+    </task>
+    <task id="LOCAL-00248" summary="Updated README.md">
+      <option name="closed" value="true" />
+      <created>1774471673577</created>
+      <option name="number" value="00248" />
+      <option name="presentableId" value="LOCAL-00248" />
+      <option name="project" value="LOCAL" />
+      <updated>1774471673578</updated>
+    </task>
+    <task id="LOCAL-00249" summary="- Added vertical scroll to the `Access Logs` table in the Administration Panel, limiting visible height (about 20 recent entries) while keeping older entries accessible by scrolling.">
+      <option name="closed" value="true" />
+      <created>1774474335635</created>
+      <option name="number" value="00249" />
+      <option name="presentableId" value="LOCAL-00249" />
+      <option name="project" value="LOCAL" />
+      <updated>1774474335635</updated>
+    </task>
+    <task id="LOCAL-00250" summary="- Improved `Background Progress` label normalization to keep only text after `:`, trim trailing `:` variants (`:`, ` :`, ` : `), and remove trailing path clauses such as `in ...` / `in folder ...` (Linux/Windows paths, quoted or unquoted).&#10;- Improved `Background Progress` title normalization to keep only the text after `:` (when present) and then trim surrounding whitespace.">
+      <option name="closed" value="true" />
+      <created>1774496497124</created>
+      <option name="number" value="00250" />
+      <option name="presentableId" value="LOCAL-00250" />
+      <option name="project" value="LOCAL" />
+      <updated>1774496497125</updated>
+    </task>
+    <task id="LOCAL-00251" summary="- Improved CLI Live Dashboard Background Progress routing for Takeout post-processing `tqdm` lines by accepting additional prefixes (including `TQDM ...`) and indeterminate progress frames (for example `81 files [00:00, ...]`) so those updates are rendered in the `Background Progress` panel instead of the logs panel.&#10;- Improved CLI Live Dashboard responsiveness on terminal resize by syncing layout dimensions on each refresh cycle and recalculating visible `Logs Panel` rows from the current panel height.&#10;- Refined CLI Live Dashboard log coloring rules to style only explicit Automatic Migration events (`Asset Pulled`, `Asset Pushed`, `Asset Duplicated`, `Album Created`, `Album Pulled`, `Album Pushed`, `Asset Fail/Failed`) instead of broad keyword matches.">
+      <option name="closed" value="true" />
+      <created>1774540546263</created>
+      <option name="number" value="00251" />
+      <option name="presentableId" value="LOCAL-00251" />
+      <option name="project" value="LOCAL" />
+      <updated>1774540546264</updated>
+    </task>
+    <task id="LOCAL-00252" summary="Updated GPTH to version 5.1.0 which includes several enhancements and bug fixing.">
+      <option name="closed" value="true" />
+      <created>1774676646837</created>
+      <option name="number" value="00252" />
+      <option name="presentableId" value="LOCAL-00252" />
+      <option name="project" value="LOCAL" />
+      <updated>1774676646838</updated>
+    </task>
+    <task id="LOCAL-00253" summary="Updated GPTH to version 5.0.9 which includes several enhancements and bug fixing.">
+      <option name="closed" value="true" />
+      <created>1774677431646</created>
+      <option name="number" value="00253" />
+      <option name="presentableId" value="LOCAL-00253" />
+      <option name="project" value="LOCAL" />
+      <updated>1774677431646</updated>
+    </task>
+    <task id="LOCAL-00254" summary="Updated GPTH to version 5.0.9 which includes several enhancements and bug fixing.">
+      <option name="closed" value="true" />
+      <created>1774677614525</created>
+      <option name="number" value="00254" />
+      <option name="presentableId" value="LOCAL-00254" />
+      <option name="project" value="LOCAL" />
+      <updated>1774677614525</updated>
+    </task>
+    <task id="LOCAL-00255" summary="Updated GPTH to version 5.0.6 which includes several enhancements and bug fixing.">
+      <option name="closed" value="true" />
+      <created>1774680122780</created>
+      <option name="number" value="00255" />
+      <option name="presentableId" value="LOCAL-00255" />
+      <option name="project" value="LOCAL" />
+      <updated>1774680122780</updated>
+    </task>
+    <task id="LOCAL-00256" summary="Commit from Mac">
+      <option name="closed" value="true" />
+      <created>1774975475760</created>
+      <option name="number" value="00256" />
+      <option name="presentableId" value="LOCAL-00256" />
+      <option name="project" value="LOCAL" />
+      <updated>1774975475760</updated>
+    </task>
+    <option name="localTasksCounter" value="257" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="- Improved name-pattern handling across cloud modules: wildcard-only patterns like `*` are now accepted for album selection, and literal patterns with special regex characters (for example album names containing parentheses) now work for matching/replacing without requiring manual escaping.&#10;- Improved album rename matching for literal album names containing regex metacharacters (such as parentheses), so rename workflows work without manual escaping." />
+    <MESSAGE value="Update README.md" />
+    <MESSAGE value="Update 8-google-photos.md" />
+    <MESSAGE value="Improved markdown render to detect italic font and bold+italic." />
+    <MESSAGE value="Fixed `Automatic Migration` cloud-session initialization for NextCloud and Google Photos clients by enabling lazy thread-safe auto-login on first API call, preventing `session is not initialized. Call login() first` errors in source/target worker flows." />
+    <MESSAGE value="Fixed `Automatic Migration` no create target albums when NextCloud was target" />
+    <MESSAGE value="- Added secure multi-user mode in Docker Web Interface with login/session authentication and bootstrap admin credentials (`admin` / `admin123` by default).&#10;- Added Administration Panel for admin users to create/edit/delete users and configure per-user subpaths for `/app/data` and `/app/volumes`.&#10;- Added per-user `Config.ini` persistence in SQLite database, encrypting sensitive values at rest.&#10;- Added structured Configuration File tab editor based on sections/fields (Google Takeout, Google Photos, Synology Photos, Immich Photos, NextCloud Photos, TimeZone) with per-field help extracted from config comments." />
+    <MESSAGE value="Access log in admin panel" />
+    <MESSAGE value="- Enhancements in Web UI.&#10;- Forbidden Import/Export/Save configuration file in demo roles." />
+    <MESSAGE value="- Added a new `Upload to Server` tab in the web interface with destination-folder picker, separate `Upload Local Folder` and `Upload Local Zip` actions, and optional ZIP extraction mode (`Extract ZIPs on upload`: Yes/No)." />
+    <MESSAGE value="- Fixed `Automatic Migration` dashboard crash in frozen binaries when Rich unicode tables are missing (`ModuleNotFoundError: rich._unicode_data.unicode17-0-0`) by adding packaging includes for `rich._unicode_data` and graceful dashboard fallback." />
+    <MESSAGE value="- Improved album upload progress visualization for cloud clients (NextCloud, Synology, Immich, Google Photos) by showing a nested per-album assets progress bar labeled as `Uploading '&lt;AlbumName&gt;' Assets`." />
+    <MESSAGE value="- Added NextCloud dual-folder configuration in `Config.ini` and config loader with per-account `NEXTCLOUD_PHOTOS_FOLDER_&lt;id&gt;` (assets/no-albums) and `NEXTCLOUD_ALBUMS_FOLDER_&lt;id&gt;` (folder-based albums), keeping compatibility with legacy `NEXTCLOUD_WEBDAV_ROOT_&lt;id&gt;`." />
+    <MESSAGE value="- Changed Web UI&#10;- Separated markdown render in a new static file&#10;- Changed header styles in help documents." />
+    <MESSAGE value="- Try to add a Background Progress Panel" />
+    <MESSAGE value="- Added a dedicated `Background Progress` panel in Automatic Migration Live Dashboard to render Local Folder analysis progress (folder scan + files scan in current folder) without polluting the logs panel. (Issue #1037)" />
+    <MESSAGE value="- Smoothed Automatic Migration Live Dashboard rendering by switching to manual refresh-on-change updates (dirty panels only), stabilizing Background Progress row order, and reducing completion-row churn to minimize panel flicker/tremor in CLI." />
+    <MESSAGE value="Updated README.md" />
+    <MESSAGE value="- Added vertical scroll to the `Access Logs` table in the Administration Panel, limiting visible height (about 20 recent entries) while keeping older entries accessible by scrolling." />
+    <MESSAGE value="- Improved `Background Progress` label normalization to keep only text after `:`, trim trailing `:` variants (`:`, ` :`, ` : `), and remove trailing path clauses such as `in ...` / `in folder ...` (Linux/Windows paths, quoted or unquoted).&#10;- Improved `Background Progress` title normalization to keep only the text after `:` (when present) and then trim surrounding whitespace." />
+    <MESSAGE value="- Improved CLI Live Dashboard Background Progress routing for Takeout post-processing `tqdm` lines by accepting additional prefixes (including `TQDM ...`) and indeterminate progress frames (for example `81 files [00:00, ...]`) so those updates are rendered in the `Background Progress` panel instead of the logs panel.&#10;- Improved CLI Live Dashboard responsiveness on terminal resize by syncing layout dimensions on each refresh cycle and recalculating visible `Logs Panel` rows from the current panel height.&#10;- Refined CLI Live Dashboard log coloring rules to style only explicit Automatic Migration events (`Asset Pulled`, `Asset Pushed`, `Asset Duplicated`, `Album Created`, `Album Pulled`, `Album Pushed`, `Asset Fail/Failed`) instead of broad keyword matches." />
+    <MESSAGE value="Updated GPTH to version 5.1.0 which includes several enhancements and bug fixing." />
+    <MESSAGE value="Updated GPTH to version 5.0.9 which includes several enhancements and bug fixing." />
+    <MESSAGE value="Updated GPTH to version 5.0.6 which includes several enhancements and bug fixing." />
+    <MESSAGE value="Commit from Mac" />
+    <option name="LAST_COMMIT_MESSAGE" value="Commit from Mac" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../../Python_Scripts_jaimetur/PycharmProjects/PhotoMigrator/src/Core/ClassFolderAnalyzer_old.py</url>
+          <line>593</line>
+          <option name="timeStamp" value="30" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="ARGS" />
+        <watch expression="self.HEADERS_WITH_CREDENTIALS" />
+        <watch expression="CONFIG" />
+      </configuration>
+    </watches-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/PhotoMigrator$PhotoMigrator.coverage" NAME="PhotoMigrator Coverage Results" MODIFIED="1774974534978" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>

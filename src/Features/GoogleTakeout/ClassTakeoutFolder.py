@@ -2115,12 +2115,6 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # Basic GPTH Command
         gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
 
-        # TODO: Remove this Testing Block
-        # gpth_command.append("--verbose")
-        # gpth_command.append("--_test-conservative-multiplier=1")
-        # gpth_command.append("--_test-standard-multiplier=1")
-        # gpth_command.append("--_test-disk-optimized-multiplier=1")
-
         # Add verbosity depending on log-level
         if ARGS['log-level'].lower() in ['verbose']:
             gpth_command.append("--verbose")
@@ -2159,10 +2153,14 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 gpth_command.append("--no-copy")
 
         if Version(GPTH_VERSION) >= Version("3.6.0"):
-            # Use the new feature to Transform Pixel .MP or .MV extensions to ".mp4"
-            gpth_command.append("--transform-pixel-mp")
             # Use the new feature to Set creation time equal to the last modification date at the end of the program. (Only Windows supported)
             gpth_command.append("--update-creation-time")
+            if Version(GPTH_VERSION) < Version("6.0.0"):
+                # Use the new feature to Transform Pixel .MP or .MV extensions to ".mp4"
+                gpth_command.append("--transform-pixel-mp")
+            elif Version(GPTH_VERSION) >= Version("6.0.0"):
+                # Use the new feature to Transform Pixel .MP or .MV motion photos into motion .jpg files
+                gpth_command.append("--transform-pixel-mp jpg")
 
         if Version(GPTH_VERSION) >= Version("4.0.0"):
             gpth_command.append("--write-exif")
