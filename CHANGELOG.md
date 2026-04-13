@@ -45,9 +45,13 @@
   - Improved CLI Live Dashboard Background Progress routing for Takeout post-processing `tqdm` lines by accepting additional prefixes (including `TQDM ...`) and indeterminate progress frames (for example `81 files [00:00, ...]`) so those updates are rendered in the `Background Progress` panel instead of the logs panel.
   - Improved CLI Live Dashboard responsiveness on terminal resize by syncing layout dimensions on each refresh cycle and recalculating visible `Logs Panel` rows from the current panel height.
   - Refined CLI Live Dashboard log coloring rules to style only explicit Automatic Migration events (`Asset Pulled`, `Asset Pushed`, `Asset Duplicated`, `Album Created`, `Album Pulled`, `Album Pushed`, `Asset Fail/Failed`) instead of broad keyword matches.
-  - Updated GPTH from version 5.0.5 to version 6.1.0 which includes several enhancements and bug fixing.
+  - Updated GPTH from version 5.0.5 to version 6.1.1 which includes several enhancements and bug fixing.
 
 #### 🚀 GPTH Enhancements:
+
+#### 6.1.1
+  - Added `archiver` as correct french translation of archive.
+
 #### 6.1.0
   - Added `--all-photos-dir` CLI option to customize the non-album output directory name (default remains `ALL_PHOTOS`). Set it to an empty string (`--all-photos-dir ""`) to remove that extra directory level entirely. This makes album links more portable when migrating into existing folder structures.
   - Added `--hardlink` flag (Windows only) for `shortcut` and `reverse-shortcut` album modes. When enabled, GPTH creates hard links instead of symlinks for shortcut entries.
