@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="123f4051-49a5-4708-a5df-824fcbab1746" name="Changes" comment="Updated to GPTH 6.1.1">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/PhotoMigrator.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PhotoMigrator.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/Jaime_Tur.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/ejaitur.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/webResources.xml" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="5288" />
+  </component>
+  <component name="Git.Settings">
+    <option name="PREVIEW_PUSH_PROTECTED_ONLY" value="true" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;jaimetur&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/jaimetur/PhotoMigrator.git&quot;,
+    &quot;accountId&quot;: &quot;4c07b2f2-0db8-4d26-b5da-2dc3cc91e957&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="3CBEicCYcF0WCwaWFNigAtWqF7q" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;4.0.0&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.pycharm.community.ide.impl.configuration.PythonContentEntriesConfigurable&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="Push.Settings">
+    <force-push-targets>
+      <force-push-target remote-path="origin" branch="main" />
+    </force-push-targets>
+  </component>
+  <component name="RunManager" selected="Python.UpdateAll" />
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-b63d5a1f7c97-b61e75351b1f-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.22158.340" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="123f4051-49a5-4708-a5df-824fcbab1746" name="Changes" comment="" />
+      <created>1775850690781</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1775850690781</updated>
+      <workItem from="1775850693682" duration="420000" />
+      <workItem from="1775851127243" duration="70000" />
+      <workItem from="1775851203963" duration="49000" />
+      <workItem from="1775851267856" duration="91000" />
+      <workItem from="1775851364809" duration="47000" />
+      <workItem from="1776080209345" duration="14569000" />
+      <workItem from="1776117128750" duration="1343000" />
+      <workItem from="1776265204272" duration="650000" />
+      <workItem from="1776346333997" duration="623000" />
+      <workItem from="1776349494354" duration="184000" />
+      <workItem from="1776349781161" duration="222000" />
+      <workItem from="1776360239103" duration="676000" />
+      <workItem from="1776386615213" duration="607000" />
+      <workItem from="1776390747219" duration="1047000" />
+      <workItem from="1776391871401" duration="257000" />
+      <workItem from="1776392375865" duration="71000" />
+      <workItem from="1776392534565" duration="19000" />
+      <workItem from="1776392586696" duration="50000" />
+      <workItem from="1776392746189" duration="663000" />
+      <workItem from="1776396680806" duration="91000" />
+      <workItem from="1776396778509" duration="305000" />
+    </task>
+    <task id="LOCAL-00001" summary="Updated to GPTH 6.1.0">
+      <option name="closed" value="true" />
+      <created>1776089676218</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1776089676218</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Updated to GPTH 6.1.0">
+      <option name="closed" value="true" />
+      <created>1776089822415</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1776089822415</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Updated to GPTH 6.1.0">
+      <option name="closed" value="true" />
+      <created>1776106985800</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1776106985800</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Updated to GPTH 6.1.0">
+      <option name="closed" value="true" />
+      <created>1776107012662</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1776107012662</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Updated to GPTH 6.1.0">
+      <option name="closed" value="true" />
+      <created>1776112956079</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1776112956079</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Updated to GPTH 6.1.1">
+      <option name="closed" value="true" />
+      <created>1776115226107</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1776115226107</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Updated to GPTH 6.1.1">
+      <option name="closed" value="true" />
+      <created>1776115546060</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1776115546060</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Updated to GPTH 6.1.1">
+      <option name="closed" value="true" />
+      <created>1776116052895</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1776116052895</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Updated to GPTH 6.1.1">
+      <option name="closed" value="true" />
+      <created>1776117230829</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1776117230829</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Updated to GPTH 6.1.0" />
+    <MESSAGE value="Updated to GPTH 6.1.1" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated to GPTH 6.1.1" />
+  </component>
+</project>
