@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="123f4051-49a5-4708-a5df-824fcbab1746" name="Changes" comment="gpth 6.x.x has a bug in --transform-pixel-mp flag. Disabling it until it is solved">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/UpdateAll.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/UpdateAll.py" afterDir="false" />
-    </list>
+    <list default="true" id="123f4051-49a5-4708-a5df-824fcbab1746" name="Changes" comment="gpth 6.x.x has a bug in --transform-pixel-mp flag. Disabling it until it is solved" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -119,7 +116,7 @@
       <workItem from="1776401991500" duration="536000" />
       <workItem from="1776403790143" duration="597000" />
       <workItem from="1776404562263" duration="598000" />
-      <workItem from="1776447428618" duration="3205000" />
+      <workItem from="1776447428618" duration="3346000" />
     </task>
     <task id="LOCAL-00001" summary="Updated to GPTH 6.1.0">
       <option name="closed" value="true" />
@@ -249,7 +246,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776563701451</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="gpth 6.x.x has a bug in --transform-pixel-mp flag. Disabling it until it is solved">
+      <option name="closed" value="true" />
+      <created>1776564398735</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1776564398735</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -274,7 +279,7 @@
     <option name="LAST_COMMIT_MESSAGE" value="gpth 6.x.x has a bug in --transform-pixel-mp flag. Disabling it until it is solved" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/PhotoMigrator$UpdateAll.coverage" NAME="UpdateAll Coverage Results" MODIFIED="1776564338274" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
+    <SUITE FILE_PATH="coverage/PhotoMigrator$UpdateAll.coverage" NAME="UpdateAll Coverage Results" MODIFIED="1776564364079" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
     <SUITE FILE_PATH="coverage/PhotoMigrator$PhotoMigrator.coverage" NAME="PhotoMigrator Coverage Results" MODIFIED="1776563982370" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
