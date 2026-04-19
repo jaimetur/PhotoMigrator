@@ -2160,7 +2160,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 gpth_command.append("--transform-pixel-mp")
             elif Version(GPTH_VERSION) >= Version("6.0.0"):
                 # Use the new feature to Transform Pixel .MP or .MV motion photos into motion .jpg files
-                gpth_command.append("--transform-pixel-mp jpg")
+                #gpth_command.append("--transform-pixel-mp jpg") # gpth 6.x.x has a bug in --transform-pixel-mp flag. Disabling it until it is solved
+                pass
 
         if Version(GPTH_VERSION) >= Version("4.0.0"):
             gpth_command.append("--write-exif")
