@@ -77,8 +77,10 @@ def main() -> None:
     current_version, current_date, _ = read_version_date()
 
     root = tk.Tk()
-    root.title("Update PhotoMigrator Version/Date")
-    root.geometry("640x220")
+    root.title("Update PhotoMigrator (Version/Date, Download Links)")
+    dialog_width = 760 if sys.platform == "darwin" else 640
+    dialog_height = 240 if sys.platform == "darwin" else 220
+    root.geometry(f"{dialog_width}x{dialog_height}")
     root.resizable(False, False)
 
     frame = tk.Frame(root, padx=16, pady=16)
