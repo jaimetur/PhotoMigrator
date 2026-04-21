@@ -536,6 +536,24 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.warning(f"Could not remove file '{resolved}': {last_exc}")
         return False
 
+    def cleanup_temp_folder_markers(folder):
+        """
+        Remove transient marker files (.active / *.lock) and prune empty dirs,
+        including the root temp folder when it becomes empty.
+        """
+        if not folder or not os.path.exists(folder):
+            return
+        for path, dirs, files in os.walk(folder, topdown=False):
+            for filename in files:
+                if filename == ".active" or filename.endswith(".lock"):
+                    safe_remove_local_file(os.path.join(path, filename))
+            try:
+                if not os.listdir(path):
+                    os.rmdir(path)
+                    LOGGER.info(f"Removed empty directory {path}")
+            except OSError:
+                pass
+
     def find_immich_live_video_companion(photo_file_path, pulled_file_paths):
         """
         Finds the companion video path for a given photo path within pulled files when target is Immich.
@@ -807,6 +825,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             # Finalmente, borrar carpetas vacías que queden en temp_folder
             remove_empty_dirs(temp_folder)
+            cleanup_temp_folder_markers(temp_folder)
 
             end_time = datetime.now()
             migration_formatted_duration = str(timedelta(seconds=round((end_time - migration_start_time).total_seconds())))
@@ -1038,6 +1057,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     asset_type = asset['type']
                     asset_datetime = asset.get('time')
                     asset_filename = asset.get('filename')
+                    lock_file = None
 
                     # Skip pull metadata and sidecar for the time being
                     if asset_type in ['metadata', 'sidecar']:
@@ -1054,8 +1074,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             lock.write("Pulling")
                         # Descargar directamente en temp_folder
                         pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.ERROR)
-                        # Eliminar archivo de bloqueo después de la descarga
-                        os.remove(lock_file)
                     except Exception as e:
                         if _is_nextcloud_photo_not_found_error(e):
                             LOGGER.warning(
@@ -1069,6 +1087,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         else:
                             SHARED_DATA.counters['total_pull_failed_photos'] += 1
                         continue
+                    finally:
+                        if lock_file and os.path.exists(lock_file):
+                            safe_remove_local_file(lock_file)
 
                     # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
                     if _pull_has_content(pulled_assets):

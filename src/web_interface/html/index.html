@@ -2915,6 +2915,16 @@
             }
         });
 
+        Object.entries(payload.values || {}).forEach(([dest, rawValue]) => {
+            const violation = getDirectUserRootViolation(dest, rawValue);
+            if (violation) {
+                errors.push(
+                    `Invalid --${dest} path: the user root folder cannot be used directly (${violation.root}). ` +
+                    "Choose a subfolder inside one of your assigned roots."
+                );
+            }
+        });
+
         if (payload.tab === "google_takeout") {
             const takeoutPath = String(payload?.values?.["google-takeout"] || "").trim();
             if (takeoutPath) {
@@ -4139,6 +4149,80 @@
             .filter((item) => item !== "");
     }
 
+    function getFieldSchemaByDest(dest) {
+        if (!schema || !dest) return null;
+        const sections = [
+            ...(Object.values(schema.general_tabs || {})),
+            ...(Object.values(schema.tabs || {})),
+            (schema.feature_scoped || [])
+        ];
+        for (const section of sections) {
+            for (const field of (section || [])) {
+                if (field?.dest === dest) return field;
+            }
+        }
+        return null;
+    }
+
+    function normalizePathForRootComparison(value) {
+        let normalized = String(value || "").trim().replaceAll("\\", "/");
+        if (!normalized) return "";
+        if (normalized !== "/") normalized = normalized.replace(/\/+$/g, "");
+        return normalized || "/";
+    }
+
+    function findDirectAllowedRootMatch(pathValue) {
+        const normalizedPath = normalizePathForRootComparison(pathValue);
+        if (!normalizedPath) return null;
+        for (const root of allowedRoots || []) {
+            if (normalizedPath === normalizePathForRootComparison(root)) {
+                return String(root);
+            }
+        }
+        return null;
+    }
+
+    function destRequiresUserSubfolder(dest) {
+        if (!dest || dest === "configuration-file") return false;
+        if (dest === "upload-folder-target-path") return true;
+        const field = getFieldSchemaByDest(dest);
+        return field?.path_hint === "path";
+    }
+
+    function getPathValidationCandidates(dest, rawValue) {
+        const field = getFieldSchemaByDest(dest);
+        if (Array.isArray(rawValue)) {
+            return rawValue.map((item) => String(item || "").trim()).filter(Boolean);
+        }
+        if (field?.kind === "list") {
+            return parseFolderListValue(rawValue);
+        }
+        return [String(rawValue || "").trim()].filter(Boolean);
+    }
+
+    function getDirectUserRootViolation(dest, rawValue) {
+        if (!destRequiresUserSubfolder(dest)) return null;
+        for (const candidate of getPathValidationCandidates(dest, rawValue)) {
+            const normalizedCandidate = normalizePathForRootComparison(candidate);
+            const matchedRoot = normalizedCandidate === "." ? getPrimaryRoot() : findDirectAllowedRootMatch(candidate);
+            if (matchedRoot) {
+                return {path: candidate, root: matchedRoot};
+            }
+        }
+        return null;
+    }
+
+    function showDirectRootSelectionWarning(matchedRoot) {
+        showNoticeDialog({
+            title: "Invalid Folder Selection",
+            message:
+                "The user root folder cannot be used directly as an input/output path.\n\n" +
+                `Selected root: ${matchedRoot}\n\n` +
+                "Choose a subfolder inside one of your assigned roots:\n" +
+                `${(allowedRoots || []).join("\n")}`
+        });
+    }
+
     function normalizeSpecialFolderToken(value) {
         return String(value || "")
             .trim()
@@ -4670,6 +4754,12 @@
                 input.value = "";
                 return;
             }
+            const directRootViolation = getDirectUserRootViolation("upload-folder-target-path", targetPath);
+            if (directRootViolation) {
+                showDirectRootSelectionWarning(directRootViolation.root);
+                input.value = "";
+                return;
+            }
             if (statusEl) statusEl.textContent = "Upload status: uploading...";
             try {
                 const result = await uploadLocalFolderFiles(files, targetPath, extractZip);
@@ -4723,6 +4813,11 @@
             const current = folderSelectionParentPath || getPrimaryRoot();
             if (!folderTargetInput) return;
             const dest = folderTargetInput.dataset.dest;
+            const directRootViolation = getDirectUserRootViolation(dest, current);
+            if (directRootViolation) {
+                showDirectRootSelectionWarning(directRootViolation.root);
+                return;
+            }
             if (shouldValidateSpecialFoldersForDest(dest)) {
                 const offendingPart = findForbiddenSpecialFolderInPath(current);
                 if (offendingPart) {
@@ -4762,6 +4857,11 @@
                     folderSelectionParentPath || getPrimaryRoot(),
                     "This argument only accepts one folder. Select exactly one."
                 );
+                return;
+            }
+            const directRootViolation = getDirectUserRootViolation(dest, selected);
+            if (directRootViolation) {
+                showDirectRootSelectionWarning(directRootViolation.root);
                 return;
             }
             if (shouldValidateSpecialFoldersForDest(dest)) {

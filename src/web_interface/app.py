@@ -1319,6 +1319,34 @@ def _resolve_user_path(raw_path: str | None, current_user: Dict[str, Any]) -> Pa
     raise HTTPException(status_code=403, detail=f"Path outside allowed user roots. Allowed roots: {allowed}")
 
 
+def _find_matching_user_root(path_value: Path, current_user: Dict[str, Any]) -> Path | None:
+    resolved_path = Path(path_value).resolve()
+    for root in _ensure_user_roots_exist(current_user):
+        if resolved_path == root:
+            return root
+    return None
+
+
+def _resolve_user_subfolder_path(
+    raw_path: str | None,
+    current_user: Dict[str, Any],
+    *,
+    detail_prefix: str = "Path",
+) -> Path:
+    resolved_path = _resolve_user_path(raw_path, current_user)
+    matched_root = _find_matching_user_root(resolved_path, current_user)
+    if matched_root is None:
+        return resolved_path
+    allowed = ", ".join(str(root) for root in _ensure_user_roots_exist(current_user))
+    raise HTTPException(
+        status_code=400,
+        detail=(
+            f"{detail_prefix} must point to a subfolder inside one of the user's allowed roots. "
+            f"Using the user root directly is not allowed: {matched_root}. Allowed roots: {allowed}"
+        ),
+    )
+
+
 def _normalize_upload_relative_path(raw_path: str) -> Path:
     candidate = str(raw_path or "").replace("\\", "/").strip()
     if not candidate:
@@ -2327,9 +2355,9 @@ def _path_validation_scope_for_payload(
     selected_action_dest: str | None,
     values: Dict[str, Any],
 ) -> set[str]:
-    required = _required_dests_for_payload(tab, selected_action_dest)
+    allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     scoped: set[str] = set()
-    for dest in required:
+    for dest in allowed_dests:
         field = PARSER_FIELDS_BY_DEST.get(dest)
         if field and field.get("path_hint") == "path":
             scoped.add(dest)
@@ -2381,10 +2409,20 @@ def _sanitize_payload_paths_for_user(
                 sanitized_candidates.append(text)
                 continue
             if text.startswith("/"):
-                sanitized_candidates.append(str(_resolve_user_path(text, current_user)))
+                sanitized_candidates.append(
+                    str(_resolve_user_subfolder_path(text, current_user, detail_prefix=f"Argument '--{dest}'"))
+                )
                 continue
             # Relative paths are forced under user's data home to avoid escaping outside allowed roots.
-            sanitized_candidates.append(str(_resolve_user_path(str((primary_root / text).resolve()), current_user)))
+            sanitized_candidates.append(
+                str(
+                    _resolve_user_subfolder_path(
+                        str((primary_root / text).resolve()),
+                        current_user,
+                        detail_prefix=f"Argument '--{dest}'",
+                    )
+                )
+            )
         if field.get("kind") == "list":
             normalized_values[dest] = sanitized_candidates
         elif sanitized_candidates:
@@ -2437,10 +2475,22 @@ def _sanitize_config_values_for_user(
                 sanitized[section_name][key] = text
                 continue
             if text.startswith("/"):
-                sanitized[section_name][key] = str(_resolve_user_path(text, current_user))
+                sanitized[section_name][key] = str(
+                    _resolve_user_subfolder_path(
+                        text,
+                        current_user,
+                        detail_prefix=f"Config path '{section_name}.{key}'",
+                    )
+                )
                 continue
             candidate = str((primary_root / text).resolve())
-            sanitized[section_name][key] = str(_resolve_user_path(candidate, current_user))
+            sanitized[section_name][key] = str(
+                _resolve_user_subfolder_path(
+                    candidate,
+                    current_user,
+                    detail_prefix=f"Config path '{section_name}.{key}'",
+                )
+            )
     return sanitized
 
 
@@ -3119,7 +3169,7 @@ async def upload_folder_content(
     files: List[UploadFile] = File(...),
     current_user: Dict[str, Any] = Depends(_require_user),
 ) -> Dict[str, Any]:
-    target_dir = _resolve_user_path(target_path, current_user)
+    target_dir = _resolve_user_subfolder_path(target_path, current_user, detail_prefix="Upload target path")
     if not target_dir.exists() or not target_dir.is_dir():
         raise HTTPException(status_code=400, detail=f"Target path is not a directory: {target_dir}")
     if not files:

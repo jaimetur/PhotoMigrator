@@ -145,6 +145,8 @@
   - Fixed `Automatic Migration` dashboard crash in frozen binaries when Rich unicode tables are missing (`ModuleNotFoundError: rich._unicode_data.unicode17-0-0`) by adding packaging includes for `rich._unicode_data` and graceful dashboard fallback.
   - Fixed NextCloud `Download All`/`Download Assets` path behavior to scan `NEXTCLOUD_PHOTOS_FOLDER_<id>` recursively while excluding `NEXTCLOUD_ALBUMS_FOLDER_<id>` when nested, preventing duplicate album downloads and supporting direct `/Photos` layouts.
   - Fixed `--no-log-file` behavior so Google Takeout runs no longer create the logs folder or log file when that flag is enabled.
+  - Fixed Web Interface path validation to reject using the user's root `DATA_DIR`/`VOLUMES_DIR` directly as any input/output path, requiring a subfolder and showing a warning dialog before execution.
+  - Fixed local album linking in `Automatic Migration`/`LocalFolder` targets by using the correct exclusion helper and caching the created album path instead of the resolved source path, avoiding `Album Push Fail` errors such as `'FolderAnalyzer' object has no attribute '_should_exclude'`.
   - Other bug fixing.
 
 #### 📚 Documentation: 

@@ -225,3 +225,7 @@ cython_debug/
 
 .DS_Store
 .idea/.DS_Store
+
+/exif_tool/exiftool
+/exif_tool/lib/
+/config
