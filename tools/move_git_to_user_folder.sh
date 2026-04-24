@@ -86,7 +86,9 @@ rebuild_external_gitdir_from_origin() {
   BRANCH="$(detect_branch)"
   [[ -n "$BRANCH" ]] || fail "no he podido detectar rama. Pásala como segundo argumento."
 
-  git checkout -B "$BRANCH" "origin/$BRANCH"
+  git symbolic-ref HEAD "refs/heads/$BRANCH"
+  git update-ref "refs/heads/$BRANCH" "origin/$BRANCH"
+  git reset "origin/$BRANCH"
   git branch --set-upstream-to="origin/$BRANCH" "$BRANCH"
 
   print_verification
