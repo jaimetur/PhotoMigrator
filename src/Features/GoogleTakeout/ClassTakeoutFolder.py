@@ -1504,17 +1504,13 @@ def contains_takeout_structure(input_folder, step_name="", log_level=None):
                         if _is_takeout_year_folder(entry.name):
                             LOGGER.info(f"{step_name}Found Google Takeout structure in folder      : {current}")
                             return True
-                    google_photos_subdirs = [entry for entry in subdirs if _looks_like_google_photos_container(entry.name)]
-                    for entry in google_photos_subdirs:
-                        queue.append(entry.path)
-                    # If too many subdirs, skip descending except promising Google Photos containers
+                    # If too many subdirs, skip descending
                     if len(subdirs) > 5:
-                        LOGGER.debug(f"{step_name}Skipping broad scan in {current} because it has {len(subdirs)} subdirectories")
+                        LOGGER.debug(f"{step_name}Skipping {current} because it has {len(subdirs)} subdirectories")
                         continue
                     # Otherwise, enqueue them for further scanning
                     for entry in subdirs:
-                        if entry not in google_photos_subdirs:
-                            queue.append(entry.path)
+                        queue.append(entry.path)
             except PermissionError:
                 LOGGER.warning(f"{step_name}Permission denied accessing: {current}")
             except Exception as e:

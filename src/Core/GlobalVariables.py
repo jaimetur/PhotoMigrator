@@ -115,7 +115,7 @@ TAKEOUT_YEAR_FOLDER_PATTERNS    = (
     re.compile(r"^photos?\s+(?:de|du|des)\s+\d{4}$", re.IGNORECASE),       # French
     re.compile(r"^fotos?\s+(?:von|aus)\s+\d{4}$", re.IGNORECASE),          # German
     re.compile(r"^foto\s+(?:del|della|dello|dei|degli|di)\s+\d{4}$", re.IGNORECASE),  # Italian
-    re.compile(r"^foto'?s\s+(?:uit|van)\s+\d{4}$", re.IGNORECASE),         # Dutch
+    re.compile(r"^foto(?:'|_)?s\s+(?:uit|van)\s+\d{4}$", re.IGNORECASE),   # Dutch
     re.compile(r"^фото\s+(?:за|из)\s+\d{4}$", re.IGNORECASE),              # Russian
     re.compile(r"^фотографии\s+(?:за|из)\s+\d{4}$", re.IGNORECASE),        # Russian alt.
     re.compile(r"^(?:来自|來自)?\s*\d{4}\s*年(?:的)?(?:照片|相片)$"),           # Chinese
@@ -174,7 +174,6 @@ TOOL_DESCRIPTION = textwrap.dedent(f"""{TOOL_NAME_VERSION} - {TOOL_DATE}
           ©️ 2024-2026 by Jaime Tur (@jaimetur)
           """
                                    )
-
 
 
 
