@@ -285,12 +285,14 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # ---------------------------------------------------------------------------------------------------------
             # 1) Creamos un evento para indicar cuándo termina la migración
             migration_finished = threading.Event()
+            web_mode = os.environ.get("PHOTOMIGRATOR_WEB_MODE") == "1"
+            effective_dashboard = bool(show_dashboard and not web_mode)
             # ---------------------------------------------------------------------------------------------------------
 
             # ------------------------------------------------------------------------------------------------------
             # 2) Lanzamos el start_dashboard en un hilo secundario (o viceversa).
             # ------------------------------------------------------------------------------------------------------
-            if show_dashboard:
+            if effective_dashboard:
                 dashboard_thread = threading.Thread(
                     target=start_dashboard,
                     kwargs={
@@ -314,7 +316,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
             # ------------------------------------------------------------------------------------------------------
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
-            print_messages = False if show_dashboard else True
+            print_messages = False if effective_dashboard else True
             if isinstance(source_client, ClassTakeoutFolder):
                 if source_client.needs_unzip or source_client.needs_process:
                     LOGGER.info(f"🔢 Source Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
@@ -356,7 +358,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # ---------------------------------------------------------------------------------------------------------
             # 6) Esperamos a que el show_dashboard termine (si sigue corriendo después de la migración)
             # ---------------------------------------------------------------------------------------------------------
-            if show_dashboard:
+            if effective_dashboard:
                 dashboard_thread.join()
 
 
