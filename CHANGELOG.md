@@ -10,10 +10,11 @@
 #### 🚨 Breaking Changes:
   
 #### 🌟 New Features:
+  - Added configurable exclusion patterns for local-folder based processing and migrations through `--exclude-folders` and `--exclude-files`, and exposed them in the web interface filters. (Issue #1095).
+  - Added environment-variable overrides for cloud-service configuration keys loaded from `Config.ini`, including support for `*_FILE` secrets files, plus a new `PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH` web default to pre-populate the Google Takeout source path in the job form. (Issue #1093).
 
 #### 🚀 Enhancements:
   - Added fail-fast handling for `Automatic Migration` when `Google Photos` is used as `<SOURCE>`, returning a non-zero exit code with a clear workaround message after Google's Library API scope removal on April 1, 2025. Also stopped probing Google Photos read endpoints during login so upload-target flows can continue to use valid upload scopes. (Issue #1091).
-  - Added configurable exclusion patterns for local-folder based processing and migrations through `--exclude-folders` and `--exclude-files`, and exposed them in the web interface filters. (Issue #1095).
 
 #### 🐛 Bug fixes:
   - Fixed automatic migration CLI validation for Immich account 3 by restoring the missing `immich-photos-3` target/source alias in `--source` and `--target` accepted values.

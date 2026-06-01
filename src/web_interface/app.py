@@ -47,6 +47,7 @@ WEB_SESSION_TTL_SECONDS = int(os.environ.get("PHOTOMIGRATOR_WEB_SESSION_TTL_SECO
 WEB_SECRET = os.environ.get("PHOTOMIGRATOR_WEB_SECRET", "change-me-photomigrator-web-secret")
 WEB_BOOTSTRAP_ADMIN_USER = os.environ.get("PHOTOMIGRATOR_BOOTSTRAP_ADMIN_USER", "admin")
 WEB_BOOTSTRAP_ADMIN_PASS = os.environ.get("PHOTOMIGRATOR_BOOTSTRAP_ADMIN_PASS", "admin123")
+WEB_DEFAULT_GOOGLE_TAKEOUT_PATH = os.environ.get("PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH", "").strip()
 WEB_USER_ROOT_DATA = Path(os.environ.get("PHOTOMIGRATOR_WEB_USER_ROOT_DATA", "/app/data")).resolve()
 WEB_USER_ROOT_VOLUME1 = Path(os.environ.get("PHOTOMIGRATOR_WEB_USER_ROOT_VOLUME1", "/app/volumes")).resolve()
 CONFIG_SECTIONS_ORDER = [
@@ -74,6 +75,7 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from Core.ArgsParser import parse_arguments  # noqa: E402
+from Core.ConfigReader import get_env_override_source  # noqa: E402
 from Core.GlobalVariables import TOOL_DATE, TOOL_NAME, TOOL_VERSION, TAKEOUT_SPECIAL_FOLDER_NAMES  # noqa: E402
 
 
@@ -1493,6 +1495,13 @@ def _user_config_db_path(current_user: Dict[str, Any]) -> str:
     return f"db://users/{username}/Config.ini"
 
 
+def _apply_state_defaults(values: Dict[str, Any]) -> Dict[str, Any]:
+    normalized = dict(values or {})
+    if WEB_DEFAULT_GOOGLE_TAKEOUT_PATH and not str(normalized.get("google-takeout", "") or "").strip():
+        normalized["google-takeout"] = WEB_DEFAULT_GOOGLE_TAKEOUT_PATH
+    return normalized
+
+
 def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, Dict[str, str]] | None = None) -> Dict[str, Any]:
     effective = merged if merged is not None else _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
     sections: List[Dict[str, Any]] = []
@@ -1527,6 +1536,7 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
                         else str(field.get("help") or "")
                     ),
                     "sensitive": sensitive,
+                    "env_override_source": get_env_override_source(key),
                     "choices": (
                         TIMEZONE_CHOICES
                         if section_name == "TimeZone" and key == "timezone"
@@ -2109,6 +2119,8 @@ def _load_parser_schema() -> Dict[str, Any]:
             "kind": _field_kind(action, dest),
             "path_hint": _path_hint(dest, getattr(action, "metavar", None)),
         }
+        if dest == "google-takeout" and WEB_DEFAULT_GOOGLE_TAKEOUT_PATH:
+            field["default"] = WEB_DEFAULT_GOOGLE_TAKEOUT_PATH
         fields.append(field)
         by_dest[dest] = field
 
@@ -2954,7 +2966,8 @@ def export_config_to_storage(
 def get_state(current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
     fresh_user = _fetch_user_by_id(int(current_user["id"])) or current_user
     payload = _read_user_state_payload(fresh_user)
-    return {"path": f"db://users/{current_user['id']}/state.json", "values": payload["values"], "ui_state": payload["ui_state"]}
+    values = _apply_state_defaults(payload.get("values", {}))
+    return {"path": f"db://users/{current_user['id']}/state.json", "values": values, "ui_state": payload["ui_state"]}
 
 
 @app.post("/api/state")

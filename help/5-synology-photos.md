@@ -66,6 +66,11 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 > 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id=[1-3]`**_ to specify the account 2 or 3 as needed. 
 
+> [!TIP]
+> In Docker/Compose/Kubernetes, you can override these settings without editing `Config.ini` by using environment variables with the same key names, for example `SYNOLOGY_URL`, `SYNOLOGY_USERNAME_1`, `SYNOLOGY_PASSWORD_1`.
+> Docker-secret style variables such as `SYNOLOGY_PASSWORD_1_FILE=/run/secrets/synology_password_1` are also supported.
+> Runtime precedence is: environment variable > `Config.ini` > template default.
+
 > [!IMPORTANT]  
 > If your Synology Photo Account requires 2FA Authentication, you must use the argument _**`-OTP, --one-time-password`**_ in order to enable the OTP Token request during authentication process. 
 

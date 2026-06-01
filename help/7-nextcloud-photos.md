@@ -71,6 +71,11 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id`**_ to specify the account 2 or 3 as needed. 
 
 > [!TIP]
+> In Docker/Compose/Kubernetes, you can override these settings without editing `Config.ini` by using environment variables with the same key names, for example `NEXTCLOUD_URL`, `NEXTCLOUD_USERNAME_1`, `NEXTCLOUD_PASSWORD_1`, `NEXTCLOUD_PHOTOS_FOLDER_1`, `NEXTCLOUD_ALBUMS_FOLDER_1`.
+> Docker-secret style variables such as `NEXTCLOUD_PASSWORD_1_FILE=/run/secrets/nextcloud_password_1` are also supported.
+> Runtime precedence is: environment variable > `Config.ini` > template default.
+
+> [!TIP]
 > `NEXTCLOUD_MAX_PARALLEL_UPLOADS` controls parallel uploads.
 > Recommended values in LAN are usually between `8` and `16`.
 >

@@ -3431,7 +3431,17 @@
                 ? "TIMEZONE"
                 : String(field.key || "");
             name.textContent = displayKey;
-            inputColumn.appendChild(name);
+            const nameLine = document.createElement("div");
+            nameLine.className = "config-field-keyline";
+            nameLine.appendChild(name);
+            if (field.env_override_source) {
+                const overrideBadge = document.createElement("span");
+                overrideBadge.className = "arg-badge arg-badge--env-override";
+                overrideBadge.textContent = "Env override";
+                overrideBadge.title = `Runtime override active from environment variable ${field.env_override_source}`;
+                nameLine.appendChild(overrideBadge);
+            }
+            inputColumn.appendChild(nameLine);
 
             const sectionName = section.name || "";
             const key = field.key || "";
@@ -3516,6 +3526,14 @@
             const helpText = document.createElement("p");
             helpText.textContent = field.help || "No additional help for this field.";
             helpPanel.appendChild(helpText);
+            if (field.env_override_source) {
+                const overrideNote = document.createElement("p");
+                overrideNote.className = "config-field-override-note";
+                overrideNote.textContent =
+                    `Overridden at runtime by environment variable '${field.env_override_source}'. `
+                    + "Any value saved here is kept in the database but ignored while that override remains set.";
+                helpPanel.appendChild(overrideNote);
+            }
             row.appendChild(helpPanel);
 
             card.appendChild(row);

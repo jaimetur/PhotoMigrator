@@ -9,6 +9,50 @@ from Utils.StandaloneUtils import resolve_external_path
 CONFIG = None
 
 
+def _read_env_override_value(key: str):
+    env_key = str(key or "").strip()
+    if not env_key:
+        return None, None
+
+    if env_key in os.environ:
+        return os.environ.get(env_key, ""), env_key
+
+    file_env_key = f"{env_key}_FILE"
+    if file_env_key not in os.environ:
+        return None, None
+
+    file_path = str(os.environ.get(file_env_key, "") or "").strip()
+    if not file_path:
+        LOGGER.warning(f"Environment variable '{file_env_key}' is set but empty. Ignoring override for '{env_key}'.")
+        return None, None
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as file_handle:
+            return file_handle.read().strip(), file_env_key
+    except Exception as exc:
+        raise RuntimeError(f"Unable to read environment override file '{file_path}' for key '{env_key}': {exc}") from exc
+
+
+def get_env_override_source(key: str):
+    _, env_source = _read_env_override_value(key)
+    return env_source
+
+
+def _apply_env_overrides(CONFIG, config_keys, section_to_load):
+    normalized_section = str(section_to_load or "").strip().lower()
+    for section, keys in config_keys.items():
+        if normalized_section not in {"all", section.lower()}:
+            continue
+        if section not in CONFIG:
+            CONFIG[section] = {}
+        for key in keys:
+            env_value, env_source = _read_env_override_value(key)
+            if env_source is None:
+                continue
+            CONFIG[section][key] = env_value
+            LOGGER.info(f"Override '{key}' in section '{section}' from environment variable '{env_source}'.")
+
+
 def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
     """
     Load the configuration file and populate the global CONFIG dict.
@@ -30,73 +74,6 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
     """
     # Load and set global CONFIG variable
     global CONFIG
-
-    # If configuration is already loaded and contains the requested section, return it
-    if CONFIG:
-        sections_loaded = CONFIG.keys()
-        if section_to_load in sections_loaded:
-            return CONFIG  # Configuration already read previously
-    else:
-        CONFIG = {}
-
-    # Resolve config file path properly (works for docker and non-docker environments)
-    config_file = resolve_external_path(config_file)
-
-    LOGGER.info(f"Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
-    if not os.path.exists(config_file):
-        LOGGER.error(f"Configuration file '{config_file}' not found. Exiting...")
-        sys.exit(1)  # Exit program if config file is not found
-
-    LOGGER.info(f"Configuration file found. Loading configuration for section(s) '{section_to_load}'...")
-
-    # Preprocess the file to remove duplicate keys before reading it with ConfigParser
-    seen_keys = set()          # Set to store unique (section, key) pairs
-    logged_warnings = set()    # Set to avoid logging duplicate warnings multiple times
-    cleaned_lines = []
-
-    with open(config_file, 'r', encoding='utf-8') as f:
-        section = None
-        for line in f:
-            stripped_line = line.strip()
-
-            # Detect section headers
-            if stripped_line.startswith("[") and stripped_line.endswith("]"):
-                section = stripped_line
-                if section_to_load in section or section_to_load.lower() == 'all':
-                    cleaned_lines.append(line)
-
-            # Detect key-value within a section
-            elif "=" in stripped_line and section:
-                # Only process the sections indicated in section_to_load
-                if section_to_load in section or section_to_load.lower() == 'all':
-                    key = stripped_line.split("=", 1)[0].strip()
-                    unique_key = (section, key)  # Unique key composed by section + key
-                    if unique_key in seen_keys:
-                        # Log warning only once per duplicate key
-                        if unique_key not in logged_warnings:
-                            LOGGER.warning(f"Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
-                            logged_warnings.add(unique_key)
-                        continue  # Skip duplicated key
-                    seen_keys.add(unique_key)
-                    cleaned_lines.append(line)
-
-            else:
-                # Keep comments and empty lines
-                cleaned_lines.append(line)
-
-    # Keep cleaned configuration in-memory
-    cleaned_config = "\n".join(cleaned_lines)
-
-    # Load cleaned config using ConfigParser
-    config = ConfigParser()
-    config.optionxform = str  # Preserve case sensitivity
-    config.read_string(cleaned_config)  # Read from cleaned string
-
-    # Remove inline comments from config values
-    def clean_value(value):
-        if value.strip().startswith('#'):
-            return ''
-        return re.split(r'\s+#', value, maxsplit=1)[0].strip()
 
     # Define the sections and keys to read from config file
     config_keys = {
@@ -167,6 +144,75 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
         ],
         'TimeZone': ['timezone']
     }
+
+    # If configuration is already loaded and contains the requested section, return it
+    if CONFIG:
+        sections_loaded = CONFIG.keys()
+        if section_to_load in sections_loaded:
+            _apply_env_overrides(CONFIG=CONFIG, config_keys=config_keys, section_to_load=section_to_load)
+            return CONFIG  # Configuration already read previously
+    else:
+        CONFIG = {}
+
+    # Resolve config file path properly (works for docker and non-docker environments)
+    config_file = resolve_external_path(config_file)
+
+    LOGGER.info(f"Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
+    if not os.path.exists(config_file):
+        LOGGER.error(f"Configuration file '{config_file}' not found. Exiting...")
+        sys.exit(1)  # Exit program if config file is not found
+
+    LOGGER.info(f"Configuration file found. Loading configuration for section(s) '{section_to_load}'...")
+
+    # Preprocess the file to remove duplicate keys before reading it with ConfigParser
+    seen_keys = set()          # Set to store unique (section, key) pairs
+    logged_warnings = set()    # Set to avoid logging duplicate warnings multiple times
+    cleaned_lines = []
+
+    with open(config_file, 'r', encoding='utf-8') as f:
+        section = None
+        for line in f:
+            stripped_line = line.strip()
+
+            # Detect section headers
+            if stripped_line.startswith("[") and stripped_line.endswith("]"):
+                section = stripped_line
+                if section_to_load in section or section_to_load.lower() == 'all':
+                    cleaned_lines.append(line)
+
+            # Detect key-value within a section
+            elif "=" in stripped_line and section:
+                # Only process the sections indicated in section_to_load
+                if section_to_load in section or section_to_load.lower() == 'all':
+                    key = stripped_line.split("=", 1)[0].strip()
+                    unique_key = (section, key)  # Unique key composed by section + key
+                    if unique_key in seen_keys:
+                        # Log warning only once per duplicate key
+                        if unique_key not in logged_warnings:
+                            LOGGER.warning(f"Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
+                            logged_warnings.add(unique_key)
+                        continue  # Skip duplicated key
+                    seen_keys.add(unique_key)
+                    cleaned_lines.append(line)
+
+            else:
+                # Keep comments and empty lines
+                cleaned_lines.append(line)
+
+    # Keep cleaned configuration in-memory
+    cleaned_config = "\n".join(cleaned_lines)
+
+    # Load cleaned config using ConfigParser
+    config = ConfigParser()
+    config.optionxform = str  # Preserve case sensitivity
+    config.read_string(cleaned_config)  # Read from cleaned string
+
+    # Remove inline comments from config values
+    def clean_value(value):
+        if value.strip().startswith('#'):
+            return ''
+        return re.split(r'\s+#', value, maxsplit=1)[0].strip()
+
     # Read all defined keys
     for section, keys in config_keys.items():
         if section == section_to_load or section_to_load.lower() == 'all':
@@ -181,6 +227,8 @@ def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
                         LOGGER.warning(f"WARNING: Missing value for key '{key}' in section '{section}', skipping.")
                 else:
                     LOGGER.warning(f"WARNING: Missing key '{key}' in section '{section}', skipping.")
+
+    _apply_env_overrides(CONFIG=CONFIG, config_keys=config_keys, section_to_load=section_to_load)
 
     LOGGER.info(f"Configuration Read Successfully from '{config_file}' for section '{section_to_load}'.")
     return CONFIG

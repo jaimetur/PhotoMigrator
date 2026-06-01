@@ -268,6 +268,13 @@ body {
     opacity: 0.95;
 }
 
+.config-field-keyline {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .config-field-input-col {
     display: grid;
     gap: 8px;
@@ -282,6 +289,15 @@ body {
 .config-field-help-panel p {
     font-size: 0.87rem;
     line-height: 1.35;
+}
+
+.config-field-override-note {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(208, 165, 32, 0.12);
+    border: 1px solid rgba(176, 132, 14, 0.28);
+    color: var(--text);
 }
 
 @media (max-width: 980px) {
@@ -1316,6 +1332,24 @@ body[data-theme="sunset"] .arg-badge--required {
     background: var(--optional-bg);
     color: var(--optional-text);
     border: 1px solid var(--optional-border);
+}
+
+.arg-badge--env-override {
+    background: #fff1c7;
+    color: #7a5200;
+    border: 1px solid #e2bf61;
+}
+
+body[data-theme="dark"] .arg-badge--env-override {
+    background: #5e4512;
+    color: #ffe6a6;
+    border-color: #8c6a21;
+}
+
+body[data-theme="sunset"] .arg-badge--env-override {
+    background: #f3c870;
+    color: #6a3200;
+    border-color: #cf9840;
 }
 
 .arg-inline-help {

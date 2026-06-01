@@ -66,6 +66,13 @@ You can see the default Configuration File ('Config.ini' by default) below:
 >GOOGLE_PHOTOS_REFRESH_TOKEN_3      = refresh_token_3                               # OAuth Refresh Token for Google Photos account 3
 >```
 
+> [!IMPORTANT]
+> Cloud-service settings can also be overridden at runtime through environment variables using the same key names as `Config.ini`.
+> Examples: `IMMICH_URL`, `IMMICH_API_KEY_ADMIN`, `SYNOLOGY_URL`, `NEXTCLOUD_URL`, `GOOGLE_PHOTOS_CLIENT_ID_1`.
+> Docker/secret-style `*_FILE` variables are also supported, for example `IMMICH_API_KEY_ADMIN_FILE=/run/secrets/immich_admin_api_key`.
+> Effective precedence is: environment variable > `Config.ini` > template default.
+> This means a value edited in the Web UI or written in `Config.ini` will be ignored on restart if the corresponding environment variable is still set.
+
 ## Google Takeout Section:
 In this section you don't have to provide any settings (it is here for futures purposes):
 

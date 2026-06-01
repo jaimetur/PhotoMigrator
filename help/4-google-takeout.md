@@ -20,6 +20,10 @@ The whole process is done in an automatic way and is divided in different steps 
 
 In the following link you can find the [Complete Pipeline and features of GPTH Tool](/help/gpth_process_explanations/00_GPTH_complete_pipeline.md).
 
+> [!TIP]
+> In the Web Interface, you can pre-fill the Google Takeout input path with environment variable `PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH`.
+> This is useful in Docker/Compose setups where your Takeout volume is always mounted in the same location.
+
 
 ## Process Explained
 

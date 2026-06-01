@@ -38,7 +38,7 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 ---
 
 ## Recommended Workflow
-1. Configure accounts and credentials in `Config.ini`.
+1. Configure accounts and credentials in `Config.ini` or through supported environment variables if you run the Web Interface in Docker/Compose/Kubernetes.
 2. Review `General Arguments` (logs, shared filters, paths).
 3. Select a module in `Feature Selector`.
 4. Validate the generated command in `Command Preview`.

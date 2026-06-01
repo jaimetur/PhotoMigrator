@@ -234,6 +234,15 @@ PHOTOMIGRATOR_WEB_DELETE_ROOTS=/app/data,/app/config,/app/volumes
 # Max. Lines in buffer for the Web Interface Log panel
 PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES=100000
 
+# Optional: pre-fill the Google Takeout source path in the Web UI
+PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH=/app/volumes/admin/Takeout
+
+# Optional: override cloud credentials/settings without editing Config.ini
+# Environment variables override Config.ini on every container start.
+IMMICH_URL=http://immich-server:2283
+IMMICH_API_KEY_ADMIN=your_admin_api_key
+# IMMICH_API_KEY_ADMIN_FILE=/run/secrets/immich_admin_api_key
+
 # Docker image tag to pull
 IMAGE_TAG=latest-stable
 ```
@@ -353,6 +362,8 @@ Or check the [Changelog](/CHANGELOG.md) to choose any specific release.
 
 ## ⚙️ Configuration File
 In order to connect to the different Photo Cloud Services, you must configure the connection settings using the Configuration file `Config.ini` provided with the Tool.  
+
+When running the Web Interface in Docker/Compose/Kubernetes, you can also override the same cloud-service keys through environment variables. Supported config keys can be provided directly as `KEY=value` or through Docker-secret style `KEY_FILE=/path/to/secret`. Runtime precedence is: environment variable > `Config.ini` > template default. This is useful for `IMMICH_URL`, `IMMICH_API_KEY_ADMIN`, `SYNOLOGY_*`, `NEXTCLOUD_*`, `GOOGLE_PHOTOS_*`, etc.
 
 You can see how to configure the Configuration File in this help section:
 [Configuration File](/help/0-configuration-file.md) 

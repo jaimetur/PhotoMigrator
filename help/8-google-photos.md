@@ -69,6 +69,11 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_3   = your_refresh_token_3
 > 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id`**_ to specify the account 2 or 3 as needed. 
 
+> [!TIP]
+> In Docker/Compose/Kubernetes, you can override these settings without editing `Config.ini` by using environment variables with the same key names, for example `GOOGLE_PHOTOS_CLIENT_ID_1`, `GOOGLE_PHOTOS_CLIENT_SECRET_1`, `GOOGLE_PHOTOS_REFRESH_TOKEN_1`.
+> Docker-secret style variables such as `GOOGLE_PHOTOS_CLIENT_SECRET_1_FILE=/run/secrets/google_photos_client_secret_1` are also supported.
+> Runtime precedence is: environment variable > `Config.ini` > template default.
+
 > [!IMPORTANT]
 > Google Photos public API has functional limits with scope and capability restrictions.
 > Unsupported management actions are exposed for CLI/UI compatibility but run as no-op with warning.
