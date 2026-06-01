@@ -17,6 +17,7 @@ from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXTRACTED_DATES, FOLDERNAME_EXIFTOOL
 from Utils.DateUtils import normalize_datetime_utc, is_date_valid
+from Utils.FileUtils import merge_exclusion_patterns, matches_any_pattern, should_exclude_path
 from Utils.StandaloneUtils import get_exif_tool_path
 
 
@@ -363,11 +364,17 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
 
             # --- 2) Collect all file paths
             all_file_paths = []
+            folder_patterns = merge_exclusion_patterns(
+                GV.ARGS.get("exclude-folders", []) if GV.ARGS else [],
+                default_patterns=[".*", "@eaDir"],
+            )
+            file_patterns = merge_exclusion_patterns(GV.ARGS.get("exclude-files", []) if GV.ARGS else [])
             for root, dirs, files in os.walk(input_folder):
-                # Always skip hidden dirs and Synology @eaDir
-                dirs[:] = [d for d in dirs if not d.startswith('.') and d != '@eaDir']
+                dirs[:] = [d for d in dirs if not matches_any_pattern(d, folder_patterns)]
                 for filename in files:
                     full_path = os.path.join(root, filename)
+                    if should_exclude_path(full_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                        continue
                     if os.path.islink(full_path):
                         try:
                             link_target = os.readlink(full_path)

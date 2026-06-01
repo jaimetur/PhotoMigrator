@@ -30,20 +30,22 @@ There is also a [shorter version](/help/2-arguments-description-short.md) of thi
 ## ⚙️ General Options
 Following general arguments have different purposes depending on the Execution Mode.
 
-| Argument                                  | Parameter         |  Type  |                                     Valid Values                                     | Description                                             |
-|-------------------------------------------|-------------------|:------:|:------------------------------------------------------------------------------------:|---------------------------------------------------------|
-| `-i`,<br>`--input-folder`                 | `<INPUT_FOLDER>`  |  path  |                                   `existing path`                                    | Folder containing assets to be processed.               |
-| `-o`,<br>`--output-folder`                | `<OUTPUT_FOLDER>` |  path  |                                     `valid path`                                     | Folder where processed assets or results will be saved. |
-| `-client`,<br>`--client`                  | `<CLIENT>`        | string | `google-takeout`, <br>`google-photos`, <br>`synology`, <br>`immich`, <br>`nextcloud` | Specifies the service to interact with.                 |
-| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |                           `1`, `2`, `3` <br>`(default: 1)`                           | ID of the configured account in `Config.ini`.           |
-| `-from`,<br>`--filter-from-date`          | `<FROM_DATE>`     |  date  |                       `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`                        | Filters assets from this date onward.                   |
-| `-to`,<br>`--filter-to-date`              | `<TO_DATE>`       |  date  |                       `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`                        | Filters assets up to this date.                         |
-| `-type`,<br>`--filter-by-type`            | `<TYPE>`          | string |                     `image`, `video`, `all` <br>`(default: all)`                     | Filters assets by type.                                 |
-| `-country`,<br>`--filter-by-country`      | `<COUNTRY>`       | string |                                    `country-name`                                    | Filters assets by country.                              |
-| `-city`,<br>`--filter-by-city`            | `<CITY>`          | string |                                     `city-name`                                      | Filters assets by city.                                 |
-| `-person`,<br>`--filter-by-person`        | `<PERSON>`        | string |                                    `person-name`                                     | Filters assets by person name.                          |
-| `-AlbFolder`,<br>`--albums-folders`       | `<ALBUMS_FOLDER>` |  path  |                                   `existing path`                                    | Creates albums for subfolders inside.                   |
-| `-rAlbAsset`,<br>`--remove-albums-assets` |                   |  flag  |                                                                                      | Removes assets inside albums when albums are removed.   |
+| Argument                                  | Parameter          |    Type     |                                     Valid Values                                     | Description                                             |
+|-------------------------------------------|--------------------|:-----------:|:------------------------------------------------------------------------------------:|---------------------------------------------------------|
+| `-i`,<br>`--input-folder`                 | `<INPUT_FOLDER>`   |    path     |                                   `existing path`                                    | Folder containing assets to be processed.               |
+| `-o`,<br>`--output-folder`                | `<OUTPUT_FOLDER>`  |    path     |                                     `valid path`                                     | Folder where processed assets or results will be saved. |
+| `-client`,<br>`--client`                  | `<CLIENT>`         |   string    | `google-takeout`, <br>`google-photos`, <br>`synology`, <br>`immich`, <br>`nextcloud` | Specifies the service to interact with.                 |
+| `-id`,<br>`--account-id`                  | `<ID>`             |     int     |                           `1`, `2`, `3` <br>`(default: 1)`                           | ID of the configured account in `Config.ini`.           |
+| `-from`,<br>`--filter-from-date`          | `<FROM_DATE>`      |    date     |                       `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`                        | Filters assets from this date onward.                   |
+| `-to`,<br>`--filter-to-date`              | `<TO_DATE>`        |    date     |                       `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`                        | Filters assets up to this date.                         |
+| `-type`,<br>`--filter-by-type`            | `<TYPE>`           |   string    |                     `image`, `video`, `all` <br>`(default: all)`                     | Filters assets by type.                                 |
+| `-country`,<br>`--filter-by-country`      | `<COUNTRY>`        |   string    |                                    `country-name`                                    | Filters assets by country.                              |
+| `-city`,<br>`--filter-by-city`            | `<CITY>`           |   string    |                                     `city-name`                                      | Filters assets by city.                                 |
+| `-person`,<br>`--filter-by-person`        | `<PERSON>`         |   string    |                                    `person-name`                                     | Filters assets by person name.                          |
+| `-exFolders`,<br>`--exclude-folders`      | `<FOLDER_PATTERN>` | string/list |                          `glob patterns` (multiple allowed)                          | Excludes folders matching the provided glob patterns.   |
+| `-exFiles`,<br>`--exclude-files`          | `<FILE_PATTERN>`   | string/list |                          `glob patterns` (multiple allowed)                          | Excludes files matching the provided glob patterns.     |
+| `-AlbFolder`,<br>`--albums-folders`       | `<ALBUMS_FOLDER>`  |    path     |                                   `existing path`                                    | Creates albums for subfolders inside.                   |
+| `-rAlbAsset`,<br>`--remove-albums-assets` |                    |    flag     |                                                                                      | Removes assets inside albums when albums are removed.   |
 
 #### 🧪 Examples:
 ```bash

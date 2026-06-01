@@ -56,6 +56,14 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
    - **by Person:**
      - argument: `-person, --filter-by-person`
        - Valid values are any existing person in the `<SOURCE>` client.
+   - **by Exclusion Patterns:**
+     - arguments:
+       - `-exFolders, --exclude-folders`
+       - `-exFiles, --exclude-files`
+     - Valid values are glob patterns and multiple values are allowed.
+     - Example:
+       - `--exclude-folders @eaDir .@__thumb`
+       - `--exclude-files SYNOFILE_THUMB* Thumbs.db`
 
 
 > [!WARNING]  

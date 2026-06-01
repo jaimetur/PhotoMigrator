@@ -45,6 +45,8 @@ Following general arguments have different purposes depending on the Execution M
 | `-country`,<br>`--filter-by-country`      | Filter assets by country                                                             |
 | `-city`,<br>`--filter-by-city`            | Filter assets by city                                                                |
 | `-person`,<br>`--filter-by-person`        | Filter assets by person                                                              |
+| `-exFolders`,<br>`--exclude-folders`      | Exclude folder patterns during local-folder processing/migration                     |
+| `-exFiles`,<br>`--exclude-files`          | Exclude file patterns during local-folder processing/migration                       |
 | `-AlbFolder`,<br>`--albums-folders`       | Use subfolders in folder as albums                                                   |
 | `-rAlbAsset`,<br>`--remove-albums-assets` | Remove assets inside deleted albums                                                  |
 

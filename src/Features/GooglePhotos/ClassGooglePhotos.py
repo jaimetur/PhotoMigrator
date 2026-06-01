@@ -19,7 +19,7 @@ from Core.GlobalVariables import (
     PHOTO_EXT,
     VIDEO_EXT,
 )
-from Utils.FileUtils import get_all_files_paths, get_subfolders
+from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
 from Utils.GeneralUtils import convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata
 
 
@@ -52,6 +52,8 @@ class ClassGooglePhotos:
         self.country = ARGS.get("filter-by-country", None)
         self.city = ARGS.get("filter-by-city", None)
         self.person = ARGS.get("filter-by-person", None)
+        self.exclude_folder_patterns = merge_exclusion_patterns(ARGS.get("exclude-folders", []))
+        self.exclude_file_patterns = merge_exclusion_patterns(ARGS.get("exclude-files", []))
         self._warned_unsupported_filters = False
 
     def get_client_name(self, log_level=None):
@@ -538,14 +540,29 @@ class ClassGooglePhotos:
             if not os.path.isdir(input_folder):
                 raise FileNotFoundError(f"Input folder does not exist: {input_folder}")
 
-            subfolders = get_subfolders(input_folder=input_folder, exclusion_subfolders=[subfolders_exclusion], log_level=log_level)
+            effective_folder_exclusions = merge_exclusion_patterns(
+                self.exclude_folder_patterns,
+                default_patterns=["@eaDir"] + convert_to_list(subfolders_exclusion, log_level=log_level),
+            )
+            subfolders = get_subfolders(
+                input_folder=input_folder,
+                exclusion_subfolders=effective_folder_exclusions,
+                log_level=log_level,
+            )
             total_albums_uploaded = 0
             total_albums_skipped = 0
             total_assets_uploaded = 0
             total_duplicates_skipped = 0
             for folder in tqdm(subfolders, desc=f"{MSG_TAGS['INFO']}Uploading Albums to Google Photos", unit=" album"):
                 album_name = os.path.basename(folder)
-                media_files = [f for f in get_all_files_paths(folder) if self._is_supported_media(os.path.basename(f))]
+                media_files = [
+                    f for f in get_all_files_paths(
+                        folder,
+                        exclusion_folders=effective_folder_exclusions,
+                        exclusion_files=self.exclude_file_patterns,
+                    )
+                    if self._is_supported_media(os.path.basename(f))
+                ]
                 if not media_files:
                     total_albums_skipped += 1
                     continue
@@ -568,7 +585,18 @@ class ClassGooglePhotos:
 
     def push_no_albums(self, input_folder, subfolders_exclusion=f"{FOLDERNAME_ALBUMS}", remove_duplicates=False, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            files = [f for f in get_all_files_paths(input_folder=input_folder, exclusion_folders=subfolders_exclusion) if self._is_supported_media(os.path.basename(f))]
+            effective_folder_exclusions = merge_exclusion_patterns(
+                self.exclude_folder_patterns,
+                default_patterns=["@eaDir"] + convert_to_list(subfolders_exclusion, log_level=log_level),
+            )
+            files = [
+                f for f in get_all_files_paths(
+                    input_folder=input_folder,
+                    exclusion_folders=effective_folder_exclusions,
+                    exclusion_files=self.exclude_file_patterns,
+                )
+                if self._is_supported_media(os.path.basename(f))
+            ]
             uploaded = 0
             duplicates = 0
             for file_path in tqdm(files, desc=f"{MSG_TAGS['INFO']}Uploading Assets without Albums to Google Photos", unit=" asset"):

@@ -13,6 +13,7 @@ from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm
+from Utils.FileUtils import merge_exclusion_patterns, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
 
 """
@@ -74,16 +75,22 @@ class ClassLocalFolder:
         self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS + self.ALLOWED_SIDECAR_EXTENSIONS + self.ALLOWED_METADATA_EXTENSIONS
 
         # Definition of folder exclusion patterns
-        self.FOLDER_EXCLUSION_PATTERNS = [
-            r"_Duplicates",  # Excludes the specific "_Duplicates" folder
-            r"@eaDir",  # Excludes the specific "@eaDir" folder
-            r"\..+"  # Excludes any hidden folder (starting with ".")
-        ]
+        self.FOLDER_EXCLUSION_PATTERNS = merge_exclusion_patterns(
+            ARGS.get('exclude-folders', []),
+            default_patterns=[
+                "_Duplicates",  # Excludes the specific "_Duplicates" folder
+                "@eaDir",       # Excludes the specific "@eaDir" folder
+                ".*",           # Excludes hidden folders (starting with ".")
+            ],
+        )
 
         # Definition of file exclusion patterns
-        self.FILE_EXCLUSION_PATTERNS = [
-            r"SYNOFILE_THUMB.*"  # Excludes any file beginning with "SYNOFILE_THUMB"
-        ]
+        self.FILE_EXCLUSION_PATTERNS = merge_exclusion_patterns(
+            ARGS.get('exclude-files', []),
+            default_patterns=[
+                "SYNOFILE_THUMB*",  # Excludes any file beginning with "SYNOFILE_THUMB"
+            ],
+        )
 
         # Create a cache dictionary of albums_owned_by_user to save in memory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
@@ -204,16 +211,11 @@ class ClassLocalFolder:
         Returns:
             bool: True if the file or folder should be excluded, False otherwise.
         """
-        file_name = file_path.name
-        # Check folder exclusion
-        for pattern in self.FOLDER_EXCLUSION_PATTERNS:
-            if any(re.fullmatch(pattern, part) for part in file_path.parts):
-                return True
-        # Check file exclusion
-        for pattern in self.FILE_EXCLUSION_PATTERNS:
-            if re.fullmatch(pattern, file_name):
-                return True
-        return False
+        return should_exclude_path(
+            file_path,
+            exclusion_folders=self.FOLDER_EXCLUSION_PATTERNS,
+            exclusion_files=self.FILE_EXCLUSION_PATTERNS,
+        )
 
     def get_takeout_assets_by_filters(self, type='all', log_level=None):
         return []  # Base class has no takeout, returns an empty list

@@ -220,6 +220,8 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         country = ARGS.get('filter-by-country', None)
         city = ARGS.get('filter-by-city', None)
         person = ARGS.get('filter-by-person', None)
+        exclude_folders = ARGS.get('exclude-folders', []) or []
+        exclude_files = ARGS.get('exclude-files', []) or []
 
         LOGGER.info(f"")
         LOGGER.info(f"*** Automatic Migration Mode *** detected")
@@ -240,7 +242,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         LOGGER.info(f"Move Assets    : {move_assets}")
 
-        if from_date or to_date or type or country or city or person:
+        if from_date or to_date or type or country or city or person or exclude_folders or exclude_files:
             LOGGER.info(f"Assets Filters :")
         else:
             LOGGER.info(f"Assets Filters : None")
@@ -258,6 +260,10 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"       by City : {city} {unsupported_text}")
         if person:
             LOGGER.info(f"     by Person : {person} {unsupported_text}")
+        if exclude_folders:
+            LOGGER.info(f"Exclude Folders : {exclude_folders}")
+        if exclude_files:
+            LOGGER.info(f"  Exclude Files : {exclude_files}")
 
         LOGGER.info(f"")
         if isinstance(source_client, ClassGooglePhotos):

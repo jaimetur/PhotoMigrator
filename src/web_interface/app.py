@@ -173,6 +173,8 @@ GENERAL_CORE_DESTS = {
     "filter-by-country",
     "filter-by-city",
     "filter-by-person",
+    "exclude-folders",
+    "exclude-files",
     "albums-folders",
     "remove-albums-assets",
 }
@@ -2032,6 +2034,8 @@ def _field_kind(action: argparse.Action, dest: str) -> str:
 
 def _path_hint(dest: str, metavar: Any) -> str:
     name = dest.lower()
+    if name in {"exclude-folders", "exclude-files"}:
+        return ""
     mv = str(metavar or "").lower()
     path_tokens = ("path", "folder", "file", "takeout", "source", "target")
     if any(token in name for token in path_tokens) or any(token in mv for token in path_tokens):

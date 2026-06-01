@@ -149,6 +149,18 @@ def parse_arguments():
     PARSER.add_argument("-person", "--filter-by-person", metavar="<PERSON_NAME>", default=None,
                         help="Specify the Person Name to filter assets in the different Photo Clients.")
 
+    PARSER.add_argument("-exFolders", "--exclude-folders", metavar="<FOLDER_PATTERN>", default=[], nargs="*",
+                        help="Exclude folders matching one or more glob patterns during local-folder processing or migration.\n"
+                             "Examples:\n"
+                             "  --exclude-folders @eaDir .@__thumb\n"
+                             "  --exclude-folders='@eaDir,.@__thumb'")
+
+    PARSER.add_argument("-exFiles", "--exclude-files", metavar="<FILE_PATTERN>", default=[], nargs="*",
+                        help="Exclude files matching one or more glob patterns during local-folder processing or migration.\n"
+                             "Examples:\n"
+                             "  --exclude-files SYNOFILE_THUMB* Thumbs.db\n"
+                             "  --exclude-files='SYNOFILE_THUMB*,Thumbs.db'")
+
     PARSER.add_argument("-AlbFolder", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*",
                         help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
 
@@ -653,6 +665,8 @@ def checkArgs(ARGS, PARSER):
 
     # Parse albums-folders: ensure list
     ARGS['albums-folders'] = parse_folders_list(ARGS['albums-folders'])
+    ARGS['exclude-folders'] = parse_patterns_list(ARGS['exclude-folders'])
+    ARGS['exclude-files'] = parse_patterns_list(ARGS['exclude-files'])
 
     # Parse find-duplicates: extract action + folders
     ARGS['duplicates-folders'] = []
@@ -740,6 +754,34 @@ def parse_folders_list(folders):
 
     # Otherwise return empty list
     return []
+
+
+def parse_patterns_list(patterns):
+    """
+    Normalize exclusion patterns into a flat list of strings.
+
+    Supports:
+      - string: splits by commas/newlines
+      - list: flattens one level and also splits comma-separated items
+    """
+    if isinstance(patterns, str):
+        return [item.strip() for item in re.split(r"[\r\n,]+", patterns) if item.strip()]
+
+    if isinstance(patterns, list):
+        flattened = []
+        for item in patterns:
+            if isinstance(item, list):
+                flattened.extend(parse_patterns_list(item))
+            elif isinstance(item, str):
+                flattened.extend(parse_patterns_list(item))
+            elif item not in (None, ""):
+                flattened.append(str(item).strip())
+        return [item for item in flattened if item]
+
+    if patterns in (None, ""):
+        return []
+
+    return [str(patterns).strip()]
 
 
 def create_global_variable_from_args(args):

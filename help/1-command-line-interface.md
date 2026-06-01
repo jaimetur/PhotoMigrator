@@ -125,6 +125,10 @@ Following general arguments have different purposses depending on the Execution 
                Specify the City Name to filter assets in the different Photo Clients.
 -person      ; --filter-by-person <PERSON_NAME>
                Specify the Person Name to filter assets in the different Photo Clients.
+-exFolders   ; --exclude-folders <FOLDER_PATTERN>
+               Exclude folders matching one or more glob patterns during local-folder processing or migration.
+-exFiles     ; --exclude-files <FILE_PATTERN>
+               Exclude files matching one or more glob patterns during local-folder processing or migration.
 -AlbFolder   ; --albums-folders <ALBUMS_FOLDER>
                If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in
                <ALBUMS_FOLDER>.

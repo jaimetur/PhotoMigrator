@@ -408,6 +408,8 @@
         "fix-symlinks-broken": "FOLDER_TO_FIX",
         "configuration-file": "Configuration File",
         "albums-folders": "Albums Folders",
+        "exclude-folders": "Exclude Folders",
+        "exclude-files": "Exclude Files",
         "no-request-user-confirmation": "request-user-confirmation",
         "remove-albums-assets": "remove-album-assets",
         "one-time-password": "one-time-password",
@@ -460,7 +462,7 @@
         { key: "logs", title: "Logs", dests: ["no-log-file", "log-level", "log-format", "foldername-logs"] },
         { key: "execution", title: "Execution", dests: ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets"] },
         { key: "naming", title: "Naming & Folders", dests: ["date-separator", "range-separator", "albums-folders", "foldername-albums", "foldername-no-albums", "foldername-duplicates-output", "foldername-extracted-dates"] },
-        { key: "filters", title: "Filters", dests: ["filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country", "filter-by-city", "filter-by-person"] }
+        { key: "filters", title: "Filters", dests: ["filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country", "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files"] }
     ];
 
     const MODULE_DEPENDENCIES = {
@@ -537,7 +539,9 @@
         "filter-to-date",
         "filter-by-country",
         "filter-by-city",
-        "filter-by-person"
+        "filter-by-person",
+        "exclude-folders",
+        "exclude-files"
     ];
     const STANDALONE_RENAME_CONTENT_BASED_OVERRIDE_DESTS = [
         "date-separator",
@@ -1504,6 +1508,8 @@
             "filter-by-country": "Example: Spain",
             "filter-by-city": "Example: Madrid",
             "filter-by-person": "Example: Peter",
+            "exclude-folders": "Example: @eaDir, .@__thumb",
+            "exclude-files": "Example: SYNOFILE_THUMB*, Thumbs.db",
             "remove-albums": "Album name pattern (text or regex). Example: ^Temp|^Test"
         };
 
@@ -1551,7 +1557,13 @@
                 input = document.createElement("textarea");
                 input.className = "field__input";
                 input.rows = 2;
-                input.placeholder = "One value per line or comma-separated";
+                if (effectiveDest === "exclude-folders") {
+                    input.placeholder = "One folder pattern per line or comma-separated";
+                } else if (effectiveDest === "exclude-files") {
+                    input.placeholder = "One file pattern per line or comma-separated";
+                } else {
+                    input.placeholder = "One value per line or comma-separated";
+                }
                 input.value = persisted === undefined ? "" : String(persisted);
             }
         } else {
@@ -2717,7 +2729,9 @@
             getFieldByDest("filter-to-date"),
             getFieldByDest("filter-by-country"),
             getFieldByDest("filter-by-city"),
-            getFieldByDest("filter-by-person")
+            getFieldByDest("filter-by-person"),
+            getFieldByDest("exclude-folders"),
+            getFieldByDest("exclude-files")
         ].filter(Boolean);
 
         const help = document.createElement("p");

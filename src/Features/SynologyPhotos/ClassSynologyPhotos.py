@@ -19,6 +19,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
+from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
 from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
 
 """
@@ -1972,6 +1973,11 @@ class ClassSynologyPhotos:
 
                 subfolders_exclusion = convert_to_list(subfolders_exclusion)
                 subfolders_inclusion = convert_to_list(subfolders_inclusion)
+                effective_folder_exclusions = merge_exclusion_patterns(
+                    ARGS.get("exclude-folders", []),
+                    default_patterns=['@eaDir'] + subfolders_exclusion,
+                )
+                effective_file_exclusions = merge_exclusion_patterns(ARGS.get("exclude-files", []))
 
                 total_albums_uploaded = 0
                 total_albums_skipped = 0
@@ -1986,12 +1992,11 @@ class ClassSynologyPhotos:
                 # if not albums_folder_included and 'albums' in first_level_folders:
                 #     subfolders_inclusion.append('Albums')
 
-                SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
                 valid_folders = []
 
                 for root, folders, _ in os.walk(input_folder):
                     # Filter out excluded folders
-                    folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]
+                    folders[:] = [d for d in folders if not matches_any_pattern(d, effective_folder_exclusions)]
                     if subfolders_inclusion:
                         rel_path = os.path.relpath(root, input_folder)
                         if rel_path == ".":
@@ -2006,7 +2011,12 @@ class ClassSynologyPhotos:
                         if isinstance(dir_path, bytes):
                             dir_path = dir_path.decode()
                         # Check if there's at least one supported file
-                        has_supported_files = any(os.path.splitext(file)[-1].lower() in self.ALLOWED_EXTENSIONS for file in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, file)))
+                        has_supported_files = any(
+                            os.path.splitext(file)[-1].lower() in self.ALLOWED_EXTENSIONS
+                            and not matches_any_pattern(file, effective_file_exclusions)
+                            for file in os.listdir(dir_path)
+                            if os.path.isfile(os.path.join(dir_path, file))
+                        )
                         if has_supported_files:
                             valid_folders.append(dir_path)
 
@@ -2046,6 +2056,8 @@ class ClassSynologyPhotos:
                             unit=" assets",
                         ):
                             if not os.path.isfile(file_path):
+                                continue
+                            if matches_any_pattern(os.path.basename(file_path), effective_file_exclusions):
                                 continue
                             ext = os.path.splitext(file_path)[-1].lower()
                             if ext not in self.ALLOWED_EXTENSIONS:
@@ -2116,7 +2128,11 @@ class ClassSynologyPhotos:
 
             subfolders_exclusion = convert_to_list(subfolders_exclusion)
             subfolders_inclusion = convert_to_list(subfolders_inclusion) if subfolders_inclusion else []
-            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
+            effective_folder_exclusions = merge_exclusion_patterns(
+                ARGS.get("exclude-folders", []),
+                default_patterns=['@eaDir'] + subfolders_exclusion,
+            )
+            effective_file_exclusions = merge_exclusion_patterns(ARGS.get("exclude-files", []))
 
             def collect_files(base, only_subs):
                 files_list = []
@@ -2127,13 +2143,17 @@ class ClassSynologyPhotos:
                             LOGGER.warning(f"Subfolder '{sub}' does not exist in '{base}'. Skipping.")
                             continue
                         for r, dirs, files in os.walk(sub_path):
-                            dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                            dirs[:] = [d for d in dirs if not matches_any_pattern(d, effective_folder_exclusions)]
                             for f_ in files:
+                                if matches_any_pattern(f_, effective_file_exclusions):
+                                    continue
                                 files_list.append(os.path.join(r, f_))
                 else:
                     for r, dirs, files in os.walk(base):
-                        dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                        dirs[:] = [d for d in dirs if not matches_any_pattern(d, effective_folder_exclusions)]
                         for f_ in files:
+                            if matches_any_pattern(f_, effective_file_exclusions):
+                                continue
                             files_list.append(os.path.join(r, f_))
                 return files_list
 

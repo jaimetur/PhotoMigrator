@@ -70,6 +70,51 @@ def _normalize_patterns(patterns):
     return [str(item).strip() for item in patterns if str(item).strip()]
 
 
+def merge_exclusion_patterns(patterns=None, default_patterns=None):
+    """
+    Merge default and user-provided glob patterns preserving order and removing
+    duplicates case-insensitively.
+    """
+    merged = []
+    seen = set()
+    for pattern in _normalize_patterns(default_patterns) + _normalize_patterns(patterns):
+        key = pattern.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(pattern)
+    return merged
+
+
+def matches_any_pattern(name, patterns=None):
+    """
+    Return True if ``name`` matches any glob-style pattern in ``patterns``.
+    Matching is case-insensitive for consistent behavior across platforms.
+    """
+    text = str(name or "")
+    lowered = text.casefold()
+    for pattern in _normalize_patterns(patterns):
+        if fnmatch.fnmatch(lowered, pattern.casefold()):
+            return True
+    return False
+
+
+def should_exclude_path(path_value, exclusion_folders=None, exclusion_files=None):
+    """
+    Return True if ``path_value`` should be excluded because any folder
+    component or the filename matches the provided glob patterns.
+    """
+    path_obj = Path(path_value)
+    for part in path_obj.parts:
+        if part in ("", ".", ".."):
+            continue
+        if matches_any_pattern(part, exclusion_folders):
+            return True
+    if matches_any_pattern(path_obj.name, exclusion_files):
+        return True
+    return False
+
+
 def get_subfolders(input_folder, exclusion_subfolders=None, log_level=None):
     """
     Returns direct child subfolders under `input_folder`, excluding folder names
@@ -84,13 +129,13 @@ def get_subfolders(input_folder, exclusion_subfolders=None, log_level=None):
         for entry in sorted(root.iterdir(), key=lambda p: p.name.lower()):
             if not entry.is_dir():
                 continue
-            if any(fnmatch.fnmatch(entry.name, pattern) for pattern in patterns):
+            if matches_any_pattern(entry.name, patterns):
                 continue
             result.append(str(entry))
         return result
 
 
-def get_all_files_paths(input_folder, exclusion_folders=None, log_level=None):
+def get_all_files_paths(input_folder, exclusion_folders=None, exclusion_files=None, log_level=None):
     """
     Returns recursive file paths under `input_folder`, skipping directories whose
     basename matches any provided glob pattern.
@@ -100,13 +145,16 @@ def get_all_files_paths(input_folder, exclusion_folders=None, log_level=None):
         if not root.exists():
             return []
         patterns = _normalize_patterns(exclusion_folders)
+        file_patterns = _normalize_patterns(exclusion_files)
         files = []
         for current_root, dirs, filenames in os.walk(root):
             dirs[:] = [
                 d for d in dirs
-                if not any(fnmatch.fnmatch(d, pattern) for pattern in patterns)
+                if not matches_any_pattern(d, patterns)
             ]
             for filename in filenames:
+                if matches_any_pattern(filename, file_patterns):
+                    continue
                 files.append(str(Path(current_root) / filename))
         return files
 

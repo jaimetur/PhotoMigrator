@@ -22,6 +22,7 @@ from tabulate import tabulate
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
+from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
 from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
 from Utils.StandaloneUtils import change_working_dir
 
@@ -1578,6 +1579,11 @@ class ClassImmichPhotos:
 
                 subfolders_exclusion = convert_to_list(subfolders_exclusion)
                 subfolders_inclusion = convert_to_list(subfolders_inclusion)
+                effective_folder_exclusions = merge_exclusion_patterns(
+                    ARGS.get("exclude-folders", []),
+                    default_patterns=['@eaDir'] + subfolders_exclusion,
+                )
+                effective_file_exclusions = merge_exclusion_patterns(ARGS.get("exclude-files", []))
 
                 total_albums_uploaded = 0
                 total_albums_skipped = 0
@@ -1591,12 +1597,11 @@ class ClassImmichPhotos:
                 # if not albums_folder_included and 'albums' in first_level_folders:
                 #     subfolders_inclusion.append('Albums')
 
-                SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
                 valid_folders = []
 
                 for root, folders, _ in os.walk(input_folder):
                     # Filter out excluded folders
-                    folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]
+                    folders[:] = [d for d in folders if not matches_any_pattern(d, effective_folder_exclusions)]
                     if subfolders_inclusion:
                         relative_path = os.path.relpath(root, input_folder)
                         if relative_path == ".":
@@ -1611,7 +1616,12 @@ class ClassImmichPhotos:
                         if not os.path.isdir(dir_path):
                             continue
                         # Check if there's at least one supported file
-                        has_supported_files = any(os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)))
+                        has_supported_files = any(
+                            os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS
+                            and not matches_any_pattern(f, effective_file_exclusions)
+                            for f in os.listdir(dir_path)
+                            if os.path.isfile(os.path.join(dir_path, f))
+                        )
                         if has_supported_files:
                             valid_folders.append(dir_path)
 
@@ -1656,6 +1666,8 @@ class ClassImmichPhotos:
                                 continue
                             norm_file_path = os.path.normcase(os.path.normpath(file_path))
                             if norm_file_path in consumed_live_companions:
+                                continue
+                            if matches_any_pattern(os.path.basename(file_path), effective_file_exclusions):
                                 continue
                             ext = os.path.splitext(file_path)[-1].lower()
                             if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
@@ -1735,8 +1747,11 @@ class ClassImmichPhotos:
 
             subfolders_exclusion = convert_to_list(subfolders_exclusion)
             subfolders_inclusion = convert_to_list(subfolders_inclusion)
-
-            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
+            effective_folder_exclusions = merge_exclusion_patterns(
+                ARGS.get("exclude-folders", []),
+                default_patterns=['@eaDir'] + subfolders_exclusion,
+            )
+            effective_file_exclusions = merge_exclusion_patterns(ARGS.get("exclude-files", []))
 
             def collect_files(base_folder, only_subfolders):
                 flist = []
@@ -1747,13 +1762,17 @@ class ClassImmichPhotos:
                             LOGGER.warning(f"Subfolder '{sub}' does not exist in '{base_folder}'. Skipping.")
                             continue
                         for root, dirs, files in os.walk(sub_path):
-                            dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                            dirs[:] = [d for d in dirs if not matches_any_pattern(d, effective_folder_exclusions)]
                             for file_ in files:
+                                if matches_any_pattern(file_, effective_file_exclusions):
+                                    continue
                                 flist.append(os.path.join(root, file_))
                 else:
                     for root, dirs, files in os.walk(base_folder):
-                        dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                        dirs[:] = [d for d in dirs if not matches_any_pattern(d, effective_folder_exclusions)]
                         for file_ in files:
+                            if matches_any_pattern(file_, effective_file_exclusions):
+                                continue
                             flist.append(os.path.join(root, file_))
                 return flist
 

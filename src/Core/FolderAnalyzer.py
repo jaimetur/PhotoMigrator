@@ -24,8 +24,9 @@ from multiprocessing import cpu_count
 from Core.GlobalFunctions import set_LOGGER
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXTRACTED_DATES, MSG_TAGS, TOOL_NAME, TOOL_VERSION
+from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXTRACTED_DATES, MSG_TAGS, TOOL_NAME, TOOL_VERSION, ARGS
 from Utils.DateUtils import is_date_valid, guess_date_from_filename
+from Utils.FileUtils import merge_exclusion_patterns, matches_any_pattern, should_exclude_path
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
 
@@ -98,13 +99,23 @@ class FolderAnalyzer:
             if not os.path.isdir(self.folder_path):
                 self.logger.warning(f"{step_name}❌ Folder does not exist: {self.folder_path}")
                 return
-            # Build raw list of files, excluding those starting with "PhotoMigrator_" or "gpth_"
-            self.file_list = [
-                (Path(root) / name).as_posix()
-                for root, _, files in os.walk(self.folder_path, followlinks=True)
-                for name in files
-                if not (name.startswith("PhotoMigrator_") or name.startswith("gpth_"))
-            ]
+            folder_patterns = merge_exclusion_patterns(
+                ARGS.get("exclude-folders", []),
+                default_patterns=[".*", "@eaDir"],
+            )
+            file_patterns = merge_exclusion_patterns(ARGS.get("exclude-files", []))
+
+            # Build raw list of files, excluding internal temp files and user-selected patterns.
+            self.file_list = []
+            for root, dirs, files in os.walk(self.folder_path, followlinks=True):
+                dirs[:] = [d for d in dirs if not matches_any_pattern(d, folder_patterns)]
+                for name in files:
+                    if name.startswith("PhotoMigrator_") or name.startswith("gpth_"):
+                        continue
+                    full_path = Path(root) / name
+                    if should_exclude_path(full_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                        continue
+                    self.file_list.append(full_path.as_posix())
             self.logger.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files (excluded PhotoMigrator_* and gpth_*).")
 
     def _build_file_list_from_extracted_dates(self, step_name='', log_level=None):
@@ -122,6 +133,11 @@ class FolderAnalyzer:
             # reset filtered lists and counts
             self.filtered_file_list = []
             self.folder_assets = {}
+            folder_patterns = merge_exclusion_patterns(
+                ARGS.get("exclude-folders", []),
+                default_patterns=[".*", "@eaDir"],
+            )
+            file_patterns = merge_exclusion_patterns(ARGS.get("exclude-files", []))
 
             no_filters = (
                     not self.filter_ext
@@ -139,6 +155,9 @@ class FolderAnalyzer:
                     leave=True,
                 ) as pbar:
                     for p in self.file_list:
+                        if should_exclude_path(p, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                            pbar.update(1)
+                            continue
                         self.filtered_file_list.append(p)
                         parent = Path(p).parent.resolve().as_posix()
                         self.folder_assets[parent] = self.folder_assets.get(parent, 0) + 1
@@ -149,6 +168,8 @@ class FolderAnalyzer:
             # otherwise, apply ext + date filters
             self.logger.info(f"{step_name}🔍 Applying filters to Analyzer Object. This may take some time. Please be patient...")
             for p in self.file_list:
+                if should_exclude_path(p, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                    continue
                 file = Path(p)
                 ext = file.suffix.lower()
 
@@ -1045,6 +1066,11 @@ class FolderAnalyzer:
             # Normalize extensions
             excluded_extensions = {ext if ext.startswith('.') else f".{ext}" for ext in (exclude_ext or [])} or None
             included_extensions = {ext if ext.startswith('.') else f".{ext}" for ext in (include_ext or [])} or None
+            folder_patterns = merge_exclusion_patterns(
+                ARGS.get("exclude-folders", []),
+                default_patterns=[".*", "@eaDir"],
+            )
+            file_patterns = merge_exclusion_patterns(ARGS.get("exclude-files", []))
 
             total_bytes = 0
             media_file_paths = []
@@ -1056,13 +1082,22 @@ class FolderAnalyzer:
             else:
                 # English comment: fallback to walking the disk
                 paths = []
+                folder_patterns = merge_exclusion_patterns(
+                    ARGS.get("exclude-folders", []),
+                    default_patterns=[".*", "@eaDir"],
+                )
+                file_patterns = merge_exclusion_patterns(ARGS.get("exclude-files", []))
                 for root, dirs, files in os.walk(self.folder_path):
-                    # Skip hidden folders and Synology folders
-                    dirs[:] = [d for d in dirs if not d.startswith('.') and d != '@eaDir']
+                    dirs[:] = [d for d in dirs if not matches_any_pattern(d, folder_patterns)]
                     for filename in files:
-                        paths.append(os.path.join(root, filename))
+                        full_path = os.path.join(root, filename)
+                        if should_exclude_path(full_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                            continue
+                        paths.append(full_path)
 
             for full_path in paths:
+                if should_exclude_path(full_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                    continue
                 ext = Path(full_path).suffix.lower()
 
                 # Skip by extension if requested

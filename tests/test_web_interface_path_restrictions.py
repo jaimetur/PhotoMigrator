@@ -128,6 +128,18 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(context.exception.status_code, 400)
         self.assertIn("Config path", str(context.exception.detail))
 
+    def test_exclusion_pattern_fields_are_not_treated_as_paths(self):
+        self.assertEqual(self.web_app._path_hint("exclude-folders", "<FOLDER_PATTERN>"), "")
+        self.assertEqual(self.web_app._path_hint("exclude-files", "<FILE_PATTERN>"), "")
+
+        values = {
+            "exclude-folders": "@eaDir,.@__thumb",
+            "exclude-files": "SYNOFILE_THUMB*,Thumbs.db",
+        }
+        scope = self.web_app._path_validation_scope_for_payload("automatic_migration", None, values)
+        self.assertNotIn("exclude-folders", scope)
+        self.assertNotIn("exclude-files", scope)
+
 
 if __name__ == "__main__":
     unittest.main()
