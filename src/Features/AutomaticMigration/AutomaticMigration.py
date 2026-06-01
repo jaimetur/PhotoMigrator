@@ -260,6 +260,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"     by Person : {person} {unsupported_text}")
 
         LOGGER.info(f"")
+        if isinstance(source_client, ClassGooglePhotos):
+            LOGGER.error(ClassGooglePhotos.get_full_library_read_unsupported_message("Automatic Migration"))
+            LOGGER.error("Recommended workaround: export your library with Google Takeout and use the Takeout folder as `--source`.")
+            sys.exit(1)
+
         if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
@@ -333,6 +338,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 traceback.print_exc()
                 # 2) Registrar en el logger con stack trace
                 LOGGER.exception("ERROR executing Automatic Migration Feature")
+                sys.exit(1)
             finally:
                 migration_finished.set()
 
@@ -923,7 +929,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     for asset in album_assets:
                         asset_id = asset['id']
                         asset_type = asset['type']
-                        asset_datetime = asset.get('time')
+                        asset_datetime = asset.get('asset_datetime') or asset.get('time')
                         asset_filename = asset.get('filename')
 
                         # Skip pull metadata and sidecar for the time being
@@ -1055,7 +1061,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 for asset in assets_no_album:
                     asset_id = asset['id']
                     asset_type = asset['type']
-                    asset_datetime = asset.get('time')
+                    asset_datetime = asset.get('asset_datetime') or asset.get('time')
                     asset_filename = asset.get('filename')
                     lock_file = None
 

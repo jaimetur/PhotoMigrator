@@ -2,12 +2,15 @@
 
 From version 4.0.0 onwards, the Tool can connect to Google Photos using the official Library API (OAuth).
 
-### Features included:
+### Features currently supported in practice:
 1. Upload Album(s) (from folder)
-2. Download Album(s) (into folder)
-3. Upload ALL (from folder)
-4. Download ALL (into folder)
-5. Automatic Migration source/target endpoint integration
+2. Upload ALL (from folder)
+3. Automatic Migration target endpoint integration
+
+### Features affected by Google's Library API changes (April 1, 2025):
+1. Download Album(s) (into folder) for a user's full library
+2. Download ALL (into folder) for a user's full library
+3. Automatic Migration with Google Photos as source endpoint for a user's full library
 
 ### Limited / Not supported by current API:
 1. Remove ALL Assets
@@ -70,6 +73,8 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_3   = your_refresh_token_3
 > Google Photos public API has functional limits with scope and capability restrictions.
 > Unsupported management actions are exposed for CLI/UI compatibility but run as no-op with warning.
 > ⚠️ ** Some operations in PhotoMigrator are intentionally no-op for Google Photos because the public API does not support them.**
+>
+> Effective **2025-04-01**, Google removed the legacy Library API scopes `photoslibrary`, `photoslibrary.readonly`, and `photoslibrary.sharing` for full-library access. As a result, PhotoMigrator cannot read a user's full Google Photos library through the official API anymore. For full-library export/migration, use **Google Takeout** as source.
 
 ## How to get Google OAuth credentials
 To use Google Photos modules you need:
@@ -134,8 +139,8 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   ./PhotoMigrator.run --client=google-photos --download-albums "Album 1, Album 2" --output-folder ./Downloads
   ```
 
-> [!NOTE]
-> Due current Google Photos API restrictions/scopes, download operations can be limited to media items accessible by the app context (commonly app-created data, depending on granted scopes).
+> [!WARNING]
+> Since **2025-04-01**, full-library download from Google Photos is no longer supported by the official Library API for third-party apps. In practice, this operation is only useful for app-created content still accessible with the remaining scopes. For normal user-library export, use Google Takeout.
 
 
 ## Upload All:
@@ -169,8 +174,8 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   ./PhotoMigrator.run --client=google-photos --download-all ./MyLibrary
   ```
 
-> [!NOTE]
-> Due current Google Photos API restrictions/scopes, download operations can be limited to media items accessible by the app context (commonly app-created data, depending on granted scopes).
+> [!WARNING]
+> Since **2025-04-01**, full-library download from Google Photos is no longer supported by the official Library API for third-party apps. In practice, this operation is only useful for app-created content still accessible with the remaining scopes. For normal user-library export, use Google Takeout.
 
 
 ## Remove All Assets:

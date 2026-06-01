@@ -68,5 +68,6 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 
 > [!TIP]  
 > - Start with `Automatic Migration` if your goal is full-library transfer.
+> - If the source library is Google Photos, export it with `Google Takeout` first; direct full-library reads from Google Photos are no longer available through the public API.
 > - For duplicate management, run non-destructive mode (`list`) first.
 > - Create a backup before running modules that rename or remove files/albums.

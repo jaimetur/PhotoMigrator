@@ -11,6 +11,9 @@ Use the argument **`--source`** to select the `<SOURCE>` client and the argument
 
  - Google Photos is now available as a partial cloud endpoint (official API limitations apply).
 
+> [!IMPORTANT]
+> Since **2025-04-01**, Google Photos full-library reads are no longer available to third-party apps through the official Library API. PhotoMigrator therefore blocks `Automatic Migration` when `Google Photos` is used as `<SOURCE>`. Use **Google Takeout** as `<SOURCE>` instead, or use Google Photos as `<TARGET>` only.
+
 If you omit the suffix -[id], the tool will assume that account 1 will be used for the specified client (ie: `--source=synology-photos` means that Synology Photos account 1 will be used as `<SOURCE>` client.)  
 
 Also, you can omit the suffix -photos in both **`<SOURCE>`** and **`<TARGET>`** clients, so, you can just use `--source=synology` `--target=nextcloud` to set Synology Photos account 1 as `<SOURCE>` client and NextCloud Photos account 1 as `<TARGET>` client.  

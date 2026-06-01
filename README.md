@@ -60,6 +60,9 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ## 🚀 1. Automatic Migration   
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
+> [!IMPORTANT]
+> Since April 1, 2025, Google Photos can no longer be used by third-party apps as a full-library `SOURCE` for Automatic Migration because Google removed the legacy read scopes from the Library API. Use Google Takeout as `--source` instead. Google Photos remains usable as an upload target with the supported scopes.
+
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
 >
@@ -115,7 +118,7 @@ Currently, the Features Supported per each Photo Cloud Service are:
 > [!IMPORTANT]  
 >- **NextCloud Photos** is available since v4.0.0 using WebDAV-based integration.
 >
->- **Google Photos** is available since v4.0.0 with partial support due current official API limitations.
+>- **Google Photos** is available since v4.0.0 with partial support due current official API limitations. Since April 1, 2025, Google Photos full-library reads are no longer available through the public Library API, so use Google Takeout for migrations/downloads of a full library and Google Photos mainly as upload target.
 
 
 ## 🧩 4. Other Standalone Features  

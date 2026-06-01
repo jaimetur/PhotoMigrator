@@ -12,12 +12,13 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
+  - Added fail-fast handling for `Automatic Migration` when `Google Photos` is used as `<SOURCE>`, returning a non-zero exit code with a clear workaround message after Google's Library API scope removal on April 1, 2025. Also stopped probing Google Photos read endpoints during login so upload-target flows can continue to use valid upload scopes. (Issue #1091)
 
 #### 🐛 Bug fixes:
   - Fixed automatic migration CLI validation for Immich account 3 by restoring the missing `immich-photos-3` target/source alias in `--source` and `--target` accepted values.
 
 #### 📚 Documentation:
-  - Updated documentation with all changes.
+  - Updated documentation with all changes, including Google Photos source limitations and the Google Takeout workaround.
 
 ---
 

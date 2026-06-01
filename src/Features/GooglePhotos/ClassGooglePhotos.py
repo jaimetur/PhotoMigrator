@@ -27,6 +27,7 @@ class ClassGooglePhotos:
     TOKEN_URL = "https://oauth2.googleapis.com/token"
     API_BASE = "https://photoslibrary.googleapis.com/v1"
     UPLOADS_URL = f"{API_BASE}/uploads"
+    FULL_LIBRARY_READ_REMOVAL_DATE = "2025-04-01"
 
     def __init__(self, account_id: int = 1):
         self.account_id = int(account_id or 1)
@@ -123,12 +124,25 @@ class ClassGooglePhotos:
                     "Accept": "application/json",
                 }
             )
-            self._list_albums()
+            # Do not probe read endpoints during login. Since Google's April 1, 2025
+            # Library API changes, upload-only tokens may still be valid while
+            # full-library read calls fail with 403.
             LOGGER.info("Authentication Successfully with refresh token found in Config file. Access token properly set.")
             LOGGER.info(f"User ID: 'google-account-{self.account_id}' found.")
             LOGGER.info("")
             LOGGER.info(f"{MSG_TAGS['INFO']}Logged in to Google Photos account {self.account_id}.")
             return True
+
+    @classmethod
+    def get_full_library_read_unsupported_message(cls, operation: str = "This operation") -> str:
+        return (
+            f"{operation} is not supported with Google Photos as source. "
+            f"Since {cls.FULL_LIBRARY_READ_REMOVAL_DATE}, Google Photos Library API no longer allows third-party apps "
+            "to read a user's full library. Google removed the legacy scopes "
+            "`photoslibrary`, `photoslibrary.readonly`, and `photoslibrary.sharing`, so full-library reads now fail "
+            "with `403 PERMISSION_DENIED`. Use Google Takeout as source instead, or use Google Photos only as an "
+            "upload target / app-created-data workflow."
+        )
 
     def logout(self, log_level=None):
         with set_log_level(LOGGER, log_level):
