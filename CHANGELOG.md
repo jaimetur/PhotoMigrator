@@ -4,6 +4,23 @@
 
 ---
 
+## Release: v4.1.0
+### Release Date: 2026-06-01
+  
+#### 🚨 Breaking Changes:
+  
+#### 🌟 New Features:
+
+#### 🚀 Enhancements:
+
+#### 🐛 Bug fixes:
+  - Fixed automatic migration CLI validation for Immich account 3 by restoring the missing `immich-photos-3` target/source alias in `--source` and `--target` accepted values.
+
+#### 📚 Documentation:
+  - Updated documentation with all changes.
+
+---
+
 ## Release: v4.0.0
 ### Release Date: 2026-03-28
   
