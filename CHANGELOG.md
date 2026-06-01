@@ -12,12 +12,31 @@
 #### 🌟 New Features:
   - Added configurable exclusion patterns for local-folder based processing and migrations through `--exclude-folders` and `--exclude-files`, and exposed them in the web interface filters. (Issue #1095).
   - Added environment-variable overrides for cloud-service configuration keys loaded from `Config.ini`, including support for `*_FILE` secrets files, plus a new `PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH` web default to pre-populate the Google Takeout source path in the job form. (Issue #1093).
+  - Added multilingual Google Takeout structure detection for localized Google Photos exports, including year folders such as `Photos from 2020`, `Fotos de 2020`, `Fotos del 2020`, `Photos de 2020`, `Fotos von 2020`, `Foto del 2020`, plus major non-Latin variants (Chinese, Japanese, Korean, Russian). Detection now also keeps scanning likely `Google Photos` subfolders even when the Takeout root contains many sibling services.
 
 #### 🚀 Enhancements:
   - Added fail-fast handling for `Automatic Migration` when `Google Photos` is used as `<SOURCE>`, returning a non-zero exit code with a clear workaround message after Google's Library API scope removal on April 1, 2025. Also stopped probing Google Photos read endpoints during login so upload-target flows can continue to use valid upload scopes. (Issue #1091).
+  - Updated GPTH from version 6.1.1 to version 6.1.5 which includes several enhancements and bug fixing.
+
+#### 🚀 GPTH Enhancements:
+
+#### 6.1.2
+  - Apple Live Photo pairs (HEIC + MP4) merged into motion JPEG — When --transform-pixel-mp jpg is active and a .HEIC/.HEIF file has a same-stem .MP4 companion in the same folder (as exported by Google Takeout for Apple Live Photos), the pair is merged into a single Google-style motion JPEG. Only storage-saver HEIC files are supported: Google re-encodes the still to JPEG bytes under a .HEIC extension, and the merge simply concatenates those bytes with the MP4. Original-quality (true) HEIC files cannot be merged — they are ISO-BMFF containers, and concatenating them with an MP4 produces a file ExifTool correctly rejects as MOV. Decoding true HEIC to JPEG requires a native libheif decoder which is not available in a Dart CLI context; both files are moved as-is.
+  - When standard extension fixing renames a JPEG-encoded .HEIC to .jpg before Step 6 runs, the resulting .jpg + .mp4 pair is also recognised and merged (guarded by isMotionPhoto() to avoid double-merging files that are already motion photos).
+  - Interactive mode log header now shows effective flags — The Args (argv): line in the log session header previously showed [] in interactive mode (because no CLI arguments are passed). It now shows the equivalent CLI flags that the user selected through the interactive prompts.
+
+#### 6.1.3
+  - Album symlinks for Pixel Motion Photos now use the correct extension — When a .MP/.MV file was transformed to .jpg or a still image, the moving step only updated the primary file's path. Secondary references to the same file (album copies used for shortcut/symlink creation) still referenced the old .MP path, so album symlinks ended up named PXL_….MP pointing at a .jpg file. All secondary references are now updated in-place immediately after each transform, ensuring album symlinks use the correct filename.
+  - Apple Live Photo .jpg siblings no longer appear as orphaned MP4 companions — When a Google Storage-Saver HEIC was fixed to .jpg (e.g. PXL_20230101.heic → PXL_20230101.jpg), the companion .MP4 suppression logic only looked for a .heic sibling, not a .jpg sibling. The .MP4 was therefore not suppressed and ended up as a stray file in the output. The check now also looks for an existing .jpg sibling.
+  - Pixel Motion Photo video-index lookup made more robust — The motion_photos package's getMotionVideoIndex() method searches for an ftyp mp42 MP4 header pattern and falls back to XMP parsing. For Pixel .MP.jpg files that use a different MP4 container brand or a slightly different XMP attribute format, both lookups returned null, causing extraction to fail. A pure-Dart fallback parser now reads the GCamera:MicroVideoOffset attribute directly from the JPEG XMP segment via regex, so extraction works reliably across all Pixel motion photo variants.
+  - Still-mode output .jpg files are no longer detected as motion photos — The JPEG extracted from a Pixel .MP file contains a stale XMP segment with GCamera:MicroVideoOffset and MicroVideo markers. Because no MP4 is appended to the extracted still, the offset is invalid, but the motion_photos package does not bounds-check it — isMotionPhoto() returns true for the plain JPEG. GPTH now strips the entire XMP APP1 segment from the extracted bytes before writing the output file, so photo managers no longer misidentify the still as an unplayable motion photo.
+
+#### 6.1.5
+  - Fixed that existing DateTime values in Exif were overwritten with json values, even if they already existed. This caused local timestamps to be overwritten with UTC timestamps from the jsons. It introduces another read operation for all media files, but also it means that less exif data is being written, which should balance each other out performance wise.
 
 #### 🐛 Bug fixes:
   - Fixed automatic migration CLI validation for Immich account 3 by restoring the missing `immich-photos-3` target/source alias in `--source` and `--target` accepted values.
+  - Fixed Google Takeout GPTH execution flow to treat only exit code `0` as success, and to pre-stage files into the output folder before running GPTH `--fix` mode so later output-based steps operate on the actual processed files.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

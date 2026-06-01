@@ -1,6 +1,7 @@
 # ClassGoogleTakeout.py
 # -*- coding: utf-8 -*-
 import fnmatch
+import json
 import logging
 import os
 import platform
@@ -26,7 +27,7 @@ from Core.CustomLogger import set_log_level
 from Core.CustomLogger import suppress_console_output_temporarily
 from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, TAKEOUT_SPECIAL_FOLDER_NAMES, \
-    PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL
+    PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL, GOOGLE_PHOTOS_CONTAINER_NAMES, TAKEOUT_YEAR_FOLDER_PATTERNS
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
@@ -51,6 +52,116 @@ def _find_forbidden_special_folder_in_path(path_value):
         if _normalize_special_folder_token(part) in blocked:
             return part
     return None
+
+def _normalize_folder_name(value):
+    return re.sub(r"\s+", " ", str(value or "").strip()).casefold()
+
+
+def _looks_like_google_photos_container(folder_name):
+    return _normalize_folder_name(folder_name) in GOOGLE_PHOTOS_CONTAINER_NAMES
+
+
+def _is_takeout_year_folder(folder_name):
+    normalized = _normalize_folder_name(folder_name)
+    return any(pattern.match(normalized) for pattern in TAKEOUT_YEAR_FOLDER_PATTERNS)
+
+
+def remap_extracted_dates_json_for_new_root(filedates_json, source_root, target_root, step_name="", log_level=None):
+    """
+    Clone the extracted-dates JSON replacing path keys under source_root
+    with equivalent paths under target_root.
+    """
+    with set_log_level(LOGGER, log_level):
+        if not filedates_json or not os.path.exists(filedates_json):
+            return filedates_json
+
+        source_root = Path(source_root).resolve()
+        target_root = Path(target_root).resolve()
+
+        try:
+            with open(filedates_json, "r", encoding="utf-8") as fh:
+                payload = json.load(fh)
+        except Exception as e:
+            LOGGER.warning(f"{step_name}Could not read Extracted Dates JSON '{filedates_json}' to remap paths for GPTH fix mode: {e}")
+            return filedates_json
+
+        if not isinstance(payload, dict):
+            LOGGER.warning(f"{step_name}Extracted Dates JSON '{filedates_json}' has unexpected format. Reusing original file without path remap.")
+            return filedates_json
+
+        remapped_payload = {}
+        remapped_count = 0
+        for raw_path, metadata in payload.items():
+            new_key = str(raw_path)
+            try:
+                rel_path = Path(raw_path).resolve().relative_to(source_root)
+                new_key = (target_root / rel_path).resolve().as_posix()
+                remapped_count += 1
+            except Exception:
+                pass
+            remapped_payload[new_key] = metadata
+
+        if remapped_count == 0:
+            LOGGER.warning(f"{step_name}No paths from '{filedates_json}' matched source root '{source_root}'. Reusing original file without path remap.")
+            return filedates_json
+
+        source_json_path = Path(filedates_json)
+        remapped_json_path = source_json_path.with_name(f"{source_json_path.stem}_gpth_fix{source_json_path.suffix}")
+        with open(remapped_json_path, "w", encoding="utf-8") as fh:
+            json.dump(remapped_payload, fh, ensure_ascii=False, indent=2)
+
+        LOGGER.info(f"{step_name}Prepared remapped Extracted Dates JSON for GPTH fix mode: '{remapped_json_path}'")
+        return str(remapped_json_path)
+
+
+def prepare_output_folder_for_gpth_fix(input_folder, output_folder, filedates_json=None, step_name="", log_level=None):
+    """
+    Ensure GPTH fix mode works on a staged copy inside output_folder so later
+    output-dependent steps (symlink fixing, post-process, final cleanup) operate
+    on the same files GPTH actually modified.
+    """
+    with set_log_level(LOGGER, log_level):
+        input_folder = os.path.abspath(input_folder)
+        output_folder = os.path.abspath(output_folder)
+
+        if not os.path.isdir(input_folder):
+            LOGGER.error(f"{step_name}Cannot prepare GPTH fix mode because input folder does not exist: '{input_folder}'")
+            return None, None, False
+
+        output_has_content = False
+        if os.path.isdir(output_folder):
+            try:
+                with os.scandir(output_folder) as entries:
+                    output_has_content = any(True for _ in entries)
+            except Exception:
+                output_has_content = False
+
+        staged = output_has_content
+        if not output_has_content:
+            LOGGER.warning(f"{step_name}Takeout structure checks are being ignored. Staging files into output folder before running GPTH fix mode...")
+            staged = copy_move_folder(
+                src=input_folder,
+                dst=output_folder,
+                ignore_patterns=None,
+                move=False,
+                step_name=step_name,
+                log_level=log_level
+            )
+            if not staged:
+                LOGGER.error(f"{step_name}Could not stage files into output folder for GPTH fix mode.")
+                return None, None, False
+        else:
+            LOGGER.warning(f"{step_name}Reusing existing non-empty output folder for GPTH fix mode: '{output_folder}'")
+
+        remapped_json = remap_extracted_dates_json_for_new_root(
+            filedates_json=filedates_json,
+            source_root=input_folder,
+            target_root=output_folder,
+            step_name=step_name,
+            log_level=log_level
+        )
+
+        return output_folder, remapped_json, True
 
 
 ##############################################################################
@@ -171,17 +282,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
         Normalize input root so GPTH always receives a Takeout-compatible root.
 
         Rules:
-          - If input already points to <...>/Takeout (or any non "Google Photos" folder), do nothing.
-          - If input points to <...>/Takeout/Google Photos, switch root to parent <...>/Takeout.
-          - If input points to <...>/Google Photos and parent is not "Takeout",
+          - If input already points to <...>/Takeout (or any non localized "Google Photos" folder), do nothing.
+          - If input points to <...>/Takeout/<Google Photos localized folder>, switch root to parent <...>/Takeout.
+          - If input points to <...>/<Google Photos localized folder> and parent is not "Takeout",
             create sibling wrapper <...>/_gpth_wrap_<TIMESTAMP>/Takeout/Google Photos
             and move the folder there (no copy fallback).
         """
         with set_log_level(LOGGER, log_level):
             current_input = Path(self.get_input_folder())
-            google_photos_name = "google photos"
-
-            if current_input.name.lower() != google_photos_name:
+            if not _looks_like_google_photos_container(current_input.name):
                 return False
 
             parent = current_input.parent
@@ -208,7 +317,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.error(f"{step_name}Cannot normalize Takeout structure because wrapper folder already exists: '{wrapper_root}'")
                 raise RuntimeError(f"Wrapper folder already exists: {wrapper_root}")
 
-            LOGGER.warning(f"{step_name}Input folder points directly to 'Google Photos' without 'Takeout' parent.")
+            LOGGER.warning(f"{step_name}Input folder points directly to localized 'Google Photos' folder without 'Takeout' parent.")
             LOGGER.warning(f"{step_name}Normalizing structure for GPTH by moving folder (no copy fallback):")
             LOGGER.warning(f"{step_name}  Source: '{current_input}'")
             LOGGER.warning(f"{step_name}  Target: '{target_google_photos}'")
@@ -608,6 +717,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             input_folder = self.get_input_folder()
             # Determine where the Albums will be located
             albums_folder = self.get_albums_folder()
+            gpth_input_folder = input_folder
+            gpth_filedates_json = self.initial_filedates_json
+            output_prepared_for_gpth_fix = False
 
             # Sub-Step 4.1: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
@@ -624,17 +736,28 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if not self.ARGS['google-skip-gpth-tool']:
                 LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
                 if self.ARGS['google-ignore-check-structure']:
-                    LOGGER.warning(f"{step_name}Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
+                    LOGGER.warning(f"{step_name}Ignore Google Takeout Structure flag detected ('-gics, --google-ignore-check-structure').")
                 else:
                     if not self.needs_process:
                         LOGGER.warning(f"{step_name}No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
                         # Determine the output_folder again because when elf.ARGS['google-ignore-check-structure'] = True, the output_folder is different
                         output_folder = self.get_output_folder()
+                if self.ARGS['google-ignore-check-structure']:
+                    gpth_input_folder, gpth_filedates_json, output_prepared_for_gpth_fix = prepare_output_folder_for_gpth_fix(
+                        input_folder=input_folder,
+                        output_folder=output_folder,
+                        filedates_json=self.initial_filedates_json,
+                        step_name=step_name,
+                        log_level=LOG_LEVEL
+                    )
+                    if not output_prepared_for_gpth_fix:
+                        LOGGER.error(f"{step_name}Metadata fixing aborted because output folder could not be prepared for GPTH fix mode.")
+                        return self.result
 
                 # Now Call GPTH Tool
                 ok = fix_metadata_with_gpth_tool(
-                    input_folder=self.input_folder,
+                    input_folder=gpth_input_folder,
                     output_folder=output_folder,
                     capture_output=capture_output,
                     capture_errors=capture_errors,
@@ -643,7 +766,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     skip_extras=self.ARGS['google-skip-extras-files'],
                     keep_takeout_folder=self.ARGS['google-keep-takeout-folder'],
                     ignore_takeout_structure=self.ARGS['google-ignore-check-structure'],
-                    filedates_json = self.initial_filedates_json,
+                    filedates_json=gpth_filedates_json,
                     step_name=step_name,
                     log_level=LOG_LEVEL
                 )
@@ -683,7 +806,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             # Determine if manual copy/move is needed (for step 4)
-            manual_copy_move_needed = (self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']) and input_folder != output_folder
+            manual_copy_move_needed = (
+                self.ARGS['google-skip-gpth-tool']
+                or (self.ARGS['google-ignore-check-structure'] and not output_prepared_for_gpth_fix)
+            ) and input_folder != output_folder
             if manual_copy_move_needed:
                 if self.ARGS['google-skip-gpth-tool']:
                     LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gSkipGpth, --google-skip-gpth-tool' flag). step {self.step}.{self.substep} is needed to copy files manually to output folder.")
@@ -1364,8 +1490,6 @@ def unpack_zips(input_folder, unzip_folder, step_name="", log_level=None):
 
 
 def contains_takeout_structure(input_folder, step_name="", log_level=None):
-    # Pre-compile regex to match "Photos from " + 4 digits
-    pattern = re.compile(r"^Photos from \d{4}")
     with set_log_level(LOGGER, log_level):
         LOGGER.info(f"{step_name}Looking for Google Takeout structure in folder: {input_folder}. This may take long time. Please be patient...")
         queue = deque([input_folder])
@@ -1377,16 +1501,20 @@ def contains_takeout_structure(input_folder, step_name="", log_level=None):
                     subdirs = [e for e in entries if e.is_dir(follow_symlinks=False)]
                     # First check each subdir name against the pattern
                     for entry in subdirs:
-                        if pattern.match(entry.name):
+                        if _is_takeout_year_folder(entry.name):
                             LOGGER.info(f"{step_name}Found Google Takeout structure in folder      : {current}")
                             return True
-                    # If too many subdirs, skip descending
+                    google_photos_subdirs = [entry for entry in subdirs if _looks_like_google_photos_container(entry.name)]
+                    for entry in google_photos_subdirs:
+                        queue.append(entry.path)
+                    # If too many subdirs, skip descending except promising Google Photos containers
                     if len(subdirs) > 5:
-                        LOGGER.debug(f"{step_name}Skipping {current} because it has {len(subdirs)} subdirectories")
+                        LOGGER.debug(f"{step_name}Skipping broad scan in {current} because it has {len(subdirs)} subdirectories")
                         continue
                     # Otherwise, enqueue them for further scanning
                     for entry in subdirs:
-                        queue.append(entry.path)
+                        if entry not in google_photos_subdirs:
+                            queue.append(entry.path)
             except PermissionError:
                 LOGGER.warning(f"{step_name}Permission denied accessing: {current}")
             except Exception as e:
@@ -2160,7 +2288,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 gpth_command.append("--transform-pixel-mp")
             elif Version(GPTH_VERSION) >= Version("6.0.0"):
                 # Use the new feature to Transform Pixel .MP or .MV motion photos into motion .jpg files
-                #gpth_command.append("--transform-pixel-mp jpg") # gpth 6.x.x has a bug in --transform-pixel-mp flag. Disabling it until it is solved
+                gpth_command.append("--transform-pixel-mp jpg") # gpth 6.1.1 has a bug in --transform-pixel-mp flag. Disabling it until it is solved
                 pass
 
         if Version(GPTH_VERSION) >= Version("4.0.0"):
@@ -2214,11 +2342,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 os.rename(all_photos_path, no_albums_path)
 
             # Check the result of GPTH process
-            if ok>=0:
+            if ok == 0:
                 LOGGER.info(f"{step_name}✅ GPTH Tool fixing completed successfully.")
                 return True
             else:
-                LOGGER.error(f"{step_name}❌ GPTH Tool fixing failed.")
+                LOGGER.error(f"{step_name}❌ GPTH Tool fixing failed with exit code {ok}.")
                 return False
         except subprocess.CalledProcessError as e:
             LOGGER.error(f"{step_name}❌ GPTH Tool fixing failed:\n{e.stderr}")

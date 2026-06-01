@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import sys
 import textwrap
 from datetime import datetime
@@ -16,7 +17,7 @@ TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
 TOOL_DATE                       = "2026-06-01"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
-GPTH_VERSION                    = "6.1.1"
+GPTH_VERSION                    = "6.1.5"
 EXIFTOOL_VERSION                = "13.30"
 INCLUDE_EXIF_TOOL               = True
 COMPILE_IN_ONE_FILE             = True
@@ -96,6 +97,31 @@ SUPPLEMENTAL_METADATA           = "supplemental-metadata"
 # Reserved Google special folder names used by GPTH/Takeout internals.
 # Input Takeout paths must avoid these names in any path component.
 TAKEOUT_SPECIAL_FOLDER_NAMES    = ("archive", "trash", "locked folder")
+GOOGLE_PHOTOS_CONTAINER_NAMES   = {
+    "google photo",
+    "google photos",
+    "google foto",
+    "google fotos",
+    "google фото",
+    "google 相册",
+    "google 相簿",
+    "google 相片",
+    "google フォト",
+    "google 포토",
+}
+TAKEOUT_YEAR_FOLDER_PATTERNS    = (
+    re.compile(r"^photos?\s+from\s+\d{4}$", re.IGNORECASE),                # English
+    re.compile(r"^fotos?\s+(?:de|del|do|da)\s+\d{4}$", re.IGNORECASE),     # Spanish / Portuguese
+    re.compile(r"^photos?\s+(?:de|du|des)\s+\d{4}$", re.IGNORECASE),       # French
+    re.compile(r"^fotos?\s+(?:von|aus)\s+\d{4}$", re.IGNORECASE),          # German
+    re.compile(r"^foto\s+(?:del|della|dello|dei|degli|di)\s+\d{4}$", re.IGNORECASE),  # Italian
+    re.compile(r"^foto'?s\s+(?:uit|van)\s+\d{4}$", re.IGNORECASE),         # Dutch
+    re.compile(r"^фото\s+(?:за|из)\s+\d{4}$", re.IGNORECASE),              # Russian
+    re.compile(r"^фотографии\s+(?:за|из)\s+\d{4}$", re.IGNORECASE),        # Russian alt.
+    re.compile(r"^(?:来自|來自)?\s*\d{4}\s*年(?:的)?(?:照片|相片)$"),           # Chinese
+    re.compile(r"^\d{4}\s*年(?:の)?写真$"),                                  # Japanese
+    re.compile(r"^\d{4}\s*년(?:의)?\s*사진$"),                                # Korean
+)
 
 # List of special suffixes from Google Photos:
 SPECIAL_SUFFIXES = [
@@ -148,7 +174,6 @@ TOOL_DESCRIPTION = textwrap.dedent(f"""{TOOL_NAME_VERSION} - {TOOL_DATE}
           ©️ 2024-2026 by Jaime Tur (@jaimetur)
           """
                                    )
-
 
 
 
