@@ -33,6 +33,9 @@ PhotoMigrator-builds/
 Logs/
 src/Logs/
 
+# Extracted Dates
+/Extracted_Dates
+
 # Temporary files created during build process
 RELEASE-NOTES.md
 build_info.txt

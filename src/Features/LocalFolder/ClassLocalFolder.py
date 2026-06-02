@@ -187,6 +187,11 @@ class ClassLocalFolder:
             return logging.INFO
         return value if value <= logging.INFO else logging.INFO
 
+    def _invalidate_asset_caches(self):
+        self.all_assets_filtered = None
+        self.assets_without_albums_filtered = None
+        self.albums_assets_filtered = None
+
 
     ###########################################################################
     #                           GENERAL UTILITY                               #
@@ -1558,6 +1563,7 @@ class ClassLocalFolder:
             if isinstance(asset_ids, str):
                 asset_ids = [asset_ids]
             count = 0
+            removed_paths = []
 
             # If analyzer isn’t initialized yet, create it so we can rebuild later
             if not hasattr(self, 'analyzer') or self.analyzer is None:
@@ -1570,6 +1576,7 @@ class ClassLocalFolder:
                         try:
                             asset_path.unlink()
                             count += 1
+                            removed_paths.append(asset_path.resolve().as_posix())
                             LOGGER.debug(f"Removed asset: {asset_path}")
                         except Exception as e:
                             LOGGER.warning(f"Failed to remove '{asset_path}': {e}")
@@ -1580,10 +1587,17 @@ class ClassLocalFolder:
 
             LOGGER.info(f"Removed {count} asset(s) from local storage.")
 
-            # --- Update analyzer to reflect deletions ---
-            # Rebuild the in-memory file list and recompute sizes
-            self.analyzer._build_file_list(step_name="remove_assets: ")
-            self.analyzer._compute_folder_sizes(step_name="remove_assets: ")
+            self._invalidate_asset_caches()
+
+            # Refresh analyzer state from disk so filtered views and sizes
+            # reflect the current filesystem after deletions.
+            if hasattr(self, 'analyzer') and self.analyzer is not None:
+                if getattr(self.analyzer, 'extracted_dates', None):
+                    for removed_path in removed_paths:
+                        self.analyzer.extracted_dates.pop(removed_path, None)
+                self.analyzer._build_file_list_from_disk(step_name="remove_assets: ", log_level=log_level)
+                self.analyzer._apply_filters(step_name="remove_assets: ", log_level=log_level)
+                self.analyzer._compute_folder_sizes(step_name="remove_assets: ", log_level=log_level)
 
             return count
 

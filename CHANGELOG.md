@@ -20,6 +20,7 @@
     - Automatic Migration: tests helper functions, local-folder source/target dispatch, and Takeout preprocessing invocation before the shared migration flow.
     - Google Takeout: tests localized Takeout year-folder detection, forbidden special-folder path validation, and nested Takeout structure discovery.
     - Local Folder Takeout Layouts: tests GPTH-generated layouts including `Albums`, `Albums-shared`, `PARTNER_SHARED`, and `Special Folders`, ensuring correct album/non-album classification.
+    - Local Folder Asset Deletion: tests `remove_assets()` analyzer initialization, supported refresh-method usage, extracted-date cleanup, and cache invalidation after file deletions.
     - Execution Modes: tests dispatch to the correct execution mode depending on the parsed arguments.
     - Exclusion Patterns: tests folder/file exclusion helpers and pattern matching behavior for local processing.
     - Immich Photos: tests asset type filtering and burst normalization / prioritization helper logic.
@@ -52,6 +53,7 @@
 #### 🐛 Bug fixes:
   - Fixed automatic migration CLI validation for Immich account 3 by restoring the missing `immich-photos-3` target/source alias in `--source` and `--target` accepted values.
   - Fixed Google Takeout GPTH execution flow to treat only exit code `0` as success, and to pre-stage files into the output folder before running GPTH `--fix` mode so later output-based steps operate on the actual processed files.
+  - Fixed `Local Folder` asset deletion during `Automatic Migration` with `--move-assets true` so the analyzer refresh uses supported `FolderAnalyzer` methods, reapplies filters, recomputes folder sizes, and invalidates stale local caches after deletions. (Issue #1102).
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

@@ -4,7 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
@@ -76,6 +76,90 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         self.assertEqual(
             no_album_filenames,
             ["partner-no-album.jpg", "root-no-album.jpg"],
+        )
+
+    def test_remove_assets_refreshes_analyzer_with_supported_methods_and_invalidates_caches(self):
+        removable = self.root / "ALL_PHOTOS/2024/remove-me.jpg"
+        removable.parent.mkdir(parents=True, exist_ok=True)
+        removable.write_text("delete", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=self.root)
+        removed_key = removable.resolve().as_posix()
+        keep_key = (self.root / "ALL_PHOTOS/2024/root-no-album.jpg").resolve().as_posix()
+
+        class AnalyzerStub:
+            def __init__(self):
+                self.extracted_dates = {
+                    removed_key: {"TargetFile": removed_key},
+                    keep_key: {"TargetFile": keep_key},
+                }
+                self._build_file_list_from_disk = Mock()
+                self._apply_filters = Mock()
+                self._compute_folder_sizes = Mock()
+
+        local_folder.analyzer = AnalyzerStub()
+        local_folder.all_assets_filtered = ["stale-all-assets"]
+        local_folder.assets_without_albums_filtered = ["stale-no-albums"]
+        local_folder.albums_assets_filtered = ["stale-album-assets"]
+
+        removed_count = local_folder.remove_assets(str(removable), log_level=logging.INFO)
+
+        self.assertEqual(removed_count, 1)
+        self.assertFalse(removable.exists())
+        self.assertNotIn(removed_key, local_folder.analyzer.extracted_dates)
+        self.assertIn(keep_key, local_folder.analyzer.extracted_dates)
+        local_folder.analyzer._build_file_list_from_disk.assert_called_once_with(
+            step_name="remove_assets: ",
+            log_level=logging.INFO,
+        )
+        local_folder.analyzer._apply_filters.assert_called_once_with(
+            step_name="remove_assets: ",
+            log_level=logging.INFO,
+        )
+        local_folder.analyzer._compute_folder_sizes.assert_called_once_with(
+            step_name="remove_assets: ",
+            log_level=logging.INFO,
+        )
+        self.assertIsNone(local_folder.all_assets_filtered)
+        self.assertIsNone(local_folder.assets_without_albums_filtered)
+        self.assertIsNone(local_folder.albums_assets_filtered)
+
+    def test_remove_assets_initializes_analyzer_before_refresh_when_missing(self):
+        removable = self.root / "ALL_PHOTOS/2024/remove-after-init.jpg"
+        removable.parent.mkdir(parents=True, exist_ok=True)
+        removable.write_text("delete", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=self.root)
+
+        class AnalyzerStub:
+            def __init__(self):
+                self.extracted_dates = {}
+                self._build_file_list_from_disk = Mock()
+                self._apply_filters = Mock()
+                self._compute_folder_sizes = Mock()
+
+        analyzer_stub = AnalyzerStub()
+
+        def fake_ensure_analyzer(log_level=None):
+            local_folder.analyzer = analyzer_stub
+
+        with patch.object(local_folder, "_ensure_analyzer", side_effect=fake_ensure_analyzer) as mock_ensure:
+            removed_count = local_folder.remove_assets(str(removable), log_level=logging.WARNING)
+
+        self.assertEqual(removed_count, 1)
+        self.assertFalse(removable.exists())
+        mock_ensure.assert_called_once_with(log_level=logging.WARNING)
+        analyzer_stub._build_file_list_from_disk.assert_called_once_with(
+            step_name="remove_assets: ",
+            log_level=logging.WARNING,
+        )
+        analyzer_stub._apply_filters.assert_called_once_with(
+            step_name="remove_assets: ",
+            log_level=logging.WARNING,
+        )
+        analyzer_stub._compute_folder_sizes.assert_called_once_with(
+            step_name="remove_assets: ",
+            log_level=logging.WARNING,
         )
 
 
