@@ -1582,7 +1582,7 @@ class ClassLocalFolder:
 
             # --- Update analyzer to reflect deletions ---
             # Rebuild the in-memory file list and recompute sizes
-            self.analyzer._build_file_list(step_name="remove_assets: ")
+            self.analyzer._build_file_list_from_disk(step_name="remove_assets: ")
             self.analyzer._compute_folder_sizes(step_name="remove_assets: ")
 
             return count
