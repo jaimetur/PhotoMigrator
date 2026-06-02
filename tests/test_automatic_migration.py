@@ -106,8 +106,8 @@ class TestAutomaticMigrationMode(unittest.TestCase):
 
         self.assertEqual(mock_parallel.call_count, 1)
         kwargs = mock_parallel.call_args.kwargs
-        self.assertIn("Local Folder", kwargs["source_client"].get_client_name())
-        self.assertIn("Local Folder", kwargs["target_client"].get_client_name())
+        self.assertIn("Local Folder", kwargs["source_client"].CLIENT_NAME)
+        self.assertIn("Local Folder", kwargs["target_client"].CLIENT_NAME)
 
     def test_mode_automatic_migration_processes_takeout_source_before_parallel_flow(self):
         takeout_google_photos = self.source / "Google Photos"
