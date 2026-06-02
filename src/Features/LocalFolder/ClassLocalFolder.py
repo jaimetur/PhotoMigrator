@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import time
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 
@@ -109,6 +110,68 @@ class ClassLocalFolder:
         self.analyzer = None
 
         self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
+
+    @staticmethod
+    def _normalize_folder_token(name):
+        text = unicodedata.normalize("NFKD", str(name or ""))
+        text = "".join(ch for ch in text if not unicodedata.combining(ch))
+        text = text.casefold().strip()
+        text = re.sub(r"[_\-]+", " ", text)
+        text = re.sub(r"\s+", " ", text)
+        return text
+
+    def _is_special_trash_folder(self, folder_name):
+        trash_aliases = {
+            "trash",
+            "bin",
+            "recycle bin",
+            "papelera",
+            "papelera de reciclaje",
+            "lixeira",
+            "lixo",
+            "corbeille",
+            "papierkorb",
+            "cestino",
+            "cestino eliminati",
+            "prullenbak",
+            "kosz",
+            "kosz na smieci",
+            "korzina",
+            "корзина",
+            "垃圾桶",
+            "回收站",
+            "ゴミ箱",
+            "휴지통",
+        }
+        return self._normalize_folder_token(folder_name) in trash_aliases
+
+    def _get_partner_shared_root(self):
+        return self.base_folder / "PARTNER_SHARED"
+
+    def _get_partner_shared_albums_folder(self):
+        return self._get_partner_shared_root() / FOLDERNAME_ALBUMS
+
+    def _get_partner_shared_no_albums_folder(self):
+        return self._get_partner_shared_root() / FOLDERNAME_NO_ALBUMS
+
+    def _get_special_folders_root(self):
+        return self.base_folder / "Special Folders"
+
+    def _iter_album_roots(self):
+        yield self.albums_folder, "owned"
+        yield self.shared_albums_folder, "shared"
+        yield self._get_partner_shared_albums_folder(), "partner_shared"
+        yield self._get_special_folders_root(), "special"
+
+    @staticmethod
+    def _get_top_level_folder_name(folder_path, root_path):
+        try:
+            rel = folder_path.relative_to(root_path)
+        except ValueError:
+            return None
+        if not rel.parts:
+            return None
+        return rel.parts[0]
 
     @staticmethod
     def _effective_analyzer_log_level(log_level=None):
@@ -518,11 +581,11 @@ class ClassLocalFolder:
                 # Inicializa el analyzer y sus folder_assets
                 self._ensure_analyzer(log_level=effective_log_level)
 
-                base_owned = Path(self.albums_folder.resolve())
-                base_shared = Path(self.shared_albums_folder.resolve())
-
-                owned_names = set()
-                shared_names = set()
+                album_roots = [
+                    (Path(album_root.resolve()), root_kind)
+                    for album_root, root_kind in self._iter_album_roots()
+                ]
+                discovered_albums = {}
 
                 # Solo iteramos las carpetas que tienen >=1 fichero filtrado
                 folder_assets_items = list(self.analyzer.folder_assets.items())
@@ -539,27 +602,17 @@ class ClassLocalFolder:
                             pbar.update(1)
                             continue
                         folder = Path(folder_str)
-                        # ¿Está bajo Albums/?
-                        try:
-                            rel = folder.relative_to(base_owned)
-                            owned_names.add(rel.parts[0])
-                        except ValueError:
-                            pass
-                        # ¿Está bajo Albums-shared/?
-                        try:
-                            rel = folder.relative_to(base_shared)
-                            shared_names.add(rel.parts[0])
-                        except ValueError:
-                            pass
+                        for album_root, root_kind in album_roots:
+                            album_name = self._get_top_level_folder_name(folder, album_root)
+                            if not album_name:
+                                continue
+                            if root_kind == "special" and self._is_special_trash_folder(album_name):
+                                continue
+                            album_id = str((album_root / album_name).resolve())
+                            discovered_albums.setdefault(album_id, {"id": album_id, "albumName": album_name})
                         pbar.update(1)
 
-                # Construye el listado final
-                albums = [{"id": str((base_owned / name).resolve()), "albumName": name}
-                          for name in owned_names]
-                shared_albums = [{"id": str((base_shared / name).resolve()), "albumName": name}
-                                 for name in shared_names]
-
-                result = albums + shared_albums
+                result = list(discovered_albums.values())
                 LOGGER.info(f"Found {len(result)} albums in total (owned + shared).")
                 return result
 
@@ -1130,8 +1183,7 @@ class ClassLocalFolder:
             # Ensure analyzer is initialized (with global filters applied)
             self._ensure_analyzer(log_level=log_level)
 
-            albums_folder = Path(self.albums_folder.resolve())
-            shared_albums_folder = Path(self.shared_albums_folder.resolve())
+            non_album_roots = [Path(album_root.resolve()) for album_root, _ in self._iter_album_roots()]
             duplicates_folder = self.base_folder / "_Duplicates"
             sel_ext = self._get_selected_extensions(type)
 
@@ -1151,19 +1203,18 @@ class ClassLocalFolder:
                         pbar.update(1)
                         continue
 
-                    # skip any path under Albums or Shared albums
-                    try:
-                        f.relative_to(albums_folder)
+                    # skip any path under roots that are treated as albums
+                    is_album_asset = False
+                    for album_root in non_album_roots:
+                        try:
+                            f.relative_to(album_root)
+                            is_album_asset = True
+                            break
+                        except ValueError:
+                            continue
+                    if is_album_asset:
                         pbar.update(1)
                         continue
-                    except ValueError:
-                        pass
-                    try:
-                        f.relative_to(shared_albums_folder)
-                        pbar.update(1)
-                        continue
-                    except ValueError:
-                        pass
                     # skip any path under _Duplicates
                     try:
                         f.relative_to(duplicates_folder)

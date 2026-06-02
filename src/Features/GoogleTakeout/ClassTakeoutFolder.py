@@ -168,6 +168,15 @@ def prepare_output_folder_for_gpth_fix(input_folder, output_folder, filedates_js
 #                              START OF CLASS                                #
 ##############################################################################
 class ClassTakeoutFolder(ClassLocalFolder):
+    def _sync_local_folder_view(self):
+        self.base_folder = Path(self.output_folder)
+        if not self.ARGS['google-skip-move-albums']:
+            self.albums_folder = self.base_folder / FOLDERNAME_ALBUMS
+        else:
+            self.albums_folder = self.base_folder
+        self.shared_albums_folder = self.base_folder / f"{FOLDERNAME_ALBUMS}-shared"
+        self.no_albums_folder = self.base_folder / FOLDERNAME_NO_ALBUMS
+
     def __init__(self, takeout_folder):
         """
         Inicializa la clase con la carpeta base (donde se guardan los archivos ya procesados)
@@ -218,6 +227,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
         # Set Albums Folder
         self.albums_folder = self.get_albums_folder()
+        self._sync_local_folder_view()
 
         # Define the Folder Analyzers
         self.initial_takeout_folder_analyzer = FolderAnalyzer()
@@ -260,9 +270,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
     def get_albums_folder(self):
         if not self.ARGS['google-skip-move-albums']:
-            self.albums_folder = os.path.join(self.output_folder, FOLDERNAME_ALBUMS)
+            self.albums_folder = Path(self.output_folder) / FOLDERNAME_ALBUMS
         else:
-            self.albums_folder = self.output_folder
+            self.albums_folder = Path(self.output_folder)
         return self.albums_folder
 
     def get_output_folder(self):
@@ -275,6 +285,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.output_folder = self.takeout_folder
         # Call get_albums_folder to update it with the new output_folder
         self.get_albums_folder()
+        self._sync_local_folder_view()
         return self.output_folder
 
     def normalize_input_root_for_gpth(self, step_name="", log_level=None):
