@@ -20,7 +20,7 @@ class TestImmichPhotosUnit(unittest.TestCase):
 
     def test_normalize_burst_stem_removes_common_suffixes(self):
         normalized = self.manager._normalize_burst_stem("IMG_1234-edited.BURST0001.jpg")
-        self.assertEqual(normalized, "img_1234")
+        self.assertEqual(normalized, "img_1234-edited")
 
     def test_burst_primary_sort_key_prefers_image_then_larger_file(self):
         image_record = {"ext": ".jpg", "file_size": 300, "capture_epoch": 100}

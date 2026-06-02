@@ -15,11 +15,11 @@
   - Added multilingual Google Takeout structure detection for localized Google Photos exports, including year folders such as `Photos from 2020`, `Fotos de 2020`, `Fotos del 2020`, `Photos de 2020`, `Fotos von 2020`, `Foto del 2020`, plus major non-Latin variants (Chinese, Japanese, Korean, Russian). Detection now also keeps scanning likely `Google Photos` subfolders even when the Takeout root contains many sibling services.
   - Added Automatic Migration support for GPTH layouts containing `PARTNER_SHARED` and `Special Folders`: partner shared albums under `PARTNER_SHARED/Albums` are now migrated as albums, partner shared loose assets under `PARTNER_SHARED/ALL_PHOTOS` are migrated as non-album assets, and each subfolder under `Special Folders` is migrated as an album except the localized Trash/Papelera folder, which is ignored in both CLI and Web Interface flows.
   - Added a unit test suite to validate the different modules of the tool, and created a GitHub Actions workflow to install dependencies, validate Python syntax, and execute those tests automatically on every `push` and `pull_request`.
+    - Config Reader: tests configuration loading and environment variable overrides for configuration values.
     - PhotoMigrator CLI: tests argument parsing, normalization of exclusions, and validation of automatic-migration related flags.
     - Automatic Migration: tests helper functions, local-folder source/target dispatch, and Takeout preprocessing invocation before the shared migration flow.
     - Google Takeout: tests localized Takeout year-folder detection, forbidden special-folder path validation, and nested Takeout structure discovery.
     - Local Folder Takeout Layouts: tests GPTH-generated layouts including `Albums`, `Albums-shared`, `PARTNER_SHARED`, and `Special Folders`, ensuring correct album/non-album classification.
-    - Config Reader: tests configuration loading and environment variable overrides for configuration values.
     - Execution Modes: tests dispatch to the correct execution mode depending on the parsed arguments.
     - Exclusion Patterns: tests folder/file exclusion helpers and pattern matching behavior for local processing.
     - Immich Photos: tests asset type filtering and burst normalization / prioritization helper logic.
