@@ -44,4 +44,4 @@ jobs:
         env:
           NO_COLOR: "1"
         run: |
-          pytest -q
+          pytest -vv -ra
