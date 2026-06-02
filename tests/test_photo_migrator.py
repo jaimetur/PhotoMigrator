@@ -1,32 +1,45 @@
+import argparse
+import sys
+import tempfile
 import unittest
-import subprocess
-import shutil
-import os
-from tests.utils import get_test_file
+from pathlib import Path
+from unittest.mock import patch
 
-class TestPhotoMigratorCLI(unittest.TestCase):
-    def setUp(self):
-        # Copia temporal del Config.ini desde test_data a la raíz, donde el script lo busca por defecto
-        self.temp_config_path = "Config.ini"
-        test_config = get_test_file("config_test.ini")
-        shutil.copyfile(test_config, self.temp_config_path)
-        
-    def tearDown(self):
-        # Limpieza: elimina el archivo de configuración temporal tras cada test
-        if os.path.exists(self.temp_config_path):
-            os.remove(self.temp_config_path)
-        
-    def test_run_photo_migrator_google_to_immich(self):
-        result = subprocess.run(
-            [
-                "python3", 
-                "src/PhotoMigrator.py", 
-                "--source=synology", 
-                "--target=immich"
-            ],
-            capture_output=True,
-            text=True
-        )
-        print(result.stdout)
-        print(result.stderr)
-        self.assertEqual(result.returncode, 0)
+from Core.ArgsParser import checkArgs, create_global_variable_from_args, parse_arguments
+
+
+class TestPhotoMigratorCLIParsing(unittest.TestCase):
+    def test_create_global_variable_from_args_replaces_underscores(self):
+        namespace = argparse.Namespace(input_folder="/tmp/input", output_folder="/tmp/output")
+        args = create_global_variable_from_args(namespace)
+
+        self.assertEqual(args["input-folder"], "/tmp/input")
+        self.assertEqual(args["output-folder"], "/tmp/output")
+
+    def test_check_args_parses_local_migration_and_exclusion_patterns(self):
+        with tempfile.TemporaryDirectory() as source_dir, tempfile.TemporaryDirectory() as target_dir:
+            argv = [
+                "photomigrator",
+                f"--source={source_dir}",
+                f"--target={target_dir}",
+                "--exclude-folders=@eaDir,.@__thumb",
+                "--exclude-files=SYNOFILE_THUMB*,Thumbs.db",
+            ]
+            with patch.object(sys, "argv", argv):
+                args, parser = parse_arguments()
+                checked = checkArgs(args, parser)
+
+        self.assertEqual(checked["AUTOMATIC-MIGRATION"], [source_dir, target_dir])
+        self.assertEqual(checked["exclude-folders"], ["@eaDir", ".@__thumb"])
+        self.assertEqual(checked["exclude-files"], ["SYNOFILE_THUMB*", "Thumbs.db"])
+
+    def test_check_args_rejects_dashboard_without_automatic_migration(self):
+        argv = ["photomigrator", "--dashboard=true"]
+        with patch.object(sys, "argv", argv):
+            args, parser = parse_arguments()
+            with self.assertRaises(SystemExit):
+                checkArgs(args, parser)
+
+
+if __name__ == "__main__":
+    unittest.main()

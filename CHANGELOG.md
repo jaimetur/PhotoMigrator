@@ -14,6 +14,19 @@
   - Added environment-variable overrides for cloud-service configuration keys loaded from `Config.ini`, including support for `*_FILE` secrets files, plus a new `PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH` web default to pre-populate the Google Takeout source path in the job form. (Issue #1093).
   - Added multilingual Google Takeout structure detection for localized Google Photos exports, including year folders such as `Photos from 2020`, `Fotos de 2020`, `Fotos del 2020`, `Photos de 2020`, `Fotos von 2020`, `Foto del 2020`, plus major non-Latin variants (Chinese, Japanese, Korean, Russian). Detection now also keeps scanning likely `Google Photos` subfolders even when the Takeout root contains many sibling services.
   - Added Automatic Migration support for GPTH layouts containing `PARTNER_SHARED` and `Special Folders`: partner shared albums under `PARTNER_SHARED/Albums` are now migrated as albums, partner shared loose assets under `PARTNER_SHARED/ALL_PHOTOS` are migrated as non-album assets, and each subfolder under `Special Folders` is migrated as an album except the localized Trash/Papelera folder, which is ignored in both CLI and Web Interface flows.
+  - Added a unit test suite to validate the different modules of the tool, and created a GitHub Actions workflow to install dependencies, validate Python syntax, and execute those tests automatically on every `push` and `pull_request`.
+    - PhotoMigrator CLI: tests argument parsing, normalization of exclusions, and validation of automatic-migration related flags.
+    - Automatic Migration: tests helper functions, local-folder source/target dispatch, and Takeout preprocessing invocation before the shared migration flow.
+    - Google Takeout: tests localized Takeout year-folder detection, forbidden special-folder path validation, and nested Takeout structure discovery.
+    - Local Folder Takeout Layouts: tests GPTH-generated layouts including `Albums`, `Albums-shared`, `PARTNER_SHARED`, and `Special Folders`, ensuring correct album/non-album classification.
+    - Config Reader: tests configuration loading and environment variable overrides for configuration values.
+    - Execution Modes: tests dispatch to the correct execution mode depending on the parsed arguments.
+    - Exclusion Patterns: tests folder/file exclusion helpers and pattern matching behavior for local processing.
+    - Immich Photos: tests asset type filtering and burst normalization / prioritization helper logic.
+    - Immich Upload Streaming: tests multipart streaming uploads and sidecar attachment handling without using the deprecated `files` argument path.
+    - Synology Photos: tests asset type/date/place filtering helper logic.
+    - Logging: tests logger setup when log file generation is disabled.
+    - Web Interface Path Restrictions: tests that web path sanitization enforces user-root restrictions while not treating exclusion patterns as filesystem paths.
 
 #### 🚀 Enhancements:
   - Added fail-fast handling for `Automatic Migration` when `Google Photos` is used as `<SOURCE>`, returning a non-zero exit code with a clear workaround message after Google's Library API scope removal on April 1, 2025. Also stopped probing Google Photos read endpoints during login so upload-target flows can continue to use valid upload scopes. (Issue #1091).
