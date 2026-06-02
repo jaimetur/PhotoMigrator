@@ -18,10 +18,11 @@ body:
   id: version
   attributes:
     label: Version
-    description: 'What tool version are you running?'
+    description: What tool version are you running?
     options:
-    - v4.0.0 (latest)
-    - v3.8.0 (latest-stable)
+    - v4.1.0 (latest-stable)
+    - v4.0.0
+    - v3.8.0
     - v3.7.1
     - v3.7.0
     - v3.6.2
@@ -49,9 +50,6 @@ body:
     - v1.6.0
     - v1.5.1
     - v1.5.0
-    - v1.4.1
-    - v1.4.0
-    - v1.3.1
     default: 0
   validations:
     required: true
@@ -59,7 +57,7 @@ body:
   id: feature-affected
   attributes:
     label: Feature Affected
-    description: 'What Feature of the tool is affected by this Feature Request?'
+    description: What Feature of the tool is affected by this Feature Request?
     options:
     - Global (all features will be affected)
     - Web Interface
@@ -81,9 +79,9 @@ body:
 - type: textarea
   id: feature-description
   attributes:
-    label: 'Feature Description'
-    description: 'Feature description'
-    placeholder: 'Tell us, with the maximum level of detail, this feature request'
+    label: Feature Description
+    description: Feature description
+    placeholder: Tell us, with the maximum level of detail, this feature request
   validations:
     required: true
 - type: checkboxes
