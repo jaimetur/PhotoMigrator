@@ -33,7 +33,7 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ![Automatic Migration](/assets/screenshots/web-interface-automatic-migration.png?raw=true)  
 
 ### Google Takeout Feature:
-![Google Takeout](/assets/screenshots/web-interface-google-photos.png?raw=true)  
+![Google Takeout](/assets/screenshots/web-interface-google-takeout.png?raw=true)  
 
 ### Synology Photos Feature:
 ![Synology Photos](/assets/screenshots/web-interface-synology-photos.png?raw=true)  
@@ -224,7 +224,7 @@ DATA_DIR=../data
 # Volumes dir, other folder that you may want to mount on the tool (host paths)
 VOLUMES_DIR=/volume1
 
-# App dir, whith the source code (for docker-compose-env.yml only)
+# App dir, whith the source code (for docker-compose-dev.yml only)
 APP_DIR=../
 
 # Comma-separated list of allowed base folders for "Remove Selected" in the web folder picker.
@@ -323,7 +323,7 @@ Below tables show the pros and cons of each method together with a comparative r
    | Execution Method  | Difficulty | Pros                                                                                                                                               | Cons                                                                                                                                                                                                         |
    |-------------------|:----------:|----------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
    | **Binaries**      |     🟢     | ✅ Only basic knowledge on command line commands needed                                                                                             | ❌ Platform and architecture dependent<br>❌ Need basic knowledge of running command line instructions<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems                               |
-   | **Docker**        |     ⭐      | ✅ Platform and architecture independent<br>✅ Easy configuration via `docker.config` <br>✅ Automatically pulls latest image if `RELEASE_TAG=latest` | ❌ Need intermediate knowledge of running command line instructions<br>❌ Need to install Docker (if not already installed)<br>❌ All paths given as arguments must be relative to the execution folder         |
+   | **Docker**        |     ⭐      | ✅ Platform and architecture independent<br>✅ Easy configuration via `docker.conf` <br>✅ Automatically pulls latest image if `RELEASE_TAG=latest` | ❌ Need intermediate knowledge of running command line instructions<br>❌ Need to install Docker (if not already installed)<br>❌ All paths given as arguments must be relative to the execution folder         |
    | **Source**        |     🔴     | ✅ Platform and architecture independent                                                                                                            | ❌ Need advance knowledge of running command line instructions<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release |
    | **Web Interface** |    🟢⭐     | ✅ Platform and architecture independent<br>✅ Easy configuration via `.env` file <br>✅ Automatically pulls latest image if `IMAGE_TAG=latest`       | ❌ In Windows/MacOS you need to install Docker Desktop                                                                                                                                                        |
 
