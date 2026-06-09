@@ -175,7 +175,7 @@ def parse_arguments():
                              "from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums).\n\n"
                              "Possible values:\n"
                              "  ['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <INPUT_FOLDER>\n"
-                             "  [id] = [1, 2] select which account to use from the Config.ini file.\n\n"
+                             "  [id] = [1, 2, 3] select which account to use from the Config.ini file.\n\n"
                              "Examples:\n"
                              "  --source=immich-1   -> Select Immich Photos account 1 as Source.\n"
                              "  --source=synology-2 -> Select Synology Photos account 2 as Source.\n"
@@ -188,7 +188,7 @@ def parse_arguments():
                              "from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums).\n\n"
                              "Possible values:\n"
                              "  ['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <OUTPUT_FOLDER>\n"
-                             "  [id] = [1, 2] select which account to use from the Config.ini file.\n\n"
+                             "  [id] = [1, 2, 3] select which account to use from the Config.ini file.\n\n"
                              "Examples:\n"
                              "  --target=immich-1   -> Select Immich Photos account 1 as Target.\n"
                              "  --target=synology-2 -> Select Synology Photos account 2 as Target.\n"
@@ -421,10 +421,10 @@ def parse_arguments():
                         metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]",
                         nargs="+", default=["list", ""],
                         help="Find duplicates in one or more folders using file size and content checks.\n"
-                             "<ACTION> can be 'list', 'move' or 'delete' (CLI internally uses 'remove'). Default: 'list'.\n"
+                             "<ACTION> can be 'list', 'move' or 'remove'. Default: 'list'.\n"
                              "When multiple folders are provided, order matters: files in the first folder have priority to be kept.\n"
                              "Result is exported to a CSV to review duplicates and selected action per item.\n"
-                             "IMPORTANT: 'move' and 'delete' modify files; start with 'list' if you want to review first.\n"
+                             "IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first.\n"
                              "Example: --find-duplicates move ./Albums ./ALL_PHOTOS")
 
     PARSER.add_argument("-procDup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="",

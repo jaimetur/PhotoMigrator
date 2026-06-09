@@ -88,7 +88,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gTakeout`,<br>`--google-takeout`                 | Path to Takeout folder (mandatory for this mode)                                                                       |
 | `-gofs`,<br>`--google-output-folder-suffix`        | Suffix for output folder (default: `processed`)                                                                        |
 | `-gafs`,<br>`--google-albums-folders-structure`    | Album folder structure: `flatten`, `year`, `year/month`, `year-month`                                                  |
-| `-gnas`,<br>`--google-no-albums-folders-structure` | No-Album folder structure (same values as above)                                                                       |
+| `-gnas`,<br>`--google-no-albums-folders-structure` | No-Album folder structure (same values as above; default: `year/month`)                                                |
 | `-gics`,<br>`--google-ignore-check-structure`      | Ignore Takeout structure validations                                                                                   |
 | `-gnsa`,<br>`--google-no-symbolic-albums`          | Duplicates Albums assets instead of create symlinks to original asset in <NO_ALBUMS_FOLDER>. (requires more HDD space) |
 | `-grdf`,<br>`--google-remove-duplicates-files`     | Removes duplicate files in the output folder.                                                                          |
@@ -97,6 +97,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                                                                                |
 | `-gSkipGpth`,<br>`--google-skip-gpth-tool`         | Skip processing with GPTH Tool (not recommended)                                                                       |
 | `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).                                                             |
+| `-gSkipPost`,<br>`--google-skip-postprocess`       | Skips Post-process Google Takeout folder (not recommended).                                                            |
 | `-gKeepTakeout`,<br>`--google-keep-takeout-folder` | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true).                                                                           |
 | `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true).                                                                              |
@@ -160,7 +161,7 @@ Following arguments can be used to execute the Tool in any of the usefully addit
 |--------------------------------------------------|----------------------------------------------------------------|
 | `-fixSym`,<br>`--fix-symlinks-broken`            | Fix broken symlinks in folder                                  |
 | `-renFldcb`,<br>`--rename-folders-content-based` | Rename folders based on media content date                     |
-| `-findDup`,<br>`--find-duplicates`               | Find duplicates in folder(s). Action: `list`, `move`, `delete` |
+| `-findDup`,<br>`--find-duplicates`               | Find duplicates in folder(s). Action: `list`, `move`, `remove` |
 | `-procDup`,<br>`--process-duplicates`            | Execute actions from a reviewed duplicates CSV file            |
 
 

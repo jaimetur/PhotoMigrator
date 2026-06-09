@@ -27,7 +27,7 @@ By default, the whole Migration process is executed in parallel using multi-thre
 
 By default, (if your terminal size has enough width and height) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the argument **`-dashboard=false or --dashboard=false`**.   
 
-Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **--parallel=false**, so first, all the assets will be pulled from`<SOURCE>` and when finish, they will be pushed into`<TARGET>`, but take into account that in this case, you will need enough disk space to store all your assets pulled from`<SOURCE>` service.
+Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **`--parallel-migration=false`**, so first, all the assets will be pulled from `<SOURCE>` and when finish, they will be pushed into `<TARGET>`, but take into account that in this case, you will need enough disk space to store all your assets pulled from `<SOURCE>` service.
 
 Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. The available filters are: 
    - **by Type:**

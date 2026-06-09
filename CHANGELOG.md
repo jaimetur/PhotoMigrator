@@ -57,6 +57,7 @@
   - Fixed Web Interface Google Takeout argument handling so `--google-output-folder-suffix` is treated as a plain suffix string instead of a path, preventing values like `processed` from being rewritten to a data-folder path.
 
 #### 📚 Documentation:
+  - Corrected the documentation to align argument names, defaults, examples, and feature descriptions with the current code behavior.
   - Updated documentation with all changes.
 
 ---

@@ -209,12 +209,12 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
-  - The Tool will connect automatically to your Immich Photos account and will rename all Albums whose name matches with the provided pattern.  
+  - The Tool will connect automatically to your Immich Photos account and will remove all Albums whose name matches with the provided pattern.  
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
   - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**`-rAlbAsset, --remove-albums-assets`**_
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --rename-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
+  ./PhotoMigrator.run --client=immich --remove-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary argument.
 
@@ -306,7 +306,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   ```
   ./PhotoMigrator.run --client=immich --remove-orphan-assets
   ```
-  With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
+  With this example, the Tool will connect to your Immich Photos account and will remove all Orphan assets found.
 
 ---
 ## ⚙️ Config.ini

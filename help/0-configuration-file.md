@@ -81,7 +81,7 @@ In this section you have to provide:
 - **SYNOLOGY_URL:** In the format that you have above (change only your IP address)
 - **SYNOLOGY_USERNAME_1:** The username for the Synology Account 1
 - **SYNOLOGY_PASSWORD_1:** The password for the Synology Account 1
-- **SYNOLOGY_USERNAME_2:** The username for the Synology Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
+- **SYNOLOGY_USERNAME_2:** The username for the Synology Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
 - **SYNOLOGY_PASSWORD_2:** The password for the Synology Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
 - **SYNOLOGY_USERNAME_3:** The username for the Synology Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)
 - **SYNOLOGY_PASSWORD_3:** The password for the Synology Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)

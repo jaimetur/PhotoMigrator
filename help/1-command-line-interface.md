@@ -148,7 +148,7 @@ Service to other, or from two different accounts within the same Photo Cloud ser
 
                Possible values:
                  ['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <INPUT_FOLDER>
-                 [id] = [1, 2] select which account to use from the Config.ini file.
+                 [id] = [1, 2, 3] select which account to use from the Config.ini file.
 
                Examples:
                  --source=immich-1   -> Select Immich Photos account 1 as Source.
@@ -162,7 +162,7 @@ Service to other, or from two different accounts within the same Photo Cloud ser
 
                Possible values:
                  ['synology', 'immich', 'nextcloud', 'google-photos']-[id] or <OUTPUT_FOLDER>
-                 [id] = [1, 2] select which account to use from the Config.ini file.
+                 [id] = [1, 2, 3] select which account to use from the Config.ini file.
 
                Examples:
                  --target=immich-1   -> Select Immich Photos account 1 as Target.
@@ -348,10 +348,10 @@ If more than one Feature is detected, only the first one will be executed.
                Example: --rename-folders-content-based ./MyLocalPhotoLibrary
 -findDup     ; --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
                Find duplicates in one or more folders using file size and content checks.
-               <ACTION> can be 'list', 'move' or 'delete' (CLI internally uses 'remove'). Default: 'list'.
+               <ACTION> can be 'list', 'move' or 'remove'. Default: 'list'.
                When multiple folders are provided, order matters: files in the first folder have priority to be kept.
                Result is exported to a CSV to review duplicates and selected action per item.
-               IMPORTANT: 'move' and 'delete' modify files; start with 'list' if you want to review first.
+               IMPORTANT: 'move' and 'remove' modify files; start with 'list' if you want to review first.
                Example: --find-duplicates move ./Albums ./ALL_PHOTOS
 -procDup     ; --process-duplicates <DUPLICATES_REVISED_CSV>
                Process a revised duplicates CSV and execute actions from the 'Action' column.

@@ -87,7 +87,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   - The Tool will connect automatically to your Synology Photos account and will create one Album per each Subfolder found in \<ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=synoogy --upload-albums ./My_Albums_Folder
+  ./PhotoMigrator.run --client=synology --upload-albums ./My_Albums_Folder
   ```
   With this example, the Tool will connect to your Synology Photos account and process the folder `./My_Albums_Folder` and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
   
@@ -204,12 +204,12 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
-  - The Tool will connect automatically to your Synology Photos account and will rename all Albums whose name matches with the provided pattern.  
+  - The Tool will connect automatically to your Synology Photos account and will remove all Albums whose name matches with the provided pattern.  
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
   - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**`-rAlbAsset, --remove-albums-assets`**_
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=synology --rename-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
+  ./PhotoMigrator.run --client=synology --remove-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary argument.
 
@@ -229,7 +229,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be renamed.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=synoogy --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
+  ./PhotoMigrator.run --client=synology --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
   ```
   With this example, the Tool will connect to your Synology Photos account and will rename all Albums whose name contains a date like this ("2023-08-15 - Vacation photos") replacing the date with the string "DATE", as a result the new album name would be: "DATE - Vacation photos".
    
@@ -272,7 +272,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 - **From:** v3.3.0
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the argument _`--merge-duplicates-albums`**_
+  - Also, you have to use the argument _**`--merge-duplicates-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
