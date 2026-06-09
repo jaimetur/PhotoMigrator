@@ -59,6 +59,7 @@
 #### 📚 Documentation:
   - Corrected the documentation to align argument names, defaults, examples, and feature descriptions with the current code behavior.
   - Corrected `README.md` to align Docker-related file names and references with the current codebase and deployment files.
+  - Updated Screenshots.
   - Updated documentation with all changes.
 
 ---

@@ -32,6 +32,9 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ### Automatic Migration Feature:
 ![Automatic Migration](/assets/screenshots/web-interface-automatic-migration.png?raw=true)  
 
+### Automatic Migration Feature (Live Dashboard):
+![Automatic Migration (Live Dashboard)](/assets/screenshots/web-interface-automatic-migration-live-dashboard.png?raw=true)   
+
 ### Google Takeout Feature:
 ![Google Takeout](/assets/screenshots/web-interface-google-takeout.png?raw=true)  
 
@@ -47,11 +50,11 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ### General Arguments:
 ![General Arguments](/assets/screenshots/web-interface-general-arguments.png?raw=true)  
 
-### Configuration File:
-![Configuration File](/assets/screenshots/web-interface-configuration-file.png?raw=true)  
+### Configuration Panel:
+![Configuration Panel](/assets/screenshots/web-interface-configuration-panel.png?raw=true)  
 
-### Theme Selector:
-![Theme Selector](/assets/screenshots/web-interface-theme-selector.png?raw=true)  
+### App Settings:
+![App Settings](/assets/screenshots/web-interface-app-settings.png?raw=true)  
 
 ## 🖥️ Automatic Migration on Terminal
 ![Live Dashboard](/assets/screenshots/live_dashboard.jpg?raw=true)  
