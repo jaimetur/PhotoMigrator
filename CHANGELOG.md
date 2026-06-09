@@ -54,6 +54,7 @@
   - Fixed automatic migration CLI validation for Immich account 3 by restoring the missing `immich-photos-3` target/source alias in `--source` and `--target` accepted values.
   - Fixed Google Takeout GPTH execution flow to treat only exit code `0` as success, and to pre-stage files into the output folder before running GPTH `--fix` mode so later output-based steps operate on the actual processed files.
   - Fixed `Local Folder` asset deletion during `Automatic Migration` with `--move-assets true` so the analyzer refresh uses supported `FolderAnalyzer` methods, reapplies filters, recomputes folder sizes, and invalidates stale local caches after deletions. (Issue #1102).
+  - Fixed Web Interface Google Takeout argument handling so `--google-output-folder-suffix` is treated as a plain suffix string instead of a path, preventing values like `processed` from being rewritten to a data-folder path.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

@@ -140,6 +140,25 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertNotIn("exclude-folders", scope)
         self.assertNotIn("exclude-files", scope)
 
+    def test_google_output_folder_suffix_is_not_treated_as_path(self):
+        takeout_subfolder = self.allowed_roots[0] / "TakeoutInput"
+        takeout_subfolder.mkdir(parents=True, exist_ok=True)
+        values = {
+            "google-takeout": str(takeout_subfolder),
+            "google-output-folder-suffix": "processed",
+        }
+
+        self.assertEqual(self.web_app._path_hint("google-output-folder-suffix", "<SUFFIX>"), "")
+
+        scope = self.web_app._path_validation_scope_for_payload("google_takeout", None, values)
+        self.assertIn("google-takeout", scope)
+        self.assertNotIn("google-output-folder-suffix", scope)
+
+        sanitized = self.web_app._sanitize_payload_paths_for_user(values, self.current_user, path_scope=scope)
+
+        self.assertEqual(sanitized["google-takeout"], str(takeout_subfolder))
+        self.assertEqual(sanitized["google-output-folder-suffix"], "processed")
+
 
 if __name__ == "__main__":
     unittest.main()

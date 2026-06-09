@@ -66,7 +66,7 @@ Below you can see the different steps of this feature:
     - 📁 Move Files
     - 🕒 Update Creation Time
   - 4.2. ➡️ <span style="color:grey">Copy/Move files to Output folder manually.   
-         `(default=disabled. It is automatically enabled if detect that Step 3.1 has been skipped)`</span>
+         `(default=disabled. It is automatically enabled if detect that Step 4.1 has been skipped)`</span>
 
 #### 5. 🔢 Calculate statistics of your Final processed Media Library
 
@@ -90,7 +90,7 @@ Below you can see the different steps of this feature:
   - 7.3. 🔢 Show and Compare Initial / Final statistics.
 
 > [!NOTE]  
-> Step 4.2 is disabled by default, but It is automatically enabled if detect that Step 3.1 has been skipped.
+> Step 4.2 is disabled by default, but It is automatically enabled if detect that Step 4.1 has been skipped.
 > 
 > Step 6.4 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](/help/9-other-features.md#-folder-rename-content-based-extra-feature).
 >

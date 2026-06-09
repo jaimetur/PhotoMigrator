@@ -2044,7 +2044,7 @@ def _field_kind(action: argparse.Action, dest: str) -> str:
 
 def _path_hint(dest: str, metavar: Any) -> str:
     name = dest.lower()
-    if name in {"exclude-folders", "exclude-files"}:
+    if name in {"exclude-folders", "exclude-files"} or name.endswith("-suffix"):
         return ""
     mv = str(metavar or "").lower()
     path_tokens = ("path", "folder", "file", "takeout", "source", "target")
@@ -2449,6 +2449,8 @@ def _sanitize_payload_paths_for_user(
 def _is_config_path_key(key: str) -> bool:
     lowered = str(key or "").strip().lower()
     if not lowered:
+        return False
+    if "suffix" in lowered:
         return False
     tokens = ("path", "folder", "file", "directory", "takeout", "source", "target", "input", "output")
     return any(token in lowered for token in tokens)
