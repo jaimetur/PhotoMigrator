@@ -232,8 +232,8 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 There are four different methods to execute this Tool:
 - Execute from [Compiled Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-interface-from-binaries.md)
 - Execute from [Source Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-interface-from-source.md)
-- Deploy Web Interface from Docker [Deploy Web Interface (docker)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/docker-deployments/deploy-web-interface-from-docker.md)
-- Deploy CLI interface from Docker [Deploy CLI Interface (docker)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/docker-deployments/deploy-cli-interface-from-docker.md)
+- Deploy [Web Interface (from docker)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/docker-deployments/deploy-web-interface-from-docker.md)
+- Deploy [CLI Interface (from docker)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/docker-deployments/deploy-cli-interface-from-docker.md)
 
 Below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide which one fits best with your needed: 
 
