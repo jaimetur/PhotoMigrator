@@ -1,0 +1,28 @@
+PhotoMigrator Docker Web Interface - Quick Start
+===============================================
+
+This folder is for the Web Interface deployment workflow.
+
+Contents
+--------
+- docker-compose.yml    -> docker local deployment
+- .env                  -> default runtime configuration
+
+Recommended usage
+-----------------
+1. Review .env.
+2. For local usage, the defaults can be used as-is.
+3. Start the container:
+
+   docker compose pull
+   docker compose up -d
+
+4. Open:
+
+   http://localhost:6078
+
+Notes
+-----
+- This flow deploys the Web Interface image: jaimetur/photomigrator
+- This is not the CLI launcher flow.
+- For full documentation, open: help/docker-deployments/deploy-web-interface-from-docker.md

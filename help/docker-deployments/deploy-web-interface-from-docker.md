@@ -40,8 +40,8 @@ docker compose version
 
 For the Web Interface, the repository already includes ready-to-use files:
 
-- `docker-web/docker-compose.yml`
-- `docker-web/.env`
+- [`docker-web/docker-compose.yml`](/docker-web/docker-compose.yml)
+- [`docker-web/.env`](/docker-web/.env)
 
 They are designed to work as-is for a local deployment on Linux, Windows, and macOS.
 

@@ -1,0 +1,38 @@
+PhotoMigrator Docker CLI - Quick Start
+=====================================
+
+This folder is for the CLI container workflow.
+
+Contents
+--------
+- PhotoMigrator.sh      -> launcher for Linux/macOS
+- PhotoMigrator.bat     -> launcher for Windows
+- docker.conf           -> Docker CLI image tag and timezone
+- Config.ini            -> PhotoMigrator configuration file
+
+Recommended usage
+-----------------
+
+Linux/macOS:
+1. Edit Config.ini with your credentials/settings.
+2. Optionally edit docker.conf.
+3. Run:
+
+   chmod +x ./PhotoMigrator.sh
+   ./PhotoMigrator.sh -h
+
+Windows:
+1. Edit Config.ini with your credentials/settings.
+2. Optionally edit docker.conf.
+3. Run:
+
+   PhotoMigrator.bat -h
+
+Notes
+-----
+- Both launchers use the published Docker CLI image: jaimetur/photomigrator-linux
+- Docker Desktop on Windows is supported.
+- For full documentation, open:
+  help/execution/cli-interface-from-binaries.md
+  help/execution/cli-interface-from-source.md
+  help/docker-deployments/deploy-cli-interface-from-docker.md

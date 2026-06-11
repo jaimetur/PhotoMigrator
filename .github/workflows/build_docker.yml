@@ -215,6 +215,7 @@ jobs:
           mkdir -p PhotoMigrator/docker-web/docs
           cp docker-cli/PhotoMigrator.sh PhotoMigrator/docker-cli/
           cp docker-cli/PhotoMigrator.bat PhotoMigrator/docker-cli/
+          cp docker-cli/EXECUTION-INSTRUCTIONS.txt PhotoMigrator/docker-cli/
           cp docker-cli/docker.conf PhotoMigrator/docker-cli/
           cp Config.ini PhotoMigrator/docker-cli/
           cp -r help PhotoMigrator/docker-cli/
@@ -226,8 +227,7 @@ jobs:
           cp CODE_OF_CONDUCT.md PhotoMigrator/docker-cli/docs/CODE_OF_CONDUCT.md
           cp LICENSE PhotoMigrator/docker-cli/docs/LICENSE
           cp docker-web/docker-compose.yml PhotoMigrator/docker-web/
-          cp docker-web/docker-compose-dev.yml PhotoMigrator/docker-web/
-          cp docker-web/run-docker-dev.sh PhotoMigrator/docker-web/
+          cp docker-web/EXECUTION-INSTRUCTIONS.txt PhotoMigrator/docker-web/
           cp docker-web/.env PhotoMigrator/docker-web/
           cp -r help PhotoMigrator/docker-web/
           cp README.md PhotoMigrator/docker-web/docs/README.md
