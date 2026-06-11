@@ -573,7 +573,7 @@
 
     function buildHelpLabel(relativePath) {
         const clean = String(relativePath || "").replace(/\\/g, "/");
-        if (clean.toLowerCase().endsWith("gpth_process_explanations/00_gpth_complete_pipeline.md")) {
+        if (clean.toLowerCase() === "10-gpth-complete-pipeline.md") {
             return "10. Google Photos Takeout Helper (GPTH)";
         }
         if (clean.toLowerCase() === "2-arguments-description-short.md") {
@@ -765,7 +765,7 @@
             "7-nextcloud-photos.md",
             "8-google-photos.md",
             "9-other-features.md",
-            "gpth_process_explanations/00_GPTH_complete_pipeline.md",
+            "10-GPTH-complete-pipeline.md",
             "11-docker-deployment.md"
         ];
         const argumentsSubDocs = [
@@ -851,7 +851,7 @@
             "7-nextcloud-photos.md": 90,
             "8-google-photos.md": 100,
             "9-other-features.md": 110,
-            "gpth_process_explanations/00_gpth_complete_pipeline.md": 120,
+            "10-gpth-complete-pipeline.md": 120,
             "11-docker-deployment.md": 130,
         };
         try {
@@ -860,7 +860,10 @@
             if (!response.ok || !Array.isArray(data?.documents)) throw new Error("Help index unavailable");
             const docs = data.documents.filter((doc) => {
                 const url = String(doc.url || "");
-                return Boolean(url) && url !== "/docs/view/help/help.md";
+                const relPath = String(doc.relative_path || doc.name || "").replace(/\\/g, "/").toLowerCase();
+                return Boolean(url)
+                    && url !== "/docs/view/help/help.md"
+                    && relPath !== "gpth_process_explanations/00_gpth_complete_pipeline.md";
             });
             if (!docs.length) throw new Error("Help index empty");
             const normalizePath = (value) => String(value || "").replace(/\\/g, "/").toLowerCase();
@@ -919,7 +922,7 @@
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "gpth_process_explanations/00_gpth_complete_pipeline.md") {
+                if (key === "10-gpth-complete-pipeline.md") {
                     const items = [];
                     gpthSubDocs.forEach((sub) => {
                         const subKey = normalizePath(sub.path);
@@ -994,7 +997,7 @@
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "gpth_process_explanations/00_gpth_complete_pipeline.md") {
+                    if (String(docPath).toLowerCase() === "10-gpth-complete-pipeline.md") {
                         const items = gpthSubDocs.map((gpthSub) => ({
                             label: gpthSub.label,
                             url: `/docs/view/help/${gpthSub.path}`

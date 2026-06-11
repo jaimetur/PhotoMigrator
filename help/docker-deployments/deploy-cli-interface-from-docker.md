@@ -1,5 +1,7 @@
 # Deploy CLI Interface from Docker
 
+This guide explains how to run the PhotoMigrator Command Line Interface (CLI) with Docker Compose on Linux, Windows, and macOS.
+
 > [!IMPORTANT]
 > This guide is for the command line interface (CLI) image.
 >
@@ -14,6 +16,13 @@
   - [Install Docker on Linux](/help/install-docker/install-docker-linux.md)
   - [Install Docker on MacOS](/help/install-docker/install-docker-macos.md)
 
+After installation, verify:
+
+```bash
+docker --version
+docker compose version
+```
+
 ## Docker Images
 
 PhotoMigrator currently publishes different Docker images for different use cases:
@@ -22,6 +31,11 @@ PhotoMigrator currently publishes different Docker images for different use case
 - `jaimetur/photomigrator-linux` -> CLI image used in this guide
 
 The examples below intentionally use `jaimetur/photomigrator-linux` because that image launches `PhotoMigrator.py` directly and supports CLI arguments such as `-h`, `--source`, or `--target`.
+
+> [!NOTE]
+> - On Windows and macOS, Docker Desktop is the expected setup.
+> - On Linux, if you want to run Docker without `sudo`, follow Docker's post-install steps:
+>   https://docs.docker.com/engine/install/linux-postinstall/
 
 ---
 ## 1. Run the CLI from the packaged launcher
