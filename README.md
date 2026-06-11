@@ -219,8 +219,8 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [NextCloud Photos Management](/help/7-nextcloud-photos.md)  
 - [Google Photos Management](/help/8-google-photos.md)  
 - [Other Features](/help/9-other-features.md)  
-- [Docker CLI Execution](/help/execution/cli-interface-from-docker.md)
-- [Web Interface from Docker](/help/execution/web-interface-from-docker.md)
+- [Deploy CLI Interface from Docker](/help/execution/cli-interface-from-docker.md)
+- [Deploy Web Interface from Docker](/help/execution/web-interface-from-docker.md)
 - [GPTH Tool Pipeline Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
 
 
