@@ -52,12 +52,12 @@ def update_release_links(content: str, tool_version: str) -> tuple[str, int]:
 
     # README pre-release download badge: .../downloads/.../vX.Y.Z/total
     pattern_badge = re.compile(rf"(github/downloads/[^/\s]+/){version_re}(/total)")
-    updated, n3 = pattern_badge.subn(rf"\1{tool_version}\2", updated)
+    updated, n3 = pattern_badge.subn(rf"\g<1>{tool_version}\g<2>", updated)
     total_replacements += n3
 
     # Example image tags: jaimetur/photomigrator-linux:X.Y.Z
     pattern_image_tag = re.compile(rf"(jaimetur/photomigrator(?:-linux)?:){version_no_v_re}")
-    updated, n4 = pattern_image_tag.subn(rf"\1{tool_version_no_v}", updated)
+    updated, n4 = pattern_image_tag.subn(rf"\g<1>{tool_version_no_v}", updated)
     total_replacements += n4
 
     return updated, total_replacements
