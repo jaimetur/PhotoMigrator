@@ -765,8 +765,8 @@
             "7-nextcloud-photos.md",
             "8-google-photos.md",
             "9-other-features.md",
-            "11-docker-deployment.md",
-            "gpth_process_explanations/00_GPTH_complete_pipeline.md"
+            "gpth_process_explanations/00_GPTH_complete_pipeline.md",
+            "11-docker-deployment.md"
         ];
         const argumentsSubDocs = [
             {path: "2-arguments-description-short.md", label: "2.1 Short Description"},
@@ -781,6 +781,10 @@
             {path: "gpth_process_explanations/06_GPTH_find_and_merge_album_relationships.md", label: "10.6 Find Albums"},
             {path: "gpth_process_explanations/07_GPTH_move_files_to_output_folder.md", label: "10.7 Move Files"},
             {path: "gpth_process_explanations/08_GPTH_update_creation_time_windows_only.md", label: "10.8 Update Creation Time"},
+        ];
+        const dockerDeploymentSubDocs = [
+            {path: "docker-deployments/deploy-web-interface-from-docker.md", label: "11.1 Web Interface"},
+            {path: "docker-deployments/deploy-cli-interface-from-docker.md", label: "11.2 CLI Interface"},
         ];
         const otherFeaturesSubDocs = [
             {anchor: "find-duplicates-extra-feature", label: "9.1 Find Duplicates"},
@@ -847,8 +851,8 @@
             "7-nextcloud-photos.md": 90,
             "8-google-photos.md": 100,
             "9-other-features.md": 110,
-            "11-docker-deployment.md": 120,
-            "gpth_process_explanations/00_gpth_complete_pipeline.md": 130,
+            "gpth_process_explanations/00_gpth_complete_pipeline.md": 120,
+            "11-docker-deployment.md": 130,
         };
         try {
             const response = await fetch(HELP_INDEX_API_URL);
@@ -927,6 +931,18 @@
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
+                if (key === "11-docker-deployment.md") {
+                    const items = [];
+                    dockerDeploymentSubDocs.forEach((sub) => {
+                        const subKey = normalizePath(sub.path);
+                        const subDoc = docsByPath.get(subKey);
+                        if (!subDoc || !subDoc.url) return;
+                        items.push({label: sub.label, url: subDoc.url});
+                        docsByPath.delete(subKey);
+                    });
+                    navEl.lastElementChild?.remove();
+                    addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                }
                 docsByPath.delete(key);
             });
 
@@ -982,6 +998,14 @@
                         const items = gpthSubDocs.map((gpthSub) => ({
                             label: gpthSub.label,
                             url: `/docs/view/help/${gpthSub.path}`
+                        }));
+                        navEl.lastElementChild?.remove();
+                        addCollapsibleSection(buildHelpLabel(docPath), url, items);
+                    }
+                    if (String(docPath).toLowerCase() === "11-docker-deployment.md") {
+                        const items = dockerDeploymentSubDocs.map((dockerSub) => ({
+                            label: dockerSub.label,
+                            url: `/docs/view/help/${dockerSub.path}`
                         }));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
