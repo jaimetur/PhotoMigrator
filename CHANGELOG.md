@@ -64,7 +64,7 @@
   - Corrected `README.md` to align Docker-related file names and references with the current codebase and deployment files.
   - Reorganized Docker documentation and launcher assets into separate `docker-cli/` and `docker-web/` folders, clarified CLI vs Web image usage, and fixed the Windows batch launcher/docs to use the published Docker image instead of the unpublished Windows image. (#1110, #1112)
   - Updated Screenshots.
-  - Added a new Web Help section `11. Docler Deployment` that summarizes and links the two supported Docker deployment modes: Web Interface and CLI Interface.
+  - Added a new Web Help section `11. Docker Deployment` that summarizes and links the two supported Docker deployment modes: Web Interface and CLI Interface.
   - Updated documentation with all changes.
 
 ---
