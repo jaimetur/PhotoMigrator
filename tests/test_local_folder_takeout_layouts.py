@@ -162,6 +162,76 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
             log_level=logging.WARNING,
         )
 
+    def test_remove_assets_can_skip_analyzer_refresh_for_quiet_bulk_deletes(self):
+        removable = self.root / "ALL_PHOTOS/2024/remove-without-refresh.jpg"
+        removable.parent.mkdir(parents=True, exist_ok=True)
+        removable.write_text("delete", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=self.root)
+        removed_key = removable.resolve().as_posix()
+
+        class AnalyzerStub:
+            def __init__(self):
+                self.extracted_dates = {
+                    removed_key: {"TargetFile": removed_key},
+                }
+                self._build_file_list_from_disk = Mock()
+                self._apply_filters = Mock()
+                self._compute_folder_sizes = Mock()
+
+        local_folder.analyzer = AnalyzerStub()
+
+        removed_count = local_folder.remove_assets(
+            str(removable),
+            log_level=logging.WARNING,
+            refresh_analyzer=False,
+            log_removed_count=False,
+        )
+
+        self.assertEqual(removed_count, 1)
+        self.assertFalse(removable.exists())
+        self.assertNotIn(removed_key, local_folder.analyzer.extracted_dates)
+        local_folder.analyzer._build_file_list_from_disk.assert_not_called()
+        local_folder.analyzer._apply_filters.assert_not_called()
+        local_folder.analyzer._compute_folder_sizes.assert_not_called()
+
+    def test_plain_local_folder_does_not_create_managed_layout_and_detects_top_level_albums(self):
+        plain_root = self.root / "plain-source"
+        plain_root.mkdir(parents=True, exist_ok=True)
+        (plain_root / "root-photo.jpg").write_text("data", encoding="utf-8")
+        (plain_root / "root-video.mp4").write_text("data", encoding="utf-8")
+        (plain_root / "Trip 2024").mkdir(parents=True, exist_ok=True)
+        (plain_root / "Trip 2024" / "trip-a.jpg").write_text("data", encoding="utf-8")
+        (plain_root / "Family").mkdir(parents=True, exist_ok=True)
+        (plain_root / "Family" / "family-a.jpg").write_text("data", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=plain_root)
+
+        self.assertFalse((plain_root / "Albums").exists())
+        self.assertFalse((plain_root / "Albums-shared").exists())
+        self.assertFalse((plain_root / "ALL_PHOTOS").exists())
+
+        albums = local_folder.get_albums_including_shared_with_user(log_level=logging.INFO)
+        album_names = sorted(album["albumName"] for album in albums)
+        self.assertEqual(album_names, ["Family", "Trip 2024"])
+
+        no_album_assets = local_folder.get_all_assets_without_albums(log_level=logging.INFO)
+        no_album_filenames = sorted(asset["filename"] for asset in no_album_assets)
+        self.assertEqual(no_album_filenames, ["root-photo.jpg", "root-video.mp4"])
+
+    def test_shared_albums_folder_is_created_only_when_a_shared_album_is_created(self):
+        plain_root = self.root / "plain-target"
+        plain_root.mkdir(parents=True, exist_ok=True)
+
+        local_folder = ClassLocalFolder(base_folder=plain_root)
+
+        self.assertFalse((plain_root / "Albums-shared").exists())
+
+        shared_album_path = local_folder.create_album("Shared Album", shared=True, log_level=logging.INFO)
+
+        self.assertTrue((plain_root / "Albums-shared").is_dir())
+        self.assertEqual(shared_album_path.resolve(), (plain_root / "Albums-shared" / "Shared Album").resolve())
+
 
 if __name__ == "__main__":
     unittest.main()

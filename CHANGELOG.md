@@ -34,6 +34,7 @@
   - Improved Automatic Migration in Web Interface mode so GPTH output is streamed into the browser log panel during Google Takeout preprocessing, while preserving the current CLI Live Dashboard behavior.
   - Updated GPTH from version 6.1.1 to version 6.1.5 which includes several enhancements and bug fixing.
   - Refactored Docker-related project structure by separating CLI assets into `docker-cli/` and Web Interface assets into `docker-web/`, and moved Docker deployment guides into `help/docker-deployments/` to keep CLI and Web deployment documentation clearly separated. (#1110, #1112)
+  - Improved `Local Folder` handling in `Automatic Migration` so plain local-folder sources are treated without forcing managed subfolder creation, and destination `Albums-shared` is now created lazily only when a shared album actually needs to be downloaded there.
 
 #### 🚀 GPTH Enhancements:
 
@@ -56,12 +57,14 @@
   - Fixed Google Takeout GPTH execution flow to treat only exit code `0` as success, and to pre-stage files into the output folder before running GPTH `--fix` mode so later output-based steps operate on the actual processed files.
   - Fixed `Local Folder` asset deletion during `Automatic Migration` with `--move-assets true` so the analyzer refresh uses supported `FolderAnalyzer` methods, reapplies filters, recomputes folder sizes, and invalidates stale local caches after deletions. (Issue #1102).
   - Fixed Web Interface Google Takeout argument handling so `--google-output-folder-suffix` is treated as a plain suffix string instead of a path, preventing values like `processed` from being rewritten to a data-folder path.
+  - Fixed `Automatic Migration` with plain `Local Folder` sources so instantiating the source no longer creates `Albums`, `Albums-shared`, or `ALL_PHOTOS` inside the input folder, root-level files are migrated as non-album assets, top-level subfolders are treated as albums, and `--move-assets true` no longer floods Web/CLI logs with repeated local-deletion refresh/progress noise that could overwrite the visible progress bar.
 
 #### 📚 Documentation:
   - Corrected the documentation to align argument names, defaults, examples, and feature descriptions with the current code behavior.
   - Corrected `README.md` to align Docker-related file names and references with the current codebase and deployment files.
   - Reorganized Docker documentation and launcher assets into separate `docker-cli/` and `docker-web/` folders, clarified CLI vs Web image usage, and fixed the Windows batch launcher/docs to use the published Docker image instead of the unpublished Windows image. (#1110, #1112)
   - Updated Screenshots.
+  - Added a new Web Help section `11. Docler Deployment` that summarizes and links the two supported Docker deployment modes: Web Interface and CLI Interface.
   - Updated documentation with all changes.
 
 ---

@@ -60,6 +60,7 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - [Immich Photos](/docs/view/help/6-immich-photos.md)
 - [NextCloud Photos](/docs/view/help/7-nextcloud-photos.md)
 - [Other Features](/docs/view/help/9-other-features.md)
+- [11. Docler Deployment](/docs/view/help/11-docler-deployment.md)
 - [Google Photos Takeout Helper (GPTH)](/docs/view/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
 
 ### Arguments Reference

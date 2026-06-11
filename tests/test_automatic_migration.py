@@ -23,6 +23,37 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertTrue(automatic_module._is_nextcloud_photo_not_found_error(error))
         self.assertFalse(automatic_module._is_nextcloud_photo_not_found_error(RuntimeError("other error")))
 
+    def test_remove_source_asset_after_move_uses_quiet_local_delete_path(self):
+        local_client = object.__new__(automatic_module.ClassLocalFolder)
+        local_client.remove_assets = unittest.mock.Mock(return_value=1)
+
+        removed = automatic_module._remove_source_asset_after_move(
+            source_client=local_client,
+            asset_id="/tmp/photo.jpg",
+            log_level=logging.INFO,
+        )
+
+        self.assertEqual(removed, 1)
+        local_client.remove_assets.assert_called_once_with(
+            asset_ids="/tmp/photo.jpg",
+            log_level=logging.WARNING,
+            refresh_analyzer=False,
+            log_removed_count=False,
+        )
+
+    def test_remove_source_asset_after_move_preserves_default_behavior_for_remote_clients(self):
+        remote_client = unittest.mock.Mock()
+        remote_client.remove_assets.return_value = 1
+
+        removed = automatic_module._remove_source_asset_after_move(
+            source_client=remote_client,
+            asset_id="abc123",
+            log_level=logging.ERROR,
+        )
+
+        self.assertEqual(removed, 1)
+        remote_client.remove_assets.assert_called_once_with(asset_ids="abc123", log_level=logging.ERROR)
+
 
 class TestAutomaticMigrationMode(unittest.TestCase):
     def setUp(self):

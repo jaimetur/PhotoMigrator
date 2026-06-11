@@ -50,11 +50,9 @@ class ClassLocalFolder:
         self.shared_albums_folder = self.base_folder / f"{FOLDERNAME_ALBUMS}-shared"
         self.no_albums_folder = self.base_folder / FOLDERNAME_NO_ALBUMS
 
-        # Ensure all required folders exist
+        # Ensure the base folder exists, but do not eagerly create managed-layout
+        # folders when reading a plain local source for automatic migration.
         self.base_folder.mkdir(parents=True, exist_ok=True)
-        self.albums_folder.mkdir(parents=True, exist_ok=True)
-        self.shared_albums_folder.mkdir(parents=True, exist_ok=True)
-        self.no_albums_folder.mkdir(parents=True, exist_ok=True)
 
         # Allowed extensions:
         self.ALLOWED_SIDECAR_EXTENSIONS = [".xmp", ".thm", ".pp3"]
@@ -157,11 +155,35 @@ class ClassLocalFolder:
     def _get_special_folders_root(self):
         return self.base_folder / "Special Folders"
 
+    def _get_album_path(self, album_name, shared=False):
+        album_root = self.shared_albums_folder if shared else self.albums_folder
+        return album_root / str(album_name)
+
+    def _uses_managed_layout(self):
+        managed_roots = (
+            self.albums_folder,
+            self.shared_albums_folder,
+            self.no_albums_folder,
+            self._get_partner_shared_root(),
+            self._get_special_folders_root(),
+        )
+        return any(path.exists() and path.is_dir() for path in managed_roots)
+
     def _iter_album_roots(self):
-        yield self.albums_folder, "owned"
-        yield self.shared_albums_folder, "shared"
-        yield self._get_partner_shared_albums_folder(), "partner_shared"
-        yield self._get_special_folders_root(), "special"
+        if self._uses_managed_layout():
+            yield self.albums_folder, "owned"
+            yield self.shared_albums_folder, "shared"
+            yield self._get_partner_shared_albums_folder(), "partner_shared"
+            yield self._get_special_folders_root(), "special"
+
+    def _get_plain_album_name_from_file(self, file_path):
+        try:
+            rel = Path(file_path).resolve().relative_to(self.base_folder.resolve())
+        except ValueError:
+            return None
+        if len(rel.parts) < 2:
+            return None
+        return rel.parts[0]
 
     @staticmethod
     def _get_top_level_folder_name(folder_path, root_path):
@@ -405,13 +427,13 @@ class ClassLocalFolder:
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
     ###########################################################################
-    def create_album(self, album_name: str, log_level=None) -> Path:
+    def create_album(self, album_name: str, shared=False, log_level=None) -> Path:
         """
         Creates a new album (folder), and updates the analyzer caches.
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"Creating album '{album_name}'.")
-            album_path = self.albums_folder / album_name
+            album_path = self._get_album_path(album_name=album_name, shared=shared)
             album_path.mkdir(parents=True, exist_ok=True)
 
             # --- Update analyzer, if already initialized
@@ -476,17 +498,26 @@ class ClassLocalFolder:
 
             self._ensure_analyzer(log_level=effective_log_level)
 
-            base = Path(self.albums_folder.resolve())
+            source_files = self.analyzer.filtered_file_list if filter_assets else self.analyzer.file_list
             owned = []
-            # discover all album folders present in filtered_file_list
-            for p in self.analyzer.filtered_file_list:
-                try:
-                    rel = Path(p).relative_to(base)
-                except ValueError:
-                    continue
-                album_name = rel.parts[0]
-                album_id = str((self.albums_folder / album_name).resolve())
-                owned.append((album_id, album_name))
+            if self._uses_managed_layout():
+                base = Path(self.albums_folder.resolve())
+                # discover all album folders present in the relevant analyzer view
+                for p in source_files:
+                    try:
+                        rel = Path(p).relative_to(base)
+                    except ValueError:
+                        continue
+                    album_name = rel.parts[0]
+                    album_id = str((self.albums_folder / album_name).resolve())
+                    owned.append((album_id, album_name))
+            else:
+                for p in source_files:
+                    album_name = self._get_plain_album_name_from_file(p)
+                    if not album_name:
+                        continue
+                    album_id = str((self.base_folder / album_name).resolve())
+                    owned.append((album_id, album_name))
 
             # dedupe
             seen = set()
@@ -497,16 +528,10 @@ class ClassLocalFolder:
                 seen.add(album_id)
                 albums.append({"id": album_id, "albumName": album_name})
 
-            if filter_assets:
-                # sólo los álbumes que tengan al menos 1 asset filtrado
-                albums_filtered = [a for a in albums if self.analyzer.folder_assets.get(a["id"], 0) > 0]
-            else:
-                albums_filtered = albums
-
-            LOGGER.info(f"Found {len(albums_filtered)} owned albums.")
+            LOGGER.info(f"Found {len(albums)} owned albums.")
             # Cache the result for future calls
-            self.albums_owned_by_user[cache_key] = albums_filtered
-            return albums_filtered
+            self.albums_owned_by_user[cache_key] = albums
+            return albums
 
     # def get_albums_owned_by_user(self, filter_assets=True, log_level=None):
     #     """
@@ -583,6 +608,11 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, effective_log_level):
             try:
                 LOGGER.info("Retrieving owned and shared albums.")
+                if not self._uses_managed_layout():
+                    albums = self.get_albums_owned_by_user(filter_assets=filter_assets, log_level=effective_log_level)
+                    LOGGER.info(f"Found {len(albums)} albums in total (owned + shared).")
+                    return albums
+
                 # Inicializa el analyzer y sus folder_assets
                 self._ensure_analyzer(log_level=effective_log_level)
 
@@ -592,21 +622,27 @@ class ClassLocalFolder:
                 ]
                 discovered_albums = {}
 
-                # Solo iteramos las carpetas que tienen >=1 fichero filtrado
-                folder_assets_items = list(self.analyzer.folder_assets.items())
+                if filter_assets:
+                    # Solo iteramos las carpetas que tienen >=1 fichero filtrado
+                    candidate_folders = [Path(folder_str) for folder_str, count in self.analyzer.folder_assets.items() if count > 0]
+                else:
+                    candidate_folders = []
+                    seen_folders = set()
+                    for file_path in self.analyzer.file_list:
+                        file_parent = Path(file_path).parent
+                        key = file_parent.resolve().as_posix()
+                        if key not in seen_folders:
+                            seen_folders.add(key)
+                            candidate_folders.append(file_parent)
                 with tqdm(
-                    total=len(folder_assets_items),
+                    total=len(candidate_folders),
                     desc="📚 Scanning Owned/Shared Albums",
                     unit="folder",
                     smoothing=0.1,
                     dynamic_ncols=True,
                     leave=True,
                 ) as pbar:
-                    for folder_str, count in folder_assets_items:
-                        if count <= 0:
-                            pbar.update(1)
-                            continue
-                        folder = Path(folder_str)
+                    for folder in candidate_folders:
                         for album_root, root_kind in album_roots:
                             album_name = self._get_top_level_folder_name(folder, album_root)
                             if not album_name:
@@ -713,7 +749,7 @@ class ClassLocalFolder:
             return len(self.get_all_assets_from_album(album_id, type='all', log_level=log_level))
 
 
-    def album_exists(self, album_name, log_level=None):
+    def album_exists(self, album_name, shared=False, log_level=None):
         """
         Checks if an album with the given name exists in the 'Albums' folder.
 
@@ -726,9 +762,9 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"Checking if album '{album_name}' exists.")
-            for album in self.get_albums_owned_by_user(filter_assets=False, log_level=log_level):
-                if album_name == album["albumName"]:
-                    return True, album["id"]
+            target_path = self._get_album_path(album_name=album_name, shared=shared).resolve().as_posix()
+            if Path(target_path).is_dir():
+                return True, target_path
             return False, None
 
     ###########################################################################
@@ -1188,7 +1224,8 @@ class ClassLocalFolder:
             # Ensure analyzer is initialized (with global filters applied)
             self._ensure_analyzer(log_level=log_level)
 
-            non_album_roots = [Path(album_root.resolve()) for album_root, _ in self._iter_album_roots()]
+            managed_layout = self._uses_managed_layout()
+            non_album_roots = [Path(album_root.resolve()) for album_root, _ in self._iter_album_roots()] if managed_layout else []
             duplicates_folder = self.base_folder / "_Duplicates"
             sel_ext = self._get_selected_extensions(type)
 
@@ -1208,18 +1245,30 @@ class ClassLocalFolder:
                         pbar.update(1)
                         continue
 
-                    # skip any path under roots that are treated as albums
-                    is_album_asset = False
-                    for album_root in non_album_roots:
-                        try:
-                            f.relative_to(album_root)
-                            is_album_asset = True
-                            break
-                        except ValueError:
+                    if managed_layout:
+                        # skip any path under roots that are treated as albums
+                        is_album_asset = False
+                        for album_root in non_album_roots:
+                            try:
+                                f.relative_to(album_root)
+                                is_album_asset = True
+                                break
+                            except ValueError:
+                                continue
+                        if is_album_asset:
+                            pbar.update(1)
                             continue
-                    if is_album_asset:
-                        pbar.update(1)
-                        continue
+                    else:
+                        try:
+                            rel = f.resolve().relative_to(self.base_folder.resolve())
+                        except ValueError:
+                            pbar.update(1)
+                            continue
+                        # In a plain local folder layout, only files placed directly
+                        # under the root are treated as non-album assets.
+                        if len(rel.parts) != 1:
+                            pbar.update(1)
+                            continue
                     # skip any path under _Duplicates
                     try:
                         f.relative_to(duplicates_folder)
@@ -1548,13 +1597,15 @@ class ClassLocalFolder:
     #         LOGGER.info(f"Found {len(duplicates)} duplicate group(s).")
     #         return duplicates
 
-    def remove_assets(self, asset_ids, log_level=None):
+    def remove_assets(self, asset_ids, log_level=None, refresh_analyzer=True, log_removed_count=True):
         """
         Removes the given asset(s) from local storage.
 
         Args:
             asset_ids (list[str]): List of absolute file paths to remove.
             log_level (logging.LEVEL): log level for logs and console.
+            refresh_analyzer (bool): Rebuild analyzer state after deletion.
+            log_removed_count (bool): Emit summary info log with removed count.
 
         Returns:
             int: Number of assets removed.
@@ -1585,16 +1636,20 @@ class ClassLocalFolder:
                 else:
                     LOGGER.warning(f"Asset path does not exist: {asset_path}")
 
-            LOGGER.info(f"Removed {count} asset(s) from local storage.")
+            if log_removed_count:
+                LOGGER.info(f"Removed {count} asset(s) from local storage.")
 
             self._invalidate_asset_caches()
 
-            # Refresh analyzer state from disk so filtered views and sizes
-            # reflect the current filesystem after deletions.
+            # Keep extracted_dates consistent even when a full analyzer refresh is skipped.
             if hasattr(self, 'analyzer') and self.analyzer is not None:
                 if getattr(self.analyzer, 'extracted_dates', None):
                     for removed_path in removed_paths:
                         self.analyzer.extracted_dates.pop(removed_path, None)
+
+            # Refresh analyzer state from disk so filtered views and sizes
+            # reflect the current filesystem after deletions.
+            if refresh_analyzer and hasattr(self, 'analyzer') and self.analyzer is not None:
                 self.analyzer._build_file_list_from_disk(step_name="remove_assets: ", log_level=log_level)
                 self.analyzer._apply_filters(step_name="remove_assets: ", log_level=log_level)
                 self.analyzer._compute_folder_sizes(step_name="remove_assets: ", log_level=log_level)

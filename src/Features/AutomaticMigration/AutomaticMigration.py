@@ -51,6 +51,25 @@ def _is_nextcloud_photo_not_found_error(error: Exception) -> bool:
     return "photo not found for user" in str(error or "").lower()
 
 
+def _remove_source_asset_after_move(source_client, asset_id, log_level=logging.INFO):
+    """
+    Delete the source asset after a successful push.
+
+    Local folders are a special case: per-asset analyzer refresh is both noisy and
+    expensive during automatic migration, so use a quiet no-refresh deletion path.
+    """
+    if not asset_id:
+        return 0
+    if isinstance(source_client, ClassLocalFolder):
+        return source_client.remove_assets(
+            asset_ids=asset_id,
+            log_level=logging.WARNING,
+            refresh_analyzer=False,
+            log_removed_count=False,
+        )
+    return source_client.remove_assets(asset_ids=asset_id, log_level=log_level)
+
+
 def restore_log_info_on_exception(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -1006,6 +1025,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     'asset_datetime': asset_datetime,
                                     'asset_type': normalized_asset_type,
                                     'album_name': album_name,
+                                    'album_is_shared': is_shared,
                                     'count_push_stats': count_push_stats,
                                 }
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
@@ -1196,6 +1216,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     asset_datetime = asset['asset_datetime']
                     asset_type = asset['asset_type']
                     album_name = asset['album_name']
+                    album_is_shared = asset.get('album_is_shared', False)
                     count_push_stats = asset.get('count_push_stats', True)
                     live_photo_video_path = asset.get('live_photo_video_path', None)
                     asset_pushed = False
@@ -1263,7 +1284,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         # Borrar asset de 'source' client si hemos pasado el argumento '-move, --move-assets'
                         if move_assets and asset.get('asset_id') and asset['asset_id'] not in removed_source_asset_ids:
-                            source_client.remove_assets(asset_ids=asset['asset_id'], log_level=log_level)
+                            _remove_source_asset_after_move(
+                                source_client=source_client,
+                                asset_id=asset['asset_id'],
+                                log_level=log_level,
+                            )
                             removed_source_asset_ids.add(asset['asset_id'])
 
                         # Borrar asset de la carpeta Automatic_Migration_Push_Failed tras subir
@@ -1305,9 +1330,23 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # 1) Asegurarnos de que el álbum existe (sólo un hilo lo crea)
                         with album_creation_lock:
                             if album_name not in created_albums:
-                                exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
+                                if isinstance(target_client, ClassLocalFolder):
+                                    exists, aid = target_client.album_exists(
+                                        album_name=album_name,
+                                        shared=album_is_shared,
+                                        log_level=logging.ERROR,
+                                    )
+                                else:
+                                    exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                                 if not exists:
-                                    aid = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
+                                    if isinstance(target_client, ClassLocalFolder):
+                                        aid = target_client.create_album(
+                                            album_name=album_name,
+                                            shared=album_is_shared,
+                                            log_level=logging.ERROR,
+                                        )
+                                    else:
+                                        aid = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
                                     LOGGER.info(f"Album Created   : '{album_name}' by pusher_worker={worker_id}")
                                 created_albums[album_name] = aid
                         # 2) Recuperar album_id cached que ya debe existir (añadido por este worker o cualquier otro worker previamente)
