@@ -219,7 +219,7 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [NextCloud Photos Management](/help/7-nextcloud-photos.md)  
 - [Google Photos Management](/help/8-google-photos.md)  
 - [Other Features](/help/9-other-features.md)  
-- [Docker CLI Execution](/help/execution/cli-from-docker.md)
+- [Docker CLI Execution](/help/execution/cli-interface-from-docker.md)
 - [Web Interface from Docker](/help/execution/web-interface-from-docker.md)
 - [GPTH Tool Pipeline Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
 
@@ -228,9 +228,9 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 
 ## ▶️ Execution Methods
 There are four different methods to execute this Tool:
-- From [Compiled Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-from-binaries.md)
-- From [Docker Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-from-docker.md)
-- From [Source Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-from-source.md)
+- From [Compiled Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-interface-from-binaries.md)
+- From [Docker Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-interface-from-docker.md)
+- From [Source Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-interface-from-source.md)
 - From [Web Interface (docker)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/web-interface-from-docker.md)
 
 Below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide which one fits best with your needed: 
