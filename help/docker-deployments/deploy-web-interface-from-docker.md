@@ -9,7 +9,7 @@ jaimetur/photomigrator
 ```
 
 If you want the CLI container instead, use:
-[Deploy CLI Intergace from Docker](/help/docker-deployments/deploy-cli-interface-from-docker.md)
+[Deploy CLI Interface from Docker](/help/docker-deployments/deploy-cli-interface-from-docker.md)
 
 > [!IMPORTANT]
 > `PhotoMigrator.sh` and `PhotoMigrator.bat` belong to the CLI launcher flow in `docker-cli/`.
@@ -45,7 +45,9 @@ For the Web Interface, the repository already includes ready-to-use files:
 
 They are designed to work as-is for a local deployment on Linux, Windows, and macOS.
 
-They are also included in the Docker ZIP package published in the Releases page.
+They are also included in the Docker ZIP package:
+
+- [`PhotoMigrator_v4.1.0_docker.zip`](https://github.com/jaimetur/PhotoMigrator/releases/download/v4.1.0/PhotoMigrator_v4.1.0_docker.zip)
 
 ### What you can use without modifying anything
 

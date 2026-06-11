@@ -37,6 +37,10 @@ This option downloads a small ZIP package that includes:
 
 ### 1.1. Download the ZIP package
 
+Direct download:
+
+- [`PhotoMigrator_v4.1.0_docker.zip`](https://github.com/jaimetur/PhotoMigrator/releases/download/v4.1.0/PhotoMigrator_v4.1.0_docker.zip)
+
 - **Linux/macOS**
   ```bash
   curl -L -o PhotoMigrator_v4.1.0_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v4.1.0/PhotoMigrator_v4.1.0_docker.zip

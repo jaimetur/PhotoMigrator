@@ -17,7 +17,8 @@ GLOBAL_VARS_PATH = ROOT / "src" / "Core" / "GlobalVariables.py"
 FILES_TO_UPDATE = [
     ROOT / "DOWNLOAD.md",
     ROOT / "README.md",
-    ROOT / "help" / "execution" / "execution-from-docker.md",
+    ROOT / "help" / "docker-deployments" / "deploy-cli-interface-from-docker.md",
+    ROOT / "help" / "docker-deployments" / "deploy-web-interface-from-docker.md",
 ]
 
 
@@ -34,6 +35,8 @@ def read_tool_version_tag() -> str:
 
 def update_release_links(content: str, tool_version: str) -> tuple[str, int]:
     version_re = r"v\d+\.\d+\.\d+(?:-[0-9A-Za-z\.]+)?"
+    version_no_v_re = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z\.]+)?"
+    tool_version_no_v = tool_version.removeprefix("v")
     total_replacements = 0
     updated = content
 
@@ -51,6 +54,11 @@ def update_release_links(content: str, tool_version: str) -> tuple[str, int]:
     pattern_badge = re.compile(rf"(github/downloads/[^/\s]+/){version_re}(/total)")
     updated, n3 = pattern_badge.subn(rf"\1{tool_version}\2", updated)
     total_replacements += n3
+
+    # Example image tags: jaimetur/photomigrator-linux:X.Y.Z
+    pattern_image_tag = re.compile(rf"(jaimetur/photomigrator(?:-linux)?:){version_no_v_re}")
+    updated, n4 = pattern_image_tag.subn(rf"\1{tool_version_no_v}", updated)
+    total_replacements += n4
 
     return updated, total_replacements
 
@@ -86,4 +94,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
