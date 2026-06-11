@@ -9,7 +9,7 @@ jaimetur/photomigrator
 ```
 
 If you want the CLI container instead, use:
-[Execution from Docker Container (CLI)](/help/docker-deployments/deploy-cli-interface-from-docker.md)
+[Deploy CLI Intergace from Docker](/help/docker-deployments/deploy-cli-interface-from-docker.md)
 
 > [!IMPORTANT]
 > `PhotoMigrator.sh` and `PhotoMigrator.bat` belong to the CLI launcher flow in `docker-cli/`.
