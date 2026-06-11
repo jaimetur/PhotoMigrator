@@ -1,4 +1,4 @@
-# Web Interface from Docker
+# Deploy Web Interface from Docker
 
 This guide explains how to run the PhotoMigrator Web Interface with Docker Compose on Linux, Windows, and macOS.
 
@@ -9,7 +9,7 @@ jaimetur/photomigrator
 ```
 
 If you want the CLI container instead, use:
-[Execution from Docker Container (CLI)](/help/execution/cli-interface-from-docker.md)
+[Execution from Docker Container (CLI)](/help/docker-deployments/deploy-cli-interface-from-docker.md)
 
 > [!IMPORTANT]
 > `PhotoMigrator.sh` and `PhotoMigrator.bat` belong to the CLI launcher flow in `docker-cli/`.

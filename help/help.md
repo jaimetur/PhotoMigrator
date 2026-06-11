@@ -51,8 +51,8 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 ### Main Guides
 - [CLI Overview](/docs/view/help/1-command-line-interface.md)
 - [Configuration File](/docs/view/help/0-configuration-file.md)
-- [Docker CLI Execution](/docs/view/help/execution/cli-interface-from-docker.md)
-- [Web Interface from Docker](/docs/view/help/execution/web-interface-from-docker.md)
+- [Docker CLI Execution](/docs/view/help/docker-deployments/deploy-cli-interface-from-docker.md)
+- [Web Interface from Docker](/docs/view/help/docker-deployments/deploy-web-interface-from-docker.md)
 - [Automatic Migration](/docs/view/help/3-automatic-migration.md)
 - [Google Takeout](/docs/view/help/4-google-takeout.md)
 - [Google Photos](/docs/view/help/8-google-photos.md)

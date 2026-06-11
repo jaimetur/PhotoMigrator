@@ -1,10 +1,10 @@
-# Execution from Docker Container (CLI)
+# Deploy CLI Interface from Docker
 
 > [!IMPORTANT]
 > This guide is for the command line interface (CLI) image.
 >
 > If you want to run the browser-based Web Interface with Docker Compose, use:
-> [Web Interface from Docker](/help/execution/web-interface-from-docker.md)
+> [Deploy Web Interface from Docker](/help/docker-deployments/deploy-web-interface-from-docker.md)
 
 ## ✅ Prerequisites
 
