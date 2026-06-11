@@ -516,7 +516,13 @@
         if (normalized.startsWith("assets/")) return `/${normalized}`;
 
         if (normalized.startsWith("/")) normalized = normalized.slice(1);
-        if (normalized.startsWith("help/") || normalized.startsWith("src/") || normalized.startsWith("docker/")) {
+        if (
+            normalized.startsWith("help/")
+            || normalized.startsWith("src/")
+            || normalized.startsWith("docker/")
+            || normalized.startsWith("docker-cli/")
+            || normalized.startsWith("docker-web/")
+        ) {
             return `${REPO_BLOB_BASE}${normalized}`;
         }
 

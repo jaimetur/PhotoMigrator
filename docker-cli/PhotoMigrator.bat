@@ -4,7 +4,8 @@ setlocal enabledelayedexpansion
 REM Set default values (in case docker.conf doesn't define them)
 set "RELEASE_TAG=latest-stable"
 set "TZ=UTC"
-set "IMAGE_REPO=jaimetur/photomigrator-windows"
+REM Docker Desktop on Windows normally runs the published Linux CLI image.
+set "IMAGE_REPO=jaimetur/photomigrator-linux"
 
 REM Load variables from docker.conf file if it exists
 if exist "docker.conf" (

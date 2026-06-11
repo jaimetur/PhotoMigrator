@@ -130,7 +130,7 @@ jobs:
           
           docker build --pull --no-cache \
                 -t ${IMAGE_NAME}:${TOOL_VERSION} \
-                -f docker/dockerfile .
+                -f docker-web/dockerfile .
           
           # Push etiqueta de release/version
           docker push ${IMAGE_NAME}:${TOOL_VERSION}
@@ -159,7 +159,7 @@ jobs:
 
           docker build --pull --no-cache \
                 -t ${IMAGE_NAME}:${TOOL_VERSION} \
-                -f docker/dockerfile-linux .
+                -f docker-cli/dockerfile-linux .
 
           docker push ${IMAGE_NAME}:${TOOL_VERSION}
 
@@ -188,7 +188,7 @@ jobs:
           # Construir imagen Windows
           docker build --pull --no-cache \
                 -t ${IMAGE_NAME}:${TOOL_VERSION} \
-                -f docker/dockerfile-windows .
+                -f docker-cli/dockerfile-windows .
           
           # Push siempre etiqueta obligatoria con la versión
           docker push ${IMAGE_NAME}:${TOOL_VERSION}
@@ -209,20 +209,34 @@ jobs:
       - name: 🧩 Prepare ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
-          mkdir -p PhotoMigrator/docker
-          mkdir -p PhotoMigrator/docker/docs
-          cp docker/PhotoMigrator.sh PhotoMigrator/docker/
-          cp docker/PhotoMigrator.bat PhotoMigrator/docker/
-          cp docker/docker.conf PhotoMigrator/docker/
-          cp Config.ini PhotoMigrator/docker/
-          cp -r help PhotoMigrator/docker/
-          cp README.md PhotoMigrator/docker/docs/README.md
-          cp CHANGELOG.md PhotoMigrator/docker/docs/CHANGELOG.md
-          cp ROADMAP.md PhotoMigrator/docker/docs/ROADMAP.md
-          cp DOWNLOAD.md PhotoMigrator/docker/docs/DOWNLOAD.md
-          cp CONTRIBUTING.md PhotoMigrator/docker/docs/CONTRIBUTING.md
-          cp CODE_OF_CONDUCT.md PhotoMigrator/docker/docs/CODE_OF_CONDUCT.md
-          cp LICENSE PhotoMigrator/docker/docs/LICENSE
+          mkdir -p PhotoMigrator/docker-cli
+          mkdir -p PhotoMigrator/docker-cli/docs
+          mkdir -p PhotoMigrator/docker-web
+          mkdir -p PhotoMigrator/docker-web/docs
+          cp docker-cli/PhotoMigrator.sh PhotoMigrator/docker-cli/
+          cp docker-cli/PhotoMigrator.bat PhotoMigrator/docker-cli/
+          cp docker-cli/docker.conf PhotoMigrator/docker-cli/
+          cp Config.ini PhotoMigrator/docker-cli/
+          cp -r help PhotoMigrator/docker-cli/
+          cp README.md PhotoMigrator/docker-cli/docs/README.md
+          cp CHANGELOG.md PhotoMigrator/docker-cli/docs/CHANGELOG.md
+          cp ROADMAP.md PhotoMigrator/docker-cli/docs/ROADMAP.md
+          cp DOWNLOAD.md PhotoMigrator/docker-cli/docs/DOWNLOAD.md
+          cp CONTRIBUTING.md PhotoMigrator/docker-cli/docs/CONTRIBUTING.md
+          cp CODE_OF_CONDUCT.md PhotoMigrator/docker-cli/docs/CODE_OF_CONDUCT.md
+          cp LICENSE PhotoMigrator/docker-cli/docs/LICENSE
+          cp docker-web/docker-compose.yml PhotoMigrator/docker-web/
+          cp docker-web/docker-compose-dev.yml PhotoMigrator/docker-web/
+          cp docker-web/run-docker-dev.sh PhotoMigrator/docker-web/
+          cp docker-web/.env PhotoMigrator/docker-web/
+          cp -r help PhotoMigrator/docker-web/
+          cp README.md PhotoMigrator/docker-web/docs/README.md
+          cp CHANGELOG.md PhotoMigrator/docker-web/docs/CHANGELOG.md
+          cp ROADMAP.md PhotoMigrator/docker-web/docs/ROADMAP.md
+          cp DOWNLOAD.md PhotoMigrator/docker-web/docs/DOWNLOAD.md
+          cp CONTRIBUTING.md PhotoMigrator/docker-web/docs/CONTRIBUTING.md
+          cp CODE_OF_CONDUCT.md PhotoMigrator/docker-web/docs/CODE_OF_CONDUCT.md
+          cp LICENSE PhotoMigrator/docker-web/docs/LICENSE
           zip -r PhotoMigrator_v${{ env.TOOL_VERSION }}_docker.zip PhotoMigrator
 
       # 📤 Upload Docker ZIP as artifact to be used in the main workflow

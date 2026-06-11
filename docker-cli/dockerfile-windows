@@ -31,7 +31,7 @@ COPY help/ ./help/
 COPY gpth_tool/ ./gpth_tool/
 COPY exif_tool/others.zip ./exif_tool/others.zip
 COPY Config.ini ./default_config.ini
-COPY docker/docker.conf ./default_docker.conf
+COPY docker-cli/docker.conf ./default_docker.conf
 COPY README.md ./docs/README.md
 COPY CHANGELOG.md ./docs/CHANGELOG.md
 COPY ROADMAP.md ./docs/ROADMAP.md
@@ -40,7 +40,7 @@ COPY CONTRIBUTING.md ./docs/CONTRIBUTING.md
 COPY CODE_OF_CONDUCT.md ./docs/CODE_OF_CONDUCT.md
 COPY LICENSE ./docs/LICENSE
 
-COPY docker/docker-entrypoint.ps1 C:/docker-entrypoint.ps1
+COPY docker-cli/docker-entrypoint.ps1 C:/docker-entrypoint.ps1
 
 # (Opcional) descomprimir gpth_tool/exif_tool/others.zip si existe
 RUN if (Test-Path 'exif_tool/others.zip') { \

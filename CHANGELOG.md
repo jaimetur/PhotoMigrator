@@ -33,6 +33,7 @@
   - Added fail-fast handling for `Automatic Migration` when `Google Photos` is used as `<SOURCE>`, returning a non-zero exit code with a clear workaround message after Google's Library API scope removal on April 1, 2025. Also stopped probing Google Photos read endpoints during login so upload-target flows can continue to use valid upload scopes. (Issue #1091).
   - Improved Automatic Migration in Web Interface mode so GPTH output is streamed into the browser log panel during Google Takeout preprocessing, while preserving the current CLI Live Dashboard behavior.
   - Updated GPTH from version 6.1.1 to version 6.1.5 which includes several enhancements and bug fixing.
+  - Refactored Docker-related project structure by separating CLI assets into `docker-cli/` and Web Interface assets into `docker-web/`, and renamed CLI execution help files from `help/execution/execution-*` to `help/execution/cli-*` to keep CLI and Web documentation/launchers clearly separated. (#1110, #1112)
 
 #### 🚀 GPTH Enhancements:
 
@@ -59,6 +60,7 @@
 #### 📚 Documentation:
   - Corrected the documentation to align argument names, defaults, examples, and feature descriptions with the current code behavior.
   - Corrected `README.md` to align Docker-related file names and references with the current codebase and deployment files.
+  - Reorganized Docker documentation and launcher assets into separate `docker-cli/` and `docker-web/` folders, clarified CLI vs Web image usage, and fixed the Windows batch launcher/docs to use the published Docker image instead of the unpublished Windows image. (#1110, #1112)
   - Updated Screenshots.
   - Updated documentation with all changes.
 

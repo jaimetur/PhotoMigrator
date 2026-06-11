@@ -172,118 +172,29 @@ Main characteristics:
 >    Username: demo  
 >    Password: demo
 
-## Deploy Web Interface with Docker Compose
-### 0) Install Docker first (Windows / Linux / macOS)
+## Deploy Web Interface with Docker
 
-Before running Docker Compose, install Docker on your host:
+The complete Docker guide for the Web Interface now lives in:
 
-- **Windows (recommended):** Install Docker Desktop  
-  https://docs.docker.com/desktop/setup/install/windows-install/
+- [Web Interface from Docker](/help/execution/web-interface-from-docker.md)
 
-- **macOS (recommended):** Install Docker Desktop  
-  https://docs.docker.com/desktop/setup/install/mac-install/
+That guide includes:
 
-- **Linux:** Install Docker Engine + Docker Compose plugin  
-  https://docs.docker.com/engine/install/
+- Linux, Windows, and macOS instructions
+- direct download commands for `docker-compose.yml` and `.env`
+- a ready-to-use `.env` that works without mandatory edits for local use
+- a clear split between mandatory, recommended, and optional customization
 
-After installation, verify Docker is working:
-
-```bash
-docker --version
-docker compose version
-```
-
-If you are on Linux and want to run Docker without `sudo`, follow:
-https://docs.docker.com/engine/install/linux-postinstall/
-
-### 1) Configure Docker deployment files
-Create or download to 'docker' folder the following files:
-- `docker/docker-compose.yml`
-- `docker/.env`
-
-Example `.env`:
-
-```env
-# Timezone
-TZ=Europe/Madrid
-
-# <you must find out your PUID/PGID through SSH, run in terminal: id $user. If needed, change $user to the user you created.>
-PUID=1001
-PGID=1001
-
-# Container Name
-CONTAINER_NAME=photomigrator
-
-# Host Port
-PORT=6078
-PORT_DEV=6071
-
-# Config dir, where the config is stored (host paths)
-CONFIG_DIR=../config
-
-# Data dir, where the tool will look for inputs, and save the outputs and intermediate files (host paths)
-DATA_DIR=../data
-
-# Volumes dir, other folder that you may want to mount on the tool (host paths)
-VOLUMES_DIR=/volume1
-
-# App dir, whith the source code (for docker-compose-dev.yml only)
-APP_DIR=../
-
-# Comma-separated list of allowed base folders for "Remove Selected" in the web folder picker.
-# Any delete request outside these roots will be rejected.
-PHOTOMIGRATOR_WEB_DELETE_ROOTS=/app/data,/app/config,/app/volumes
-
-# Max. Lines in buffer for the Web Interface Log panel
-PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES=100000
-
-# Optional: pre-fill the Google Takeout source path in the Web UI
-PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH=/app/volumes/admin/Takeout
-
-# Optional: override cloud credentials/settings without editing Config.ini
-# Environment variables override Config.ini on every container start.
-IMMICH_URL=http://immich-server:2283
-IMMICH_API_KEY_ADMIN=your_admin_api_key
-# IMMICH_API_KEY_ADMIN_FILE=/run/secrets/immich_admin_api_key
-
-# Docker image tag to pull
-IMAGE_TAG=latest-stable
-```
-
-Example `docker-compose.yml`:
-
-```yaml
-# PhotoMigrator Web Interface compose file for production.
-services:
-  photomigrator:
-    image: jaimetur/photomigrator:${IMAGE_TAG}
-    container_name: ${CONTAINER_NAME}
-    ports:
-      - "${PORT}:6078"
-    env_file:
-      - .env
-    volumes:
-      - ${CONFIG_DIR}:/app/config
-      - ${DATA_DIR}:/app/data
-      - ${VOLUMES_DIR}:/app/volumes
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import os,sys,urllib.request; port=os.getenv('PORT','6078'); urllib.request.urlopen(f'http://127.0.0.1:{port}/healthz', timeout=5); sys.exit(0)"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-```
-
-### 2) Start it
+Quick start:
 
 ```bash
-cd docker
+cd docker-web
 docker compose pull
 docker compose up -d
 ```
 
 Then open:
+
 - `http://localhost:6078`
 
 
@@ -308,17 +219,19 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [NextCloud Photos Management](/help/7-nextcloud-photos.md)  
 - [Google Photos Management](/help/8-google-photos.md)  
 - [Other Features](/help/9-other-features.md)  
+- [Docker CLI Execution](/help/execution/cli-from-docker.md)
+- [Web Interface from Docker](/help/execution/web-interface-from-docker.md)
 - [GPTH Tool Pipeline Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
 
 
 ---
 
 ## ▶️ Execution Methods
-There are three different methods to execute this Tool:
-- From [Compiled Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-binaries.md)
-- From [Docker Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-docker.md)
-- From [Source Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-source.md)
-- From [Web Interface (docker)](#deploy-web-interface-with-docker-compose)  
+There are four different methods to execute this Tool:
+- From [Compiled Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-from-binaries.md)
+- From [Docker Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-from-docker.md)
+- From [Source Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/cli-from-source.md)
+- From [Web Interface (docker)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/web-interface-from-docker.md)
 
 Below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide which one fits best with your needed: 
 
