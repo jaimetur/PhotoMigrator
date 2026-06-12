@@ -142,7 +142,7 @@ services:
       - ${VOLUMES_DIR}:/app/volumes
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import os,sys,urllib.request; port=os.getenv('PORT','6078'); urllib.request.urlopen(f'http://127.0.0.1:{port}/healthz', timeout=5); sys.exit(0)"]
+      test: ["CMD", "python", "-c", "import sys,urllib.request; urllib.request.urlopen('http://127.0.0.1:6078/healthz', timeout=5); sys.exit(0)"]
       interval: 30s
       timeout: 5s
       retries: 3

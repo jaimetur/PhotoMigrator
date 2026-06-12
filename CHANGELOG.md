@@ -61,6 +61,7 @@
   - Fixed `Local Folder` asset deletion during `Automatic Migration` with `--move-assets true` so the analyzer refresh uses supported `FolderAnalyzer` methods, reapplies filters, recomputes folder sizes, and invalidates stale local caches after deletions. (Issue #1102).
   - Fixed Web Interface Google Takeout argument handling so `--google-output-folder-suffix` is treated as a plain suffix string instead of a path, preventing values like `processed` from being rewritten to a data-folder path.
   - Fixed `Automatic Migration` with plain `Local Folder` sources so instantiating the source no longer creates `Albums`, `Albums-shared`, or `ALL_PHOTOS` inside the input folder, root-level files are migrated as non-album assets, top-level subfolders are treated as albums, and `--move-assets true` no longer floods Web/CLI logs with repeated local-deletion refresh/progress noise that could overwrite the visible progress bar.
+  - Fixed Docker Web Interface `healthcheck` so it always probes the internal container port `6078` instead of the published host `PORT`, preventing false unhealthy status when exposing the service on a different host port such as `6079`.
 
 #### 📚 Documentation:
   - Corrected the documentation to align argument names, defaults, examples, and feature descriptions with the current code behavior.
