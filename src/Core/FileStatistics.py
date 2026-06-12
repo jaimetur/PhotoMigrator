@@ -368,7 +368,10 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
                 GV.ARGS.get("exclude-folders", []) if GV.ARGS else [],
                 default_patterns=[".*", "@eaDir"],
             )
-            file_patterns = merge_exclusion_patterns(GV.ARGS.get("exclude-files", []) if GV.ARGS else [])
+            file_patterns = merge_exclusion_patterns(
+                GV.ARGS.get("exclude-files", []) if GV.ARGS else [],
+                default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*"],
+            )
             for root, dirs, files in os.walk(input_folder):
                 dirs[:] = [d for d in dirs if not matches_any_pattern(d, folder_patterns)]
                 for filename in files:

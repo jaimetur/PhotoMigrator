@@ -11,6 +11,12 @@ from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_ALBUMS
 from Utils.GeneralUtils import tqdm
 
+DEFAULT_FILE_EXCLUSION_PATTERNS = [
+    "SYNOFILE_THUMB*",
+    "SYNOPHOTO_THUMB*",
+    "SYNOVIDEO_THUMB*",
+]
+
 
 # ---------------------------------------------------------------------------------------------------------------------------
 # FILES & FOLDERS MANAGEMENT FUNCTIONS:

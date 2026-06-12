@@ -158,8 +158,8 @@ def parse_arguments():
     PARSER.add_argument("-exFiles", "--exclude-files", metavar="<FILE_PATTERN>", default=[], nargs="*",
                         help="Exclude files matching one or more glob patterns during local-folder processing or migration.\n"
                              "Examples:\n"
-                             "  --exclude-files SYNOFILE_THUMB* Thumbs.db\n"
-                             "  --exclude-files='SYNOFILE_THUMB*,Thumbs.db'")
+                             "  --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* Thumbs.db\n"
+                             "  --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,Thumbs.db'")
 
     PARSER.add_argument("-AlbFolder", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*",
                         help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")

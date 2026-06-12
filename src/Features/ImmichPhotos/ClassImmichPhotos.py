@@ -1583,7 +1583,10 @@ class ClassImmichPhotos:
                     ARGS.get("exclude-folders", []),
                     default_patterns=['@eaDir'] + subfolders_exclusion,
                 )
-                effective_file_exclusions = merge_exclusion_patterns(ARGS.get("exclude-files", []))
+                effective_file_exclusions = merge_exclusion_patterns(
+                    ARGS.get("exclude-files", []),
+                    default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*"],
+                )
 
                 total_albums_uploaded = 0
                 total_albums_skipped = 0
@@ -1751,7 +1754,10 @@ class ClassImmichPhotos:
                 ARGS.get("exclude-folders", []),
                 default_patterns=['@eaDir'] + subfolders_exclusion,
             )
-            effective_file_exclusions = merge_exclusion_patterns(ARGS.get("exclude-files", []))
+            effective_file_exclusions = merge_exclusion_patterns(
+                ARGS.get("exclude-files", []),
+                default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*"],
+            )
 
             def collect_files(base_folder, only_subfolders):
                 flist = []

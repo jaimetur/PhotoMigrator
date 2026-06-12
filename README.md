@@ -70,7 +70,7 @@ The main use case is the **Automatic Migration Feature** to migrate all your pho
 > For local-folder based migrations and uploads, you can exclude generated thumbnails or other unwanted content using glob patterns with `--exclude-folders` and `--exclude-files`.
 >
 > Example:
-> `--exclude-folders @eaDir .@__thumb --exclude-files SYNOFILE_THUMB* Thumbs.db`
+> `--exclude-folders @eaDir .@__thumb --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* Thumbs.db`
 
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
@@ -160,7 +160,7 @@ Main characteristics:
   - NextCloud Photos
   - Other Features
 - General/optional arguments available for all tabs.
-- Automatic Migration and local-folder workflows support exclusion filters for unwanted folders/files such as `@eaDir`, `.@__thumb`, `SYNOFILE_THUMB*`, or `Thumbs.db`.
+- Automatic Migration and local-folder workflows support exclusion filters for unwanted folders/files such as `@eaDir`, `.@__thumb`, `SYNOFILE_THUMB*`, `SYNOPHOTO_THUMB*`, `SYNOVIDEO_THUMB*`, or `Thumbs.db`.
 - Real command preview + execution output in the browser.
 - Backend powered by `FastAPI` + `uvicorn` on port `6078`.
 

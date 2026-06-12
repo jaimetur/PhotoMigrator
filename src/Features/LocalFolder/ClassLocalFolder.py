@@ -14,7 +14,7 @@ from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm
-from Utils.FileUtils import merge_exclusion_patterns, should_exclude_path
+from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, merge_exclusion_patterns, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
 
 """
@@ -86,9 +86,7 @@ class ClassLocalFolder:
         # Definition of file exclusion patterns
         self.FILE_EXCLUSION_PATTERNS = merge_exclusion_patterns(
             ARGS.get('exclude-files', []),
-            default_patterns=[
-                "SYNOFILE_THUMB*",  # Excludes any file beginning with "SYNOFILE_THUMB"
-            ],
+            default_patterns=DEFAULT_FILE_EXCLUSION_PATTERNS,
         )
 
         # Create a cache dictionary of albums_owned_by_user to save in memory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()

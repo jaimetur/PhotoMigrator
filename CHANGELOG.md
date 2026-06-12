@@ -36,6 +36,7 @@
   - Refactored Docker-related project structure by separating CLI assets into `docker-cli/` and Web Interface assets into `docker-web/`, and moved Docker deployment guides into `help/docker-deployments/` to keep CLI and Web deployment documentation clearly separated. (#1110, #1112)
   - Improved `Local Folder` handling in `Automatic Migration` so plain local-folder sources are treated without forcing managed subfolder creation, and destination `Albums-shared` is now created lazily only when a shared album actually needs to be downloaded there.
   - Improved `Local Folder` analyzer initialization in `Automatic Migration` so date extraction is skipped when no date filters are active, avoiding unnecessary per-file date analysis for plain local-folder to cloud migrations while still preserving date-based filtering behavior when `--filter-from-date` or `--filter-to-date` are used.
+  - Expanded the default Synology thumbnail-file exclusion patterns across local-folder processing, uploads, and `Automatic Migration` to include `SYNOFILE_THUMB*`, `SYNOPHOTO_THUMB*`, and `SYNOVIDEO_THUMB*`, keeping thumbnail skips consistent across those local-source workflows.
 
 #### 🚀 GPTH Enhancements:
 

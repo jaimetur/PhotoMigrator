@@ -53,7 +53,10 @@ class ClassGooglePhotos:
         self.city = ARGS.get("filter-by-city", None)
         self.person = ARGS.get("filter-by-person", None)
         self.exclude_folder_patterns = merge_exclusion_patterns(ARGS.get("exclude-folders", []))
-        self.exclude_file_patterns = merge_exclusion_patterns(ARGS.get("exclude-files", []))
+        self.exclude_file_patterns = merge_exclusion_patterns(
+            ARGS.get("exclude-files", []),
+            default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*"],
+        )
         self._warned_unsupported_filters = False
 
     def get_client_name(self, log_level=None):
