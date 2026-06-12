@@ -288,9 +288,9 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         if person:
             LOGGER.info(f"     by Person : {person} {unsupported_text}")
         if effective_exclude_folders:
-            LOGGER.info(f"Exclude Folders : {effective_exclude_folders}")
+            LOGGER.info(f" Excl. Folders : {effective_exclude_folders}")
         if effective_exclude_files:
-            LOGGER.info(f"  Exclude Files : {effective_exclude_files}")
+            LOGGER.info(f"   Excl. Files : {effective_exclude_files}")
 
         LOGGER.info(f"")
         if isinstance(source_client, ClassGooglePhotos):
