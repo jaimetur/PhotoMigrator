@@ -1,5 +1,5 @@
 PhotoMigrator Docker CLI - Quick Start
-=====================================
+======================================
 
 This folder is for the CLI container workflow.
 

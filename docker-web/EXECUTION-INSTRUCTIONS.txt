@@ -1,5 +1,5 @@
 PhotoMigrator Docker Web Interface - Quick Start
-===============================================
+================================================
 
 This folder is for the Web Interface deployment workflow.
 
