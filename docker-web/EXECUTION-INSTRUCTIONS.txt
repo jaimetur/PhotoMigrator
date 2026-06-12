@@ -12,10 +12,10 @@ Recommended usage
 -----------------
 1. Review .env.
 2. For local usage, the defaults can be used as-is.
-3. Start the container:
+3. Start the container: (use sudo before the command if your user does not have permissions)
 
-   docker compose pull
-   docker compose up -d
+   'docker compose pull'   or  'docker-compose pull'
+   'docker compose up -d'  or  'docker-compose up -d'
 
 4. Open:
 
