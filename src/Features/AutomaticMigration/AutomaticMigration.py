@@ -21,7 +21,7 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Utils.FileUtils import remove_empty_dirs, contains_zip_files, normalize_path
+from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_empty_dirs, contains_zip_files, normalize_path
 from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
@@ -241,6 +241,14 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         person = ARGS.get('filter-by-person', None)
         exclude_folders = ARGS.get('exclude-folders', []) or []
         exclude_files = ARGS.get('exclude-files', []) or []
+        effective_exclude_folders = merge_exclusion_patterns(
+            exclude_folders,
+            default_patterns=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
+        )
+        effective_exclude_files = merge_exclusion_patterns(
+            exclude_files,
+            default_patterns=DEFAULT_FILE_EXCLUSION_PATTERNS,
+        )
 
         LOGGER.info(f"")
         LOGGER.info(f"*** Automatic Migration Mode *** detected")
@@ -261,7 +269,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         LOGGER.info(f"Move Assets    : {move_assets}")
 
-        if from_date or to_date or type or country or city or person or exclude_folders or exclude_files:
+        if from_date or to_date or type or country or city or person or effective_exclude_folders or effective_exclude_files:
             LOGGER.info(f"Assets Filters :")
         else:
             LOGGER.info(f"Assets Filters : None")
@@ -279,10 +287,10 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"       by City : {city} {unsupported_text}")
         if person:
             LOGGER.info(f"     by Person : {person} {unsupported_text}")
-        if exclude_folders:
-            LOGGER.info(f"Exclude Folders : {exclude_folders}")
-        if exclude_files:
-            LOGGER.info(f"  Exclude Files : {exclude_files}")
+        if effective_exclude_folders:
+            LOGGER.info(f"Exclude Folders : {effective_exclude_folders}")
+        if effective_exclude_files:
+            LOGGER.info(f"  Exclude Files : {effective_exclude_files}")
 
         LOGGER.info(f"")
         if isinstance(source_client, ClassGooglePhotos):
