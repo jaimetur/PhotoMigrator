@@ -233,6 +233,7 @@ class ClassLocalFolder:
                     selected_ext = self._get_selected_extensions(ARGS['filter-by-type'])
                 epoch_start = 0 if not ARGS.get('filter-from-date') else parse_text_datetime_to_epoch(ARGS['filter-from-date'])
                 epoch_end = float('inf') if not ARGS.get('filter-to-date') else parse_text_datetime_to_epoch(ARGS['filter-to-date'])
+                needs_date_extraction = not (epoch_start == 0 and epoch_end == float('inf'))
 
                 # Initialize analyzer with metadata_json_file or with folder_path
                 if metadata_json_file and os.path.isfile(metadata_json_file):
@@ -240,10 +241,21 @@ class ClassLocalFolder:
                     # self.analyzer = FolderAnalyzer(folder_path=str(self.base_folder), metadata_json_file=None, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)
 
                 else:
-                    self.analyzer = FolderAnalyzer(folder_path=str(self.base_folder), metadata_json_file=None, extracted_dates=None, logger=LOGGER, step_name=step_name, filter_ext=selected_ext, filter_from_epoch=epoch_start, filter_to_epoch=epoch_end)
+                    self.analyzer = FolderAnalyzer(
+                        folder_path=str(self.base_folder),
+                        metadata_json_file=None,
+                        extracted_dates=None,
+                        force_date_extraction=needs_date_extraction,
+                        logger=LOGGER,
+                        step_name=step_name,
+                        filter_ext=selected_ext,
+                        filter_from_epoch=epoch_start,
+                        filter_to_epoch=epoch_end,
+                    )
 
                 # Optional: save date metadata for reuse
-                self.analyzer.save_to_json(output_file="automatic_migration_dates_metadata.json", step_name=step_name)
+                if self.analyzer.extracted_dates:
+                    self.analyzer.save_to_json(output_file="automatic_migration_dates_metadata.json", step_name=step_name)
 
     def _determine_file_type(self, file):
         """

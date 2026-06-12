@@ -139,10 +139,13 @@ class FolderAnalyzer:
             )
             file_patterns = merge_exclusion_patterns(ARGS.get("exclude-files", []))
 
+            has_date_filters = not (
+                self.filter_from_epoch == 0
+                and self.filter_to_epoch == float('inf')
+            )
             no_filters = (
                     not self.filter_ext
-                    and self.filter_from_epoch == 0
-                    and self.filter_to_epoch == float('inf')
+                    and not has_date_filters
             )
             if no_filters:
                 # include everything
@@ -182,12 +185,13 @@ class FolderAnalyzer:
                         continue
 
                 # date filter
-                date_val = self.get_date(p, step_name)
-                if date_val is None:
-                    continue
-                ts = date_val.timestamp()
-                if ts < self.filter_from_epoch or ts > self.filter_to_epoch:
-                    continue
+                if has_date_filters:
+                    date_val = self.get_date(p, step_name)
+                    if date_val is None:
+                        continue
+                    ts = date_val.timestamp()
+                    if ts < self.filter_from_epoch or ts > self.filter_to_epoch:
+                        continue
 
                 # keep it
                 self.filtered_file_list.append(p)
