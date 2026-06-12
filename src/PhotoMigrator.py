@@ -15,7 +15,6 @@ src_path = os.path.dirname(__file__)
 sys.path.insert(0, src_path)            # Now src is the root for imports
 
 from Core import GlobalVariables as GV
-from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns
 from Utils.StandaloneUtils import change_working_dir, custom_print
 
 
@@ -112,6 +111,7 @@ def PhotoMigrator():
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
+    from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns
     effective_exclude_folders = merge_exclusion_patterns(
         GV.ARGS.get('exclude-folders', []) if GV.ARGS else [],
         default_patterns=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
