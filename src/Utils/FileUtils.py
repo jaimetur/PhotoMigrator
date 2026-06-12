@@ -11,10 +11,17 @@ from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_ALBUMS
 from Utils.GeneralUtils import tqdm
 
+DEFAULT_FOLDER_EXCLUSION_PATTERNS = [".*", "@eaDir", "@Recycle"]
+
 DEFAULT_FILE_EXCLUSION_PATTERNS = [
     "SYNOFILE_THUMB*",
     "SYNOPHOTO_THUMB*",
     "SYNOVIDEO_THUMB*",
+    "SYNOPHOTO_FILM*",
+    "Thumbs.db",
+    "ehthumbs.db",
+    ".DS_Store",
+    "._*",
 ]
 
 

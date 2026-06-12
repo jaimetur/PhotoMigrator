@@ -14,7 +14,7 @@ from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm
-from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, merge_exclusion_patterns, should_exclude_path
+from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
 
 """
@@ -76,11 +76,7 @@ class ClassLocalFolder:
         # Definition of folder exclusion patterns
         self.FOLDER_EXCLUSION_PATTERNS = merge_exclusion_patterns(
             ARGS.get('exclude-folders', []),
-            default_patterns=[
-                "_Duplicates",  # Excludes the specific "_Duplicates" folder
-                "@eaDir",       # Excludes the specific "@eaDir" folder
-                ".*",           # Excludes hidden folders (starting with ".")
-            ],
+            default_patterns=["_Duplicates"] + DEFAULT_FOLDER_EXCLUSION_PATTERNS,
         )
 
         # Definition of file exclusion patterns

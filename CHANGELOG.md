@@ -37,6 +37,7 @@
   - Improved `Local Folder` handling in `Automatic Migration` so plain local-folder sources are treated without forcing managed subfolder creation, and destination `Albums-shared` is now created lazily only when a shared album actually needs to be downloaded there.
   - Improved `Local Folder` analyzer initialization in `Automatic Migration` so date extraction is skipped when no date filters are active, avoiding unnecessary per-file date analysis for plain local-folder to cloud migrations while still preserving date-based filtering behavior when `--filter-from-date` or `--filter-to-date` are used.
   - Expanded the default Synology thumbnail-file exclusion patterns across local-folder processing, uploads, and `Automatic Migration` to include `SYNOFILE_THUMB*`, `SYNOPHOTO_THUMB*`, and `SYNOVIDEO_THUMB*`, keeping thumbnail skips consistent across those local-source workflows.
+  - Expanded the default local exclusion patterns to also skip `SYNOPHOTO_FILM*`, `Thumbs.db`, `ehthumbs.db`, `.DS_Store`, `._*`, and the `@Recycle` folder across local-folder processing, uploads, and `Automatic Migration`, and now print the effective `exclude-folders` / `exclude-files` lists in the startup `Global Settings` log block.
 
 #### 🚀 GPTH Enhancements:
 

@@ -62,8 +62,8 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
        - `-exFiles, --exclude-files`
      - Valid values are glob patterns and multiple values are allowed.
      - Example:
-       - `--exclude-folders @eaDir .@__thumb`
-       - `--exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* Thumbs.db`
+       - `--exclude-folders @eaDir .@__thumb @Recycle`
+       - `--exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store`
 
 
 > [!WARNING]  

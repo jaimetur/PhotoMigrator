@@ -15,6 +15,7 @@ src_path = os.path.dirname(__file__)
 sys.path.insert(0, src_path)            # Now src is the root for imports
 
 from Core import GlobalVariables as GV
+from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns
 from Utils.StandaloneUtils import change_working_dir, custom_print
 
 
@@ -111,6 +112,14 @@ def PhotoMigrator():
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
+    effective_exclude_folders = merge_exclusion_patterns(
+        GV.ARGS.get('exclude-folders', []) if GV.ARGS else [],
+        default_patterns=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
+    )
+    effective_exclude_files = merge_exclusion_patterns(
+        GV.ARGS.get('exclude-files', []) if GV.ARGS else [],
+        default_patterns=DEFAULT_FILE_EXCLUSION_PATTERNS,
+    )
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
     GV.LOGGER.info(f"  - Dates Separator               : '{GV.DATE_SEPARATOR}'")
     GV.LOGGER.info(f"  - Range of Dates Separator      : '{GV.RANGE_OF_DATES_SEPARATOR}'")
@@ -122,6 +131,8 @@ def PhotoMigrator():
     GV.LOGGER.info(f"  - Folder/Binary for EXIF TOOL   : {GV.FOLDERNAME_EXIFTOOL}")
     GV.LOGGER.info(f"  - Folder for Duplicates Outputs : {GV.FOLDERNAME_DUPLICATES_OUTPUT}")
     GV.LOGGER.info(f"  - Folder for Exiftool Outputs   : {GV.FOLDERNAME_EXTRACTED_DATES}")
+    GV.LOGGER.info(f"  - Exclude Folders               : {effective_exclude_folders}")
+    GV.LOGGER.info(f"  - Exclude Files                 : {effective_exclude_files}")
     if not GV.ARGS['no-log-file']:
         GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
         GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FILENAME + '.log'}")

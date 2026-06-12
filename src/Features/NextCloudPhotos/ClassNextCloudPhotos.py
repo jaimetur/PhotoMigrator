@@ -59,10 +59,13 @@ class ClassNextCloudPhotos:
         self.ALLOWED_VIDEO_EXTENSIONS = [ext.lower() for ext in VIDEO_EXT]
         self.type = ARGS.get("filter-by-type", None)
         self.from_date = ARGS.get("filter-from-date", None)
-        self.exclude_folder_patterns = merge_exclusion_patterns(ARGS.get("exclude-folders", []))
+        self.exclude_folder_patterns = merge_exclusion_patterns(
+            ARGS.get("exclude-folders", []),
+            default_patterns=[".*", "@eaDir", "@Recycle"],
+        )
         self.exclude_file_patterns = merge_exclusion_patterns(
             ARGS.get("exclude-files", []),
-            default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*"],
+            default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*", "SYNOPHOTO_FILM*", "Thumbs.db", "ehthumbs.db", ".DS_Store", "._*"],
         )
         self.to_date = ARGS.get("filter-to-date", None)
         self.country = ARGS.get("filter-by-country", None)

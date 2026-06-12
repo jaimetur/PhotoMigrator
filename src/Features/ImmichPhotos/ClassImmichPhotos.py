@@ -1581,11 +1581,11 @@ class ClassImmichPhotos:
                 subfolders_inclusion = convert_to_list(subfolders_inclusion)
                 effective_folder_exclusions = merge_exclusion_patterns(
                     ARGS.get("exclude-folders", []),
-                    default_patterns=['@eaDir'] + subfolders_exclusion,
+                    default_patterns=['@eaDir', '@Recycle', '.*'] + subfolders_exclusion,
                 )
                 effective_file_exclusions = merge_exclusion_patterns(
                     ARGS.get("exclude-files", []),
-                    default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*"],
+                    default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*", "SYNOPHOTO_FILM*", "Thumbs.db", "ehthumbs.db", ".DS_Store", "._*"],
                 )
 
                 total_albums_uploaded = 0
@@ -1752,11 +1752,11 @@ class ClassImmichPhotos:
             subfolders_inclusion = convert_to_list(subfolders_inclusion)
             effective_folder_exclusions = merge_exclusion_patterns(
                 ARGS.get("exclude-folders", []),
-                default_patterns=['@eaDir'] + subfolders_exclusion,
+                default_patterns=['@eaDir', '@Recycle', '.*'] + subfolders_exclusion,
             )
             effective_file_exclusions = merge_exclusion_patterns(
                 ARGS.get("exclude-files", []),
-                default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*"],
+                default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*", "SYNOPHOTO_FILM*", "Thumbs.db", "ehthumbs.db", ".DS_Store", "._*"],
             )
 
             def collect_files(base_folder, only_subfolders):

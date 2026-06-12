@@ -26,7 +26,7 @@ from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXTRACTED_DATES, MSG_TAGS, TOOL_NAME, TOOL_VERSION, ARGS
 from Utils.DateUtils import is_date_valid, guess_date_from_filename
-from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, merge_exclusion_patterns, matches_any_pattern, should_exclude_path
+from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, matches_any_pattern, should_exclude_path
 from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
 
@@ -101,7 +101,7 @@ class FolderAnalyzer:
                 return
             folder_patterns = merge_exclusion_patterns(
                 ARGS.get("exclude-folders", []),
-                default_patterns=[".*", "@eaDir"],
+                default_patterns=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
             )
             file_patterns = merge_exclusion_patterns(
                 ARGS.get("exclude-files", []),
@@ -138,7 +138,7 @@ class FolderAnalyzer:
             self.folder_assets = {}
             folder_patterns = merge_exclusion_patterns(
                 ARGS.get("exclude-folders", []),
-                default_patterns=[".*", "@eaDir"],
+                default_patterns=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
             )
             file_patterns = merge_exclusion_patterns(
                 ARGS.get("exclude-files", []),
@@ -1078,7 +1078,7 @@ class FolderAnalyzer:
             included_extensions = {ext if ext.startswith('.') else f".{ext}" for ext in (include_ext or [])} or None
             folder_patterns = merge_exclusion_patterns(
                 ARGS.get("exclude-folders", []),
-                default_patterns=[".*", "@eaDir"],
+                default_patterns=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
             )
             file_patterns = merge_exclusion_patterns(
                 ARGS.get("exclude-files", []),
@@ -1097,7 +1097,7 @@ class FolderAnalyzer:
                 paths = []
                 folder_patterns = merge_exclusion_patterns(
                     ARGS.get("exclude-folders", []),
-                    default_patterns=[".*", "@eaDir"],
+                default_patterns=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
                 )
                 file_patterns = merge_exclusion_patterns(
                     ARGS.get("exclude-files", []),
