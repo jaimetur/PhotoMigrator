@@ -324,11 +324,13 @@ def contains_zip_files(input_folder, log_level=None):
         bool: True if any file in the folder ends with '.zip', otherwise False.
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"Searching .zip files in input folder...")
+        if LOGGER is not None:
+            LOGGER.info(f"Searching .zip files in input folder...")
         for file in os.listdir(input_folder):
             if file.endswith('.zip'):
                 return True
-        LOGGER.info(f"No .zip files found in input folder.")
+        if LOGGER is not None:
+            LOGGER.info(f"No .zip files found in input folder.")
         return False
 
 
