@@ -308,6 +308,7 @@
         automatic_migration: "AUTOMATIC MIGRATION",
         google_takeout: "GOOGLE TAKEOUT",
         google_photos: "GOOGLE PHOTOS",
+        icloud_takeout: "ICLOUD TAKEOUT",
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
         nextcloud_photos: "NEXTCLOUD PHOTOS",
@@ -495,7 +496,8 @@
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         standalone_features: {},
-        google_takeout: {}
+        google_takeout: {},
+        icloud_takeout: {}
     };
 
     const CLOUD_ACTIONS_AVAILABLE = {
@@ -1727,6 +1729,7 @@
             ...(schema.general_tabs.general || []),
             ...(schema.feature_scoped || []),
             ...(schema.tabs.google_takeout || []),
+            ...(schema.tabs.icloud_takeout || []),
             ...(schema.tabs.google_photos || []),
             ...(schema.tabs.synology_photos || []),
             ...(schema.tabs.immich_photos || []),
@@ -1877,16 +1880,18 @@
         return block;
     }
 
-    function googleGroupForField(field) {
+    function takeoutGroupForField(field) {
         const dest = field.dest;
         if (dest === "google-takeout" || dest === "google-output-folder-suffix") return "takeout";
+        if (dest === "icloud-takeout" || dest === "icloud-output-folder-suffix") return "takeout";
         if (dest === "google-albums-folders-structure" || dest === "google-no-albums-folders-structure") return "structure";
+        if (dest === "icloud-albums-folders-structure" || dest === "icloud-no-albums-folders-structure") return "structure";
         if (dest === "show-gpth-info" || dest === "show-gpth-errors" || dest === "gpth-no-log") return "runtime";
         if (field.kind === "flag") return "flags";
         return "advanced";
     }
 
-    function renderGoogleSubpanels(container, fields) {
+    function renderTakeoutSubpanels(container, fields) {
         container.innerHTML = "";
         container.classList.add("google-layout");
 
@@ -1899,7 +1904,7 @@
         };
 
         (fields || []).forEach((field) => {
-            const groupKey = googleGroupForField(field);
+            const groupKey = takeoutGroupForField(field);
             groups[groupKey].items.push(field);
         });
 
@@ -1915,7 +1920,7 @@
             panel.appendChild(title);
 
             group.items.forEach((field) => {
-                const required = field.dest === "google-takeout";
+                const required = field.dest === "google-takeout" || field.dest === "icloud-takeout";
                 panel.appendChild(createArgumentBlock(field, required));
             });
             container.appendChild(panel);
@@ -2797,10 +2802,10 @@
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.add("hidden");
             renderMigrationPanel();
-        } else if (activeModuleTab === "google_takeout") {
+        } else if (activeModuleTab === "google_takeout" || activeModuleTab === "icloud_takeout") {
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.remove("hidden");
-            renderGoogleSubpanels(moduleForm, schema.tabs.google_takeout || []);
+            renderTakeoutSubpanels(moduleForm, schema.tabs[activeModuleTab] || []);
         } else {
             moduleForm.classList.remove("google-layout");
             moduleForm.classList.remove("selector-mode");
@@ -2885,6 +2890,10 @@
 
         if (payload.tab === "google_takeout") {
             required.add("google-takeout");
+            return required;
+        }
+        if (payload.tab === "icloud_takeout") {
+            required.add("icloud-takeout");
             return required;
         }
 

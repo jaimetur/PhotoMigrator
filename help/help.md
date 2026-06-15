@@ -5,6 +5,7 @@ PhotoMigrator is a tool designed to:
 
 - migrate photos and videos between services (for example Synology and Immich),
 - process and fix Google Takeout exports,
+- process and fix iCloud Photos exports,
 - clean and manage media libraries (albums, filters, duplicates, etc.).
 
 The web interface is a visual layer on top of the CLI: you choose options on screen and the tool builds/runs the command for you.
@@ -26,8 +27,11 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - Main module selection:
   - Automatic Migration
   - Google Takeout
+  - Google Photos
+  - iCloud Takeout
   - Synology Photos
   - Immich Photos
+  - NextCloud Photos
   - Other Features
 - Includes `Live Command Preview` so you can verify the exact CLI command before execution.
 
@@ -55,13 +59,14 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - [Web Interface from Docker](/docs/view/help/docker-deployments/deploy-web-interface-from-docker.md)
 - [Automatic Migration](/docs/view/help/3-automatic-migration.md)
 - [Google Takeout](/docs/view/help/4-google-takeout.md)
-- [Google Photos](/docs/view/help/8-google-photos.md)
-- [Synology Photos](/docs/view/help/5-synology-photos.md)
-- [Immich Photos](/docs/view/help/6-immich-photos.md)
-- [NextCloud Photos](/docs/view/help/7-nextcloud-photos.md)
-- [Other Features](/docs/view/help/9-other-features.md)
-- [Google Photos Takeout Helper (GPTH)](/docs/view/help/10-GPTH-complete-pipeline.md)
-- [11. Docker Deployment](/docs/view/help/11-docker-deployment.md)
+- [Google Photos](/docs/view/help/5-google-photos.md)
+- [iCloud Takeout](/docs/view/help/6-icloud-takeout.md)
+- [Synology Photos](/docs/view/help/7-synology-photos.md)
+- [Immich Photos](/docs/view/help/8-immich-photos.md)
+- [NextCloud Photos](/docs/view/help/9-nextcloud-photos.md)
+- [Other Features](/docs/view/help/10-other-features.md)
+- [Google Photos Takeout Helper (GPTH)](/docs/view/help/11-GPTH-complete-pipeline.md)
+- [Docker Deployment](/docs/view/help/12-docker-deployment.md)
 
 ### Arguments Reference
 - [Arguments Description (Short)](/docs/view/help/2-arguments-description-short.md)

@@ -322,6 +322,38 @@ def parse_arguments():
     PARSER.add_argument("-gpthNoLog", "--gpth-no-log", action="store_true",
                         help="Skip saving GPTH log messages into output folder.")
 
+    # FEATURES FOR ICLOUD TAKEOUT:
+    # ----------------------------
+    PARSER.add_argument("-iTakeout", "--icloud-takeout", metavar="<ICLOUD_EXPORT_FOLDER>", default="",
+                        help="Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from "
+                             "'Photo Details.csv' files, assign those dates to the media files, and organize assets.\n"
+                             "If any ZIP file is found inside it, the ZIPs will be extracted first into "
+                             "'<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input.\n"
+                             "The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'.")
+
+    PARSER.add_argument("-iofs", "--icloud-output-folder-suffix", metavar="<SUFFIX>", default="processed",
+                        help="Specify the suffix for the iCloud processed output folder. Default: 'processed'.")
+
+    PARSER.add_argument("-iafs", "--icloud-albums-folders-structure",
+                        metavar=f"{choices_for_folder_structure}",
+                        default="flatten",
+                        help="Specify the folder structure type for each reconstructed iCloud Album folder (Default: 'flatten').",
+                        type=lambda s: s.lower(),
+                        choices=choices_for_folder_structure)
+
+    PARSER.add_argument("-inas", "--icloud-no-albums-folders-structure",
+                        metavar=f"{choices_for_folder_structure}",
+                        default="year/month",
+                        help="Specify the folder structure type for '<NO_ALBUMS_FOLDER>' folders generated from iCloud exports (Default: 'year/month').",
+                        type=lambda s: s.lower(),
+                        choices=choices_for_folder_structure)
+
+    PARSER.add_argument("-insa", "--icloud-no-symbolic-albums", action="store_true",
+                        help="Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within <NO_ALBUMS_FOLDER>.")
+
+    PARSER.add_argument("-iMem", "--icloud-include-memories", action="store_true",
+                        help="Also reconstruct iCloud 'Memories' CSV collections as folders. Disabled by default because exports can contain thousands of them.")
+
     # FEATURES FOR SYNOLOGY/IMMICH PHOTOS:
     # -----------------------------------
     PARSER.add_argument("-uAlb", "--upload-albums", metavar="<ALBUMS_FOLDER>", default="",
@@ -537,7 +569,7 @@ def checkArgs(ARGS, PARSER):
     - Parses/normalizes filters (dates and types)
     """
     # Assign ARGS['google-takeout'] = ARGS['input-folder'] if --input-folder is provided and --google-takeout is not
-    if ARGS['input-folder'] != '' and ARGS['google-takeout'] == '':
+    if ARGS['input-folder'] != '' and ARGS['google-takeout'] == '' and ARGS['icloud-takeout'] == '':
         ARGS['google-takeout'] = ARGS['input-folder']
 
     # Remove last slash for all folder arguments:
@@ -549,6 +581,7 @@ def checkArgs(ARGS, PARSER):
     ARGS['input-folder']                    = fix_path(ARGS['input-folder'])
     ARGS['output-folder']                   = fix_path(ARGS['output-folder'])
     ARGS['google-takeout']                  = fix_path(ARGS['google-takeout'])
+    ARGS['icloud-takeout']                  = fix_path(ARGS['icloud-takeout'])
     ARGS['upload-albums']                   = fix_path(ARGS['upload-albums'])
     ARGS['upload-all']                      = fix_path(ARGS['upload-all'])
     ARGS['download-all']                    = fix_path(ARGS['download-all'])
@@ -563,6 +596,7 @@ def checkArgs(ARGS, PARSER):
         'output-folder',
         'albums-folders',  # FIX: was 'albums-folder' (typo) and it prevented resolving this argument
         'google-takeout',
+        'icloud-takeout',
         'upload-albums',
         'upload-all',
         'download-all',
@@ -582,6 +616,7 @@ def checkArgs(ARGS, PARSER):
 
     # Remove '_' at the beginning of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
+    ARGS['icloud-output-folder-suffix'] = ARGS['icloud-output-folder-suffix'].lstrip('_')
 
     # Set None for google-input-zip-folder (will be set only if unzip is needed)
     ARGS['google-input-zip-folder'] = None

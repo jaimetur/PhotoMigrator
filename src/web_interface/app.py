@@ -48,6 +48,7 @@ WEB_SECRET = os.environ.get("PHOTOMIGRATOR_WEB_SECRET", "change-me-photomigrator
 WEB_BOOTSTRAP_ADMIN_USER = os.environ.get("PHOTOMIGRATOR_BOOTSTRAP_ADMIN_USER", "admin")
 WEB_BOOTSTRAP_ADMIN_PASS = os.environ.get("PHOTOMIGRATOR_BOOTSTRAP_ADMIN_PASS", "admin123")
 WEB_DEFAULT_GOOGLE_TAKEOUT_PATH = os.environ.get("PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH", "").strip()
+WEB_DEFAULT_ICLOUD_TAKEOUT_PATH = os.environ.get("PHOTOMIGRATOR_DEFAULT_ICLOUD_TAKEOUT_PATH", "").strip()
 WEB_USER_ROOT_DATA = Path(os.environ.get("PHOTOMIGRATOR_WEB_USER_ROOT_DATA", "/app/data")).resolve()
 WEB_USER_ROOT_VOLUME1 = Path(os.environ.get("PHOTOMIGRATOR_WEB_USER_ROOT_VOLUME1", "/app/volumes")).resolve()
 CONFIG_SECTIONS_ORDER = [
@@ -55,6 +56,7 @@ CONFIG_SECTIONS_ORDER = [
     "Web Interface",
     "Google Takeout",
     "Google Photos",
+    "iCloud Takeout",
     "Synology Photos",
     "Immich Photos",
     "NextCloud Photos",
@@ -113,6 +115,15 @@ GOOGLE_DESTS = {
     "show-gpth-info",
     "show-gpth-errors",
     "gpth-no-log",
+}
+
+ICLOUD_DESTS = {
+    "icloud-takeout",
+    "icloud-output-folder-suffix",
+    "icloud-albums-folders-structure",
+    "icloud-no-albums-folders-structure",
+    "icloud-no-symbolic-albums",
+    "icloud-include-memories",
 }
 
 CLOUD_DESTS = {
@@ -225,6 +236,7 @@ MODULE_DEPENDENCIES_REQUIRED = {
 
 TAB_TO_CATEGORY = {
     "google_takeout": "google_takeout",
+    "icloud_takeout": "icloud_takeout",
     "google_photos": "google_photos",
     "synology_photos": "synology_photos",
     "immich_photos": "immich_photos",
@@ -1499,6 +1511,8 @@ def _apply_state_defaults(values: Dict[str, Any]) -> Dict[str, Any]:
     normalized = dict(values or {})
     if WEB_DEFAULT_GOOGLE_TAKEOUT_PATH and not str(normalized.get("google-takeout", "") or "").strip():
         normalized["google-takeout"] = WEB_DEFAULT_GOOGLE_TAKEOUT_PATH
+    if WEB_DEFAULT_ICLOUD_TAKEOUT_PATH and not str(normalized.get("icloud-takeout", "") or "").strip():
+        normalized["icloud-takeout"] = WEB_DEFAULT_ICLOUD_TAKEOUT_PATH
     return normalized
 
 
@@ -1553,6 +1567,9 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
                 "description": (
                     "Configuration for google takeout. Configure execution options for this module from Feature Selector > Google Takeout tab."
                     if section_name == "Google Takeout"
+                    else
+                    "Configuration for icloud takeout. Configure execution options for this module from Feature Selector > iCloud Takeout tab."
+                    if section_name == "iCloud Takeout"
                     else
                     "Time zone used by PhotoMigrator to interpret and display date/time values in logs and date-based operations."
                     if section_name == "TimeZone"
@@ -2023,6 +2040,8 @@ def _tab_for_dest(dest: str) -> str:
         return "automatic_migration"
     if dest in GOOGLE_DESTS:
         return "google_takeout"
+    if dest in ICLOUD_DESTS:
+        return "icloud_takeout"
     if dest in CLOUD_DESTS:
         return "cloud_common"
     if dest in STANDALONE_DESTS:
@@ -2121,6 +2140,8 @@ def _load_parser_schema() -> Dict[str, Any]:
         }
         if dest == "google-takeout" and WEB_DEFAULT_GOOGLE_TAKEOUT_PATH:
             field["default"] = WEB_DEFAULT_GOOGLE_TAKEOUT_PATH
+        if dest == "icloud-takeout" and WEB_DEFAULT_ICLOUD_TAKEOUT_PATH:
+            field["default"] = WEB_DEFAULT_ICLOUD_TAKEOUT_PATH
         fields.append(field)
         by_dest[dest] = field
 
@@ -2134,6 +2155,7 @@ def _load_parser_schema() -> Dict[str, Any]:
         "feature_scoped": [field for field in fields if field["dest"] in FEATURE_SCOPED_DESTS],
         "tabs": {
             "google_takeout": [field for field in fields if field["tab"] == "google_takeout"],
+            "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"],
             "google_photos": cloud_common,
             "synology_photos": cloud_common,
             "immich_photos": cloud_common,
@@ -2179,6 +2201,8 @@ def _allowed_dests_for_tab(tab: str, selected_action_dest: str | None = None) ->
         else:
             # Backward-compatible fallback for older UI payloads.
             allowed_dests.update(tab_dests)
+    elif tab == "icloud_takeout":
+        allowed_dests.update(tab_dests)
     else:
         allowed_dests.update(tab_dests)
     return allowed_dests
@@ -2343,6 +2367,9 @@ def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> s
     required: set[str] = set()
     if tab == "google_takeout":
         required.add("google-takeout")
+        return required
+    if tab == "icloud_takeout":
+        required.add("icloud-takeout")
         return required
 
     if tab == "automatic_migration":

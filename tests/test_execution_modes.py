@@ -10,6 +10,7 @@ def _base_args():
         "source": "",
         "target": "",
         "google-takeout": "",
+        "icloud-takeout": "",
         "upload-albums": "",
         "upload-all": "",
         "download-albums": "",
@@ -54,6 +55,18 @@ class TestExecutionModes(unittest.TestCase):
         with (
             patch.object(execution_modes, "ARGS", args),
             patch.object(execution_modes, "mode_google_takeout") as mock_mode,
+        ):
+            execution_modes.detect_and_run_execution_mode()
+
+        mock_mode.assert_called_once()
+
+    def test_detect_and_run_execution_mode_dispatches_icloud_takeout(self):
+        args = _base_args()
+        args["icloud-takeout"] = "/tmp/iCloudExport"
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "mode_icloud_takeout") as mock_mode,
         ):
             execution_modes.detect_and_run_execution_mode()
 

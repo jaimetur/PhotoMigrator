@@ -9,6 +9,7 @@ from Core.GlobalVariables import START_TIME, ARGS, HELP_TEXTS, DEPRIORITIZE_FOLD
 from Features.AutomaticMigration.AutomaticMigration import mode_AUTOMATIC_MIGRATION
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder
+from Features.ICloudTakeout.ClassICloudTakeoutFolder import ClassICloudTakeoutFolder
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
@@ -87,6 +88,9 @@ def detect_and_run_execution_mode():
     elif ARGS['google-takeout']:
         EXECUTION_MODE = 'google-takeout'
         mode_google_takeout()
+    elif ARGS['icloud-takeout']:
+        EXECUTION_MODE = 'icloud-takeout'
+        mode_icloud_takeout()
 
 
     # Synology/Immich/NextCloud/Google Photos Modes:
@@ -270,6 +274,61 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
 
         # Call the Function
         result = takeout.process(output_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
+
+
+###################################
+# FEATURE: ICLOUD PHOTOS TAKEOUT: #
+###################################
+def mode_icloud_takeout(user_confirmation=True, log_level=None):
+    LOGGER.info(f"=============================================================")
+    LOGGER.info(f"Starting iCloud Takeout Photos Processor Feature...")
+    LOGGER.info(f"=============================================================")
+    LOGGER.info(f"")
+
+    input_folder = ARGS['icloud-takeout']
+    if ARGS['output-folder']:
+        output_folder = ARGS['output-folder']
+    else:
+        output_folder = f"{ARGS['icloud-takeout']}_{ARGS['icloud-output-folder-suffix']}_{TIMESTAMP}"
+
+    if not dir_exists(input_folder):
+        LOGGER.error(f"The Input Folder {input_folder} does not exists. Exiting...")
+        sys.exit(-1)
+
+    takeout = ClassICloudTakeoutFolder(ARGS['icloud-takeout'])
+
+    need_unzip = contains_zip_files(input_folder)
+
+    LOGGER.info(f"")
+    LOGGER.info(f"Folders for iCloud Takeout Photos Feature :")
+    LOGGER.info(f"-------------------------------------------")
+    if need_unzip:
+        LOGGER.info(f"Input export folder (zipped detected)     : '{input_folder}'")
+        LOGGER.info(f"Input export will be unzipped to folder   : '{input_folder}_unzipped_{TIMESTAMP}'")
+    else:
+        LOGGER.info(f"Input export folder                       : '{input_folder}'")
+    LOGGER.info(f"Output processed folder                   : '{output_folder}'")
+    LOGGER.info(f"")
+
+    LOGGER.info(f"Settings for iCloud Takeout Photos Feature:")
+    LOGGER.info(f"-------------------------------------------")
+    LOGGER.info(f"Using Suffix                              : '{ARGS['icloud-output-folder-suffix']}'")
+    LOGGER.info(f"Albums Folder Structure                   : '{ARGS['icloud-albums-folders-structure']}'")
+    LOGGER.info(f"No Albums Folder Structure                : '{ARGS['icloud-no-albums-folders-structure']}'")
+    LOGGER.info(f"Duplicate album assets instead of symlink : '{ARGS['icloud-no-symbolic-albums']}'")
+    LOGGER.info(f"Include Memories CSV collections          : '{ARGS['icloud-include-memories']}'")
+    LOGGER.info(f"")
+
+    if user_confirmation:
+        LOGGER.info('-' * (terminal_width-10))
+        LOGGER.warning(HELP_TEXTS["icloud-photos-takeout"].replace('<ICLOUD_EXPORT_FOLDER>', f"'{ARGS['icloud-takeout']}'"))
+        LOGGER.info('-' * (terminal_width-10))
+        if not confirm_continue():
+            LOGGER.info(f"Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):
+        takeout.process(log_level=log_level)
 
 
 #############################

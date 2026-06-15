@@ -13,12 +13,20 @@ def set_help_texts():
         and Pushing them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
         """)
 
-    ##########################
-    # FEATURE: GOOGLE PHOTOS #
-    ##########################
+    ##################################
+    # FEATURE: GOOGLE PHOTOS TAKEOUT #
+    ##################################
     HELP_TEXTS["google-photos-takeout"] = textwrap.dedent(f"""
         ATTENTION!!!: This module will process <TAKEOUT_FOLDER> 
         to fix metadata of all your assets and organize them according with the settings defined by user (above settings).
+        """)
+
+    ###########################
+    # FEATURE: iCLOUD TAKEOUT #
+    ###########################
+    HELP_TEXTS["icloud-photos-takeout"] = textwrap.dedent(f"""
+        ATTENTION!!!: This module will process <ICLOUD_EXPORT_FOLDER>
+        to recover dates from iCloud export CSV files, assign those dates to your assets, and organize them according with the settings defined by user (above settings).
         """)
 
 

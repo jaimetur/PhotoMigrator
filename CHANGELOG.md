@@ -10,6 +10,7 @@
 #### 🚨 Breaking Changes:
   
 #### 🌟 New Features:
+  - Added a new `iCloud Takeout` feature across CLI and Web Interface to process Apple iCloud Photos exports without GPTH, recovering dates from `Photo Details.csv`, assigning those dates to the exported media files, rebuilding `Albums` from Apple CSV manifests, and optionally reconstructing `Memories` collections. The Web Interface now includes a dedicated `ICLOUD TAKEOUT` tab placed after `Google Photos` and before `Synology Photos`.
 
 #### 🚀 Enhancements:
 
@@ -18,6 +19,7 @@
 #### 🐛 Bug fixes:
 
 #### 📚 Documentation:
+  - Added dedicated `iCloud Takeout` documentation, including Apple export/download guidance, supported CSV/ZIP structure details, CLI/Web Interface usage, and output behavior.
   - Updated documentation with all changes.
 
 ---

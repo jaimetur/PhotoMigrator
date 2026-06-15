@@ -94,35 +94,42 @@ The whole process is done in an automatic way and is divided in different steps 
 >
 > [**(Google Takeout Fixing Documentation)**](/help/4-google-takeout.md)
 
-## 🖼️ 3. Synology Photos / Immich Photos / NextCloud Photos / Google Photos Management
-Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can use the tool also to manage different Photo Cloud Services. 
+## 🖼️ 3. Google Photos / iCloud Takeout / Synology Photos / Immich Photos / NextCloud Photos
+Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can also use the tool to manage Google Photos, preprocess iCloud Photos exports, and manage different Photo Cloud Services.
+
+- **Google Photos** supports direct upload/download operations through the official API.
+- **iCloud Takeout** is a local export-processing module that fixes dates and metadata from Apple privacy exports before uploading to another target service.
+- **Synology Photos**, **Immich Photos**, and **NextCloud Photos** provide cloud management and migration operations.
+
 Currently, the Features Supported per each Photo Cloud Service are:
 
-  | Feature                         | Synology                                                                               | Immich                                                                             | Nextcloud                                                                                | Google Photos                                   |
-  |---------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|-------------------------------------------------|
-  | Upload Album(s) (from folder)   | [doc](/help/5-synology-photos.md#upload-albums-from-local-folder-into-synology-photos) | [doc](/help/6-immich-photos.md#upload-albums-from-local-folder-into-immich-photos) | [doc](/help/7-nextcloud-photos.md#upload-albums-from-local-folder-into-nextcloud-photos) | [doc](/help/8-google-photos.md#upload-albums)   |
-  | Download Album(s) (into folder) | [doc](/help/5-synology-photos.md#download-albums-from-synology-photos)                 | [doc](/help/6-immich-photos.md#download-albums-from-immich-photos)                 | [doc](/help/7-nextcloud-photos.md#download-albums-from-nextcloud-photos)                 | [doc](/help/8-google-photos.md#download-albums) |
-  | Upload ALL (from folder)        | [doc](/help/5-synology-photos.md#upload-all-from-local-folder-into-synology-photos)    | [doc](/help/6-immich-photos.md#upload-all-from-local-folder-into-immich-photos)    | [doc](/help/7-nextcloud-photos.md#upload-all-from-local-folder-into-nextcloud-photos)    | [doc](/help/8-google-photos.md#upload-all)      |
-  | Download ALL (into folder)      | [doc](/help/5-synology-photos.md#download-all-from-synology-photos)                    | [doc](/help/6-immich-photos.md#download-all-from-immich-photos)                    | [doc](/help/7-nextcloud-photos.md#download-all-from-nextcloud-photos)                    | [doc](/help/8-google-photos.md#download-all)    |
-  | Remove ALL Assets               | [doc](/help/5-synology-photos.md#remove-all-assets-from-synology-photos)               | [doc](/help/6-immich-photos.md#remove-all-assets-from-immich-photos)               | [doc](/help/7-nextcloud-photos.md#remove-all-assets-from-nextcloud-photos)               | Not supported by API                            |
-  | Remove ALL Albums               | [doc](/help/5-synology-photos.md#remove-all-albums-from-synology-photos)               | [doc](/help/6-immich-photos.md#remove-all-albums-from-immich-photos)               | [doc](/help/7-nextcloud-photos.md#remove-all-albums-from-nextcloud-photos)               | Not supported by API                            |
-  | Remove Albums by Name Pattern   | [doc](/help/5-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)   | [doc](/help/6-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)   | [doc](/help/7-nextcloud-photos.md#remove-albums-by-name-pattern-from-nextcloud-photos)   | Not supported by API                            |
-  | Rename Albums by Name Pattern   | [doc](/help/5-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)   | [doc](/help/6-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)   | [doc](/help/7-nextcloud-photos.md#rename-albums-by-name-pattern-from-nextcloud-photos)   | Not supported by API                            |
-  | Remove Empty Albums             | [doc](/help/5-synology-photos.md#remove-empty-albums-from-synology-photos)             | [doc](/help/6-immich-photos.md#remove-empty-albums-from-immich-photos)             | [doc](/help/7-nextcloud-photos.md#remove-empty-albums-from-nextcloud-photos)             | Not supported by API                            |
-  | Remove Duplicates Albums        | [doc](/help/5-synology-photos.md#remove-duplicates-albums-from-synology-photos)        | [doc](/help/6-immich-photos.md#remove-duplicates-albums-from-immich-photos)        | [doc](/help/7-nextcloud-photos.md#remove-duplicates-albums-from-nextcloud-photos)        | Not supported by API                            |
-  | Merge Duplicates Albums         | [doc](/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | [doc](/help/7-nextcloud-photos.md#merge-duplicates-albums-from-nextcloud-photos)         | Not supported by API                            |
-  | Remove Orphans Assets           | Not supported by API                                                                   | [doc](/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported by API                                                                     | Not supported by API                            |
+  | Feature                         | Google Photos                                   | Synology                                                                               | Immich                                                                             | Nextcloud                                                                                |
+  |---------------------------------|-------------------------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+  | Upload Album(s) (from folder)   | [doc](/help/5-google-photos.md#upload-albums)   | [doc](/help/7-synology-photos.md#upload-albums-from-local-folder-into-synology-photos) | [doc](/help/8-immich-photos.md#upload-albums-from-local-folder-into-immich-photos) | [doc](/help/9-nextcloud-photos.md#upload-albums-from-local-folder-into-nextcloud-photos) |
+  | Download Album(s) (into folder) | [doc](/help/5-google-photos.md#download-albums) | [doc](/help/7-synology-photos.md#download-albums-from-synology-photos)                 | [doc](/help/8-immich-photos.md#download-albums-from-immich-photos)                 | [doc](/help/9-nextcloud-photos.md#download-albums-from-nextcloud-photos)                 |
+  | Upload ALL (from folder)        | [doc](/help/5-google-photos.md#upload-all)      | [doc](/help/7-synology-photos.md#upload-all-from-local-folder-into-synology-photos)    | [doc](/help/8-immich-photos.md#upload-all-from-local-folder-into-immich-photos)    | [doc](/help/9-nextcloud-photos.md#upload-all-from-local-folder-into-nextcloud-photos)    |
+  | Download ALL (into folder)      | [doc](/help/5-google-photos.md#download-all)    | [doc](/help/7-synology-photos.md#download-all-from-synology-photos)                    | [doc](/help/8-immich-photos.md#download-all-from-immich-photos)                    | [doc](/help/9-nextcloud-photos.md#download-all-from-nextcloud-photos)                    |
+  | Remove ALL Assets               | Not supported by API                            | [doc](/help/7-synology-photos.md#remove-all-assets-from-synology-photos)               | [doc](/help/8-immich-photos.md#remove-all-assets-from-immich-photos)               | [doc](/help/9-nextcloud-photos.md#remove-all-assets-from-nextcloud-photos)               |
+  | Remove ALL Albums               | Not supported by API                            | [doc](/help/7-synology-photos.md#remove-all-albums-from-synology-photos)               | [doc](/help/8-immich-photos.md#remove-all-albums-from-immich-photos)               | [doc](/help/9-nextcloud-photos.md#remove-all-albums-from-nextcloud-photos)               |
+  | Remove Albums by Name Pattern   | Not supported by API                            | [doc](/help/7-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)   | [doc](/help/8-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)   | [doc](/help/9-nextcloud-photos.md#remove-albums-by-name-pattern-from-nextcloud-photos)   |
+  | Rename Albums by Name Pattern   | Not supported by API                            | [doc](/help/7-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)   | [doc](/help/8-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)   | [doc](/help/9-nextcloud-photos.md#rename-albums-by-name-pattern-from-nextcloud-photos)   |
+  | Remove Empty Albums             | Not supported by API                            | [doc](/help/7-synology-photos.md#remove-empty-albums-from-synology-photos)             | [doc](/help/8-immich-photos.md#remove-empty-albums-from-immich-photos)             | [doc](/help/9-nextcloud-photos.md#remove-empty-albums-from-nextcloud-photos)             |
+  | Remove Duplicates Albums        | Not supported by API                            | [doc](/help/7-synology-photos.md#remove-duplicates-albums-from-synology-photos)        | [doc](/help/8-immich-photos.md#remove-duplicates-albums-from-immich-photos)        | [doc](/help/9-nextcloud-photos.md#remove-duplicates-albums-from-nextcloud-photos)        |
+  | Merge Duplicates Albums         | Not supported by API                            | [doc](/help/7-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](/help/8-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | [doc](/help/9-nextcloud-photos.md#merge-duplicates-albums-from-nextcloud-photos)         |
+  | Remove Orphans Assets           | Not supported by API                            | Not supported by API                                                                   | [doc](/help/8-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported by API                                                                     |
 
 > [!NOTE]
 > For more info you can check the feature documentation in below links:
 >
->- [**(Synology Photos Documentation)**](/help/5-synology-photos.md)
+>- [**(Google Photos Documentation)**](/help/5-google-photos.md)
+>
+>- [**(iCloud Takeout Documentation)**](/help/6-icloud-takeout.md)
+>
+>- [**(Synology Photos Documentation)**](/help/7-synology-photos.md)
 > 
->- [**(Immich Photos Documentation)**](/help/6-immich-photos.md)
+>- [**(Immich Photos Documentation)**](/help/8-immich-photos.md)
 >
->- [**(NextCloud Photos Documentation)**](/help/7-nextcloud-photos.md)
->
->- [**(Google Photos Documentation)**](/help/8-google-photos.md)
+>- [**(NextCloud Photos Documentation)**](/help/9-nextcloud-photos.md)
 
 > [!IMPORTANT]  
 >- **NextCloud Photos** is available since v4.0.0 using WebDAV-based integration.
@@ -144,7 +151,7 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
 >
-> [**(Other Standalone Features Documentation)**](/help/9-other-features.md)
+> [**(Other Standalone Features Documentation)**](/help/10-other-features.md)
 
 
 ## 🌐 Web Interface (New)
@@ -155,6 +162,7 @@ Main characteristics:
   - Automatic Migration
   - Google Takeout
   - Google Photos
+  - iCloud Takeout
   - Synology Photos
   - Immich Photos
   - NextCloud Photos
@@ -214,12 +222,14 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [Arguments Description](/help/2-arguments-description.md)  
 - [Automatic Migration Feature](/help/3-automatic-migration.md)  
 - [Google Takeout Management](/help/4-google-takeout.md)  
-- [Synology Photos Management](/help/5-synology-photos.md)  
-- [Immich Photos Management](/help/6-immich-photos.md)  
-- [NextCloud Photos Management](/help/7-nextcloud-photos.md)  
-- [Google Photos Management](/help/8-google-photos.md)  
-- [Other Features](/help/9-other-features.md)  
-- [GPTH Tool Pipeline Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
+- [Google Photos Management](/help/5-google-photos.md)
+- [iCloud Takeout Management](/help/6-icloud-takeout.md)
+- [Synology Photos Management](/help/7-synology-photos.md)  
+- [Immich Photos Management](/help/8-immich-photos.md)  
+- [NextCloud Photos Management](/help/9-nextcloud-photos.md)  
+- [Other Features](/help/10-other-features.md)  
+- [GPTH Tool Pipeline Description](/help/11-GPTH-complete-pipeline.md)
+- [Docker Deployment Documentation](/help/12-docker-deployment.md)
 
 ## 📘 Docker Deployments Documentation Links
 - [Deploy Web Interface from Docker](/help/docker-deployments/deploy-web-interface-from-docker.md)
@@ -238,12 +248,12 @@ There are four different methods to execute this Tool:
 Below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide which one fits best with your needed: 
 
 ### 🆚 Execution Methods Comparison
-   | Execution Method  | Difficulty | Pros                                                                                                                                               | Cons                                                                                                                                                                                                         |
-   |-------------------|:----------:|----------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-   | **Binaries**      |     🟢     | ✅ Only basic knowledge on command line commands needed                                                                                             | ❌ Platform and architecture dependent<br>❌ Need basic knowledge of running command line instructions<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems                               |
+   | Execution Method  | Difficulty | Pros                                                                                                                                             | Cons                                                                                                                                                                                                         |
+   |-------------------|:----------:|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+   | **Binaries**      |     🟢     | ✅ Only basic knowledge on command line commands needed                                                                                           | ❌ Platform and architecture dependent<br>❌ Need basic knowledge of running command line instructions<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems                               |
    | **Docker**        |     ⭐      | ✅ Platform and architecture independent<br>✅ Easy configuration via `docker.conf` <br>✅ Automatically pulls latest image if `RELEASE_TAG=latest` | ❌ Need intermediate knowledge of running command line instructions<br>❌ Need to install Docker (if not already installed)<br>❌ All paths given as arguments must be relative to the execution folder         |
-   | **Source**        |     🔴     | ✅ Platform and architecture independent                                                                                                            | ❌ Need advance knowledge of running command line instructions<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release |
-   | **Web Interface** |    🟢⭐     | ✅ Platform and architecture independent<br>✅ Easy configuration via `.env` file <br>✅ Automatically pulls latest image if `IMAGE_TAG=latest`       | ❌ In Windows/MacOS you need to install Docker Desktop                                                                                                                                                        |
+   | **Source**        |     🔴     | ✅ Platform and architecture independent                                                                                                          | ❌ Need advance knowledge of running command line instructions<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release |
+   | **Web Interface** |    🟢⭐     | ✅ Platform and architecture independent<br>✅ Easy configuration via `.env` file <br>✅ Automatically pulls latest image if `IMAGE_TAG=latest`     | ❌ In Windows/MacOS you need to install Docker Desktop                                                                                                                                                        |
 
   🟢 *Easiest way*    ⭐ *Recommended*    🔴 *More difficult*
 

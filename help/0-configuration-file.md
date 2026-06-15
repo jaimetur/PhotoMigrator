@@ -7,6 +7,10 @@ You can see the default Configuration File ('Config.ini' by default) below:
 >[Google Takeout]
 ># No configuration needed for this module for the time being.
 >
+># Configuration for iCloud Takeout
+>[iCloud Takeout]
+># No configuration needed for this module for the time being.
+>
 ># Configuration for Synology Photos
 >[Synology Photos]
 >SYNOLOGY_URL                       = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
@@ -74,6 +78,9 @@ You can see the default Configuration File ('Config.ini' by default) below:
 > This means a value edited in the Web UI or written in `Config.ini` will be ignored on restart if the corresponding environment variable is still set.
 
 ## Google Takeout Section:
+In this section you don't have to provide any settings (it is here for futures purposes):
+
+## iCloud Takeout Section:
 In this section you don't have to provide any settings (it is here for futures purposes):
 
 ## Synology Photos Section:

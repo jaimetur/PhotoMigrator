@@ -79,6 +79,17 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("subfolder", str(context.exception.detail))
         self.assertIn(str(self.allowed_roots[0]), str(context.exception.detail))
 
+    def test_icloud_takeout_rejects_direct_user_root(self):
+        values = {"icloud-takeout": str(self.allowed_roots[0])}
+        scope = self.web_app._path_validation_scope_for_payload("icloud_takeout", None, values)
+
+        with self.assertRaises(self.HTTPException) as context:
+            self.web_app._sanitize_payload_paths_for_user(values, self.current_user, path_scope=scope)
+
+        self.assertEqual(context.exception.status_code, 400)
+        self.assertIn("subfolder", str(context.exception.detail))
+        self.assertIn(str(self.allowed_roots[0]), str(context.exception.detail))
+
     def test_optional_output_folder_also_rejects_direct_user_root(self):
         takeout_subfolder = self.allowed_roots[0] / "TakeoutInput"
         takeout_subfolder.mkdir(parents=True, exist_ok=True)

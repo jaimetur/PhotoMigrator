@@ -573,8 +573,8 @@
 
     function buildHelpLabel(relativePath) {
         const clean = String(relativePath || "").replace(/\\/g, "/");
-        if (clean.toLowerCase() === "10-gpth-complete-pipeline.md") {
-            return "10. Google Photos Takeout Helper (GPTH)";
+        if (clean.toLowerCase() === "11-gpth-complete-pipeline.md") {
+            return "11. Google Photos Takeout Helper (GPTH)";
         }
         if (clean.toLowerCase() === "2-arguments-description-short.md") {
             return "2. Arguments Description";
@@ -760,83 +760,84 @@
             "2-arguments-description-short.md",
             "3-automatic-migration.md",
             "4-google-takeout.md",
-            "5-synology-photos.md",
-            "6-immich-photos.md",
-            "7-nextcloud-photos.md",
-            "8-google-photos.md",
-            "9-other-features.md",
-            "10-GPTH-complete-pipeline.md",
-            "11-docker-deployment.md"
+            "5-google-photos.md",
+            "6-icloud-takeout.md",
+            "7-synology-photos.md",
+            "8-immich-photos.md",
+            "9-nextcloud-photos.md",
+            "10-other-features.md",
+            "11-GPTH-complete-pipeline.md",
+            "12-docker-deployment.md"
         ];
         const argumentsSubDocs = [
             {path: "2-arguments-description-short.md", label: "2.1 Short Description"},
             {path: "2-arguments-description.md", label: "2.2 Long Description"},
         ];
         const gpthSubDocs = [
-            {path: "gpth_process_explanations/01_GPTH_fix_incorrect_file_extension.md", label: "10.1 Fix Extensions"},
-            {path: "gpth_process_explanations/02_GPTH_discover_and_clasify_media_files.md", label: "10.2 Discover Media"},
-            {path: "gpth_process_explanations/03_GPTH_remove_duplicates_media_files.md", label: "10.3 Remove Duplicates"},
-            {path: "gpth_process_explanations/04_GPTH_extract_dates_from_media_files.md", label: "10.4 Extract Dates"},
-            {path: "gpth_process_explanations/05_GPTH_write_EXIF_data.md", label: "10.5 Write EXIF Data"},
-            {path: "gpth_process_explanations/06_GPTH_find_and_merge_album_relationships.md", label: "10.6 Find Albums"},
-            {path: "gpth_process_explanations/07_GPTH_move_files_to_output_folder.md", label: "10.7 Move Files"},
-            {path: "gpth_process_explanations/08_GPTH_update_creation_time_windows_only.md", label: "10.8 Update Creation Time"},
+            {path: "gpth_process_explanations/01_GPTH_fix_incorrect_file_extension.md", label: "11.1 Fix Extensions"},
+            {path: "gpth_process_explanations/02_GPTH_discover_and_clasify_media_files.md", label: "11.2 Discover Media"},
+            {path: "gpth_process_explanations/03_GPTH_remove_duplicates_media_files.md", label: "11.3 Remove Duplicates"},
+            {path: "gpth_process_explanations/04_GPTH_extract_dates_from_media_files.md", label: "11.4 Extract Dates"},
+            {path: "gpth_process_explanations/05_GPTH_write_EXIF_data.md", label: "11.5 Write EXIF Data"},
+            {path: "gpth_process_explanations/06_GPTH_find_and_merge_album_relationships.md", label: "11.6 Find Albums"},
+            {path: "gpth_process_explanations/07_GPTH_move_files_to_output_folder.md", label: "11.7 Move Files"},
+            {path: "gpth_process_explanations/08_GPTH_update_creation_time_windows_only.md", label: "11.8 Update Creation Time"},
         ];
         const dockerDeploymentSubDocs = [
-            {path: "docker-deployments/deploy-web-interface-from-docker.md", label: "11.1 Web Interface"},
-            {path: "docker-deployments/deploy-cli-interface-from-docker.md", label: "11.2 CLI Interface"},
+            {path: "docker-deployments/deploy-web-interface-from-docker.md", label: "12.1 Web Interface"},
+            {path: "docker-deployments/deploy-cli-interface-from-docker.md", label: "12.2 CLI Interface"},
         ];
         const otherFeaturesSubDocs = [
-            {anchor: "find-duplicates-extra-feature", label: "9.1 Find Duplicates"},
-            {anchor: "process-duplicates-extra-feature", label: "9.2 Process Duplicates"},
-            {anchor: "fix-symbolic-links-broken-extra-feature", label: "9.3 Fix Symbolic Links Broken"},
-            {anchor: "folder-rename-content-based-extra-feature", label: "9.4 Folder Rename Content Based"},
+            {anchor: "find-duplicates-extra-feature", label: "10.1 Find Duplicates"},
+            {anchor: "process-duplicates-extra-feature", label: "10.2 Process Duplicates"},
+            {anchor: "fix-symbolic-links-broken-extra-feature", label: "10.3 Fix Symbolic Links Broken"},
+            {anchor: "folder-rename-content-based-extra-feature", label: "10.4 Folder Rename Content Based"},
         ];
         const nextcloudSubDocs = [
-            {anchor: "upload-albums-from-local-folder-into-nextcloud-photos", label: "7.1 Upload Albums"},
-            {anchor: "download-albums-from-nextcloud-photos", label: "7.2 Download Albums"},
-            {anchor: "upload-all-from-local-folder-into-nextcloud-photos", label: "7.3 Upload All"},
-            {anchor: "download-all-from-nextcloud-photos", label: "7.4 Download All"},
-            {anchor: "remove-all-assets-from-nextcloud-photos", label: "7.5 Remove All Assets"},
-            {anchor: "remove-all-albums-from-nextcloud-photos", label: "7.6 Remove All Albums"},
-            {anchor: "remove-albums-by-name-pattern-from-nextcloud-photos", label: "7.7 Remove Albums by Pattern"},
-            {anchor: "rename-albums-by-name-pattern-from-nextcloud-photos", label: "7.8 Rename Albums by Pattern"},
-            {anchor: "remove-empty-albums-from-nextcloud-photos", label: "7.9 Remove Empty Albums"},
-            {anchor: "remove-duplicates-albums-from-nextcloud-photos", label: "7.10 Remove Duplicates Albums"},
-            {anchor: "merge-duplicates-albums-from-nextcloud-photos", label: "7.11 Merge Duplicates Albums"},
+            {anchor: "upload-albums-from-local-folder-into-nextcloud-photos", label: "9.1 Upload Albums"},
+            {anchor: "download-albums-from-nextcloud-photos", label: "9.2 Download Albums"},
+            {anchor: "upload-all-from-local-folder-into-nextcloud-photos", label: "9.3 Upload All"},
+            {anchor: "download-all-from-nextcloud-photos", label: "9.4 Download All"},
+            {anchor: "remove-all-assets-from-nextcloud-photos", label: "9.5 Remove All Assets"},
+            {anchor: "remove-all-albums-from-nextcloud-photos", label: "9.6 Remove All Albums"},
+            {anchor: "remove-albums-by-name-pattern-from-nextcloud-photos", label: "9.7 Remove Albums by Pattern"},
+            {anchor: "rename-albums-by-name-pattern-from-nextcloud-photos", label: "9.8 Rename Albums by Pattern"},
+            {anchor: "remove-empty-albums-from-nextcloud-photos", label: "9.9 Remove Empty Albums"},
+            {anchor: "remove-duplicates-albums-from-nextcloud-photos", label: "9.10 Remove Duplicates Albums"},
+            {anchor: "merge-duplicates-albums-from-nextcloud-photos", label: "9.11 Merge Duplicates Albums"},
         ];
         const googlePhotosSubDocs = [
-            {anchor: "upload-albums", label: "8.1 Upload Albums"},
-            {anchor: "download-albums", label: "8.2 Download Albums"},
-            {anchor: "upload-all", label: "8.3 Upload All"},
-            {anchor: "download-all", label: "8.4 Download All"},
+            {anchor: "upload-albums", label: "5.1 Upload Albums"},
+            {anchor: "download-albums", label: "5.2 Download Albums"},
+            {anchor: "upload-all", label: "5.3 Upload All"},
+            {anchor: "download-all", label: "5.4 Download All"},
         ];
         const synologySubDocs = [
-            {anchor: "upload-albums-from-local-folder-into-synology-photos", label: "5.1 Upload Albums"},
-            {anchor: "download-albums-from-synology-photos", label: "5.2 Download Albums"},
-            {anchor: "upload-all-from-local-folder-into-synology-photos", label: "5.3 Upload All"},
-            {anchor: "download-all-from-synology-photos", label: "5.4 Download All"},
-            {anchor: "remove-all-assets-from-synology-photos", label: "5.5 Remove All Assets"},
-            {anchor: "remove-all-albums-from-synology-photos", label: "5.6 Remove All Albums"},
-            {anchor: "remove-albums-by-name-pattern-from-synology-photos", label: "5.7 Remove Albums by Pattern"},
-            {anchor: "rename-albums-by-name-pattern-from-synology-photos", label: "5.8 Rename Albums by Pattern"},
-            {anchor: "remove-empty-albums-from-synology-photos", label: "5.9 Remove Empty Albums"},
-            {anchor: "remove-duplicates-albums-from-synology-photos", label: "5.10 Remove Duplicates Albums"},
-            {anchor: "merge-duplicates-albums-from-synology-photos", label: "5.11 Merge Duplicates Albums"},
+            {anchor: "upload-albums-from-local-folder-into-synology-photos", label: "7.1 Upload Albums"},
+            {anchor: "download-albums-from-synology-photos", label: "7.2 Download Albums"},
+            {anchor: "upload-all-from-local-folder-into-synology-photos", label: "7.3 Upload All"},
+            {anchor: "download-all-from-synology-photos", label: "7.4 Download All"},
+            {anchor: "remove-all-assets-from-synology-photos", label: "7.5 Remove All Assets"},
+            {anchor: "remove-all-albums-from-synology-photos", label: "7.6 Remove All Albums"},
+            {anchor: "remove-albums-by-name-pattern-from-synology-photos", label: "7.7 Remove Albums by Pattern"},
+            {anchor: "rename-albums-by-name-pattern-from-synology-photos", label: "7.8 Rename Albums by Pattern"},
+            {anchor: "remove-empty-albums-from-synology-photos", label: "7.9 Remove Empty Albums"},
+            {anchor: "remove-duplicates-albums-from-synology-photos", label: "7.10 Remove Duplicates Albums"},
+            {anchor: "merge-duplicates-albums-from-synology-photos", label: "7.11 Merge Duplicates Albums"},
         ];
         const immichSubDocs = [
-            {anchor: "upload-albums-from-local-folder-into-immich-photos", label: "6.1 Upload Albums"},
-            {anchor: "download-albums-from-immich-photos", label: "6.2 Download Albums"},
-            {anchor: "upload-all-from-local-folder-into-immich-photos", label: "6.3 Upload All"},
-            {anchor: "download-all-from-immich-photos", label: "6.4 Download All"},
-            {anchor: "remove-all-assets-from-immich-photos", label: "6.5 Remove All Assets"},
-            {anchor: "remove-all-albums-from-immich-photos", label: "6.6 Remove All Albums"},
-            {anchor: "remove-albums-by-name-pattern-from-immich-photos", label: "6.7 Remove Albums by Pattern"},
-            {anchor: "rename-albums-by-name-pattern-from-immich-photos", label: "6.8 Rename Albums by Pattern"},
-            {anchor: "remove-empty-albums-from-immich-photos", label: "6.9 Remove Empty Albums"},
-            {anchor: "remove-duplicates-albums-from-immich-photos", label: "6.10 Remove Duplicates Albums"},
-            {anchor: "merge-duplicates-albums-from-immich-photos", label: "6.11 Merge Duplicates Albums"},
-            {anchor: "remove-orphans-assets-from-immich-photos", label: "6.12 Remove Orphans Assets"},
+            {anchor: "upload-albums-from-local-folder-into-immich-photos", label: "8.1 Upload Albums"},
+            {anchor: "download-albums-from-immich-photos", label: "8.2 Download Albums"},
+            {anchor: "upload-all-from-local-folder-into-immich-photos", label: "8.3 Upload All"},
+            {anchor: "download-all-from-immich-photos", label: "8.4 Download All"},
+            {anchor: "remove-all-assets-from-immich-photos", label: "8.5 Remove All Assets"},
+            {anchor: "remove-all-albums-from-immich-photos", label: "8.6 Remove All Albums"},
+            {anchor: "remove-albums-by-name-pattern-from-immich-photos", label: "8.7 Remove Albums by Pattern"},
+            {anchor: "rename-albums-by-name-pattern-from-immich-photos", label: "8.8 Rename Albums by Pattern"},
+            {anchor: "remove-empty-albums-from-immich-photos", label: "8.9 Remove Empty Albums"},
+            {anchor: "remove-duplicates-albums-from-immich-photos", label: "8.10 Remove Duplicates Albums"},
+            {anchor: "merge-duplicates-albums-from-immich-photos", label: "8.11 Merge Duplicates Albums"},
+            {anchor: "remove-orphans-assets-from-immich-photos", label: "8.12 Remove Orphans Assets"},
         ];
         const fallbackDocs = [...baseDocs];
         const preferredOrder = {
@@ -846,13 +847,14 @@
             "2-arguments-description.md": 31,
             "3-automatic-migration.md": 50,
             "4-google-takeout.md": 60,
-            "5-synology-photos.md": 70,
-            "6-immich-photos.md": 80,
-            "7-nextcloud-photos.md": 90,
-            "8-google-photos.md": 100,
-            "9-other-features.md": 110,
-            "10-gpth-complete-pipeline.md": 120,
-            "11-docker-deployment.md": 130,
+            "5-google-photos.md": 70,
+            "6-icloud-takeout.md": 80,
+            "7-synology-photos.md": 90,
+            "8-immich-photos.md": 100,
+            "9-nextcloud-photos.md": 110,
+            "10-other-features.md": 120,
+            "11-gpth-complete-pipeline.md": 130,
+            "12-docker-deployment.md": 140,
         };
         try {
             const response = await fetch(HELP_INDEX_API_URL);
@@ -897,32 +899,32 @@
                         addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                     }
                 }
-                if (key === "7-nextcloud-photos.md") {
+                if (key === "9-nextcloud-photos.md") {
                     const items = nextcloudSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "8-google-photos.md") {
+                if (key === "5-google-photos.md") {
                     const items = googlePhotosSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "9-other-features.md") {
+                if (key === "10-other-features.md") {
                     const items = otherFeaturesSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "5-synology-photos.md") {
+                if (key === "7-synology-photos.md") {
                     const items = synologySubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "6-immich-photos.md") {
+                if (key === "8-immich-photos.md") {
                     const items = immichSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "10-gpth-complete-pipeline.md") {
+                if (key === "11-gpth-complete-pipeline.md") {
                     const items = [];
                     gpthSubDocs.forEach((sub) => {
                         const subKey = normalizePath(sub.path);
@@ -934,7 +936,7 @@
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "11-docker-deployment.md") {
+                if (key === "12-docker-deployment.md") {
                     const items = [];
                     dockerDeploymentSubDocs.forEach((sub) => {
                         const subKey = normalizePath(sub.path);
@@ -972,32 +974,32 @@
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "7-nextcloud-photos.md") {
+                    if (String(docPath).toLowerCase() === "9-nextcloud-photos.md") {
                         const items = nextcloudSubDocs.map((sub) => ({label: sub.label, url: `${url}#${sub.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "8-google-photos.md") {
+                    if (String(docPath).toLowerCase() === "5-google-photos.md") {
                         const items = googlePhotosSubDocs.map((sub) => ({label: sub.label, url: `${url}#${sub.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "9-other-features.md") {
+                    if (String(docPath).toLowerCase() === "10-other-features.md") {
                         const items = otherFeaturesSubDocs.map((otherSub) => ({label: otherSub.label, url: `${url}#${otherSub.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "5-synology-photos.md") {
+                    if (String(docPath).toLowerCase() === "7-synology-photos.md") {
                         const items = synologySubDocs.map((subDoc) => ({label: subDoc.label, url: `${url}#${subDoc.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "6-immich-photos.md") {
+                    if (String(docPath).toLowerCase() === "8-immich-photos.md") {
                         const items = immichSubDocs.map((subDoc) => ({label: subDoc.label, url: `${url}#${subDoc.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "10-gpth-complete-pipeline.md") {
+                    if (String(docPath).toLowerCase() === "11-gpth-complete-pipeline.md") {
                         const items = gpthSubDocs.map((gpthSub) => ({
                             label: gpthSub.label,
                             url: `/docs/view/help/${gpthSub.path}`
@@ -1005,7 +1007,7 @@
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "11-docker-deployment.md") {
+                    if (String(docPath).toLowerCase() === "12-docker-deployment.md") {
                         const items = dockerDeploymentSubDocs.map((dockerSub) => ({
                             label: dockerSub.label,
                             url: `/docs/view/help/${dockerSub.path}`
