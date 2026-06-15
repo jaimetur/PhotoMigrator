@@ -290,17 +290,30 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 text_to_insert = wrap_text(text_to_insert) + '\n\n'
                 parts.insert(-1, f"{text_to_insert}")
 
+            # Insert section header: iCLOUD TAKEOUT MANAGEMENT
+            if help_text.find("Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER>") != -1:
+                text_to_insert = textwrap.dedent(f"""
+                {Fore.YELLOW}
+                iCLOUD TAKEOUT MANAGEMENT:
+                --------------------------{Style.RESET_ALL}
+                Following arguments allow you to interact with Apple iCloud Photos export folders.
+                In this mode, you can use more than one optional arguments from the below list.
+                If only the argument -iTakeout, --icloud-takeout <ICLOUD_EXPORT_FOLDER> is detected, then the Tool will use the default values for the rest of the arguments for this extra mode.
+                """)
+                text_to_insert = wrap_text(text_to_insert) + '\n\n'
+                parts.insert(-1, f"{text_to_insert}")
+
             # Insert section header: SYNOLOGY/IMMICH PHOTOS MANAGEMENT
             if help_text.find("Upload albums from <ALBUMS_FOLDER>") != -1:
                 text_to_insert = textwrap.dedent(f"""
                 {Fore.YELLOW}
-                SYNOLOGY/IMMICH/NEXTCLOUD/GOOGLE PHOTOS MANAGEMENT:
+                GOOGLE PHOTOS/SYNOLOGY/IMMICH/NEXTCLOUD MANAGEMENT:
                 ---------------------------------------------------{Style.RESET_ALL}
                 To use following features, it is mandatory to use the argument '--client=[synology, immich, nextcloud, google-photos]' to specify which Photo Service do you want to use.  
 
                 You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.                  
 
-                Following arguments allow you to interact with Synology/Immich/NextCloud/Google Photos. 
+                Following arguments allow you to interact with Google Photos, Synology, Immich, and NextCloud. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 text_to_insert = wrap_text(text_to_insert) + '\n\n'

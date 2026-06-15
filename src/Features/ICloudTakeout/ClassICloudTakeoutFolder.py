@@ -62,6 +62,23 @@ class ClassICloudTakeoutFolder:
         return self.input_folder
 
     @staticmethod
+    def _path_key(path_obj: Path) -> str:
+        return Path(path_obj).resolve().as_posix()
+
+    @classmethod
+    def _scope_root_for_path(cls, path_obj: Path) -> Path:
+        path_obj = Path(path_obj).resolve()
+        anchor = path_obj.parent if path_obj.is_file() else path_obj
+        parts = list(anchor.parts)
+        parts_norm = [cls._normalized_name(part) for part in parts]
+        for marker in ("photos", "albums", "memories"):
+            if marker in parts_norm:
+                idx = parts_norm.index(marker)
+                if idx > 0:
+                    return Path(*parts[:idx]).resolve()
+        return anchor
+
+    @staticmethod
     def _normalized_name(value):
         return str(value or "").strip().casefold()
 
@@ -158,6 +175,8 @@ class ClassICloudTakeoutFolder:
         rows = []
         for csv_path in csv_files:
             try:
+                csv_folder = csv_path.parent.resolve()
+                scope_root = self._scope_root_for_path(csv_path)
                 with open(csv_path, "r", encoding="utf-8-sig", newline="") as handle:
                     reader = csv.DictReader(handle)
                     for row in reader:
@@ -178,17 +197,33 @@ class ClassICloudTakeoutFolder:
                                 "hidden": str((row or {}).get("hidden", "") or "").strip(),
                                 "deleted": str((row or {}).get("deleted", "") or "").strip(),
                                 "source_csv": str(csv_path),
+                                "csv_folder_key": self._path_key(csv_folder),
+                                "scope_key": self._path_key(scope_root),
                             }
                         )
             except Exception as exc:
                 LOGGER.warning(f"Could not parse iCloud Photo Details CSV '{csv_path}': {exc}")
         return rows
 
+    def _build_source_indexes(self, source_records):
+        by_name = defaultdict(list)
+        by_folder_name = defaultdict(lambda: defaultdict(list))
+        by_scope_name = defaultdict(lambda: defaultdict(list))
+        for record in source_records:
+            basename_key = record["basename_key"]
+            by_name[basename_key].append(record)
+            by_folder_name[record["source_folder_key"]][basename_key].append(record)
+            by_scope_name[record["scope_key"]][basename_key].append(record)
+        return {
+            "by_name": by_name,
+            "by_folder_name": by_folder_name,
+            "by_scope_name": by_scope_name,
+        }
+
     def _stage_original_assets(self, input_folder: Path, step_name="", log_level=None):
         with set_log_level(LOGGER, log_level):
             self.no_albums_folder.mkdir(parents=True, exist_ok=True)
             source_records = []
-            by_name = defaultdict(list)
             for source_path in tqdm(
                 self._iter_media_files(input_folder),
                 desc=f"[INFO] {step_name}Staging iCloud assets",
@@ -203,12 +238,13 @@ class ClassICloudTakeoutFolder:
                     "dest": dest_path.resolve(),
                     "basename": source_path.name,
                     "basename_key": self._normalized_name(source_path.name),
+                    "source_folder_key": self._path_key(source_path.parent),
+                    "scope_key": self._path_key(self._scope_root_for_path(source_path)),
                     "suffix": source_path.suffix.lower(),
                     "checksum_cache": None,
                 }
                 source_records.append(record)
-                by_name[record["basename_key"]].append(record)
-            return source_records, by_name
+            return source_records, self._build_source_indexes(source_records)
 
     def _record_checksum_variants(self, record):
         if record.get("checksum_cache") is not None:
@@ -226,9 +262,15 @@ class ClassICloudTakeoutFolder:
             record["checksum_cache"] = set()
         return record["checksum_cache"]
 
-    def _match_row_to_records(self, row, by_name):
+    def _match_row_to_records(self, row, source_index):
         basename_key = self._normalized_name(row.get("img_name"))
-        candidates = list(by_name.get(basename_key, []))
+        candidates = list(
+            source_index["by_folder_name"].get(row.get("csv_folder_key", ""), {}).get(basename_key, [])
+        )
+        if not candidates:
+            candidates = list(
+                source_index["by_scope_name"].get(row.get("scope_key", ""), {}).get(basename_key, [])
+            )
         if not candidates:
             return []
         checksum = self._normalized_checksum(row.get("checksum"))
@@ -343,14 +385,12 @@ class ClassICloudTakeoutFolder:
             Path(old_path).resolve().as_posix(): Path(new_path).resolve()
             for old_path, new_path in replacements
         }
-        by_name = defaultdict(list)
         for record in source_records:
             current_dest = Path(record["dest"]).resolve()
             replacement = replacement_map.get(current_dest.as_posix())
             if replacement is not None:
                 record["dest"] = replacement
-            by_name[record["basename_key"]].append(record)
-        return by_name
+        return self._build_source_indexes(source_records)
 
     def _organize_originals(self, source_records, extracted_dates, step_name="", log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -379,7 +419,7 @@ class ClassICloudTakeoutFolder:
             os.symlink(source_path, final_path)
         return final_path
 
-    def _build_collection_from_csvs(self, csv_files, source_by_name, root_folder: Path, structure: str, step_name="", log_level=None):
+    def _build_collection_from_csvs(self, csv_files, source_index, root_folder: Path, structure: str, step_name="", log_level=None):
         with set_log_level(LOGGER, log_level):
             use_copy = self.ARGS.get("icloud-no-symbolic-albums", False)
             created_collections = 0
@@ -389,10 +429,12 @@ class ClassICloudTakeoutFolder:
                 if not members:
                     continue
                 collection_folder = root_folder / collection_name
+                scope_key = self._path_key(self._scope_root_for_path(csv_path))
                 seen_sources = set()
                 for member_name in members:
                     member_key = self._normalized_name(member_name)
-                    for record in source_by_name.get(member_key, []):
+                    scope_matches = source_index["by_scope_name"].get(scope_key, {}).get(member_key, [])
+                    for record in scope_matches:
                         source_dest = Path(record["dest"]).resolve()
                         source_key = source_dest.as_posix()
                         if source_key in seen_sources:
@@ -460,24 +502,24 @@ class ClassICloudTakeoutFolder:
             LOGGER.info(f"{step_name}Memory CSV files found        : {len(memory_csvs)}")
 
             step_name = "[iCloud PROCESS]-[Stage Media] : "
-            source_records, source_by_name = self._stage_original_assets(self.input_folder, step_name=step_name, log_level=LOG_LEVEL)
+            source_records, source_index = self._stage_original_assets(self.input_folder, step_name=step_name, log_level=LOG_LEVEL)
             LOGGER.info(f"{step_name}Media assets staged into '{self.no_albums_folder}': {len(source_records)}")
 
             step_name = "[iCloud PROCESS]-[Read Photo Details] : "
             photo_rows = self._load_photo_details_rows(photo_details_csvs)
             LOGGER.info(f"{step_name}Rows loaded from Photo Details CSV files: {len(photo_rows)}")
-            matched_rows = [(row, self._match_row_to_records(row, source_by_name)) for row in photo_rows]
+            matched_rows = [(row, self._match_row_to_records(row, source_index)) for row in photo_rows]
 
             step_name = "[iCloud PROCESS]-[Write Dates] : "
             extracted_dates = self._apply_dates(matched_rows, step_name=step_name, log_level=LOG_LEVEL)
 
             step_name = "[iCloud POST]-[Organize ALL_PHOTOS] : "
-            source_by_name = self._organize_originals(source_records, extracted_dates, step_name=step_name, log_level=LOG_LEVEL)
+            source_index = self._organize_originals(source_records, extracted_dates, step_name=step_name, log_level=LOG_LEVEL)
 
             step_name = "[iCloud POST]-[Build Albums] : "
             album_count = self._build_collection_from_csvs(
                 csv_files=album_csvs,
-                source_by_name=source_by_name,
+                source_index=source_index,
                 root_folder=self.albums_folder,
                 structure=self.ARGS.get("icloud-albums-folders-structure", "flatten"),
                 step_name=step_name,
@@ -490,7 +532,7 @@ class ClassICloudTakeoutFolder:
                 step_name = "[iCloud POST]-[Build Memories] : "
                 memories_count = self._build_collection_from_csvs(
                     csv_files=memory_csvs,
-                    source_by_name=source_by_name,
+                    source_index=source_index,
                     root_folder=self.memories_folder,
                     structure=self.ARGS.get("icloud-albums-folders-structure", "flatten"),
                     step_name=step_name,

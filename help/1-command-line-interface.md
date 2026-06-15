@@ -253,7 +253,35 @@ for the rest of the arguments for this extra mode.
                Skip saving GPTH log messages into output folder.
 
 
-SYNOLOGY/IMMICH/NEXTCLOUD/GOOGLE PHOTOS MANAGEMENT:
+iCLOUD TAKEOUT MANAGEMENT:
+--------------------------
+Following arguments allow you to interact with Apple iCloud Photos export folders.
+In this mode, you can use more than one optional arguments from the below list.
+If only the argument -iTakeout, --icloud-takeout <ICLOUD_EXPORT_FOLDER> is detected, then the Tool will use the
+default values for the rest of the arguments for this extra mode.
+
+-iTakeout    ; --icloud-takeout <ICLOUD_EXPORT_FOLDER>
+               Process an Apple iCloud Photos export folder <ICLOUD_EXPORT_FOLDER> to recover dates from
+               'Photo Details.csv' files, assign those dates to the media files, and organize assets.
+               If any ZIP file is found inside it, the ZIPs will be extracted first into
+               '<ICLOUD_EXPORT_FOLDER>_unzipped_<TIMESTAMP>', and that folder will be used as input.
+               The processed export will be saved into the folder '<ICLOUD_EXPORT_FOLDER>_processed_<TIMESTAMP>'.
+-iofs        ; --icloud-output-folder-suffix <SUFFIX>
+               Specify the suffix for the iCloud processed output folder. Default: 'processed'.
+-iafs        ; --icloud-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
+               Specify the folder structure type for each reconstructed iCloud Album folder (Default: 'flatten').
+-inas        ; --icloud-no-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
+               Specify the folder structure type for '<NO_ALBUMS_FOLDER>' folders generated from iCloud exports
+               (Default: 'year/month').
+-insa        ; --icloud-no-symbolic-albums
+               Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within
+               <NO_ALBUMS_FOLDER>.
+-iMem        ; --icloud-include-memories
+               Also reconstruct iCloud 'Memories' CSV collections as folders. Disabled by default because exports can
+               contain thousands of them.
+
+
+GOOGLE PHOTOS/SYNOLOGY/IMMICH/NEXTCLOUD MANAGEMENT:
 ---------------------------------------------------
 To use following features, it is mandatory to use the argument '--client=[synology, immich, nextcloud, google-photos]'
 to specify which Photo Service do you want to use.
@@ -261,7 +289,7 @@ to specify which Photo Service do you want to use.
 You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in
 Config.ini.
 
-Following arguments allow you to interact with Synology/Immich/NextCloud/Google Photos.
+Following arguments allow you to interact with Google Photos, Synology, Immich, and NextCloud.
 If more than one optional arguments are detected, only the first one will be executed.
 
 -uAlb        ; --upload-albums <ALBUMS_FOLDER>

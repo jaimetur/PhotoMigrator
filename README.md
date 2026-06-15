@@ -94,21 +94,21 @@ The whole process is done in an automatic way and is divided in different steps 
 >
 > [**(Google Takeout Fixing Documentation)**](/help/4-google-takeout.md)
 
-## 🖼️ 3. Google Photos / iCloud Takeout / Synology Photos / Immich Photos / NextCloud Photos
-Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can also use the tool to manage Google Photos, preprocess iCloud Photos exports, and manage different Photo Cloud Services.
+## 🖼️ 3. iCloud Takeout / Google Photos / Synology Photos / Immich Photos / NextCloud Photos
+Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can also use the tool to preprocess iCloud Photos exports, manage Google Photos, and manage different Photo Cloud Services.
 
-- **Google Photos** supports direct upload/download operations through the official API.
 - **iCloud Takeout** is a local export-processing module that fixes dates and metadata from Apple privacy exports before uploading to another target service.
+- **Google Photos** supports direct upload/download operations through the official API.
 - **Synology Photos**, **Immich Photos**, and **NextCloud Photos** provide cloud management and migration operations.
 
 Currently, the Features Supported per each Photo Cloud Service are:
 
   | Feature                         | Google Photos                                   | Synology                                                                               | Immich                                                                             | Nextcloud                                                                                |
   |---------------------------------|-------------------------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-  | Upload Album(s) (from folder)   | [doc](/help/5-google-photos.md#upload-albums)   | [doc](/help/7-synology-photos.md#upload-albums-from-local-folder-into-synology-photos) | [doc](/help/8-immich-photos.md#upload-albums-from-local-folder-into-immich-photos) | [doc](/help/9-nextcloud-photos.md#upload-albums-from-local-folder-into-nextcloud-photos) |
-  | Download Album(s) (into folder) | [doc](/help/5-google-photos.md#download-albums) | [doc](/help/7-synology-photos.md#download-albums-from-synology-photos)                 | [doc](/help/8-immich-photos.md#download-albums-from-immich-photos)                 | [doc](/help/9-nextcloud-photos.md#download-albums-from-nextcloud-photos)                 |
-  | Upload ALL (from folder)        | [doc](/help/5-google-photos.md#upload-all)      | [doc](/help/7-synology-photos.md#upload-all-from-local-folder-into-synology-photos)    | [doc](/help/8-immich-photos.md#upload-all-from-local-folder-into-immich-photos)    | [doc](/help/9-nextcloud-photos.md#upload-all-from-local-folder-into-nextcloud-photos)    |
-  | Download ALL (into folder)      | [doc](/help/5-google-photos.md#download-all)    | [doc](/help/7-synology-photos.md#download-all-from-synology-photos)                    | [doc](/help/8-immich-photos.md#download-all-from-immich-photos)                    | [doc](/help/9-nextcloud-photos.md#download-all-from-nextcloud-photos)                    |
+  | Upload Album(s) (from folder)   | [doc](/help/6-google-photos.md#upload-albums)   | [doc](/help/7-synology-photos.md#upload-albums-from-local-folder-into-synology-photos) | [doc](/help/8-immich-photos.md#upload-albums-from-local-folder-into-immich-photos) | [doc](/help/9-nextcloud-photos.md#upload-albums-from-local-folder-into-nextcloud-photos) |
+  | Download Album(s) (into folder) | [doc](/help/6-google-photos.md#download-albums) | [doc](/help/7-synology-photos.md#download-albums-from-synology-photos)                 | [doc](/help/8-immich-photos.md#download-albums-from-immich-photos)                 | [doc](/help/9-nextcloud-photos.md#download-albums-from-nextcloud-photos)                 |
+  | Upload ALL (from folder)        | [doc](/help/6-google-photos.md#upload-all)      | [doc](/help/7-synology-photos.md#upload-all-from-local-folder-into-synology-photos)    | [doc](/help/8-immich-photos.md#upload-all-from-local-folder-into-immich-photos)    | [doc](/help/9-nextcloud-photos.md#upload-all-from-local-folder-into-nextcloud-photos)    |
+  | Download ALL (into folder)      | [doc](/help/6-google-photos.md#download-all)    | [doc](/help/7-synology-photos.md#download-all-from-synology-photos)                    | [doc](/help/8-immich-photos.md#download-all-from-immich-photos)                    | [doc](/help/9-nextcloud-photos.md#download-all-from-nextcloud-photos)                    |
   | Remove ALL Assets               | Not supported by API                            | [doc](/help/7-synology-photos.md#remove-all-assets-from-synology-photos)               | [doc](/help/8-immich-photos.md#remove-all-assets-from-immich-photos)               | [doc](/help/9-nextcloud-photos.md#remove-all-assets-from-nextcloud-photos)               |
   | Remove ALL Albums               | Not supported by API                            | [doc](/help/7-synology-photos.md#remove-all-albums-from-synology-photos)               | [doc](/help/8-immich-photos.md#remove-all-albums-from-immich-photos)               | [doc](/help/9-nextcloud-photos.md#remove-all-albums-from-nextcloud-photos)               |
   | Remove Albums by Name Pattern   | Not supported by API                            | [doc](/help/7-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)   | [doc](/help/8-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)   | [doc](/help/9-nextcloud-photos.md#remove-albums-by-name-pattern-from-nextcloud-photos)   |
@@ -121,9 +121,9 @@ Currently, the Features Supported per each Photo Cloud Service are:
 > [!NOTE]
 > For more info you can check the feature documentation in below links:
 >
->- [**(Google Photos Documentation)**](/help/5-google-photos.md)
+>- [**(iCloud Takeout Documentation)**](/help/5-icloud-takeout.md)
 >
->- [**(iCloud Takeout Documentation)**](/help/6-icloud-takeout.md)
+>- [**(Google Photos Documentation)**](/help/6-google-photos.md)
 >
 >- [**(Synology Photos Documentation)**](/help/7-synology-photos.md)
 > 
@@ -161,8 +161,8 @@ Main characteristics:
 - Multi-tab UI separated by module:
   - Automatic Migration
   - Google Takeout
-  - Google Photos
   - iCloud Takeout
+  - Google Photos
   - Synology Photos
   - Immich Photos
   - NextCloud Photos
@@ -222,8 +222,8 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [Arguments Description](/help/2-arguments-description.md)  
 - [Automatic Migration Feature](/help/3-automatic-migration.md)  
 - [Google Takeout Management](/help/4-google-takeout.md)  
-- [Google Photos Management](/help/5-google-photos.md)
-- [iCloud Takeout Management](/help/6-icloud-takeout.md)
+- [iCloud Takeout Management](/help/5-icloud-takeout.md)
+- [Google Photos Management](/help/6-google-photos.md)
 - [Synology Photos Management](/help/7-synology-photos.md)  
 - [Immich Photos Management](/help/8-immich-photos.md)  
 - [NextCloud Photos Management](/help/9-nextcloud-photos.md)  

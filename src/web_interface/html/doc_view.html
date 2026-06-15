@@ -760,8 +760,8 @@
             "2-arguments-description-short.md",
             "3-automatic-migration.md",
             "4-google-takeout.md",
-            "5-google-photos.md",
-            "6-icloud-takeout.md",
+            "5-icloud-takeout.md",
+            "6-google-photos.md",
             "7-synology-photos.md",
             "8-immich-photos.md",
             "9-nextcloud-photos.md",
@@ -807,10 +807,10 @@
             {anchor: "merge-duplicates-albums-from-nextcloud-photos", label: "9.11 Merge Duplicates Albums"},
         ];
         const googlePhotosSubDocs = [
-            {anchor: "upload-albums", label: "5.1 Upload Albums"},
-            {anchor: "download-albums", label: "5.2 Download Albums"},
-            {anchor: "upload-all", label: "5.3 Upload All"},
-            {anchor: "download-all", label: "5.4 Download All"},
+            {anchor: "upload-albums", label: "6.1 Upload Albums"},
+            {anchor: "download-albums", label: "6.2 Download Albums"},
+            {anchor: "upload-all", label: "6.3 Upload All"},
+            {anchor: "download-all", label: "6.4 Download All"},
         ];
         const synologySubDocs = [
             {anchor: "upload-albums-from-local-folder-into-synology-photos", label: "7.1 Upload Albums"},
@@ -847,8 +847,8 @@
             "2-arguments-description.md": 31,
             "3-automatic-migration.md": 50,
             "4-google-takeout.md": 60,
-            "5-google-photos.md": 70,
-            "6-icloud-takeout.md": 80,
+            "5-icloud-takeout.md": 70,
+            "6-google-photos.md": 80,
             "7-synology-photos.md": 90,
             "8-immich-photos.md": 100,
             "9-nextcloud-photos.md": 110,
@@ -904,7 +904,7 @@
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "5-google-photos.md") {
+                if (key === "6-google-photos.md") {
                     const items = googlePhotosSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
@@ -979,7 +979,7 @@
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "5-google-photos.md") {
+                    if (String(docPath).toLowerCase() === "6-google-photos.md") {
                         const items = googlePhotosSubDocs.map((sub) => ({label: sub.label, url: `${url}#${sub.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);

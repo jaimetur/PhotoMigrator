@@ -55,8 +55,8 @@ CONFIG_SECTIONS_ORDER = [
     "TimeZone",
     "Web Interface",
     "Google Takeout",
-    "Google Photos",
     "iCloud Takeout",
+    "Google Photos",
     "Synology Photos",
     "Immich Photos",
     "NextCloud Photos",
@@ -1568,7 +1568,7 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
                     "Configuration for google takeout. Configure execution options for this module from Feature Selector > Google Takeout tab."
                     if section_name == "Google Takeout"
                     else
-                    "Configuration for icloud takeout. Configure execution options for this module from Feature Selector > iCloud Takeout tab."
+                    "Configuration for iCloud Takeout. Configure execution options for this module from Feature Selector > iCloud Takeout tab."
                     if section_name == "iCloud Takeout"
                     else
                     "Time zone used by PhotoMigrator to interpret and display date/time values in logs and date-based operations."

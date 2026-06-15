@@ -27,8 +27,8 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - Main module selection:
   - Automatic Migration
   - Google Takeout
-  - Google Photos
   - iCloud Takeout
+  - Google Photos
   - Synology Photos
   - Immich Photos
   - NextCloud Photos
@@ -59,8 +59,8 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - [Web Interface from Docker](/docs/view/help/docker-deployments/deploy-web-interface-from-docker.md)
 - [Automatic Migration](/docs/view/help/3-automatic-migration.md)
 - [Google Takeout](/docs/view/help/4-google-takeout.md)
-- [Google Photos](/docs/view/help/5-google-photos.md)
-- [iCloud Takeout](/docs/view/help/6-icloud-takeout.md)
+- [iCloud Takeout](/docs/view/help/5-icloud-takeout.md)
+- [Google Photos](/docs/view/help/6-google-photos.md)
 - [Synology Photos](/docs/view/help/7-synology-photos.md)
 - [Immich Photos](/docs/view/help/8-immich-photos.md)
 - [NextCloud Photos](/docs/view/help/9-nextcloud-photos.md)

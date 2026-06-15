@@ -114,12 +114,41 @@ PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTakeout=true
 ```
 
 ---
-## 🖼️ Synology / Immich / NextCloud / Google Photos Management
+## 🍎 iCloud Takeout Management
+In this mode, you can use more than one optional arguments and flags from the below list.
+If only the argument `-iTakeout, --icloud-takeout <ICLOUD_EXPORT_FOLDER>` is detected, then the Tool will use the default values for the rest of the flags for this extra mode.
+
+Following arguments allow you to interact with Apple iCloud Photos export folders.
+
+| Argument                                           | Parameter                |  Type  |                                     Valid Values                                      | Description                                                                                                          |
+|----------------------------------------------------|--------------------------|:------:|:-------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------|
+| `-iTakeout`,<br>`--icloud-takeout`                 | `<ICLOUD_EXPORT_FOLDER>` |  path  |                                                                                       | Path to the iCloud export folder (either zipped or unzipped) to process.                                             |
+| `-iofs`,<br>`--icloud-output-folder-suffix`        | `<SUFFIX>`               | string |                               `(default: 'processed')`                                | Suffix to add to the iCloud processed output folder.                                                                 |
+| `-iafs`,<br>`--icloud-albums-folders-structure`    | `<STRUCTURE>`            | string |  `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: flatten)`   | Folder structure for reconstructed iCloud album folders.                                                             |
+| `-inas`,<br>`--icloud-no-albums-folders-structure` | `<STRUCTURE>`            | string | `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: year/month)` | Folder structure for `<NO_ALBUMS_FOLDER>` generated from iCloud exports.                                             |
+| `-insa`,<br>`--icloud-no-symbolic-albums`          |                          |  flag  |                                                                                       | Duplicate reconstructed iCloud album assets instead of creating symlinks to original assets in `<NO_ALBUMS_FOLDER>`. |
+| `-iMem`,<br>`--icloud-include-memories`            |                          |  flag  |                                                                                       | Also reconstruct iCloud `Memories` CSV collections as folders.                                                       |
+
+
+#### 🧪 Examples:
+```bash
+PhotoMigrator.run --icloud-takeout="/home/user/iCloudExport"
+PhotoMigrator.run --icloud-takeout="/home/user/iCloudExport" --icloud-no-symbolic-albums
+PhotoMigrator.run --icloud-takeout="/home/user/iCloudExport" --icloud-include-memories --icloud-albums-folders-structure=year/month
+
+or using short arguments,
+PhotoMigrator.run -iTakeout="/home/user/iCloudExport" -iofs="cleaned"
+PhotoMigrator.run -iTakeout="/home/user/iCloudExport" -iafs="year/month" -inas="year/month"
+PhotoMigrator.run -iTakeout="/home/user/iCloudExport" -insa -iMem
+```
+
+---
+## 🖼️ Google Photos / Synology / Immich / NextCloud Management
 To use following features, it is mandatory to use the argument `--client=[synology, immich, nextcloud, google-photos]` to specify which Photo Service do you want to use.  
 You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in `Config.ini`.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
-Following arguments allow you to interact with Synology/Immich/NextCloud/Google Photos.
+Following arguments allow you to interact with Google Photos, Synology, Immich, and NextCloud.
 
 | Argument                                    | Parameter                                       |       Type        |   Valid Values   | Description                                               |
 |---------------------------------------------|-------------------------------------------------|:-----------------:|:----------------:|-----------------------------------------------------------|
