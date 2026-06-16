@@ -1,4 +1,4 @@
-# iCloud Takeout Management
+# 🍎 iCloud Takeout Management
 
 From version 4.2.0 onwards, PhotoMigrator can process an Apple iCloud Photos export and recover asset dates from the CSV metadata that Apple includes in that export.
 
