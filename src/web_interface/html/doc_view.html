@@ -475,6 +475,11 @@
                 const currentRelPath = currentNormalized.slice(markerIndex + marker.length);
                 const currentDir = currentRelPath.includes("/") ? currentRelPath.slice(0, currentRelPath.lastIndexOf("/")) : "";
                 const resolved = joinNormalizedPath(currentDir, normalized);
+                const resolvedLower = resolved.toLowerCase();
+                if (resolvedLower === "readme.md") return `/docs/view/readme${anchor}`;
+                if (resolvedLower === "changelog.md") return `/docs/view/changelog${anchor}`;
+                if (resolvedLower === "roadmap.md") return `/docs/view/roadmap${anchor}`;
+                if (resolvedLower === "config.ini") return `/docs/view/config${anchor}`;
                 return `/docs/view/help/${resolved}${anchor}`;
             }
         }
@@ -506,6 +511,28 @@
         if (helpDocUrl) return helpDocUrl;
 
         let normalized = normalizePath(raw);
+        const currentNormalized = normalizePath(CURRENT_DOC_PATH || "");
+        const marker = "/help/";
+        const markerIndex = currentNormalized.toLowerCase().indexOf(marker);
+        if (markerIndex >= 0 && !normalized.startsWith("/")) {
+            const currentRelPath = currentNormalized.slice(markerIndex + marker.length);
+            const currentDir = currentRelPath.includes("/") ? currentRelPath.slice(0, currentRelPath.lastIndexOf("/")) : "";
+            const resolved = joinNormalizedPath(currentDir, normalized);
+            const resolvedLower = resolved.toLowerCase();
+            if (resolvedLower === "readme.md") return "/docs/view/readme";
+            if (resolvedLower === "changelog.md") return "/docs/view/changelog";
+            if (resolvedLower === "roadmap.md") return "/docs/view/roadmap";
+            if (resolvedLower === "config.ini") return "/docs/view/config";
+            if (resolvedLower.startsWith("assets/")) return `/${resolved}`;
+            if (
+                resolvedLower.startsWith("docker-web/")
+                || resolvedLower.startsWith("docker-cli/")
+                || resolvedLower.startsWith("src/")
+                || resolvedLower.startsWith("help/")
+            ) {
+                return `${REPO_BLOB_BASE}${resolved}`;
+            }
+        }
         const lowerNormalized = normalized.toLowerCase();
         if (lowerNormalized === "readme.md" || lowerNormalized.endsWith("/readme.md")) return "/docs/view/readme";
         if (lowerNormalized === "changelog.md" || lowerNormalized.endsWith("/changelog.md")) return "/docs/view/changelog";

@@ -74,7 +74,7 @@ You're all set! 🚀
 
 ---
 
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../../README.md)
 
 ---
 ## 🎖️ Credits:

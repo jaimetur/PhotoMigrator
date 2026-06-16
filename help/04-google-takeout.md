@@ -18,7 +18,7 @@ But this feature also helps you to organize and clean your Media Library removin
 
 The whole process is done in an automatic way and is divided in different steps (some of them are optionals).
 
-In the following link you can find the [Complete Pipeline and features of GPTH Tool](/help/11-GPTH-complete-pipeline.md).
+In the following link you can find the [Complete Pipeline and features of GPTH Tool](11-GPTH-complete-pipeline.md).
 
 > [!TIP]
 > In the Web Interface, you can pre-fill the Google Takeout input path with environment variable `PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH`.
@@ -92,7 +92,7 @@ Below you can see the different steps of this feature:
 > [!NOTE]  
 > Step 4.2 is disabled by default, but It is automatically enabled if detect that Step 4.1 has been skipped.
 > 
-> Step 6.4 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](/help/10-other-features.md#-folder-rename-content-based-extra-feature).
+> Step 6.4 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
 >
 > Step 6.5 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
 
@@ -148,8 +148,8 @@ The final `<OUTPUT_FOLDER>` will include:
 - `<NO_ALBUMS_FOLDER>` subfolder with all the photos with year/month structure (by default).
 
 ### Complete list of Flags/Arguments admitted:
-- [Arguments](/help/02-arguments-description.md)
-- [Arguments short version](/help/02-arguments-description-short.md)
+- [Arguments](02-arguments-description.md)
+- [Arguments short version](02-arguments-description-short.md)
 
 > [!TIP]
 > If you want to use your processed assets within Synology Photos, you just need to move `OUTPUT_FOLDER` into your /home/Photos folder and let Synology index all files (it will take long time). 
@@ -198,7 +198,7 @@ In this example, the tool will do the Takeout Processing with the following step
 > On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS.
 
 ---
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../README.md)
 
 ---
 ## 🎖️ Credits:

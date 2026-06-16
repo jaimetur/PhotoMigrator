@@ -391,7 +391,7 @@ If more than one Feature is detected, only the first one will be executed.
 ```
 
 ---
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../README.md)
 
 ---
 ## 🎖️ Credits:

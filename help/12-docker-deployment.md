@@ -17,7 +17,7 @@ Use this mode if you want the browser-based UI.
 
 Main guide:
 
-- [Deploy Web Interface from Docker](/docs/view/help/docker-deployments/deploy-web-interface-from-docker.md)
+- [Deploy Web Interface from Docker](docker-deployments/deploy-web-interface-from-docker.md)
 
 Typical startup:
 
@@ -46,7 +46,7 @@ Use this mode if you want to run PhotoMigrator commands directly from the termin
 
 Main guide:
 
-- [Deploy CLI Interface from Docker](/docs/view/help/docker-deployments/deploy-cli-interface-from-docker.md)
+- [Deploy CLI Interface from Docker](docker-deployments/deploy-cli-interface-from-docker.md)
 
 Typical help command:
 
@@ -70,5 +70,5 @@ Use this mode when you want:
 
 Related guides:
 
-- [Deploy Web Interface from Docker](/docs/view/help/docker-deployments/deploy-web-interface-from-docker.md)
-- [Deploy CLI Interface from Docker](/docs/view/help/docker-deployments/deploy-cli-interface-from-docker.md)
+- [Deploy Web Interface from Docker](docker-deployments/deploy-web-interface-from-docker.md)
+- [Deploy CLI Interface from Docker](docker-deployments/deploy-cli-interface-from-docker.md)

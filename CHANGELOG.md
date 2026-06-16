@@ -37,6 +37,7 @@
   - Fixed the Web Help Navigation label for `5. iCloud Takeout` so the product name casing is rendered correctly in the documentation sidebar.
   - Reworked the `README` main modules structure so `iCloud Takeout Fixing` now appears as its own section `3`, separate from the cloud-service management section, and renumbered the following sections accordingly.
   - Renamed all top-level `/help` markdown files from single-digit prefixes to zero-padded prefixes (`00`-`09`) and updated all project references so documentation links, README links, and the web help navigation continue to resolve correctly.
+  - Replaced absolute documentation links in `README.md` and `/help` markdown files with GitHub-friendly relative links, and updated the web help viewer resolver so those same relative links continue to work inside the Web Interface documentation viewer.
   - Updated Screenshots.
   - Updated documentation with all changes.
 

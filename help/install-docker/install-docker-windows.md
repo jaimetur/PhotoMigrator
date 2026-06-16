@@ -71,7 +71,7 @@ Or follow the manual instructions in the official guide:
 
 ---
 
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../../README.md)
 
 ---
 ## 🎖️ Credits:

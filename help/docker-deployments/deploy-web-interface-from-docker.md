@@ -6,15 +6,15 @@ This guide explains how to run the PhotoMigrator Web Interface with Docker Compo
 > This guide is for the browser-based Interface (WEB) image.
 >
 > If you want to run the Command line-based Interface with Docker Compose, use:
-> [Deploy CLI Interface from Docker](/help/docker-deployments/deploy-cli-interface-from-docker.md)
+> [Deploy CLI Interface from Docker](deploy-cli-interface-from-docker.md)
 
 ## ✅ Prerequisites
 
 - Docker must be installed and running.
 - Installation help:
-  - [Install Docker on Windows](/help/install-docker/install-docker-windows.md)
-  - [Install Docker on Linux](/help/install-docker/install-docker-linux.md)
-  - [Install Docker on MacOS](/help/install-docker/install-docker-macos.md)
+  - [Install Docker on Windows](../install-docker/install-docker-windows.md)
+  - [Install Docker on Linux](../install-docker/install-docker-linux.md)
+  - [Install Docker on MacOS](../install-docker/install-docker-macos.md)
 
 After installation, verify:
 
@@ -40,8 +40,8 @@ jaimetur/photomigrator
 
 For the Web Interface, the repository already includes ready-to-use files:
 
-- [`docker-web/docker-compose.yml`](/docker-web/docker-compose.yml)
-- [`docker-web/.env`](/docker-web/.env)
+- [`docker-web/docker-compose.yml`](../../docker-web/docker-compose.yml)
+- [`docker-web/.env`](../../docker-web/.env)
 
 They are designed to work as-is for a local deployment on Linux, Windows, and macOS.
 
@@ -281,4 +281,4 @@ If you already have an existing `Config.ini`, you can still place it in `CONFIG_
 
 ---
 
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../../README.md)

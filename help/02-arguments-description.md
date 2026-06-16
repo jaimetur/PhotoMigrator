@@ -5,7 +5,7 @@ This section describe the different arguments and flags used by the tool.
 - An **argument** is a modifier that is followed by any parameter.
 - On the other hand, a **flag** is a modifier that don't require any parameter, hence, if the flag is present the feature is enabled, otherwise, the feature is disabled.
 
-There is also a [shorter version](/help/02-arguments-description-short.md) of this document available.
+There is also a [shorter version](02-arguments-description-short.md) of this document available.
 
 ## 🧩 Core Arguments
 
@@ -319,7 +319,7 @@ Processes duplicates based on a CSV file with actions.
 ```
 
 ---
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../README.md)
 
 ---
 ## 🎖️ Credits:

@@ -117,7 +117,7 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
 > If you don't want to lose your original subfolder names, you should make a backup before to run this feature.
 
 ---
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../README.md)
 
 ---
 ## 🎖️ Credits:

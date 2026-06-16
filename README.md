@@ -30,37 +30,37 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 
 ## 🌐 Web Interface
 ### Automatic Migration Feature:
-![Automatic Migration](/assets/screenshots/web-interface-automatic-migration.png?raw=true)  
+![Automatic Migration](assets/screenshots/web-interface-automatic-migration.png?raw=true)  
 
 ### Automatic Migration Feature (Live Dashboard):
-![Automatic Migration (Live Dashboard)](/assets/screenshots/web-interface-automatic-migration-live-dashboard.png?raw=true)   
+![Automatic Migration (Live Dashboard)](assets/screenshots/web-interface-automatic-migration-live-dashboard.png?raw=true)   
 
 ### Google Takeout Feature:
-![Google Takeout](/assets/screenshots/web-interface-google-takeout.png?raw=true)  
+![Google Takeout](assets/screenshots/web-interface-google-takeout.png?raw=true)  
 
 ### iCloud Takeout Feature:
-![iCloud Takeout](/assets/screenshots/web-interface-icloud-takeout.png?raw=true)  
+![iCloud Takeout](assets/screenshots/web-interface-icloud-takeout.png?raw=true)  
 
 ### Synology Photos Feature:
-![Synology Photos](/assets/screenshots/web-interface-synology-photos.png?raw=true)  
+![Synology Photos](assets/screenshots/web-interface-synology-photos.png?raw=true)  
 
 ### Immich Photos Feature:
-![Immich Photos](/assets/screenshots/web-interface-immich-photos.png?raw=true)  
+![Immich Photos](assets/screenshots/web-interface-immich-photos.png?raw=true)  
 
 ### Other Features:
-![Other Features](/assets/screenshots/web-interface-other-features.png?raw=true)  
+![Other Features](assets/screenshots/web-interface-other-features.png?raw=true)  
 
 ### General Arguments:
-![General Arguments](/assets/screenshots/web-interface-general-arguments.png?raw=true)  
+![General Arguments](assets/screenshots/web-interface-general-arguments.png?raw=true)  
 
 ### Configuration Panel:
-![Configuration Panel](/assets/screenshots/web-interface-configuration-panel.png?raw=true)  
+![Configuration Panel](assets/screenshots/web-interface-configuration-panel.png?raw=true)  
 
 ### App Settings:
-![App Settings](/assets/screenshots/web-interface-app-settings.png?raw=true)  
+![App Settings](assets/screenshots/web-interface-app-settings.png?raw=true)  
 
 ## 🖥️ Automatic Migration on Terminal
-![Live Dashboard](/assets/screenshots/live_dashboard.jpg?raw=true)  
+![Live Dashboard](assets/screenshots/live_dashboard.jpg?raw=true)  
 
 # 🌟 Main Modules:
 ## 🚀 1. Automatic Migration   
@@ -78,7 +78,7 @@ The main use case is the **Automatic Migration Feature** to migrate all your pho
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
 >
-> [**(Automatic Migration Documentation)**](/help/03-automatic-migration.md)
+> [**(Automatic Migration Documentation)**](help/03-automatic-migration.md)
 
 
 ## 🛠️ 2. Google Takeout Fixing 
@@ -95,7 +95,7 @@ The whole process is done in an automatic way and is divided in different steps 
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
 >
-> [**(Google Takeout Fixing Documentation)**](/help/04-google-takeout.md)
+> [**(Google Takeout Fixing Documentation)**](help/04-google-takeout.md)
 
 ## 🍎 3. iCloud Takeout Fixing
 Other important feature included in the tool is the iCloud Takeout Fixing.
@@ -111,7 +111,7 @@ The whole process is done in an automatic way and is independent from the cloud-
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
 >
-> [**(iCloud Takeout Fixing Documentation)**](/help/05-icloud-takeout.md)
+> [**(iCloud Takeout Fixing Documentation)**](help/05-icloud-takeout.md)
 
 ## 🖼️ 4. Google Photos / Synology Photos / Immich Photos / NextCloud Photos
 Apart from the `Automatic Migration`, `Google Takeout Fixing`, and `iCloud Takeout Fixing` features, you can also use the tool to manage Google Photos and different Photo Cloud Services.
@@ -123,29 +123,29 @@ Currently, the Features Supported per each Photo Cloud Service are:
 
   | Feature                         | Google Photos                                   | Synology Photos                                                                        | Immich Photos                                                                      | Nextcloud Photos                                                                         |
   |---------------------------------|-------------------------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-  | Upload Album(s) (from folder)   | [doc](/help/06-google-photos.md#upload-albums)   | [doc](/help/07-synology-photos.md#upload-albums-from-local-folder-into-synology-photos) | [doc](/help/08-immich-photos.md#upload-albums-from-local-folder-into-immich-photos) | [doc](/help/09-nextcloud-photos.md#upload-albums-from-local-folder-into-nextcloud-photos) |
-  | Download Album(s) (into folder) | [doc](/help/06-google-photos.md#download-albums) | [doc](/help/07-synology-photos.md#download-albums-from-synology-photos)                 | [doc](/help/08-immich-photos.md#download-albums-from-immich-photos)                 | [doc](/help/09-nextcloud-photos.md#download-albums-from-nextcloud-photos)                 |
-  | Upload ALL (from folder)        | [doc](/help/06-google-photos.md#upload-all)      | [doc](/help/07-synology-photos.md#upload-all-from-local-folder-into-synology-photos)    | [doc](/help/08-immich-photos.md#upload-all-from-local-folder-into-immich-photos)    | [doc](/help/09-nextcloud-photos.md#upload-all-from-local-folder-into-nextcloud-photos)    |
-  | Download ALL (into folder)      | [doc](/help/06-google-photos.md#download-all)    | [doc](/help/07-synology-photos.md#download-all-from-synology-photos)                    | [doc](/help/08-immich-photos.md#download-all-from-immich-photos)                    | [doc](/help/09-nextcloud-photos.md#download-all-from-nextcloud-photos)                    |
-  | Remove ALL Assets               | Not supported by API                            | [doc](/help/07-synology-photos.md#remove-all-assets-from-synology-photos)               | [doc](/help/08-immich-photos.md#remove-all-assets-from-immich-photos)               | [doc](/help/09-nextcloud-photos.md#remove-all-assets-from-nextcloud-photos)               |
-  | Remove ALL Albums               | Not supported by API                            | [doc](/help/07-synology-photos.md#remove-all-albums-from-synology-photos)               | [doc](/help/08-immich-photos.md#remove-all-albums-from-immich-photos)               | [doc](/help/09-nextcloud-photos.md#remove-all-albums-from-nextcloud-photos)               |
-  | Remove Albums by Name Pattern   | Not supported by API                            | [doc](/help/07-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)   | [doc](/help/08-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)   | [doc](/help/09-nextcloud-photos.md#remove-albums-by-name-pattern-from-nextcloud-photos)   |
-  | Rename Albums by Name Pattern   | Not supported by API                            | [doc](/help/07-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)   | [doc](/help/08-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)   | [doc](/help/09-nextcloud-photos.md#rename-albums-by-name-pattern-from-nextcloud-photos)   |
-  | Remove Empty Albums             | Not supported by API                            | [doc](/help/07-synology-photos.md#remove-empty-albums-from-synology-photos)             | [doc](/help/08-immich-photos.md#remove-empty-albums-from-immich-photos)             | [doc](/help/09-nextcloud-photos.md#remove-empty-albums-from-nextcloud-photos)             |
-  | Remove Duplicates Albums        | Not supported by API                            | [doc](/help/07-synology-photos.md#remove-duplicates-albums-from-synology-photos)        | [doc](/help/08-immich-photos.md#remove-duplicates-albums-from-immich-photos)        | [doc](/help/09-nextcloud-photos.md#remove-duplicates-albums-from-nextcloud-photos)        |
-  | Merge Duplicates Albums         | Not supported by API                            | [doc](/help/07-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](/help/08-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | [doc](/help/09-nextcloud-photos.md#merge-duplicates-albums-from-nextcloud-photos)         |
-  | Remove Orphans Assets           | Not supported by API                            | Not supported by API                                                                   | [doc](/help/08-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported by API                                                                     |
+  | Upload Album(s) (from folder)   | [doc](help/06-google-photos.md#upload-albums)   | [doc](help/07-synology-photos.md#upload-albums-from-local-folder-into-synology-photos) | [doc](help/08-immich-photos.md#upload-albums-from-local-folder-into-immich-photos) | [doc](help/09-nextcloud-photos.md#upload-albums-from-local-folder-into-nextcloud-photos) |
+  | Download Album(s) (into folder) | [doc](help/06-google-photos.md#download-albums) | [doc](help/07-synology-photos.md#download-albums-from-synology-photos)                 | [doc](help/08-immich-photos.md#download-albums-from-immich-photos)                 | [doc](help/09-nextcloud-photos.md#download-albums-from-nextcloud-photos)                 |
+  | Upload ALL (from folder)        | [doc](help/06-google-photos.md#upload-all)      | [doc](help/07-synology-photos.md#upload-all-from-local-folder-into-synology-photos)    | [doc](help/08-immich-photos.md#upload-all-from-local-folder-into-immich-photos)    | [doc](help/09-nextcloud-photos.md#upload-all-from-local-folder-into-nextcloud-photos)    |
+  | Download ALL (into folder)      | [doc](help/06-google-photos.md#download-all)    | [doc](help/07-synology-photos.md#download-all-from-synology-photos)                    | [doc](help/08-immich-photos.md#download-all-from-immich-photos)                    | [doc](help/09-nextcloud-photos.md#download-all-from-nextcloud-photos)                    |
+  | Remove ALL Assets               | Not supported by API                            | [doc](help/07-synology-photos.md#remove-all-assets-from-synology-photos)               | [doc](help/08-immich-photos.md#remove-all-assets-from-immich-photos)               | [doc](help/09-nextcloud-photos.md#remove-all-assets-from-nextcloud-photos)               |
+  | Remove ALL Albums               | Not supported by API                            | [doc](help/07-synology-photos.md#remove-all-albums-from-synology-photos)               | [doc](help/08-immich-photos.md#remove-all-albums-from-immich-photos)               | [doc](help/09-nextcloud-photos.md#remove-all-albums-from-nextcloud-photos)               |
+  | Remove Albums by Name Pattern   | Not supported by API                            | [doc](help/07-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)   | [doc](help/08-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)   | [doc](help/09-nextcloud-photos.md#remove-albums-by-name-pattern-from-nextcloud-photos)   |
+  | Rename Albums by Name Pattern   | Not supported by API                            | [doc](help/07-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)   | [doc](help/08-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)   | [doc](help/09-nextcloud-photos.md#rename-albums-by-name-pattern-from-nextcloud-photos)   |
+  | Remove Empty Albums             | Not supported by API                            | [doc](help/07-synology-photos.md#remove-empty-albums-from-synology-photos)             | [doc](help/08-immich-photos.md#remove-empty-albums-from-immich-photos)             | [doc](help/09-nextcloud-photos.md#remove-empty-albums-from-nextcloud-photos)             |
+  | Remove Duplicates Albums        | Not supported by API                            | [doc](help/07-synology-photos.md#remove-duplicates-albums-from-synology-photos)        | [doc](help/08-immich-photos.md#remove-duplicates-albums-from-immich-photos)        | [doc](help/09-nextcloud-photos.md#remove-duplicates-albums-from-nextcloud-photos)        |
+  | Merge Duplicates Albums         | Not supported by API                            | [doc](help/07-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](help/08-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | [doc](help/09-nextcloud-photos.md#merge-duplicates-albums-from-nextcloud-photos)         |
+  | Remove Orphans Assets           | Not supported by API                            | Not supported by API                                                                   | [doc](help/08-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported by API                                                                     |
 
 > [!NOTE]
 > For more info you can check the feature documentation in below links:
 >
->- [**(Google Photos Documentation)**](/help/06-google-photos.md)
+>- [**(Google Photos Documentation)**](help/06-google-photos.md)
 >
->- [**(Synology Photos Documentation)**](/help/07-synology-photos.md)
+>- [**(Synology Photos Documentation)**](help/07-synology-photos.md)
 > 
->- [**(Immich Photos Documentation)**](/help/08-immich-photos.md)
+>- [**(Immich Photos Documentation)**](help/08-immich-photos.md)
 >
->- [**(NextCloud Photos Documentation)**](/help/09-nextcloud-photos.md)
+>- [**(NextCloud Photos Documentation)**](help/09-nextcloud-photos.md)
 
 > [!IMPORTANT]  
 >- **NextCloud Photos** is available since v4.0.0 using WebDAV-based integration.
@@ -167,7 +167,7 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
 > [!NOTE]
 > For more info you can check the feature documentation in below link:
 >
-> [**(Other Standalone Features Documentation)**](/help/10-other-features.md)
+> [**(Other Standalone Features Documentation)**](help/10-other-features.md)
 
 
 ## 🌐 Web Interface (New)
@@ -200,7 +200,7 @@ Main characteristics:
 
 The complete Docker guide for the Web Interface now lives in:
 
-- [Deploy Web Interface from Docker](/help/docker-deployments/deploy-web-interface-from-docker.md)
+- [Deploy Web Interface from Docker](help/docker-deployments/deploy-web-interface-from-docker.md)
 
 That guide includes:
 
@@ -226,30 +226,30 @@ Then open:
 This Tool is based on commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
 
 You can check the whole list of features and arguments with the right syntax here:
-[Command Line Interface (CLI)](/help/01-command-line-interface.md)
+[Command Line Interface (CLI)](help/01-command-line-interface.md)
 
 ## Arguments Description
-Check all arguments descriptions and usage examples in the [Arguments Description](/help/02-arguments-description.md)  or in the [shorter version](/help/02-arguments-description-short.md).
+Check all arguments descriptions and usage examples in the [Arguments Description](help/02-arguments-description.md)  or in the [shorter version](help/02-arguments-description-short.md).
 
 
 ## 📘 All Documentation Links
-- [Configuration File](/help/00-configuration-file.md)  
-- [Command Line Interface (CLI)](/help/01-command-line-interface.md)  
-- [Arguments Description](/help/02-arguments-description.md)  
-- [Automatic Migration Feature](/help/03-automatic-migration.md)  
-- [Google Takeout Management](/help/04-google-takeout.md)  
-- [iCloud Takeout Management](/help/05-icloud-takeout.md)
-- [Google Photos Management](/help/06-google-photos.md)
-- [Synology Photos Management](/help/07-synology-photos.md)  
-- [Immich Photos Management](/help/08-immich-photos.md)  
-- [NextCloud Photos Management](/help/09-nextcloud-photos.md)  
-- [Other Features](/help/10-other-features.md)  
-- [GPTH Tool Pipeline Description](/help/11-GPTH-complete-pipeline.md)
-- [Docker Deployment Documentation](/help/12-docker-deployment.md)
+- [Configuration File](help/00-configuration-file.md)  
+- [Command Line Interface (CLI)](help/01-command-line-interface.md)  
+- [Arguments Description](help/02-arguments-description.md)  
+- [Automatic Migration Feature](help/03-automatic-migration.md)  
+- [Google Takeout Management](help/04-google-takeout.md)  
+- [iCloud Takeout Management](help/05-icloud-takeout.md)
+- [Google Photos Management](help/06-google-photos.md)
+- [Synology Photos Management](help/07-synology-photos.md)  
+- [Immich Photos Management](help/08-immich-photos.md)  
+- [NextCloud Photos Management](help/09-nextcloud-photos.md)  
+- [Other Features](help/10-other-features.md)  
+- [GPTH Tool Pipeline Description](help/11-GPTH-complete-pipeline.md)
+- [Docker Deployment Documentation](help/12-docker-deployment.md)
 
 ## 📘 Docker Deployments Documentation Links
-- [Deploy Web Interface from Docker](/help/docker-deployments/deploy-web-interface-from-docker.md)
-- [Deploy CLI Interface from Docker](/help/docker-deployments/deploy-cli-interface-from-docker.md)
+- [Deploy Web Interface from Docker](help/docker-deployments/deploy-web-interface-from-docker.md)
+- [Deploy CLI Interface from Docker](help/docker-deployments/deploy-cli-interface-from-docker.md)
 
 
 ---
@@ -296,7 +296,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 arc
 - [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
 
-Or check the [Changelog](/CHANGELOG.md) to choose any specific release. 
+Or check the [Changelog](CHANGELOG.md) to choose any specific release. 
 
 > [!NOTE]  
 > The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly from Windows systems, MacOs or within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
@@ -310,7 +310,7 @@ In order to connect to the different Photo Cloud Services, you must configure th
 When running the Web Interface in Docker/Compose/Kubernetes, you can also override the same cloud-service keys through environment variables. Supported config keys can be provided directly as `KEY=value` or through Docker-secret style `KEY_FILE=/path/to/secret`. Runtime precedence is: environment variable > `Config.ini` > template default. This is useful for `IMMICH_URL`, `IMMICH_API_KEY_ADMIN`, `SYNOLOGY_*`, `NEXTCLOUD_*`, `GOOGLE_PHOTOS_*`, etc.
 
 You can see how to configure the Configuration File in this help section:
-[Configuration File](/help/00-configuration-file.md) 
+[Configuration File](help/00-configuration-file.md) 
 
 ---
 

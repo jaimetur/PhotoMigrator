@@ -304,10 +304,10 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ---
 ## ⚙️ Config.ini
 You can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/00-configuration-file.md) 
+[Configuration File](00-configuration-file.md) 
 
 ---
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../README.md)
     
 ---
 ## 🎖️ Credits:

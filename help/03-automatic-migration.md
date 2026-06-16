@@ -78,7 +78,7 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
 
 
 ## Live Dashboard Preview:
-![Live Dashboard](/assets/screenshots/live_dashboard.jpg)
+![Live Dashboard](../assets/screenshots/live_dashboard.jpg)
 
 
 ## **Examples of use:**
@@ -146,10 +146,10 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 ---
 ## ⚙️ Config.ini
 You can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/00-configuration-file.md) 
+[Configuration File](00-configuration-file.md) 
 
 ---
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../README.md)
     
 ---
 ## 🎖️ Credits:

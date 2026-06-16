@@ -72,7 +72,7 @@ Official Docker Desktop for Mac documentation:
 
 ---
 
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../../README.md)
 
 ---
 ## 🎖️ Credits:

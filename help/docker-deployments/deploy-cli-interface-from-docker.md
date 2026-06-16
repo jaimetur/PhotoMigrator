@@ -6,15 +6,15 @@ This guide explains how to run the PhotoMigrator Command Line Interface (CLI) wi
 > This guide is for the command line interface (CLI) image.
 >
 > If you want to run the browser-based Web Interface with Docker Compose, use:
-> [Deploy Web Interface from Docker](/help/docker-deployments/deploy-web-interface-from-docker.md)
+> [Deploy Web Interface from Docker](deploy-web-interface-from-docker.md)
 
 ## ✅ Prerequisites
 
 - Docker must be installed and running on your system.
 - Installation help:
-  - [Install Docker on Windows](/help/install-docker/install-docker-windows.md)
-  - [Install Docker on Linux](/help/install-docker/install-docker-linux.md)
-  - [Install Docker on MacOS](/help/install-docker/install-docker-macos.md)
+  - [Install Docker on Windows](../install-docker/install-docker-windows.md)
+  - [Install Docker on Linux](../install-docker/install-docker-linux.md)
+  - [Install Docker on MacOS](../install-docker/install-docker-macos.md)
 
 After installation, verify:
 
@@ -101,7 +101,7 @@ curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/photomigrator-
 Open `Config.ini` and update your credentials and settings.
 
 More details:
-[Configuration File](/help/00-configuration-file.md)
+[Configuration File](../00-configuration-file.md)
 
 ### 1.5. Run the tool
 
@@ -237,4 +237,4 @@ docker run --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/photomigrator-l
 
 ---
 
-## 🏠 [Back to Main Page](/README.md)
+## 🏠 [Back to Main Page](../../README.md)
