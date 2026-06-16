@@ -862,15 +862,15 @@ body {
 }
 
 #module-tabs .tab-btn.module-tab--cloud {
-    background: #dcedff;
-    border-color: #a8c7ea;
-    color: #2e5f95;
+    background: #eee0d1;
+    border-color: #cfb49a;
+    color: #7a5a3f;
 }
 
 #module-tabs .tab-btn.module-tab--cloud.active {
-    background: #bfd8fb;
-    border-color: #6d9ed8;
-    color: #1f4c7d;
+    background: #dfc3a8;
+    border-color: #b0855f;
+    color: #5f432b;
 }
 
 #module-tabs .tab-btn.module-tab--standalone {

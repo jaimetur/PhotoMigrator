@@ -23,6 +23,7 @@
   - Tightened the `Features Config` account selector combobox width while keeping its right edge aligned with the account fields below it, improving the visual balance of the configuration panel.
   - Reduced the `Features Config` account selector combobox to a much narrower width while preserving right-edge alignment with the account fields below it.
   - Added pastel color grouping to the Web Interface `Feature Selector` tabs: green for `Automatic Migration`, yellow for both `Takeout` tabs, blue for cloud-service tabs, purple for `Other Features`, and red for `Upload to Server`.
+  - Updated the `Feature Selector` cloud-service tabs (`Google Photos`, `Synology Photos`, `Immich Photos`, `NextCloud Photos`) from blue pastel to brown pastel to better differentiate them from the other tab groups.
 
 #### 🚀 GPTH Enhancements:
 
