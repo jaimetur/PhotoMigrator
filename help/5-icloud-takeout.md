@@ -12,10 +12,7 @@ This feature is independent from the Google Takeout pipeline:
 > **How to request the export from Apple**
 >
 > Start from Apple's Data & Privacy portal:
-> - `https://privacy.apple.com/`
->
-> The discussion that motivated this feature also references Apple's support page for starting data transfers from the same privacy flow:
-> - `https://support.apple.com/en-us/118257`
+> - `https://privacy.apple.com/`  
 >
 > Recommended workflow:
 > 1. Sign in to `privacy.apple.com` with the Apple Account that owns the iCloud Photos library.

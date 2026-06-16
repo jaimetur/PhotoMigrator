@@ -10,16 +10,22 @@
 #### 🚨 Breaking Changes:
   
 #### 🌟 New Features:
-  - Added a new `iCloud Takeout` feature across CLI and Web Interface to process Apple iCloud Photos exports without GPTH, recovering dates from `Photo Details.csv`, assigning those dates to the exported media files, rebuilding `Albums` from Apple CSV manifests, and optionally reconstructing `Memories` collections. The Web Interface now includes a dedicated `ICLOUD TAKEOUT` tab placed after `Google Photos` and before `Synology Photos`.
+  - Added a new `iCloud Takeout` feature across CLI and Web Interface to process Apple iCloud Photos exports without GPTH, recovering dates from `Photo Details.csv`, assigning those dates to the exported media files, rebuilding `Albums` from Apple CSV manifests, and optionally reconstructing `Memories` collections. The Web Interface now includes a dedicated `iCloud Takeout` tab placed after `Google Takeout` and before `Google Photos`.
 
 #### 🚀 Enhancements:
+  - Reordered feature navigation consistently across the Web Interface, documentation, README, help index, and documentation sidebar so the current module order is: `Google Takeout` → `iCloud Takeout` → `Google Photos` → `Synology Photos` → `Immich Photos` → `NextCloud Photos` → `Other Features`.
+  - Improved `iCloud Takeout` matching so `Photo Details.csv`, `Albums/*.csv`, and optional `Memories/*.csv` are now resolved per export folder/scope instead of being merged into a single global index, preventing collisions when different iCloud export parts contain assets with the same basename.
+  - Added `iCloud Takeout` section generation to the auto-formatted `--help` output through `CustomHelpFormatter`, matching how the other top-level features are grouped in CLI help.
 
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
+  - Fixed `contains_zip_files()` so it no longer crashes in unit-test or lightweight execution contexts where the global `LOGGER` has not been initialized yet.
 
 #### 📚 Documentation:
   - Added dedicated `iCloud Takeout` documentation, including Apple export/download guidance, supported CSV/ZIP structure details, CLI/Web Interface usage, and output behavior.
+  - Added `iCloud Takeout` arguments and examples to `Command Line Interface`, `Arguments Description`, and `Arguments Description (Short)` help pages, and moved the Apple export request guidance to the top of the dedicated `iCloud Takeout` documentation inside a `TIP` block.
+  - Renumbered and reordered the help sections to place `iCloud Takeout` as section `5` and `Google Photos` as section `6`, keeping links and documentation navigation aligned with the current feature order.
   - Updated documentation with all changes.
 
 ---
