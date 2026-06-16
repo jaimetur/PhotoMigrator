@@ -23,6 +23,7 @@ pillow~=11.2.1
 python-dateutil~=2.9.0.post0
 colorama~=0.4.6
 rich
+textual~=0.72.0
 pyyaml
 tzlocal
 #windows-curses; sys_platform == "win32"

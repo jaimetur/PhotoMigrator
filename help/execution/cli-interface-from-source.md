@@ -63,6 +63,20 @@ Or if you prefer to execute the tool directly from the built package just use:
    photomigrator -h
    ```
 
+### 🖥️ 8. Launch the interactive CLI TUI:
+   ```bash
+   python ./src/PhotoMigrator.py
+   ```
+Or explicitly:
+   ```bash
+   python ./src/PhotoMigrator.py --tui
+   ```
+
+Notes:
+- The CLI TUI uses the `textual` dependency included in `requirements.txt`.
+- It works on Windows, macOS, and Linux when the terminal supports interactive colors/graphics.
+- If `textual` is not available, PhotoMigrator automatically falls back to the previous legacy GUI/console flow.
+
 ---
 
 ## 🏠 [Back to Main Page](../../README.md)

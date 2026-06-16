@@ -14,6 +14,26 @@ Open the file `Config.ini` included in the package with any text editor and upda
   - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**PhotoMigrator.run**'.  
     Minimum version required to run the Tool directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
+### 🖥️ 4. Launch the interactive CLI TUI:
+  - Windows:
+    ```powershell
+    .\\PhotoMigrator.exe
+    ```
+  - Linux / macOS / Synology SSH:
+    ```bash
+    ./PhotoMigrator.run
+    ```
+
+You can also force the terminal UI explicitly with:
+
+```bash
+PhotoMigrator --tui
+```
+
+Notes:
+- The CLI TUI is shown automatically when the binary is launched without arguments in a compatible interactive terminal.
+- If the terminal does not support the required interactive features, PhotoMigrator falls back to the previous legacy GUI/console flow.
+
 ---
 
 ## 🏠 [Back to Main Page](../../README.md)

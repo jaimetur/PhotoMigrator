@@ -145,9 +145,26 @@ def PhotoMigrator():
     detect_and_run_execution_mode()
 
 def pre_parse_args():
+    def supports_graphical_terminal():
+        if not sys.stdin.isatty() or not sys.stdout.isatty():
+            return False
+        term = str(os.environ.get("TERM") or "").strip().lower()
+        if sys.platform.startswith("win"):
+            return True
+        return term not in {"", "dumb"}
+
     def has_display():
         # Detect if a graphical environment is available
         return os.environ.get("DISPLAY") or sys.platform.startswith("win") or sys.platform == "darwin"
+
+    def launch_textual_tui(initial_values=None):
+        from UI.cli_tui import run_cli_tui
+
+        run_cli_tui(
+            project_root=Path(__file__).resolve().parent.parent,
+            cli_entrypoint=Path(__file__).resolve(),
+            initial_values=initial_values or {},
+        )
 
     def launch_gui_config(folder_already_provided, default_folder=""):
         import tkinter as tk
@@ -452,11 +469,21 @@ def pre_parse_args():
     # END OF AUX FUNCTIONS
     # -----------------------------------------------------------------------------------
 
+    explicit_tui = "--tui" in sys.argv[1:]
+    if explicit_tui:
+        sys.argv = [arg for arg in sys.argv if arg != "--tui"]
+
+    initial_tui_values = {}
+
     # Case 1: Called with a single argument and it's a valid folder
     if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
         takeout_path = sys.argv[1]
         custom_print(f"Valid folder detected as input: '{takeout_path}'", log_level=logging.INFO)
         custom_print(f"Executing Google Takeout Photos Processor Feature with the provided input folder...", log_level=logging.INFO)
+        initial_tui_values = {
+            "active_module": "google_takeout",
+            "google-takeout": takeout_path,
+        }
         sys.argv.insert(1, "--google-takeout")
         folder_already_provided = True
 
@@ -466,8 +493,30 @@ def pre_parse_args():
         custom_print(f"No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.", log_level=logging.INFO)
         folder_already_provided = False
 
+    elif explicit_tui:
+        takeout_path = ""
+        folder_already_provided = False
     else:
         return  # Exit early if arguments don't match any valid condition
+
+    if explicit_tui or supports_graphical_terminal():
+        try:
+            from UI.cli_tui import textual_runtime_available
+
+            textual_ok, textual_error = textual_runtime_available()
+            if textual_ok:
+                custom_print("Interactive terminal detected. Opening PhotoMigrator CLI TUI...", log_level=logging.INFO)
+                launch_textual_tui(initial_values=initial_tui_values)
+                sys.exit(0)
+            custom_print(
+                f"Textual TUI is not available ({textual_error}). Falling back to legacy configuration flow.",
+                log_level=logging.WARNING,
+            )
+        except Exception as exc:
+            custom_print(
+                f"Unable to launch the CLI TUI ({exc}). Falling back to legacy configuration flow.",
+                log_level=logging.WARNING,
+            )
 
     # Import tkinter only if needed
     import importlib.util

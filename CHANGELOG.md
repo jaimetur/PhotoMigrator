@@ -4,6 +4,35 @@
 
 ---
 
+## Release: v4.3.0
+### Release Date: 2026-06-17
+  
+#### 🚨 Breaking Changes:
+  
+#### 🌟 New Features:
+  - Added a new interactive CLI TUI powered by `Textual`, designed to be much closer to the Web Interface layout. The new terminal UI includes the same top-level feature selector modules, `General Arguments`, `Features Config`, and `App Settings` views, dynamic module-specific forms, multi-account configuration selectors for cloud services, live command preview, and in-terminal execution logs.
+
+#### 🚀 Enhancements:
+  - Updated the CLI launch flow so running PhotoMigrator without arguments now opens the new terminal UI automatically on compatible interactive terminals, running it with a single Takeout folder argument opens the terminal UI with `Google Takeout` prefilled, and `--tui` can be used as an explicit launcher flag.
+  - Added a shared UI/model layer for parser schema generation, config-form parsing, command composition, and special field handling so the CLI TUI reuses the same data-driven concepts already used by the Web Interface instead of hardcoding a Google-only form.
+  - Kept backward-compatible fallback behavior for environments where `Textual` or the required interactive terminal capabilities are not available, preserving the previous legacy GUI/console configuration flow.
+  - Refined the CLI TUI navigation so selecting a module now shows only that module's fields in the main panel, while `General Arguments` is displayed as its own separate view instead of being rendered above every feature form.
+  - Polished the CLI TUI layout and theming so the terminal interface is now visually closer to the Web Interface, including improved panel structure, dynamic themed colors, better sidebar actions, clearer section accents, compact boolean toggles, multi-column general arguments, and more consistent field spacing and alignment.
+
+#### 🚀 GPTH Enhancements:
+
+#### 🐛 Bug fixes:
+  - Fixed the CLI TUI `Features Config` view so config sections no longer rebuild in a visible loop, theme selection behaves more predictably, and `Config.ini` fields can be edited and saved correctly from the terminal interface.
+  - Fixed multiple CLI TUI rendering issues affecting panel titles, scroll behavior, main-panel layout balancing, sidebar feature scrolling, and terminal form presentation across `Feature`, `General Arguments`, `Features Config`, and `App Settings`.
+
+#### 📚 Documentation:
+  - Added CLI TUI documentation to the main `Command Line Interface` help page, including the new auto-launch behavior, the `--tui` launcher flag, and fallback rules.
+  - Updated execution guides for source and binary usage to document how to launch the new interactive CLI TUI on Windows, macOS, Linux, and Synology SSH terminals.
+  - Updated `Google Takeout` documentation and `README.md` so the default no-argument CLI behavior now references the new terminal UI instead of only the legacy prompt flow.
+  - Updated documentation with all changes.
+
+---
+
 ## Release: v4.2.0
 ### Release Date: 2026-06-16
   

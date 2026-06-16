@@ -1,6 +1,18 @@
 # 💻 Command Line Interface (CLI)
 This section shows how to use the Command Line Interface (CLI) for this Tool.
 
+## Interactive Terminal UI (TUI)
+
+PhotoMigrator now includes an interactive CLI TUI designed to be much closer to the Web Interface layout.
+
+- Running `PhotoMigrator` without arguments opens the CLI TUI when the current terminal supports interactive graphics/colors.
+- Running `PhotoMigrator <TAKEOUT_FOLDER>` opens the CLI TUI with `Google Takeout` preselected and the input path already filled.
+- Running `PhotoMigrator --tui` forces the interactive terminal UI explicitly.
+- If the terminal is not interactive enough, or the optional `textual` dependency is not available, PhotoMigrator falls back to the previous legacy GUI/console flow.
+
+> [!NOTE]
+> `--tui` is handled before the normal argparse parser starts, so it is a launcher flag and does not appear inside the generated `-h/--help` syntax block below.
+
 Most of the argument can be given with two formats:
 - Short format: '-' followed by the short name
 - Long format: '--' followed by the long name

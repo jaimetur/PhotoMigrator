@@ -9,7 +9,7 @@
 [![Open Github issues](https://img.shields.io/github/issues/jaimetur/PhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/PhotoMigrator/issues)
 [![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases)
 [![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases/latest)
-[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/v4.2.0/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases?q=prerelease%3Atrue)
+[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/v4.3.0/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases?q=prerelease%3Atrue)
 
 
 # 📸 **PhotoMigrator**
@@ -224,6 +224,28 @@ Then open:
 
 ## ⌨️ Command Line Interface
 This Tool is based on commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
+
+PhotoMigrator now also includes an interactive CLI TUI that mirrors the Web Interface structure much more closely:
+
+- Feature Selector with the same top-level modules as the Web Interface
+- `General Arguments`, `Features Config`, and `App Settings` views
+- Dynamic forms for `Automatic Migration`, `Google Takeout`, `iCloud Takeout`, cloud-service actions, and standalone features
+- Multi-account `Features Config` selectors for `Google Photos`, `Synology Photos`, `Immich Photos`, and `NextCloud Photos`
+- Live command preview and in-terminal execution log panel
+
+Quick launch:
+
+```bash
+python ./src/PhotoMigrator.py
+```
+
+Force the CLI TUI explicitly:
+
+```bash
+python ./src/PhotoMigrator.py --tui
+```
+
+If the current terminal or environment does not support the interactive TUI, PhotoMigrator falls back automatically to the previous legacy GUI/console flow.
 
 You can check the whole list of features and arguments with the right syntax here:
 [Command Line Interface (CLI)](help/01-command-line-interface.md)
