@@ -38,6 +38,9 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ### Google Takeout Feature:
 ![Google Takeout](/assets/screenshots/web-interface-google-takeout.png?raw=true)  
 
+### iCloud Takeout Feature:
+![iCloud Takeout](/assets/screenshots/web-interface-icloud-takeout.png?raw=true)  
+
 ### Synology Photos Feature:
 ![Synology Photos](/assets/screenshots/web-interface-synology-photos.png?raw=true)  
 
