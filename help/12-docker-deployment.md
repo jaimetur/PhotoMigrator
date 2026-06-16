@@ -1,4 +1,4 @@
-# 11. Docker Deployment
+# 🐳 Docker Deployment
 
 This section summarizes the two supported Docker deployment modes for PhotoMigrator.
 

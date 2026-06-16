@@ -1,4 +1,4 @@
-# 🖼️ Synology Photos Management
+# 📸 Synology Photos Management
 
 From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login into Synology Photos App with your credentials. 
 

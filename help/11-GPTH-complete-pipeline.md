@@ -1,4 +1,4 @@
-# Simple Processing Pipeline for Google Photos Takeout Helper (GPTH)
+# ✨ Simple Processing Pipeline for Google Photos Takeout Helper (GPTH)
 
 This pipeline executes the 8 processing steps in their fixed order:
 1. Fix Extensions - Correct mismatched file extensions - [doc](gpth_process_explanations/01_GPTH_fix_incorrect_file_extension.md)

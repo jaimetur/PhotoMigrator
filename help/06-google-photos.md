@@ -1,4 +1,4 @@
-# Google Photos Management
+# ☁️ Google Photos Management
 
 From version 4.0.0 onwards, the Tool can connect to Google Photos using the official Library API (OAuth).
 

@@ -1,4 +1,4 @@
-# 🖼️ Immich Photos Management
+# 📸 Immich Photos Management
 
 From version 3.0.0 onwards, the Tool can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
 

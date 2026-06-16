@@ -1,4 +1,4 @@
-# NextCloud Photos Management
+# 📸 NextCloud Photos Management
 
 From version 4.0.0 onwards, the Tool can connect to your NextCloud account using WebDAV and manage your photo library.
 
