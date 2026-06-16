@@ -23,12 +23,13 @@
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
-  - Fixed `contains_zip_files()` so it no longer crashes in unit-test or lightweight execution contexts where the global `LOGGER` has not been initialized yet.
+    - Fixed `contains_zip_files()` so it no longer crashes in unit-test or lightweight execution contexts where the global `LOGGER` has not been initialized yet.
 
 #### 📚 Documentation:
   - Added dedicated `iCloud Takeout` documentation, including Apple export/download guidance, supported CSV/ZIP structure details, CLI/Web Interface usage, and output behavior.
   - Added `iCloud Takeout` arguments and examples to `Command Line Interface`, `Arguments Description`, and `Arguments Description (Short)` help pages, and moved the Apple export request guidance to the top of the dedicated `iCloud Takeout` documentation inside a `TIP` block.
   - Renumbered and reordered the help sections to place `iCloud Takeout` as section `5` and `Google Photos` as section `6`, keeping links and documentation navigation aligned with the current feature order.
+  - Fixed the Web Help Navigation label for `5. iCloud Takeout` so the product name casing is rendered correctly in the documentation sidebar.
   - Updated documentation with all changes.
 
 ---
