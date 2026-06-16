@@ -50,6 +50,11 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
 
         self.web_app = importlib.reload(web_app)
         self.web_app.PARSER_SCHEMA = self.web_app._load_parser_schema()
+        self.web_app.CONFIG_TEMPLATE_CONTENT = self.web_app._load_default_config_template()
+        self.web_app.CONFIG_FORM_SCHEMA = self.web_app._extend_form_schema_with_web_interface_theme(
+            self.web_app._parse_template_to_form_schema(self.web_app.CONFIG_TEMPLATE_CONTENT)
+        )
+        self.web_app._init_web_db(self.web_app.CONFIG_FORM_SCHEMA)
         self.current_user = {
             "id": 1,
             "username": "demo",
