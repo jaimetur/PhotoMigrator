@@ -69,6 +69,10 @@ CONFIG_EDITOR_SECTIONS_ORDER = [
     "Immich Photos",
     "NextCloud Photos",
 ]
+CONFIG_FEATURES_EXCLUDED_SECTIONS = {
+    "Google Takeout",
+    "iCloud Takeout",
+}
 TIMEZONE_DEFAULT = "Europe/Madrid"
 TIMEZONE_CHOICES = sorted(list(available_timezones()))
 WEB_INTERFACE_SECTION_NAME = "Web Interface"
@@ -564,6 +568,23 @@ def _sort_section_fields(section_name: str, fields: List[Dict[str, Any]]) -> Lis
         indexed_fields.sort(key=lambda item: _immich_field_sort_key(item[1], item[0]))
         return [field_item for _, field_item in indexed_fields]
     return ordered
+
+
+def _config_field_account_id(key: str) -> str:
+    match = re.search(r"_(\d+)$", str(key or "").strip().upper())
+    return str(match.group(1)) if match else ""
+
+
+def _config_section_account_selector(fields: List[Dict[str, Any]]) -> Dict[str, Any]:
+    account_ids = sorted(
+        {str(field.get("account_id") or "") for field in (fields or []) if str(field.get("account_id") or "")},
+        key=lambda value: int(value),
+    )
+    return {
+        "enabled": len(account_ids) > 1,
+        "accounts": account_ids,
+        "default_account": account_ids[0] if account_ids else "",
+    }
 
 
 def _sort_form_schema_sections(form_schema: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -1532,6 +1553,8 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
         section_name = str(section.get("name") or "")
         if not section_name:
             continue
+        if section_name in CONFIG_FEATURES_EXCLUDED_SECTIONS:
+            continue
         if section_name not in CONFIG_EDITOR_SECTIONS_ORDER and section_name != WEB_INTERFACE_SECTION_NAME:
             continue
         fields: List[Dict[str, Any]] = []
@@ -1552,6 +1575,7 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
                 {
                     "key": key,
                     "value": display_value,
+                    "account_id": _config_field_account_id(key),
                     "help": (
                         "Select the time zone used by PhotoMigrator to display timestamps and process date/time-based operations."
                         if section_name == "TimeZone" and key == "timezone"
@@ -1572,13 +1596,8 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
             {
                 "name": section_name,
                 "display_name": "Theme" if section_name == WEB_INTERFACE_SECTION_NAME else section_name,
+                "account_selector": _config_section_account_selector(fields),
                 "description": (
-                    "Configuration for google takeout. Configure execution options for this module from Feature Selector > Google Takeout tab."
-                    if section_name == "Google Takeout"
-                    else
-                    "Configuration for iCloud Takeout. Configure execution options for this module from Feature Selector > iCloud Takeout tab."
-                    if section_name == "iCloud Takeout"
-                    else
                     "Time zone used by PhotoMigrator to interpret and display date/time values in logs and date-based operations."
                     if section_name == "TimeZone"
                     else "Select the visual theme used by your web interface."
@@ -1597,6 +1616,8 @@ def _editable_config_schema(form_schema: List[Dict[str, Any]]) -> List[Dict[str,
     filtered: List[Dict[str, Any]] = []
     for section in form_schema or []:
         section_name = str(section.get("name") or "")
+        if section_name in CONFIG_FEATURES_EXCLUDED_SECTIONS:
+            continue
         if section_name in allowed:
             filtered.append(section)
     return filtered

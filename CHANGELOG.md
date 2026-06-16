@@ -16,6 +16,8 @@
   - Reordered feature navigation consistently across the Web Interface, documentation, README, help index, and documentation sidebar so the current module order is: `Google Takeout` → `iCloud Takeout` → `Google Photos` → `Synology Photos` → `Immich Photos` → `NextCloud Photos` → `Other Features`.
   - Improved `iCloud Takeout` matching so `Photo Details.csv`, `Albums/*.csv`, and optional `Memories/*.csv` are now resolved per export folder/scope instead of being merged into a single global index, preventing collisions when different iCloud export parts contain assets with the same basename.
   - Added `iCloud Takeout` section generation to the auto-formatted `--help` output through `CustomHelpFormatter`, matching how the other top-level features are grouped in CLI help.
+  - Updated the Web Interface so `Features Config` no longer shows `Google Takeout` and `iCloud Takeout` configuration tabs, and normalized the feature selector label to `iCLOUD TAKEOUT`.
+  - Improved `Features Config` for multi-account services (`Google Photos`, `Synology Photos`, `Immich Photos`, `NextCloud Photos`) by adding an account selector that shows only the global fields plus the selected account fields instead of rendering all accounts at once.
 
 #### 🚀 GPTH Enhancements:
 

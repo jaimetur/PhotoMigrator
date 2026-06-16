@@ -304,10 +304,11 @@
 
 <script src="/static/markdown_renderer.js"></script>
 <script>
+    const ICLOUD_TAKEOUT_MODULE_LABEL = "iCLOUD TAKEOUT";
     const MODULE_TAB_NAMES = {
         automatic_migration: "AUTOMATIC MIGRATION",
         google_takeout: "GOOGLE TAKEOUT",
-        icloud_takeout: "iCLOUD TAKEOUT",
+        icloud_takeout: ICLOUD_TAKEOUT_MODULE_LABEL,
         google_photos: "GOOGLE PHOTOS",
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
@@ -321,6 +322,7 @@
         features_config: "FEATURES CONFIG",
         app_settings: "APP SETTINGS"
     };
+    const FEATURES_CONFIG_HIDDEN_SECTIONS = new Set(["Google Takeout", "iCloud Takeout"]);
 
     const THEMES = {
         ocean: {name: "Ocean", description: "Blue palette"},
@@ -3414,6 +3416,48 @@
         });
     }
 
+    function configSectionAccountIds(section) {
+        const accounts = section?.account_selector?.accounts;
+        return Array.isArray(accounts) ? accounts.map((item) => String(item || "")).filter(Boolean) : [];
+    }
+
+    function configSectionSupportsAccountSelector(section) {
+        return Boolean(section?.account_selector?.enabled) && configSectionAccountIds(section).length > 1;
+    }
+
+    function configSectionFieldCurrentValue(sectionName, field) {
+        return String(configFormValues?.[sectionName]?.[field?.key] ?? field?.value ?? "");
+    }
+
+    function configSectionHasAccountData(section, accountId) {
+        const sectionName = String(section?.name || "");
+        const targetAccountId = String(accountId || "");
+        if (!sectionName || !targetAccountId) return false;
+        return (section?.fields || []).some((field) => {
+            if (String(field?.account_id || "") !== targetAccountId) return false;
+            return Boolean(configSectionFieldCurrentValue(sectionName, field).trim());
+        });
+    }
+
+    function getSelectedConfigSectionAccount(section) {
+        const accountIds = configSectionAccountIds(section);
+        if (!configSectionSupportsAccountSelector(section)) return "";
+        const persisted = String(uiState?.config_section_accounts?.[section?.name] || "");
+        if (accountIds.includes(persisted)) return persisted;
+        const firstConfigured = accountIds.find((accountId) => configSectionHasAccountData(section, accountId));
+        if (firstConfigured) return firstConfigured;
+        const defaultAccount = String(section?.account_selector?.default_account || "");
+        if (accountIds.includes(defaultAccount)) return defaultAccount;
+        return accountIds[0] || "";
+    }
+
+    function visibleConfigSectionFields(section, selectedAccountId) {
+        return (section?.fields || []).filter((field) => {
+            const fieldAccountId = String(field?.account_id || "");
+            return !fieldAccountId || fieldAccountId === String(selectedAccountId || "");
+        });
+    }
+
     function buildConfigSectionCard(section) {
         const card = document.createElement("section");
         card.className = "config-section-card";
@@ -3427,7 +3471,31 @@
             card.appendChild(desc);
         }
 
-        (section.fields || []).forEach((field) => {
+        const selectedAccountId = getSelectedConfigSectionAccount(section);
+        if (configSectionSupportsAccountSelector(section)) {
+            const selectorRow = document.createElement("div");
+            selectorRow.className = "config-account-selector";
+            const selectorLabel = document.createElement("label");
+            selectorLabel.className = "config-account-selector__label";
+            selectorLabel.textContent = "Configure account";
+            const selectorInput = document.createElement("select");
+            selectorInput.className = "field__input";
+            configSectionAccountIds(section).forEach((accountId) => {
+                selectorInput.add(new Option(`Account ${accountId}`, accountId));
+            });
+            selectorInput.value = selectedAccountId;
+            selectorInput.addEventListener("change", (event) => {
+                if (!uiState.config_section_accounts) uiState.config_section_accounts = {};
+                uiState.config_section_accounts[section.name] = String(event.target.value || "");
+                queueSaveState();
+                renderActiveConfigSection();
+            });
+            selectorRow.appendChild(selectorLabel);
+            selectorRow.appendChild(selectorInput);
+            card.appendChild(selectorRow);
+        }
+
+        visibleConfigSectionFields(section, selectedAccountId).forEach((field) => {
             const row = document.createElement("div");
             row.className = "config-field-row";
 
@@ -3587,7 +3655,10 @@
                 const bOrder = Object.prototype.hasOwnProperty.call(appSettingsOrder, bName) ? appSettingsOrder[bName] : 999;
                 return aOrder - bOrder;
             });
-        configSectionsData = allSections.filter((section) => !appSettingsNames.has(String(section?.name || "")));
+        configSectionsData = allSections.filter((section) => {
+            const name = String(section?.name || "");
+            return !appSettingsNames.has(name) && !FEATURES_CONFIG_HIDDEN_SECTIONS.has(name);
+        });
         configFormValues = buildConfigFormValuesFromSections(allSections);
         if (uiState?.config_active_section && configSectionsData.some((section) => section?.name === uiState.config_active_section)) {
             activeConfigSection = uiState.config_active_section;

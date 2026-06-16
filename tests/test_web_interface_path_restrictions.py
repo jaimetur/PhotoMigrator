@@ -170,6 +170,30 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(sanitized["google-takeout"], str(takeout_subfolder))
         self.assertEqual(sanitized["google-output-folder-suffix"], "processed")
 
+    def test_config_form_response_exposes_account_selector_for_multi_account_sections(self):
+        response = self.web_app._build_config_form_response(self.current_user)
+        sections = {str(section.get("name") or ""): section for section in response.get("sections", [])}
+
+        immich = sections["Immich Photos"]
+        self.assertTrue(immich["account_selector"]["enabled"])
+        self.assertEqual(immich["account_selector"]["accounts"], ["1", "2", "3"])
+        self.assertEqual(immich["account_selector"]["default_account"], "1")
+
+        field_map = {str(field.get("key") or ""): field for field in immich.get("fields", [])}
+        self.assertEqual(field_map["IMMICH_URL"]["account_id"], "")
+        self.assertEqual(field_map["IMMICH_API_KEY_ADMIN"]["account_id"], "")
+        self.assertEqual(field_map["IMMICH_USERNAME_2"]["account_id"], "2")
+        self.assertEqual(field_map["IMMICH_PASSWORD_3"]["account_id"], "3")
+
+    def test_config_form_response_does_not_enable_account_selector_for_single_account_sections(self):
+        response = self.web_app._build_config_form_response(self.current_user)
+        sections = {str(section.get("name") or ""): section for section in response.get("sections", [])}
+
+        timezone = sections["TimeZone"]
+        self.assertFalse(timezone["account_selector"]["enabled"])
+        self.assertEqual(timezone["account_selector"]["accounts"], [])
+        self.assertEqual(timezone["account_selector"]["default_account"], "")
+
 
 if __name__ == "__main__":
     unittest.main()
