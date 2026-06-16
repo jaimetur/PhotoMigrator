@@ -268,7 +268,9 @@ body {
 }
 
 .config-account-selector__input {
-    width: min(100%, 320px);
+    width: 42%;
+    min-width: 170px;
+    max-width: 220px;
     justify-self: end;
 }
 
@@ -334,6 +336,7 @@ body {
 
     .config-account-selector__input {
         width: 100%;
+        max-width: 100%;
         justify-self: stretch;
     }
 
@@ -834,6 +837,66 @@ body {
     color: var(--feature-tab-active-text);
 }
 
+#module-tabs .tab-btn.module-tab--migration {
+    background: #def3de;
+    border-color: #a8d4a9;
+    color: #2f6b3c;
+}
+
+#module-tabs .tab-btn.module-tab--migration.active {
+    background: #c4e8c5;
+    border-color: #71b278;
+    color: #214f2b;
+}
+
+#module-tabs .tab-btn.module-tab--takeout {
+    background: #fff3c9;
+    border-color: #e3d08a;
+    color: #7a6422;
+}
+
+#module-tabs .tab-btn.module-tab--takeout.active {
+    background: #ffe59a;
+    border-color: #d0b45a;
+    color: #654f12;
+}
+
+#module-tabs .tab-btn.module-tab--cloud {
+    background: #dcedff;
+    border-color: #a8c7ea;
+    color: #2e5f95;
+}
+
+#module-tabs .tab-btn.module-tab--cloud.active {
+    background: #bfd8fb;
+    border-color: #6d9ed8;
+    color: #1f4c7d;
+}
+
+#module-tabs .tab-btn.module-tab--standalone {
+    background: #f0e2ff;
+    border-color: #c8a9ea;
+    color: #6e4694;
+}
+
+#module-tabs .tab-btn.module-tab--standalone.active {
+    background: #dfc2ff;
+    border-color: #a978da;
+    color: #56307f;
+}
+
+#module-tabs .tab-btn.module-tab--upload {
+    background: #ffe0e0;
+    border-color: #e4a7a7;
+    color: #943f3f;
+}
+
+#module-tabs .tab-btn.module-tab--upload.active {
+    background: #ffc2c2;
+    border-color: #d77979;
+    color: #7d2d2d;
+}
+
 #general-tabs .tab-btn {
     background: var(--general-tab-bg);
     border-color: var(--general-tab-border);
@@ -1016,6 +1079,12 @@ body[data-theme="dark"] .tab-btn.active {
     padding: 8px;
     font: inherit;
     background: #fcfcfa;
+}
+
+.config-account-selector__main > .config-account-selector__input {
+    width: 42%;
+    min-width: 170px;
+    max-width: 220px;
 }
 
 .field__check {

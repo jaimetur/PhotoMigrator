@@ -322,6 +322,17 @@
         features_config: "FEATURES CONFIG",
         app_settings: "APP SETTINGS"
     };
+    const MODULE_TAB_VARIANT_CLASSES = {
+        automatic_migration: "module-tab--migration",
+        google_takeout: "module-tab--takeout",
+        icloud_takeout: "module-tab--takeout",
+        google_photos: "module-tab--cloud",
+        synology_photos: "module-tab--cloud",
+        immich_photos: "module-tab--cloud",
+        nextcloud_photos: "module-tab--cloud",
+        standalone_features: "module-tab--standalone",
+        upload_folder: "module-tab--upload"
+    };
     const FEATURES_CONFIG_HIDDEN_SECTIONS = new Set(["Google Takeout", "iCloud Takeout"]);
 
     const THEMES = {
@@ -1948,7 +1959,12 @@
         for (const key of Object.keys(mapping)) {
             const btn = document.createElement("button");
             btn.type = "button";
-            btn.className = `tab-btn ${active === key ? "active" : ""}`;
+            const classes = ["tab-btn"];
+            if (active === key) classes.push("active");
+            if (containerId === "module-tabs" && MODULE_TAB_VARIANT_CLASSES[key]) {
+                classes.push(MODULE_TAB_VARIANT_CLASSES[key]);
+            }
+            btn.className = classes.join(" ");
             btn.textContent = mapping[key];
             btn.addEventListener("click", () => onClick(key));
             container.appendChild(btn);
