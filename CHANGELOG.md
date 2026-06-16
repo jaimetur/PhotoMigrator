@@ -28,7 +28,7 @@
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
-    - Fixed `contains_zip_files()` so it no longer crashes in unit-test or lightweight execution contexts where the global `LOGGER` has not been initialized yet.
+  - Fixed `contains_zip_files()` so it no longer crashes in unit-test or lightweight execution contexts where the global `LOGGER` has not been initialized yet.
 
 #### 📚 Documentation:
   - Added dedicated `iCloud Takeout` documentation, including Apple export/download guidance, supported CSV/ZIP structure details, CLI/Web Interface usage, and output behavior.
