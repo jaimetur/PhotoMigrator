@@ -94,10 +94,25 @@ The whole process is done in an automatic way and is divided in different steps 
 >
 > [**(Google Takeout Fixing Documentation)**](/help/4-google-takeout.md)
 
-## 🖼️ 3. iCloud Takeout / Google Photos / Synology Photos / Immich Photos / NextCloud Photos
-Apart from the 'Automatic Migration' and 'Google Takeout Fixing' features, you can also use the tool to preprocess iCloud Photos exports, manage Google Photos, and manage different Photo Cloud Services.
+## 🍎 3. iCloud Takeout Fixing
+Other important feature included in the tool is the iCloud Takeout Fixing.
 
-- **iCloud Takeout** is a local export-processing module that fixes dates and metadata from Apple privacy exports before uploading to another target service.
+This feature has been designed to process Apple iCloud Photos privacy exports, recover the original capture dates from `Photo Details.csv`, assign those dates to the exported assets, and rebuild Albums from Apple CSV manifests.
+
+In this way your Media Library will be ready to be migrated to any other Cloud Photo services without losing important information such as Original date and Albums relationships.
+
+But this feature also helps you to reconstruct the exported library structure in a more usable way, including optional `Memories` rebuilding when those manifests are present in the export.
+
+The whole process is done in an automatic way and is independent from the cloud-service management modules.
+
+> [!NOTE]
+> For more info you can check the feature documentation in below link:
+>
+> [**(iCloud Takeout Fixing Documentation)**](/help/5-icloud-takeout.md)
+
+## 🖼️ 4. Google Photos / Synology Photos / Immich Photos / NextCloud Photos
+Apart from the `Automatic Migration`, `Google Takeout Fixing`, and `iCloud Takeout Fixing` features, you can also use the tool to manage Google Photos and different Photo Cloud Services.
+
 - **Google Photos** supports direct upload/download operations through the official API.
 - **Synology Photos**, **Immich Photos**, and **NextCloud Photos** provide cloud management and migration operations.
 
@@ -121,8 +136,6 @@ Currently, the Features Supported per each Photo Cloud Service are:
 > [!NOTE]
 > For more info you can check the feature documentation in below links:
 >
->- [**(iCloud Takeout Documentation)**](/help/5-icloud-takeout.md)
->
 >- [**(Google Photos Documentation)**](/help/6-google-photos.md)
 >
 >- [**(Synology Photos Documentation)**](/help/7-synology-photos.md)
@@ -137,7 +150,7 @@ Currently, the Features Supported per each Photo Cloud Service are:
 >- **Google Photos** is available since v4.0.0 with partial support due current official API limitations. Since April 1, 2025, Google Photos full-library reads are no longer available through the public Library API, so use Google Takeout for migrations/downloads of a full library and Google Photos mainly as upload target.
 
 
-## 🧩 4. Other Standalone Features  
+## 🧩 5. Other Standalone Features  
 Finally, the Tool also contains Other Useful Standalone Features such as:
   - **Metadata fixing** of any Photo Library in your local drive (not necessarily needs to be a Google Takeout folder)
   - **Library Organization** features:

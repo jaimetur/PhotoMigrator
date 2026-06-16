@@ -31,6 +31,7 @@
   - Added `iCloud Takeout` arguments and examples to `Command Line Interface`, `Arguments Description`, and `Arguments Description (Short)` help pages, and moved the Apple export request guidance to the top of the dedicated `iCloud Takeout` documentation inside a `TIP` block.
   - Renumbered and reordered the help sections to place `iCloud Takeout` as section `5` and `Google Photos` as section `6`, keeping links and documentation navigation aligned with the current feature order.
   - Fixed the Web Help Navigation label for `5. iCloud Takeout` so the product name casing is rendered correctly in the documentation sidebar.
+  - Reworked the `README` main modules structure so `iCloud Takeout Fixing` now appears as its own section `3`, separate from the cloud-service management section, and renumbered the following sections accordingly.
   - Updated documentation with all changes.
 
 ---
