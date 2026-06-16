@@ -136,7 +136,10 @@ Inside it, PhotoMigrator creates:
 - PhotoMigrator discussion with sample CSV/ZIP structure: `https://github.com/jaimetur/PhotoMigrator/discussions/1118`
 
 ---
-## Back to Main Page
+## 🏠 [Back to Main Page](/README.md)
 
-- [README](/README.md)
-- [Help Index](/docs/view/help/help.md)
+---
+## 🎖️ Credits:
+I hope this can be useful for any of you. Enjoy it!
+
+<span style="color:grey">(c) 2024-2026 by Jaime Tur (@jaimetur).</span>  
