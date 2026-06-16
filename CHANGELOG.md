@@ -10,7 +10,7 @@
 #### 🚨 Breaking Changes:
   
 #### 🌟 New Features:
-  - Added a new interactive CLI TUI powered by `Textual`, designed to be much closer to the Web Interface layout. The new terminal UI includes the same top-level feature selector modules, `General Arguments`, `Features Config`, and `App Settings` views, dynamic module-specific forms, multi-account configuration selectors for cloud services, live command preview, and in-terminal execution logs.
+  - Added a new interactive CLI TUI powered by `Textual`, designed to be much closer to the Web Interface layout. The new terminal UI includes the same top-level feature selector modules, `General Arguments`, `Features Config`, and `App Settings` views, dynamic module-specific forms, multi-account configuration selectors for cloud services, live command preview, and in-terminal execution logs. (Issue #1122).
 
 #### 🚀 Enhancements:
   - Updated the CLI launch flow so running PhotoMigrator without arguments now opens the new terminal UI automatically on compatible interactive terminals, running it with a single Takeout folder argument opens the terminal UI with `Google Takeout` prefilled, and `--tui` can be used as an explicit launcher flag.
