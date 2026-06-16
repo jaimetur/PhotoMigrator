@@ -61,6 +61,14 @@ CONFIG_SECTIONS_ORDER = [
     "Immich Photos",
     "NextCloud Photos",
 ]
+CONFIG_EDITOR_SECTIONS_ORDER = [
+    "TimeZone",
+    "Web Interface",
+    "Google Photos",
+    "Synology Photos",
+    "Immich Photos",
+    "NextCloud Photos",
+]
 TIMEZONE_DEFAULT = "Europe/Madrid"
 TIMEZONE_CHOICES = sorted(list(available_timezones()))
 WEB_INTERFACE_SECTION_NAME = "Web Interface"
@@ -1519,12 +1527,12 @@ def _apply_state_defaults(values: Dict[str, Any]) -> Dict[str, Any]:
 def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, Dict[str, str]] | None = None) -> Dict[str, Any]:
     effective = merged if merged is not None else _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
     sections: List[Dict[str, Any]] = []
-    section_order = {name: idx for idx, name in enumerate(CONFIG_SECTIONS_ORDER + [WEB_INTERFACE_SECTION_NAME])}
+    section_order = {name: idx for idx, name in enumerate(CONFIG_EDITOR_SECTIONS_ORDER + [WEB_INTERFACE_SECTION_NAME])}
     for section in CONFIG_FORM_SCHEMA:
         section_name = str(section.get("name") or "")
         if not section_name:
             continue
-        if section_name not in CONFIG_SECTIONS_ORDER and section_name != WEB_INTERFACE_SECTION_NAME:
+        if section_name not in CONFIG_EDITOR_SECTIONS_ORDER and section_name != WEB_INTERFACE_SECTION_NAME:
             continue
         fields: List[Dict[str, Any]] = []
         source_fields = list(section.get("fields", []))
@@ -1585,7 +1593,7 @@ def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, 
 
 
 def _editable_config_schema(form_schema: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    allowed = set(CONFIG_SECTIONS_ORDER + [WEB_INTERFACE_SECTION_NAME])
+    allowed = set(CONFIG_EDITOR_SECTIONS_ORDER + [WEB_INTERFACE_SECTION_NAME])
     filtered: List[Dict[str, Any]] = []
     for section in form_schema or []:
         section_name = str(section.get("name") or "")
