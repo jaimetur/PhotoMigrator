@@ -3458,6 +3458,127 @@
         });
     }
 
+    function renderConfigSectionField(card, section, field) {
+        const row = document.createElement("div");
+        row.className = "config-field-row";
+
+        const inputColumn = document.createElement("div");
+        inputColumn.className = "config-field-input-col";
+
+        const name = document.createElement("label");
+        name.className = "config-field-key";
+        const displayKey = String(field.key || "") === "timezone"
+            ? "TIMEZONE"
+            : String(field.key || "");
+        name.textContent = displayKey;
+        const nameLine = document.createElement("div");
+        nameLine.className = "config-field-keyline";
+        nameLine.appendChild(name);
+        if (field.env_override_source) {
+            const overrideBadge = document.createElement("span");
+            overrideBadge.className = "arg-badge arg-badge--env-override";
+            overrideBadge.textContent = "Env override";
+            overrideBadge.title = `Runtime override active from environment variable ${field.env_override_source}`;
+            nameLine.appendChild(overrideBadge);
+        }
+        inputColumn.appendChild(nameLine);
+
+        const sectionName = section.name || "";
+        const key = field.key || "";
+        const currentValue = String(configFormValues?.[sectionName]?.[key] ?? field.value ?? "");
+        const hasChoices = Array.isArray(field?.choices) && field.choices.length > 0;
+        const input = hasChoices ? document.createElement("select") : document.createElement("input");
+        input.className = "field__input";
+        if (!hasChoices) {
+            input.type = field.sensitive ? "password" : "text";
+            if (field.sensitive) {
+                input.autocomplete = "off";
+                input.setAttribute("data-lpignore", "true");
+                input.setAttribute("data-1p-ignore", "true");
+                input.spellcheck = false;
+            }
+            input.value = currentValue;
+        } else {
+            const preferred = "Europe/Madrid";
+            if (field.choices.includes(preferred)) {
+                input.add(new Option(preferred, preferred));
+            }
+            field.choices.forEach((choice) => {
+                if (choice === preferred) return;
+                input.add(new Option(choice, choice));
+            });
+            const fallbackValue = currentValue || preferred;
+            input.value = field.choices.includes(fallbackValue) ? fallbackValue : preferred;
+        }
+        input.dataset.section = sectionName;
+        input.dataset.key = key;
+        const applyNextcloudDefaultsFromUsername = () => {
+            if (sectionName !== "NextCloud Photos") return;
+            const match = /^NEXTCLOUD_USERNAME_(\d+)$/.exec(String(key || ""));
+            if (!match) return;
+            const usernameValue = String(input.value || "").trim();
+            const accountId = match[1];
+            const targets = [
+                [`NEXTCLOUD_PHOTOS_FOLDER_${accountId}`, NEXTCLOUD_DEFAULT_PHOTOS_FOLDER],
+                [`NEXTCLOUD_ALBUMS_FOLDER_${accountId}`, NEXTCLOUD_DEFAULT_ALBUMS_FOLDER],
+            ];
+            if (!usernameValue) {
+                targets.forEach(([targetKey]) => {
+                    if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
+                    configFormValues[sectionName][targetKey] = "";
+                    const targetEl = document.querySelector(
+                        `[data-section="${sectionName}"][data-key="${targetKey}"]`
+                    );
+                    if (targetEl) targetEl.value = "";
+                });
+                return;
+            }
+            targets.forEach(([targetKey, defaultValue]) => {
+                if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
+                const currentTarget = String(configFormValues[sectionName][targetKey] || "").trim();
+                if (currentTarget) return;
+                configFormValues[sectionName][targetKey] = defaultValue;
+                const targetEl = document.querySelector(
+                    `[data-section="${sectionName}"][data-key="${targetKey}"]`
+                );
+                if (targetEl) targetEl.value = defaultValue;
+            });
+        };
+        const updateConfigValue = () => {
+            if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
+            configFormValues[sectionName][key] = input.value || "";
+            applyNextcloudDefaultsFromUsername();
+            if (sectionName === "Web Interface" && key === "THEME") {
+                applyTheme(configFormValues[sectionName][key] || "ocean", true);
+            }
+            const isAutoSaveField =
+                (sectionName === "TimeZone" && key === "timezone")
+                || (sectionName === "Web Interface" && key === "THEME");
+            if (isAutoSaveField) queueAutoSaveAppSettings();
+        };
+        input.addEventListener("input", updateConfigValue);
+        input.addEventListener("change", updateConfigValue);
+        inputColumn.appendChild(input);
+        row.appendChild(inputColumn);
+
+        const helpPanel = document.createElement("aside");
+        helpPanel.className = "desc-card config-field-help-panel";
+        const helpText = document.createElement("p");
+        helpText.textContent = field.help || "No additional help for this field.";
+        helpPanel.appendChild(helpText);
+        if (field.env_override_source) {
+            const overrideNote = document.createElement("p");
+            overrideNote.className = "config-field-override-note";
+            overrideNote.textContent =
+                `Overridden at runtime by environment variable '${field.env_override_source}'. `
+                + "Any value saved here is kept in the database but ignored while that override remains set.";
+            helpPanel.appendChild(overrideNote);
+        }
+        row.appendChild(helpPanel);
+
+        card.appendChild(row);
+    }
+
     function buildConfigSectionCard(section) {
         const card = document.createElement("section");
         card.className = "config-section-card";
@@ -3472,6 +3593,12 @@
         }
 
         const selectedAccountId = getSelectedConfigSectionAccount(section);
+        const globalFields = (section?.fields || []).filter((field) => !String(field?.account_id || ""));
+        const selectedAccountFields = visibleConfigSectionFields(section, selectedAccountId)
+            .filter((field) => String(field?.account_id || ""));
+
+        globalFields.forEach((field) => renderConfigSectionField(card, section, field));
+
         if (configSectionSupportsAccountSelector(section)) {
             const selectorRow = document.createElement("div");
             selectorRow.className = "config-account-selector";
@@ -3495,126 +3622,7 @@
             card.appendChild(selectorRow);
         }
 
-        visibleConfigSectionFields(section, selectedAccountId).forEach((field) => {
-            const row = document.createElement("div");
-            row.className = "config-field-row";
-
-            const inputColumn = document.createElement("div");
-            inputColumn.className = "config-field-input-col";
-
-            const name = document.createElement("label");
-            name.className = "config-field-key";
-            const displayKey = String(field.key || "") === "timezone"
-                ? "TIMEZONE"
-                : String(field.key || "");
-            name.textContent = displayKey;
-            const nameLine = document.createElement("div");
-            nameLine.className = "config-field-keyline";
-            nameLine.appendChild(name);
-            if (field.env_override_source) {
-                const overrideBadge = document.createElement("span");
-                overrideBadge.className = "arg-badge arg-badge--env-override";
-                overrideBadge.textContent = "Env override";
-                overrideBadge.title = `Runtime override active from environment variable ${field.env_override_source}`;
-                nameLine.appendChild(overrideBadge);
-            }
-            inputColumn.appendChild(nameLine);
-
-            const sectionName = section.name || "";
-            const key = field.key || "";
-            const currentValue = String(configFormValues?.[sectionName]?.[key] ?? field.value ?? "");
-            const hasChoices = Array.isArray(field?.choices) && field.choices.length > 0;
-            const input = hasChoices ? document.createElement("select") : document.createElement("input");
-            input.className = "field__input";
-            if (!hasChoices) {
-                input.type = field.sensitive ? "password" : "text";
-                if (field.sensitive) {
-                    input.autocomplete = "off";
-                    input.setAttribute("data-lpignore", "true");
-                    input.setAttribute("data-1p-ignore", "true");
-                    input.spellcheck = false;
-                }
-                input.value = currentValue;
-            } else {
-                const preferred = "Europe/Madrid";
-                if (field.choices.includes(preferred)) {
-                    input.add(new Option(preferred, preferred));
-                }
-                field.choices.forEach((choice) => {
-                    if (choice === preferred) return;
-                    input.add(new Option(choice, choice));
-                });
-                const fallbackValue = currentValue || preferred;
-                input.value = field.choices.includes(fallbackValue) ? fallbackValue : preferred;
-            }
-            input.dataset.section = sectionName;
-            input.dataset.key = key;
-            const applyNextcloudDefaultsFromUsername = () => {
-                if (sectionName !== "NextCloud Photos") return;
-                const match = /^NEXTCLOUD_USERNAME_(\d+)$/.exec(String(key || ""));
-                if (!match) return;
-                const usernameValue = String(input.value || "").trim();
-                const accountId = match[1];
-                const targets = [
-                    [`NEXTCLOUD_PHOTOS_FOLDER_${accountId}`, NEXTCLOUD_DEFAULT_PHOTOS_FOLDER],
-                    [`NEXTCLOUD_ALBUMS_FOLDER_${accountId}`, NEXTCLOUD_DEFAULT_ALBUMS_FOLDER],
-                ];
-                if (!usernameValue) {
-                    targets.forEach(([targetKey]) => {
-                        if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
-                        configFormValues[sectionName][targetKey] = "";
-                        const targetEl = document.querySelector(
-                            `[data-section="${sectionName}"][data-key="${targetKey}"]`
-                        );
-                        if (targetEl) targetEl.value = "";
-                    });
-                    return;
-                }
-                targets.forEach(([targetKey, defaultValue]) => {
-                    if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
-                    const currentTarget = String(configFormValues[sectionName][targetKey] || "").trim();
-                    if (currentTarget) return;
-                    configFormValues[sectionName][targetKey] = defaultValue;
-                    const targetEl = document.querySelector(
-                        `[data-section="${sectionName}"][data-key="${targetKey}"]`
-                    );
-                    if (targetEl) targetEl.value = defaultValue;
-                });
-            };
-            const updateConfigValue = () => {
-                if (!configFormValues[sectionName]) configFormValues[sectionName] = {};
-                configFormValues[sectionName][key] = input.value || "";
-                applyNextcloudDefaultsFromUsername();
-                if (sectionName === "Web Interface" && key === "THEME") {
-                    applyTheme(configFormValues[sectionName][key] || "ocean", true);
-                }
-                const isAutoSaveField =
-                    (sectionName === "TimeZone" && key === "timezone")
-                    || (sectionName === "Web Interface" && key === "THEME");
-                if (isAutoSaveField) queueAutoSaveAppSettings();
-            };
-            input.addEventListener("input", updateConfigValue);
-            input.addEventListener("change", updateConfigValue);
-            inputColumn.appendChild(input);
-            row.appendChild(inputColumn);
-
-            const helpPanel = document.createElement("aside");
-            helpPanel.className = "desc-card config-field-help-panel";
-            const helpText = document.createElement("p");
-            helpText.textContent = field.help || "No additional help for this field.";
-            helpPanel.appendChild(helpText);
-            if (field.env_override_source) {
-                const overrideNote = document.createElement("p");
-                overrideNote.className = "config-field-override-note";
-                overrideNote.textContent =
-                    `Overridden at runtime by environment variable '${field.env_override_source}'. `
-                    + "Any value saved here is kept in the database but ignored while that override remains set.";
-                helpPanel.appendChild(overrideNote);
-            }
-            row.appendChild(helpPanel);
-
-            card.appendChild(row);
-        });
+        selectedAccountFields.forEach((field) => renderConfigSectionField(card, section, field));
         return card;
     }
 

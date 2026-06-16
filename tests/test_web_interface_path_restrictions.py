@@ -194,10 +194,10 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         response = self.web_app._build_config_form_response(self.current_user)
         sections = {str(section.get("name") or ""): section for section in response.get("sections", [])}
 
-        timezone = sections["TimeZone"]
-        self.assertFalse(timezone["account_selector"]["enabled"])
-        self.assertEqual(timezone["account_selector"]["accounts"], [])
-        self.assertEqual(timezone["account_selector"]["default_account"], "")
+        web_interface = sections["Web Interface"]
+        self.assertFalse(web_interface["account_selector"]["enabled"])
+        self.assertEqual(web_interface["account_selector"]["accounts"], [])
+        self.assertEqual(web_interface["account_selector"]["default_account"], "")
 
 
 if __name__ == "__main__":
