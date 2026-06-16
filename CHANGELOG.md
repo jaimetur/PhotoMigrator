@@ -19,6 +19,7 @@
   - Updated the Web Interface so `Features Config` no longer shows `Google Takeout` and `iCloud Takeout` configuration tabs, and normalized the feature selector label to `iCLOUD TAKEOUT`.
   - Improved `Features Config` for multi-account services (`Google Photos`, `Synology Photos`, `Immich Photos`, `NextCloud Photos`) by adding an account selector that shows only the global fields plus the selected account fields instead of rendering all accounts at once.
   - Refined the `Features Config` account selector layout so global fields are shown first, the account combobox appears immediately below them, and the selected account fields are rendered underneath.
+  - Adjusted the `Features Config` account selector width and alignment so the combobox matches the same field grid and visual width as the rest of the configuration inputs.
 
 #### 🚀 GPTH Enhancements:
 

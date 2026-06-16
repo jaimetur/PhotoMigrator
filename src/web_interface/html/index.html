@@ -3601,9 +3601,11 @@
 
         if (configSectionSupportsAccountSelector(section)) {
             const selectorRow = document.createElement("div");
-            selectorRow.className = "config-account-selector";
+            selectorRow.className = "config-field-row config-account-selector";
+            const selectorMain = document.createElement("div");
+            selectorMain.className = "config-field-input-col config-account-selector__main";
             const selectorLabel = document.createElement("label");
-            selectorLabel.className = "config-account-selector__label";
+            selectorLabel.className = "config-field-key config-account-selector__label";
             selectorLabel.textContent = "Configure account";
             const selectorInput = document.createElement("select");
             selectorInput.className = "field__input";
@@ -3617,8 +3619,9 @@
                 queueSaveState();
                 renderActiveConfigSection();
             });
-            selectorRow.appendChild(selectorLabel);
-            selectorRow.appendChild(selectorInput);
+            selectorMain.appendChild(selectorLabel);
+            selectorMain.appendChild(selectorInput);
+            selectorRow.appendChild(selectorMain);
             card.appendChild(selectorRow);
         }
 

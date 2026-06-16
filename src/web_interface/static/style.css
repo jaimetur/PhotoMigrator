@@ -256,18 +256,20 @@ body {
 }
 
 .config-account-selector {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: minmax(150px, 220px) minmax(220px, 320px);
-    align-items: center;
     padding: 10px 12px;
     border: 1px solid var(--border);
     border-radius: 10px;
     background: rgba(148, 163, 184, 0.08);
 }
 
+.config-account-selector__main {
+    grid-template-columns: minmax(220px, 0.95fr) minmax(240px, 1fr);
+    align-items: center;
+}
+
 .config-account-selector__label {
     font-weight: 700;
+    padding-top: 0;
 }
 
 .config-field-row {
@@ -317,6 +319,10 @@ body {
 
 @media (max-width: 980px) {
     .config-account-selector {
+        padding: 10px;
+    }
+
+    .config-account-selector__main {
         grid-template-columns: 1fr;
         align-items: start;
     }
