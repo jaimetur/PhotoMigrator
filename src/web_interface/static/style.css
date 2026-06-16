@@ -267,6 +267,11 @@ body {
     align-items: center;
 }
 
+.config-account-selector__input {
+    width: min(100%, 320px);
+    justify-self: end;
+}
+
 .config-account-selector__label {
     font-weight: 700;
     padding-top: 0;
@@ -325,6 +330,11 @@ body {
     .config-account-selector__main {
         grid-template-columns: 1fr;
         align-items: start;
+    }
+
+    .config-account-selector__input {
+        width: 100%;
+        justify-self: stretch;
     }
 
     .config-field-row {

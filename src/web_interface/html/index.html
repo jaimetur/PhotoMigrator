@@ -3608,7 +3608,7 @@
             selectorLabel.className = "config-field-key config-account-selector__label";
             selectorLabel.textContent = "Configure account";
             const selectorInput = document.createElement("select");
-            selectorInput.className = "field__input";
+            selectorInput.className = "field__input config-account-selector__input";
             configSectionAccountIds(section).forEach((accountId) => {
                 selectorInput.add(new Option(`Account ${accountId}`, accountId));
             });
