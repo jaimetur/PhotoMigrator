@@ -3,7 +3,6 @@
 From version 4.2.0 onwards, PhotoMigrator can process an Apple iCloud Photos export and recover asset dates from the CSV metadata that Apple includes in that export.
 
 This feature is independent from the Google Takeout pipeline:
-- it does not call GPTH,
 - it reads `Photo Details.csv` files from the iCloud export,
 - it assigns those dates to the photo/video files,
 - it builds a portable output library with `ALL_PHOTOS` and `Albums`.
