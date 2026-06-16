@@ -53,24 +53,24 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 ## Help Index
 
 ### Main Guides
-- [CLI Overview](/docs/view/help/1-command-line-interface.md)
-- [Configuration File](/docs/view/help/0-configuration-file.md)
+- [CLI Overview](/docs/view/help/01-command-line-interface.md)
+- [Configuration File](/docs/view/help/00-configuration-file.md)
 - [Docker CLI Execution](/docs/view/help/docker-deployments/deploy-cli-interface-from-docker.md)
 - [Web Interface from Docker](/docs/view/help/docker-deployments/deploy-web-interface-from-docker.md)
-- [Automatic Migration](/docs/view/help/3-automatic-migration.md)
-- [Google Takeout](/docs/view/help/4-google-takeout.md)
-- [iCloud Takeout](/docs/view/help/5-icloud-takeout.md)
-- [Google Photos](/docs/view/help/6-google-photos.md)
-- [Synology Photos](/docs/view/help/7-synology-photos.md)
-- [Immich Photos](/docs/view/help/8-immich-photos.md)
-- [NextCloud Photos](/docs/view/help/9-nextcloud-photos.md)
+- [Automatic Migration](/docs/view/help/03-automatic-migration.md)
+- [Google Takeout](/docs/view/help/04-google-takeout.md)
+- [iCloud Takeout](/docs/view/help/05-icloud-takeout.md)
+- [Google Photos](/docs/view/help/06-google-photos.md)
+- [Synology Photos](/docs/view/help/07-synology-photos.md)
+- [Immich Photos](/docs/view/help/08-immich-photos.md)
+- [NextCloud Photos](/docs/view/help/09-nextcloud-photos.md)
 - [Other Features](/docs/view/help/10-other-features.md)
 - [Google Photos Takeout Helper (GPTH)](/docs/view/help/11-GPTH-complete-pipeline.md)
 - [Docker Deployment](/docs/view/help/12-docker-deployment.md)
 
 ### Arguments Reference
-- [Arguments Description (Short)](/docs/view/help/2-arguments-description-short.md)
-- [Arguments Description (Full)](/docs/view/help/2-arguments-description.md)
+- [Arguments Description (Short)](/docs/view/help/02-arguments-description-short.md)
+- [Arguments Description (Full)](/docs/view/help/02-arguments-description.md)
 
 ---
 

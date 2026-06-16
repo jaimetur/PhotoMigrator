@@ -51,7 +51,7 @@ Find below the needed steps:
 
 Open the file `Config.ini` included in the package with any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](/help/0-configuration-file.md).
+> For more information, refer to [Configuration File](/help/00-configuration-file.md).
 
 
 ### 🚀 7. Run the Tool to show the command line help:

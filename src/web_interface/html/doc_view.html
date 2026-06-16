@@ -576,10 +576,10 @@
         if (clean.toLowerCase() === "11-gpth-complete-pipeline.md") {
             return "11. Google Photos Takeout Helper (GPTH)";
         }
-        if (clean.toLowerCase() === "5-icloud-takeout.md") {
+        if (clean.toLowerCase() === "05-icloud-takeout.md") {
             return "5. iCloud Takeout";
         }
-        if (clean.toLowerCase() === "2-arguments-description-short.md") {
+        if (clean.toLowerCase() === "02-arguments-description-short.md") {
             return "2. Arguments Description";
         }
         const parts = clean.split("/");
@@ -758,23 +758,23 @@
 
         addLink("🏠 Home", "/docs/view/help");
         const baseDocs = [
-            "0-configuration-file.md",
-            "1-command-line-interface.md",
-            "2-arguments-description-short.md",
-            "3-automatic-migration.md",
-            "4-google-takeout.md",
-            "5-icloud-takeout.md",
-            "6-google-photos.md",
-            "7-synology-photos.md",
-            "8-immich-photos.md",
-            "9-nextcloud-photos.md",
+            "00-configuration-file.md",
+            "01-command-line-interface.md",
+            "02-arguments-description-short.md",
+            "03-automatic-migration.md",
+            "04-google-takeout.md",
+            "05-icloud-takeout.md",
+            "06-google-photos.md",
+            "07-synology-photos.md",
+            "08-immich-photos.md",
+            "09-nextcloud-photos.md",
             "10-other-features.md",
             "11-GPTH-complete-pipeline.md",
             "12-docker-deployment.md"
         ];
         const argumentsSubDocs = [
-            {path: "2-arguments-description-short.md", label: "2.1 Short Description"},
-            {path: "2-arguments-description.md", label: "2.2 Long Description"},
+            {path: "02-arguments-description-short.md", label: "2.1 Short Description"},
+            {path: "02-arguments-description.md", label: "2.2 Long Description"},
         ];
         const gpthSubDocs = [
             {path: "gpth_process_explanations/01_GPTH_fix_incorrect_file_extension.md", label: "11.1 Fix Extensions"},
@@ -844,17 +844,17 @@
         ];
         const fallbackDocs = [...baseDocs];
         const preferredOrder = {
-            "0-configuration-file.md": 10,
-            "1-command-line-interface.md": 20,
-            "2-arguments-description-short.md": 30,
-            "2-arguments-description.md": 31,
-            "3-automatic-migration.md": 50,
-            "4-google-takeout.md": 60,
-            "5-icloud-takeout.md": 70,
-            "6-google-photos.md": 80,
-            "7-synology-photos.md": 90,
-            "8-immich-photos.md": 100,
-            "9-nextcloud-photos.md": 110,
+            "00-configuration-file.md": 10,
+            "01-command-line-interface.md": 20,
+            "02-arguments-description-short.md": 30,
+            "02-arguments-description.md": 31,
+            "03-automatic-migration.md": 50,
+            "04-google-takeout.md": 60,
+            "05-icloud-takeout.md": 70,
+            "06-google-photos.md": 80,
+            "07-synology-photos.md": 90,
+            "08-immich-photos.md": 100,
+            "09-nextcloud-photos.md": 110,
             "10-other-features.md": 120,
             "11-gpth-complete-pipeline.md": 130,
             "12-docker-deployment.md": 140,
@@ -888,7 +888,7 @@
                 const doc = docsByPath.get(key);
                 if (!doc || !doc.url) return;
                 addLink(buildHelpLabel(doc.path), doc.url);
-                if (key === "2-arguments-description-short.md") {
+                if (key === "02-arguments-description-short.md") {
                     const items = [];
                     argumentsSubDocs.forEach((sub) => {
                         const subKey = normalizePath(sub.path);
@@ -902,12 +902,12 @@
                         addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                     }
                 }
-                if (key === "9-nextcloud-photos.md") {
+                if (key === "09-nextcloud-photos.md") {
                     const items = nextcloudSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "6-google-photos.md") {
+                if (key === "06-google-photos.md") {
                     const items = googlePhotosSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
@@ -917,12 +917,12 @@
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "7-synology-photos.md") {
+                if (key === "07-synology-photos.md") {
                     const items = synologySubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }
-                if (key === "8-immich-photos.md") {
+                if (key === "08-immich-photos.md") {
                     const items = immichSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
@@ -972,17 +972,17 @@
                     addLink(sub.label, url, true);
                 } else {
                     addLink(buildHelpLabel(docPath), url);
-                    if (String(docPath).toLowerCase() === "2-arguments-description-short.md") {
+                    if (String(docPath).toLowerCase() === "02-arguments-description-short.md") {
                         const items = argumentsSubDocs.map((argSub) => ({label: argSub.label, url: `/docs/view/help/${argSub.path}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "9-nextcloud-photos.md") {
+                    if (String(docPath).toLowerCase() === "09-nextcloud-photos.md") {
                         const items = nextcloudSubDocs.map((sub) => ({label: sub.label, url: `${url}#${sub.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "6-google-photos.md") {
+                    if (String(docPath).toLowerCase() === "06-google-photos.md") {
                         const items = googlePhotosSubDocs.map((sub) => ({label: sub.label, url: `${url}#${sub.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
@@ -992,12 +992,12 @@
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "7-synology-photos.md") {
+                    if (String(docPath).toLowerCase() === "07-synology-photos.md") {
                         const items = synologySubDocs.map((subDoc) => ({label: subDoc.label, url: `${url}#${subDoc.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);
                     }
-                    if (String(docPath).toLowerCase() === "8-immich-photos.md") {
+                    if (String(docPath).toLowerCase() === "08-immich-photos.md") {
                         const items = immichSubDocs.map((subDoc) => ({label: subDoc.label, url: `${url}#${subDoc.anchor}`}));
                         navEl.lastElementChild?.remove();
                         addCollapsibleSection(buildHelpLabel(docPath), url, items);

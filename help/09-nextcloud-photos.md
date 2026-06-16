@@ -278,7 +278,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 ---
 ## ⚙️ Config.ini
 You can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/0-configuration-file.md) 
+[Configuration File](/help/00-configuration-file.md) 
 
 ---
 ## 🏠 [Back to Main Page](/README.md)

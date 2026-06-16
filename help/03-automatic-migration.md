@@ -146,7 +146,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 ---
 ## ⚙️ Config.ini
 You can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/0-configuration-file.md) 
+[Configuration File](/help/00-configuration-file.md) 
 
 ---
 ## 🏠 [Back to Main Page](/README.md)

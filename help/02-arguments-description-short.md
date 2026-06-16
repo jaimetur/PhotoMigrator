@@ -3,7 +3,7 @@ This section describe the different arguments and flags used by the tool.
 - An **argument** is a modifier that is followed by any parameter.
 - On the other hand, a **flag** is a modifier that don't require any parameter, hence, if the flag is present the feature is enabled, otherwise, the feature is disabled.
 
-There is also a [extended version](/help/2-arguments-description.md) of this document available.
+There is also a [extended version](/help/02-arguments-description.md) of this document available.
 
 ## 🧩 Core Arguments
 

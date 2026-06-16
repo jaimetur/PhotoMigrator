@@ -6,7 +6,7 @@
 
 Open the file `Config.ini` included in the package with any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](/help/0-configuration-file.md) .
+> For more information, refer to [Configuration File](/help/00-configuration-file.md) .
 
 ### 🚀 3. Execute the Tool depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**PhotoMigrator.exe**'  

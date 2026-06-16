@@ -101,7 +101,7 @@ curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/photomigrator-
 Open `Config.ini` and update your credentials and settings.
 
 More details:
-[Configuration File](/help/0-configuration-file.md)
+[Configuration File](/help/00-configuration-file.md)
 
 ### 1.5. Run the tool
 
