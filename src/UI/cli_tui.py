@@ -2255,6 +2255,14 @@ if TEXTUAL_AVAILABLE:
                 self.context_menu_visible = False
                 self.context_menu_target_widget_id = ""
 
+        def _widget_is_in_context_popup(self, widget: Any | None) -> bool:
+            current = widget
+            while current is not None:
+                if str(getattr(current, "id", "") or "") == "context-popup":
+                    return True
+                current = getattr(current, "parent", None)
+            return False
+
         def action_copy_text(self) -> None:
             selected_log_text = self._selected_log_text()
             if selected_log_text:
@@ -2302,12 +2310,12 @@ if TEXTUAL_AVAILABLE:
                 self.update_status("Unable to paste clipboard text into the current field.")
 
         def on_mouse_down(self, event: events.MouseDown) -> None:
-            if int(getattr(event, "button", 0) or 0) != 3 and self.context_menu_visible:
+            clicked_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
+            if int(getattr(event, "button", 0) or 0) != 3 and self.context_menu_visible and not self._widget_is_in_context_popup(clicked_widget):
                 self.hide_context_popup()
             if int(getattr(event, "button", 0) or 0) != 3:
                 return
-            widget = self._widget_under_pointer(event.screen_x, event.screen_y)
-            current = widget
+            current = clicked_widget
             target = None
             while current is not None:
                 current_id = str(getattr(current, "id", "") or "")
@@ -2347,6 +2355,32 @@ if TEXTUAL_AVAILABLE:
                 current = getattr(current, "parent", None)
             return False
 
+        def _log_scroll_target(self, widget: Any | None) -> Any | None:
+            current = widget
+            while current is not None:
+                current_id = str(getattr(current, "id", "") or "")
+                if current_id == "log-panel" and isinstance(current, ExecutionLogView):
+                    return current
+                if current_id == "log-panel-container":
+                    try:
+                        return self.query_one("#log-panel", ExecutionLogView)
+                    except Exception:
+                        return None
+                current = getattr(current, "parent", None)
+            try:
+                focused = getattr(self.screen, "focused", None)
+                if isinstance(focused, ExecutionLogView):
+                    return focused
+            except Exception:
+                pass
+            try:
+                return self.query_one("#log-panel", ExecutionLogView)
+            except Exception:
+                return None
+
+        def _scroll_modifier_active(self, event: Any) -> bool:
+            return any(bool(getattr(event, attr, False)) for attr in ("shift", "ctrl", "meta", "alt"))
+
         def _content_panel_overflows(self) -> bool:
             try:
                 container = self.query_one("#content-body")
@@ -2369,8 +2403,9 @@ if TEXTUAL_AVAILABLE:
 
         def on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
             hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
-            if getattr(event, "shift", False) and self._widget_is_within(hovered_widget, "log-panel"):
-                if self._scroll_widget_horizontally(hovered_widget, 4):
+            log_target = self._log_scroll_target(hovered_widget)
+            if self._scroll_modifier_active(event) and log_target is not None:
+                if self._scroll_widget_horizontally(log_target, 4):
                     event.stop()
                     try:
                         event.prevent_default()
@@ -2386,8 +2421,9 @@ if TEXTUAL_AVAILABLE:
 
         def on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
             hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
-            if getattr(event, "shift", False) and self._widget_is_within(hovered_widget, "log-panel"):
-                if self._scroll_widget_horizontally(hovered_widget, -4):
+            log_target = self._log_scroll_target(hovered_widget)
+            if self._scroll_modifier_active(event) and log_target is not None:
+                if self._scroll_widget_horizontally(log_target, -4):
                     event.stop()
                     try:
                         event.prevent_default()
@@ -2403,7 +2439,8 @@ if TEXTUAL_AVAILABLE:
 
         def on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
             hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
-            if self._widget_is_within(hovered_widget, "log-panel") and self._scroll_widget_horizontally(hovered_widget, -4):
+            log_target = self._log_scroll_target(hovered_widget)
+            if log_target is not None and self._scroll_widget_horizontally(log_target, -4):
                 event.stop()
                 try:
                     event.prevent_default()
@@ -2412,7 +2449,8 @@ if TEXTUAL_AVAILABLE:
 
         def on_mouse_scroll_right(self, event: events.MouseScrollRight) -> None:
             hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
-            if self._widget_is_within(hovered_widget, "log-panel") and self._scroll_widget_horizontally(hovered_widget, 4):
+            log_target = self._log_scroll_target(hovered_widget)
+            if log_target is not None and self._scroll_widget_horizontally(log_target, 4):
                 event.stop()
                 try:
                     event.prevent_default()
