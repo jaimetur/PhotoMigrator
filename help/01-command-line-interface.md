@@ -22,6 +22,18 @@ PhotoMigrator also includes a native desktop GUI implemented with `tkinter`.
 - The desktop GUI reuses the same shared parser/config model as the CLI TUI, so it exposes the same top-level modules, `General Arguments`, `Features Config`, and `App Settings` views.
 - When `PhotoMigrator` is executed without arguments, the desktop GUI is now the first launcher option.
 
+## Launcher Flags
+
+The following two flags are special launcher flags handled before the normal argparse parser starts:
+
+- `--gui`
+  - Forces the Desktop GUI explicitly.
+- `--tui`
+  - Forces the Terminal TUI explicitly.
+
+> [!NOTE]
+> `--gui` and `--tui` do not belong to the normal parser syntax shown below, so they do not appear inside the generated `-h/--help` usage block.
+
 Most of the argument can be given with two formats:
 - Short format: '-' followed by the short name
 - Long format: '--' followed by the long name

@@ -5,6 +5,21 @@ This section describe the different arguments and flags used by the tool.
 
 There is also a [extended version](02-arguments-description.md) of this document available.
 
+## 🖥️ Launcher Flags
+
+These flags are handled before the normal argparse parser starts, so they are launcher controls rather than regular feature arguments.
+
+| Argument | Description                       |
+|----------|-----------------------------------|
+| `--gui`  | Force the Desktop GUI explicitly  |
+| `--tui`  | Force the Terminal TUI explicitly |
+
+#### 🧪 Examples:
+```bash
+PhotoMigrator.run --gui
+PhotoMigrator.run --tui
+```
+
 ## 🧩 Core Arguments
 
 | Argument                                           | Description                                                                                        |
