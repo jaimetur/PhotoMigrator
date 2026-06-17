@@ -893,6 +893,11 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
                 args.extend([long_option, "true" if current else "false"])
             continue
         if kind == "list":
+            if dest == "rename-albums":
+                text = str(raw_value or "").strip()
+                if text:
+                    args.extend([long_option, text])
+                continue
             values_list = to_list(raw_value)
             if values_list:
                 args.append(long_option)
