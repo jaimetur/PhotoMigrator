@@ -327,18 +327,22 @@ if TEXTUAL_AVAILABLE:
 
 
     class ExecutionLogView(RichLog):
-        ALLOW_SELECT = True
+        ALLOW_SELECT = False
         FOCUS_ON_CLICK = True
         can_focus = True
 
         def __init__(self, *args: Any, auto_scroll: bool = True, **kwargs: Any) -> None:
-            super().__init__(*args, auto_scroll=auto_scroll, **kwargs)
+            super().__init__(*args, auto_scroll=auto_scroll, wrap=False, **kwargs)
             self.auto_scroll = auto_scroll
             self._lines: List[Text] = []
+            self._manual_selection_start: tuple[int, int] | None = None
+            self._manual_selection_end: tuple[int, int] | None = None
+            self._manual_selection_active = False
+            self.allow_horizontal_scroll = True
 
         @property
         def allow_select(self) -> bool:
-            return True
+            return False
 
         def _as_text(self, renderable: Any) -> Text:
             if isinstance(renderable, Text):
@@ -385,6 +389,9 @@ if TEXTUAL_AVAILABLE:
             return max(0, int(x or 0)), max(0, int(y or 0))
 
         def _selected_text_from_selection(self, selection: Any) -> str:
+            manual_text = self.get_manual_selection_text()
+            if manual_text:
+                return manual_text
             start_point = getattr(selection, "start", None) or getattr(selection, "anchor", None)
             end_point = getattr(selection, "end", None) or getattr(selection, "cursor", None)
             if start_point is None or end_point is None:
@@ -419,6 +426,102 @@ if TEXTUAL_AVAILABLE:
             selected_text = self._selected_text_from_selection(selection)
             return selected_text or None
 
+        def _manual_selection_bounds(self) -> tuple[tuple[int, int], tuple[int, int]] | None:
+            start = self._manual_selection_start
+            end = self._manual_selection_end
+            if start is None or end is None:
+                return None
+            if end < start:
+                start, end = end, start
+            return start, end
+
+        def get_manual_selection_text(self) -> str:
+            bounds = self._manual_selection_bounds()
+            if bounds is None or not self._lines:
+                return ""
+            (start_x, start_y), (end_x, end_y) = bounds
+            start_y = max(0, min(start_y, len(self._lines) - 1))
+            end_y = max(0, min(end_y, len(self._lines) - 1))
+            selected_lines: List[str] = []
+            for row in range(start_y, end_y + 1):
+                line = self._line_plain(row)
+                if row == start_y == end_y:
+                    selected_lines.append(line[start_x:end_x])
+                elif row == start_y:
+                    selected_lines.append(line[start_x:])
+                elif row == end_y:
+                    selected_lines.append(line[:end_x])
+                else:
+                    selected_lines.append(line)
+            return "\n".join(selected_lines)
+
+        def _event_content_coord(self, event: Any) -> tuple[int, int]:
+            local_x = int(getattr(event, "x", 0) or 0)
+            local_y = int(getattr(event, "y", 0) or 0)
+            scroll_x = int(float(getattr(self, "scroll_x", 0) or 0))
+            scroll_y = int(float(getattr(self, "scroll_y", 0) or 0))
+            return max(0, local_x + scroll_x), max(0, local_y + scroll_y)
+
+        def _style_line_for_selection(self, text: Text, row_index: int) -> Text:
+            styled = text.copy()
+            bounds = self._manual_selection_bounds()
+            if bounds is None:
+                return styled
+            (start_x, start_y), (end_x, end_y) = bounds
+            if row_index < start_y or row_index > end_y:
+                return styled
+            line_length = len(styled.plain)
+            if line_length <= 0:
+                return styled
+            if start_y == end_y:
+                sel_start = max(0, min(start_x, line_length))
+                sel_end = max(0, min(end_x, line_length))
+            elif row_index == start_y:
+                sel_start = max(0, min(start_x, line_length))
+                sel_end = line_length
+            elif row_index == end_y:
+                sel_start = 0
+                sel_end = max(0, min(end_x, line_length))
+            else:
+                sel_start = 0
+                sel_end = line_length
+            if sel_end > sel_start:
+                styled.stylize("reverse", sel_start, sel_end)
+            return styled
+
+        def _line_render_width(self, text: Text) -> int:
+            try:
+                return max(1, len(text.plain or ""))
+            except Exception:
+                return max(1, len(str(text or "")))
+
+        def _redraw_lines(self, *, scroll_end: bool | None = None) -> None:
+            try:
+                super().clear()
+            except Exception:
+                pass
+            last_index = len(self._lines) - 1
+            for index, line in enumerate(self._lines):
+                styled_line = self._style_line_for_selection(line, index)
+                try:
+                    super().write(
+                        styled_line,
+                        width=self._line_render_width(styled_line),
+                        shrink=False,
+                        scroll_end=(self.auto_scroll if scroll_end is None else bool(scroll_end)) and index == last_index,
+                    )
+                except TypeError:
+                    super().write(styled_line, width=self._line_render_width(styled_line), shrink=False)
+            self._scroll_to_end_if_needed(scroll_end)
+
+        def clear_manual_selection(self) -> None:
+            if self._manual_selection_start is None and self._manual_selection_end is None:
+                return
+            self._manual_selection_start = None
+            self._manual_selection_end = None
+            self._manual_selection_active = False
+            self._redraw_lines(scroll_end=False)
+
         def _scroll_to_end_if_needed(self, scroll_end: bool | None) -> None:
             if scroll_end is False or not self.auto_scroll:
                 return
@@ -441,6 +544,9 @@ if TEXTUAL_AVAILABLE:
 
         def clear(self) -> None:
             self._lines = []
+            self._manual_selection_start = None
+            self._manual_selection_end = None
+            self._manual_selection_active = False
             try:
                 super().clear()
             except Exception:
@@ -449,25 +555,21 @@ if TEXTUAL_AVAILABLE:
         def write(self, renderable: Any, *, scroll_end: bool | None = None) -> None:
             text = self._as_text(renderable)
             self._lines.append(text)
+            styled_line = self._style_line_for_selection(text, len(self._lines) - 1)
             try:
-                super().write(text, scroll_end=self.auto_scroll if scroll_end is None else bool(scroll_end))
+                super().write(
+                    styled_line,
+                    width=self._line_render_width(styled_line),
+                    shrink=False,
+                    scroll_end=self.auto_scroll if scroll_end is None else bool(scroll_end),
+                )
             except TypeError:
-                super().write(text)
+                super().write(styled_line, width=self._line_render_width(styled_line), shrink=False)
                 self._scroll_to_end_if_needed(scroll_end)
 
         def set_lines(self, lines: List[Any], *, scroll_end: bool | None = None) -> None:
             self._lines = [self._as_text(line) for line in lines]
-            try:
-                super().clear()
-            except Exception:
-                pass
-            last_index = len(self._lines) - 1
-            for index, line in enumerate(self._lines):
-                try:
-                    super().write(line, scroll_end=(self.auto_scroll if scroll_end is None else bool(scroll_end)) and index == last_index)
-                except TypeError:
-                    super().write(line)
-            self._scroll_to_end_if_needed(scroll_end)
+            self._redraw_lines(scroll_end=scroll_end)
 
         def on_mouse_down(self, event: events.MouseDown) -> None:
             if int(getattr(event, "button", 0) or 0) == 1:
@@ -475,8 +577,55 @@ if TEXTUAL_AVAILABLE:
                     self.focus()
                 except Exception:
                     pass
+                self._manual_selection_start = self._event_content_coord(event)
+                self._manual_selection_end = self._manual_selection_start
+                self._manual_selection_active = True
+                try:
+                    self.capture_mouse(True)
+                except Exception:
+                    pass
+                self._redraw_lines(scroll_end=False)
+                event.stop()
+                try:
+                    event.prevent_default()
+                except Exception:
+                    pass
+                return
             try:
                 super().on_mouse_down(event)
+            except Exception:
+                pass
+
+        def on_mouse_move(self, event: events.MouseMove) -> None:
+            if not self._manual_selection_active:
+                return
+            next_coord = self._event_content_coord(event)
+            if next_coord == self._manual_selection_end:
+                return
+            self._manual_selection_end = next_coord
+            self._redraw_lines(scroll_end=False)
+            event.stop()
+            try:
+                event.prevent_default()
+            except Exception:
+                pass
+
+        def on_mouse_up(self, event: events.MouseUp) -> None:
+            if not self._manual_selection_active or int(getattr(event, "button", 0) or 0) != 1:
+                return
+            self._manual_selection_end = self._event_content_coord(event)
+            self._manual_selection_active = False
+            try:
+                self.capture_mouse(False)
+            except Exception:
+                try:
+                    self.release_mouse()
+                except Exception:
+                    pass
+            self._redraw_lines(scroll_end=False)
+            event.stop()
+            try:
+                event.prevent_default()
             except Exception:
                 pass
 
@@ -1956,14 +2105,9 @@ if TEXTUAL_AVAILABLE:
                     selected_text = candidate
                 return selected_text or str(getattr(widget, "value", "") or "")
             if isinstance(widget, ExecutionLogView):
-                selection = getattr(widget, "selection", None)
-                if selection is not None:
-                    try:
-                        selected_text = widget.get_selection_text(selection)
-                        if selected_text:
-                            return selected_text
-                    except Exception:
-                        pass
+                selected_text = widget.get_manual_selection_text()
+                if selected_text:
+                    return selected_text
                 return "\n".join(self.log_buffer.render_lines(include_partial=True))
             widget_id = str(getattr(widget, "id", "") or "")
             if widget_id == "command-preview":
@@ -2809,7 +2953,7 @@ if TEXTUAL_AVAILABLE:
                 return text
             styles = {
                 "VERBOSE": "dim cyan",
-                "DEBUG": "bold bright_blue",
+                "DEBUG": "bright_cyan",
                 "INFO": "bright_white",
                 "WARNING": "yellow",
                 "ERROR": "bold red",
