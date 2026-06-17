@@ -31,12 +31,14 @@
   - Added collapsible panel controls to the desktop GUI and CLI TUI, and updated both layouts so running a module temporarily shrinks the upper content area and expands the `Execution Log` area for better runtime visibility before restoring the default proportions when the job finishes.
   - Refined clipboard and panel UX in both local interfaces: the TUI now uses a smaller floating context popup instead of a large modal-style dialog, and the desktop GUI now exposes native right-click `Copy` / `Paste` menus plus selectable read-only text panels for `Argument Description`, `Command Preview`, `Status`, and `Execution Log`. The desktop GUI also now remembers the last saved window geometry between sessions.
   - Reworked the GUI/TUI configuration toolbar so `Load Config` now validates an external `.ini` file before asking permission to overwrite the active configuration file, while `Save Config` and `Save UI State` now go through explicit confirmation dialogs and the save-oriented toolbar actions use a distinct pastel-blue visual treatment.
+  - Improved runtime behavior in the desktop GUI and CLI TUI so the upper `Feature` panel now auto-collapses while a job is running, `Execution Log` compactly rewrites progress-bar updates instead of appending a new line for every refresh, and the TUI log panel now supports real text selection/copy via mouse selection, `Ctrl+C`, and the right-click context menu.
 
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
   - Fixed the CLI TUI `Features Config` view so config sections no longer rebuild in a visible loop, theme selection behaves more predictably, and `Config.ini` fields can be edited and saved correctly from the terminal interface.
   - Fixed multiple CLI TUI rendering issues affecting panel titles, scroll behavior, main-panel layout balancing, sidebar feature scrolling, and terminal form presentation across `Feature`, `General Arguments`, `Features Config`, and `App Settings`.
+  - Fixed the desktop GUI `Automatic Migration` endpoint editor so cloud-based `source` / `target` selectors now show the `Account` label correctly in front of the account combobox, matching the TUI layout.
 
 #### 📚 Documentation:
   - Added desktop GUI documentation to the README and execution/help pages, including the explicit `--gui` launcher flag and the fact that the desktop GUI is now the default startup experience when PhotoMigrator is executed without arguments.

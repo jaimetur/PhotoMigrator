@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import queue
+import re
 import shutil
 import subprocess
 import threading
@@ -42,6 +43,7 @@ from UI.shared import (
 )
 
 TK_STATE_PATH = Path(os.environ.get("PHOTOMIGRATOR_TK_GUI_STATE_PATH", str(Path.home() / ".photomigrator_tk_gui_state.json")))
+ANSI_CSI_RE = re.compile(r"\x1b\[([0-9;?]*)([@-~])")
 THEME_CHOICES = [("Ocean", "ocean"), ("Emerald", "emerald"), ("Sunset", "sunset"), ("Dark", "dark")]
 MODULE_GROUP_CLASSES = {
     "automatic_migration": ("#c9ebcf", "#22462a"),
@@ -541,6 +543,7 @@ class PhotoMigratorTkGUI:
         self.preview_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], insertbackground=theme["panel_fg"])
         self.status_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], wraplength=max(200, self.root.winfo_width() - 420))
         self.log_text.configure(bg=theme["log_bg"], fg=theme["log_fg"], insertbackground=theme["log_fg"])
+        self._configure_log_ansi_tags()
         self.input_panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
         self.input_header.configure(bg=theme["root_bg"])
         self.input_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
@@ -570,6 +573,7 @@ class PhotoMigratorTkGUI:
         self.refresh_toolbar_buttons()
         self.refresh_action_buttons()
         self.refresh_panel_toggle_buttons()
+        self.refresh_log_view()
         if rebuild:
             self.rebuild_content()
             self.update_command_preview()
@@ -1012,13 +1016,77 @@ class PhotoMigratorTkGUI:
         body = str(text or "")
         setattr(widget, "_pm_text_body", body)
         widget.delete("1.0", "end")
-        widget.insert("1.0", body)
+        if widget is getattr(self, "log_text", None):
+            self._insert_ansi_log_text(body)
+        else:
+            widget.insert("1.0", body)
         if widget is getattr(self, "preview_text", None):
             self._on_preview_text_scroll("0.0", "1.0")
         elif widget is not getattr(self, "log_text", None):
             self._schedule_fit_readonly_text_height(widget)
         if widget is getattr(self, "log_text", None):
             self._on_log_text_scroll("0.0", "1.0")
+
+    def _log_ansi_palette(self) -> Dict[int, str]:
+        theme = self.current_theme()
+        return {
+            30: theme["muted"],
+            31: "#ff6b6b",
+            32: "#4cff7a",
+            33: "#ffd166",
+            34: "#7fb8ff",
+            35: "#d6a2ff",
+            36: "#6fe7ff",
+            37: theme["log_fg"],
+            90: "#8ea3bf",
+            91: "#ff8e8e",
+            92: "#8dff9f",
+            93: "#ffe08a",
+            94: "#a8cfff",
+            95: "#e2b7ff",
+            96: "#9cf2ff",
+            97: "#ffffff",
+        }
+
+    def _configure_log_ansi_tags(self) -> None:
+        palette = self._log_ansi_palette()
+        for code, color in palette.items():
+            self.log_text.tag_configure(f"pm_log_fg_{code}", foreground=color)
+
+    def _insert_ansi_log_text(self, body: str) -> None:
+        active_fg: int | None = None
+        cursor = 0
+        for match in ANSI_CSI_RE.finditer(body):
+            segment = body[cursor:match.start()]
+            if segment:
+                if active_fg is None:
+                    self.log_text.insert("end", segment)
+                else:
+                    self.log_text.insert("end", segment, (f"pm_log_fg_{active_fg}",))
+            params = str(match.group(1) or "")
+            final = str(match.group(2) or "")
+            if final == "m":
+                raw_codes = [item for item in params.split(";") if item != ""]
+                codes = [0] if not raw_codes else []
+                for item in raw_codes:
+                    try:
+                        codes.append(int(item))
+                    except ValueError:
+                        continue
+                for code in codes:
+                    if code == 0:
+                        active_fg = None
+                    elif code == 39:
+                        active_fg = None
+                    elif code in self._log_ansi_palette():
+                        active_fg = code
+            cursor = match.end()
+        tail = body[cursor:]
+        if tail:
+            if active_fg is None:
+                self.log_text.insert("end", tail)
+            else:
+                self.log_text.insert("end", tail, (f"pm_log_fg_{active_fg}",))
 
     def _schedule_fit_readonly_text_height(self, widget: Any) -> None:
         if widget is getattr(self, "log_text", None) or not getattr(widget, "_pm_auto_fit_readonly", True):
@@ -1322,8 +1390,19 @@ class PhotoMigratorTkGUI:
             else:
                 self.field_widget_map.pop(dest, None)
                 account_var = self.tk.StringVar(value=str(state.get("account") or "1"))
+                account_label = self.tk.Label(
+                    secondary,
+                    text="Account",
+                    anchor="w",
+                    justify="left",
+                    bg=self.current_theme()["panel_bg"],
+                    fg=self.current_theme()["text"],
+                    width=10,
+                )
+                account_label.pack(side="left", padx=(0, 6))
                 account_combo = self.ttk.Combobox(secondary, textvariable=account_var, values=["1", "2", "3"], state="readonly", style="PM.TCombobox", width=8)
                 account_combo.pack(side="left", fill="x", padx=(0, 8))
+                self._bind_help(account_label, help_text)
                 self._bind_help(account_combo, help_text)
                 self._bind_context_menu(account_combo)
 

@@ -52,7 +52,7 @@ try:
     from textual.binding import Binding
     from textual.containers import Grid, Horizontal, Vertical, VerticalScroll
     from textual.screen import ModalScreen
-    from textual.widgets import Button, Checkbox, DirectoryTree, Header, Input, Label, RichLog, Select, Static
+    from textual.widgets import Button, Checkbox, DirectoryTree, Header, Input, Label, Select, Static, TextArea
 
     TEXTUAL_AVAILABLE = True
 except Exception as exc:  # pragma: no cover - dependency may be optional in test envs
@@ -710,6 +710,10 @@ if TEXTUAL_AVAILABLE:
             background: transparent;
             border: none;
         }
+        #log-panel .text-area--selection {
+            background: #6f8fb4;
+            color: #ffffff;
+        }
         #job-input-row {
             height: auto;
             margin-top: 0;
@@ -1010,7 +1014,7 @@ if TEXTUAL_AVAILABLE:
                             with Horizontal(classes="panel-topbar"):
                                 yield Static("", classes="panel-topbar-spacer")
                                 yield Button("−", id="toggle-log-panel", classes="panel-toggle")
-                            yield RichLog(id="log-panel", wrap=True, markup=False, highlight=False)
+                            yield TextArea("", id="log-panel", read_only=True, show_cursor=False, soft_wrap=True, compact=True)
                         with Vertical(id="status-panel", classes="panel-shell"):
                             with Horizontal(classes="panel-topbar"):
                                 yield Static("", classes="panel-topbar-spacer")
@@ -1611,6 +1615,9 @@ if TEXTUAL_AVAILABLE:
                 if isinstance(candidate, str):
                     selected_text = candidate
                 return selected_text or str(getattr(widget, "value", "") or "")
+            if isinstance(widget, TextArea):
+                selected_text = str(getattr(widget, "selected_text", "") or "")
+                return selected_text or str(getattr(widget, "text", "") or "")
             widget_id = str(getattr(widget, "id", "") or "")
             if widget_id == "command-preview":
                 return self.current_command_preview_text
@@ -1752,7 +1759,7 @@ if TEXTUAL_AVAILABLE:
             target = None
             while current is not None:
                 current_id = str(getattr(current, "id", "") or "")
-                if isinstance(current, (Input, Static, RichLog)) and current_id:
+                if isinstance(current, (Input, Static, TextArea)) and current_id:
                     target = current
                     break
                 current = getattr(current, "parent", None)
@@ -2289,10 +2296,8 @@ if TEXTUAL_AVAILABLE:
 
         def refresh_log_view(self) -> None:
             self.log_history = self.log_buffer.render_lines()
-            log = self.query_one("#log-panel", RichLog)
-            log.clear()
-            for line in self.log_history:
-                log.write(line)
+            log = self.query_one("#log-panel", TextArea)
+            log.load_text(self.log_buffer.render_text(include_partial=True))
 
         def consume_log_output(self, text: str) -> None:
             update = self.log_buffer.append_text(text)
@@ -2302,9 +2307,8 @@ if TEXTUAL_AVAILABLE:
             if not update.appended_lines:
                 return
             self.log_history.extend(update.appended_lines)
-            log = self.query_one("#log-panel", RichLog)
-            for line in update.appended_lines:
-                log.write(line)
+            log = self.query_one("#log-panel", TextArea)
+            log.load_text(self.log_buffer.render_text(include_partial=True))
 
         def on_job_finished(self, return_code: int) -> None:
             self.update_status(f"Job finished with exit code {return_code}")
@@ -2352,7 +2356,7 @@ if TEXTUAL_AVAILABLE:
             self.running_command = command
             self.log_buffer.clear()
             self.log_history = []
-            self.query_one("#log-panel", RichLog).clear()
+            self.query_one("#log-panel", TextArea).load_text("")
             self.append_log(f"> {command_to_string(command)}")
             try:
                 process = subprocess.Popen(
