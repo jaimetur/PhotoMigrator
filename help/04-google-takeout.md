@@ -31,7 +31,7 @@ In the following link you can find the [Complete Pipeline and features of GPTH T
 
 - Where, `<INPUT_TAKEOUT_FOLDER>` is the folder that content the Google Takeout to process (if the Takeout is in Zip files, it will be extracted first into folder `<INPUT_TAKEOUT_FOLDER>_unzipped`.  
 
-- If you execute the tool without arguments, PhotoMigrator opens the interactive CLI TUI on compatible terminals and defaults to the **Google Takeout Process** flow. If you execute it with your Takeout folder as unique argument, the CLI TUI is opened with that folder pre-filled for Google Takeout. When the interactive terminal UI is not available, PhotoMigrator falls back to the previous legacy GUI/console flow.
+- If you execute the tool without arguments, PhotoMigrator now tries to open the desktop GUI first. If the desktop GUI is not available, it falls back to the interactive CLI TUI on compatible terminals, and if neither interactive UI can be launched it falls back to the same output as `--help`. If you execute it with your Takeout folder as unique argument, the CLI TUI is opened with that folder pre-filled for Google Takeout.
 
 - The Takeout Processing can be configured with different settings, depending on the arguments used during the call to the Tool.
 

@@ -1,0 +1,1393 @@
+from __future__ import annotations
+
+import os
+import queue
+import subprocess
+import threading
+from pathlib import Path
+from typing import Any, Dict, List
+
+from UI.shared import (
+    CLOUD_ACTIONS_AVAILABLE_BY_TAB,
+    CONFIG_EDITOR_SECTIONS_ORDER,
+    FEATURE_LABELS,
+    GENERAL_GROUPS,
+    GENERAL_TAB_NAMES,
+    MODULE_TAB_NAMES,
+    TIMEZONE_CHOICES,
+    build_argument_specs,
+    build_full_command,
+    build_parser_schema,
+    command_to_string,
+    default_state_values,
+    get_field_by_dest,
+    load_config_editor_model,
+    load_json_file,
+    normalize_field_for_context,
+    parse_find_duplicates_value,
+    parse_folder_list_value,
+    parse_rename_albums_value,
+    save_config_editor_values,
+    save_json_file,
+    to_list,
+    ui_option_name,
+)
+
+TK_STATE_PATH = Path(os.environ.get("PHOTOMIGRATOR_TK_GUI_STATE_PATH", str(Path.home() / ".photomigrator_tk_gui_state.json")))
+THEME_CHOICES = [("Ocean", "ocean"), ("Emerald", "emerald"), ("Sunset", "sunset"), ("Dark", "dark")]
+MODULE_GROUP_CLASSES = {
+    "automatic_migration": ("#c9ebcf", "#22462a"),
+    "google_takeout": ("#f8f1c8", "#7a6410"),
+    "icloud_takeout": ("#f8f1c8", "#7a6410"),
+    "google_photos": ("#eee0d1", "#5f432b"),
+    "synology_photos": ("#eee0d1", "#5f432b"),
+    "immich_photos": ("#eee0d1", "#5f432b"),
+    "nextcloud_photos": ("#eee0d1", "#5f432b"),
+    "standalone_features": ("#e6d8ef", "#54366f"),
+    "upload_folder": ("#efc8c8", "#6c2727"),
+}
+MODULE_ACTIVE_STYLE_OVERRIDES = {
+    "google_takeout": ("#f1cf57", "#5a4700"),
+    "icloud_takeout": ("#f1cf57", "#5a4700"),
+}
+MODULE_TO_CONFIG_SECTION = {
+    "google_photos": "Google Photos",
+    "synology_photos": "Synology Photos",
+    "immich_photos": "Immich Photos",
+    "nextcloud_photos": "NextCloud Photos",
+}
+INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.items() if key != "upload_folder"}
+THEMES = {
+    "ocean": {
+        "root_bg": "#11161f",
+        "panel_bg": "#0d141e",
+        "panel_fg": "#dfeaf8",
+        "log_bg": "#0b1119",
+        "log_fg": "#d9e8f8",
+        "border": "#3b78b7",
+        "sidebar_bg": "#131c28",
+        "text": "#f4f7fb",
+        "muted": "#8ea3bf",
+        "tab_bg": "#152131",
+        "tab_fg": "#d6dfeb",
+        "tab_active_bg": "#2e4f78",
+        "tab_active_fg": "#ffffff",
+        "accent": "#7fd4ff",
+        "entry_bg": "#0f1722",
+        "entry_fg": "#f4f7fb",
+    },
+    "emerald": {
+        "root_bg": "#0f1714",
+        "panel_bg": "#0d1713",
+        "panel_fg": "#def4e7",
+        "log_bg": "#0b1411",
+        "log_fg": "#def4e7",
+        "border": "#3f8f72",
+        "sidebar_bg": "#13201b",
+        "text": "#edf7f1",
+        "muted": "#9dc3b0",
+        "tab_bg": "#173127",
+        "tab_fg": "#d6ebe0",
+        "tab_active_bg": "#2d6b55",
+        "tab_active_fg": "#ffffff",
+        "accent": "#7dffbf",
+        "entry_bg": "#102018",
+        "entry_fg": "#edf7f1",
+    },
+    "sunset": {
+        "root_bg": "#1a1410",
+        "panel_bg": "#18110d",
+        "panel_fg": "#f7e6d7",
+        "log_bg": "#140f0b",
+        "log_fg": "#f7e6d7",
+        "border": "#b26a3a",
+        "sidebar_bg": "#231913",
+        "text": "#fbf1e8",
+        "muted": "#cfb39f",
+        "tab_bg": "#35231a",
+        "tab_fg": "#f0dfd1",
+        "tab_active_bg": "#8d5630",
+        "tab_active_fg": "#fff7f1",
+        "accent": "#ffd29a",
+        "entry_bg": "#221710",
+        "entry_fg": "#fbf1e8",
+    },
+    "dark": {
+        "root_bg": "#0c0f14",
+        "panel_bg": "#0b1016",
+        "panel_fg": "#d8e0ea",
+        "log_bg": "#090d12",
+        "log_fg": "#d8e0ea",
+        "border": "#6d7a8d",
+        "sidebar_bg": "#11161d",
+        "text": "#e6ebf2",
+        "muted": "#9aa7b7",
+        "tab_bg": "#1a212b",
+        "tab_fg": "#d0d9e4",
+        "tab_active_bg": "#39485c",
+        "tab_active_fg": "#ffffff",
+        "accent": "#b8c7ff",
+        "entry_bg": "#141a23",
+        "entry_fg": "#e6ebf2",
+    },
+}
+
+
+def tkinter_runtime_available() -> tuple[bool, str | None]:
+    try:
+        import tkinter  # noqa: F401
+        return True, None
+    except Exception as exc:  # pragma: no cover
+        return False, str(exc)
+
+
+class ScrollableFrame:
+    def __init__(self, parent: Any, bg: str):
+        import tkinter as tk
+
+        self.frame = tk.Frame(parent, bg=bg)
+        self.canvas = tk.Canvas(self.frame, highlightthickness=0, bd=0, bg=bg)
+        self.scrollbar = tk.Scrollbar(self.frame, orient="vertical", command=self.canvas.yview)
+        self.body = tk.Frame(self.canvas, bg=bg)
+        self.window = self.canvas.create_window((0, 0), window=self.body, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
+        self.body.bind("<Configure>", self._on_body_configure)
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel, add="+")
+        self.canvas.bind_all("<Button-4>", self._on_mousewheel_linux, add="+")
+        self.canvas.bind_all("<Button-5>", self._on_mousewheel_linux, add="+")
+
+    def _on_body_configure(self, _event: Any) -> None:
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self._refresh_scrollbar()
+
+    def _on_canvas_configure(self, event: Any) -> None:
+        self.canvas.itemconfigure(self.window, width=event.width)
+        self._refresh_scrollbar()
+
+    def _refresh_scrollbar(self) -> None:
+        bbox = self.canvas.bbox("all")
+        if not bbox:
+            self.scrollbar.pack_forget()
+            return
+        content_height = max(0, bbox[3] - bbox[1])
+        viewport_height = max(1, self.canvas.winfo_height())
+        if content_height <= viewport_height + 2:
+            self.scrollbar.pack_forget()
+            self.canvas.yview_moveto(0)
+        else:
+            if not self.scrollbar.winfo_ismapped():
+                self.scrollbar.pack(side="right", fill="y")
+
+    def _on_mousewheel(self, event: Any) -> None:
+        bbox = self.canvas.bbox("all")
+        if not bbox:
+            return
+        content_height = max(0, bbox[3] - bbox[1])
+        if content_height <= self.canvas.winfo_height() + 2:
+            return
+        delta = int(-1 * (event.delta / 120)) if getattr(event, "delta", 0) else 0
+        if delta:
+            self.canvas.yview_scroll(delta, "units")
+
+    def _on_mousewheel_linux(self, event: Any) -> None:
+        bbox = self.canvas.bbox("all")
+        if not bbox:
+            return
+        content_height = max(0, bbox[3] - bbox[1])
+        if content_height <= self.canvas.winfo_height() + 2:
+            return
+        if getattr(event, "num", None) == 4:
+            self.canvas.yview_scroll(-1, "units")
+        elif getattr(event, "num", None) == 5:
+            self.canvas.yview_scroll(1, "units")
+
+    def clear(self) -> None:
+        for child in list(self.body.winfo_children()):
+            child.destroy()
+        self.canvas.yview_moveto(0)
+        self._refresh_scrollbar()
+
+
+class PhotoMigratorTkGUI:
+    def __init__(self, project_root: Path, cli_entrypoint: Path, initial_values: Dict[str, Any] | None = None):
+        import tkinter as tk
+        from tkinter import ttk
+
+        self.tk = tk
+        self.ttk = ttk
+        self.project_root = project_root.resolve()
+        self.cli_entrypoint = cli_entrypoint.resolve()
+        self.initial_values = dict(initial_values or {})
+        self.schema = build_parser_schema()
+        self.persisted = load_json_file(TK_STATE_PATH, {})
+        self.state_values = default_state_values(self.schema)
+        self.state_values.update(self.persisted.get("values") or {})
+        self.state_values.update(self.initial_values)
+        self.ui_state = dict(self.persisted.get("ui_state") or {})
+        self.active_module = str(self.ui_state.get("active_module") or self.initial_values.get("active_module") or "automatic_migration")
+        self.active_general_tab = str(self.ui_state.get("active_general_tab") or "feature")
+        self.cloud_action_dest = dict(self.ui_state.get("cloud_action_dest") or {})
+        self.standalone_action_dest = str(self.ui_state.get("standalone_action_dest") or "")
+        self.active_config_section = str(self.ui_state.get("active_config_section") or "")
+        self.active_config_account = dict(self.ui_state.get("active_config_account") or {})
+        self.selected_theme = str(self.ui_state.get("theme") or "ocean")
+        self.remember_state = bool(self.ui_state.get("remember_state", True))
+        self.field_widget_map: Dict[str, Any] = {}
+        self.field_help_map: Dict[str, str] = {}
+        self.config_widget_map: Dict[str, tuple[str, str]] = {}
+        self.running_process: subprocess.Popen[str] | None = None
+        self.running_command: List[str] = []
+        self.output_queue: queue.Queue[str | tuple[str, int]] = queue.Queue()
+        self.bool_toggle_widgets: Dict[str, tuple[Any, Any]] = {}
+        if self.active_module not in INTERACTIVE_MODULE_TAB_NAMES:
+            self.active_module = "automatic_migration"
+        self.reload_config_model()
+
+        self.root = tk.Tk()
+        self.root.title("PhotoMigrator GUI")
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.root.geometry("1480x920")
+        self.root.minsize(1220, 760)
+        icon_path = self.project_root / "assets" / "ico" / "PhotoMigrator.ico"
+        if icon_path.exists():
+            try:
+                self.root.iconbitmap(str(icon_path))
+            except Exception:
+                pass
+
+        self.style = ttk.Style()
+        try:
+            self.style.theme_use("clam")
+        except Exception:
+            pass
+
+        self._build_layout()
+        self.apply_theme(rebuild=False)
+        self.refresh_module_buttons()
+        self.refresh_top_tabs()
+        self.refresh_action_buttons()
+        self.rebuild_content()
+        self.update_command_preview()
+        self.root.after(120, self.poll_process_queue)
+
+    def preferred_config_section(self) -> str:
+        mapped = MODULE_TO_CONFIG_SECTION.get(self.active_module)
+        if mapped:
+            return mapped
+        if self.active_config_section in CONFIG_EDITOR_SECTIONS_ORDER:
+            return self.active_config_section
+        return CONFIG_EDITOR_SECTIONS_ORDER[0]
+
+    def current_config_path(self) -> Path:
+        raw = str(self.state_values.get("configuration-file") or "").strip()
+        if raw:
+            return Path(raw).expanduser()
+        return self.project_root / "Config.ini"
+
+    def reload_config_model(self) -> None:
+        model = load_config_editor_model(self.project_root, self.current_config_path())
+        self.config_template_text = model["template_text"]
+        self.config_schema = model["schema"]
+        self.config_values = model["values"]
+        self.config_sections = model["sections"]
+        valid_sections = {str(section.get("name") or "") for section in self.config_sections}
+        preferred = self.preferred_config_section()
+        if self.active_config_section not in valid_sections:
+            self.active_config_section = preferred if preferred in valid_sections else next(iter(valid_sections), "")
+        if not self.active_config_section and valid_sections:
+            self.active_config_section = next(iter(valid_sections))
+        self.ensure_config_account_selection()
+
+    def ensure_config_account_selection(self) -> None:
+        for section in self.config_sections:
+            section_name = str(section.get("name") or "")
+            selector = section.get("account_selector") or {}
+            if not selector.get("enabled"):
+                self.active_config_account.pop(section_name, None)
+                continue
+            accounts = [str(item) for item in selector.get("accounts") or []]
+            current = str(self.active_config_account.get(section_name) or "")
+            if current not in accounts:
+                self.active_config_account[section_name] = str(selector.get("default_account") or (accounts[0] if accounts else ""))
+
+    def current_theme(self) -> Dict[str, str]:
+        return THEMES.get(self.selected_theme, THEMES["ocean"])
+
+    def _build_layout(self) -> None:
+        tk = self.tk
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(1, weight=1)
+
+        self.sidebar = tk.LabelFrame(self.root, text="Feature Selector", bd=2)
+        self.sidebar.grid(row=0, column=0, sticky="nsew", padx=(10, 6), pady=10)
+        self.sidebar.configure(width=300)
+        self.sidebar.grid_propagate(False)
+        self.sidebar.grid_rowconfigure(0, weight=1)
+        self.sidebar.grid_columnconfigure(0, weight=1)
+
+        self.sidebar_scroll = ScrollableFrame(self.sidebar, bg="#131c28")
+        self.sidebar_scroll.frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=(8, 4))
+        self.sidebar_actions = tk.Frame(self.sidebar)
+        self.sidebar_actions.grid(row=1, column=0, sticky="ew", padx=8, pady=(4, 8))
+        self.sidebar_actions.grid_columnconfigure(0, weight=1)
+        self.sidebar_actions.grid_columnconfigure(1, weight=1)
+
+        self.module_buttons: Dict[str, Any] = {}
+        for idx, (key, label) in enumerate(INTERACTIVE_MODULE_TAB_NAMES.items()):
+            btn = self.ttk.Button(self.sidebar_scroll.body, text=label, command=lambda tab=key: self.select_module(tab))
+            btn.grid(row=idx, column=0, sticky="ew", pady=(0, 6))
+            self.module_buttons[key] = btn
+        self.sidebar_scroll.body.grid_columnconfigure(0, weight=1)
+
+        self.run_button = self.ttk.Button(self.sidebar_actions, text="Run", command=self.action_run_job)
+        self.run_button.grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self.stop_button = self.ttk.Button(self.sidebar_actions, text="Stop", command=self.action_stop_job)
+        self.stop_button.grid(row=0, column=1, sticky="ew", padx=(4, 0))
+        self.exit_button = self.ttk.Button(self.sidebar_actions, text="Exit", command=self.action_request_exit)
+        self.exit_button.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+
+        self.main = tk.Frame(self.root)
+        self.main.grid(row=0, column=1, sticky="nsew", padx=(6, 10), pady=10)
+        self.main.grid_rowconfigure(1, weight=4)
+        self.main.grid_rowconfigure(2, weight=3)
+        self.main.grid_columnconfigure(0, weight=1)
+
+        self.topbar = tk.Frame(self.main)
+        self.topbar.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+        self.topbar.grid_columnconfigure(0, weight=1)
+        self.tabs_left = tk.Frame(self.topbar)
+        self.tabs_left.grid(row=0, column=0, sticky="w")
+        self.tabs_right = tk.Frame(self.topbar)
+        self.tabs_right.grid(row=0, column=1, sticky="e")
+
+        self.general_tab_buttons: Dict[str, Any] = {}
+        for idx, (key, label) in enumerate(GENERAL_TAB_NAMES.items()):
+            btn = self.ttk.Button(self.tabs_left, text=label, command=lambda tab=key: self.select_general_tab(tab))
+            btn.grid(row=0, column=idx, sticky="w", padx=(0, 6))
+            self.general_tab_buttons[key] = btn
+
+        self.save_config_button = self.ttk.Button(self.tabs_right, text="Save Config", command=self.action_save_config)
+        self.save_config_button.grid(row=0, column=0, padx=(6, 0))
+        self.reload_config_button = self.ttk.Button(self.tabs_right, text="Reload Config", command=self.action_reload_config)
+        self.reload_config_button.grid(row=0, column=1, padx=(6, 0))
+        self.save_ui_button = self.ttk.Button(self.tabs_right, text="Save UI State", command=self.action_save_ui_state)
+        self.save_ui_button.grid(row=0, column=2, padx=(6, 0))
+
+        self.content_panel = tk.LabelFrame(self.main, text="")
+        self.content_panel.grid(row=1, column=0, sticky="nsew")
+        self.content_panel.grid_rowconfigure(0, weight=1)
+        self.content_panel.grid_columnconfigure(0, weight=1)
+        self.content_scroll = ScrollableFrame(self.content_panel, bg="#0d141e")
+        self.content_scroll.frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+
+        self.bottom = tk.Frame(self.main)
+        self.bottom.grid(row=2, column=0, sticky="nsew", pady=(8, 0))
+        self.bottom.grid_rowconfigure(2, weight=1)
+        self.bottom.grid_columnconfigure(0, weight=1)
+
+        self.description_panel = tk.LabelFrame(self.bottom, text="Argument Description")
+        self.description_panel.grid(row=0, column=0, sticky="ew")
+        self.description_label = tk.Label(self.description_panel, text="Move focus to a field to see its description here.", justify="left", anchor="w", wraplength=1100)
+        self.description_label.pack(fill="x", padx=8, pady=6)
+
+        self.preview_panel = tk.LabelFrame(self.bottom, text="Command Preview")
+        self.preview_panel.grid(row=1, column=0, sticky="ew", pady=(8, 0))
+        self.preview_label = tk.Label(self.preview_panel, text="", justify="left", anchor="w", wraplength=1100)
+        self.preview_label.pack(fill="x", padx=8, pady=6)
+
+        self.log_panel = tk.LabelFrame(self.bottom, text="Execution Log")
+        self.log_panel.grid(row=2, column=0, sticky="nsew", pady=(8, 0))
+        self.log_panel.grid_rowconfigure(0, weight=1)
+        self.log_panel.grid_columnconfigure(0, weight=1)
+        self.log_text = tk.Text(self.log_panel, height=10, wrap="word", state="disabled", relief="flat", bd=0)
+        self.log_text.grid(row=0, column=0, sticky="nsew")
+        self.log_scroll = tk.Scrollbar(self.log_panel, orient="vertical", command=self.log_text.yview)
+        self.log_scroll.grid(row=0, column=1, sticky="ns")
+        self.log_text.configure(yscrollcommand=self.log_scroll.set)
+
+        self.status_panel = tk.LabelFrame(self.bottom, text="Status")
+        self.status_panel.grid(row=3, column=0, sticky="ew", pady=(8, 0))
+        self.status_label = tk.Label(self.status_panel, text="Ready.", justify="left", anchor="w", wraplength=1100)
+        self.status_label.pack(fill="x", padx=8, pady=6)
+
+        self.input_row = tk.Frame(self.bottom)
+        self.input_row.grid(row=4, column=0, sticky="ew", pady=(8, 0))
+        self.input_row.grid_columnconfigure(0, weight=1)
+        self.job_input_var = tk.StringVar()
+        self.job_input_entry = tk.Entry(self.input_row, textvariable=self.job_input_var)
+        self.job_input_entry.grid(row=0, column=0, sticky="ew")
+        self.job_input_send = self.ttk.Button(self.input_row, text="Send", command=self.action_send_job_input)
+        self.job_input_send.grid(row=0, column=1, padx=(6, 0))
+
+    def apply_theme(self, rebuild: bool = True) -> None:
+        theme = self.current_theme()
+        tk = self.tk
+        self.root.configure(bg=theme["root_bg"])
+        self.style.configure("PM.TCombobox", fieldbackground=theme["entry_bg"], background=theme["entry_bg"], foreground=theme["entry_fg"])
+        self.style.map("PM.TCombobox", fieldbackground=[("readonly", theme["entry_bg"])], foreground=[("readonly", theme["entry_fg"])])
+        self.configure_button_styles()
+        self.sidebar.configure(bg=theme["sidebar_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.sidebar_scroll.frame.configure(bg=theme["sidebar_bg"])
+        self.sidebar_scroll.canvas.configure(bg=theme["sidebar_bg"])
+        self.sidebar_scroll.body.configure(bg=theme["sidebar_bg"])
+        self.sidebar_actions.configure(bg=theme["sidebar_bg"])
+        self.main.configure(bg=theme["root_bg"])
+        self.topbar.configure(bg=theme["root_bg"])
+        self.tabs_left.configure(bg=theme["root_bg"])
+        self.tabs_right.configure(bg=theme["root_bg"])
+        self.content_panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.content_scroll.frame.configure(bg=theme["panel_bg"])
+        self.content_scroll.canvas.configure(bg=theme["panel_bg"])
+        self.content_scroll.body.configure(bg=theme["panel_bg"])
+        for panel in (self.description_panel, self.preview_panel, self.status_panel):
+            panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.log_panel.configure(bg=theme["log_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.description_label.configure(bg=theme["panel_bg"], fg=theme["panel_fg"])
+        self.preview_label.configure(bg=theme["panel_bg"], fg=theme["panel_fg"])
+        self.status_label.configure(bg=theme["panel_bg"], fg=theme["panel_fg"])
+        self.log_text.configure(bg=theme["log_bg"], fg=theme["log_fg"], insertbackground=theme["log_fg"])
+        self.input_row.configure(bg=theme["root_bg"])
+        self.job_input_entry.configure(bg=theme["entry_bg"], fg=theme["entry_fg"], insertbackground=theme["entry_fg"], relief="solid", bd=1)
+        self.job_input_send.configure(style="PM.Neutral.TButton")
+        self.refresh_module_buttons()
+        self.refresh_top_tabs()
+        self.refresh_toolbar_buttons()
+        self.refresh_action_buttons()
+        if rebuild:
+            self.rebuild_content()
+            self.update_command_preview()
+
+    def configure_button_styles(self) -> None:
+        theme = self.current_theme()
+
+        self.style.configure(
+            "PM.Tab.TButton",
+            background=theme["tab_bg"],
+            foreground=theme["tab_fg"],
+            bordercolor=theme["border"],
+            darkcolor=theme["tab_bg"],
+            lightcolor=theme["tab_bg"],
+            padding=(10, 6),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.Tab.TButton",
+            background=[("active", theme["tab_active_bg"]), ("pressed", theme["tab_active_bg"])],
+            foreground=[("active", theme["tab_active_fg"]), ("pressed", theme["tab_active_fg"])],
+        )
+        self.style.configure(
+            "PM.TabActive.TButton",
+            background=theme["tab_active_bg"],
+            foreground=theme["tab_active_fg"],
+            bordercolor=theme["border"],
+            darkcolor=theme["tab_active_bg"],
+            lightcolor=theme["tab_active_bg"],
+            padding=(10, 6),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.TabActive.TButton",
+            background=[("active", theme["tab_active_bg"]), ("pressed", theme["tab_active_bg"])],
+            foreground=[("active", theme["tab_active_fg"]), ("pressed", theme["tab_active_fg"])],
+        )
+
+        self.style.configure(
+            "PM.Toolbar.TButton",
+            background="#efc8c8",
+            foreground="#6c2727",
+            bordercolor="#d7aaaa",
+            darkcolor="#efc8c8",
+            lightcolor="#efc8c8",
+            padding=(10, 6),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.Toolbar.TButton",
+            background=[("active", "#e7b6b6"), ("pressed", "#dda4a4"), ("disabled", "#dac7c7")],
+            foreground=[("disabled", "#9d7a7a")],
+        )
+
+        self.style.configure(
+            "PM.Neutral.TButton",
+            background=theme["tab_bg"],
+            foreground=theme["panel_fg"],
+            bordercolor=theme["border"],
+            darkcolor=theme["tab_bg"],
+            lightcolor=theme["tab_bg"],
+            padding=(8, 6),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.Neutral.TButton",
+            background=[("active", theme["tab_active_bg"]), ("pressed", theme["tab_active_bg"]), ("disabled", theme["tab_bg"])],
+            foreground=[("active", theme["tab_active_fg"]), ("pressed", theme["tab_active_fg"]), ("disabled", theme["muted"])],
+        )
+
+        self.style.configure(
+            "PM.RunEnabled.TButton",
+            background="#c9ebcf",
+            foreground="#22462a",
+            bordercolor="#8cbe95",
+            darkcolor="#c9ebcf",
+            lightcolor="#c9ebcf",
+            padding=(12, 8),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.RunEnabled.TButton",
+            background=[("active", "#b7e1be"), ("pressed", "#a6d7af")],
+            foreground=[("active", "#1d3d24"), ("pressed", "#1d3d24")],
+        )
+        self.style.configure(
+            "PM.RunDisabled.TButton",
+            background="#3a4452",
+            foreground="#98a4b3",
+            bordercolor="#536071",
+            darkcolor="#3a4452",
+            lightcolor="#3a4452",
+            padding=(12, 8),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.RunDisabled.TButton",
+            background=[("disabled", "#3a4452")],
+            foreground=[("disabled", "#98a4b3")],
+        )
+
+        self.style.configure(
+            "PM.StopEnabled.TButton",
+            background="#efc8c8",
+            foreground="#6c2727",
+            bordercolor="#d7aaaa",
+            darkcolor="#efc8c8",
+            lightcolor="#efc8c8",
+            padding=(12, 8),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.StopEnabled.TButton",
+            background=[("active", "#e7b6b6"), ("pressed", "#dda4a4")],
+            foreground=[("active", "#612121"), ("pressed", "#612121")],
+        )
+        self.style.configure(
+            "PM.StopDisabled.TButton",
+            background="#3a4452",
+            foreground="#98a4b3",
+            bordercolor="#536071",
+            darkcolor="#3a4452",
+            lightcolor="#3a4452",
+            padding=(12, 8),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.StopDisabled.TButton",
+            background=[("disabled", "#3a4452")],
+            foreground=[("disabled", "#98a4b3")],
+        )
+
+        self.style.configure(
+            "PM.ExitEnabled.TButton",
+            background="#efb7b7",
+            foreground="#6c2727",
+            bordercolor="#d79f9f",
+            darkcolor="#efb7b7",
+            lightcolor="#efb7b7",
+            padding=(12, 8),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.ExitEnabled.TButton",
+            background=[("active", "#e7a8a8"), ("pressed", "#dc9898")],
+            foreground=[("active", "#612121"), ("pressed", "#612121")],
+        )
+        self.style.configure(
+            "PM.ExitDisabled.TButton",
+            background="#3a4452",
+            foreground="#98a4b3",
+            bordercolor="#536071",
+            darkcolor="#3a4452",
+            lightcolor="#3a4452",
+            padding=(12, 8),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.ExitDisabled.TButton",
+            background=[("disabled", "#3a4452")],
+            foreground=[("disabled", "#98a4b3")],
+        )
+
+        for key, (bg, fg) in MODULE_GROUP_CLASSES.items():
+            normal_style = self._module_style_name(key, active=False)
+            active_style = self._module_style_name(key, active=True)
+            active_bg, active_fg = MODULE_ACTIVE_STYLE_OVERRIDES.get(key, (fg, "#ffffff"))
+            self.style.configure(
+                normal_style,
+                background=bg,
+                foreground=fg,
+                bordercolor=theme["border"],
+                darkcolor=bg,
+                lightcolor=bg,
+                padding=(12, 8),
+                relief="flat",
+            )
+            self.style.map(
+                normal_style,
+                background=[("active", bg), ("pressed", bg)],
+                foreground=[("active", fg), ("pressed", fg)],
+            )
+            self.style.configure(
+                active_style,
+                background=active_bg,
+                foreground=active_fg,
+                bordercolor=theme["border"],
+                darkcolor=active_bg,
+                lightcolor=active_bg,
+                padding=(12, 8),
+                relief="flat",
+            )
+            self.style.map(
+                active_style,
+                background=[("active", active_bg), ("pressed", active_bg)],
+                foreground=[("active", active_fg), ("pressed", active_fg)],
+            )
+
+    def _module_style_name(self, module_key: str, *, active: bool) -> str:
+        safe = module_key.replace("-", "_")
+        return f"PM.Module.{safe}.{'Active' if active else 'Normal'}.TButton"
+
+    def refresh_module_buttons(self) -> None:
+        for key, button in self.module_buttons.items():
+            button.configure(style=self._module_style_name(key, active=(key == self.active_module)))
+
+    def refresh_top_tabs(self) -> None:
+        for key, button in self.general_tab_buttons.items():
+            button.configure(style=("PM.TabActive.TButton" if key == self.active_general_tab else "PM.Tab.TButton"))
+
+    def refresh_toolbar_buttons(self) -> None:
+        for button in (self.save_config_button, self.reload_config_button, self.save_ui_button):
+            button.configure(style="PM.Toolbar.TButton")
+
+    def can_run_job(self) -> bool:
+        return not (self.running_process is not None and self.running_process.poll() is None)
+
+    def can_stop_job(self) -> bool:
+        return self.running_process is not None and self.running_process.poll() is None
+
+    def can_exit_app(self) -> bool:
+        return not self.can_stop_job()
+
+    def refresh_action_buttons(self) -> None:
+        can_run = self.can_run_job()
+        can_stop = self.can_stop_job()
+        can_exit = self.can_exit_app()
+        self.run_button.configure(
+            state=("normal" if can_run else "disabled"),
+            style=("PM.RunEnabled.TButton" if can_run else "PM.RunDisabled.TButton"),
+        )
+        self.stop_button.configure(
+            state=("normal" if can_stop else "disabled"),
+            style=("PM.StopEnabled.TButton" if can_stop else "PM.StopDisabled.TButton"),
+        )
+        self.exit_button.configure(
+            state=("normal" if can_exit else "disabled"),
+            style=("PM.ExitEnabled.TButton" if can_exit else "PM.ExitDisabled.TButton"),
+        )
+
+    def current_content_panel_title(self) -> str:
+        if self.active_general_tab == "feature":
+            return INTERACTIVE_MODULE_TAB_NAMES.get(self.active_module, MODULE_TAB_NAMES.get(self.active_module, self.active_module))
+        return GENERAL_TAB_NAMES.get(self.active_general_tab, self.active_general_tab)
+
+    def current_content_panel_description(self) -> str:
+        if self.active_general_tab == "feature":
+            return "Feature-specific arguments for the selected module."
+        if self.active_general_tab == "general":
+            return "Global arguments shared across modules."
+        if self.active_general_tab == "features_config":
+            return "Edit the Config.ini used by CLI executions."
+        return "Desktop UI preferences and local state persistence."
+
+    def refresh_panel_titles(self) -> None:
+        title = self.current_content_panel_title()
+        desc = self.current_content_panel_description()
+        self.content_panel.configure(text=f"{title}: {desc}" if desc else title)
+        self.description_panel.configure(text="Argument Description")
+        self.preview_panel.configure(text="Command Preview")
+        self.log_panel.configure(text="Execution Log")
+        self.status_panel.configure(text="Status")
+
+    def select_module(self, module_key: str) -> None:
+        self.active_module = module_key
+        self.active_general_tab = "feature"
+        self.active_config_section = self.preferred_config_section()
+        self.ensure_config_account_selection()
+        self.refresh_module_buttons()
+        self.refresh_top_tabs()
+        self.rebuild_content()
+        self.update_command_preview()
+
+    def select_general_tab(self, tab_key: str) -> None:
+        self.active_general_tab = tab_key
+        if tab_key == "features_config":
+            self.reload_config_model()
+        self.refresh_top_tabs()
+        self.rebuild_content()
+        self.update_command_preview()
+
+    def rebuild_content(self) -> None:
+        theme = self.current_theme()
+        self.refresh_panel_titles()
+        self.content_scroll.clear()
+        self.field_widget_map = {}
+        self.field_help_map = {}
+        self.config_widget_map = {}
+        self.bool_toggle_widgets = {}
+        body = self.content_scroll.body
+        body.configure(bg=theme["panel_bg"])
+        self.build_content_widgets(body)
+        if not body.winfo_children():
+            self._empty_label(body, "No content available.").pack(anchor="w", padx=8, pady=8)
+        self.content_scroll._refresh_scrollbar()
+
+    def build_content_widgets(self, parent: Any) -> List[Any]:
+        if self.active_general_tab == "feature":
+            return self.build_feature_widgets(parent)
+        if self.active_general_tab == "general":
+            return self.build_general_arguments_widgets(parent)
+        if self.active_general_tab == "features_config":
+            return self.build_config_widgets(parent)
+        return self.build_app_settings_widgets(parent)
+
+    def _bind_help(self, widget: Any, help_text: str) -> None:
+        text = str(help_text or "").strip()
+        if not text:
+            return
+        self.field_help_map[str(widget)] = text
+        widget.bind("<Enter>", lambda _e, t=text: self.update_field_description(t), add="+")
+        widget.bind("<FocusIn>", lambda _e, t=text: self.update_field_description(t), add="+")
+
+    def update_field_description(self, text: str) -> None:
+        self.description_label.configure(text=str(text or "").strip() or "Move focus to a field to see its description here.")
+
+    def update_status(self, text: str) -> None:
+        self.status_label.configure(text=str(text or "").strip() or "Ready.")
+
+    def _label(self, parent: Any, text: str, *, accent: bool = False, config_wide: bool = False) -> Any:
+        theme = self.current_theme()
+        fg = theme["accent"] if accent else theme["text"]
+        width = 38 if config_wide else 28
+        label = self.tk.Label(parent, text=text, width=width, anchor="w", justify="left", bg=theme["panel_bg"], fg=fg)
+        return label
+
+    def _section_label(self, parent: Any, text: str, *, accent: bool = False) -> Any:
+        theme = self.current_theme()
+        label = self.tk.Label(parent, text=text, anchor="w", justify="left", bg=theme["panel_bg"], fg=(theme["accent"] if accent else theme["text"]), font=("TkDefaultFont", 10, "bold"))
+        label.pack(fill="x", padx=6, pady=(10 if accent else 6, 2))
+        return label
+
+    def _entry(self, parent: Any, text_var: Any) -> Any:
+        theme = self.current_theme()
+        return self.tk.Entry(parent, textvariable=text_var, bg=theme["entry_bg"], fg=theme["entry_fg"], insertbackground=theme["entry_fg"], relief="solid", bd=1)
+
+    def _empty_label(self, parent: Any, text: str) -> Any:
+        theme = self.current_theme()
+        return self.tk.Label(parent, text=text, bg=theme["panel_bg"], fg=theme["muted"], anchor="w", justify="left")
+
+    def build_feature_widgets(self, parent: Any) -> List[Any]:
+        widgets: List[Any] = []
+        if self.active_module == "upload_folder":
+            self._empty_label(parent, "Upload to Server is only available in the Web Interface.").pack(anchor="w", padx=8, pady=8)
+            return widgets
+        if self.active_module == "automatic_migration":
+            self.build_module_only_fields(parent, "automatic_migration", self.schema["tabs"]["automatic_migration"])
+            return widgets
+        if self.active_module in {"google_takeout", "icloud_takeout"}:
+            self.build_module_only_fields(parent, self.active_module, self.schema["tabs"][self.active_module])
+            return widgets
+        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            self.build_cloud_widgets(parent)
+            return widgets
+        if self.active_module == "standalone_features":
+            self.build_standalone_widgets(parent)
+        return widgets
+
+    def build_general_arguments_widgets(self, parent: Any) -> List[Any]:
+        theme = self.current_theme()
+        container = self.tk.Frame(parent, bg=theme["panel_bg"])
+        container.pack(fill="both", expand=True, padx=4, pady=4)
+        container.grid_columnconfigure(0, weight=1)
+        container.grid_columnconfigure(1, weight=1)
+        fields_by_dest = {field["dest"]: field for field in self.schema["general_tabs"]["general"]}
+        used = set()
+        group_blocks: List[Any] = []
+        for group in GENERAL_GROUPS:
+            group_fields = [fields_by_dest[dest] for dest in group["dests"] if dest in fields_by_dest]
+            if not group_fields:
+                continue
+            card = self.tk.Frame(container, bg=theme["panel_bg"])
+            self._section_label(card, group["title"], accent=True)
+            for field in group_fields:
+                used.add(field["dest"])
+                self.build_field_widgets(card, field, context="general")
+            group_blocks.append(card)
+        remaining = [field for field in self.schema["general_tabs"]["general"] if field["dest"] not in used]
+        if remaining:
+            card = self.tk.Frame(container, bg=theme["panel_bg"])
+            self._section_label(card, "Other", accent=True)
+            for field in remaining:
+                self.build_field_widgets(card, field, context="general")
+            group_blocks.append(card)
+        for index, card in enumerate(group_blocks):
+            card.grid(row=index // 2, column=index % 2, sticky="nsew", padx=(0 if index % 2 == 0 else 6, 6 if index % 2 == 0 else 0), pady=2)
+        return []
+
+    def build_module_only_fields(self, parent: Any, tab_key: str, fields: List[Dict[str, Any]]) -> None:
+        if tab_key in {"google_takeout", "icloud_takeout"}:
+            regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
+            toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
+            if regular_fields:
+                self._section_label(parent, "Module Fields", accent=True)
+                for field in regular_fields:
+                    self.build_field_widgets(parent, field, context=tab_key)
+            if toggle_fields:
+                self._section_label(parent, "Flags", accent=True)
+                self.build_flags_grid(parent, toggle_fields, tab_key)
+            return
+        self._section_label(parent, "Module Fields", accent=True)
+        for field in fields:
+            self.build_field_widgets(parent, field, context=tab_key)
+
+    def build_flags_grid(self, parent: Any, fields: List[Dict[str, Any]], context: str) -> None:
+        theme = self.current_theme()
+        frame = self.tk.Frame(parent, bg=theme["panel_bg"])
+        frame.pack(fill="x", padx=4, pady=2)
+        columns = 3 if len(fields) >= 9 else 2
+        for col in range(columns):
+            frame.grid_columnconfigure(col, weight=1)
+        for index, field in enumerate(fields):
+            cell = self.tk.Frame(frame, bg=theme["panel_bg"])
+            cell.grid(row=index // columns, column=index % columns, sticky="ew", padx=4, pady=1)
+            self.build_field_widgets(cell, field, context=context)
+
+    def build_cloud_widgets(self, parent: Any) -> None:
+        self._section_label(parent, "Action", accent=True)
+        actions = list(self.schema["tabs"][self.active_module])
+        available = CLOUD_ACTIONS_AVAILABLE_BY_TAB.get(self.active_module)
+        if available is not None:
+            actions = [field for field in actions if field["dest"] in available]
+        if not actions:
+            self._empty_label(parent, "No cloud actions available for this module.").pack(anchor="w", padx=8, pady=8)
+            return
+        selected_dest = str(self.cloud_action_dest.get(self.active_module) or "")
+        if selected_dest not in {field["dest"] for field in actions}:
+            selected_dest = actions[0]["dest"]
+            self.cloud_action_dest[self.active_module] = selected_dest
+        self.build_select_row(parent, "Cloud Action", "cloud-action-select", [(ui_option_name(field), field["dest"]) for field in actions], selected_dest, help_text="Select the cloud action to configure for the current service.")
+        selected = next((field for field in actions if field["dest"] == selected_dest), None)
+        if selected and str(selected.get("help") or "").strip():
+            self._empty_label(parent, str(selected.get("help") or "").strip()).pack(anchor="w", padx=8, pady=(0, 4))
+        specs = build_argument_specs(self.schema, self.active_module, selected, True)
+        account_field = get_field_by_dest(self.schema, "account-id")
+        if account_field:
+            normalized = normalize_field_for_context(account_field, self.active_module)
+            specs = [spec for spec in specs if spec["field"]["dest"] != "account-id"]
+            insert_at = next((idx for idx, spec in enumerate(specs) if not spec["required"]), len(specs))
+            specs.insert(insert_at, {"field": normalized, "required": False})
+        self._section_label(parent, "Action Arguments", accent=True)
+        if selected and selected.get("dest") == "rename-albums":
+            parsed = parse_rename_albums_value(self.state_values.get("rename-albums"))
+            if not str(self.state_values.get("rename-pattern") or "").strip():
+                self.state_values["rename-pattern"] = parsed.get("pattern") or ""
+            if not str(self.state_values.get("replacement-pattern") or "").strip():
+                self.state_values["replacement-pattern"] = parsed.get("replacement") or ""
+            for spec in specs:
+                if spec["field"]["dest"] not in {"rename-albums"}:
+                    self.build_field_widgets(parent, spec["field"], required=spec["required"], context=self.active_module)
+            self.build_pseudo_text_field(parent, "Rename Pattern", "rename-pattern", self.state_values.get("rename-pattern", ""), True, "Album name pattern (text or regex).")
+            self.build_pseudo_text_field(parent, "Replacement Pattern", "replacement-pattern", self.state_values.get("replacement-pattern", ""), True, "Replacement pattern used during album rename.")
+        else:
+            for spec in specs:
+                self.build_field_widgets(parent, spec["field"], required=spec["required"], context=self.active_module)
+        otp_field = get_field_by_dest(self.schema, "one-time-password")
+        if otp_field and self.active_module in {"synology_photos", "immich_photos", "nextcloud_photos", "google_photos"}:
+            self._section_label(parent, "Optional", accent=True)
+            self.build_field_widgets(parent, otp_field, required=False, context=self.active_module)
+
+    def build_standalone_widgets(self, parent: Any) -> None:
+        actions = list(self.schema["tabs"]["standalone_features"])
+        if not actions:
+            self._empty_label(parent, "No standalone actions available.").pack(anchor="w", padx=8, pady=8)
+            return
+        selected_dest = self.standalone_action_dest if self.standalone_action_dest in {field["dest"] for field in actions} else actions[0]["dest"]
+        self.standalone_action_dest = selected_dest
+        self._section_label(parent, "Action", accent=True)
+        self.build_select_row(parent, "Standalone Action", "standalone-action-select", [(ui_option_name(field), field["dest"]) for field in actions], selected_dest, help_text="Select the standalone feature to configure and run.")
+        selected = next((field for field in actions if field["dest"] == selected_dest), None)
+        if selected and str(selected.get("help") or "").strip():
+            self._empty_label(parent, str(selected.get("help") or "").strip()).pack(anchor="w", padx=8, pady=(0, 4))
+        self._section_label(parent, "Action Arguments", accent=True)
+        if selected and selected.get("dest") == "find-duplicates":
+            parsed = parse_find_duplicates_value(self.state_values.get("find-duplicates"))
+            self.state_values["find-duplicates-action"] = parsed.get("action") or "list"
+            if not self.state_values.get("find-duplicates-folders"):
+                self.state_values["find-duplicates-folders"] = parsed.get("folders") or []
+            self.build_select_row(parent, "Duplicates Action", "find-duplicates-action-select", [("list", "list"), ("move", "move"), ("delete", "delete")], str(self.state_values.get("find-duplicates-action") or "list"), help_text="Choose what the duplicates scan should do with detected duplicates: list, move, or delete.")
+            self.build_pseudo_list_field(parent, "Folder(s)", "find-duplicates-folders", self.state_values.get("find-duplicates-folders", []), True, "One or more folders separated by comma or newline.")
+        else:
+            specs = build_argument_specs(self.schema, "standalone_features", selected, True)
+            for spec in specs:
+                self.build_field_widgets(parent, spec["field"], required=spec["required"], context="standalone_features")
+
+    def build_config_widgets(self, parent: Any) -> List[Any]:
+        self.config_widget_map = {}
+        section_options = [(section["name"], section["name"]) for section in self.config_sections]
+        self.build_select_row(parent, "Config Section", "config-section-select", section_options, self.active_config_section, help_text="Select which Config.ini section you want to edit.", accent_label=True)
+        current_section = next((section for section in self.config_sections if section["name"] == self.active_config_section), None)
+        if not current_section:
+            self._empty_label(parent, "No configuration section selected.").pack(anchor="w", padx=8, pady=8)
+            return []
+        if str(current_section.get("description") or "").strip():
+            self._empty_label(parent, str(current_section.get("description") or "").strip()).pack(anchor="w", padx=8, pady=(0, 4))
+        fields = list(current_section.get("fields") or [])
+        global_fields = [field for field in fields if not str(field.get("account_id") or "")]
+        account_fields = [field for field in fields if str(field.get("account_id") or "")]
+        for field in global_fields:
+            self.build_config_field_widgets(parent, current_section["name"], field)
+        selector = current_section.get("account_selector") or {}
+        if selector.get("enabled"):
+            section_name = current_section["name"]
+            account_value = str(self.active_config_account.get(section_name) or selector.get("default_account") or "")
+            self.build_select_row(parent, "Configure Account", "config-account-select", [(f"Account {acc}", acc) for acc in selector.get("accounts") or []], account_value, help_text="Select which account within this service section you want to configure.", accent_label=True)
+            selected_account = str(self.active_config_account.get(section_name) or selector.get("default_account") or "")
+            visible_account_fields = [field for field in account_fields if str(field.get("account_id") or "") == selected_account]
+            for field in visible_account_fields:
+                self.build_config_field_widgets(parent, section_name, field)
+        else:
+            for field in account_fields:
+                self.build_config_field_widgets(parent, current_section["name"], field)
+        return []
+
+    def build_app_settings_widgets(self, parent: Any) -> List[Any]:
+        self.build_select_row(parent, "Theme", "theme-select", THEME_CHOICES, self.selected_theme, help_text="Select the visual theme used by the desktop GUI.")
+        self.build_boolean_toggle_row(parent, "Remember UI state", "remember-state", self.remember_state, help_text="Persist the current desktop UI state, selected tabs, and entered values between sessions.")
+        self._empty_label(parent, f"State file: {TK_STATE_PATH}").pack(anchor="w", padx=8, pady=(6, 0))
+        self._empty_label(parent, f"Config file in use: {self.current_config_path()}").pack(anchor="w", padx=8, pady=(2, 0))
+        self._empty_label(parent, "Use the Run button to execute the currently selected module.").pack(anchor="w", padx=8, pady=(2, 0))
+        return []
+
+    def build_select_row(self, parent: Any, label: str, widget_id: str, options: List[tuple[str, Any]], value: Any, *, help_text: str = "", accent_label: bool = False, config_wide: bool = False) -> None:
+        row = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])
+        row.pack(fill="x", padx=6, pady=2)
+        self._label(row, label, accent=accent_label, config_wide=config_wide).pack(side="left")
+        values = [str(label_text) for label_text, _ in options]
+        mapping = {str(label_text): str(option_value) for label_text, option_value in options}
+        reverse = {str(option_value): str(label_text) for label_text, option_value in options}
+        current_value = str(value or "")
+        selected_label = reverse.get(current_value, values[0] if values else "")
+        var = self.tk.StringVar(value=selected_label)
+        combo = self.ttk.Combobox(row, textvariable=var, values=values, state="readonly", style="PM.TCombobox")
+        combo.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self._bind_help(combo, help_text)
+
+        def on_change(_event: Any = None) -> None:
+            selected = mapping.get(var.get(), "")
+            if widget_id == "cloud-action-select":
+                if selected == str(self.cloud_action_dest.get(self.active_module) or ""):
+                    return
+                self.cloud_action_dest[self.active_module] = selected
+                self.rebuild_content()
+                self.update_command_preview()
+                return
+            if widget_id == "standalone-action-select":
+                if selected == self.standalone_action_dest:
+                    return
+                self.standalone_action_dest = selected
+                self.rebuild_content()
+                self.update_command_preview()
+                return
+            if widget_id == "find-duplicates-action-select":
+                self.state_values["find-duplicates-action"] = selected
+                self.update_command_preview()
+                return
+            if widget_id == "config-section-select":
+                if selected == self.active_config_section:
+                    return
+                self.active_config_section = selected
+                self.ensure_config_account_selection()
+                self.rebuild_content()
+                return
+            if widget_id == "config-account-select":
+                if selected == str(self.active_config_account.get(self.active_config_section) or ""):
+                    return
+                self.active_config_account[self.active_config_section] = selected
+                self.rebuild_content()
+                return
+            if widget_id == "theme-select":
+                if selected == self.selected_theme:
+                    return
+                self.selected_theme = selected or "ocean"
+                self.apply_theme(rebuild=True)
+                self.persist_ui_state()
+                return
+            if widget_id.startswith("field-"):
+                dest = widget_id.replace("field-", "", 1)
+                self.state_values[dest] = selected
+                self.update_command_preview()
+                return
+            if widget_id.startswith("config-"):
+                mapped = self.config_widget_map.get(widget_id)
+                if mapped:
+                    section_name, key = mapped
+                    self.config_values.setdefault(section_name, {})[key] = selected
+
+        combo.bind("<<ComboboxSelected>>", on_change)
+
+    def build_boolean_toggle_row(self, parent: Any, label: str, dest: str, value: bool, help_text: str = "") -> None:
+        row = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])
+        row.pack(fill="x", padx=6, pady=2)
+        self._label(row, label).pack(side="left")
+        holder = self.tk.Frame(row, bg=self.current_theme()["panel_bg"])
+        holder.pack(side="left")
+        off_btn = self.tk.Label(
+            holder,
+            text="✕",
+            width=2,
+            cursor="hand2",
+            bd=0,
+            relief="flat",
+            anchor="center",
+            justify="center",
+        )
+        off_btn.pack(side="left", padx=(0, 6))
+        on_btn = self.tk.Label(
+            holder,
+            text="✓",
+            width=2,
+            cursor="hand2",
+            bd=0,
+            relief="flat",
+            anchor="center",
+            justify="center",
+        )
+        on_btn.pack(side="left")
+        off_btn.bind("<Button-1>", lambda _e, d=dest: self.set_boolean_toggle(d, False))
+        on_btn.bind("<Button-1>", lambda _e, d=dest: self.set_boolean_toggle(d, True))
+        self._bind_help(off_btn, help_text)
+        self._bind_help(on_btn, help_text)
+        self.bool_toggle_widgets[dest] = (off_btn, on_btn)
+        self.refresh_boolean_toggle(dest, value)
+
+    def set_boolean_toggle(self, dest: str, value: bool) -> None:
+        if dest == "remember-state":
+            self.remember_state = value
+        else:
+            self.state_values[dest] = value
+        self.refresh_boolean_toggle(dest, value)
+        self.update_command_preview()
+
+    def refresh_boolean_toggle(self, dest: str, value: bool) -> None:
+        theme = self.current_theme()
+        buttons = self.bool_toggle_widgets.get(dest)
+        if not buttons:
+            return
+        off_btn, on_btn = buttons
+        off_btn.configure(
+            bg=theme["panel_bg"],
+            fg=("#ff5a5a" if not value else "#9aa6b4"),
+            font=("TkDefaultFont", 10, "bold"),
+        )
+        on_btn.configure(
+            bg=theme["panel_bg"],
+            fg=("#4cff7a" if value else "#9aa6b4"),
+            font=("TkDefaultFont", 10, "bold"),
+        )
+
+    def build_pseudo_text_field(self, parent: Any, label: str, dest: str, value: Any, required: bool, help_text: str) -> None:
+        self.build_input_block(parent, label, dest, str(value or ""), required, help_text, path_hint="")
+
+    def build_pseudo_list_field(self, parent: Any, label: str, dest: str, value: Any, required: bool, help_text: str) -> None:
+        joined = ", ".join(parse_folder_list_value(value))
+        self.build_input_block(parent, label, dest, joined, required, help_text, path_hint="path")
+
+    def build_input_block(self, parent: Any, label: str, dest: str, value: str, required: bool, help_text: str, *, path_hint: str = "", password: bool = False) -> None:
+        row = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])
+        row.pack(fill="x", padx=6, pady=2)
+        self._label(row, f"{label}{' *' if required else ''}").pack(side="left")
+        var = self.tk.StringVar(value=value)
+        self.field_widget_map[dest] = var
+        if path_hint == "path":
+            control = self.tk.Frame(row, bg=self.current_theme()["panel_bg"])
+            control.pack(side="left", fill="x", expand=True)
+            entry = self._entry(control, var)
+            entry.pack(side="left", fill="x", expand=True)
+            btn = self.ttk.Button(control, text="...", width=4, command=lambda d=dest: self.browse_path(d), style="PM.Neutral.TButton")
+            btn.pack(side="left", padx=(6, 8))
+            self._bind_help(btn, help_text or label)
+        else:
+            entry = self._entry(row, var)
+            entry.configure(show="*" if password else "")
+            entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self._bind_help(entry, help_text)
+
+        def on_change(*_args: Any) -> None:
+            field = get_field_by_dest(self.schema, dest)
+            raw = var.get()
+            if dest in {"rename-pattern", "replacement-pattern"}:
+                self.state_values[dest] = raw
+            elif dest == "find-duplicates-folders":
+                self.state_values[dest] = parse_folder_list_value(raw)
+            elif field and field.get("kind") == "list":
+                self.state_values[dest] = to_list(raw)
+            else:
+                self.state_values[dest] = raw
+            self.update_command_preview()
+
+        var.trace_add("write", on_change)
+
+    def build_field_widgets(self, parent: Any, field: Dict[str, Any], required: bool = False, context: str = "") -> None:
+        field = normalize_field_for_context(field, context) or field
+        dest = str(field.get("dest") or "")
+        label = ui_option_name(field) if dest in FEATURE_LABELS else dest.replace("-", " ").strip().title()
+        help_text = str(field.get("help") or "").strip()
+        kind = str(field.get("kind") or "text")
+        value = self.state_values.get(dest)
+        path_hint = str(field.get("path_hint") or "")
+        if dest == "process-duplicates":
+            path_hint = "path"
+        if kind in {"flag", "bool"}:
+            self.build_boolean_toggle_row(parent, f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text)
+            return
+        if kind == "select":
+            options = [(str(choice), str(choice)) for choice in (field.get("choices") or [])]
+            self.build_select_row(parent, f"{label}{' *' if required else ''}", f"field-{dest}", options, value, help_text=help_text)
+            return
+        if kind == "list":
+            joined = ", ".join(to_list(value))
+            self.build_input_block(parent, label, dest, joined, required, help_text, path_hint=path_hint)
+            return
+        self.build_input_block(parent, label, dest, "" if value is None else str(value), required, help_text, path_hint=path_hint, password=bool(field.get("sensitive")))
+
+    def build_config_field_widgets(self, parent: Any, section_name: str, field: Dict[str, Any]) -> None:
+        row = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])
+        row.pack(fill="x", padx=6, pady=2)
+        key = str(field.get("key") or "")
+        help_text = str(field.get("help") or "").strip()
+        value = str(self.config_values.get(section_name, {}).get(key, ""))
+        self._label(row, key, config_wide=True).pack(side="left")
+        widget_id = f"config-{len(self.config_widget_map)}"
+        self.config_widget_map[widget_id] = (section_name, key)
+        choices = field.get("choices") or []
+        if choices:
+            values = [str(choice) for choice in choices]
+            var = self.tk.StringVar(value=value if value in values else (values[0] if values else ""))
+            combo = self.ttk.Combobox(row, textvariable=var, values=values, state="readonly", style="PM.TCombobox")
+            combo.pack(side="left", fill="x", expand=True, padx=(0, 8))
+            self._bind_help(combo, help_text)
+            combo.bind("<<ComboboxSelected>>", lambda _e, v=var, s=section_name, k=key: self.config_values.setdefault(s, {}).__setitem__(k, v.get()))
+            return
+        var = self.tk.StringVar(value=value)
+        entry = self._entry(row, var)
+        entry.configure(show="*" if bool(field.get("sensitive")) else "")
+        entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self._bind_help(entry, help_text)
+        var.trace_add("write", lambda *_args, v=var, s=section_name, k=key: self.config_values.setdefault(s, {}).__setitem__(k, v.get()))
+
+    def browse_path(self, dest: str) -> None:
+        from tkinter import filedialog
+
+        current = self.state_values.get(dest)
+        current_path = ""
+        if isinstance(current, list):
+            current_path = current[0] if current else ""
+        else:
+            current_path = str(current or "")
+        selected = filedialog.askdirectory(initialdir=str(Path(current_path).expanduser()) if current_path else str(self.project_root))
+        if not selected:
+            return
+        if dest == "find-duplicates-folders":
+            self.state_values[dest] = [selected]
+        else:
+            self.state_values[dest] = selected
+        var = self.field_widget_map.get(dest)
+        if var is not None:
+            if dest == "find-duplicates-folders":
+                var.set(selected)
+            else:
+                var.set(selected)
+        self.update_command_preview()
+
+    def update_command_preview(self) -> None:
+        if self.active_module == "upload_folder":
+            self.preview_label.configure(text="Upload to Server is only available in the Web Interface.")
+            self.refresh_action_buttons()
+            return
+        selected_action = None
+        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            selected_action = self.cloud_action_dest.get(self.active_module)
+        elif self.active_module == "standalone_features":
+            selected_action = self.standalone_action_dest
+        command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
+        self.preview_label.configure(text=command_to_string(command))
+        self.running_command = command
+        self.refresh_action_buttons()
+
+    def append_log(self, line: str) -> None:
+        self.log_text.configure(state="normal")
+        self.log_text.insert("end", line + "\n")
+        self.log_text.see("end")
+        self.log_text.configure(state="disabled")
+
+    def poll_process_queue(self) -> None:
+        while True:
+            try:
+                item = self.output_queue.get_nowait()
+            except queue.Empty:
+                break
+            if isinstance(item, tuple) and item and item[0] == "finished":
+                self.running_process = None
+                self.update_status(f"Job finished with exit code {item[1]}")
+                self.refresh_action_buttons()
+            else:
+                self.append_log(str(item))
+        self.root.after(120, self.poll_process_queue)
+
+    def _job_output_worker(self, process: subprocess.Popen[str]) -> None:
+        try:
+            if process.stdout is not None:
+                for raw_line in process.stdout:
+                    self.output_queue.put(raw_line.rstrip("\n"))
+            return_code = process.wait()
+        except Exception as exc:
+            self.output_queue.put(f"[internal] {exc}")
+            return_code = -1
+        self.output_queue.put(("finished", return_code))
+
+    def action_run_job(self) -> None:
+        if self.active_module == "upload_folder":
+            self.update_status("Upload to Server is only available in the Web Interface.")
+            return
+        if self.running_process is not None and self.running_process.poll() is None:
+            self.update_status("A job is already running.")
+            return
+        selected_action = None
+        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            selected_action = self.cloud_action_dest.get(self.active_module)
+        elif self.active_module == "standalone_features":
+            selected_action = self.standalone_action_dest
+        command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
+        self.running_command = command
+        self.log_text.configure(state="normal")
+        self.log_text.delete("1.0", "end")
+        self.log_text.configure(state="disabled")
+        self.append_log(f"> {command_to_string(command)}")
+        try:
+            process = subprocess.Popen(
+                command,
+                cwd=str(self.project_root),
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                bufsize=1,
+            )
+        except Exception as exc:
+            self.update_status(f"Unable to start job: {exc}")
+            self.append_log(f"[internal] Unable to start job: {exc}")
+            return
+        self.running_process = process
+        self.update_status("Job running...")
+        self.refresh_action_buttons()
+        threading.Thread(target=self._job_output_worker, args=(process,), daemon=True).start()
+
+    def action_stop_job(self) -> None:
+        if self.running_process is None or self.running_process.poll() is not None:
+            self.update_status("No running job to stop.")
+            return
+        try:
+            self.running_process.terminate()
+            self.update_status("Stop signal sent to job.")
+            self.refresh_action_buttons()
+        except Exception as exc:
+            self.update_status(f"Unable to stop job: {exc}")
+
+    def action_request_exit(self) -> None:
+        if not self.can_exit_app():
+            self.update_status("Stop the running job before exiting.")
+            self.refresh_action_buttons()
+            return
+        from tkinter import messagebox
+
+        confirmed = messagebox.askyesno("Exit PhotoMigrator", "Are you sure you want to close the tool?", parent=self.root)
+        if not confirmed:
+            self.update_status("Exit canceled.")
+            return
+        self.persist_ui_state()
+        try:
+            self.root.destroy()
+        except Exception:
+            pass
+
+    def action_send_job_input(self) -> None:
+        if self.running_process is None or self.running_process.stdin is None or self.running_process.poll() is not None:
+            self.update_status("No running job is accepting input.")
+            return
+        text = str(self.job_input_var.get() or "").rstrip("\r\n")
+        if not text:
+            self.update_status("Input is empty.")
+            return
+        try:
+            self.running_process.stdin.write(text + "\n")
+            self.running_process.stdin.flush()
+            self.append_log(f">>> {text}")
+            self.job_input_var.set("")
+            self.update_status("Input sent to job.")
+        except Exception as exc:
+            self.update_status(f"Unable to send input: {exc}")
+
+    def action_save_config(self) -> None:
+        save_config_editor_values(self.current_config_path(), self.config_values, self.config_template_text, self.config_schema)
+        self.update_status(f"Config.ini saved to {self.current_config_path()}")
+
+    def action_reload_config(self) -> None:
+        self.reload_config_model()
+        if self.active_general_tab == "features_config":
+            self.rebuild_content()
+        self.update_status(f"Config.ini reloaded from {self.current_config_path()}")
+
+    def action_save_ui_state(self) -> None:
+        self.persist_ui_state(force=True)
+        self.update_status(f"UI state saved to {TK_STATE_PATH}")
+
+    def persist_ui_state(self, force: bool = False) -> None:
+        if not self.remember_state and not force:
+            return
+        payload = {
+            "values": self.state_values,
+            "ui_state": {
+                "active_module": self.active_module,
+                "active_general_tab": self.active_general_tab,
+                "cloud_action_dest": self.cloud_action_dest,
+                "standalone_action_dest": self.standalone_action_dest,
+                "active_config_section": self.active_config_section,
+                "active_config_account": self.active_config_account,
+                "theme": self.selected_theme,
+                "remember_state": self.remember_state,
+            },
+        }
+        save_json_file(TK_STATE_PATH, payload)
+
+    def on_close(self) -> None:
+        self.action_request_exit()
+
+    def mainloop(self) -> None:
+        self.root.mainloop()
+
+
+def run_tk_gui(project_root: Path, cli_entrypoint: Path, initial_values: Dict[str, Any] | None = None) -> None:
+    app = PhotoMigratorTkGUI(project_root=project_root, cli_entrypoint=cli_entrypoint, initial_values=initial_values)
+    app.mainloop()

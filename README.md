@@ -62,6 +62,39 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ## 🖥️ Automatic Migration on Terminal
 ![Live Dashboard](assets/screenshots/live_dashboard.jpg?raw=true)  
 
+## 🪟 Graphical User Interface (GUI) and Terminal Interactive User Interface (TUI)
+PhotoMigrator includes two local interactive interfaces in addition to the Web Interface:
+
+- **Desktop GUI**: a native windowed interface built with `tkinter`.
+- **Terminal TUI**: an interactive terminal interface built with `Textual`.
+
+Both interfaces expose the same high-level structure:
+- `Feature Selector`
+- `Feature`
+- `General Arguments`
+- `Features Config`
+- `App Settings`
+- command preview, status panel, and execution log
+
+Default launcher behavior:
+- Running `PhotoMigrator` without arguments tries to open the **Desktop GUI** first.
+- If the GUI cannot be started because `tkinter` or a graphical display is not available, PhotoMigrator falls back to the **Terminal TUI**.
+- If neither interactive interface can be started, PhotoMigrator falls back to the same output as `--help`.
+
+Explicit launchers:
+- `PhotoMigrator --gui` opens the Desktop GUI explicitly.
+- `PhotoMigrator --tui` opens the Terminal TUI explicitly.
+
+Typical use:
+- Use the **Desktop GUI** on Windows, macOS, or Linux systems with graphical desktop access.
+- Use the **Terminal TUI** on SSH sessions, server terminals, or environments where a graphical window is not available but the terminal supports interactive rendering.
+
+### Graphical User Interface (GUI):
+![GUI](assets/screenshots/gui-interface.png?raw=true)  
+
+### Terminal Interactive User Interface (TUI):
+![TUI](assets/screenshots/tui-interface.png?raw=true)  
+
 # 🌟 Main Modules:
 ## 🚀 1. Automatic Migration   
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
@@ -239,13 +272,24 @@ Quick launch:
 python ./src/PhotoMigrator.py
 ```
 
+This now opens the desktop GUI by default.
+
 Force the CLI TUI explicitly:
 
 ```bash
 python ./src/PhotoMigrator.py --tui
 ```
 
-If the current terminal or environment does not support the interactive TUI, PhotoMigrator falls back automatically to the previous legacy GUI/console flow.
+Open the desktop GUI explicitly:
+
+```bash
+python ./src/PhotoMigrator.py --gui
+```
+
+Launcher fallback order when no arguments are provided:
+- Desktop GUI
+- CLI TUI
+- Command-line help (`--help`)
 
 You can check the whole list of features and arguments with the right syntax here:
 [Command Line Interface (CLI)](help/01-command-line-interface.md)

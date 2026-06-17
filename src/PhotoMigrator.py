@@ -155,7 +155,7 @@ def pre_parse_args():
 
     def has_display():
         # Detect if a graphical environment is available
-        return os.environ.get("DISPLAY") or sys.platform.startswith("win") or sys.platform == "darwin"
+        return bool(os.environ.get("DISPLAY") or sys.platform.startswith("win") or sys.platform == "darwin")
 
     def launch_textual_tui(initial_values=None):
         from UI.cli_tui import run_cli_tui
@@ -165,6 +165,74 @@ def pre_parse_args():
             cli_entrypoint=Path(__file__).resolve(),
             initial_values=initial_values or {},
         )
+
+    def launch_tk_gui(initial_values=None):
+        from UI.tk_gui import run_tk_gui
+
+        run_tk_gui(
+            project_root=Path(__file__).resolve().parent.parent,
+            cli_entrypoint=Path(__file__).resolve(),
+            initial_values=initial_values or {},
+        )
+
+    def queue_help_fallback(message):
+        custom_print(message, log_level=logging.WARNING)
+        if "--help" not in sys.argv[1:] and "-h" not in sys.argv[1:]:
+            sys.argv.append("--help")
+
+    def try_launch_gui(initial_values=None):
+        try:
+            from UI.tk_gui import tkinter_runtime_available
+
+            gui_ok, gui_error = tkinter_runtime_available()
+            if not gui_ok:
+                custom_print(
+                    f"Desktop GUI is not available ({gui_error}).",
+                    log_level=logging.WARNING,
+                )
+                return False
+            if not has_display():
+                custom_print(
+                    "Desktop GUI is not available (no graphical display detected).",
+                    log_level=logging.WARNING,
+                )
+                return False
+            custom_print("Opening PhotoMigrator desktop GUI...", log_level=logging.INFO)
+            launch_tk_gui(initial_values=initial_values or {})
+            sys.exit(0)
+        except Exception as exc:
+            custom_print(
+                f"Unable to launch the desktop GUI ({exc}).",
+                log_level=logging.WARNING,
+            )
+            return False
+
+    def try_launch_tui(initial_values=None):
+        if not supports_graphical_terminal():
+            custom_print(
+                "Interactive terminal UI is not available (terminal is not compatible).",
+                log_level=logging.WARNING,
+            )
+            return False
+        try:
+            from UI.cli_tui import textual_runtime_available
+
+            textual_ok, textual_error = textual_runtime_available()
+            if not textual_ok:
+                custom_print(
+                    f"Textual TUI is not available ({textual_error}).",
+                    log_level=logging.WARNING,
+                )
+                return False
+            custom_print("Opening PhotoMigrator CLI TUI...", log_level=logging.INFO)
+            launch_textual_tui(initial_values=initial_values or {})
+            sys.exit(0)
+        except Exception as exc:
+            custom_print(
+                f"Unable to launch the CLI TUI ({exc}).",
+                log_level=logging.WARNING,
+            )
+            return False
 
     def launch_gui_config(folder_already_provided, default_folder=""):
         import tkinter as tk
@@ -470,10 +538,15 @@ def pre_parse_args():
     # -----------------------------------------------------------------------------------
 
     explicit_tui = "--tui" in sys.argv[1:]
+    explicit_gui = "--gui" in sys.argv[1:]
     if explicit_tui:
         sys.argv = [arg for arg in sys.argv if arg != "--tui"]
+    if explicit_gui:
+        sys.argv = [arg for arg in sys.argv if arg != "--gui"]
 
     initial_tui_values = {}
+    no_arguments_provided = False
+    folder_already_provided = False
 
     # Case 1: Called with a single argument and it's a valid folder
     if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
@@ -487,36 +560,40 @@ def pre_parse_args():
         sys.argv.insert(1, "--google-takeout")
         folder_already_provided = True
 
-    # Case 2: Called without arguments → Launch full config prompt
+    # Case 2: Called without arguments
     elif len(sys.argv) == 1:
-        takeout_path = ""
-        custom_print(f"No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.", log_level=logging.INFO)
-        folder_already_provided = False
-
-    elif explicit_tui:
-        takeout_path = ""
-        folder_already_provided = False
+        no_arguments_provided = True
+        custom_print(
+            "No arguments provided. PhotoMigrator will try to open the desktop GUI by default.",
+            log_level=logging.INFO,
+        )
     else:
         return  # Exit early if arguments don't match any valid condition
 
-    if explicit_tui or supports_graphical_terminal():
-        try:
-            from UI.cli_tui import textual_runtime_available
+    if explicit_tui:
+        if try_launch_tui(initial_values=initial_tui_values):
+            return
+        queue_help_fallback("Unable to launch the CLI TUI. Falling back to command-line help.")
+        return
 
-            textual_ok, textual_error = textual_runtime_available()
-            if textual_ok:
-                custom_print("Interactive terminal detected. Opening PhotoMigrator CLI TUI...", log_level=logging.INFO)
-                launch_textual_tui(initial_values=initial_tui_values)
-                sys.exit(0)
-            custom_print(
-                f"Textual TUI is not available ({textual_error}). Falling back to legacy configuration flow.",
-                log_level=logging.WARNING,
-            )
-        except Exception as exc:
-            custom_print(
-                f"Unable to launch the CLI TUI ({exc}). Falling back to legacy configuration flow.",
-                log_level=logging.WARNING,
-            )
+    if explicit_gui:
+        if try_launch_gui(initial_values=initial_tui_values):
+            return
+        if try_launch_tui(initial_values=initial_tui_values):
+            return
+        queue_help_fallback("Unable to launch the desktop GUI or the CLI TUI. Falling back to command-line help.")
+        return
+
+    if no_arguments_provided:
+        if try_launch_gui(initial_values=initial_tui_values):
+            return
+        if try_launch_tui(initial_values=initial_tui_values):
+            return
+        queue_help_fallback("Unable to launch the desktop GUI or the CLI TUI. Falling back to command-line help.")
+        return
+
+    if folder_already_provided and try_launch_tui(initial_values=initial_tui_values):
+        return
 
     # Import tkinter only if needed
     import importlib.util
@@ -539,7 +616,8 @@ def pre_parse_args():
     # ──────────────────────────────────────────────────────
     if gui_available and TKINTER_AVAILABLE:
         custom_print(f"GUI environment detected. Opening configuration panel...", log_level=logging.INFO)
-        launch_gui_config(folder_already_provided, default_folder=takeout_path)
+        launch_tk_gui(initial_values=initial_tui_values)
+        sys.exit(0)
     else:
         if gui_available and not TKINTER_AVAILABLE:
             custom_print(f"Tkinter is not installed. Falling back to console input.", log_level=logging.WARNING)

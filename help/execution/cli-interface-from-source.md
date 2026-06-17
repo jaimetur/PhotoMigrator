@@ -63,19 +63,29 @@ Or if you prefer to execute the tool directly from the built package just use:
    photomigrator -h
    ```
 
-### 🖥️ 8. Launch the interactive CLI TUI:
+### 🖥️ 8. Launch the default interactive UI:
    ```bash
    python ./src/PhotoMigrator.py
    ```
-Or explicitly:
+
+This now opens the desktop GUI by default.
+
+### ⌨️ 9. Launch the CLI TUI explicitly:
    ```bash
    python ./src/PhotoMigrator.py --tui
+   ```
+
+### 🪟 10. Launch the desktop GUI explicitly:
+   ```bash
+   python ./src/PhotoMigrator.py --gui
    ```
 
 Notes:
 - The CLI TUI uses the `textual` dependency included in `requirements.txt`.
 - It works on Windows, macOS, and Linux when the terminal supports interactive colors/graphics.
-- If `textual` is not available, PhotoMigrator automatically falls back to the previous legacy GUI/console flow.
+- The desktop GUI uses `tkinter` and is now the default launcher when no arguments are provided.
+- If `tkinter` or a graphical display is not available, PhotoMigrator falls back to the CLI TUI.
+- If neither interactive UI can be started, PhotoMigrator falls back to the same output as `--help`.
 
 ---
 

@@ -68,6 +68,7 @@ MODULE_TO_CONFIG_SECTION = {
     "immich_photos": "Immich Photos",
     "nextcloud_photos": "NextCloud Photos",
 }
+INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.items() if key != "upload_folder"}
 
 
 def textual_runtime_available() -> tuple[bool, str | None]:
@@ -80,16 +81,19 @@ if TEXTUAL_AVAILABLE:
     class PathPickerScreen(ModalScreen[Dict[str, str] | None]):
         BINDINGS = [("escape", "cancel", "Cancel"), ("enter", "confirm", "Select")]
 
-        def __init__(self, dest: str, title: str, start_path: str = ""):
+        def __init__(self, dest: str, title: str, start_path: str = "", home_path: Path | None = None):
             super().__init__()
+            self.home_path = (home_path or Path.cwd()).expanduser()
+            if not self.home_path.exists():
+                self.home_path = Path.cwd()
             raw = str(start_path or "").strip()
             if raw:
                 candidate = Path(raw).expanduser()
                 self.initial_path = candidate if candidate.exists() else candidate.parent
             else:
-                self.initial_path = Path.cwd()
+                self.initial_path = self.home_path
             if not self.initial_path.exists():
-                self.initial_path = Path.cwd()
+                self.initial_path = self.home_path
             self.dest = dest
             self.title = title
 
@@ -99,6 +103,11 @@ if TEXTUAL_AVAILABLE:
                 Static(self.title, classes="modal-title"),
                 Static("Select a file or folder and press Enter.", classes="modal-subtitle"),
                 Input(value=root_value, id="picker-path-input"),
+                Horizontal(
+                    Button("↑ Up", id="picker-up"),
+                    Button("⌂ Home", id="picker-home"),
+                    id="picker-nav-actions",
+                ),
                 DirectoryTree(root_value, id="picker-tree"),
                 Horizontal(
                     Button("Cancel", id="picker-cancel"),
@@ -127,16 +136,34 @@ if TEXTUAL_AVAILABLE:
                 pass
             return str(self.query_one("#picker-path-input", Input).value or "")
 
+        def _set_tree_root(self, path: Path) -> None:
+            candidate = path.expanduser()
+            if not candidate.exists():
+                return
+            root = candidate if candidate.is_dir() else candidate.parent
+            if not root.exists():
+                return
+            resolved = root.resolve()
+            self.query_one("#picker-tree", DirectoryTree).path = str(resolved)
+            self.query_one("#picker-path-input", Input).value = str(resolved)
+
+        def action_go_up(self) -> None:
+            raw = str(self.query_one("#picker-path-input", Input).value or "").strip()
+            current = Path(raw).expanduser() if raw else self.initial_path
+            base = current if current.is_dir() else current.parent
+            parent = base.parent if base.parent != base else base
+            self._set_tree_root(parent)
+
+        def action_go_home(self) -> None:
+            self._set_tree_root(self.home_path)
+
         def on_input_submitted(self, event: Input.Submitted) -> None:
             if event.input.id == "picker-path-input":
                 raw = str(event.value or "").strip()
                 if not raw:
                     return
                 path = Path(raw).expanduser()
-                root = path if path.is_dir() else path.parent
-                if root.exists():
-                    tree = self.query_one("#picker-tree", DirectoryTree)
-                    tree.path = str(root)
+                self._set_tree_root(path)
 
         def on_directory_tree_directory_selected(self, event: DirectoryTree.DirectorySelected) -> None:
             self.query_one("#picker-path-input", Input).value = str(event.path)
@@ -149,6 +176,38 @@ if TEXTUAL_AVAILABLE:
                 self.dismiss(None)
             elif event.button.id == "picker-select":
                 self.action_confirm()
+            elif event.button.id == "picker-up":
+                self.action_go_up()
+            elif event.button.id == "picker-home":
+                self.action_go_home()
+
+
+    class ConfirmExitScreen(ModalScreen[bool]):
+        BINDINGS = [("escape", "cancel", "Cancel"), ("enter", "confirm", "Confirm")]
+
+        def compose(self) -> ComposeResult:
+            yield Vertical(
+                Static("Exit PhotoMigrator", classes="modal-title"),
+                Static("Are you sure you want to close the tool?", classes="modal-subtitle"),
+                Horizontal(
+                    Button("Cancel", id="exit-cancel"),
+                    Button("Exit", id="exit-confirm", variant="error"),
+                    id="picker-actions",
+                ),
+                id="picker-dialog",
+            )
+
+        def action_cancel(self) -> None:
+            self.dismiss(False)
+
+        def action_confirm(self) -> None:
+            self.dismiss(True)
+
+        def on_button_pressed(self, event: Button.Pressed) -> None:
+            if event.button.id == "exit-cancel":
+                self.dismiss(False)
+            elif event.button.id == "exit-confirm":
+                self.dismiss(True)
 
 
     class PhotoMigratorTUI(App[None]):
@@ -175,10 +234,14 @@ if TEXTUAL_AVAILABLE:
         #sidebar-actions {
             height: auto;
             margin-top: 1;
+        }
+        #sidebar-run-stop {
+            height: auto;
             layout: grid;
             grid-size: 2 1;
             grid-columns: 1fr 1fr;
             grid-gutter: 1 0;
+            margin-bottom: 1;
         }
         .sidebar-action {
             width: 100%;
@@ -193,6 +256,10 @@ if TEXTUAL_AVAILABLE:
         }
         .sidebar-action--stop.is-enabled {
             background: #efc8c8;
+            color: #6c2727;
+        }
+        .sidebar-action--exit.is-enabled {
+            background: #efb7b7;
             color: #6c2727;
         }
         .sidebar-action.is-disabled {
@@ -216,13 +283,18 @@ if TEXTUAL_AVAILABLE:
         }
         .module-tab.is-active {
             border: heavy #ffffff;
-            text-style: bold reverse;
+            text-style: bold;
         }
         .module-tab--migration { background: #c9ebcf; color: #22462a; }
+        .module-tab--migration.is-active { background: #8fd89d; color: #17351e; }
         .module-tab--takeout { background: #f4edbe; color: #5e5420; }
+        .module-tab--takeout.is-active { background: #f1cf57; color: #5a4700; }
         .module-tab--cloud { background: #eee0d1; color: #5f432b; }
+        .module-tab--cloud.is-active { background: #d5b290; color: #432c1a; }
         .module-tab--standalone { background: #e6d8ef; color: #54366f; }
+        .module-tab--standalone.is-active { background: #c6addf; color: #3e2257; }
         .module-tab--upload { background: #efc8c8; color: #6c2727; }
+        .module-tab--upload.is-active { background: #e59a9a; color: #581e1e; }
         #content-stack {
             width: 1fr;
             height: 1fr;
@@ -338,7 +410,7 @@ if TEXTUAL_AVAILABLE:
         }
         .bool-toggle-off.is-active {
             background: transparent;
-            color: #6c2727;
+            color: #ff5a5a;
         }
         .bool-toggle-on.is-active {
             background: transparent;
@@ -477,7 +549,8 @@ if TEXTUAL_AVAILABLE:
         }
         .modal-title { text-style: bold; color: #ffffff; margin-bottom: 1; }
         .modal-subtitle { color: #92a8c3; margin-bottom: 1; }
-        #picker-tree { height: 1fr; margin: 1 0; }
+        #picker-nav-actions { height: auto; margin: 0 0 0 0; }
+        #picker-tree { height: 1fr; margin: 0; }
         #picker-actions { height: auto; }
         .danger-note { color: #ffb4b4; }
         .empty-note { color: #8da4be; margin-top: 1; }
@@ -583,8 +656,11 @@ if TEXTUAL_AVAILABLE:
             self.last_hovered_widget_id = ""
             self.selected_theme = str(self.ui_state.get("theme") or "ocean")
             self.remember_state = bool(self.ui_state.get("remember_state", True))
+            self.launch_cwd = Path.cwd().resolve()
             self.running_process: subprocess.Popen[str] | None = None
             self.running_command: List[str] = []
+            if self.active_module not in INTERACTIVE_MODULE_TAB_NAMES:
+                self.active_module = "automatic_migration"
             self.reload_config_model()
 
         def preferred_config_section(self) -> str:
@@ -633,12 +709,14 @@ if TEXTUAL_AVAILABLE:
                 with Vertical(id="sidebar"):
                     yield Static("PhotoMigrator CLI TUI", id="sidebar-title")
                     with VerticalScroll(id="sidebar-features"):
-                        for key, label in MODULE_TAB_NAMES.items():
+                        for key, label in INTERACTIVE_MODULE_TAB_NAMES.items():
                             classes = f"module-tab {MODULE_GROUP_CLASSES.get(key, '')}"
                             yield Button(label, id=f"module-tab-{key}", classes=classes)
-                    with Horizontal(id="sidebar-actions"):
-                        yield Button("Run", id="run-btn", classes="sidebar-action sidebar-action--run")
-                        yield Button("Stop", id="stop-btn", classes="sidebar-action sidebar-action--stop")
+                    with Vertical(id="sidebar-actions"):
+                        with Horizontal(id="sidebar-run-stop"):
+                            yield Button("Run", id="run-btn", classes="sidebar-action sidebar-action--run")
+                            yield Button("Stop", id="stop-btn", classes="sidebar-action sidebar-action--stop")
+                        yield Button("Exit", id="exit-btn", classes="sidebar-action sidebar-action--exit")
                 with Vertical(id="content-stack"):
                     with Horizontal(id="general-tabs"):
                         with Horizontal(id="general-tabs-left"):
@@ -692,7 +770,7 @@ if TEXTUAL_AVAILABLE:
 
         def current_content_panel_title(self) -> str:
             if self.active_general_tab == "feature":
-                return MODULE_TAB_NAMES.get(self.active_module, self.active_module)
+                return INTERACTIVE_MODULE_TAB_NAMES.get(self.active_module, MODULE_TAB_NAMES.get(self.active_module, self.active_module))
             return GENERAL_TAB_NAMES.get(self.active_general_tab, self.active_general_tab)
 
         def current_content_panel_description(self) -> str:
@@ -1172,7 +1250,7 @@ if TEXTUAL_AVAILABLE:
             return [row]
 
         def refresh_tab_styles(self) -> None:
-            for key in MODULE_TAB_NAMES:
+            for key in self.module_buttons():
                 try:
                     button = self.query_one(f"#module-tab-{key}", Button)
                     button.set_class(key == self.active_module, "is-active")
@@ -1186,12 +1264,16 @@ if TEXTUAL_AVAILABLE:
                     pass
 
         def can_run_job(self) -> bool:
-            if self.active_module == "upload_folder":
-                return False
             return not (self.running_process is not None and self.running_process.poll() is None)
+
+        def module_buttons(self) -> List[str]:
+            return list(INTERACTIVE_MODULE_TAB_NAMES.keys())
 
         def can_stop_job(self) -> bool:
             return self.running_process is not None and self.running_process.poll() is None
+
+        def can_exit_app(self) -> bool:
+            return not self.can_stop_job()
 
         def refresh_action_buttons(self) -> None:
             try:
@@ -1208,6 +1290,14 @@ if TEXTUAL_AVAILABLE:
                 stop_button.disabled = not can_stop
                 stop_button.set_class(can_stop, "is-enabled")
                 stop_button.set_class(not can_stop, "is-disabled")
+            except Exception:
+                pass
+            try:
+                exit_button = self.query_one("#exit-btn", Button)
+                can_exit = self.can_exit_app()
+                exit_button.disabled = not can_exit
+                exit_button.set_class(can_exit, "is-enabled")
+                exit_button.set_class(not can_exit, "is-disabled")
             except Exception:
                 pass
 
@@ -1312,13 +1402,24 @@ if TEXTUAL_AVAILABLE:
                         current_value = ", ".join(raw_value)
                     else:
                         current_value = str(raw_value or "")
-                self.push_screen(PathPickerScreen(dest=dest, title=f"Select path for {dest}", start_path=current_value), callback=self.handle_path_picker_result)
+                self.push_screen(
+                    PathPickerScreen(
+                        dest=dest,
+                        title=f"Select path for {dest}",
+                        start_path=current_value,
+                        home_path=self.launch_cwd,
+                    ),
+                    callback=self.handle_path_picker_result,
+                )
                 return
             if button_id == "run-btn":
                 self.action_run_job()
                 return
             if button_id == "stop-btn":
                 self.action_stop_job()
+                return
+            if button_id == "exit-btn":
+                self.request_exit()
                 return
             if button_id == "save-config-btn":
                 self.action_save_config()
@@ -1508,6 +1609,23 @@ if TEXTUAL_AVAILABLE:
                 self.refresh_action_buttons()
             except Exception as exc:
                 self.update_status(f"Unable to stop job: {exc}")
+
+        def request_exit(self) -> None:
+            if not self.can_exit_app():
+                self.update_status("Stop the running job before exiting.")
+                self.refresh_action_buttons()
+                return
+            self.push_screen(ConfirmExitScreen(), callback=self.handle_exit_confirmation)
+
+        def handle_exit_confirmation(self, confirmed: bool) -> None:
+            if not confirmed:
+                self.update_status("Exit canceled.")
+                return
+            self.persist_ui_state()
+            self.exit()
+
+        def action_quit(self) -> None:
+            self.request_exit()
 
         def action_send_job_input(self) -> None:
             if self.running_process is None or self.running_process.stdin is None or self.running_process.poll() is not None:

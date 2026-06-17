@@ -5,13 +5,22 @@ This section shows how to use the Command Line Interface (CLI) for this Tool.
 
 PhotoMigrator now includes an interactive CLI TUI designed to be much closer to the Web Interface layout.
 
-- Running `PhotoMigrator` without arguments opens the CLI TUI when the current terminal supports interactive graphics/colors.
+- Running `PhotoMigrator` without arguments now opens the desktop GUI by default.
+- If the desktop GUI cannot be started because `tkinter` or a graphical display is not available, PhotoMigrator falls back to the CLI TUI when the current terminal supports interactive graphics/colors.
+- If neither the GUI nor the TUI can be started, PhotoMigrator falls back to the same output as `PhotoMigrator --help`.
 - Running `PhotoMigrator <TAKEOUT_FOLDER>` opens the CLI TUI with `Google Takeout` preselected and the input path already filled.
 - Running `PhotoMigrator --tui` forces the interactive terminal UI explicitly.
-- If the terminal is not interactive enough, or the optional `textual` dependency is not available, PhotoMigrator falls back to the previous legacy GUI/console flow.
 
 > [!NOTE]
 > `--tui` is handled before the normal argparse parser starts, so it is a launcher flag and does not appear inside the generated `-h/--help` syntax block below.
+
+## Desktop GUI
+
+PhotoMigrator also includes a native desktop GUI implemented with `tkinter`.
+
+- Running `PhotoMigrator --gui` opens the desktop GUI explicitly.
+- The desktop GUI reuses the same shared parser/config model as the CLI TUI, so it exposes the same top-level modules, `General Arguments`, `Features Config`, and `App Settings` views.
+- When `PhotoMigrator` is executed without arguments, the desktop GUI is now the first launcher option.
 
 Most of the argument can be given with two formats:
 - Short format: '-' followed by the short name
