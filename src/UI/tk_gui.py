@@ -249,7 +249,7 @@ class PhotoMigratorTkGUI:
         self.running_process: subprocess.Popen[str] | None = None
         self.running_command: List[str] = []
         self.output_queue: queue.Queue[str | tuple[str, int]] = queue.Queue()
-        self.bool_toggle_widgets: Dict[str, tuple[Any, Any]] = {}
+        self.bool_toggle_widgets: Dict[str, Any] = {}
         self.panel_collapsed = {
             "content": False,
             "description": False,
@@ -558,6 +558,9 @@ class PhotoMigratorTkGUI:
                 activebackground=theme["root_bg"],
                 activeforeground=theme["accent"],
             )
+        for dest in list(self.bool_toggle_widgets):
+            current_value = self.remember_state if dest == "remember-state" else bool(self.state_values.get(dest))
+            self.refresh_boolean_toggle(dest, current_value)
         self.refresh_module_buttons()
         self.refresh_top_tabs()
         self.refresh_toolbar_buttons()
@@ -1515,33 +1518,11 @@ class PhotoMigratorTkGUI:
         self._label(row, label).pack(side="left")
         holder = self.tk.Frame(row, bg=self.current_theme()["panel_bg"])
         holder.pack(side="left")
-        off_btn = self.tk.Label(
-            holder,
-            text="✕",
-            width=2,
-            cursor="hand2",
-            bd=0,
-            relief="flat",
-            anchor="center",
-            justify="center",
-        )
-        off_btn.pack(side="left", padx=(0, 6))
-        on_btn = self.tk.Label(
-            holder,
-            text="✓",
-            width=2,
-            cursor="hand2",
-            bd=0,
-            relief="flat",
-            anchor="center",
-            justify="center",
-        )
-        on_btn.pack(side="left")
-        off_btn.bind("<Button-1>", lambda _e, d=dest: self.set_boolean_toggle(d, False))
-        on_btn.bind("<Button-1>", lambda _e, d=dest: self.set_boolean_toggle(d, True))
-        self._bind_help(off_btn, help_text)
-        self._bind_help(on_btn, help_text)
-        self.bool_toggle_widgets[dest] = (off_btn, on_btn)
+        switch = self.tk.Canvas(holder, width=40, height=20, bd=0, highlightthickness=0, cursor="hand2")
+        switch.pack(side="left", padx=(0, 6))
+        switch.bind("<Button-1>", lambda _e, d=dest: self.set_boolean_toggle(d, not (self.remember_state if d == "remember-state" else bool(self.state_values.get(d)))))
+        self._bind_help(switch, help_text)
+        self.bool_toggle_widgets[dest] = switch
         self.refresh_boolean_toggle(dest, value)
 
     def set_boolean_toggle(self, dest: str, value: bool) -> None:
@@ -1554,20 +1535,18 @@ class PhotoMigratorTkGUI:
 
     def refresh_boolean_toggle(self, dest: str, value: bool) -> None:
         theme = self.current_theme()
-        buttons = self.bool_toggle_widgets.get(dest)
-        if not buttons:
+        switch = self.bool_toggle_widgets.get(dest)
+        if not switch:
             return
-        off_btn, on_btn = buttons
-        off_btn.configure(
-            bg=theme["panel_bg"],
-            fg=("#ff5a5a" if not value else "#9aa6b4"),
-            font=("TkDefaultFont", 10, "bold"),
-        )
-        on_btn.configure(
-            bg=theme["panel_bg"],
-            fg=("#4cff7a" if value else "#9aa6b4"),
-            font=("TkDefaultFont", 10, "bold"),
-        )
+        track_fill = "#35c759" if value else "#6b7481"
+        thumb_fill = "#f4f7fb"
+        switch.configure(bg=theme["panel_bg"])
+        switch.delete("all")
+        switch.create_oval(1, 3, 15, 17, fill=track_fill, outline=track_fill)
+        switch.create_rectangle(8, 3, 32, 17, fill=track_fill, outline=track_fill)
+        switch.create_oval(25, 3, 39, 17, fill=track_fill, outline=track_fill)
+        thumb_x = 23 if value else 3
+        switch.create_oval(thumb_x, 3, thumb_x + 14, 17, fill=thumb_fill, outline=thumb_fill)
 
     def build_pseudo_text_field(self, parent: Any, label: str, dest: str, value: Any, required: bool, help_text: str) -> None:
         self.build_input_block(parent, label, dest, str(value or ""), required, help_text, path_hint="")

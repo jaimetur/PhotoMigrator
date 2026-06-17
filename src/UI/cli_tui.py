@@ -467,28 +467,25 @@ if TEXTUAL_AVAILABLE:
             min-height: 1;
             margin-top: 0;
         }
-        .bool-toggle-btn {
-            width: 3;
-            min-width: 3;
+        .bool-switch {
+            width: 7;
+            min-width: 7;
             height: 1;
             min-height: 1;
-            margin-right: 1;
             border: none;
             background: transparent;
-            color: #9aa6b4;
-            text-style: bold;
+            color: #98a4b3;
             padding: 0;
         }
-        .bool-toggle-btn.is-active {
+        .bool-switch.-on {
             border: none;
-        }
-        .bool-toggle-off.is-active {
-            background: transparent;
-            color: #ff5a5a;
-        }
-        .bool-toggle-on.is-active {
             background: transparent;
             color: #4cff7a;
+        }
+        .bool-switch.-off {
+            border: none;
+            background: transparent;
+            color: #98a4b3;
         }
         .field-label {
             width: 25;
@@ -1823,17 +1820,13 @@ if TEXTUAL_AVAILABLE:
             return Horizontal(Label(label, classes="field-label"), Checkbox(value=bool(value), id=widget_id), classes="field-row")
 
         def build_boolean_toggle_row(self, label: str, dest: str, value: bool, help_text: str = "") -> Horizontal:
-            off_id = f"bool-{dest}-off"
-            on_id = f"bool-{dest}-on"
-            self.register_field_help(off_id, help_text)
-            self.register_field_help(on_id, help_text)
-            off_button = Button("✕", id=off_id, classes="bool-toggle-btn bool-toggle-off")
-            on_button = Button("✓", id=on_id, classes="bool-toggle-btn bool-toggle-on")
-            off_button.set_class(not bool(value), "is-active")
-            on_button.set_class(bool(value), "is-active")
+            toggle_id = f"bool-{dest}-toggle"
+            self.register_field_help(toggle_id, help_text)
+            toggle_button = Button("", id=toggle_id, classes="bool-switch")
+            self._set_boolean_toggle_visual(toggle_button, bool(value))
             return Horizontal(
                 Label(label, classes="field-label"),
-                Horizontal(off_button, on_button, classes="bool-toggle"),
+                Horizontal(toggle_button, classes="bool-toggle"),
                 classes="field-row",
             )
 
@@ -1961,15 +1954,15 @@ if TEXTUAL_AVAILABLE:
 
         def refresh_boolean_toggle(self, dest: str, value: bool) -> None:
             try:
-                off_button = self.query_one(f"#bool-{dest}-off", Button)
-                off_button.set_class(not bool(value), "is-active")
+                toggle_button = self.query_one(f"#bool-{dest}-toggle", Button)
+                self._set_boolean_toggle_visual(toggle_button, bool(value))
             except Exception:
                 pass
-            try:
-                on_button = self.query_one(f"#bool-{dest}-on", Button)
-                on_button.set_class(bool(value), "is-active")
-            except Exception:
-                pass
+
+        def _set_boolean_toggle_visual(self, button: Button, value: bool) -> None:
+            button.label = "(  ◉)" if value else "(◉  )"
+            button.set_class(bool(value), "-on")
+            button.set_class(not bool(value), "-off")
 
         def apply_theme(self) -> None:
             for theme in ["ocean", "emerald", "sunset", "dark"]:
@@ -2023,12 +2016,17 @@ if TEXTUAL_AVAILABLE:
             button_id = event.button.id or ""
             if button_id.startswith("bool-"):
                 payload = button_id.replace("bool-", "", 1)
-                try:
-                    dest, mode = payload.rsplit("-", 1)
-                except ValueError:
-                    dest, mode = "", ""
-                if dest and mode in {"on", "off"}:
-                    value = mode == "on"
+                if payload.endswith("-toggle"):
+                    dest = payload[: -len("-toggle")]
+                    current_value = self.remember_state if dest == "remember-state" else bool(self.state_values.get(dest))
+                    value = not bool(current_value)
+                else:
+                    try:
+                        dest, mode = payload.rsplit("-", 1)
+                    except ValueError:
+                        dest, mode = "", ""
+                    value = mode == "on" if dest and mode in {"on", "off"} else None
+                if dest and value is not None:
                     if dest == "remember-state":
                         self.remember_state = value
                     else:
