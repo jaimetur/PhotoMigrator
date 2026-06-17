@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List
 from zoneinfo import available_timezones
@@ -243,6 +244,143 @@ TAB_TO_CATEGORY = {
     "standalone_features": "standalone_features",
     "automatic_migration": "automatic_migration",
 }
+
+ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
+PROGRESS_CUSTOM_FULL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%\s*$")
+PROGRESS_TQDM_RE = re.compile(r"(\d{1,3}%\|[^|]*\|\s*\d+/\d+)")
+PROGRESS_CUSTOM_PARTIAL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$")
+PROGRESS_TQDM_PARTIAL_RE = re.compile(r"(\d{1,3}%\|[^|]*)")
+PROGRESS_STEP_PREFIX_RE = re.compile(r"^(.*?\[\s*step\s+\d+/\d+\][^:]*:)", re.IGNORECASE)
+PROGRESS_SEPARATOR_RE = re.compile(r"^[=\-_\s]{6,}$")
+
+
+@dataclass
+class CompactLogEntry:
+    text: str
+    progress_key: str | None = None
+
+
+@dataclass
+class CompactLogUpdate:
+    appended_lines: List[str]
+    replaced_progress: bool
+    partial_changed: bool
+
+
+def strip_ansi(text: str) -> str:
+    return ANSI_ESCAPE_RE.sub("", str(text or ""))
+
+
+def extract_progress_key(line: str) -> str | None:
+    clean = strip_ansi(line).replace("\r", "").strip()
+    if not clean:
+        return None
+    without_level = re.sub(r"^[A-Z]+\s*:?\s*", "", clean).strip()
+    if without_level and PROGRESS_SEPARATOR_RE.match(without_level):
+        return None
+
+    match = PROGRESS_CUSTOM_FULL_RE.match(clean)
+    if match:
+        return str(match.group(1) or "").strip().lower() or None
+
+    match = PROGRESS_TQDM_RE.search(clean)
+    if match and match.start() >= 0:
+        return clean[:match.start()].strip().lower() or None
+
+    match = PROGRESS_CUSTOM_PARTIAL_RE.match(clean)
+    if match:
+        return str(match.group(1) or "").strip().lower() or None
+
+    match = PROGRESS_TQDM_PARTIAL_RE.search(clean)
+    if match and match.start() >= 0:
+        return clean[:match.start()].strip().lower() or None
+
+    match = PROGRESS_STEP_PREFIX_RE.match(clean)
+    if match:
+        return str(match.group(1) or "").strip().lower() or None
+
+    return None
+
+
+class CompactLogBuffer:
+    def __init__(self, max_lines: int | None = None):
+        self.max_lines = max_lines
+        self.clear()
+
+    def clear(self) -> None:
+        self.entries: List[CompactLogEntry] = []
+        self.progress_entries: Dict[str, CompactLogEntry] = {}
+        self.partial_line = ""
+        self.pending_cr = False
+
+    def append_text(self, text: str) -> CompactLogUpdate:
+        if not text:
+            return CompactLogUpdate(appended_lines=[], replaced_progress=False, partial_changed=False)
+
+        previous_partial = self.partial_line
+        current = self.partial_line
+        completed: List[str] = []
+
+        for ch in str(text):
+            if self.pending_cr:
+                if ch == "\n":
+                    completed.append(current)
+                    current = ""
+                    self.pending_cr = False
+                    continue
+                completed.append(current)
+                current = ""
+                self.pending_cr = False
+
+            if ch == "\n":
+                completed.append(current)
+                current = ""
+            elif ch == "\r":
+                self.pending_cr = True
+            else:
+                current += ch
+
+        self.partial_line = current
+
+        appended_lines: List[str] = []
+        replaced_progress = False
+
+        for line in completed:
+            line_with_nl = f"{line}\n"
+            progress_key = extract_progress_key(line_with_nl)
+            if progress_key and progress_key in self.progress_entries:
+                self.progress_entries[progress_key].text = line_with_nl
+                replaced_progress = True
+                continue
+
+            entry = CompactLogEntry(text=line_with_nl, progress_key=progress_key)
+            self.entries.append(entry)
+            appended_lines.append(line)
+            if progress_key:
+                self.progress_entries[progress_key] = entry
+
+        while self.max_lines is not None and len(self.entries) > self.max_lines:
+            removed = self.entries.pop(0)
+            if removed.progress_key and self.progress_entries.get(removed.progress_key) is removed:
+                del self.progress_entries[removed.progress_key]
+
+        return CompactLogUpdate(
+            appended_lines=appended_lines,
+            replaced_progress=replaced_progress,
+            partial_changed=(self.partial_line != previous_partial),
+        )
+
+    def render_lines(self, include_partial: bool = True) -> List[str]:
+        lines = [entry.text.rstrip("\n") for entry in self.entries]
+        if include_partial and self.partial_line:
+            lines.append(self.partial_line)
+        return lines
+
+    def render_text(self, include_partial: bool = True) -> str:
+        body = "".join(entry.text for entry in self.entries)
+        if include_partial and self.partial_line:
+            body += self.partial_line
+        return body
 
 
 def _tab_for_dest(dest: str) -> str:

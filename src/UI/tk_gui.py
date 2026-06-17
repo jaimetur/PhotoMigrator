@@ -5,11 +5,13 @@ import queue
 import shutil
 import subprocess
 import threading
+import time
 from pathlib import Path
 from typing import Any, Dict, List
 
 from UI.shared import (
     CLOUD_ACTIONS_AVAILABLE_BY_TAB,
+    CompactLogBuffer,
     CONFIG_EDITOR_SECTIONS_ORDER,
     FEATURE_LABELS,
     GENERAL_GROUPS,
@@ -249,7 +251,9 @@ class PhotoMigratorTkGUI:
         self.running_process: subprocess.Popen[str] | None = None
         self.running_command: List[str] = []
         self.output_queue: queue.Queue[str | tuple[str, int]] = queue.Queue()
+        self.log_buffer = CompactLogBuffer()
         self.bool_toggle_widgets: Dict[str, Any] = {}
+        self.auto_collapsed_content_for_run = False
         self.panel_collapsed = {
             "content": False,
             "description": False,
@@ -866,6 +870,18 @@ class PhotoMigratorTkGUI:
         self.main.grid_rowconfigure(1, weight=content_weight)
         self.main.grid_rowconfigure(2, weight=bottom_weight)
         self.log_text.configure(height=(16 if running else 10))
+
+    def sync_content_panel_for_run_state(self, running: bool) -> None:
+        if running:
+            if not self.panel_collapsed.get("content", False):
+                self.panel_collapsed["content"] = True
+                self.auto_collapsed_content_for_run = True
+                self.apply_panel_states()
+        elif self.auto_collapsed_content_for_run:
+            self.panel_collapsed["content"] = False
+            self.auto_collapsed_content_for_run = False
+            self.apply_panel_states()
+        self.apply_runtime_layout()
 
     def toggle_panel(self, panel_key: str) -> None:
         self.panel_collapsed[panel_key] = not self.panel_collapsed.get(panel_key, False)
@@ -1678,9 +1694,16 @@ class PhotoMigratorTkGUI:
         self.refresh_action_buttons()
 
     def append_log(self, line: str) -> None:
-        self.log_text.insert("end", line + "\n")
+        self.consume_log_output(f"{line}\n")
+
+    def refresh_log_view(self) -> None:
+        self._set_readonly_text(self.log_text, self.log_buffer.render_text(include_partial=True))
         self.log_text.see("end")
-        self._on_log_text_scroll("0.0", "1.0")
+
+    def consume_log_output(self, text: str) -> None:
+        update = self.log_buffer.append_text(text)
+        if update.replaced_progress or update.partial_changed or update.appended_lines:
+            self.refresh_log_view()
 
     def poll_process_queue(self) -> None:
         while True:
@@ -1691,7 +1714,10 @@ class PhotoMigratorTkGUI:
             if isinstance(item, tuple) and item and item[0] == "finished":
                 self.running_process = None
                 self.update_status(f"Job finished with exit code {item[1]}")
+                self.sync_content_panel_for_run_state(False)
                 self.refresh_action_buttons()
+            elif isinstance(item, tuple) and item and item[0] == "output":
+                self.consume_log_output(str(item[1]))
             else:
                 self.append_log(str(item))
         self.root.after(120, self.poll_process_queue)
@@ -1699,8 +1725,20 @@ class PhotoMigratorTkGUI:
     def _job_output_worker(self, process: subprocess.Popen[str]) -> None:
         try:
             if process.stdout is not None:
-                for raw_line in process.stdout:
-                    self.output_queue.put(raw_line.rstrip("\n"))
+                pending: List[str] = []
+                last_flush = time.monotonic()
+                while True:
+                    chunk = process.stdout.read(1)
+                    if chunk == "":
+                        break
+                    pending.append(chunk)
+                    now = time.monotonic()
+                    if chunk in "\r\n" or (now - last_flush) >= 0.05:
+                        self.output_queue.put(("output", "".join(pending)))
+                        pending = []
+                        last_flush = now
+                if pending:
+                    self.output_queue.put(("output", "".join(pending)))
             return_code = process.wait()
         except Exception as exc:
             self.output_queue.put(f"[internal] {exc}")
@@ -1721,7 +1759,8 @@ class PhotoMigratorTkGUI:
             selected_action = self.standalone_action_dest
         command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
         self.running_command = command
-        self.log_text.delete("1.0", "end")
+        self.log_buffer.clear()
+        self._set_readonly_text(self.log_text, "")
         self.append_log(f"> {command_to_string(command)}")
         try:
             process = subprocess.Popen(
@@ -1741,6 +1780,7 @@ class PhotoMigratorTkGUI:
             return
         self.running_process = process
         self.update_status("Job running...")
+        self.sync_content_panel_for_run_state(True)
         self.refresh_action_buttons()
         threading.Thread(target=self._job_output_worker, args=(process,), daemon=True).start()
 
