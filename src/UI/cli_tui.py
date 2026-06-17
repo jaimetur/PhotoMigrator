@@ -569,6 +569,14 @@ if TEXTUAL_AVAILABLE:
             margin-bottom: 0;
             padding: 0;
         }
+        .app-settings-spacer {
+            height: 1;
+            min-height: 1;
+        }
+        .app-settings-note {
+            margin-left: 0;
+            padding: 0;
+        }
         .path-button {
             width: 5;
             min-width: 5;
@@ -1472,9 +1480,10 @@ if TEXTUAL_AVAILABLE:
             widgets: List[Any] = [
                 self.build_select_row("Theme", "theme-select", THEME_CHOICES, self.selected_theme, help_text="Select the visual theme used by the CLI TUI."),
                 self.build_boolean_toggle_row("Remember UI state", "remember-state", self.remember_state, help_text="Persist the current terminal UI state, selected tabs, and entered values between sessions."),
-                Static(f"State file: {TUI_STATE_PATH}", classes="field-help"),
-                Static(f"Config file in use: {self.current_config_path()}", classes="field-help"),
-                Static("Use Ctrl+S to save Config.ini, Ctrl+L to load a Config.ini file, and Ctrl+R to run the current module.", classes="field-help"),
+                Static("", classes="app-settings-spacer"),
+                Static(f"State file: {TUI_STATE_PATH}", classes="field-help app-settings-note"),
+                Static(f"Config file in use: {self.current_config_path()}", classes="field-help app-settings-note"),
+                Static("Use Ctrl+S to save Config.ini, Ctrl+L to load a Config.ini file, and Ctrl+R to run the current module.", classes="field-help app-settings-note"),
             ]
             return widgets
 
