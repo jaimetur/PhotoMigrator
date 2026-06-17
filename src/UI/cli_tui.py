@@ -425,6 +425,9 @@ if TEXTUAL_AVAILABLE:
         .field-row--spaced {
             margin-top: 1;
         }
+        .field-row--config-account {
+            margin-top: 2;
+        }
         .form-columns {
             width: 1fr;
             height: auto;
@@ -689,8 +692,8 @@ if TEXTUAL_AVAILABLE:
         }
         #job-input {
             width: 1fr;
-            height: 1;
-            min-height: 1;
+            height: 3;
+            min-height: 3;
             border: none;
             padding: 0 1;
         }
@@ -705,23 +708,23 @@ if TEXTUAL_AVAILABLE:
             layout: horizontal;
             height: 1;
             min-height: 1;
-            background: #1a2230;
+            background: #1b2432;
             color: #dfeaf8;
             padding: 0 1;
             text-wrap: nowrap;
         }
         .shortcut-key {
             width: auto;
-            color: #f4f7fb;
-            background: #2e4f78;
+            color: #f1cf57;
+            background: transparent;
             text-style: bold;
-            padding: 0 1;
+            padding: 0;
         }
         .shortcut-desc {
             width: auto;
-            color: #dfeaf8;
-            background: #1a2230;
-            padding: 0 1 0 0;
+            color: #cfd9e6;
+            background: transparent;
+            padding: 0 2 0 1;
         }
         #picker-path-input {
             height: 1;
@@ -1448,7 +1451,7 @@ if TEXTUAL_AVAILABLE:
                         account_value,
                         help_text="Select which account within this service section you want to configure.",
                         label_classes="field-label field-label--config-accent",
-                        row_classes="field-row field-row--spaced",
+                        row_classes="field-row field-row--spaced field-row--config-account",
                     )
                 )
                 selected_account = str(self.active_config_account.get(section_name) or selector.get("default_account") or "")
