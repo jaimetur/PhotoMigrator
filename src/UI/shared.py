@@ -785,9 +785,18 @@ def build_argument_specs(schema: Dict[str, Any], tab_key: str, selected_field: D
     return specs
 
 
-def _load_default_config_template(project_root: Path) -> str:
-    candidates = [project_root / "Config.ini"]
+def _load_default_config_template(project_root: Path, config_path: Path | None = None, launch_cwd: Path | None = None) -> str:
+    candidates: List[Path] = [project_root / "Config.ini"]
+    if launch_cwd is not None:
+        candidates.append(Path(launch_cwd) / "Config.ini")
+    if config_path is not None:
+        candidates.append(Path(config_path))
+    seen: set[Path] = set()
     for candidate in candidates:
+        candidate = Path(candidate)
+        if candidate in seen:
+            continue
+        seen.add(candidate)
         try:
             if candidate.exists() and candidate.is_file():
                 return candidate.read_text(encoding="utf-8", errors="replace")
@@ -988,6 +997,48 @@ def merge_values_with_schema(values: Dict[str, Dict[str, str]], form_schema: Lis
     return merged
 
 
+def _build_schema_from_values(values: Dict[str, Dict[str, str]]) -> List[Dict[str, Any]]:
+    section_names = [name for name in CONFIG_SECTIONS_ORDER if name in values]
+    section_names.extend(sorted(name for name in values if name not in CONFIG_SECTIONS_ORDER))
+    sections: List[Dict[str, Any]] = []
+    for section_name in section_names:
+        raw_fields = values.get(section_name) or {}
+        fields = [
+            {
+                "key": str(key),
+                "default": str(value or ""),
+                "help": "",
+                "sensitive": _is_sensitive_config_key(str(key)),
+                "account_id": config_field_account_id(str(key)),
+            }
+            for key, value in raw_fields.items()
+            if str(key).strip()
+        ]
+        sections.append(
+            {
+                "name": section_name,
+                "description": "",
+                "fields": _sort_section_fields(section_name, fields),
+            }
+        )
+    return sections
+
+
+def _serialize_values_to_ini_without_template(values: Dict[str, Dict[str, str]]) -> str:
+    output_lines: List[str] = []
+    section_names = [name for name in CONFIG_SECTIONS_ORDER if name in values]
+    section_names.extend(sorted(name for name in values if name not in CONFIG_SECTIONS_ORDER))
+    for section_name in section_names:
+        section_values = values.get(section_name) or {}
+        if not section_values:
+            continue
+        output_lines.append(f"[{section_name}]")
+        for key, value in section_values.items():
+            output_lines.append(f"{key} = {value}")
+        output_lines.append("")
+    return ("\n".join(output_lines).rstrip() + "\n") if output_lines else "# Config.ini File\n"
+
+
 def serialize_values_to_ini_with_comments(values: Dict[str, Dict[str, str]], template_content: str) -> str:
     comment_column = 72
 
@@ -1044,8 +1095,8 @@ def serialize_values_to_ini_with_comments(values: Dict[str, Dict[str, str]], tem
     return "\n".join(output_lines).rstrip() + "\n"
 
 
-def load_config_editor_model(project_root: Path, config_path: Path) -> Dict[str, Any]:
-    template_text = _load_default_config_template(project_root)
+def load_config_editor_model(project_root: Path, config_path: Path, launch_cwd: Path | None = None) -> Dict[str, Any]:
+    template_text = _load_default_config_template(project_root, config_path=config_path, launch_cwd=launch_cwd)
     schema = parse_template_to_form_schema(template_text)
     current_values: Dict[str, Dict[str, str]] = {}
     if config_path.exists() and config_path.is_file():
@@ -1053,6 +1104,10 @@ def load_config_editor_model(project_root: Path, config_path: Path) -> Dict[str,
             current_values = parse_ini_text_to_values(config_path.read_text(encoding="utf-8", errors="replace"))
         except Exception:
             current_values = {}
+    if not schema and current_values:
+        schema = _build_schema_from_values(current_values)
+    if not template_text and schema:
+        template_text = _serialize_values_to_ini_without_template(merge_values_with_schema(current_values, schema))
     merged = merge_values_with_schema(current_values, schema)
     sections = []
     section_order = {name: idx for idx, name in enumerate(CONFIG_EDITOR_SECTIONS_ORDER)}
@@ -1094,7 +1149,7 @@ def load_config_editor_model(project_root: Path, config_path: Path) -> Dict[str,
 def save_config_editor_values(config_path: Path, values: Dict[str, Dict[str, str]], template_text: str, schema: List[Dict[str, Any]]) -> None:
     config_path.parent.mkdir(parents=True, exist_ok=True)
     merged = merge_values_with_schema(values, schema)
-    content = serialize_values_to_ini_with_comments(merged, template_text)
+    content = serialize_values_to_ini_with_comments(merged, template_text) if str(template_text or "").strip() else _serialize_values_to_ini_without_template(merged)
     config_path.write_text(content, encoding="utf-8")
 
 
@@ -1210,14 +1265,29 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
     return args
 
 
+def ui_runtime_is_frozen() -> bool:
+    return bool(
+        getattr(sys, "frozen", False)
+        or hasattr(sys, "_MEIPASS")
+        or ("NUITKA_ONEFILE_PARENT" in os.environ)
+        or (globals().get("__compiled__") is not None)
+    )
+
+
 def build_full_command(cli_entrypoint: Path, schema: Dict[str, Any], tab: str, values: Dict[str, Any], selected_action_dest: str | None = None) -> List[str]:
-    return [sys.executable, str(cli_entrypoint), *build_cli_args(schema, tab, values, selected_action_dest)]
+    prefix = [sys.executable] if ui_runtime_is_frozen() else [sys.executable, str(cli_entrypoint)]
+    return [*prefix, *build_cli_args(schema, tab, values, selected_action_dest)]
 
 
-def resolve_ui_config_path(configured_path: Any) -> Path:
+def resolve_ui_config_path(configured_path: Any, base_dir: Path | None = None) -> Path:
+    base_path = Path(base_dir or Path.cwd()).expanduser()
     raw = str(configured_path or "").strip()
-    candidate = os.path.expanduser(raw) if raw else "Config.ini"
-    return Path(os.path.abspath(candidate))
+    if not raw:
+        candidate = base_path / "Config.ini"
+    else:
+        expanded = Path(os.path.expanduser(raw))
+        candidate = expanded if expanded.is_absolute() else base_path / expanded
+    return candidate.resolve(strict=False)
 
 
 def validate_ui_config_file(config_path: Path) -> Path:
@@ -1247,6 +1317,8 @@ def command_to_string(command: List[str]) -> str:
 
 
 def command_preview_string(command: List[str], display_name: str = "PhotoMigrator") -> str:
-    if len(command) >= 3:
+    if len(command) >= 2 and str(command[1]).lower().endswith(".py"):
         return command_to_string([display_name, *command[2:]])
+    if len(command) >= 2:
+        return command_to_string([display_name, *command[1:]])
     return command_to_string(command)

@@ -1462,10 +1462,10 @@ if TEXTUAL_AVAILABLE:
             return CONFIG_EDITOR_SECTIONS_ORDER[0]
 
         def current_config_path(self) -> Path:
-            return resolve_ui_config_path(self.state_values.get("configuration-file"))
+            return resolve_ui_config_path(self.state_values.get("configuration-file"), base_dir=self.launch_cwd)
 
         def reload_config_model(self) -> None:
-            model = load_config_editor_model(self.project_root, self.current_config_path())
+            model = load_config_editor_model(self.project_root, self.current_config_path(), launch_cwd=self.launch_cwd)
             self.config_template_text = model["template_text"]
             self.config_schema = model["schema"]
             self.config_values = model["values"]
@@ -3133,7 +3133,7 @@ if TEXTUAL_AVAILABLE:
             try:
                 process = subprocess.Popen(
                     command,
-                    cwd=str(self.project_root),
+                    cwd=str(self.launch_cwd),
                     env=env,
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
@@ -3162,7 +3162,7 @@ if TEXTUAL_AVAILABLE:
                 with self.suspend():
                     return_code = subprocess.run(
                         command,
-                        cwd=str(self.project_root),
+                        cwd=str(self.launch_cwd),
                         env=env,
                         check=False,
                         text=True,

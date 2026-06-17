@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 import sys
+import tempfile
 from unittest.mock import patch
 
 
@@ -12,6 +13,7 @@ if str(SRC_ROOT) not in sys.path:
 try:
     from UI.shared import (
         build_cli_args,
+        build_full_command,
         build_ui_subprocess_env,
         build_parser_schema,
         build_external_terminal_command,
@@ -22,11 +24,13 @@ try:
         compose_rename_albums_value,
         config_section_account_selector,
         merge_values_with_schema,
+        load_config_editor_model,
         parse_find_duplicates_value,
         parse_migration_endpoint,
         parse_rename_albums_value,
         parse_template_to_form_schema,
         resolve_ui_config_path,
+        save_config_editor_values,
     )
     SHARED_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -110,6 +114,13 @@ class TestCliTuiShared(unittest.TestCase):
 
         self.assertEqual(preview, 'PhotoMigrator --google-takeout /tmp/Takeout')
 
+    def test_command_preview_string_supports_frozen_binary_commands(self):
+        preview = command_preview_string(
+            ["/opt/PhotoMigrator/PhotoMigrator.exe", "--google-takeout", "D:\\Takeout"]
+        )
+
+        self.assertEqual(preview, 'PhotoMigrator --google-takeout D:\\Takeout')
+
     def test_config_schema_marks_multi_account_sections(self):
         template_text = Path("Config.ini").read_text(encoding="utf-8")
         schema = parse_template_to_form_schema(template_text)
@@ -127,12 +138,62 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertEqual(merged["TimeZone"]["timezone"], "UTC")
         self.assertIn("GOOGLE_PHOTOS_CLIENT_ID_1", merged["Google Photos"])
 
-    def test_resolve_ui_config_path_uses_cwd_for_default_and_expands_user_for_custom_path(self):
-        default_path = resolve_ui_config_path("")
-        custom_path = resolve_ui_config_path("~/custom-config.ini")
+    def test_resolve_ui_config_path_uses_base_dir_for_default_and_relative_paths(self):
+        base_dir = Path("/tmp/photomigrator-ui")
+        default_path = resolve_ui_config_path("", base_dir=base_dir)
+        relative_path = resolve_ui_config_path("configs/custom.ini", base_dir=base_dir)
+        custom_path = resolve_ui_config_path("~/custom-config.ini", base_dir=base_dir)
 
-        self.assertEqual(default_path, Path.cwd() / "Config.ini")
+        self.assertEqual(default_path, base_dir / "Config.ini")
+        self.assertEqual(relative_path, base_dir / "configs" / "custom.ini")
         self.assertEqual(custom_path, Path.home() / "custom-config.ini")
+
+    def test_build_full_command_uses_current_executable_only_when_frozen(self):
+        schema = build_parser_schema()
+        values = {"google-takeout": "/tmp/Takeout"}
+
+        with patch("UI.shared.ui_runtime_is_frozen", return_value=True):
+            command = build_full_command(Path("/opt/PhotoMigrator/src/PhotoMigrator.py"), schema, "google_takeout", values)
+
+        self.assertEqual(command[0], sys.executable)
+        self.assertNotIn("/opt/PhotoMigrator/src/PhotoMigrator.py", command)
+        self.assertIn("--google-takeout", command)
+
+    def test_load_config_editor_model_falls_back_to_launch_config_when_project_template_is_missing(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            project_root = temp_root / "bundle-temp"
+            launch_cwd = temp_root / "release-folder"
+            project_root.mkdir()
+            launch_cwd.mkdir()
+            template_text = Path("Config.ini").read_text(encoding="utf-8")
+            config_path = launch_cwd / "Config.ini"
+            config_path.write_text(template_text, encoding="utf-8")
+
+            model = load_config_editor_model(project_root, config_path, launch_cwd=launch_cwd)
+
+        self.assertIn("[TimeZone]", model["template_text"])
+        self.assertTrue(model["schema"])
+        self.assertTrue(model["sections"])
+
+    def test_save_config_editor_values_preserves_content_when_template_is_missing(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            project_root = temp_root / "bundle-temp"
+            launch_cwd = temp_root / "release-folder"
+            project_root.mkdir()
+            launch_cwd.mkdir()
+            template_text = Path("Config.ini").read_text(encoding="utf-8")
+            config_path = launch_cwd / "Config.ini"
+            config_path.write_text(template_text, encoding="utf-8")
+
+            model = load_config_editor_model(project_root, config_path, launch_cwd=launch_cwd)
+            model["values"]["TimeZone"]["timezone"] = "UTC"
+            save_config_editor_values(config_path, model["values"], model["template_text"], model["schema"])
+            saved_text = config_path.read_text(encoding="utf-8")
+
+        self.assertIn("[TimeZone]", saved_text)
+        self.assertIn("timezone = UTC", saved_text)
 
     def test_build_ui_subprocess_env_forces_color_and_removes_no_color(self):
         env = build_ui_subprocess_env({"NO_COLOR": "1", "TERM": "dumb"}, ui_mode="tui")

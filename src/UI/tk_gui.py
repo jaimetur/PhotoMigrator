@@ -250,6 +250,7 @@ class PhotoMigratorTkGUI:
         self.selected_theme = str(self.ui_state.get("theme") or "ocean")
         self.remember_state = bool(self.ui_state.get("remember_state", True))
         self.window_geometry = str(self.ui_state.get("window_geometry") or "1480x920")
+        self.launch_cwd = Path.cwd().resolve()
         self.field_widget_map: Dict[str, Any] = {}
         self.field_help_map: Dict[str, str] = {}
         self.config_widget_map: Dict[str, tuple[str, str]] = {}
@@ -308,10 +309,10 @@ class PhotoMigratorTkGUI:
         return CONFIG_EDITOR_SECTIONS_ORDER[0]
 
     def current_config_path(self) -> Path:
-        return resolve_ui_config_path(self.state_values.get("configuration-file"))
+        return resolve_ui_config_path(self.state_values.get("configuration-file"), base_dir=self.launch_cwd)
 
     def reload_config_model(self) -> None:
-        model = load_config_editor_model(self.project_root, self.current_config_path())
+        model = load_config_editor_model(self.project_root, self.current_config_path(), launch_cwd=self.launch_cwd)
         self.config_template_text = model["template_text"]
         self.config_schema = model["schema"]
         self.config_values = model["values"]
@@ -1475,10 +1476,10 @@ class PhotoMigratorTkGUI:
 
     def _launch_dashboard_job_in_external_terminal(self, command: List[str]) -> None:
         env = build_ui_subprocess_env(ui_mode="gui", embedded_ui=False)
-        launcher = build_external_terminal_command(command, self.project_root, env)
+        launcher = build_external_terminal_command(command, self.launch_cwd, env)
         if not launcher:
             raise RuntimeError("No supported external terminal launcher was found on this system.")
-        subprocess.Popen(launcher, cwd=str(self.project_root), env=env)
+        subprocess.Popen(launcher, cwd=str(self.launch_cwd), env=env)
         self.root.after(150, self._restore_gui_focus)
 
     def build_flags_grid(self, parent: Any, fields: List[Dict[str, Any]], context: str) -> None:
@@ -1806,7 +1807,7 @@ class PhotoMigratorTkGUI:
             current_path = current[0] if current else ""
         else:
             current_path = str(current or "")
-        selected = filedialog.askdirectory(initialdir=str(Path(current_path).expanduser()) if current_path else str(self.project_root))
+        selected = filedialog.askdirectory(initialdir=str(Path(current_path).expanduser()) if current_path else str(self.launch_cwd))
         if not selected:
             return
         if dest == "find-duplicates-folders":
@@ -1932,7 +1933,7 @@ class PhotoMigratorTkGUI:
         try:
             process = subprocess.Popen(
                 command,
-                cwd=str(self.project_root),
+                cwd=str(self.launch_cwd),
                 env=build_ui_subprocess_env(ui_mode="gui"),
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
