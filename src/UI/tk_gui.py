@@ -340,24 +340,21 @@ class PhotoMigratorTkGUI:
         panel.grid_columnconfigure(0, weight=1)
         panel.grid_rowconfigure(1, weight=1)
 
-        topbar = self.tk.Frame(panel, height=16, bd=0)
-        topbar.place(x=10, y=-8)
+        topbar = self.tk.Frame(panel, bd=0)
+        topbar.grid(row=0, column=0, sticky="ew", padx=(10, 8), pady=(2, 0))
+        topbar.grid_columnconfigure(0, weight=1)
 
         title_label = self.tk.Label(topbar, text=title, anchor="w", font=("TkDefaultFont", 10, "bold"), padx=4, pady=0)
-        title_label.pack(side="left")
+        title_label.grid(row=0, column=0, sticky="w")
 
-        toggle = self._create_panel_toggle(panel, panel_key)
-        toggle.place(relx=1.0, x=-10, y=-8, anchor="ne")
+        toggle = self._create_panel_toggle(topbar, panel_key)
+        toggle.grid(row=0, column=1, sticky="e")
 
         body = self.tk.Frame(panel, bd=0)
-        body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(7, 0))
+        body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(5, 8))
         if use_grid:
             body.grid_rowconfigure(0, weight=1)
             body.grid_columnconfigure(0, weight=1)
-
-        topbar.lift()
-        title_label.lift()
-        toggle.lift()
 
         return panel, topbar, title_label, toggle, body
 
@@ -508,6 +505,7 @@ class PhotoMigratorTkGUI:
         self.sidebar_scroll.body.configure(bg=theme["sidebar_bg"])
         self.sidebar_actions.configure(bg=theme["sidebar_bg"])
         self.main.configure(bg=theme["root_bg"])
+        self.bottom.configure(bg=theme["root_bg"])
         self.topbar.configure(bg=theme["root_bg"])
         self.tabs_left.configure(bg=theme["root_bg"])
         self.tabs_right.configure(bg=theme["root_bg"])
@@ -812,48 +810,48 @@ class PhotoMigratorTkGUI:
         if self.panel_collapsed.get("content", False):
             self.content_body.grid_remove()
             self.content_panel.grid_propagate(False)
-            self.content_panel.configure(height=28)
+            self.content_panel.configure(height=34)
         else:
             self.content_panel.grid_propagate(True)
             self.content_panel.configure(height=0)
-            self.content_body.grid(row=1, column=0, sticky="nsew", padx=8, pady=0)
+            self.content_body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(5, 8))
             self.content_scroll.frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
 
         if self.panel_collapsed.get("description", False):
             self.description_body.grid_remove()
             self.description_panel.grid_propagate(False)
-            self.description_panel.configure(height=28)
+            self.description_panel.configure(height=34)
         else:
             self.description_panel.grid_propagate(True)
             self.description_panel.configure(height=0)
-            self.description_body.grid(row=1, column=0, sticky="ew", padx=8, pady=0)
+            self.description_body.grid(row=1, column=0, sticky="ew", padx=8, pady=(5, 8))
 
         if self.panel_collapsed.get("preview", False):
             self.preview_body.grid_remove()
             self.preview_panel.grid_propagate(False)
-            self.preview_panel.configure(height=28)
+            self.preview_panel.configure(height=34)
         else:
             self.preview_panel.grid_propagate(True)
             self.preview_panel.configure(height=0)
-            self.preview_body.grid(row=1, column=0, sticky="ew", padx=8, pady=0)
+            self.preview_body.grid(row=1, column=0, sticky="ew", padx=8, pady=(5, 8))
 
         if self.panel_collapsed.get("log", False):
             self.log_body.grid_remove()
             self.log_panel.grid_propagate(False)
-            self.log_panel.configure(height=28)
+            self.log_panel.configure(height=34)
         else:
             self.log_panel.grid_propagate(True)
             self.log_panel.configure(height=0)
-            self.log_body.grid(row=1, column=0, sticky="nsew", padx=8, pady=0)
+            self.log_body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(5, 8))
 
         if self.panel_collapsed.get("status", False):
             self.status_body.grid_remove()
             self.status_panel.grid_propagate(False)
-            self.status_panel.configure(height=28)
+            self.status_panel.configure(height=34)
         else:
             self.status_panel.grid_propagate(True)
             self.status_panel.configure(height=0)
-            self.status_body.grid(row=1, column=0, sticky="ew", padx=8, pady=0)
+            self.status_body.grid(row=1, column=0, sticky="ew", padx=8, pady=(5, 8))
 
         self.refresh_panel_toggle_buttons()
 
@@ -1151,7 +1149,7 @@ class PhotoMigratorTkGUI:
     def _section_label(self, parent: Any, text: str, *, accent: bool = False) -> Any:
         theme = self.current_theme()
         label = self.tk.Label(parent, text=text, anchor="w", justify="left", bg=theme["panel_bg"], fg=(theme["accent"] if accent else theme["text"]), font=("TkDefaultFont", 10, "bold"))
-        label.pack(fill="x", padx=6, pady=(3 if accent else 2, 1))
+        label.pack(fill="x", padx=6, pady=(10 if accent else 6, 2))
         return label
 
     def _entry(self, parent: Any, text_var: Any) -> Any:
