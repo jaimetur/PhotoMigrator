@@ -495,7 +495,19 @@ if TEXTUAL_AVAILABLE:
             except Exception:
                 return max(1, len(str(text or "")))
 
+        def _sync_horizontal_extent(self) -> None:
+            try:
+                widest_line = max((self._line_render_width(line) for line in self._lines), default=1)
+                self.min_width = max(1, int(widest_line))
+            except Exception:
+                pass
+            try:
+                self.refresh(layout=True)
+            except Exception:
+                pass
+
         def _redraw_lines(self, *, scroll_end: bool | None = None) -> None:
+            self._sync_horizontal_extent()
             try:
                 super().clear()
             except Exception:
@@ -555,6 +567,7 @@ if TEXTUAL_AVAILABLE:
         def write(self, renderable: Any, *, scroll_end: bool | None = None) -> None:
             text = self._as_text(renderable)
             self._lines.append(text)
+            self._sync_horizontal_extent()
             styled_line = self._style_line_for_selection(text, len(self._lines) - 1)
             try:
                 super().write(
@@ -2106,6 +2119,16 @@ if TEXTUAL_AVAILABLE:
             except Exception:
                 return None
 
+        def _selected_log_text(self) -> str:
+            try:
+                log_widget = self.query_one("#log-panel", ExecutionLogView)
+            except Exception:
+                return ""
+            try:
+                return str(log_widget.get_manual_selection_text() or "")
+            except Exception:
+                return ""
+
         def _copy_text_for_widget(self, widget: Any | None) -> str:
             if widget is None:
                 return ""
@@ -2233,6 +2256,13 @@ if TEXTUAL_AVAILABLE:
                 self.context_menu_target_widget_id = ""
 
         def action_copy_text(self) -> None:
+            selected_log_text = self._selected_log_text()
+            if selected_log_text:
+                if self._copy_to_system_clipboard(selected_log_text):
+                    self.update_status("Selected text copied to system clipboard.")
+                else:
+                    self.update_status("Unable to access the system clipboard from this terminal environment.")
+                return
             try:
                 get_selected_text = getattr(self.screen, "get_selected_text", None)
                 if callable(get_selected_text):
