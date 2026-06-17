@@ -1274,8 +1274,19 @@ def ui_runtime_is_frozen() -> bool:
     )
 
 
+def ui_runtime_launcher_executable() -> str:
+    argv0 = str(sys.argv[0] or "").strip()
+    if argv0:
+        candidate = Path(argv0).expanduser()
+        if not candidate.is_absolute():
+            candidate = (Path.cwd() / candidate).resolve(strict=False)
+        if candidate.exists():
+            return str(candidate)
+    return str(Path(sys.executable).resolve(strict=False))
+
+
 def build_full_command(cli_entrypoint: Path, schema: Dict[str, Any], tab: str, values: Dict[str, Any], selected_action_dest: str | None = None) -> List[str]:
-    prefix = [sys.executable] if ui_runtime_is_frozen() else [sys.executable, str(cli_entrypoint)]
+    prefix = [ui_runtime_launcher_executable()] if ui_runtime_is_frozen() else [sys.executable, str(cli_entrypoint)]
     return [*prefix, *build_cli_args(schema, tab, values, selected_action_dest)]
 
 

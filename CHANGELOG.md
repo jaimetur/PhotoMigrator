@@ -8,7 +8,8 @@
 ### Release Date: 2026-06-17
   
 #### 🚨 Breaking Changes:
-  
+  - Changed the compiled binary artifact naming on Unix-like platforms so macOS releases now use `.command` for better Finder integration while Linux and Synology SSH releases now use `.bin` instead of `.run`.
+
 #### 🌟 New Features:
   - Added a new native desktop GUI powered by `tkinter`, built on top of the same shared UI/model layer as the CLI TUI so it can expose the same module structure, dynamic forms, configuration editor, command preview, and in-app execution log through a graphical windowed interface. (Issue #1123)
   - Added a new interactive CLI TUI powered by `Textual`, designed to be much closer to the Web Interface layout. The new terminal UI includes the same top-level feature selector modules, `General Arguments`, `Features Config`, and `App Settings` views, dynamic module-specific forms, multi-account configuration selectors for cloud services, live command preview, and in-terminal execution logs. (Issue #1122).
@@ -50,11 +51,14 @@
   - Updated CLI TUI `Automatic Migration` Live Dashboard behavior so fullscreen Rich dashboard runs now require an explicit confirmation dialog explaining the temporary terminal handoff; rejecting that dialog runs the same migration without `Live Dashboard` for that execution only and returns to the normal embedded TUI log flow.
   - Updated desktop GUI `Automatic Migration` to mirror the TUI `Live Dashboard` flow: the GUI now warns before fullscreen dashboard runs, launches confirmed dashboard executions in an external terminal window, returns focus to the GUI, and aligns `source` / `target` endpoint labels with the TUI (`Folder Path` for local folders and left-aligned `Account` for cloud services).
   - Fixed local GUI/TUI execution from compiled binaries so child jobs and external-terminal dashboard runs now execute from the user's real launch working directory instead of the temporary extracted bundle folder, the command relaunch path now correctly targets the current frozen executable instead of trying to re-run `PhotoMigrator.py`, and the `Config.ini` editor now falls back to the active launch-folder config file when the packaged template is unavailable so `Save Config` no longer empties the file in binary builds.
+  - Updated the local interactive dependency baseline from legacy `textual~=0.72.0` to `textual>=8.2.7,<9` so compiled TUI builds use the same modern CSS-capable Textual generation already validated in the development environment
+  - Adjusted frozen-binary relaunch detection to prefer the original `sys.argv[0]` launcher path over the temporary bundle `python3` runtime on macOS onefile builds.
 
 #### 📚 Documentation:
   - Added desktop GUI documentation to the README and execution/help pages, including the explicit `--gui` launcher flag and the fact that the desktop GUI is now the default startup experience when PhotoMigrator is executed without arguments.
   - Added CLI TUI documentation to the main `Command Line Interface` help page, including the `--tui` launcher flag and the updated GUI → TUI → help fallback order.
   - Updated execution guides for source and binary usage to document how to launch the new interactive CLI TUI on Windows, macOS, Linux, and Synology SSH terminals.
+  - Updated the compiled-binary execution guide, README, argument references, and the main feature help pages to document the new macOS `PhotoMigrator.command` and Linux/Synology `PhotoMigrator.bin` binary names, and to explain the Gatekeeper first-launch unblock step using `xattr -dr com.apple.quarantine`.
   - Updated `Google Takeout` documentation and `README.md` so the default no-argument CLI behavior now references the new terminal UI instead of only the legacy prompt flow.
   - Refined the `README.md` GUI/TUI overview section to clarify the purpose of each interactive interface, the default launcher order, and the explicit `--gui` / `--tui` entrypoints.
   - Documented that GUI and TUI now accept `--configuration-file` during startup, and clarified across `README`, CLI help, argument descriptions, configuration-file help, and source/binary execution guides that the interactive UIs use `./Config.ini` from the execution folder by default.

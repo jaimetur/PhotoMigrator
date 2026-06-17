@@ -31,6 +31,7 @@ try:
         parse_template_to_form_schema,
         resolve_ui_config_path,
         save_config_editor_values,
+        ui_runtime_launcher_executable,
     )
     SHARED_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -152,12 +153,28 @@ class TestCliTuiShared(unittest.TestCase):
         schema = build_parser_schema()
         values = {"google-takeout": "/tmp/Takeout"}
 
-        with patch("UI.shared.ui_runtime_is_frozen", return_value=True):
+        with (
+            patch("UI.shared.ui_runtime_is_frozen", return_value=True),
+            patch("UI.shared.ui_runtime_launcher_executable", return_value="/Applications/PhotoMigrator"),
+        ):
             command = build_full_command(Path("/opt/PhotoMigrator/src/PhotoMigrator.py"), schema, "google_takeout", values)
 
-        self.assertEqual(command[0], sys.executable)
+        self.assertEqual(command[0], "/Applications/PhotoMigrator")
         self.assertNotIn("/opt/PhotoMigrator/src/PhotoMigrator.py", command)
         self.assertIn("--google-takeout", command)
+
+    def test_ui_runtime_launcher_executable_prefers_argv0_when_present(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            launcher = Path(temp_dir) / "PhotoMigrator"
+            launcher.write_text("", encoding="utf-8")
+
+            with (
+                patch("UI.shared.sys.argv", [str(launcher)]),
+                patch("UI.shared.sys.executable", "/var/tmp/PhotoMigrator/python3"),
+            ):
+                resolved = ui_runtime_launcher_executable()
+
+        self.assertEqual(resolved, str(launcher))
 
     def test_load_config_editor_model_falls_back_to_launch_config_when_project_template_is_missing(self):
         with tempfile.TemporaryDirectory() as temp_dir:
