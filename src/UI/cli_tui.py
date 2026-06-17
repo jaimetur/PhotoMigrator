@@ -428,6 +428,10 @@ if TEXTUAL_AVAILABLE:
         .field-row--config-account {
             margin-top: 2;
         }
+        .config-section-spacer {
+            height: 1;
+            min-height: 1;
+        }
         .form-columns {
             width: 1fr;
             height: auto;
@@ -1443,6 +1447,7 @@ if TEXTUAL_AVAILABLE:
             if selector.get("enabled"):
                 section_name = current_section["name"]
                 account_value = str(self.active_config_account.get(section_name) or selector.get("default_account") or "")
+                widgets.append(Static("", classes="config-section-spacer"))
                 widgets.append(
                     self.build_select_row(
                         "Configure Account",
