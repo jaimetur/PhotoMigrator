@@ -476,6 +476,23 @@ if TEXTUAL_AVAILABLE:
             background: transparent;
             color: #98a4b3;
             padding: 0;
+            text-style: none;
+            tint: transparent;
+        }
+        .bool-switch:hover {
+            border: none;
+            background: transparent;
+            tint: transparent;
+        }
+        .bool-switch:focus {
+            border: none;
+            background: transparent;
+            tint: transparent;
+        }
+        .bool-switch.-active {
+            border: none;
+            background: transparent;
+            tint: transparent;
         }
         .bool-switch.-on {
             border: none;
@@ -1960,7 +1977,7 @@ if TEXTUAL_AVAILABLE:
                 pass
 
         def _set_boolean_toggle_visual(self, button: Button, value: bool) -> None:
-            button.label = "(  ◉)" if value else "(◉  )"
+            button.label = "(──◉)" if value else "(◉──)"
             button.set_class(bool(value), "-on")
             button.set_class(not bool(value), "-off")
 
