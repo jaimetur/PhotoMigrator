@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
+import sys
 import threading
 from pathlib import Path
 from typing import Any, Dict, List
@@ -36,6 +38,7 @@ from UI.shared import (
     resolve_ui_config_path,
     to_list,
     ui_option_name,
+    validate_ui_config_file,
 )
 
 TEXTUAL_IMPORT_ERROR: Exception | None = None
@@ -85,7 +88,7 @@ if TEXTUAL_AVAILABLE:
     class PathPickerScreen(ModalScreen[Dict[str, str] | None]):
         BINDINGS = [("escape", "cancel", "Cancel"), ("enter", "confirm", "Select")]
 
-        def __init__(self, dest: str, title: str, start_path: str = "", home_path: Path | None = None):
+        def __init__(self, dest: str, title: str, start_path: str = "", home_path: Path | None = None, subtitle: str | None = None):
             super().__init__()
             self.home_path = (home_path or Path.cwd()).expanduser()
             if not self.home_path.exists():
@@ -100,12 +103,13 @@ if TEXTUAL_AVAILABLE:
                 self.initial_path = self.home_path
             self.dest = dest
             self.title = title
+            self.subtitle = subtitle or "Select a file or folder and press Enter."
 
         def compose(self) -> ComposeResult:
             root_value = str(self.initial_path.resolve())
             yield Vertical(
                 Static(self.title, classes="modal-title"),
-                Static("Select a file or folder and press Enter.", classes="modal-subtitle"),
+                Static(self.subtitle, classes="modal-subtitle"),
                 Input(value=root_value, id="picker-path-input"),
                 Horizontal(
                     Button("↑ Up", id="picker-up"),
@@ -186,16 +190,22 @@ if TEXTUAL_AVAILABLE:
                 self.action_go_home()
 
 
-    class ConfirmExitScreen(ModalScreen[bool]):
+    class ConfirmActionScreen(ModalScreen[bool]):
         BINDINGS = [("escape", "cancel", "Cancel"), ("enter", "confirm", "Confirm")]
+
+        def __init__(self, title: str, message: str, confirm_label: str = "Confirm"):
+            super().__init__()
+            self.title = title
+            self.message = message
+            self.confirm_label = confirm_label
 
         def compose(self) -> ComposeResult:
             yield Vertical(
-                Static("Exit PhotoMigrator", classes="modal-title"),
-                Static("Are you sure you want to close the tool?", classes="modal-subtitle"),
+                Static(self.title, classes="modal-title"),
+                Static(self.message, classes="modal-subtitle"),
                 Horizontal(
-                    Button("Cancel", id="exit-cancel"),
-                    Button("Exit", id="exit-confirm", variant="error"),
+                    Button("Cancel", id="confirm-cancel"),
+                    Button(self.confirm_label, id="confirm-accept", variant="primary"),
                     id="picker-actions",
                 ),
                 id="picker-dialog",
@@ -208,10 +218,38 @@ if TEXTUAL_AVAILABLE:
             self.dismiss(True)
 
         def on_button_pressed(self, event: Button.Pressed) -> None:
-            if event.button.id == "exit-cancel":
+            if event.button.id == "confirm-cancel":
                 self.dismiss(False)
-            elif event.button.id == "exit-confirm":
+            elif event.button.id == "confirm-accept":
                 self.dismiss(True)
+
+
+    class InfoMessageScreen(ModalScreen[None]):
+        BINDINGS = [("escape", "close", "Close"), ("enter", "close", "OK")]
+
+        def __init__(self, title: str, message: str, ok_label: str = "OK"):
+            super().__init__()
+            self.title = title
+            self.message = message
+            self.ok_label = ok_label
+
+        def compose(self) -> ComposeResult:
+            yield Vertical(
+                Static(self.title, classes="modal-title"),
+                Static(self.message, classes="modal-subtitle"),
+                Horizontal(
+                    Button(self.ok_label, id="info-ok", variant="primary"),
+                    id="picker-actions",
+                ),
+                id="picker-dialog",
+            )
+
+        def action_close(self) -> None:
+            self.dismiss(None)
+
+        def on_button_pressed(self, event: Button.Pressed) -> None:
+            if event.button.id == "info-ok":
+                self.dismiss(None)
 
 
     class PhotoMigratorTUI(App[None]):
@@ -305,12 +343,12 @@ if TEXTUAL_AVAILABLE:
             padding-left: 1;
         }
         #content-host {
-            height: 4fr;
-            min-height: 10;
+            height: 2fr;
+            min-height: 8;
         }
         #general-tabs {
             height: auto;
-            margin-bottom: 1;
+            margin-bottom: 0;
         }
         #general-tabs-left {
             width: 1fr;
@@ -338,6 +376,18 @@ if TEXTUAL_AVAILABLE:
             color: #6c2727;
             text-style: bold;
         }
+        .toolbar-btn-save {
+            border: round #6f95bf;
+            background: #cddff3;
+            color: #284866;
+            text-style: bold;
+        }
+        .toolbar-btn-load {
+            border: round #8a5b5b;
+            background: #efc8c8;
+            color: #6c2727;
+            text-style: bold;
+        }
         #content-panel {
             height: 1fr;
             min-height: 10;
@@ -357,11 +407,11 @@ if TEXTUAL_AVAILABLE:
         .section-title {
             color: #cfe0f5;
             text-style: bold;
-            margin: 0 0 1 0;
+            margin: 0;
         }
         .feature-section-title {
             color: #f0c88b;
-            margin: 1 0 0 0;
+            margin: 0;
         }
         .form-columns {
             width: 1fr;
@@ -390,12 +440,13 @@ if TEXTUAL_AVAILABLE:
         .field-row {
             height: auto;
             margin-bottom: 0;
+            align-vertical: middle;
         }
         .bool-toggle {
             width: auto;
             height: 1;
             min-height: 1;
-            margin-top: 1;
+            margin-top: 0;
         }
         .bool-toggle-btn {
             width: 3;
@@ -421,9 +472,9 @@ if TEXTUAL_AVAILABLE:
             color: #4cff7a;
         }
         .field-label {
-            width: 28;
-            min-width: 28;
-            padding-top: 1;
+            width: 25;
+            min-width: 25;
+            padding-top: 0;
             color: #d6dfeb;
         }
         .field-label--config-accent {
@@ -431,32 +482,35 @@ if TEXTUAL_AVAILABLE:
             text-style: bold;
         }
         .field-label--config {
-            width: 40;
-            min-width: 40;
+            width: 34;
+            min-width: 34;
         }
         .field-main {
             width: 1fr;
             min-width: 0;
-            height: 3;
-            min-height: 3;
+            height: 2;
+            min-height: 2;
+            content-align: center middle;
         }
         .field-path-control {
             width: 1fr;
             min-width: 0;
-            height: 3;
-            min-height: 3;
+            height: 2;
+            min-height: 2;
             layout: grid;
             grid-size: 2 1;
-            grid-columns: 1fr 5;
+            grid-columns: 1fr 4;
             grid-gutter: 1 0;
             padding-right: 1;
+            content-align: center middle;
         }
         .field-control {
             width: 1fr;
             min-width: 0;
-            height: 3;
-            min-height: 3;
+            height: 2;
+            min-height: 2;
             padding-right: 1;
+            content-align: center middle;
         }
         .field-main > Input, .field-main > Select,
         .field-path-control > Input,
@@ -464,23 +518,26 @@ if TEXTUAL_AVAILABLE:
         .field-control-widget {
             width: 1fr;
             min-width: 0;
+            height: 2;
+            min-height: 2;
         }
         .field-help {
             color: #7f93ab;
-            margin-left: 28;
-            margin-bottom: 1;
+            margin-left: 25;
+            margin-bottom: 0;
         }
         .path-button {
-            width: 5;
-            min-width: 5;
-            height: 3;
+            width: 4;
+            min-width: 4;
+            height: 2;
+            min-height: 2;
             margin-left: 0;
             content-align: center middle;
         }
         .card {
             border: round #2f3f54;
-            padding: 1 1;
-            margin-bottom: 1;
+            padding: 0 1;
+            margin-bottom: 0;
             background: #121d2b;
         }
         .flags-grid {
@@ -491,8 +548,56 @@ if TEXTUAL_AVAILABLE:
             width: 1fr;
             padding-right: 1;
         }
+        .panel-shell {
+            border: round #37547b;
+            background: #0d141e;
+            padding: 0 1;
+            margin-bottom: 0;
+        }
+        .panel-shell-log {
+            border: round #37547b;
+            background: #0b1119;
+            padding: 0 1;
+            margin-bottom: 0;
+        }
+        .panel-topbar {
+            height: auto;
+            margin-bottom: 0;
+            align-vertical: middle;
+        }
+        .panel-topbar-spacer {
+            width: 1fr;
+        }
+        .panel-toggle {
+            width: 3;
+            min-width: 3;
+            height: 1;
+            min-height: 1;
+            border: none;
+            background: transparent;
+            color: #dfeaf8;
+            text-style: bold;
+            padding: 0;
+        }
+        .context-menu-btn {
+            width: 1fr;
+            min-width: 10;
+            height: 3;
+            min-height: 3;
+            border: round #4f6b92;
+            background: #162234;
+            color: #f4f7fb;
+            text-style: bold;
+            padding: 0 1;
+            margin: 0;
+        }
+        .context-menu-btn:disabled {
+            background: #101824;
+            color: #7f93ab;
+            border: round #33465f;
+        }
         #bottom-panels {
-            height: 3fr;
+            height: 4fr;
             min-height: 0;
             margin-top: 0;
         }
@@ -504,41 +609,45 @@ if TEXTUAL_AVAILABLE:
             height: 3;
             min-height: 3;
         }
-        #status-line {
+        #status-panel {
+            height: auto;
+            min-height: 1;
+        }
+        #field-description-panel {
             height: auto;
             min-height: 2;
-            border: round #37547b;
-            padding: 0 1;
-            margin-bottom: 0;
-            background: #0d141e;
-            color: #dfeaf8;
         }
-        #field-description {
+        #command-preview-panel {
             height: auto;
-            min-height: 3;
-            border: round #37547b;
-            padding: 0 1;
-            margin-bottom: 0;
-            background: #0d141e;
-            color: #dfeaf8;
+            min-height: 2;
         }
-        #command-preview {
+        #log-panel-container {
+            height: 1fr;
+            min-height: 4;
+        }
+        #field-description,
+        #command-preview,
+        #status-line {
             height: auto;
-            min-height: 3;
-            border: round #37547b;
-            padding: 0 1;
+            min-height: 1;
+            background: transparent;
+            color: #dfeaf8;
+            padding: 0;
             margin-bottom: 0;
-            background: #0d141e;
         }
         #log-panel {
             height: 1fr;
-            min-height: 12;
-            border: round #37547b;
-            background: #0b1119;
+            min-height: 10;
+            background: transparent;
+            border: none;
         }
         #job-input-row {
             height: auto;
             margin-top: 0;
+        }
+        #job-input-panel {
+            height: auto;
+            min-height: 3;
         }
         #job-input {
             width: 1fr;
@@ -550,6 +659,34 @@ if TEXTUAL_AVAILABLE:
             padding: 1 1;
             background: #0f1722;
             align: center middle;
+        }
+        #context-dialog {
+            width: 26;
+            height: auto;
+            border: round #4f6b92;
+            padding: 1 1;
+            background: #0f1722;
+            align: center middle;
+        }
+        #context-actions {
+            height: auto;
+            margin-top: 0;
+            align-horizontal: center;
+        }
+        #context-popup {
+            layer: overlay;
+            position: absolute;
+            width: 16;
+            height: 8;
+            border: round #4f6b92;
+            padding: 0 1;
+            background: #0f1722;
+            display: none;
+            offset: 0 0;
+        }
+        #context-popup-actions {
+            height: auto;
+            layout: vertical;
         }
         .modal-title { text-style: bold; color: #ffffff; margin-bottom: 1; }
         .modal-subtitle { color: #92a8c3; margin-bottom: 1; }
@@ -564,9 +701,10 @@ if TEXTUAL_AVAILABLE:
         }
         .theme-ocean #sidebar { background: #131c28; border: round #31465f; }
         .theme-ocean #content-panel { background: #0d141e; border: round #3b78b7; color: #dfeaf8; }
-        .theme-ocean #field-description, .theme-ocean #status-line { background: #0d141e; border: round #3b78b7; color: #dfeaf8; }
-        .theme-ocean #command-preview { background: #0d141e; border: round #3b78b7; color: #dfeaf8; }
-        .theme-ocean #log-panel { background: #0b1119; border: round #3b78b7; color: #d9e8f8; }
+        .theme-ocean .panel-shell { background: #0d141e; border: round #3b78b7; }
+        .theme-ocean .panel-shell-log { background: #0b1119; border: round #3b78b7; }
+        .theme-ocean #field-description, .theme-ocean #status-line, .theme-ocean #command-preview { color: #dfeaf8; }
+        .theme-ocean #log-panel, .theme-ocean .panel-toggle { color: #d9e8f8; }
         .theme-ocean .general-tab { background: #152131; color: #d6dfeb; border: round #43566d; }
         .theme-ocean .general-tab.is-active { background: #2e4f78; color: #ffffff; }
         .theme-ocean .field-label, .theme-ocean .section-title, .theme-ocean .panel-title { color: #d6dfeb; }
@@ -581,9 +719,9 @@ if TEXTUAL_AVAILABLE:
         }
         .theme-emerald #sidebar { background: #13201b; border: round #3f6f5a; }
         .theme-emerald #content-panel { background: #0d1713; border: round #3f8f72; color: #def4e7; }
-        .theme-emerald #field-description, .theme-emerald #status-line { background: #0d1713; border: round #3f8f72; color: #def4e7; }
-        .theme-emerald #command-preview { background: #0d1713; border: round #3f8f72; color: #def4e7; }
-        .theme-emerald #log-panel { background: #0b1411; border: round #3f8f72; color: #def4e7; }
+        .theme-emerald .panel-shell { background: #0d1713; border: round #3f8f72; }
+        .theme-emerald .panel-shell-log { background: #0b1411; border: round #3f8f72; }
+        .theme-emerald #field-description, .theme-emerald #status-line, .theme-emerald #command-preview, .theme-emerald #log-panel, .theme-emerald .panel-toggle { color: #def4e7; }
         .theme-emerald .general-tab { background: #173127; color: #d6ebe0; border: round #406a58; }
         .theme-emerald .general-tab.is-active { background: #2d6b55; color: #ffffff; }
         .theme-emerald .field-label, .theme-emerald .section-title, .theme-emerald .panel-title { color: #daf0e4; }
@@ -591,7 +729,8 @@ if TEXTUAL_AVAILABLE:
         .theme-emerald .general-group-title { color: #7dffbf; }
         .theme-emerald .feature-section-title { color: #7dffbf; }
         .theme-emerald .field-help, .theme-emerald .panel-description { color: #9dc3b0; }
-        .theme-emerald .toolbar-btn { background: #e8c5c5; color: #703131; border: round #875858; }
+        .theme-emerald .toolbar-btn-save { background: #cce4f3; color: #244862; border: round #6f92b0; }
+        .theme-emerald .toolbar-btn-load { background: #e8c5c5; color: #703131; border: round #875858; }
 
         .theme-sunset {
             background: #1a1410;
@@ -599,9 +738,9 @@ if TEXTUAL_AVAILABLE:
         }
         .theme-sunset #sidebar { background: #231913; border: round #7d5a42; }
         .theme-sunset #content-panel { background: #18110d; border: round #b26a3a; color: #f7e6d7; }
-        .theme-sunset #field-description, .theme-sunset #status-line { background: #18110d; border: round #b26a3a; color: #f7e6d7; }
-        .theme-sunset #command-preview { background: #18110d; border: round #b26a3a; color: #f7e6d7; }
-        .theme-sunset #log-panel { background: #140f0b; border: round #b26a3a; color: #f7e6d7; }
+        .theme-sunset .panel-shell { background: #18110d; border: round #b26a3a; }
+        .theme-sunset .panel-shell-log { background: #140f0b; border: round #b26a3a; }
+        .theme-sunset #field-description, .theme-sunset #status-line, .theme-sunset #command-preview, .theme-sunset #log-panel, .theme-sunset .panel-toggle { color: #f7e6d7; }
         .theme-sunset .general-tab { background: #35231a; color: #f0dfd1; border: round #7f5d47; }
         .theme-sunset .general-tab.is-active { background: #8d5630; color: #fff7f1; }
         .theme-sunset .field-label, .theme-sunset .section-title, .theme-sunset .panel-title { color: #f2e1d3; }
@@ -609,7 +748,8 @@ if TEXTUAL_AVAILABLE:
         .theme-sunset .general-group-title { color: #ffd29a; }
         .theme-sunset .feature-section-title { color: #ffd29a; }
         .theme-sunset .field-help, .theme-sunset .panel-description { color: #cfb39f; }
-        .theme-sunset .toolbar-btn { background: #efc8c8; color: #7a2c2c; border: round #9a6161; }
+        .theme-sunset .toolbar-btn-save { background: #d8e8f6; color: #294b6d; border: round #6f8fac; }
+        .theme-sunset .toolbar-btn-load { background: #efc8c8; color: #7a2c2c; border: round #9a6161; }
 
         .theme-dark {
             background: #0c0f14;
@@ -617,9 +757,9 @@ if TEXTUAL_AVAILABLE:
         }
         .theme-dark #sidebar { background: #11161d; border: round #4c5867; }
         .theme-dark #content-panel { background: #0b1016; border: round #6d7a8d; color: #d8e0ea; }
-        .theme-dark #field-description, .theme-dark #status-line { background: #0b1016; border: round #6d7a8d; color: #d8e0ea; }
-        .theme-dark #command-preview { background: #0b1016; border: round #6d7a8d; color: #d8e0ea; }
-        .theme-dark #log-panel { background: #090d12; border: round #6d7a8d; color: #d8e0ea; }
+        .theme-dark .panel-shell { background: #0b1016; border: round #6d7a8d; }
+        .theme-dark .panel-shell-log { background: #090d12; border: round #6d7a8d; }
+        .theme-dark #field-description, .theme-dark #status-line, .theme-dark #command-preview, .theme-dark #log-panel, .theme-dark .panel-toggle { color: #d8e0ea; }
         .theme-dark .general-tab { background: #1a212b; color: #d0d9e4; border: round #526072; }
         .theme-dark .general-tab.is-active { background: #39485c; color: #ffffff; }
         .theme-dark .field-label, .theme-dark .section-title, .theme-dark .panel-title { color: #dbe3ee; }
@@ -627,13 +767,16 @@ if TEXTUAL_AVAILABLE:
         .theme-dark .general-group-title { color: #b8c7ff; }
         .theme-dark .feature-section-title { color: #b8c7ff; }
         .theme-dark .field-help, .theme-dark .panel-description { color: #9aa7b7; }
-        .theme-dark .toolbar-btn { background: #dcb8b8; color: #5e2323; border: round #7d5252; }
+        .theme-dark .toolbar-btn-save { background: #bed2ea; color: #203c5a; border: round #6784a2; }
+        .theme-dark .toolbar-btn-load { background: #dcb8b8; color: #5e2323; border: round #7d5252; }
         """
 
         BINDINGS = [
             ("ctrl+r", "run_job", "Run"),
             ("ctrl+s", "save_config", "Save Config"),
-            ("ctrl+l", "reload_config", "Reload Config"),
+            ("ctrl+l", "load_config", "Load Config"),
+            ("ctrl+c", "copy_text", "Copy"),
+            ("ctrl+v", "paste_text", "Paste"),
             ("ctrl+q", "quit", "Quit"),
         ]
 
@@ -659,11 +802,24 @@ if TEXTUAL_AVAILABLE:
             self.field_help_map: Dict[str, str] = {}
             self.last_focused_widget_id = ""
             self.last_hovered_widget_id = ""
+            self.last_context_widget_id = ""
+            self.context_menu_visible = False
+            self.panel_collapsed = {
+                "content": False,
+                "description": False,
+                "preview": False,
+                "log": False,
+                "status": False,
+            }
             self.selected_theme = str(self.ui_state.get("theme") or "ocean")
             self.remember_state = bool(self.ui_state.get("remember_state", True))
             self.launch_cwd = Path.cwd().resolve()
             self.running_process: subprocess.Popen[str] | None = None
             self.running_command: List[str] = []
+            self.log_history: List[str] = []
+            self.current_status_text = "Ready."
+            self.current_command_preview_text = ""
+            self.current_field_description_text = "Move focus to a field to see its description here."
             if self.active_module not in INTERACTIVE_MODULE_TAB_NAMES:
                 self.active_module = "automatic_migration"
             self.reload_config_model()
@@ -725,18 +881,40 @@ if TEXTUAL_AVAILABLE:
                             for key, label in GENERAL_TAB_NAMES.items():
                                 yield Button(label, id=f"general-tab-{key}", classes="general-tab")
                         with Horizontal(id="general-tabs-right"):
-                            yield Button("Save Config", id="save-config-btn", classes="toolbar-btn")
-                            yield Button("Reload Config", id="reload-config-btn", classes="toolbar-btn")
-                            yield Button("Save UI State", id="save-ui-state-btn", classes="toolbar-btn")
+                            yield Button("Save Config", id="save-config-btn", classes="toolbar-btn toolbar-btn-save")
+                            yield Button("Save UI State", id="save-ui-state-btn", classes="toolbar-btn toolbar-btn-save")
+                            yield Button("Load Config", id="load-config-btn", classes="toolbar-btn toolbar-btn-load")
                     yield Vertical(id="content-host")
                     with Vertical(id="bottom-panels"):
-                        yield Static("Move focus to a field to see its description here.", id="field-description")
-                        yield Static("", id="command-preview")
-                        yield RichLog(id="log-panel", wrap=True, markup=False, highlight=False)
-                        yield Static("Ready.", id="status-line")
-                        with Horizontal(id="job-input-row"):
-                            yield Input(placeholder="Send input to running job if it requests confirmation", id="job-input")
-                            yield Button("Send", id="send-input-btn")
+                        with Vertical(id="field-description-panel", classes="panel-shell"):
+                            with Horizontal(classes="panel-topbar"):
+                                yield Static("", classes="panel-topbar-spacer")
+                                yield Button("−", id="toggle-description-panel", classes="panel-toggle")
+                            yield Static("Move focus to a field to see its description here.", id="field-description")
+                        with Vertical(id="command-preview-panel", classes="panel-shell"):
+                            with Horizontal(classes="panel-topbar"):
+                                yield Static("", classes="panel-topbar-spacer")
+                                yield Button("−", id="toggle-preview-panel", classes="panel-toggle")
+                            yield Static("", id="command-preview")
+                        with Vertical(id="log-panel-container", classes="panel-shell-log"):
+                            with Horizontal(classes="panel-topbar"):
+                                yield Static("", classes="panel-topbar-spacer")
+                                yield Button("−", id="toggle-log-panel", classes="panel-toggle")
+                            yield RichLog(id="log-panel", wrap=True, markup=False, highlight=False)
+                        with Vertical(id="status-panel", classes="panel-shell"):
+                            with Horizontal(classes="panel-topbar"):
+                                yield Static("", classes="panel-topbar-spacer")
+                                yield Button("−", id="toggle-status-panel", classes="panel-toggle")
+                            yield Static("Ready.", id="status-line")
+                        with Vertical(id="job-input-panel", classes="panel-shell"):
+                            yield Static("", classes="panel-topbar-spacer")
+                            with Horizontal(id="job-input-row"):
+                                yield Input(placeholder="Send input to running job if it requests confirmation", id="job-input")
+                                yield Button("Send", id="send-input-btn", classes="sidebar-action sidebar-action--run")
+                with Vertical(id="context-popup"):
+                    with Vertical(id="context-popup-actions"):
+                        yield Button("Copy", id="context-copy", classes="context-menu-btn")
+                        yield Button("Paste", id="context-paste", classes="context-menu-btn")
             yield Footer()
 
         async def on_mount(self) -> None:
@@ -745,6 +923,8 @@ if TEXTUAL_AVAILABLE:
             await self.rebuild_content()
             self.update_command_preview()
             self.refresh_action_buttons()
+            self.apply_panel_states()
+            self.refresh_runtime_layout()
             self.set_interval(0.15, self.sync_field_description_from_focus)
 
         async def rebuild_content(self) -> None:
@@ -755,16 +935,23 @@ if TEXTUAL_AVAILABLE:
             self.last_hovered_widget_id = ""
             widgets: List[Any] = []
             widgets.extend(self.build_content_widgets())
-            content_panel: Any
-            if self.active_general_tab == "feature":
-                content_panel = Vertical(id="content-panel")
-            else:
-                content_panel = VerticalScroll(id="content-panel")
+            content_panel = Vertical(id="content-panel", classes="panel-shell")
+            header_row = Horizontal(
+                Static("", classes="panel-topbar-spacer"),
+                Button("−", id="toggle-content-panel", classes="panel-toggle"),
+                classes="panel-topbar",
+            )
+            content_body: Any = Vertical(id="content-body")
+            if self.active_general_tab != "feature":
+                content_body = VerticalScroll(id="content-body")
             await host.mount(content_panel)
+            await content_panel.mount(header_row, content_body)
             if widgets:
-                await content_panel.mount(*widgets)
+                await content_body.mount(*widgets)
             self.refresh_panel_titles()
             self.update_field_description("Move focus to a field to see its description here.")
+            self.apply_panel_states()
+            self.refresh_runtime_layout()
             self.call_after_refresh(self.refresh_panel_titles)
             self.call_after_refresh(self.refresh_content_scrollbar)
             self.set_timer(0.05, self.refresh_panel_titles)
@@ -784,6 +971,86 @@ if TEXTUAL_AVAILABLE:
                 return "Edit the Config.ini used by CLI executions."
             return "Terminal UI preferences and local state persistence."
 
+        def _toggle_label(self, panel_key: str) -> str:
+            return "▸" if self.panel_collapsed.get(panel_key, False) else "▾"
+
+        def refresh_toggle_buttons(self) -> None:
+            button_map = {
+                "content": "toggle-content-panel",
+                "description": "toggle-description-panel",
+                "preview": "toggle-preview-panel",
+                "log": "toggle-log-panel",
+                "status": "toggle-status-panel",
+            }
+            for panel_key, widget_id in button_map.items():
+                try:
+                    self.query_one(f"#{widget_id}", Button).label = self._toggle_label(panel_key)
+                except Exception:
+                    pass
+
+        def apply_panel_states(self) -> None:
+            body_map = {
+                "content": "content-body",
+                "description": "field-description",
+                "preview": "command-preview",
+                "log": "log-panel",
+                "status": "status-line",
+            }
+            shell_map = {
+                "content": "content-panel",
+                "description": "field-description-panel",
+                "preview": "command-preview-panel",
+                "log": "log-panel-container",
+                "status": "status-panel",
+            }
+            for panel_key, widget_id in body_map.items():
+                try:
+                    widget = self.query_one(f"#{widget_id}")
+                    widget.styles.display = "none" if self.panel_collapsed.get(panel_key, False) else "block"
+                except Exception:
+                    pass
+            for panel_key, shell_id in shell_map.items():
+                try:
+                    shell = self.query_one(f"#{shell_id}")
+                    if self.panel_collapsed.get(panel_key, False):
+                        shell.styles.height = 4
+                        shell.styles.min_height = 4
+                    else:
+                        shell.styles.height = "auto" if panel_key != "content" else "1fr"
+                        shell.styles.min_height = 10 if panel_key == "content" else (12 if panel_key == "log" else 2)
+                except Exception:
+                    pass
+            self.refresh_toggle_buttons()
+
+        def toggle_panel(self, panel_key: str) -> None:
+            self.panel_collapsed[panel_key] = not self.panel_collapsed.get(panel_key, False)
+            self.apply_panel_states()
+            self.refresh_runtime_layout()
+            self.call_after_refresh(self.refresh_content_scrollbar)
+
+        def refresh_runtime_layout(self) -> None:
+            running = self.can_stop_job()
+            try:
+                content_host = self.query_one("#content-host", Vertical)
+                if self.panel_collapsed.get("content", False):
+                    content_host.styles.height = "auto"
+                    content_host.styles.min_height = 4
+                else:
+                    content_host.styles.height = "2fr" if running else "3fr"
+                    content_host.styles.min_height = 8
+            except Exception:
+                pass
+            try:
+                bottom_panels = self.query_one("#bottom-panels", Vertical)
+                bottom_panels.styles.height = "5fr" if running else "4fr"
+            except Exception:
+                pass
+            try:
+                log_container = self.query_one("#log-panel-container", Vertical)
+                log_container.styles.min_height = 7 if running else 6
+            except Exception:
+                pass
+
         def refresh_panel_titles(self) -> None:
             try:
                 self.query_one("#sidebar", Vertical).border_title = "Feature Selector"
@@ -796,21 +1063,26 @@ if TEXTUAL_AVAILABLE:
             except Exception:
                 pass
             try:
-                self.query_one("#field-description", Static).border_title = "Argument Description"
+                self.query_one("#field-description-panel", Vertical).border_title = "Argument Description"
             except Exception:
                 pass
             try:
-                self.query_one("#status-line", Static).border_title = "Status"
+                self.query_one("#status-panel", Vertical).border_title = "Status"
             except Exception:
                 pass
             try:
-                self.query_one("#command-preview", Static).border_title = "Command Preview"
+                self.query_one("#command-preview-panel", Vertical).border_title = "Command Preview"
             except Exception:
                 pass
             try:
-                self.query_one("#log-panel", RichLog).border_title = "Execution Log"
+                self.query_one("#log-panel-container", Vertical).border_title = "Execution Log"
             except Exception:
                 pass
+            try:
+                self.query_one("#job-input-panel", Vertical).border_title = "Process Input"
+            except Exception:
+                pass
+            self.refresh_toggle_buttons()
 
         def build_content_widgets(self) -> List[Any]:
             if self.active_general_tab == "feature":
@@ -1096,7 +1368,7 @@ if TEXTUAL_AVAILABLE:
                 self.build_boolean_toggle_row("Remember UI state", "remember-state", self.remember_state, help_text="Persist the current terminal UI state, selected tabs, and entered values between sessions."),
                 Static(f"State file: {TUI_STATE_PATH}", classes="field-help"),
                 Static(f"Config file in use: {self.current_config_path()}", classes="field-help"),
-                Static("Use Ctrl+S to save Config.ini and Ctrl+R to run the current module.", classes="field-help"),
+                Static("Use Ctrl+S to save Config.ini, Ctrl+L to load a Config.ini file, and Ctrl+R to run the current module.", classes="field-help"),
             ]
             return widgets
 
@@ -1106,7 +1378,8 @@ if TEXTUAL_AVAILABLE:
                 self.field_help_map[widget_id] = text
 
         def update_field_description(self, text: str) -> None:
-            self.query_one("#field-description", Static).update(str(text or "").strip() or "Move focus to a field to see its description here.")
+            self.current_field_description_text = str(text or "").strip() or "Move focus to a field to see its description here."
+            self.query_one("#field-description", Static).update(self.current_field_description_text)
 
         def _resolve_help_for_widget_id(self, widget_id: str) -> str:
             return str(self.field_help_map.get(str(widget_id or ""), "") or "").strip()
@@ -1153,10 +1426,205 @@ if TEXTUAL_AVAILABLE:
                 return
 
             self.last_hovered_widget_id = widget_id
+            if widget_id:
+                self.last_context_widget_id = widget_id
             if help_text:
                 self.update_field_description(help_text)
                 return
             self.sync_field_description_from_focus()
+
+        def _resolve_widget_by_id(self, widget_id: str) -> Any | None:
+            if not widget_id:
+                return None
+            try:
+                return self.query_one(f"#{widget_id}")
+            except Exception:
+                return None
+
+        def _context_widget(self) -> Any | None:
+            for widget_id in [self.last_context_widget_id, self.last_hovered_widget_id, self.last_focused_widget_id]:
+                widget = self._resolve_widget_by_id(widget_id)
+                if widget is not None:
+                    return widget
+            try:
+                return getattr(self.screen, "focused", None)
+            except Exception:
+                return None
+
+        def _copy_text_for_widget(self, widget: Any | None) -> str:
+            if widget is None:
+                return ""
+            if isinstance(widget, Input):
+                selected_text = ""
+                candidate = getattr(widget, "selected_text", "")
+                if callable(candidate):
+                    try:
+                        candidate = candidate()
+                    except Exception:
+                        candidate = ""
+                if isinstance(candidate, str):
+                    selected_text = candidate
+                return selected_text or str(getattr(widget, "value", "") or "")
+            widget_id = str(getattr(widget, "id", "") or "")
+            if widget_id == "command-preview":
+                return self.current_command_preview_text
+            if widget_id == "field-description":
+                return self.current_field_description_text
+            if widget_id == "status-line":
+                return self.current_status_text
+            if widget_id == "log-panel":
+                return "\n".join(self.log_history)
+            for attr in ("renderable", "content", "value"):
+                candidate = getattr(widget, attr, None)
+                if candidate:
+                    return str(candidate)
+            return str(widget or "")
+
+        def _widget_accepts_paste(self, widget: Any | None) -> bool:
+            return isinstance(widget, Input)
+
+        def _copy_to_system_clipboard(self, text: str) -> bool:
+            if not text:
+                return False
+            try:
+                if sys.platform == "darwin" and shutil.which("pbcopy"):
+                    subprocess.run(["pbcopy"], input=text, text=True, check=True)
+                    return True
+                if sys.platform.startswith("win") and shutil.which("clip"):
+                    subprocess.run(["clip"], input=text, text=True, check=True, shell=False)
+                    return True
+                if shutil.which("wl-copy"):
+                    subprocess.run(["wl-copy"], input=text, text=True, check=True)
+                    return True
+                if shutil.which("xclip"):
+                    subprocess.run(["xclip", "-selection", "clipboard"], input=text, text=True, check=True)
+                    return True
+                if shutil.which("xsel"):
+                    subprocess.run(["xsel", "--clipboard", "--input"], input=text, text=True, check=True)
+                    return True
+            except Exception:
+                return False
+            return False
+
+        def _read_from_system_clipboard(self) -> str:
+            commands: List[List[str]] = []
+            if sys.platform == "darwin" and shutil.which("pbpaste"):
+                commands.append(["pbpaste"])
+            elif sys.platform.startswith("win"):
+                if shutil.which("powershell"):
+                    commands.append(["powershell", "-NoProfile", "-Command", "Get-Clipboard"])
+                if shutil.which("pwsh"):
+                    commands.append(["pwsh", "-NoProfile", "-Command", "Get-Clipboard"])
+            else:
+                if shutil.which("wl-paste"):
+                    commands.append(["wl-paste", "-n"])
+                if shutil.which("xclip"):
+                    commands.append(["xclip", "-selection", "clipboard", "-o"])
+                if shutil.which("xsel"):
+                    commands.append(["xsel", "--clipboard", "--output"])
+            for command in commands:
+                try:
+                    result = subprocess.run(command, capture_output=True, text=True, check=True)
+                    text = str(result.stdout or "")
+                    if text:
+                        return text
+                except Exception:
+                    continue
+            return ""
+
+        def _paste_text_into_widget(self, widget: Any | None, text: str) -> bool:
+            if not isinstance(widget, Input) or not text:
+                return False
+            try:
+                if hasattr(widget, "insert_text_at_cursor"):
+                    widget.insert_text_at_cursor(text)
+                else:
+                    widget.value = f"{widget.value}{text}"
+                return True
+            except Exception:
+                try:
+                    widget.value = f"{widget.value}{text}"
+                    return True
+                except Exception:
+                    return False
+
+        def hide_context_popup(self) -> None:
+            try:
+                popup = self.query_one("#context-popup", Vertical)
+                popup.styles.display = "none"
+            except Exception:
+                pass
+            self.context_menu_visible = False
+
+        def show_context_popup(self, screen_x: int, screen_y: int, *, can_copy: bool, can_paste: bool) -> None:
+            try:
+                popup = self.query_one("#context-popup", Vertical)
+                copy_button = self.query_one("#context-copy", Button)
+                paste_button = self.query_one("#context-paste", Button)
+                copy_button.disabled = not can_copy
+                paste_button.disabled = not can_paste
+                popup.styles.offset = (max(0, int(screen_x) - 1), max(0, int(screen_y) - 1))
+                popup.styles.display = "block"
+                self.context_menu_visible = True
+            except Exception:
+                self.context_menu_visible = False
+
+        def action_copy_text(self) -> None:
+            widget = self._context_widget()
+            text = self._copy_text_for_widget(widget)
+            if not text:
+                self.update_status("No text available to copy from the current context.")
+                return
+            if self._copy_to_system_clipboard(text):
+                self.update_status("Text copied to system clipboard.")
+            else:
+                self.update_status("Unable to access the system clipboard from this terminal environment.")
+
+        def action_paste_text(self) -> None:
+            widget = self._context_widget()
+            if not self._widget_accepts_paste(widget):
+                self.update_status("Paste is only available on editable fields.")
+                return
+            text = self._read_from_system_clipboard()
+            if not text:
+                self.update_status("System clipboard is empty or not accessible.")
+                return
+            if self._paste_text_into_widget(widget, text):
+                self.update_status("Clipboard pasted into the current field.")
+                if isinstance(widget, Input):
+                    self.last_context_widget_id = str(getattr(widget, "id", "") or "")
+            else:
+                self.update_status("Unable to paste clipboard text into the current field.")
+
+        def on_mouse_down(self, event: events.MouseDown) -> None:
+            if int(getattr(event, "button", 0) or 0) != 3 and self.context_menu_visible:
+                self.hide_context_popup()
+            if int(getattr(event, "button", 0) or 0) != 3:
+                return
+            widget = self._widget_under_pointer(event.screen_x, event.screen_y)
+            current = widget
+            target = None
+            while current is not None:
+                current_id = str(getattr(current, "id", "") or "")
+                if isinstance(current, (Input, Static, RichLog)) and current_id:
+                    target = current
+                    break
+                current = getattr(current, "parent", None)
+            if target is None:
+                return
+            self.last_context_widget_id = str(getattr(target, "id", "") or "")
+            clipboard_text = self._read_from_system_clipboard() if self._widget_accepts_paste(target) else ""
+            self.show_context_popup(
+                event.screen_x,
+                event.screen_y,
+                can_copy=bool(self._copy_text_for_widget(target)),
+                can_paste=self._widget_accepts_paste(target) and bool(str(clipboard_text or "")),
+            )
+            event.stop()
+            try:
+                event.prevent_default()
+            except Exception:
+                pass
 
         def _widget_under_pointer(self, screen_x: int, screen_y: int) -> Any | None:
             try:
@@ -1175,7 +1643,7 @@ if TEXTUAL_AVAILABLE:
 
         def _content_panel_overflows(self) -> bool:
             try:
-                container = self.query_one("#content-panel")
+                container = self.query_one("#content-body")
                 if not isinstance(container, VerticalScroll):
                     return False
                 return int(getattr(container, "max_scroll_y", 0) or 0) > 1
@@ -1184,7 +1652,7 @@ if TEXTUAL_AVAILABLE:
 
         def refresh_content_scrollbar(self) -> None:
             try:
-                container = self.query_one("#content-panel")
+                container = self.query_one("#content-body")
                 if isinstance(container, VerticalScroll):
                     container.styles.scrollbar_visibility = "visible" if self._content_panel_overflows() else "hidden"
             except Exception:
@@ -1195,7 +1663,7 @@ if TEXTUAL_AVAILABLE:
 
         def on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
             hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
-            if self._widget_is_within(hovered_widget, "content-panel") and not self._content_panel_overflows():
+            if self._widget_is_within(hovered_widget, "content-body") and not self._content_panel_overflows():
                 event.stop()
                 try:
                     event.prevent_default()
@@ -1204,7 +1672,7 @@ if TEXTUAL_AVAILABLE:
 
         def on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
             hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
-            if self._widget_is_within(hovered_widget, "content-panel") and not self._content_panel_overflows():
+            if self._widget_is_within(hovered_widget, "content-body") and not self._content_panel_overflows():
                 event.stop()
                 try:
                     event.prevent_default()
@@ -1364,6 +1832,15 @@ if TEXTUAL_AVAILABLE:
                 exit_button.set_class(not can_exit, "is-disabled")
             except Exception:
                 pass
+            try:
+                send_button = self.query_one("#send-input-btn", Button)
+                can_send = bool(str(self.query_one("#job-input", Input).value or "").strip())
+                send_button.disabled = not can_send
+                send_button.set_class(can_send, "is-enabled")
+                send_button.set_class(not can_send, "is-disabled")
+            except Exception:
+                pass
+            self.refresh_runtime_layout()
 
         def refresh_boolean_toggle(self, dest: str, value: bool) -> None:
             try:
@@ -1383,11 +1860,13 @@ if TEXTUAL_AVAILABLE:
             self.set_class(True, f"theme-{self.selected_theme}")
 
         def update_status(self, text: str) -> None:
-            self.query_one("#status-line", Static).update(text)
+            self.current_status_text = str(text or "")
+            self.query_one("#status-line", Static).update(self.current_status_text)
 
         def update_command_preview(self) -> None:
             if self.active_module == "upload_folder":
-                self.query_one("#command-preview", Static).update("Upload to Server is only available in the Web Interface.")
+                self.current_command_preview_text = "Upload to Server is only available in the Web Interface."
+                self.query_one("#command-preview", Static).update(self.current_command_preview_text)
                 self.refresh_action_buttons()
                 return
             selected_action = None
@@ -1396,12 +1875,13 @@ if TEXTUAL_AVAILABLE:
             elif self.active_module == "standalone_features":
                 selected_action = self.standalone_action_dest
             command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
-            self.query_one("#command-preview", Static).update(command_preview_string(command))
+            self.current_command_preview_text = command_preview_string(command)
+            self.query_one("#command-preview", Static).update(self.current_command_preview_text)
             self.running_command = command
             self.refresh_action_buttons()
 
-        def persist_ui_state(self) -> None:
-            if not self.remember_state:
+        def persist_ui_state(self, force: bool = False) -> None:
+            if not self.remember_state and not force:
                 return
             payload = {
                 "values": self.state_values,
@@ -1486,17 +1966,37 @@ if TEXTUAL_AVAILABLE:
             if button_id == "exit-btn":
                 self.request_exit()
                 return
+            if button_id == "context-copy":
+                self.action_copy_text()
+                self.hide_context_popup()
+                return
+            if button_id == "context-paste":
+                self.action_paste_text()
+                self.hide_context_popup()
+                return
+            if button_id == "toggle-content-panel":
+                self.toggle_panel("content")
+                return
+            if button_id == "toggle-description-panel":
+                self.toggle_panel("description")
+                return
+            if button_id == "toggle-preview-panel":
+                self.toggle_panel("preview")
+                return
+            if button_id == "toggle-log-panel":
+                self.toggle_panel("log")
+                return
+            if button_id == "toggle-status-panel":
+                self.toggle_panel("status")
+                return
             if button_id == "save-config-btn":
                 self.action_save_config()
                 return
-            if button_id == "reload-config-btn":
-                self.action_reload_config()
-                if self.active_general_tab == "features_config":
-                    await self.rebuild_content()
+            if button_id == "load-config-btn":
+                self.action_load_config()
                 return
             if button_id == "save-ui-state-btn":
-                self.persist_ui_state()
-                self.update_status(f"UI state saved to {TUI_STATE_PATH}")
+                self.action_save_ui_state()
                 return
             if button_id == "send-input-btn":
                 self.action_send_job_input()
@@ -1523,6 +2023,7 @@ if TEXTUAL_AVAILABLE:
         async def on_input_changed(self, event: Input.Changed) -> None:
             widget_id = event.input.id or ""
             if widget_id == "job-input":
+                self.refresh_action_buttons()
                 return
             if widget_id.startswith("field-"):
                 dest = widget_id.replace("field-", "", 1)
@@ -1635,6 +2136,7 @@ if TEXTUAL_AVAILABLE:
                     self.config_values.setdefault(section_name, {})[key] = value
 
         def append_log(self, line: str) -> None:
+            self.log_history.append(str(line))
             self.query_one("#log-panel", RichLog).write(line)
 
         def on_job_finished(self, return_code: int) -> None:
@@ -1707,7 +2209,10 @@ if TEXTUAL_AVAILABLE:
                 self.update_status("Stop the running job before exiting.")
                 self.refresh_action_buttons()
                 return
-            self.push_screen(ConfirmExitScreen(), callback=self.handle_exit_confirmation)
+            self.push_screen(
+                ConfirmActionScreen("Exit PhotoMigrator", "Are you sure you want to close the tool?", "Exit"),
+                callback=self.handle_exit_confirmation,
+            )
 
         def handle_exit_confirmation(self, confirmed: bool) -> None:
             if not confirmed:
@@ -1738,12 +2243,108 @@ if TEXTUAL_AVAILABLE:
                 self.update_status(f"Unable to send input: {exc}")
 
         def action_save_config(self) -> None:
-            save_config_editor_values(self.current_config_path(), self.config_values, self.config_template_text, self.config_schema)
-            self.update_status(f"Config.ini saved to {self.current_config_path()}")
+            target = self.current_config_path()
+            self.push_screen(
+                ConfirmActionScreen(
+                    "Save Config",
+                    f"This will save the current configuration editor values to:\n{target}",
+                    "Save",
+                ),
+                callback=self.handle_save_config_confirmation,
+            )
 
-        def action_reload_config(self) -> None:
+        def handle_save_config_confirmation(self, confirmed: bool) -> None:
+            if not confirmed:
+                self.update_status("Save Config canceled.")
+                return
+            target = self.current_config_path()
+            save_config_editor_values(target, self.config_values, self.config_template_text, self.config_schema)
+            self.update_status(f"Config.ini saved to {target}")
+
+        def action_load_config(self) -> None:
+            self.push_screen(
+                PathPickerScreen(
+                    dest="load-config-file",
+                    title="Load Config",
+                    subtitle="Select or type a .ini file to validate and load.",
+                    start_path=str(self.current_config_path()),
+                    home_path=self.launch_cwd,
+                ),
+                callback=self.handle_load_config_selection,
+            )
+
+        def handle_load_config_selection(self, result: Dict[str, str] | None) -> None:
+            if not result:
+                self.update_status("Load Config canceled.")
+                return
+            raw_path = str(result.get("path") or "").strip()
+            if not raw_path:
+                self.update_status("Load Config canceled: empty path.")
+                return
+            try:
+                selected_path = validate_ui_config_file(Path(raw_path))
+            except Exception as exc:
+                self.update_status(f"Invalid config file: {exc}")
+                return
+            current_path = self.current_config_path()
+            selected_text = selected_path.read_text(encoding="utf-8", errors="replace")
+            current_text = current_path.read_text(encoding="utf-8", errors="replace") if current_path.exists() else ""
+            try:
+                if selected_path.samefile(current_path):
+                    self.reload_config_model()
+                    if self.active_general_tab == "features_config":
+                        self.call_after_refresh(lambda: self.run_worker(self.rebuild_content()))
+                    message = f"The selected config file is already the active file:\n{current_path}\n\nNo overwrite is needed because the content is the same."
+                    self.push_screen(InfoMessageScreen("Load Config", message))
+                    self.update_status(f"Selected config is already the active file: {current_path}")
+                    return
+            except Exception:
+                pass
+            if selected_text == current_text:
+                message = (
+                    "The selected config file has the same content as the current active config file.\n\n"
+                    f"Current file:\n{current_path}\n\nSelected file:\n{selected_path}\n\nNo overwrite is needed."
+                )
+                self.push_screen(InfoMessageScreen("Load Config", message))
+                self.update_status("Selected config has the same content as the current active config.")
+                return
+            message = f"This will overwrite the current configuration file:\n{current_path}\n\nwith the selected file:\n{selected_path}"
+            self.push_screen(
+                ConfirmActionScreen("Load Config", message, "Overwrite"),
+                callback=lambda confirmed, src=selected_path: self.handle_load_config_confirmation(confirmed, src),
+            )
+
+        def handle_load_config_confirmation(self, confirmed: bool, source_path: Path) -> None:
+            if not confirmed:
+                self.update_status("Load Config canceled.")
+                return
+            target = self.current_config_path()
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(source_path.read_text(encoding="utf-8", errors="replace"), encoding="utf-8")
             self.reload_config_model()
-            self.update_status(f"Config.ini reloaded from {self.current_config_path()}")
+            self.call_after_refresh(self._rebuild_features_config_if_needed)
+            self.update_status(f"Loaded config from {source_path} into {target}")
+
+        def _rebuild_features_config_if_needed(self) -> None:
+            if self.active_general_tab == "features_config":
+                self.run_worker(self.rebuild_content())
+
+        def action_save_ui_state(self) -> None:
+            self.push_screen(
+                ConfirmActionScreen(
+                    "Save UI State",
+                    f"This will save the current terminal UI state to:\n{TUI_STATE_PATH}",
+                    "Save",
+                ),
+                callback=self.handle_save_ui_state_confirmation,
+            )
+
+        def handle_save_ui_state_confirmation(self, confirmed: bool) -> None:
+            if not confirmed:
+                self.update_status("Save UI State canceled.")
+                return
+            self.persist_ui_state(force=True)
+            self.update_status(f"UI state saved to {TUI_STATE_PATH}")
 
 
     def run_cli_tui(project_root: Path, cli_entrypoint: Path, initial_values: Dict[str, Any] | None = None) -> None:

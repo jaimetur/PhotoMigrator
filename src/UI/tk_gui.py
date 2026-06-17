@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import queue
+import shutil
 import subprocess
 import threading
 from pathlib import Path
@@ -35,6 +36,7 @@ from UI.shared import (
     save_json_file,
     to_list,
     ui_option_name,
+    validate_ui_config_file,
 )
 
 TK_STATE_PATH = Path(os.environ.get("PHOTOMIGRATOR_TK_GUI_STATE_PATH", str(Path.home() / ".photomigrator_tk_gui_state.json")))
@@ -64,9 +66,9 @@ INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.it
 THEMES = {
     "ocean": {
         "root_bg": "#11161f",
-        "panel_bg": "#0d141e",
+        "panel_bg": "#152231",
         "panel_fg": "#dfeaf8",
-        "log_bg": "#0b1119",
+        "log_bg": "#12202e",
         "log_fg": "#d9e8f8",
         "border": "#3b78b7",
         "sidebar_bg": "#131c28",
@@ -240,6 +242,7 @@ class PhotoMigratorTkGUI:
         self.active_config_account = dict(self.ui_state.get("active_config_account") or {})
         self.selected_theme = str(self.ui_state.get("theme") or "ocean")
         self.remember_state = bool(self.ui_state.get("remember_state", True))
+        self.window_geometry = str(self.ui_state.get("window_geometry") or "1480x920")
         self.field_widget_map: Dict[str, Any] = {}
         self.field_help_map: Dict[str, str] = {}
         self.config_widget_map: Dict[str, tuple[str, str]] = {}
@@ -247,6 +250,13 @@ class PhotoMigratorTkGUI:
         self.running_command: List[str] = []
         self.output_queue: queue.Queue[str | tuple[str, int]] = queue.Queue()
         self.bool_toggle_widgets: Dict[str, tuple[Any, Any]] = {}
+        self.panel_collapsed = {
+            "content": False,
+            "description": False,
+            "preview": False,
+            "log": False,
+            "status": False,
+        }
         if self.active_module not in INTERACTIVE_MODULE_TAB_NAMES:
             self.active_module = "automatic_migration"
         self.reload_config_model()
@@ -254,7 +264,7 @@ class PhotoMigratorTkGUI:
         self.root = tk.Tk()
         self.root.title("PhotoMigrator GUI")
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.root.geometry("1480x920")
+        self.root.geometry(self.window_geometry)
         self.root.minsize(1220, 760)
         icon_path = self.project_root / "assets" / "ico" / "PhotoMigrator.ico"
         if icon_path.exists():
@@ -276,6 +286,8 @@ class PhotoMigratorTkGUI:
         self.refresh_action_buttons()
         self.rebuild_content()
         self.update_command_preview()
+        self.apply_panel_states()
+        self.apply_runtime_layout()
         self.root.after(120, self.poll_process_queue)
 
     def preferred_config_section(self) -> str:
@@ -317,6 +329,37 @@ class PhotoMigratorTkGUI:
 
     def current_theme(self) -> Dict[str, str]:
         return THEMES.get(self.selected_theme, THEMES["ocean"])
+
+    def _create_panel_toggle(self, parent: Any, panel_key: str) -> Any:
+        label = self.tk.Label(parent, text=self._toggle_label(panel_key), width=2, anchor="center", cursor="hand2", font=("TkDefaultFont", 15, "bold"), padx=6, pady=0)
+        label.bind("<Button-1>", lambda _e, p=panel_key: self.toggle_panel(p), add="+")
+        return label
+
+    def _create_panel_shell(self, parent: Any, title: str, panel_key: str, *, use_grid: bool = False) -> Tuple[Any, Any, Any, Any, Any]:
+        panel = self.tk.Frame(parent, bd=0, highlightthickness=1)
+        panel.grid_columnconfigure(0, weight=1)
+        panel.grid_rowconfigure(1, weight=1)
+
+        topbar = self.tk.Frame(panel, height=16, bd=0)
+        topbar.place(x=10, y=-8)
+
+        title_label = self.tk.Label(topbar, text=title, anchor="w", font=("TkDefaultFont", 10, "bold"), padx=4, pady=0)
+        title_label.pack(side="left")
+
+        toggle = self._create_panel_toggle(panel, panel_key)
+        toggle.place(relx=1.0, x=-10, y=-8, anchor="ne")
+
+        body = self.tk.Frame(panel, bd=0)
+        body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(7, 0))
+        if use_grid:
+            body.grid_rowconfigure(0, weight=1)
+            body.grid_columnconfigure(0, weight=1)
+
+        topbar.lift()
+        title_label.lift()
+        toggle.lift()
+
+        return panel, topbar, title_label, toggle, body
 
     def _build_layout(self) -> None:
         tk = self.tk
@@ -373,56 +416,84 @@ class PhotoMigratorTkGUI:
 
         self.save_config_button = self.ttk.Button(self.tabs_right, text="Save Config", command=self.action_save_config)
         self.save_config_button.grid(row=0, column=0, padx=(6, 0))
-        self.reload_config_button = self.ttk.Button(self.tabs_right, text="Reload Config", command=self.action_reload_config)
-        self.reload_config_button.grid(row=0, column=1, padx=(6, 0))
         self.save_ui_button = self.ttk.Button(self.tabs_right, text="Save UI State", command=self.action_save_ui_state)
-        self.save_ui_button.grid(row=0, column=2, padx=(6, 0))
+        self.save_ui_button.grid(row=0, column=1, padx=(6, 0))
+        self.load_config_button = self.ttk.Button(self.tabs_right, text="Load Config", command=self.action_load_config)
+        self.load_config_button.grid(row=0, column=2, padx=(6, 0))
 
-        self.content_panel = tk.LabelFrame(self.main, text="")
+        self.content_panel, self.content_header, self.content_title_label, self.content_toggle_button, self.content_body = self._create_panel_shell(self.main, "", "content", use_grid=True)
         self.content_panel.grid(row=1, column=0, sticky="nsew")
-        self.content_panel.grid_rowconfigure(0, weight=1)
-        self.content_panel.grid_columnconfigure(0, weight=1)
-        self.content_scroll = ScrollableFrame(self.content_panel, bg="#0d141e")
-        self.content_scroll.frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        self.content_scroll = ScrollableFrame(self.content_body, bg="#0d141e")
+        self.content_scroll.frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
 
         self.bottom = tk.Frame(self.main)
         self.bottom.grid(row=2, column=0, sticky="nsew", pady=(8, 0))
         self.bottom.grid_rowconfigure(2, weight=1)
         self.bottom.grid_columnconfigure(0, weight=1)
 
-        self.description_panel = tk.LabelFrame(self.bottom, text="Argument Description")
+        self.description_panel, self.description_header, self.description_title_label, self.description_toggle_button, self.description_body = self._create_panel_shell(self.bottom, "Argument Description", "description")
         self.description_panel.grid(row=0, column=0, sticky="ew")
-        self.description_label = tk.Label(self.description_panel, text="Move focus to a field to see its description here.", justify="left", anchor="w", wraplength=1100)
-        self.description_label.pack(fill="x", padx=8, pady=6)
+        self.description_var = tk.StringVar(value="Move focus to a field to see its description here.")
+        self.description_text = self.tk.Label(self.description_body, textvariable=self.description_var, anchor="w", justify="left", padx=0, pady=0)
+        self.description_text.pack(fill="x")
 
-        self.preview_panel = tk.LabelFrame(self.bottom, text="Command Preview")
-        self.preview_panel.grid(row=1, column=0, sticky="ew", pady=(8, 0))
-        self.preview_label = tk.Label(self.preview_panel, text="", justify="left", anchor="w", wraplength=1100)
-        self.preview_label.pack(fill="x", padx=8, pady=6)
+        self.preview_panel, self.preview_header, self.preview_title_label, self.preview_toggle_button, self.preview_body = self._create_panel_shell(self.bottom, "Command Preview", "preview", use_grid=True)
+        self.preview_panel.grid(row=1, column=0, sticky="ew", pady=(10, 0))
+        self.preview_text = self._readonly_text(self.preview_body, height=3, auto_fit=False)
+        self.preview_text.grid(row=0, column=0, sticky="nsew")
+        self.preview_scroll = tk.Scrollbar(self.preview_body, orient="vertical", command=self.preview_text.yview)
+        self.preview_scroll.grid(row=0, column=1, sticky="ns")
+        self.preview_text.configure(yscrollcommand=self._on_preview_text_scroll)
+        self._on_preview_text_scroll("0.0", "1.0")
 
-        self.log_panel = tk.LabelFrame(self.bottom, text="Execution Log")
-        self.log_panel.grid(row=2, column=0, sticky="nsew", pady=(8, 0))
-        self.log_panel.grid_rowconfigure(0, weight=1)
-        self.log_panel.grid_columnconfigure(0, weight=1)
-        self.log_text = tk.Text(self.log_panel, height=10, wrap="word", state="disabled", relief="flat", bd=0)
+        self.log_panel, self.log_header, self.log_title_label, self.log_toggle_button, self.log_body = self._create_panel_shell(self.bottom, "Execution Log", "log", use_grid=True)
+        self.log_panel.grid(row=2, column=0, sticky="nsew", pady=(10, 0))
+        self.log_body.grid_rowconfigure(0, weight=1)
+        self.log_body.grid_columnconfigure(0, weight=1)
+        self.log_text = tk.Text(
+            self.log_body,
+            height=10,
+            wrap="word",
+            state="normal",
+            relief="flat",
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0,
+            padx=0,
+            pady=0,
+            spacing1=0,
+            spacing2=0,
+            spacing3=0,
+            takefocus=0,
+            insertwidth=0,
+        )
+        self.log_text._pm_readonly = True
+        self.log_text.bind("<Key>", lambda _e: "break")
+        self.log_text.bind("<<Paste>>", lambda _e: "break")
+        self.log_text.bind("<<Cut>>", lambda _e: "break")
         self.log_text.grid(row=0, column=0, sticky="nsew")
-        self.log_scroll = tk.Scrollbar(self.log_panel, orient="vertical", command=self.log_text.yview)
+        self.log_scroll = tk.Scrollbar(self.log_body, orient="vertical", command=self.log_text.yview)
         self.log_scroll.grid(row=0, column=1, sticky="ns")
-        self.log_text.configure(yscrollcommand=self.log_scroll.set)
+        self.log_text.configure(yscrollcommand=self._on_log_text_scroll)
+        self._on_log_text_scroll("0.0", "1.0")
 
-        self.status_panel = tk.LabelFrame(self.bottom, text="Status")
-        self.status_panel.grid(row=3, column=0, sticky="ew", pady=(8, 0))
-        self.status_label = tk.Label(self.status_panel, text="Ready.", justify="left", anchor="w", wraplength=1100)
-        self.status_label.pack(fill="x", padx=8, pady=6)
+        self.status_panel, self.status_header, self.status_title_label, self.status_toggle_button, self.status_body = self._create_panel_shell(self.bottom, "Status", "status")
+        self.status_panel.grid(row=3, column=0, sticky="ew", pady=(10, 0))
+        self.status_var = tk.StringVar(value="Ready.")
+        self.status_text = self.tk.Label(self.status_body, textvariable=self.status_var, anchor="w", justify="left", padx=0, pady=0)
+        self.status_text.pack(fill="x")
 
-        self.input_row = tk.Frame(self.bottom)
-        self.input_row.grid(row=4, column=0, sticky="ew", pady=(8, 0))
+        self.input_panel, self.input_header, self.input_title_label, self.input_toggle_spacer, self.input_row = self._create_panel_shell(self.bottom, "Process Input", "status")
+        self.input_panel.grid(row=4, column=0, sticky="ew", pady=(10, 0))
+        self.input_toggle_spacer.grid_remove()
         self.input_row.grid_columnconfigure(0, weight=1)
         self.job_input_var = tk.StringVar()
+        self.job_input_var.trace_add("write", lambda *_args: self.refresh_action_buttons())
         self.job_input_entry = tk.Entry(self.input_row, textvariable=self.job_input_var)
         self.job_input_entry.grid(row=0, column=0, sticky="ew")
         self.job_input_send = self.ttk.Button(self.input_row, text="Send", command=self.action_send_job_input)
         self.job_input_send.grid(row=0, column=1, padx=(6, 0))
+        self._setup_context_menus()
 
     def apply_theme(self, rebuild: bool = True) -> None:
         theme = self.current_theme()
@@ -440,24 +511,59 @@ class PhotoMigratorTkGUI:
         self.topbar.configure(bg=theme["root_bg"])
         self.tabs_left.configure(bg=theme["root_bg"])
         self.tabs_right.configure(bg=theme["root_bg"])
-        self.content_panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.content_panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.content_header.configure(bg=theme["root_bg"])
+        self.content_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
+        self.content_body.configure(bg=theme["panel_bg"])
         self.content_scroll.frame.configure(bg=theme["panel_bg"])
         self.content_scroll.canvas.configure(bg=theme["panel_bg"])
         self.content_scroll.body.configure(bg=theme["panel_bg"])
-        for panel in (self.description_panel, self.preview_panel, self.status_panel):
-            panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
-        self.log_panel.configure(bg=theme["log_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
-        self.description_label.configure(bg=theme["panel_bg"], fg=theme["panel_fg"])
-        self.preview_label.configure(bg=theme["panel_bg"], fg=theme["panel_fg"])
-        self.status_label.configure(bg=theme["panel_bg"], fg=theme["panel_fg"])
+        for panel, header, title, body in (
+            (self.description_panel, self.description_header, self.description_title_label, self.description_body),
+            (self.preview_panel, self.preview_header, self.preview_title_label, self.preview_body),
+            (self.status_panel, self.status_header, self.status_title_label, self.status_body),
+        ):
+            panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+            header.configure(bg=theme["root_bg"])
+            title.configure(bg=theme["root_bg"], fg=theme["accent"])
+            body.configure(bg=theme["panel_bg"])
+        self.log_panel.configure(bg=theme["log_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.log_header.configure(bg=theme["root_bg"])
+        self.log_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
+        self.description_body.configure(bg=theme["panel_bg"])
+        self.preview_body.configure(bg=theme["panel_bg"])
+        self.status_body.configure(bg=theme["panel_bg"])
+        self.log_body.configure(bg=theme["log_bg"])
+        self.description_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], wraplength=max(200, self.root.winfo_width() - 420))
+        self.preview_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], insertbackground=theme["panel_fg"])
+        self.status_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], wraplength=max(200, self.root.winfo_width() - 420))
         self.log_text.configure(bg=theme["log_bg"], fg=theme["log_fg"], insertbackground=theme["log_fg"])
-        self.input_row.configure(bg=theme["root_bg"])
+        self.input_panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.input_header.configure(bg=theme["root_bg"])
+        self.input_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
+        self.input_row.configure(bg=theme["panel_bg"])
         self.job_input_entry.configure(bg=theme["entry_bg"], fg=theme["entry_fg"], insertbackground=theme["entry_fg"], relief="solid", bd=1)
-        self.job_input_send.configure(style="PM.Neutral.TButton")
+        for button in (
+            self.content_toggle_button,
+            self.description_toggle_button,
+            self.preview_toggle_button,
+            self.log_toggle_button,
+            self.status_toggle_button,
+        ):
+            button.configure(
+                relief="solid",
+                bd=1,
+                highlightthickness=0,
+                bg=theme["root_bg"],
+                fg=theme["accent"],
+                activebackground=theme["root_bg"],
+                activeforeground=theme["accent"],
+            )
         self.refresh_module_buttons()
         self.refresh_top_tabs()
         self.refresh_toolbar_buttons()
         self.refresh_action_buttons()
+        self.refresh_panel_toggle_buttons()
         if rebuild:
             self.rebuild_content()
             self.update_command_preview()
@@ -497,7 +603,22 @@ class PhotoMigratorTkGUI:
         )
 
         self.style.configure(
-            "PM.Toolbar.TButton",
+            "PM.ToolbarSave.TButton",
+            background="#cddff3",
+            foreground="#284866",
+            bordercolor="#9bb8d8",
+            darkcolor="#cddff3",
+            lightcolor="#cddff3",
+            padding=(10, 6),
+            relief="flat",
+        )
+        self.style.map(
+            "PM.ToolbarSave.TButton",
+            background=[("active", "#bdd4ec"), ("pressed", "#afcae6"), ("disabled", "#cad6e2")],
+            foreground=[("disabled", "#788a9d")],
+        )
+        self.style.configure(
+            "PM.ToolbarLoad.TButton",
             background="#efc8c8",
             foreground="#6c2727",
             bordercolor="#d7aaaa",
@@ -507,7 +628,7 @@ class PhotoMigratorTkGUI:
             relief="flat",
         )
         self.style.map(
-            "PM.Toolbar.TButton",
+            "PM.ToolbarLoad.TButton",
             background=[("active", "#e7b6b6"), ("pressed", "#dda4a4"), ("disabled", "#dac7c7")],
             foreground=[("disabled", "#9d7a7a")],
         )
@@ -669,8 +790,85 @@ class PhotoMigratorTkGUI:
             button.configure(style=("PM.TabActive.TButton" if key == self.active_general_tab else "PM.Tab.TButton"))
 
     def refresh_toolbar_buttons(self) -> None:
-        for button in (self.save_config_button, self.reload_config_button, self.save_ui_button):
-            button.configure(style="PM.Toolbar.TButton")
+        for button in (self.save_config_button, self.save_ui_button):
+            button.configure(style="PM.ToolbarSave.TButton")
+        self.load_config_button.configure(style="PM.ToolbarLoad.TButton")
+
+    def _toggle_label(self, panel_key: str) -> str:
+        return "▸" if self.panel_collapsed.get(panel_key, False) else "▾"
+
+    def refresh_panel_toggle_buttons(self) -> None:
+        mapping = {
+            "content": self.content_toggle_button,
+            "description": self.description_toggle_button,
+            "preview": self.preview_toggle_button,
+            "log": self.log_toggle_button,
+            "status": self.status_toggle_button,
+        }
+        for panel_key, button in mapping.items():
+            button.configure(text=self._toggle_label(panel_key))
+
+    def apply_panel_states(self) -> None:
+        if self.panel_collapsed.get("content", False):
+            self.content_body.grid_remove()
+            self.content_panel.grid_propagate(False)
+            self.content_panel.configure(height=28)
+        else:
+            self.content_panel.grid_propagate(True)
+            self.content_panel.configure(height=0)
+            self.content_body.grid(row=1, column=0, sticky="nsew", padx=8, pady=0)
+            self.content_scroll.frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
+
+        if self.panel_collapsed.get("description", False):
+            self.description_body.grid_remove()
+            self.description_panel.grid_propagate(False)
+            self.description_panel.configure(height=28)
+        else:
+            self.description_panel.grid_propagate(True)
+            self.description_panel.configure(height=0)
+            self.description_body.grid(row=1, column=0, sticky="ew", padx=8, pady=0)
+
+        if self.panel_collapsed.get("preview", False):
+            self.preview_body.grid_remove()
+            self.preview_panel.grid_propagate(False)
+            self.preview_panel.configure(height=28)
+        else:
+            self.preview_panel.grid_propagate(True)
+            self.preview_panel.configure(height=0)
+            self.preview_body.grid(row=1, column=0, sticky="ew", padx=8, pady=0)
+
+        if self.panel_collapsed.get("log", False):
+            self.log_body.grid_remove()
+            self.log_panel.grid_propagate(False)
+            self.log_panel.configure(height=28)
+        else:
+            self.log_panel.grid_propagate(True)
+            self.log_panel.configure(height=0)
+            self.log_body.grid(row=1, column=0, sticky="nsew", padx=8, pady=0)
+
+        if self.panel_collapsed.get("status", False):
+            self.status_body.grid_remove()
+            self.status_panel.grid_propagate(False)
+            self.status_panel.configure(height=28)
+        else:
+            self.status_panel.grid_propagate(True)
+            self.status_panel.configure(height=0)
+            self.status_body.grid(row=1, column=0, sticky="ew", padx=8, pady=0)
+
+        self.refresh_panel_toggle_buttons()
+
+    def apply_runtime_layout(self) -> None:
+        running = self.can_stop_job()
+        content_weight = 0 if self.panel_collapsed.get("content", False) else (2 if running else 4)
+        bottom_weight = 5 if running else 3
+        self.main.grid_rowconfigure(1, weight=content_weight)
+        self.main.grid_rowconfigure(2, weight=bottom_weight)
+        self.log_text.configure(height=(16 if running else 10))
+
+    def toggle_panel(self, panel_key: str) -> None:
+        self.panel_collapsed[panel_key] = not self.panel_collapsed.get(panel_key, False)
+        self.apply_panel_states()
+        self.apply_runtime_layout()
 
     def can_run_job(self) -> bool:
         return not (self.running_process is not None and self.running_process.poll() is None)
@@ -685,6 +883,7 @@ class PhotoMigratorTkGUI:
         can_run = self.can_run_job()
         can_stop = self.can_stop_job()
         can_exit = self.can_exit_app()
+        can_send = bool(str(self.job_input_var.get() or "").strip())
         self.run_button.configure(
             state=("normal" if can_run else "disabled"),
             style=("PM.RunEnabled.TButton" if can_run else "PM.RunDisabled.TButton"),
@@ -697,6 +896,11 @@ class PhotoMigratorTkGUI:
             state=("normal" if can_exit else "disabled"),
             style=("PM.ExitEnabled.TButton" if can_exit else "PM.ExitDisabled.TButton"),
         )
+        self.job_input_send.configure(
+            state=("normal" if can_send else "disabled"),
+            style=("PM.RunEnabled.TButton" if can_send else "PM.RunDisabled.TButton"),
+        )
+        self.apply_runtime_layout()
 
     def current_content_panel_title(self) -> str:
         if self.active_general_tab == "feature":
@@ -715,11 +919,12 @@ class PhotoMigratorTkGUI:
     def refresh_panel_titles(self) -> None:
         title = self.current_content_panel_title()
         desc = self.current_content_panel_description()
-        self.content_panel.configure(text=f"{title}: {desc}" if desc else title)
-        self.description_panel.configure(text="Argument Description")
-        self.preview_panel.configure(text="Command Preview")
-        self.log_panel.configure(text="Execution Log")
-        self.status_panel.configure(text="Status")
+        self.content_title_label.configure(text=(f"{title}: {desc}" if desc else title))
+        self.description_title_label.configure(text="Argument Description")
+        self.preview_title_label.configure(text="Command Preview")
+        self.log_title_label.configure(text="Execution Log")
+        self.status_title_label.configure(text="Status")
+        self.refresh_panel_toggle_buttons()
 
     def select_module(self, module_key: str) -> None:
         self.active_module = module_key
@@ -753,6 +958,8 @@ class PhotoMigratorTkGUI:
         if not body.winfo_children():
             self._empty_label(body, "No content available.").pack(anchor="w", padx=8, pady=8)
         self.content_scroll._refresh_scrollbar()
+        self.apply_panel_states()
+        self.apply_runtime_layout()
 
     def build_content_widgets(self, parent: Any) -> List[Any]:
         if self.active_general_tab == "feature":
@@ -771,11 +978,168 @@ class PhotoMigratorTkGUI:
         widget.bind("<Enter>", lambda _e, t=text: self.update_field_description(t), add="+")
         widget.bind("<FocusIn>", lambda _e, t=text: self.update_field_description(t), add="+")
 
+    def _readonly_text(self, parent: Any, height: int, *, auto_fit: bool = True) -> Any:
+        widget = self.tk.Text(parent, height=height, wrap="word", state="normal", relief="flat", borderwidth=0, bd=0, highlightthickness=0, cursor="xterm", padx=0, pady=0, spacing1=0, spacing2=0, spacing3=0, takefocus=0, insertwidth=0)
+        widget._pm_readonly = True
+        widget._pm_auto_fit_readonly = auto_fit
+        widget.bind("<Key>", lambda _e: "break")
+        widget.bind("<<Paste>>", lambda _e: "break")
+        widget.bind("<<Cut>>", lambda _e: "break")
+        if auto_fit:
+            widget.bind("<Configure>", lambda _e, w=widget: self._schedule_fit_readonly_text_height(w), add="+")
+        self._bind_context_menu(widget)
+        return widget
+
+    def _set_readonly_text(self, widget: Any, text: str) -> None:
+        body = str(text or "")
+        setattr(widget, "_pm_text_body", body)
+        widget.delete("1.0", "end")
+        widget.insert("1.0", body)
+        if widget is getattr(self, "preview_text", None):
+            self._on_preview_text_scroll("0.0", "1.0")
+        elif widget is not getattr(self, "log_text", None):
+            self._schedule_fit_readonly_text_height(widget)
+        if widget is getattr(self, "log_text", None):
+            self._on_log_text_scroll("0.0", "1.0")
+
+    def _schedule_fit_readonly_text_height(self, widget: Any) -> None:
+        if widget is getattr(self, "log_text", None) or not getattr(widget, "_pm_auto_fit_readonly", True):
+            return
+        token = getattr(widget, "_pm_fit_after", None)
+        if token is not None:
+            try:
+                widget.after_cancel(token)
+            except Exception:
+                pass
+        try:
+            widget._pm_fit_after = widget.after_idle(lambda w=widget: self._fit_readonly_text_height(w))
+        except Exception:
+            pass
+
+    def _fit_readonly_text_height(self, widget: Any) -> None:
+        if widget is getattr(self, "log_text", None) or not getattr(widget, "_pm_auto_fit_readonly", True):
+            return
+        try:
+            widget._pm_fit_after = None
+        except Exception:
+            pass
+        body = str(getattr(widget, "_pm_text_body", "") or "")
+        try:
+            line_count = int(widget.count("1.0", "end-1c", "displaylines")[0]) if body else 1
+        except Exception:
+            line_count = body.count("\n") + 1 if body else 1
+        try:
+            widget.configure(height=max(1, min(4, line_count)))
+        except Exception:
+            pass
+
+    def _on_log_text_scroll(self, first: str, last: str) -> None:
+        try:
+            self.log_scroll.set(first, last)
+            if float(first) <= 0.0 and float(last) >= 1.0:
+                self.log_scroll.grid_remove()
+            else:
+                self.log_scroll.grid()
+        except Exception:
+            pass
+
+    def _on_preview_text_scroll(self, first: str, last: str) -> None:
+        try:
+            self.preview_scroll.set(first, last)
+            if float(first) <= 0.0 and float(last) >= 1.0:
+                self.preview_scroll.grid_remove()
+            else:
+                self.preview_scroll.grid()
+        except Exception:
+            pass
+
     def update_field_description(self, text: str) -> None:
-        self.description_label.configure(text=str(text or "").strip() or "Move focus to a field to see its description here.")
+        self.description_var.set(str(text or "").strip() or "Move focus to a field to see its description here.")
 
     def update_status(self, text: str) -> None:
-        self.status_label.configure(text=str(text or "").strip() or "Ready.")
+        self.status_var.set(str(text or "").strip() or "Ready.")
+
+    def _widget_is_editable_text(self, widget: Any) -> bool:
+        if widget is None:
+            return False
+        if isinstance(widget, self.tk.Entry):
+            return str(widget.cget("state")) not in {"disabled", "readonly"}
+        if isinstance(widget, self.tk.Text):
+            if getattr(widget, "_pm_readonly", False):
+                return False
+            return str(widget.cget("state")) != "disabled"
+        return False
+
+    def _setup_context_menus(self) -> None:
+        menu = self.tk.Menu(self.root, tearoff=0)
+        self.context_menu = menu
+
+        def popup(event: Any) -> str:
+            widget = event.widget
+            can_paste = self._widget_is_editable_text(widget)
+            menu.delete(0, "end")
+            menu.add_command(label="Copy", command=lambda w=widget: self._copy_widget_text(w))
+            menu.add_command(label="Paste", command=lambda w=widget: self._paste_widget_text(w), state=("normal" if can_paste else "disabled"))
+            try:
+                menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                menu.grab_release()
+            return "break"
+
+        self._popup_context_menu = popup
+        for widget in [self.description_text, self.preview_text, self.status_text, self.log_text, self.job_input_entry]:
+            self._bind_context_menu(widget)
+
+    def _bind_context_menu(self, widget: Any) -> None:
+        popup = getattr(self, "_popup_context_menu", None)
+        if popup is None or widget is None:
+            return
+        widget.bind("<Button-3>", popup, add="+")
+        widget.bind("<Button-2>", popup, add="+")
+        widget.bind("<Control-Button-1>", popup, add="+")
+
+    def _copy_widget_text(self, widget: Any) -> None:
+        text = ""
+        try:
+            if isinstance(widget, self.tk.Entry):
+                try:
+                    text = widget.selection_get()
+                except Exception:
+                    text = widget.get()
+            elif isinstance(widget, self.tk.Label):
+                text = str(widget.cget("text") or "")
+            elif isinstance(widget, self.tk.Text):
+                try:
+                    text = widget.get("sel.first", "sel.last")
+                except Exception:
+                    text = widget.get("1.0", "end-1c")
+            if text:
+                self.root.clipboard_clear()
+                self.root.clipboard_append(text)
+                self.update_status("Text copied to clipboard.")
+        except Exception as exc:
+            self.update_status(f"Unable to copy text: {exc}")
+
+    def _paste_widget_text(self, widget: Any) -> None:
+        if not self._widget_is_editable_text(widget):
+            self.update_status("Paste is only available on editable fields.")
+            return
+        try:
+            text = str(self.root.clipboard_get() or "")
+        except Exception:
+            self.update_status("Clipboard is empty or not accessible.")
+            return
+        if not text:
+            self.update_status("Clipboard is empty or not accessible.")
+            return
+        try:
+            if isinstance(widget, self.tk.Entry):
+                widget.insert("insert", text)
+            elif isinstance(widget, self.tk.Text):
+                widget.insert("insert", text)
+            self.update_status("Clipboard pasted into the current field.")
+        except Exception as exc:
+            self.update_status(f"Unable to paste text: {exc}")
 
     def _label(self, parent: Any, text: str, *, accent: bool = False, config_wide: bool = False) -> Any:
         theme = self.current_theme()
@@ -787,12 +1151,14 @@ class PhotoMigratorTkGUI:
     def _section_label(self, parent: Any, text: str, *, accent: bool = False) -> Any:
         theme = self.current_theme()
         label = self.tk.Label(parent, text=text, anchor="w", justify="left", bg=theme["panel_bg"], fg=(theme["accent"] if accent else theme["text"]), font=("TkDefaultFont", 10, "bold"))
-        label.pack(fill="x", padx=6, pady=(10 if accent else 6, 2))
+        label.pack(fill="x", padx=6, pady=(3 if accent else 2, 1))
         return label
 
     def _entry(self, parent: Any, text_var: Any) -> Any:
         theme = self.current_theme()
-        return self.tk.Entry(parent, textvariable=text_var, bg=theme["entry_bg"], fg=theme["entry_fg"], insertbackground=theme["entry_fg"], relief="solid", bd=1)
+        widget = self.tk.Entry(parent, textvariable=text_var, bg=theme["entry_bg"], fg=theme["entry_fg"], insertbackground=theme["entry_fg"], relief="solid", bd=1)
+        self._bind_context_menu(widget)
+        return widget
 
     def _empty_label(self, parent: Any, text: str) -> Any:
         theme = self.current_theme()
@@ -907,6 +1273,7 @@ class PhotoMigratorTkGUI:
         type_combo = self.ttk.Combobox(controls, textvariable=type_var, values=list(kind_map.keys()), state="readonly", style="PM.TCombobox")
         type_combo.pack(fill="x", expand=True, padx=(0, 8))
         self._bind_help(type_combo, help_text)
+        self._bind_context_menu(type_combo)
 
         secondary = self.tk.Frame(controls, bg=self.current_theme()["panel_bg"])
         secondary.pack(fill="x", expand=True, pady=(4, 0))
@@ -940,6 +1307,7 @@ class PhotoMigratorTkGUI:
                 account_combo = self.ttk.Combobox(secondary, textvariable=account_var, values=["1", "2", "3"], state="readonly", style="PM.TCombobox", width=8)
                 account_combo.pack(side="left", fill="x", padx=(0, 8))
                 self._bind_help(account_combo, help_text)
+                self._bind_context_menu(account_combo)
 
                 def on_account_change(_event: Any = None) -> None:
                     state["account"] = str(account_var.get() or "1")
@@ -1087,6 +1455,7 @@ class PhotoMigratorTkGUI:
         combo = self.ttk.Combobox(row, textvariable=var, values=values, state="readonly", style="PM.TCombobox")
         combo.pack(side="left", fill="x", expand=True, padx=(0, 8))
         self._bind_help(combo, help_text)
+        self._bind_context_menu(combo)
 
         def on_change(_event: Any = None) -> None:
             selected = mapping.get(var.get(), "")
@@ -1317,7 +1686,7 @@ class PhotoMigratorTkGUI:
 
     def update_command_preview(self) -> None:
         if self.active_module == "upload_folder":
-            self.preview_label.configure(text="Upload to Server is only available in the Web Interface.")
+            self._set_readonly_text(self.preview_text, "Upload to Server is only available in the Web Interface.")
             self.refresh_action_buttons()
             return
         selected_action = None
@@ -1326,15 +1695,14 @@ class PhotoMigratorTkGUI:
         elif self.active_module == "standalone_features":
             selected_action = self.standalone_action_dest
         command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
-        self.preview_label.configure(text=command_preview_string(command))
+        self._set_readonly_text(self.preview_text, command_preview_string(command))
         self.running_command = command
         self.refresh_action_buttons()
 
     def append_log(self, line: str) -> None:
-        self.log_text.configure(state="normal")
         self.log_text.insert("end", line + "\n")
         self.log_text.see("end")
-        self.log_text.configure(state="disabled")
+        self._on_log_text_scroll("0.0", "1.0")
 
     def poll_process_queue(self) -> None:
         while True:
@@ -1375,9 +1743,7 @@ class PhotoMigratorTkGUI:
             selected_action = self.standalone_action_dest
         command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
         self.running_command = command
-        self.log_text.configure(state="normal")
         self.log_text.delete("1.0", "end")
-        self.log_text.configure(state="disabled")
         self.append_log(f"> {command_to_string(command)}")
         try:
             process = subprocess.Popen(
@@ -1446,22 +1812,112 @@ class PhotoMigratorTkGUI:
             self.update_status(f"Unable to send input: {exc}")
 
     def action_save_config(self) -> None:
-        save_config_editor_values(self.current_config_path(), self.config_values, self.config_template_text, self.config_schema)
-        self.update_status(f"Config.ini saved to {self.current_config_path()}")
+        from tkinter import messagebox
 
-    def action_reload_config(self) -> None:
+        target = self.current_config_path()
+        confirmed = messagebox.askyesno(
+            "Save Config",
+            f"This will save the current configuration editor values to:\n\n{target}",
+            parent=self.root,
+        )
+        if not confirmed:
+            self.update_status("Save Config canceled.")
+            return
+        save_config_editor_values(target, self.config_values, self.config_template_text, self.config_schema)
+        self.update_status(f"Config.ini saved to {target}")
+
+    def action_load_config(self) -> None:
+        from tkinter import filedialog, messagebox
+
+        selected = filedialog.askopenfilename(
+            title="Load Config",
+            initialdir=str(self.current_config_path().parent),
+            filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
+            parent=self.root,
+        )
+        if not selected:
+            self.update_status("Load Config canceled.")
+            return
+        try:
+            selected_path = validate_ui_config_file(Path(selected))
+        except Exception as exc:
+            messagebox.showerror("Invalid Config", f"Unable to load the selected config file:\n\n{exc}", parent=self.root)
+            self.update_status(f"Invalid config file: {exc}")
+            return
+
+        current_path = self.current_config_path()
+        selected_text = selected_path.read_text(encoding="utf-8", errors="replace")
+        current_text = current_path.read_text(encoding="utf-8", errors="replace") if current_path.exists() else ""
+        try:
+            if selected_path.samefile(current_path):
+                self.reload_config_model()
+                if self.active_general_tab == "features_config":
+                    self.rebuild_content()
+                messagebox.showinfo(
+                    "Load Config",
+                    "The selected config file is already the active file:\n\n"
+                    f"{current_path}\n\n"
+                    "No overwrite is needed because the content is the same.",
+                    parent=self.root,
+                )
+                self.update_status(f"Selected config is already the active file: {current_path}")
+                return
+        except Exception:
+            pass
+
+        if selected_text == current_text:
+            messagebox.showinfo(
+                "Load Config",
+                "The selected config file has the same content as the current active config file.\n\n"
+                f"Current file:\n{current_path}\n\n"
+                f"Selected file:\n{selected_path}\n\n"
+                "No overwrite is needed.",
+                parent=self.root,
+            )
+            self.update_status("Selected config has the same content as the current active config.")
+            return
+
+        confirmed = messagebox.askyesno(
+            "Load Config",
+            "This will overwrite the current configuration file:\n\n"
+            f"{current_path}\n\n"
+            "with the selected file:\n\n"
+            f"{selected_path}\n\n"
+            "Do you want to continue?",
+            parent=self.root,
+        )
+        if not confirmed:
+            self.update_status("Load Config canceled.")
+            return
+
+        current_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(selected_path, current_path)
         self.reload_config_model()
         if self.active_general_tab == "features_config":
             self.rebuild_content()
-        self.update_status(f"Config.ini reloaded from {self.current_config_path()}")
+        self.update_status(f"Loaded config from {selected_path} into {current_path}")
 
     def action_save_ui_state(self) -> None:
+        from tkinter import messagebox
+
+        confirmed = messagebox.askyesno(
+            "Save UI State",
+            f"This will save the current desktop UI state to:\n\n{TK_STATE_PATH}",
+            parent=self.root,
+        )
+        if not confirmed:
+            self.update_status("Save UI State canceled.")
+            return
         self.persist_ui_state(force=True)
         self.update_status(f"UI state saved to {TK_STATE_PATH}")
 
     def persist_ui_state(self, force: bool = False) -> None:
         if not self.remember_state and not force:
             return
+        try:
+            self.window_geometry = str(self.root.winfo_geometry() or self.window_geometry)
+        except Exception:
+            pass
         payload = {
             "values": self.state_values,
             "ui_state": {
@@ -1474,6 +1930,7 @@ class PhotoMigratorTkGUI:
                 "active_config_account": self.active_config_account,
                 "theme": self.selected_theme,
                 "remember_state": self.remember_state,
+                "window_geometry": self.window_geometry,
             },
         }
         save_json_file(TK_STATE_PATH, payload)

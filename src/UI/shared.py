@@ -975,6 +975,16 @@ def resolve_ui_config_path(configured_path: Any) -> Path:
     return Path(os.path.abspath(candidate))
 
 
+def validate_ui_config_file(config_path: Path) -> Path:
+    path = Path(config_path).expanduser().resolve()
+    if path.suffix.lower() != ".ini":
+        raise ValueError("Selected file must have a .ini extension.")
+    if not path.exists() or not path.is_file():
+        raise FileNotFoundError(f"Config file not found: {path}")
+    parse_ini_text_to_values(path.read_text(encoding="utf-8", errors="replace"))
+    return path
+
+
 def load_json_file(path: Path, fallback: Any) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
