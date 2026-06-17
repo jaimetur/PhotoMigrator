@@ -336,27 +336,22 @@ class PhotoMigratorTkGUI:
         return label
 
     def _create_panel_shell(self, parent: Any, title: str, panel_key: str, *, use_grid: bool = False) -> Tuple[Any, Any, Any, Any, Any]:
-        panel = self.tk.Frame(parent, bd=0, highlightthickness=1)
+        panel = self.tk.LabelFrame(parent, text=title, bd=2)
         panel.grid_columnconfigure(0, weight=1)
-        panel.grid_rowconfigure(1, weight=1)
+        panel.grid_rowconfigure(0, weight=1)
 
-        topbar = self.tk.Frame(panel, bd=0)
-        topbar.grid(row=0, column=0, sticky="ew", padx=(10, 8), pady=(2, 0))
-        topbar.grid_columnconfigure(0, weight=1)
-
-        title_label = self.tk.Label(topbar, text=title, anchor="w", font=("TkDefaultFont", 10, "bold"), padx=4, pady=0)
-        title_label.grid(row=0, column=0, sticky="w")
-
-        toggle = self._create_panel_toggle(topbar, panel_key)
-        toggle.grid(row=0, column=1, sticky="e")
+        toggle = self._create_panel_toggle(panel, panel_key)
+        toggle.place(relx=1.0, x=-10, y=-8, anchor="ne")
 
         body = self.tk.Frame(panel, bd=0)
-        body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(5, 8))
+        body.grid(row=0, column=0, sticky="nsew", padx=8, pady=(8, 8))
         if use_grid:
             body.grid_rowconfigure(0, weight=1)
             body.grid_columnconfigure(0, weight=1)
 
-        return panel, topbar, title_label, toggle, body
+        toggle.lift()
+
+        return panel, panel, panel, toggle, body
 
     def _build_layout(self) -> None:
         tk = self.tk
@@ -482,7 +477,7 @@ class PhotoMigratorTkGUI:
 
         self.input_panel, self.input_header, self.input_title_label, self.input_toggle_spacer, self.input_row = self._create_panel_shell(self.bottom, "Process Input", "status")
         self.input_panel.grid(row=4, column=0, sticky="ew", pady=(10, 0))
-        self.input_toggle_spacer.grid_remove()
+        self.input_toggle_spacer.place_forget()
         self.input_row.grid_columnconfigure(0, weight=1)
         self.job_input_var = tk.StringVar()
         self.job_input_var.trace_add("write", lambda *_args: self.refresh_action_buttons())
@@ -509,25 +504,19 @@ class PhotoMigratorTkGUI:
         self.topbar.configure(bg=theme["root_bg"])
         self.tabs_left.configure(bg=theme["root_bg"])
         self.tabs_right.configure(bg=theme["root_bg"])
-        self.content_panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
-        self.content_header.configure(bg=theme["root_bg"])
-        self.content_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
+        self.content_panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
         self.content_body.configure(bg=theme["panel_bg"])
         self.content_scroll.frame.configure(bg=theme["panel_bg"])
         self.content_scroll.canvas.configure(bg=theme["panel_bg"])
         self.content_scroll.body.configure(bg=theme["panel_bg"])
-        for panel, header, title, body in (
+        for panel, _header, _title, body in (
             (self.description_panel, self.description_header, self.description_title_label, self.description_body),
             (self.preview_panel, self.preview_header, self.preview_title_label, self.preview_body),
             (self.status_panel, self.status_header, self.status_title_label, self.status_body),
         ):
-            panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
-            header.configure(bg=theme["root_bg"])
-            title.configure(bg=theme["root_bg"], fg=theme["accent"])
+            panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
             body.configure(bg=theme["panel_bg"])
-        self.log_panel.configure(bg=theme["log_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
-        self.log_header.configure(bg=theme["root_bg"])
-        self.log_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
+        self.log_panel.configure(bg=theme["log_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
         self.description_body.configure(bg=theme["panel_bg"])
         self.preview_body.configure(bg=theme["panel_bg"])
         self.status_body.configure(bg=theme["panel_bg"])
@@ -536,9 +525,7 @@ class PhotoMigratorTkGUI:
         self.preview_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], insertbackground=theme["panel_fg"])
         self.status_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], wraplength=max(200, self.root.winfo_width() - 420))
         self.log_text.configure(bg=theme["log_bg"], fg=theme["log_fg"], insertbackground=theme["log_fg"])
-        self.input_panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
-        self.input_header.configure(bg=theme["root_bg"])
-        self.input_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
+        self.input_panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
         self.input_row.configure(bg=theme["panel_bg"])
         self.job_input_entry.configure(bg=theme["entry_bg"], fg=theme["entry_fg"], insertbackground=theme["entry_fg"], relief="solid", bd=1)
         for button in (
@@ -814,7 +801,7 @@ class PhotoMigratorTkGUI:
         else:
             self.content_panel.grid_propagate(True)
             self.content_panel.configure(height=0)
-            self.content_body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(5, 8))
+            self.content_body.grid(row=0, column=0, sticky="nsew", padx=8, pady=(8, 8))
             self.content_scroll.frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
 
         if self.panel_collapsed.get("description", False):
@@ -824,7 +811,7 @@ class PhotoMigratorTkGUI:
         else:
             self.description_panel.grid_propagate(True)
             self.description_panel.configure(height=0)
-            self.description_body.grid(row=1, column=0, sticky="ew", padx=8, pady=(5, 8))
+            self.description_body.grid(row=0, column=0, sticky="ew", padx=8, pady=(8, 8))
 
         if self.panel_collapsed.get("preview", False):
             self.preview_body.grid_remove()
@@ -833,7 +820,7 @@ class PhotoMigratorTkGUI:
         else:
             self.preview_panel.grid_propagate(True)
             self.preview_panel.configure(height=0)
-            self.preview_body.grid(row=1, column=0, sticky="ew", padx=8, pady=(5, 8))
+            self.preview_body.grid(row=0, column=0, sticky="ew", padx=8, pady=(8, 8))
 
         if self.panel_collapsed.get("log", False):
             self.log_body.grid_remove()
@@ -842,7 +829,7 @@ class PhotoMigratorTkGUI:
         else:
             self.log_panel.grid_propagate(True)
             self.log_panel.configure(height=0)
-            self.log_body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(5, 8))
+            self.log_body.grid(row=0, column=0, sticky="nsew", padx=8, pady=(8, 8))
 
         if self.panel_collapsed.get("status", False):
             self.status_body.grid_remove()
@@ -851,7 +838,7 @@ class PhotoMigratorTkGUI:
         else:
             self.status_panel.grid_propagate(True)
             self.status_panel.configure(height=0)
-            self.status_body.grid(row=1, column=0, sticky="ew", padx=8, pady=(5, 8))
+            self.status_body.grid(row=0, column=0, sticky="ew", padx=8, pady=(8, 8))
 
         self.refresh_panel_toggle_buttons()
 
@@ -917,11 +904,11 @@ class PhotoMigratorTkGUI:
     def refresh_panel_titles(self) -> None:
         title = self.current_content_panel_title()
         desc = self.current_content_panel_description()
-        self.content_title_label.configure(text=(f"{title}: {desc}" if desc else title))
-        self.description_title_label.configure(text="Argument Description")
-        self.preview_title_label.configure(text="Command Preview")
-        self.log_title_label.configure(text="Execution Log")
-        self.status_title_label.configure(text="Status")
+        self.content_panel.configure(text=(f"{title}: {desc}" if desc else title))
+        self.description_panel.configure(text="Argument Description")
+        self.preview_panel.configure(text="Command Preview")
+        self.log_panel.configure(text="Execution Log")
+        self.status_panel.configure(text="Status")
         self.refresh_panel_toggle_buttons()
 
     def select_module(self, module_key: str) -> None:
