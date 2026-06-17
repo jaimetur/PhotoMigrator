@@ -47,6 +47,7 @@ TEXTUAL_AVAILABLE = False
 try:
     from textual import events
     from textual.app import App, ComposeResult
+    from textual.binding import Binding
     from textual.containers import Grid, Horizontal, Vertical, VerticalScroll
     from textual.screen import ModalScreen
     from textual.widgets import Button, Checkbox, DirectoryTree, Footer, Header, Input, Label, RichLog, Select, Static
@@ -253,6 +254,7 @@ if TEXTUAL_AVAILABLE:
 
 
     class PhotoMigratorTUI(App[None]):
+        TITLE = "PhotoMigrator CLI TUI"
         CSS = """
         Screen {
             layout: vertical;
@@ -310,7 +312,7 @@ if TEXTUAL_AVAILABLE:
         }
         #sidebar-title {
             text-style: bold;
-            color: #f4f7fb;
+            color: #d6dfeb;
             margin-bottom: 1;
         }
         .sidebar-caption {
@@ -392,7 +394,7 @@ if TEXTUAL_AVAILABLE:
             height: 1fr;
             min-height: 10;
             border: round #37547b;
-            padding: 1 1 0 1;
+            padding: 0 1 0 1;
             background: #0d141e;
         }
         .panel-title {
@@ -403,6 +405,7 @@ if TEXTUAL_AVAILABLE:
         .panel-description {
             color: #9ab0c9;
             margin-bottom: 0;
+            padding: 0;
         }
         .section-title {
             color: #cfe0f5;
@@ -474,6 +477,8 @@ if TEXTUAL_AVAILABLE:
         .field-label {
             width: 25;
             min-width: 25;
+            height: 1;
+            min-height: 1;
             padding-top: 0;
             color: #d6dfeb;
         }
@@ -488,18 +493,18 @@ if TEXTUAL_AVAILABLE:
         .field-main {
             width: 1fr;
             min-width: 0;
-            height: 2;
-            min-height: 2;
+            height: 1;
+            min-height: 1;
             content-align: center middle;
         }
         .field-path-control {
             width: 1fr;
             min-width: 0;
-            height: 2;
-            min-height: 2;
+            height: 1;
+            min-height: 1;
             layout: grid;
             grid-size: 2 1;
-            grid-columns: 1fr 4;
+            grid-columns: 1fr 5;
             grid-gutter: 1 0;
             padding-right: 1;
             content-align: center middle;
@@ -507,31 +512,55 @@ if TEXTUAL_AVAILABLE:
         .field-control {
             width: 1fr;
             min-width: 0;
-            height: 2;
-            min-height: 2;
+            height: 1;
+            min-height: 1;
             padding-right: 1;
             content-align: center middle;
         }
-        .field-main > Input, .field-main > Select,
+        .field-control--select {
+            height: 1;
+            min-height: 1;
+        }
+        .field-main > Input,
         .field-path-control > Input,
-        .field-control > Input, .field-control > Select,
-        .field-control-widget {
+        .field-control > Input,
+        .field-input-widget {
             width: 1fr;
             min-width: 0;
-            height: 2;
-            min-height: 2;
+            height: 1;
+            min-height: 1;
+            border: none;
+            padding: 0 1;
+        }
+        .field-select-widget {
+            width: 1fr;
+            min-width: 0;
+            height: 1;
+            min-height: 1;
+            border: none;
+            padding: 0;
+        }
+        .field-main > Select.field-select-widget,
+        .field-control > Select.field-select-widget {
+            height: 1;
+            min-height: 1;
+            border: none;
+            padding: 0;
         }
         .field-help {
             color: #7f93ab;
             margin-left: 25;
             margin-bottom: 0;
+            padding: 0;
         }
         .path-button {
-            width: 4;
-            min-width: 4;
-            height: 2;
-            min-height: 2;
+            width: 5;
+            min-width: 5;
+            height: 1;
+            min-height: 1;
             margin-left: 0;
+            border: none;
+            padding: 0;
             content-align: center middle;
         }
         .card {
@@ -551,13 +580,13 @@ if TEXTUAL_AVAILABLE:
         .panel-shell {
             border: round #37547b;
             background: #0d141e;
-            padding: 0 1;
+            padding: 0 1 0 1;
             margin-bottom: 0;
         }
         .panel-shell-log {
             border: round #37547b;
             background: #0b1119;
-            padding: 0 1;
+            padding: 0 1 0 1;
             margin-bottom: 0;
         }
         .panel-topbar {
@@ -647,10 +676,20 @@ if TEXTUAL_AVAILABLE:
         }
         #job-input-panel {
             height: auto;
-            min-height: 3;
+            min-height: 2;
         }
         #job-input {
             width: 1fr;
+            height: 1;
+            min-height: 1;
+            border: none;
+            padding: 0 1;
+        }
+        #picker-path-input {
+            height: 1;
+            min-height: 1;
+            border: none;
+            padding: 0 1;
         }
         #picker-dialog {
             width: 80%;
@@ -699,7 +738,7 @@ if TEXTUAL_AVAILABLE:
             background: #11161f;
             color: #f4f7fb;
         }
-        .theme-ocean #sidebar { background: #131c28; border: round #31465f; }
+        .theme-ocean #sidebar { background: #131c28; border: round #3b78b7; }
         .theme-ocean #content-panel { background: #0d141e; border: round #3b78b7; color: #dfeaf8; }
         .theme-ocean .panel-shell { background: #0d141e; border: round #3b78b7; }
         .theme-ocean .panel-shell-log { background: #0b1119; border: round #3b78b7; }
@@ -717,7 +756,7 @@ if TEXTUAL_AVAILABLE:
             background: #0f1714;
             color: #edf7f1;
         }
-        .theme-emerald #sidebar { background: #13201b; border: round #3f6f5a; }
+        .theme-emerald #sidebar { background: #13201b; border: round #3f8f72; }
         .theme-emerald #content-panel { background: #0d1713; border: round #3f8f72; color: #def4e7; }
         .theme-emerald .panel-shell { background: #0d1713; border: round #3f8f72; }
         .theme-emerald .panel-shell-log { background: #0b1411; border: round #3f8f72; }
@@ -736,7 +775,7 @@ if TEXTUAL_AVAILABLE:
             background: #1a1410;
             color: #fbf1e8;
         }
-        .theme-sunset #sidebar { background: #231913; border: round #7d5a42; }
+        .theme-sunset #sidebar { background: #231913; border: round #b26a3a; }
         .theme-sunset #content-panel { background: #18110d; border: round #b26a3a; color: #f7e6d7; }
         .theme-sunset .panel-shell { background: #18110d; border: round #b26a3a; }
         .theme-sunset .panel-shell-log { background: #140f0b; border: round #b26a3a; }
@@ -755,7 +794,7 @@ if TEXTUAL_AVAILABLE:
             background: #0c0f14;
             color: #e6ebf2;
         }
-        .theme-dark #sidebar { background: #11161d; border: round #4c5867; }
+        .theme-dark #sidebar { background: #11161d; border: round #6d7a8d; }
         .theme-dark #content-panel { background: #0b1016; border: round #6d7a8d; color: #d8e0ea; }
         .theme-dark .panel-shell { background: #0b1016; border: round #6d7a8d; }
         .theme-dark .panel-shell-log { background: #090d12; border: round #6d7a8d; }
@@ -772,12 +811,12 @@ if TEXTUAL_AVAILABLE:
         """
 
         BINDINGS = [
-            ("ctrl+r", "run_job", "Run"),
-            ("ctrl+s", "save_config", "Save Config"),
-            ("ctrl+l", "load_config", "Load Config"),
-            ("ctrl+c", "copy_text", "Copy"),
-            ("ctrl+v", "paste_text", "Paste"),
-            ("ctrl+q", "quit", "Quit"),
+            Binding("ctrl+r", "run_job", "Run"),
+            Binding("ctrl+s", "save_config", "Save Config"),
+            Binding("ctrl+l", "load_config", "Load Config"),
+            Binding("ctrl+c", "copy_text", "Copy", key_display="^C"),
+            Binding("ctrl+v", "paste_text", "Paste", key_display="^V"),
+            Binding("ctrl+q", "quit", "Quit"),
         ]
 
         def __init__(self, project_root: Path, cli_entrypoint: Path, initial_values: Dict[str, Any] | None = None):
@@ -865,7 +904,7 @@ if TEXTUAL_AVAILABLE:
             yield Header(show_clock=True)
             with Horizontal(id="workspace"):
                 with Vertical(id="sidebar"):
-                    yield Static("PhotoMigrator CLI TUI", id="sidebar-title")
+                    yield Static("Select Feature", id="sidebar-title")
                     with VerticalScroll(id="sidebar-features"):
                         for key, label in INTERACTIVE_MODULE_TAB_NAMES.items():
                             classes = f"module-tab {MODULE_GROUP_CLASSES.get(key, '')}"
@@ -1204,7 +1243,7 @@ if TEXTUAL_AVAILABLE:
             secondary: Any
             if state.get("kind") == "folder":
                 path_value = str(state.get("path") or "")
-                input_widget = Input(value=path_value, id=f"field-{dest}", classes="field-control-widget")
+                input_widget = Input(value=path_value, id=f"field-{dest}", classes="field-input-widget")
                 self.register_field_help(f"field-{dest}", help_text)
                 self.register_field_help(f"browse-{dest}", help_text or dest.title())
                 secondary = Horizontal(
@@ -1696,10 +1735,11 @@ if TEXTUAL_AVAILABLE:
                 normalized_options,
                 value=current_value or (normalized_options[0][1] if normalized_options else None),
                 id=widget_id,
-                classes="field-control-widget",
+                classes="field-control-widget field-select-widget",
+                compact=True,
             )
             self.register_field_help(widget_id, help_text)
-            return Horizontal(Label(label, classes=label_classes), Horizontal(select, classes="field-control"), classes="field-row")
+            return Horizontal(Label(label, classes=label_classes), Horizontal(select, classes="field-control field-control--select"), classes="field-row")
 
         def build_checkbox_row(self, label: str, widget_id: str, value: bool, help_text: str = "") -> Horizontal:
             self.register_field_help(widget_id, help_text)
@@ -1729,7 +1769,7 @@ if TEXTUAL_AVAILABLE:
 
         def build_input_block(self, label: str, dest: str, value: str, required: bool, help_text: str, path_hint: str = "", browse_title: str | None = None, password: bool = False) -> List[Any]:
             label_text = f"{label}{' *' if required else ''}"
-            input_widget = Input(value=value, password=password, id=f"field-{dest}", classes="field-control-widget")
+            input_widget = Input(value=value, password=password, id=f"field-{dest}", classes="field-input-widget")
             self.register_field_help(f"field-{dest}", help_text)
             if path_hint == "path":
                 row = Horizontal(
@@ -1776,7 +1816,7 @@ if TEXTUAL_AVAILABLE:
             if choices:
                 options = [(str(choice), str(choice)) for choice in choices]
                 return [self.build_select_row(label, widget_id, options, value, help_text=help_text, label_classes=label_classes)]
-            input_widget = Input(value=value, password=bool(field.get("sensitive")), id=widget_id, classes="field-control-widget")
+            input_widget = Input(value=value, password=bool(field.get("sensitive")), id=widget_id, classes="field-input-widget")
             self.register_field_help(widget_id, help_text)
             row = Horizontal(Label(label, classes=label_classes), Horizontal(input_widget, classes="field-control"), classes="field-row")
             return [row]
