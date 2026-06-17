@@ -11,10 +11,10 @@ Open the file `Config.ini` included in the package with any text editor and upda
 ### 🚀 3. Execute the Tool depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**PhotoMigrator.exe**'  
 
-  - If you run it from Synology NAS (using SSH terminal) or from Linux, you have to call the master script '**PhotoMigrator.bin**'.  
+  - If you run it from Synology NAS (using SSH terminal) or from Linux, you have to call the downloaded binary using its full versioned name, for example '**PhotoMigrator_vx.y.z_linux_x64.bin**'.  
     Minimum version required to run the Tool directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
-  - If you run it from macOS, you have to call the master script '**PhotoMigrator.command**'.
+  - If you run it from macOS, you have to call the downloaded binary using its full versioned name, for example '**PhotoMigrator_vx.y.z_macos_arm64.command**'.
 
 ### 🖥️ 4. Launch the default interactive UI:
   - Windows:
@@ -23,24 +23,26 @@ Open the file `Config.ini` included in the package with any text editor and upda
     ```
   - Linux / Synology SSH:
     ```bash
-    ./PhotoMigrator.bin
+    ./PhotoMigrator_vx.y.z_linux_x64.bin
     ```
   - macOS:
     ```bash
-    chmod +x ./PhotoMigrator.command
-    xattr -dr com.apple.quarantine ./PhotoMigrator.command
-    ./PhotoMigrator.command
+    chmod +x ./PhotoMigrator_vx.y.z_macos_arm64.command
+    xattr -dr com.apple.quarantine ./PhotoMigrator_vx.y.z_macos_arm64.command
+    ./PhotoMigrator_vx.y.z_macos_arm64.command
     ```
 
 ### 🍎 5. macOS first-launch note
 If macOS shows a warning such as "Apple cannot check it for malicious software", remove the downloaded quarantine attribute before the first execution:
 
 ```bash
-chmod +x ./PhotoMigrator.command
-xattr -dr com.apple.quarantine ./PhotoMigrator.command
-./PhotoMigrator.command
+chmod +x ./PhotoMigrator_vx.y.z_macos_arm64.command
+xattr -dr com.apple.quarantine ./PhotoMigrator_vx.y.z_macos_arm64.command
+./PhotoMigrator_vx.y.z_macos_arm64.command
 ```
-After that first unblock, you can execute `PhotoMigrator.command` from Terminal or launch it directly from Finder.
+Replace `x.y.z` and the architecture suffix with the exact file name you downloaded from the release page.
+
+After that first unblock, you can execute the same `.command` file from Terminal or launch it directly from Finder.
 
 This now opens the desktop GUI by default when a graphical environment with `tkinter` is available.
 
@@ -49,27 +51,29 @@ By default, the interactive interfaces use `./Config.ini` from the folder where 
 You can force the terminal UI explicitly with:
 
 ```bash
-./PhotoMigrator.command --tui   # macOS
-./PhotoMigrator.bin --tui       # Linux / Synology SSH
+./PhotoMigrator_vx.y.z_macos_arm64.command --tui   # macOS
+./PhotoMigrator_vx.y.z_linux_x64.bin --tui         # Linux / Synology SSH
 ```
 
 Or launch the desktop GUI explicitly with:
 
 ```bash
-./PhotoMigrator.command --gui   # macOS
-./PhotoMigrator.bin --gui       # Linux / Synology SSH
+./PhotoMigrator_vx.y.z_macos_arm64.command --gui   # macOS
+./PhotoMigrator_vx.y.z_linux_x64.bin --gui         # Linux / Synology SSH
 ```
 
 You can also preload a custom configuration file when launching the interactive interfaces:
 
 ```bash
-./PhotoMigrator.command --gui --configuration-file ./Config.ini   # macOS
-./PhotoMigrator.bin --gui --configuration-file ./Config.ini       # Linux / Synology SSH
-./PhotoMigrator.command --tui --configuration-file /volume1/shared/PhotoMigrator/custom.ini   # macOS
-./PhotoMigrator.bin --tui --configuration-file /volume1/shared/PhotoMigrator/custom.ini       # Linux / Synology SSH
-./PhotoMigrator.command --configuration-file ./Config.ini   # macOS
-./PhotoMigrator.bin --configuration-file ./Config.ini       # Linux / Synology SSH
+./PhotoMigrator_vx.y.z_macos_arm64.command --gui --configuration-file ./Config.ini   # macOS
+./PhotoMigrator_vx.y.z_linux_x64.bin --gui --configuration-file ./Config.ini         # Linux / Synology SSH
+./PhotoMigrator_vx.y.z_macos_arm64.command --tui --configuration-file /volume1/shared/PhotoMigrator/custom.ini   # macOS
+./PhotoMigrator_vx.y.z_linux_x64.bin --tui --configuration-file /volume1/shared/PhotoMigrator/custom.ini         # Linux / Synology SSH
+./PhotoMigrator_vx.y.z_macos_arm64.command --configuration-file ./Config.ini   # macOS
+./PhotoMigrator_vx.y.z_linux_x64.bin --configuration-file ./Config.ini         # Linux / Synology SSH
 ```
+
+In all the examples above, replace `x.y.z` and the architecture suffix with the exact binary name included in the release you downloaded.
 
 Notes:
 - The desktop GUI is now the first launcher option when the binary is started without arguments.

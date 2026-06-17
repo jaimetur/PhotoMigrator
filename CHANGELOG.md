@@ -62,6 +62,7 @@
   - Updated `Google Takeout` documentation and `README.md` so the default no-argument CLI behavior now references the new terminal UI instead of only the legacy prompt flow.
   - Refined the `README.md` GUI/TUI overview section to clarify the purpose of each interactive interface, the default launcher order, and the explicit `--gui` / `--tui` entrypoints.
   - Documented that GUI and TUI now accept `--configuration-file` during startup, and clarified across `README`, CLI help, argument descriptions, configuration-file help, and source/binary execution guides that the interactive UIs use `./Config.ini` from the execution folder by default.
+  - Clarified the compiled-binaries documentation for macOS and Linux so the examples now use generic versioned artifact names like `PhotoMigrator_vx.y.z_macos_<arch>.command` and explicitly instruct users to replace them with the exact downloaded release filename, avoiding confusion with non-versioned placeholder names.
   - Updated documentation with all changes.
 
 ---

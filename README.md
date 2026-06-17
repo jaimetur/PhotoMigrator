@@ -383,12 +383,13 @@ Or check the [Changelog](CHANGELOG.md) to choose any specific release.
 >
 > Compiled binary names are currently platform-specific:
 > - Windows: `PhotoMigrator.exe`
-> - macOS: `PhotoMigrator.command`
-> - Linux / Synology SSH: `PhotoMigrator.bin`
->
+> - macOS: `PhotoMigrator_vx.y.z_macos_<arch>.command`
+> - Linux / Synology SSH: `PhotoMigrator_vx.y.z_linux_<arch>.bin`
+
+> [!IMPORTANT]  
 > On macOS, downloaded unsigned binaries may be blocked by Gatekeeper on first launch. If that happens, run:
-> `chmod +x ./PhotoMigrator.command && xattr -dr com.apple.quarantine ./PhotoMigrator.command`
-> and then execute `./PhotoMigrator.command` again from Terminal, or double-click it from Finder after the first unblock.
+> `chmod +x ./PhotoMigrator_vx.y.z_macos_<arch>.command && xattr -dr com.apple.quarantine ./PhotoMigrator_vx.y.z_macos_<arch>.command`
+> and then execute that same `.command` file again from Terminal or Finder. Replace `x.y.z` and `<arch>` with the exact version and architecture you downloaded.
 
 
 ## ⚙️ Configuration File
