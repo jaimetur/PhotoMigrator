@@ -9,6 +9,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, List
+from Core.GlobalVariables import TOOL_VERSION
 
 from UI.shared import (
     CLOUD_ACTIONS_AVAILABLE_BY_TAB,
@@ -270,7 +271,7 @@ class PhotoMigratorTkGUI:
         self.reload_config_model()
 
         self.root = tk.Tk()
-        self.root.title("PhotoMigrator GUI")
+        self.root.title(f"PhotoMigrator {TOOL_VERSION} - Graphical User Interface (GUI)")
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.root.geometry(self.window_geometry)
         self.root.minsize(1220, 760)

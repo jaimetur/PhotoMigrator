@@ -9,6 +9,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, List
+from Core.GlobalVariables import TOOL_VERSION
 
 from UI.shared import (
     CLOUD_ACTIONS_AVAILABLE_BY_TAB,
@@ -338,7 +339,6 @@ if TEXTUAL_AVAILABLE:
             self._manual_selection_start: tuple[int, int] | None = None
             self._manual_selection_end: tuple[int, int] | None = None
             self._manual_selection_active = False
-            self.allow_horizontal_scroll = True
 
         @property
         def allow_select(self) -> bool:
@@ -645,6 +645,21 @@ if TEXTUAL_AVAILABLE:
             if max_scroll_x <= 0:
                 return False
             try:
+                if delta > 0:
+                    scroll_right = getattr(self, "scroll_right", None)
+                    if callable(scroll_right):
+                        for _ in range(abs(int(delta))):
+                            scroll_right(animate=False)
+                        return True
+                elif delta < 0:
+                    scroll_left = getattr(self, "scroll_left", None)
+                    if callable(scroll_left):
+                        for _ in range(abs(int(delta))):
+                            scroll_left(animate=False)
+                        return True
+            except Exception:
+                pass
+            try:
                 scroll_relative = getattr(self, "scroll_relative", None)
                 if callable(scroll_relative):
                     scroll_relative(x=delta, animate=False, immediate=True, force=True)
@@ -696,7 +711,7 @@ if TEXTUAL_AVAILABLE:
 
 
     class PhotoMigratorTUI(App[None]):
-        TITLE = "PhotoMigrator CLI TUI"
+        TITLE = f"PhotoMigrator {TOOL_VERSION} - Terminal Interactive User Interface (TUI)"
         ALLOW_SELECT = True
         CSS = """
         Screen {
@@ -1400,6 +1415,7 @@ if TEXTUAL_AVAILABLE:
             self.last_focused_widget_id = ""
             self.last_hovered_widget_id = ""
             self.last_context_widget_id = ""
+            self.context_menu_target_widget_id = ""
             self.context_menu_visible = False
             self.panel_collapsed = {
                 "content": False,
@@ -2081,7 +2097,7 @@ if TEXTUAL_AVAILABLE:
                 return None
 
         def _context_widget(self) -> Any | None:
-            for widget_id in [self.last_context_widget_id, self.last_hovered_widget_id, self.last_focused_widget_id]:
+            for widget_id in [self.context_menu_target_widget_id, self.last_context_widget_id, self.last_hovered_widget_id, self.last_focused_widget_id]:
                 widget = self._resolve_widget_by_id(widget_id)
                 if widget is not None:
                     return widget
@@ -2199,8 +2215,9 @@ if TEXTUAL_AVAILABLE:
             except Exception:
                 pass
             self.context_menu_visible = False
+            self.context_menu_target_widget_id = ""
 
-        def show_context_popup(self, screen_x: int, screen_y: int, *, can_copy: bool, can_paste: bool) -> None:
+        def show_context_popup(self, screen_x: int, screen_y: int, *, can_copy: bool, can_paste: bool, target_widget_id: str = "") -> None:
             try:
                 popup = self.query_one("#context-popup", Vertical)
                 copy_button = self.query_one("#context-copy", Button)
@@ -2210,8 +2227,10 @@ if TEXTUAL_AVAILABLE:
                 popup.styles.offset = (max(0, int(screen_x) - 1), max(0, int(screen_y) - 1))
                 popup.styles.display = "block"
                 self.context_menu_visible = True
+                self.context_menu_target_widget_id = str(target_widget_id or "")
             except Exception:
                 self.context_menu_visible = False
+                self.context_menu_target_widget_id = ""
 
         def action_copy_text(self) -> None:
             try:
@@ -2275,6 +2294,7 @@ if TEXTUAL_AVAILABLE:
                 event.screen_y,
                 can_copy=bool(self._copy_text_for_widget(target)),
                 can_paste=self._widget_accepts_paste(target) and bool(str(clipboard_text or "")),
+                target_widget_id=str(getattr(target, "id", "") or ""),
             )
             event.stop()
             try:
@@ -2393,6 +2413,21 @@ if TEXTUAL_AVAILABLE:
                     max_scroll_x = 0
             if max_scroll_x <= 0:
                 return False
+            try:
+                if delta > 0:
+                    scroll_right = getattr(target, "scroll_right", None)
+                    if callable(scroll_right):
+                        for _ in range(abs(int(delta))):
+                            scroll_right(animate=False)
+                        return True
+                elif delta < 0:
+                    scroll_left = getattr(target, "scroll_left", None)
+                    if callable(scroll_left):
+                        for _ in range(abs(int(delta))):
+                            scroll_left(animate=False)
+                        return True
+            except Exception:
+                pass
             try:
                 scroll_relative = getattr(target, "scroll_relative", None)
                 if callable(scroll_relative):
