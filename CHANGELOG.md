@@ -10,7 +10,7 @@
 #### 🚨 Breaking Changes:
   
 #### 🌟 New Features:
-  - Added a new native desktop GUI powered by `tkinter`, built on top of the same shared UI/model layer as the CLI TUI so it can expose the same module structure, dynamic forms, configuration editor, command preview, and in-app execution log through a graphical windowed interface.
+  - Added a new native desktop GUI powered by `tkinter`, built on top of the same shared UI/model layer as the CLI TUI so it can expose the same module structure, dynamic forms, configuration editor, command preview, and in-app execution log through a graphical windowed interface. (Issue #1123)
   - Added a new interactive CLI TUI powered by `Textual`, designed to be much closer to the Web Interface layout. The new terminal UI includes the same top-level feature selector modules, `General Arguments`, `Features Config`, and `App Settings` views, dynamic module-specific forms, multi-account configuration selectors for cloud services, live command preview, and in-terminal execution logs. (Issue #1122).
 
 #### 🚀 Enhancements:
