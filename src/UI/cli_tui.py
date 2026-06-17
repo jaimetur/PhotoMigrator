@@ -505,8 +505,8 @@ if TEXTUAL_AVAILABLE:
             color: #98a4b3;
         }
         .field-label {
-            width: 25;
-            min-width: 25;
+            width: 29;
+            min-width: 29;
             height: 1;
             min-height: 1;
             padding-top: 0;
