@@ -416,6 +416,9 @@ if TEXTUAL_AVAILABLE:
             color: #f0c88b;
             margin: 0;
         }
+        .feature-section-title--spaced {
+            margin-top: 1;
+        }
         .form-columns {
             width: 1fr;
             height: auto;
@@ -814,7 +817,7 @@ if TEXTUAL_AVAILABLE:
             Binding("ctrl+r", "run_job", "Run"),
             Binding("ctrl+s", "save_config", "Save Config"),
             Binding("ctrl+l", "load_config", "Load Config"),
-            Binding("ctrl+c", "copy_text", "Copy", key_display="^C"),
+            Binding("ctrl+c", "copy_text", "Copy", key_display="^C", priority=True),
             Binding("ctrl+v", "paste_text", "Paste", key_display="^V"),
             Binding("ctrl+q", "quit", "Quit"),
         ]
@@ -1199,7 +1202,7 @@ if TEXTUAL_AVAILABLE:
                         widgets.extend(self.build_field_widgets(field, context=tab_key))
 
                 if toggle_fields:
-                    widgets.append(Static("Flags", classes="section-title feature-section-title"))
+                    widgets.append(Static("Flags", classes="section-title feature-section-title feature-section-title--spaced"))
                     widgets.append(self.build_flags_columns(toggle_fields, tab_key))
                 return widgets
 
@@ -1304,7 +1307,7 @@ if TEXTUAL_AVAILABLE:
                 specs = [spec for spec in specs if spec["field"]["dest"] != "account-id"]
                 insert_at = next((idx for idx, spec in enumerate(specs) if not spec["required"]), len(specs))
                 specs.insert(insert_at, {"field": normalized, "required": False})
-            widgets.append(Static("Action Arguments", classes="section-title feature-section-title"))
+            widgets.append(Static("Action Arguments", classes="section-title feature-section-title feature-section-title--spaced"))
             if selected and selected.get("dest") == "rename-albums":
                 parsed = parse_rename_albums_value(self.state_values.get("rename-albums"))
                 if not str(self.state_values.get("rename-pattern") or "").strip():
@@ -1321,7 +1324,7 @@ if TEXTUAL_AVAILABLE:
                     widgets.extend(self.build_field_widgets(spec["field"], required=spec["required"], context=self.active_module))
             otp_field = get_field_by_dest(self.schema, "one-time-password")
             if otp_field and self.active_module in {"synology_photos", "immich_photos", "nextcloud_photos", "google_photos"}:
-                widgets.append(Static("Optional", classes="section-title feature-section-title"))
+                widgets.append(Static("Optional", classes="section-title feature-section-title feature-section-title--spaced"))
                 widgets.extend(self.build_field_widgets(otp_field, required=False, context=self.active_module))
             return widgets
 
@@ -1338,7 +1341,7 @@ if TEXTUAL_AVAILABLE:
             selected = next((field for field in actions if field["dest"] == selected_dest), None)
             if selected:
                 widgets.append(Static(str(selected.get("help") or "").strip(), classes="panel-description"))
-            widgets.append(Static("Action Arguments", classes="section-title feature-section-title"))
+            widgets.append(Static("Action Arguments", classes="section-title feature-section-title feature-section-title--spaced"))
             if selected and selected.get("dest") == "find-duplicates":
                 parsed = parse_find_duplicates_value(self.state_values.get("find-duplicates"))
                 self.state_values["find-duplicates-action"] = parsed.get("action") or "list"
