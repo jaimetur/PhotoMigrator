@@ -19,6 +19,7 @@ from UI.shared import (
     GENERAL_TAB_NAMES,
     MODULE_TAB_NAMES,
     TIMEZONE_CHOICES,
+    build_external_terminal_command,
     build_ui_subprocess_env,
     build_argument_specs,
     build_full_command,
@@ -1341,12 +1342,13 @@ class PhotoMigratorTkGUI:
 
     def build_migration_endpoint_row(self, parent: Any, dest: str, help_text: str) -> None:
         state = self.migration_endpoint_state(dest)
-        row = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])
-        row.pack(fill="x", padx=6, pady=2)
-        self._label(row, dest.title()).pack(side="left")
+        block = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])
+        block.pack(fill="x", padx=6, pady=2)
 
-        controls = self.tk.Frame(row, bg=self.current_theme()["panel_bg"])
-        controls.pack(side="left", fill="x", expand=True)
+        selector_row = self.tk.Frame(block, bg=self.current_theme()["panel_bg"])
+        selector_row.pack(fill="x")
+
+        self._label(selector_row, dest.title()).pack(side="left")
 
         kind_map = {
             "Synology Photos": "synology",
@@ -1357,13 +1359,13 @@ class PhotoMigratorTkGUI:
         }
         reverse_kind_map = {value: key for key, value in kind_map.items()}
         type_var = self.tk.StringVar(value=reverse_kind_map.get(state.get("kind") or "", "Select Folder"))
-        type_combo = self.ttk.Combobox(controls, textvariable=type_var, values=list(kind_map.keys()), state="readonly", style="PM.TCombobox")
+        type_combo = self.ttk.Combobox(selector_row, textvariable=type_var, values=list(kind_map.keys()), state="readonly", style="PM.TCombobox")
         type_combo.pack(fill="x", expand=True, padx=(0, 8))
         self._bind_help(type_combo, help_text)
         self._bind_context_menu(type_combo)
 
-        secondary = self.tk.Frame(controls, bg=self.current_theme()["panel_bg"])
-        secondary.pack(fill="x", expand=True, pady=(4, 0))
+        secondary = self.tk.Frame(block, bg=self.current_theme()["panel_bg"])
+        secondary.pack(fill="x", pady=(4, 0))
 
         def sync_endpoint_state() -> None:
             self.migration_endpoints_state[dest] = state
@@ -1374,6 +1376,7 @@ class PhotoMigratorTkGUI:
             for child in list(secondary.winfo_children()):
                 child.destroy()
             if state.get("kind") == "folder":
+                self._label(secondary, "Folder Path").pack(side="left")
                 path_var = self.tk.StringVar(value=str(state.get("path") or ""))
                 self.field_widget_map[dest] = path_var
                 entry = self._entry(secondary, path_var)
@@ -1390,20 +1393,10 @@ class PhotoMigratorTkGUI:
                 path_var.trace_add("write", on_path_change)
             else:
                 self.field_widget_map.pop(dest, None)
+                self._label(secondary, "Account").pack(side="left")
                 account_var = self.tk.StringVar(value=str(state.get("account") or "1"))
-                account_label = self.tk.Label(
-                    secondary,
-                    text="Account",
-                    anchor="w",
-                    justify="left",
-                    bg=self.current_theme()["panel_bg"],
-                    fg=self.current_theme()["text"],
-                    width=10,
-                )
-                account_label.pack(side="left", padx=(0, 6))
                 account_combo = self.ttk.Combobox(secondary, textvariable=account_var, values=["1", "2", "3"], state="readonly", style="PM.TCombobox", width=8)
                 account_combo.pack(side="left", fill="x", padx=(0, 8))
-                self._bind_help(account_label, help_text)
                 self._bind_help(account_combo, help_text)
                 self._bind_context_menu(account_combo)
 
@@ -1421,6 +1414,44 @@ class PhotoMigratorTkGUI:
         type_combo.bind("<<ComboboxSelected>>", on_kind_change)
         render_secondary()
         sync_endpoint_state()
+
+    def _selected_action_for_active_module(self) -> str | None:
+        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            return self.cloud_action_dest.get(self.active_module)
+        if self.active_module == "standalone_features":
+            return self.standalone_action_dest
+        return None
+
+    def _build_current_command(self, *, dashboard_enabled: bool | None = None) -> List[str]:
+        values = dict(self.state_values)
+        if self.active_module == "automatic_migration" and dashboard_enabled is not None:
+            values["dashboard"] = bool(dashboard_enabled)
+        return build_full_command(
+            self.cli_entrypoint,
+            self.schema,
+            self.active_module,
+            values,
+            self._selected_action_for_active_module(),
+        )
+
+    def _should_run_dashboard_in_external_terminal(self) -> bool:
+        return self.active_module == "automatic_migration" and bool(self.state_values.get("dashboard", False))
+
+    def _restore_gui_focus(self) -> None:
+        try:
+            self.root.deiconify()
+            self.root.lift()
+            self.root.focus_force()
+        except Exception:
+            pass
+
+    def _launch_dashboard_job_in_external_terminal(self, command: List[str]) -> None:
+        env = build_ui_subprocess_env(ui_mode="gui", embedded_ui=False)
+        launcher = build_external_terminal_command(command, self.project_root, env)
+        if not launcher:
+            raise RuntimeError("No supported external terminal launcher was found on this system.")
+        subprocess.Popen(launcher, cwd=str(self.project_root), env=env)
+        self.root.after(150, self._restore_gui_focus)
 
     def build_flags_grid(self, parent: Any, fields: List[Dict[str, Any]], context: str) -> None:
         theme = self.current_theme()
@@ -1763,12 +1794,7 @@ class PhotoMigratorTkGUI:
             self._set_readonly_text(self.preview_text, "Upload to Server is only available in the Web Interface.")
             self.refresh_action_buttons()
             return
-        selected_action = None
-        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
-            selected_action = self.cloud_action_dest.get(self.active_module)
-        elif self.active_module == "standalone_features":
-            selected_action = self.standalone_action_dest
-        command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
+        command = self._build_current_command()
         self._set_readonly_text(self.preview_text, command_preview_string(command))
         self.running_command = command
         self.refresh_action_buttons()
@@ -1832,16 +1858,45 @@ class PhotoMigratorTkGUI:
         if self.running_process is not None and self.running_process.poll() is None:
             self.update_status("A job is already running.")
             return
-        selected_action = None
-        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
-            selected_action = self.cloud_action_dest.get(self.active_module)
-        elif self.active_module == "standalone_features":
-            selected_action = self.standalone_action_dest
-        command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
+        if self._should_run_dashboard_in_external_terminal():
+            from tkinter import messagebox
+
+            confirmed = messagebox.askyesno(
+                "Automatic Migration Live Dashboard",
+                "Live Dashboard is enabled for Automatic Migration.\n\n"
+                "If you continue, PhotoMigrator will open this run in an external terminal window so the full-screen dashboard can render there.\n\n"
+                "If you choose No, the same migration will run only for this execution without Live Dashboard and the output will stay embedded in the GUI Execution Log.",
+                parent=self.root,
+            )
+            if confirmed:
+                command = self._build_current_command(dashboard_enabled=True)
+                self.running_command = command
+                self.log_buffer.clear()
+                self._set_readonly_text(self.log_text, "")
+                self.append_log(f"> {command_to_string(command)}")
+                try:
+                    self._launch_dashboard_job_in_external_terminal(command)
+                except Exception as exc:
+                    self.update_status(f"Unable to launch Live Dashboard in external terminal: {exc}")
+                    self.append_log(f"[internal] External Live Dashboard launch failed: {exc}")
+                    return
+                self.append_log("[internal] Live Dashboard launched in an external terminal window.")
+                self.update_status("Live Dashboard launched in an external terminal window.")
+                self.refresh_action_buttons()
+                return
+            command = self._build_current_command(dashboard_enabled=False)
+            self.running_command = command
+            self.log_buffer.clear()
+            self._set_readonly_text(self.log_text, "")
+            self.append_log(f"> {command_to_string(command)}")
+            self.append_log("[internal] Live Dashboard disabled for this run by user confirmation.")
+        else:
+            command = self._build_current_command()
         self.running_command = command
-        self.log_buffer.clear()
-        self._set_readonly_text(self.log_text, "")
-        self.append_log(f"> {command_to_string(command)}")
+        if not self.log_buffer.entries:
+            self.log_buffer.clear()
+            self._set_readonly_text(self.log_text, "")
+            self.append_log(f"> {command_to_string(command)}")
         try:
             process = subprocess.Popen(
                 command,

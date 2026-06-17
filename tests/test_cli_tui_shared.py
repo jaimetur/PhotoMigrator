@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -13,6 +14,7 @@ try:
         build_cli_args,
         build_ui_subprocess_env,
         build_parser_schema,
+        build_external_terminal_command,
         command_preview_string,
         command_to_string,
         compose_migration_endpoint,
@@ -143,6 +145,38 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertEqual(env["PHOTOMIGRATOR_TUI_MODE"], "1")
         self.assertEqual(env["TERM"], "dumb")
         self.assertNotIn("NO_COLOR", env)
+
+    def test_build_external_terminal_command_uses_osascript_on_macos(self):
+        env = build_ui_subprocess_env({"TERM": "xterm-256color"}, ui_mode="gui", embedded_ui=False)
+
+        with patch("UI.shared.shutil.which", side_effect=lambda name: "/usr/bin/osascript" if name == "osascript" else None):
+            command = build_external_terminal_command(
+                ["/usr/bin/python3", "/tmp/PhotoMigrator.py", "--automatic-migration"],
+                Path("/tmp/project"),
+                env,
+                platform_name="darwin",
+            )
+
+        self.assertEqual(command[:2], ["osascript", "-e"])
+        self.assertIn('tell application "Terminal"', command[2])
+        self.assertIn("cd /tmp/project", command[2])
+        self.assertIn("/usr/bin/python3", command[2])
+
+    def test_build_external_terminal_command_uses_linux_terminal_emulator(self):
+        env = build_ui_subprocess_env({"TERM": "xterm-256color"}, ui_mode="gui", embedded_ui=False)
+
+        with patch("UI.shared.shutil.which", side_effect=lambda name: "/usr/bin/gnome-terminal" if name == "gnome-terminal" else None):
+            command = build_external_terminal_command(
+                ["/usr/bin/python3", "/tmp/PhotoMigrator.py", "--automatic-migration"],
+                Path("/tmp/project"),
+                env,
+                platform_name="linux",
+            )
+
+        self.assertEqual(command[:3], ["gnome-terminal", "--", "bash"])
+        self.assertEqual(command[3], "-lc")
+        self.assertIn("cd /tmp/project", command[4])
+        self.assertIn("/usr/bin/python3", command[4])
 
 
 if __name__ == "__main__":

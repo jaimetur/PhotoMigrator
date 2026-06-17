@@ -1,6 +1,7 @@
 # Module to define Globals Variables accesible to all other modules
 import logging
 import os
+import shutil
 import sys
 
 import Core.GlobalVariables as GV
@@ -41,10 +42,21 @@ def set_GLOBAL_VARIABLES():
     GV.CONFIGURATION_FILE               = resolve_external_path(GV.ARGS.get('configuration-file')                                                       or GV.CONFIGURATION_FILE)
 
     # Now resolve GV.FOLDERNAME_GPTH and GV.FOLDERNAME_EXIFTOOL depending on if the user passed them as argument or not. If not we need to resolve using resolve_internal_path to find it within the binary file.
+    def _resolve_tool_override(raw_value):
+        tool_value = str(raw_value or '').strip()
+        if not tool_value:
+            return None
+        if not any(sep and sep in tool_value for sep in (os.sep, os.altsep)):
+            command_lookup = shutil.which(tool_value)
+            if command_lookup:
+                return command_lookup
+        resolved_path = resolve_external_path(tool_value)
+        return resolved_path if os.path.exists(resolved_path) else None
+
     gpth_arg = GV.ARGS.get('exec-gpth-tool') or ''
     exif_arg = GV.ARGS.get('exec-exif-tool') or ''
-    gpth_resolved = resolve_external_path(gpth_arg) if gpth_arg.strip() else None
-    exif_resolved = resolve_external_path(exif_arg) if exif_arg.strip() else None
+    gpth_resolved = _resolve_tool_override(gpth_arg)
+    exif_resolved = _resolve_tool_override(exif_arg)
     GV.FOLDERNAME_GPTH = gpth_resolved if gpth_resolved and os.path.exists(gpth_resolved) else resolve_internal_path(GV.FOLDERNAME_GPTH)
     GV.FOLDERNAME_EXIFTOOL = exif_resolved if exif_resolved and os.path.exists(exif_resolved) else resolve_internal_path(GV.FOLDERNAME_EXIFTOOL)
     # GV.FOLDERNAME_GPTH              = resolve_external_path(GV.ARGS.get('exec-gpth-tool'))                or resolve_internal_path(GV.FOLDERNAME_GPTH)

@@ -2,6 +2,8 @@ import argparse
 import json
 import os
 import re
+import shlex
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -273,6 +275,88 @@ def build_ui_subprocess_env(base_env: Dict[str, str] | None = None, *, ui_mode: 
     env.setdefault("TERM", "xterm-256color")
     env.pop("NO_COLOR", None)
     return env
+
+
+EXTERNAL_TERMINAL_ENV_KEYS = (
+    "PHOTOMIGRATOR_FORCE_COLOR",
+    "FORCE_COLOR",
+    "PY_COLORS",
+    "CLICOLOR_FORCE",
+    "TERM",
+    "PHOTOMIGRATOR_GUI_MODE",
+    "PHOTOMIGRATOR_TUI_MODE",
+)
+
+
+def _posix_command_to_shell(command: List[str]) -> str:
+    return " ".join(shlex.quote(str(part)) for part in (command or []))
+
+
+def _posix_terminal_job_command(command: List[str], cwd: Path, env: Dict[str, str] | None = None) -> str:
+    parts: List[str] = []
+    effective_env = dict(env or {})
+    for key in EXTERNAL_TERMINAL_ENV_KEYS:
+        value = effective_env.get(key)
+        if value is not None and str(value) != "":
+            parts.append(f"export {key}={shlex.quote(str(value))}")
+    parts.append(f"cd {shlex.quote(str(Path(cwd)))}")
+    parts.append(_posix_command_to_shell(command))
+    return "; ".join(parts)
+
+
+def _windows_terminal_job_command(command: List[str], cwd: Path, env: Dict[str, str] | None = None) -> str:
+    parts: List[str] = []
+    effective_env = dict(env or {})
+    for key in EXTERNAL_TERMINAL_ENV_KEYS:
+        value = effective_env.get(key)
+        if value is not None and str(value) != "":
+            parts.append(f'set "{key}={value}"')
+    parts.append(f'cd /d "{Path(cwd)}"')
+    parts.append(command_to_string(command))
+    return " && ".join(parts)
+
+
+def _escape_applescript_string(text: str) -> str:
+    return str(text or "").replace("\\", "\\\\").replace('"', '\\"')
+
+
+def build_external_terminal_command(
+    command: List[str],
+    cwd: Path,
+    env: Dict[str, str] | None = None,
+    *,
+    platform_name: str | None = None,
+) -> List[str]:
+    target_platform = str(platform_name or sys.platform or "").lower()
+
+    if target_platform == "darwin":
+        if not shutil.which("osascript"):
+            return []
+        shell_command = _posix_terminal_job_command(command, cwd, env)
+        apple_script = (
+            'tell application "Terminal"\n'
+            "activate\n"
+            f'do script "{_escape_applescript_string(shell_command)}"\n'
+            "end tell"
+        )
+        return ["osascript", "-e", apple_script]
+
+    if target_platform.startswith("win"):
+        shell_command = _windows_terminal_job_command(command, cwd, env)
+        return ["cmd", "/c", f'start "PhotoMigrator Live Dashboard" cmd /k "{shell_command}"']
+
+    shell_command = _posix_terminal_job_command(command, cwd, env)
+    if shutil.which("x-terminal-emulator"):
+        return ["x-terminal-emulator", "-e", "bash", "-lc", shell_command]
+    if shutil.which("gnome-terminal"):
+        return ["gnome-terminal", "--", "bash", "-lc", shell_command]
+    if shutil.which("konsole"):
+        return ["konsole", "-e", "bash", "-lc", shell_command]
+    if shutil.which("xfce4-terminal"):
+        return ["xfce4-terminal", "--command", f"bash -lc {shlex.quote(shell_command)}"]
+    if shutil.which("xterm"):
+        return ["xterm", "-hold", "-e", "bash", "-lc", shell_command]
+    return []
 
 
 @dataclass

@@ -2,6 +2,7 @@ import logging
 import os
 import platform
 import posixpath
+import shutil
 import sys
 from pathlib import Path
 
@@ -60,15 +61,22 @@ def get_exif_tool_path(base_path: str, step_name='') -> str:
         * Linux / macOS → 'exiftool'
         * Windows       → 'exiftool.exe'
     """
-    p = Path(base_path)
+    raw_base_path = str(base_path or "").strip()
+    p = Path(raw_base_path or ".")
+    exec_name = "exiftool.exe" if platform.system().lower() == "windows" else "exiftool"
 
     # --------- Case 1: it is already a file path ----------
     # Return the file even if it is not executable yet; ensure_executable() can fix permissions later.
     if p.exists() and p.is_file():
         return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
-    # --------- Case 2: it is (or will be) a directory ----------
-    exec_name = "exiftool.exe" if platform.system().lower() == "windows" else "exiftool"
+    # --------- Case 2: the user supplied an executable name available in PATH ----------
+    if raw_base_path and not any(sep and sep in raw_base_path for sep in (os.sep, os.altsep)):
+        direct_lookup = shutil.which(raw_base_path)
+        if direct_lookup:
+            return direct_lookup
+
+    # --------- Case 3: it is (or will be) a directory ----------
     candidate = resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
     if os.path.exists(candidate):
         return candidate
@@ -83,6 +91,10 @@ def get_exif_tool_path(base_path: str, step_name='') -> str:
         fallback = os.path.join(folder, exec_name)
         if os.path.exists(fallback):
             return fallback
+
+    system_candidate = shutil.which(exec_name)
+    if system_candidate:
+        return system_candidate
     return candidate
 
 

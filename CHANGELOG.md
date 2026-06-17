@@ -39,12 +39,14 @@
   - Fixed the CLI TUI `Features Config` view so config sections no longer rebuild in a visible loop, theme selection behaves more predictably, and `Config.ini` fields can be edited and saved correctly from the terminal interface.
   - Fixed multiple CLI TUI rendering issues affecting panel titles, scroll behavior, main-panel layout balancing, sidebar feature scrolling, and terminal form presentation across `Feature`, `General Arguments`, `Features Config`, and `App Settings`.
   - Fixed the desktop GUI `Automatic Migration` endpoint editor so cloud-based `source` / `target` selectors now show the `Account` label correctly in front of the account combobox, matching the TUI layout.
+  - Fixed GUI/TUI interactive runtime regressions so `ExifTool` discovery now also falls back to executables available in the system `PATH`, the CLI TUI `Execution Log` severity colors better distinguish `VERBOSE` vs `DEBUG` and `ERROR` vs `CRITICAL`, and the TUI log selection/copy flow works again for selected `Execution Log` text.
   - Fixed the desktop GUI `Execution Log` so ANSI-colored runtime output is now rendered with its original colors instead of being flattened to plain text.
   - Fixed the CLI TUI `Execution Log` so ANSI-colored runtime output is now rendered with its original colors and the log automatically stays pinned to the latest output while a job is running.
   - Fixed GUI/TUI child-process color handling so interactive jobs now keep emitting ANSI-colored output even when launched through piped `Execution Log` panels instead of a native TTY.
   - Fixed bundled `ExifTool` execution in `FolderAnalyzer`, `FileStatistics`, and standalone rename flows by ensuring the binary is executable before use; on macOS bundled tool execution also now attempts to clear the `com.apple.quarantine` attribute first.
   - Improved the CLI TUI `Execution Log` with non-wrapping long lines, horizontal overflow support, and horizontal mouse scrolling support for log inspection.
   - Updated CLI TUI `Automatic Migration` Live Dashboard behavior so fullscreen Rich dashboard runs now require an explicit confirmation dialog explaining the temporary terminal handoff; rejecting that dialog runs the same migration without `Live Dashboard` for that execution only and returns to the normal embedded TUI log flow.
+  - Updated desktop GUI `Automatic Migration` to mirror the TUI `Live Dashboard` flow: the GUI now warns before fullscreen dashboard runs, launches confirmed dashboard executions in an external terminal window, returns focus to the GUI, and aligns `source` / `target` endpoint labels with the TUI (`Folder Path` for local folders and left-aligned `Account` for cloud services).
 
 #### 📚 Documentation:
   - Added desktop GUI documentation to the README and execution/help pages, including the explicit `--gui` launcher flag and the fact that the desktop GUI is now the default startup experience when PhotoMigrator is executed without arguments.

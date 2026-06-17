@@ -375,18 +375,18 @@ if TEXTUAL_AVAILABLE:
                 y = getattr(point, "line", None)
             return max(0, int(x or 0)), max(0, int(y or 0))
 
-        def get_selection(self, selection: Any) -> tuple[str, str] | None:
+        def _selected_text_from_selection(self, selection: Any) -> str:
             start_point = getattr(selection, "start", None) or getattr(selection, "anchor", None)
             end_point = getattr(selection, "end", None) or getattr(selection, "cursor", None)
             if start_point is None or end_point is None:
-                return None
+                return ""
             start_x, start_y = self._selection_coord(start_point)
             end_x, end_y = self._selection_coord(end_point)
             if (end_y, end_x) < (start_y, start_x):
                 start_x, end_x = end_x, start_x
                 start_y, end_y = end_y, start_y
             if not self._lines:
-                return None
+                return ""
             start_y = max(0, min(start_y, len(self._lines) - 1))
             end_y = max(0, min(end_y, len(self._lines) - 1))
             selected_lines: List[str] = []
@@ -400,8 +400,15 @@ if TEXTUAL_AVAILABLE:
                     selected_lines.append(line[:end_x])
                 else:
                     selected_lines.append(line)
-            selected_text = "\n".join(selected_lines)
-            return (selected_text, "") if selected_text else None
+            return "\n".join(selected_lines)
+
+        def get_selection(self, selection: Any) -> str | None:
+            selected_text = self._selected_text_from_selection(selection)
+            return selected_text or None
+
+        def get_selection_text(self, selection: Any) -> str | None:
+            selected_text = self._selected_text_from_selection(selection)
+            return selected_text or None
 
         def _scroll_to_end_if_needed(self, scroll_end: bool | None) -> None:
             if scroll_end is False or not self.auto_scroll:
@@ -2768,12 +2775,12 @@ if TEXTUAL_AVAILABLE:
             if not match:
                 return text
             styles = {
-                "VERBOSE": "cyan",
-                "DEBUG": "bright_cyan",
+                "VERBOSE": "dim cyan",
+                "DEBUG": "bold bright_blue",
                 "INFO": "bright_white",
                 "WARNING": "yellow",
-                "ERROR": "red",
-                "CRITICAL": "bold bright_magenta",
+                "ERROR": "bold red",
+                "CRITICAL": "bold white on dark_red",
             }
             level_name = match.group(1)
             style = styles.get(level_name)
