@@ -9,6 +9,9 @@ Additionally, this Tool can be executed with 4 Standalone Extra Features:
 
 If more than one Stand Alone Extra Feature is detected, only the first one will be executed
 
+> [!NOTE]
+> For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. Replace the binary name accordingly when following the CLI examples below.
+
 
 # Find Duplicates (Extra Feature)
 - **From:** v1.4.0
@@ -27,7 +30,7 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
     - If `<ACTION>` is `remove` the Tool will maintain the main file and remove the others and also will generate a CSV file with all the duplicates found and store it within the folder `<DUPLICATES_FOLDER>`.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --find-duplicates move ./Albums ./ALL_PHOTOS
+  ./PhotoMigrator.bin --find-duplicates move ./Albums ./ALL_PHOTOS
   ```
   With this example, the Tool will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
   If it finds any duplicates, will keep the file within ./Albums folder (because it has been passed first on the list)
@@ -93,7 +96,7 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
   - where `yyyy` is the year of the files contained in each Album folder (if more than one year is found, then `yyyy--yyyy` will indicate the range of years for the files contained in the Album folder.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --rename-folders-content-based ./MyLocalPhotoLibrary
+  ./PhotoMigrator.bin --rename-folders-content-based ./MyLocalPhotoLibrary
   ```
   In this example, the Tool will Process your Library of photos in folder `./MyLocalPhotoLibrary` (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:  
   `yyyy - Cleaned Subfolder Name` or `yyyy--yyyy - Cleaned Subfolder Name`  

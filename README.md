@@ -380,6 +380,15 @@ Or check the [Changelog](CHANGELOG.md) to choose any specific release.
 > The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly from Windows systems, MacOs or within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
 > 
 > You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
+>
+> Compiled binary names are currently platform-specific:
+> - Windows: `PhotoMigrator.exe`
+> - macOS: `PhotoMigrator.command`
+> - Linux / Synology SSH: `PhotoMigrator.bin`
+>
+> On macOS, downloaded unsigned binaries may be blocked by Gatekeeper on first launch. If that happens, run:
+> `chmod +x ./PhotoMigrator.command && xattr -dr com.apple.quarantine ./PhotoMigrator.command`
+> and then execute `./PhotoMigrator.command` again from Terminal, or double-click it from Finder after the first unblock.
 
 
 ## ⚙️ Configuration File

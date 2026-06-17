@@ -56,36 +56,39 @@ Typical headers seen in real exports:
    - optional `Memories`
 6. Organizes `ALL_PHOTOS` by date according to the selected folder structure.
 
+> [!NOTE]
+> For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. Replace the binary name accordingly when following the CLI examples below.
+
 ## CLI usage
 
 Basic usage:
 
 ```bash
-./PhotoMigrator.run --icloud-takeout /path/to/iCloudExport
+./PhotoMigrator.bin --icloud-takeout /path/to/iCloudExport
 ```
 
 Choose a custom output folder:
 
 ```bash
-./PhotoMigrator.run --icloud-takeout /path/to/iCloudExport --output-folder /path/to/output
+./PhotoMigrator.bin --icloud-takeout /path/to/iCloudExport --output-folder /path/to/output
 ```
 
 Duplicate album assets instead of symlinks:
 
 ```bash
-./PhotoMigrator.run --icloud-takeout /path/to/iCloudExport --icloud-no-symbolic-albums
+./PhotoMigrator.bin --icloud-takeout /path/to/iCloudExport --icloud-no-symbolic-albums
 ```
 
 Include `Memories/*.csv` collections too:
 
 ```bash
-./PhotoMigrator.run --icloud-takeout /path/to/iCloudExport --icloud-include-memories
+./PhotoMigrator.bin --icloud-takeout /path/to/iCloudExport --icloud-include-memories
 ```
 
 Customize output structures:
 
 ```bash
-./PhotoMigrator.run \
+./PhotoMigrator.bin \
   --icloud-takeout /path/to/iCloudExport \
   --icloud-albums-folders-structure flatten \
   --icloud-no-albums-folders-structure year/month

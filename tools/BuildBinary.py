@@ -639,7 +639,10 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             script_compiled = f'{TOOL_NAME}'
         else:
             script_compiled = f'{TOOL_NAME}.bin'
-        script_compiled_with_version_os_arch_extension = f"{TOOL_NAME_WITH_VERSION_OS_ARCH}.run"
+        if OPERATING_SYSTEM == 'macos':
+            script_compiled_with_version_os_arch_extension = f"{TOOL_NAME_WITH_VERSION_OS_ARCH}.command"
+        else:
+            script_compiled_with_version_os_arch_extension = f"{TOOL_NAME_WITH_VERSION_OS_ARCH}.bin"
         gpth_tool = gpth_tool.replace(".ext", ".bin")
         exif_tool = exif_tool.replace('<ZIP_NAME>', 'others')
 

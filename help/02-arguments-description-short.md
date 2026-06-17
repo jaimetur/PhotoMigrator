@@ -5,6 +5,9 @@ This section describe the different arguments and flags used by the tool.
 
 There is also a [extended version](02-arguments-description.md) of this document available.
 
+> [!NOTE]
+> For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. If you are following the examples below on macOS, replace `PhotoMigrator.bin` with `PhotoMigrator.command`.
+
 ## 🖥️ Launcher Flags
 
 These flags are handled before the normal argparse parser starts, so they are launcher controls rather than regular feature arguments.
@@ -16,10 +19,10 @@ These flags are handled before the normal argparse parser starts, so they are la
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --gui
-PhotoMigrator.run --tui
-PhotoMigrator.run --gui --configuration-file ./Config.ini
-PhotoMigrator.run --gui --configuration-file /srv/PhotoMigrator/custom.ini
+PhotoMigrator.bin --gui
+PhotoMigrator.bin --tui
+PhotoMigrator.bin --gui --configuration-file ./Config.ini
+PhotoMigrator.bin --gui --configuration-file /srv/PhotoMigrator/custom.ini
 ```
 
 Notes:
@@ -47,8 +50,8 @@ Notes:
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --help
-PhotoMigrator.run --version
+PhotoMigrator.bin --help
+PhotoMigrator.bin --version
 ```
 
 ---
@@ -74,9 +77,9 @@ Following general arguments have different purposes depending on the Execution M
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
-PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
-PhotoMigrator.run --filter-by-type=video --log-level=debug
+PhotoMigrator.bin --input-folder=/mnt/import --output-folder=/mnt/export
+PhotoMigrator.bin --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
+PhotoMigrator.bin --filter-by-type=video --log-level=debug
 ```
 
 ---
@@ -93,9 +96,9 @@ Following arguments allow you to execute the Automatic Migration Process to migr
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --source=immich-1 --target=synology-2
-PhotoMigrator.run --source="/home/user/Takeout" --target="/mnt/photos" --move-assets true
-PhotoMigrator.run --source=immich-1 --target=synology-2 --dashboard false --parallel-migration false
+PhotoMigrator.bin --source=immich-1 --target=synology-2
+PhotoMigrator.bin --source="/home/user/Takeout" --target="/mnt/photos" --move-assets true
+PhotoMigrator.bin --source=immich-1 --target=synology-2 --dashboard false --parallel-migration false
 ```
 
 ---
@@ -127,14 +130,14 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --google-takeout="/home/user/Takeout"
-PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-remove-duplicates-files --google-skip-extras-files
-PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-albums-folders-structure=year/month
+PhotoMigrator.bin --google-takeout="/home/user/Takeout"
+PhotoMigrator.bin --google-takeout="/home/user/Takeout" --google-remove-duplicates-files --google-skip-extras-files
+PhotoMigrator.bin --google-takeout="/home/user/Takeout" --google-albums-folders-structure=year/month
 
 or using short arguments, 
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gafs="year/month" -grdf -gsef
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gnsa -gofs="cleaned"
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTakeout=true
+PhotoMigrator.bin -gTakeout="/home/user/Takeout" -gafs="year/month" -grdf -gsef
+PhotoMigrator.bin -gTakeout="/home/user/Takeout" -gnsa -gofs="cleaned"
+PhotoMigrator.bin -gTakeout="/home/user/Takeout" -gics -gKeepTakeout=true
 ```
 
 ---
@@ -155,14 +158,14 @@ Following arguments allow you to interact with Apple iCloud Photos export folder
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --icloud-takeout="/home/user/iCloudExport"
-PhotoMigrator.run --icloud-takeout="/home/user/iCloudExport" --icloud-no-symbolic-albums
-PhotoMigrator.run --icloud-takeout="/home/user/iCloudExport" --icloud-include-memories
+PhotoMigrator.bin --icloud-takeout="/home/user/iCloudExport"
+PhotoMigrator.bin --icloud-takeout="/home/user/iCloudExport" --icloud-no-symbolic-albums
+PhotoMigrator.bin --icloud-takeout="/home/user/iCloudExport" --icloud-include-memories
 
 or using short arguments,
-PhotoMigrator.run -iTakeout="/home/user/iCloudExport" -iofs="cleaned"
-PhotoMigrator.run -iTakeout="/home/user/iCloudExport" -iafs="year/month" -inas="year/month"
-PhotoMigrator.run -iTakeout="/home/user/iCloudExport" -insa -iMem
+PhotoMigrator.bin -iTakeout="/home/user/iCloudExport" -iofs="cleaned"
+PhotoMigrator.bin -iTakeout="/home/user/iCloudExport" -iafs="year/month" -inas="year/month"
+PhotoMigrator.bin -iTakeout="/home/user/iCloudExport" -insa -iMem
 ```
 
 ---
@@ -192,14 +195,14 @@ Following arguments allow you to interact with Google Photos, Synology, Immich, 
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --client=immich --upload-all=/mnt/pictures
-PhotoMigrator.run --client=synology --download-albums "album1 album2 album3" --output-folder=/mnt/backup
-PhotoMigrator.run --client=synology --remove-empty-albums --one-time-password
+PhotoMigrator.bin --client=immich --upload-all=/mnt/pictures
+PhotoMigrator.bin --client=synology --download-albums "album1 album2 album3" --output-folder=/mnt/backup
+PhotoMigrator.bin --client=synology --remove-empty-albums --one-time-password
 
 or using short arguments,
-PhotoMigrator.run -client=synology -uAlb="Albums" -id=1
-PhotoMigrator.run -client=immich -dAlb="Vacaciones,Navidad" -o="Backups"
-PhotoMigrator.run -client=synology -rAlb="tmp_*" -rAlbAsset -OTP
+PhotoMigrator.bin -client=synology -uAlb="Albums" -id=1
+PhotoMigrator.bin -client=immich -dAlb="Vacaciones,Navidad" -o="Backups"
+PhotoMigrator.bin -client=synology -rAlb="tmp_*" -rAlbAsset -OTP
 ```
 
 ---
@@ -217,10 +220,10 @@ Following arguments can be used to execute the Tool in any of the usefully addit
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --fix-symlinks-broken="/mnt/albums"
-PhotoMigrator.run --rename-folders-content-based="/mnt/albums"
-PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
-PhotoMigrator.run --process-duplicates revised_duplicates.csv
+PhotoMigrator.bin --fix-symlinks-broken="/mnt/albums"
+PhotoMigrator.bin --rename-folders-content-based="/mnt/albums"
+PhotoMigrator.bin --find-duplicates list "/mnt/folder1" "/mnt/folder2"
+PhotoMigrator.bin --process-duplicates revised_duplicates.csv
 ```
 
 
@@ -231,19 +234,19 @@ Below you can find a short description of  above examples
 ### ⚙️ General Options
 
 ```bash
-PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
+PhotoMigrator.bin --input-folder=/mnt/import --output-folder=/mnt/export
     
 Process input folder to fix metadatas and save the result in output folder.
 ```
 
 ```bash
-PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
+PhotoMigrator.bin --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
 
 Filters assets from 2022 only.
 ```
 
 ```bash
-PhotoMigrator.run --filter-by-type=video --log-level=debug
+PhotoMigrator.bin --filter-by-type=video --log-level=debug
 
 Processes only video files and shows debug logs.
 ```
@@ -253,19 +256,19 @@ Processes only video files and shows debug logs.
 ### 🚀 Automatic Migration
 
 ```bash
-PhotoMigrator.run --source=immich-1 --target=synology-2
+PhotoMigrator.bin --source=immich-1 --target=synology-2
 
 Migrates all content from Immich account 1 to Synology account 2.
 ```
 
 ```bash
-PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
+PhotoMigrator.bin --source=/mnt/photos --target=/mnt/synology --move-assets=true
 
 Migrates local folder to target and removes files from the source.
 ```
 
 ```bash
-PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
+PhotoMigrator.bin --source=synology-1 --target=immich-1 --parallel-migration=false
 
 Uses sequential migration instead of parallel.
 ```
@@ -275,19 +278,19 @@ Uses sequential migration instead of parallel.
 ### 🗃️ Google Takeout Management
 
 ```bash
-PhotoMigrator.run --google-takeout=/home/user/Takeout
+PhotoMigrator.bin --google-takeout=/home/user/Takeout
 
 Processes Google Takeout folder using default options.
 ```
 
 ```bash
-PhotoMigrator.run --google-takeout=/home/user/Takeout --google-remove-duplicates-files --google-skip-extras-files
+PhotoMigrator.bin --google-takeout=/home/user/Takeout --google-remove-duplicates-files --google-skip-extras-files
 
 Removes duplicates and skips extra photos like effects.
 ```
 
 ```bash
-PhotoMigrator.run --google-takeout=/home/user/Takeout --google-albums-folders-structure=year/month
+PhotoMigrator.bin --google-takeout=/home/user/Takeout --google-albums-folders-structure=year/month
 
 Organizes albums by year and month structure.
 ```
@@ -297,19 +300,19 @@ Organizes albums by year and month structure.
 ### 🖼️ Synology / Immich Management
 
 ```bash
-PhotoMigrator.run --client=immich --upload-all=/mnt/pictures
+PhotoMigrator.bin --client=immich --upload-all=/mnt/pictures
 
 Uploads all photos to Immich, organizing by subfolder albums.
 ```
 
 ```bash
-PhotoMigrator.run --client=synology --download-albums "album1 album2 album3" --output-folder=/mnt/backup
+PhotoMigrator.bin --client=synology --download-albums "album1 album2 album3" --output-folder=/mnt/backup
 
 Downloads selected albums from Synology.
 ```
 
 ```bash
-PhotoMigrator.run --client=synology --remove-empty-albums --one-time-password
+PhotoMigrator.bin --client=synology --remove-empty-albums --one-time-password
 
 Removes all empty albums from Synology.
 ```
@@ -319,7 +322,7 @@ Removes all empty albums from Synology.
 ### 🛠️ Other Standalone Features
 
 ```bash
-PhotoMigrator.run --fix-symlinks-broken="/mnt/albums"
+PhotoMigrator.bin --fix-symlinks-broken="/mnt/albums"
 
 Fix symbolic links found in the given folder
 ```
@@ -331,13 +334,13 @@ Renames album folders based on content creation dates.
 ```
 
 ```bash
-PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
+PhotoMigrator.bin --find-duplicates list "/mnt/folder1" "/mnt/folder2"
 
 Lists duplicate files across multiple folders.
 ```
 
 ```bash
-PhotoMigrator.run --process-duplicates revised_duplicates.csv
+PhotoMigrator.bin --process-duplicates revised_duplicates.csv
 
 Processes duplicates based on a CSV file with actions.
 ```

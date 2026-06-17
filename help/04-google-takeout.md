@@ -24,6 +24,9 @@ In the following link you can find the [Complete Pipeline and features of GPTH T
 > In the Web Interface, you can pre-fill the Google Takeout input path with environment variable `PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH`.
 > This is useful in Docker/Compose setups where your Takeout volume is always mounted in the same location.
 
+> [!NOTE]
+> For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. Replace the binary name accordingly when following the CLI examples below.
+
 
 ## Process Explained
 
@@ -161,7 +164,7 @@ The final `<OUTPUT_FOLDER>` will include:
 
 - **Example 1:**
 ```
-./PhotoMigrator.run --google-takeout ./MyTakeout --google-remove-duplicates-files
+./PhotoMigrator.bin --google-takeout ./MyTakeout --google-remove-duplicates-files
 ```
  
 In this example, the tool will do the Takeout Processing with the following steps:
@@ -174,7 +177,7 @@ In this example, the tool will do the Takeout Processing with the following step
 
 - **Example 2:**
 ```
-./PhotoMigrator.run --google-takeout ./MyTakeout --google-remove-duplicates-files --google-no-symbolic-albums
+./PhotoMigrator.bin --google-takeout ./MyTakeout --google-remove-duplicates-files --google-no-symbolic-albums
 ```
  
 In this example, the tool will do the Takeout Processing with the following steps:

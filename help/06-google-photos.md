@@ -78,6 +78,9 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_3   = your_refresh_token_3
 > Google Photos public API has functional limits with scope and capability restrictions.
 > Unsupported management actions are exposed for CLI/UI compatibility but run as no-op with warning.
 > ⚠️ ** Some operations in PhotoMigrator are intentionally no-op for Google Photos because the public API does not support them.**
+
+> [!NOTE]
+> For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. Replace the binary name accordingly when following the CLI examples below.
 >
 > Effective **2025-04-01**, Google removed the legacy Library API scopes `photoslibrary`, `photoslibrary.readonly`, and `photoslibrary.sharing` for full-library access. As a result, PhotoMigrator cannot read a user's full Google Photos library through the official API anymore. For full-library export/migration, use **Google Takeout** as source.
 
@@ -118,7 +121,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Upload Albums:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --upload-albums <ALBUMS_FOLDER>`
+  - `./PhotoMigrator.bin --client=google-photos --upload-albums <ALBUMS_FOLDER>`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
@@ -126,14 +129,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - Supported assets in each subfolder are uploaded and associated to that album.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --upload-albums ./My_Albums_Folder
+  ./PhotoMigrator.bin --client=google-photos --upload-albums ./My_Albums_Folder
   ```
 
 
 ## Download Albums:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --download-albums <ALBUMS_NAME> --output-folder <OUTPUT_FOLDER>`
+  - `./PhotoMigrator.bin --client=google-photos --download-albums <ALBUMS_NAME> --output-folder <OUTPUT_FOLDER>`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
@@ -141,7 +144,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - You can use `ALL`, patterns, or multiple names.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --download-albums "Album 1, Album 2" --output-folder ./Downloads
+  ./PhotoMigrator.bin --client=google-photos --download-albums "Album 1, Album 2" --output-folder ./Downloads
   ```
 
 > [!WARNING]
@@ -151,7 +154,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Upload All:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --upload-all <INPUT_FOLDER>`
+  - `./PhotoMigrator.bin --client=google-photos --upload-all <INPUT_FOLDER>`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
@@ -160,14 +163,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - Assets outside `Albums` are uploaded as no-album assets.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --upload-all ./MyLibrary
+  ./PhotoMigrator.bin --client=google-photos --upload-all ./MyLibrary
   ```
 
 
 ## Download All:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --download-all <OUTPUT_FOLDER>`
+  - `./PhotoMigrator.bin --client=google-photos --download-all <OUTPUT_FOLDER>`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
@@ -176,7 +179,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - Assets without albums are stored in `<OUTPUT_FOLDER>/ALL_PHOTOS`.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --download-all ./MyLibrary
+  ./PhotoMigrator.bin --client=google-photos --download-all ./MyLibrary
   ```
 
 > [!WARNING]
@@ -186,14 +189,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Remove All Assets:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --remove-all-assets`
+  - `./PhotoMigrator.bin --client=google-photos --remove-all-assets`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --remove-all-assets
+  ./PhotoMigrator.bin --client=google-photos --remove-all-assets
   ```
 
 > [!WARNING]
@@ -203,14 +206,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Remove All Albums:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --remove-all-albums --remove-albums-assets`
+  - `./PhotoMigrator.bin --client=google-photos --remove-all-albums --remove-albums-assets`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --remove-all-albums --remove-albums-assets
+  ./PhotoMigrator.bin --client=google-photos --remove-all-albums --remove-albums-assets
   ```
 
 > [!WARNING]
@@ -220,14 +223,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Remove Albums by Name Pattern:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --remove-albums <ALBUMS_NAME_PATTERN> --remove-albums-assets`
+  - `./PhotoMigrator.bin --client=google-photos --remove-albums <ALBUMS_NAME_PATTERN> --remove-albums-assets`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --remove-albums "^Temp" --remove-albums-assets
+  ./PhotoMigrator.bin --client=google-photos --remove-albums "^Temp" --remove-albums-assets
   ```
 
 > [!WARNING]
@@ -237,14 +240,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Rename Albums by Name Pattern:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --rename-albums <ALBUMS_NAME_PATTERN> <ALBUMS_NAME_REPLACEMENT_PATTERN>`
+  - `./PhotoMigrator.bin --client=google-photos --rename-albums <ALBUMS_NAME_PATTERN> <ALBUMS_NAME_REPLACEMENT_PATTERN>`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --rename-albums "\\d{4}-\\d{2}-\\d{2}" "DATE"
+  ./PhotoMigrator.bin --client=google-photos --rename-albums "\\d{4}-\\d{2}-\\d{2}" "DATE"
   ```
 
 > [!WARNING]
@@ -254,14 +257,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Remove Empty Albums:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --remove-empty-albums`
+  - `./PhotoMigrator.bin --client=google-photos --remove-empty-albums`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --remove-empty-albums
+  ./PhotoMigrator.bin --client=google-photos --remove-empty-albums
   ```
 
 > [!WARNING]
@@ -271,14 +274,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Remove Duplicates Albums:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --remove-duplicates-albums`
+  - `./PhotoMigrator.bin --client=google-photos --remove-duplicates-albums`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --remove-duplicates-albums
+  ./PhotoMigrator.bin --client=google-photos --remove-duplicates-albums
   ```
 
 > [!WARNING]
@@ -288,14 +291,14 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ## Merge Duplicates Albums:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=google-photos --merge-duplicates-albums`
+  - `./PhotoMigrator.bin --client=google-photos --merge-duplicates-albums`
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=google-photos --merge-duplicates-albums
+  ./PhotoMigrator.bin --client=google-photos --merge-duplicates-albums
   ```
 
 > [!WARNING]

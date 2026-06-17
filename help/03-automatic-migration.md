@@ -76,6 +76,9 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
 > [!IMPORTANT]  
 > It is important that you configure properly the file `Config.ini` (included with the tool), to set properly the accounts for your Photo Cloud Service.  
 
+> [!NOTE]
+> For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. Replace the binary name accordingly when following the CLI examples below.
+
 
 ## Live Dashboard Preview:
 ![Live Dashboard](../assets/screenshots/live_dashboard.jpg)
@@ -85,7 +88,7 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
 
 - **Example 1:**
 ```
-./PhotoMigrator.run --source=/homes/MyTakeout --target=synology-1
+./PhotoMigrator.bin --source=/homes/MyTakeout --target=synology-1
 ```
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
@@ -101,7 +104,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 - **Example 2**:
 ```
-./PhotoMigrator.run --source=synology-2 --target=immich-1
+./PhotoMigrator.bin --source=synology-2 --target=immich-1
 ```
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
@@ -116,7 +119,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 - **Example 3**:
 ```
-./PhotoMigrator.run --source=immich-2 --target=/homes/local_folder --filter-by-person=Peter --filter-from-date=2024
+./PhotoMigrator.bin --source=immich-2 --target=/homes/local_folder --filter-by-person=Peter --filter-from-date=2024
 ```
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
@@ -131,7 +134,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 - **Example 4**:
 ```
-./PhotoMigrator.run --source=immich-1 --target=immich-2 --filter-by-city=Rome --filter-by-person=Mery
+./PhotoMigrator.bin --source=immich-1 --target=immich-2 --filter-by-city=Rome --filter-by-person=Mery
 ```
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  

@@ -78,6 +78,9 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 > [!TIP]
 > `NEXTCLOUD_MAX_PARALLEL_UPLOADS` controls parallel uploads.
 > Recommended values in LAN are usually between `8` and `16`.
+
+> [!NOTE]
+> For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. Replace the binary name accordingly when following the CLI examples below.
 >
 > `NEXTCLOUD_MAX_PARALLEL_DOWNLOADS` controls parallel downloads.
 > Recommended values in LAN are usually between `12` and `24`.
@@ -92,7 +95,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 ## Upload Albums (from Local Folder) into NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --upload-albums <ALBUMS_FOLDER>`
+  - `./PhotoMigrator.bin --client=nextcloud --upload-albums <ALBUMS_FOLDER>`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud URL and account credentials (App Password recommended).
 - **Explanation:**
@@ -100,14 +103,14 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - In NextCloud implementation, files are uploaded under `NEXTCLOUD_ALBUMS_FOLDER_<id>/<AlbumName>`, and native Photos album association is handled automatically when supported.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --upload-albums ./My_Albums_Folder
+  ./PhotoMigrator.bin --client=nextcloud --upload-albums ./My_Albums_Folder
   ```
 
 
 ## Download Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --download-albums <ALBUMS_NAME> --output-folder <OUTPUT_FOLDER>`
+  - `./PhotoMigrator.bin --client=nextcloud --download-albums <ALBUMS_NAME> --output-folder <OUTPUT_FOLDER>`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
@@ -118,7 +121,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
     - Multiple names in the same argument.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --download-albums "Album 1, Album 2" --output-folder ./Downloads
+  ./PhotoMigrator.bin --client=nextcloud --download-albums "Album 1, Album 2" --output-folder ./Downloads
   ```
 
 > [!WARNING]
@@ -128,7 +131,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 ## Upload All (from Local Folder) into NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --upload-all <INPUT_FOLDER>`
+  - `./PhotoMigrator.bin --client=nextcloud --upload-all <INPUT_FOLDER>`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials and `NEXTCLOUD_PHOTOS_FOLDER_<id>` / `NEXTCLOUD_ALBUMS_FOLDER_<id>`.
 - **Explanation:**
@@ -139,14 +142,14 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - You can also provide extra albums folders via `-AlbFolder, --albums-folders`.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --upload-all ./MyLibrary
+  ./PhotoMigrator.bin --client=nextcloud --upload-all ./MyLibrary
   ```
 
 
 ## Download All from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --download-all <OUTPUT_FOLDER>`
+  - `./PhotoMigrator.bin --client=nextcloud --download-all <OUTPUT_FOLDER>`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
@@ -156,14 +159,14 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - If `NEXTCLOUD_ALBUMS_FOLDER_<id>` is inside `NEXTCLOUD_PHOTOS_FOLDER_<id>`, the albums subtree is excluded from the assets scan to avoid duplicate downloads.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --download-all ./MyLibrary
+  ./PhotoMigrator.bin --client=nextcloud --download-all ./MyLibrary
   ```
 
 
 ## Remove All Assets from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --remove-all-assets`
+  - `./PhotoMigrator.bin --client=nextcloud --remove-all-assets`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
@@ -171,7 +174,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - After removing assets, empty album folders are also removed.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --remove-all-assets
+  ./PhotoMigrator.bin --client=nextcloud --remove-all-assets
   ```
 
 > [!CAUTION]
@@ -181,7 +184,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 ## Remove All Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --remove-all-albums --remove-albums-assets`
+  - `./PhotoMigrator.bin --client=nextcloud --remove-all-albums --remove-albums-assets`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
@@ -189,7 +192,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - If `--remove-albums-assets` is set, it also removes assets associated to those albums.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --remove-all-albums --remove-albums-assets
+  ./PhotoMigrator.bin --client=nextcloud --remove-all-albums --remove-albums-assets
   ```
 
 > [!CAUTION]
@@ -199,7 +202,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 ## Remove Albums by Name Pattern from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --remove-albums <ALBUMS_NAME_PATTERN> --remove-albums-assets`
+  - `./PhotoMigrator.bin --client=nextcloud --remove-albums <ALBUMS_NAME_PATTERN> --remove-albums-assets`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
@@ -207,7 +210,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - If `--remove-albums-assets` is set, assets inside removed albums are also removed.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --remove-albums "^Temp" --remove-albums-assets
+  ./PhotoMigrator.bin --client=nextcloud --remove-albums "^Temp" --remove-albums-assets
   ```
 
 > [!CAUTION]
@@ -217,42 +220,42 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 ## Rename Albums by Name Pattern from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --rename-albums <ALBUMS_NAME_PATTERN> <ALBUMS_NAME_REPLACEMENT_PATTERN>`
+  - `./PhotoMigrator.bin --client=nextcloud --rename-albums <ALBUMS_NAME_PATTERN> <ALBUMS_NAME_REPLACEMENT_PATTERN>`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
   - Renames albums whose names match the provided pattern.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --rename-albums "\\d{4}-\\d{2}-\\d{2}" "DATE"
+  ./PhotoMigrator.bin --client=nextcloud --rename-albums "\\d{4}-\\d{2}-\\d{2}" "DATE"
   ```
 
 
 ## Remove Empty Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --remove-empty-albums`
+  - `./PhotoMigrator.bin --client=nextcloud --remove-empty-albums`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
   - Removes albums that contain zero assets.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --remove-empty-albums
+  ./PhotoMigrator.bin --client=nextcloud --remove-empty-albums
   ```
 
 
 ## Remove Duplicates Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --remove-duplicates-albums`
+  - `./PhotoMigrator.bin --client=nextcloud --remove-duplicates-albums`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
   - Current WebDAV integration keeps this operation as no-op.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --remove-duplicates-albums
+  ./PhotoMigrator.bin --client=nextcloud --remove-duplicates-albums
   ```
 
 > [!WARNING]
@@ -262,14 +265,14 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 ## Merge Duplicates Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
-  - `./PhotoMigrator.run --client=nextcloud --merge-duplicates-albums`
+  - `./PhotoMigrator.bin --client=nextcloud --merge-duplicates-albums`
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
   - Current WebDAV integration keeps this operation as no-op.
 - **Example of use:**
   ```bash
-  ./PhotoMigrator.run --client=nextcloud --merge-duplicates-albums
+  ./PhotoMigrator.bin --client=nextcloud --merge-duplicates-albums
   ```
 
 > [!WARNING]

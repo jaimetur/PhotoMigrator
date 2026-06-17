@@ -79,6 +79,9 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 > Docker-secret style variables such as `IMMICH_API_KEY_ADMIN_FILE=/run/secrets/immich_admin_api_key` are also supported.
 > Runtime precedence is: environment variable > `Config.ini` > template default.
 
+> [!NOTE]
+> For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. Replace the binary name accordingly when following the CLI examples below.
+
 
 ## Upload Albums (from Local Folder) into Immich Photos:
 - **From:** v3.0.0 
@@ -92,7 +95,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - The Tool will connect automatically to your Immich Photos account and will create one Album per each Subfolder found in `<ALBUMS_FOLDER>` that contains at least one file supported by Immich Photos and with the same Album name as Album folder.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --upload-albums ./My_Albums_Folder
+  ./PhotoMigrator.bin --client=immich --upload-albums ./My_Albums_Folder
   ```
   With this example, the Tool will connect to your Immich Photos account and process the folder `./My_Albums_Folder` and per each subfolder found on it that contains at least one file supported by Immich Photos, will create a new Album in Immich Photos with the same name of the Album Folder
     
@@ -114,7 +117,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: `--download-albums 'album1', 'album2', 'album3'`.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --download-albums "Album 1", "Album 2", "Album 3"
+  ./PhotoMigrator.bin --client=immich --download-albums "Album 1", "Album 2", "Album 3"
   ```
   With this example, the Tool will connect to your Immich Photos account and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of `Immich_Photos_Albums` folder
 
@@ -137,7 +140,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
     2. Use the complementary argument _**`-AlbFolder, --albums-folders <ALBUMS_FOLDER>`**_, in this way the Tool will create Albums also for each subfolder found in `<ALBUMS_FOLDER>` (apart from those found inside `<INPUT_FOLDER>/<ALBUMS_FOLDER>`)
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --upload-all ./MyLibrary
+  ./PhotoMigrator.bin --client=immich --upload-all ./MyLibrary
   ```
   With this example, the Tool will connect to your Immich Photos account and process the folder ./MyLibrary and will upload all supported assets found on it, creating a new Album per each subfolder found within `./MyLibrary/<ALBUMS_FOLDER>` folder.
 
@@ -156,7 +159,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - Assets with no Albums associated will be downloaded within a subfolder called `<OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>` and will have a `year/month` structure inside.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --download-all ./MyLibrary
+  ./PhotoMigrator.bin --client=immich --download-all ./MyLibrary
   ```
   With this example, the Tool will connect to your Immich Photos account and download ALL your library into the local folder `./MyLibrary`.
   
@@ -172,7 +175,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - The Tool will connect automatically to your Immich Photos account and will remove ALL the assets and Albums found.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --remove-all-assets
+  ./PhotoMigrator.bin --client=immich --remove-all-assets
   ```
   With this example, the Tool will connect to Immich Photos account and will remove all assets found (including Albums).
 
@@ -193,7 +196,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _**`-rAlbAsset, --remove-albums-assets`**_
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --remove-all-albums --remove-albums-assets
+  ./PhotoMigrator.bin --client=immich --remove-all-albums --remove-albums-assets
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary argument).
 
@@ -214,7 +217,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**`-rAlbAsset, --remove-albums-assets`**_
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --remove-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
+  ./PhotoMigrator.bin --client=immich --remove-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary argument.
 
@@ -234,7 +237,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be renamed.  
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
+  ./PhotoMigrator.bin --client=immich --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
   ```
   With this example, the Tool will connect to your Immich Photos account and will rename all Albums whose name contains a date like this ("2023-08-15 - Vacation photos") replacing the date with the string "DATE", as a result the new album name would be: "DATE - Vacation photos".
   
@@ -251,7 +254,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --remove-empty-albums
+  ./PhotoMigrator.bin --client=immich --remove-empty-albums
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Empty Albums found.
 
@@ -268,7 +271,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --remove-duplicates-albums
+  ./PhotoMigrator.bin --client=immich --remove-duplicates-albums
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one.
 
@@ -285,7 +288,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be merged.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --merge-duplicates-albums
+  ./PhotoMigrator.bin --client=immich --merge-duplicates-albums
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one transferring all the assets from the removed albums into the main one.
 
@@ -304,7 +307,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - The Tool will connect automatically to your Immich Photos account and will remove all Orphan assets found.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --remove-orphan-assets
+  ./PhotoMigrator.bin --client=immich --remove-orphan-assets
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Orphan assets found.
 
