@@ -50,7 +50,7 @@ try:
     from textual.binding import Binding
     from textual.containers import Grid, Horizontal, Vertical, VerticalScroll
     from textual.screen import ModalScreen
-    from textual.widgets import Button, Checkbox, DirectoryTree, Footer, Header, Input, Label, RichLog, Select, Static
+    from textual.widgets import Button, Checkbox, DirectoryTree, Header, Input, Label, RichLog, Select, Static
 
     TEXTUAL_AVAILABLE = True
 except Exception as exc:  # pragma: no cover - dependency may be optional in test envs
@@ -654,8 +654,9 @@ if TEXTUAL_AVAILABLE:
             min-height: 2;
         }
         #log-panel-container {
-            height: 1fr;
-            min-height: 4;
+            height: auto;
+            min-height: 3;
+            max-height: 6;
         }
         #field-description,
         #command-preview,
@@ -668,8 +669,8 @@ if TEXTUAL_AVAILABLE:
             margin-bottom: 0;
         }
         #log-panel {
-            height: 1fr;
-            min-height: 10;
+            height: auto;
+            min-height: 4;
             background: transparent;
             border: none;
         }
@@ -687,6 +688,15 @@ if TEXTUAL_AVAILABLE:
             min-height: 1;
             border: none;
             padding: 0 1;
+        }
+        #shortcut-bar {
+            dock: bottom;
+            height: 1;
+            min-height: 1;
+            background: #1a2230;
+            color: #dfeaf8;
+            padding: 0 1;
+            text-wrap: nowrap;
         }
         #picker-path-input {
             height: 1;
@@ -907,7 +917,7 @@ if TEXTUAL_AVAILABLE:
             yield Header(show_clock=True)
             with Horizontal(id="workspace"):
                 with Vertical(id="sidebar"):
-                    yield Static("Select Feature", id="sidebar-title")
+                    yield Static("Select Feature:", id="sidebar-title")
                     with VerticalScroll(id="sidebar-features"):
                         for key, label in INTERACTIVE_MODULE_TAB_NAMES.items():
                             classes = f"module-tab {MODULE_GROUP_CLASSES.get(key, '')}"
@@ -957,7 +967,7 @@ if TEXTUAL_AVAILABLE:
                     with Vertical(id="context-popup-actions"):
                         yield Button("Copy", id="context-copy", classes="context-menu-btn")
                         yield Button("Paste", id="context-paste", classes="context-menu-btn")
-            yield Footer()
+            yield Static("^R Run   ^S Save Config   ^L Load Config   ^C Copy   ^V Paste   ^Q Quit", id="shortcut-bar")
 
         async def on_mount(self) -> None:
             self.apply_theme()
@@ -1058,8 +1068,16 @@ if TEXTUAL_AVAILABLE:
                         shell.styles.height = 4
                         shell.styles.min_height = 4
                     else:
-                        shell.styles.height = "auto" if panel_key != "content" else "1fr"
-                        shell.styles.min_height = 10 if panel_key == "content" else (12 if panel_key == "log" else 2)
+                        if panel_key == "content":
+                            shell.styles.height = "1fr"
+                            shell.styles.min_height = 8
+                        elif panel_key == "log":
+                            shell.styles.height = 5
+                            shell.styles.min_height = 4
+                            shell.styles.max_height = 6
+                        else:
+                            shell.styles.height = "auto"
+                            shell.styles.min_height = 2
                 except Exception:
                     pass
             self.refresh_toggle_buttons()
@@ -1079,7 +1097,7 @@ if TEXTUAL_AVAILABLE:
                     content_host.styles.min_height = 4
                 else:
                     content_host.styles.height = "2fr" if running else "3fr"
-                    content_host.styles.min_height = 8
+                    content_host.styles.min_height = 7
             except Exception:
                 pass
             try:
@@ -1089,7 +1107,9 @@ if TEXTUAL_AVAILABLE:
                 pass
             try:
                 log_container = self.query_one("#log-panel-container", Vertical)
-                log_container.styles.min_height = 7 if running else 6
+                log_container.styles.height = 6 if running else 5
+                log_container.styles.min_height = 4
+                log_container.styles.max_height = 6
             except Exception:
                 pass
 
