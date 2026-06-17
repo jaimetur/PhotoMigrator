@@ -407,6 +407,9 @@ if TEXTUAL_AVAILABLE:
             margin-bottom: 0;
             padding: 0;
         }
+        .config-section-description {
+            margin-top: 1;
+        }
         .section-title {
             color: #cfe0f5;
             text-style: bold;
@@ -417,6 +420,9 @@ if TEXTUAL_AVAILABLE:
             margin: 0;
         }
         .feature-section-title--spaced {
+            margin-top: 1;
+        }
+        .field-row--spaced {
             margin-top: 1;
         }
         .form-columns {
@@ -654,9 +660,8 @@ if TEXTUAL_AVAILABLE:
             min-height: 2;
         }
         #log-panel-container {
-            height: auto;
+            height: 1fr;
             min-height: 3;
-            max-height: 6;
         }
         #field-description,
         #command-preview,
@@ -669,7 +674,7 @@ if TEXTUAL_AVAILABLE:
             margin-bottom: 0;
         }
         #log-panel {
-            height: auto;
+            height: 1fr;
             min-height: 4;
             background: transparent;
             border: none;
@@ -689,14 +694,34 @@ if TEXTUAL_AVAILABLE:
             border: none;
             padding: 0 1;
         }
+        #send-input-btn {
+            width: 8;
+            min-width: 8;
+            height: 3;
+            min-height: 3;
+        }
         #shortcut-bar {
             dock: bottom;
+            layout: horizontal;
             height: 1;
             min-height: 1;
             background: #1a2230;
             color: #dfeaf8;
             padding: 0 1;
             text-wrap: nowrap;
+        }
+        .shortcut-key {
+            width: auto;
+            color: #f4f7fb;
+            background: #2e4f78;
+            text-style: bold;
+            padding: 0 1;
+        }
+        .shortcut-desc {
+            width: auto;
+            color: #dfeaf8;
+            background: #1a2230;
+            padding: 0 1 0 0;
         }
         #picker-path-input {
             height: 1;
@@ -967,7 +992,19 @@ if TEXTUAL_AVAILABLE:
                     with Vertical(id="context-popup-actions"):
                         yield Button("Copy", id="context-copy", classes="context-menu-btn")
                         yield Button("Paste", id="context-paste", classes="context-menu-btn")
-            yield Static("^R Run   ^S Save Config   ^L Load Config   ^C Copy   ^V Paste   ^Q Quit", id="shortcut-bar")
+            with Horizontal(id="shortcut-bar"):
+                yield Static("^R", classes="shortcut-key")
+                yield Static("Run", classes="shortcut-desc")
+                yield Static("^S", classes="shortcut-key")
+                yield Static("Save Config", classes="shortcut-desc")
+                yield Static("^L", classes="shortcut-key")
+                yield Static("Load Config", classes="shortcut-desc")
+                yield Static("^C", classes="shortcut-key")
+                yield Static("Copy", classes="shortcut-desc")
+                yield Static("^V", classes="shortcut-key")
+                yield Static("Paste", classes="shortcut-desc")
+                yield Static("^Q", classes="shortcut-key")
+                yield Static("Quit", classes="shortcut-desc")
 
         async def on_mount(self) -> None:
             self.apply_theme()
@@ -1072,9 +1109,8 @@ if TEXTUAL_AVAILABLE:
                             shell.styles.height = "1fr"
                             shell.styles.min_height = 8
                         elif panel_key == "log":
-                            shell.styles.height = 5
+                            shell.styles.height = "1fr"
                             shell.styles.min_height = 4
-                            shell.styles.max_height = 6
                         else:
                             shell.styles.height = "auto"
                             shell.styles.min_height = 2
@@ -1107,9 +1143,8 @@ if TEXTUAL_AVAILABLE:
                 pass
             try:
                 log_container = self.query_one("#log-panel-container", Vertical)
-                log_container.styles.height = 6 if running else 5
+                log_container.styles.height = "1fr"
                 log_container.styles.min_height = 4
-                log_container.styles.max_height = 6
             except Exception:
                 pass
 
@@ -1395,7 +1430,7 @@ if TEXTUAL_AVAILABLE:
             if not current_section:
                 widgets.append(Static("No configuration section selected.", classes="empty-note"))
                 return widgets
-            widgets.append(Static(str(current_section.get("description") or "").strip(), classes="panel-description"))
+            widgets.append(Static(str(current_section.get("description") or "").strip(), classes="panel-description config-section-description"))
             fields = list(current_section.get("fields") or [])
             global_fields = [field for field in fields if not str(field.get("account_id") or "")]
             account_fields = [field for field in fields if str(field.get("account_id") or "")]
@@ -1413,6 +1448,7 @@ if TEXTUAL_AVAILABLE:
                         account_value,
                         help_text="Select which account within this service section you want to configure.",
                         label_classes="field-label field-label--config-accent",
+                        row_classes="field-row field-row--spaced",
                     )
                 )
                 selected_account = str(self.active_config_account.get(section_name) or selector.get("default_account") or "")
@@ -1749,6 +1785,7 @@ if TEXTUAL_AVAILABLE:
             value: Any,
             help_text: str = "",
             label_classes: str = "field-label",
+            row_classes: str = "field-row",
         ) -> Horizontal:
             normalized_options = [(str(label_text), str(option_value)) for label_text, option_value in options]
             current_value = str(value or "")
@@ -1762,7 +1799,7 @@ if TEXTUAL_AVAILABLE:
                 compact=True,
             )
             self.register_field_help(widget_id, help_text)
-            return Horizontal(Label(label, classes=label_classes), Horizontal(select, classes="field-control field-control--select"), classes="field-row")
+            return Horizontal(Label(label, classes=label_classes), Horizontal(select, classes="field-control field-control--select"), classes=row_classes)
 
         def build_checkbox_row(self, label: str, widget_id: str, value: bool, help_text: str = "") -> Horizontal:
             self.register_field_help(widget_id, help_text)
