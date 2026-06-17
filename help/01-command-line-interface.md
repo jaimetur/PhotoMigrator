@@ -10,6 +10,7 @@ PhotoMigrator now includes an interactive CLI TUI designed to be much closer to 
 - If neither the GUI nor the TUI can be started, PhotoMigrator falls back to the same output as `PhotoMigrator --help`.
 - Running `PhotoMigrator <TAKEOUT_FOLDER>` opens the CLI TUI with `Google Takeout` preselected and the input path already filled.
 - Running `PhotoMigrator --tui` forces the interactive terminal UI explicitly.
+- Running `PhotoMigrator --configuration-file <CONFIG_FILE>` together with `--tui` opens the terminal UI with that configuration file already selected.
 
 > [!NOTE]
 > `--tui` is handled before the normal argparse parser starts, so it is a launcher flag and does not appear inside the generated `-h/--help` syntax block below.
@@ -19,6 +20,7 @@ PhotoMigrator now includes an interactive CLI TUI designed to be much closer to 
 PhotoMigrator also includes a native desktop GUI implemented with `tkinter`.
 
 - Running `PhotoMigrator --gui` opens the desktop GUI explicitly.
+- Running `PhotoMigrator --configuration-file <CONFIG_FILE>` together with `--gui` opens the desktop GUI with that configuration file already selected.
 - The desktop GUI reuses the same shared parser/config model as the CLI TUI, so it exposes the same top-level modules, `General Arguments`, `Features Config`, and `App Settings` views.
 - When `PhotoMigrator` is executed without arguments, the desktop GUI is now the first launcher option.
 
@@ -33,6 +35,17 @@ The following two flags are special launcher flags handled before the normal arg
 
 > [!NOTE]
 > `--gui` and `--tui` do not belong to the normal parser syntax shown below, so they do not appear inside the generated `-h/--help` usage block.
+>
+> `--configuration-file` is a normal CLI argument, but GUI/TUI startup now also reads it early so both interactive interfaces can open with an explicit `Config.ini` path already loaded.
+
+Interactive config-file behavior:
+- If no explicit config path is provided, GUI and TUI use `./Config.ini` from the current execution folder, matching the classic CLI behavior.
+- You can override it at startup with `--configuration-file`, or later inside `General Arguments > Configuration File`.
+
+Examples:
+- `PhotoMigrator --gui --configuration-file ./Config.ini`
+- `PhotoMigrator --tui --configuration-file /srv/PhotoMigrator/custom.ini`
+- `PhotoMigrator --configuration-file ./Config.ini`
 
 Most of the argument can be given with two formats:
 - Short format: '-' followed by the short name

@@ -26,6 +26,8 @@ Open the file `Config.ini` included in the package with any text editor and upda
 
 This now opens the desktop GUI by default when a graphical environment with `tkinter` is available.
 
+By default, the interactive interfaces use `./Config.ini` from the folder where you execute the binary.
+
 You can force the terminal UI explicitly with:
 
 ```bash
@@ -36,6 +38,14 @@ Or launch the desktop GUI explicitly with:
 
 ```bash
 PhotoMigrator --gui
+```
+
+You can also preload a custom configuration file when launching the interactive interfaces:
+
+```bash
+PhotoMigrator --gui --configuration-file ./Config.ini
+PhotoMigrator --tui --configuration-file /volume1/shared/PhotoMigrator/custom.ini
+PhotoMigrator --configuration-file ./Config.ini
 ```
 
 Notes:

@@ -25,6 +25,8 @@
   - Removed the `Upload to Server` module from the local GUI/TUI feature selectors because that workflow only makes sense in the Web Interface.
   - Refined the desktop GUI visual styling so themed buttons, module tabs, panel titles, and boolean toggles are more consistent with the TUI and Web Interface presentation.
   - Updated `Automatic Migration` in both the desktop GUI and the CLI TUI so `source` and `target` now use the same endpoint selector concept as the Web Interface, allowing users to choose between local folders and supported cloud services, and to pick account `1` / `2` / `3` whenever a cloud endpoint is selected.
+  - Updated GUI and TUI config-file handling so both interactive interfaces now honor `--configuration-file` at startup and preload that file before rendering the configuration editor or running any module. Their default `Config.ini` resolution was also aligned with classic CLI behavior, so if no explicit path is given they use `./Config.ini` from the current execution folder.
+  - Simplified the GUI and TUI `Command Preview` panels so they now display a compact `PhotoMigrator <args>` representation instead of the full absolute Python executable path and absolute `PhotoMigrator.py` entrypoint path.
 
 #### 🚀 GPTH Enhancements:
 
@@ -38,6 +40,7 @@
   - Updated execution guides for source and binary usage to document how to launch the new interactive CLI TUI on Windows, macOS, Linux, and Synology SSH terminals.
   - Updated `Google Takeout` documentation and `README.md` so the default no-argument CLI behavior now references the new terminal UI instead of only the legacy prompt flow.
   - Refined the `README.md` GUI/TUI overview section to clarify the purpose of each interactive interface, the default launcher order, and the explicit `--gui` / `--tui` entrypoints.
+  - Documented that GUI and TUI now accept `--configuration-file` during startup, and clarified across `README`, CLI help, argument descriptions, configuration-file help, and source/binary execution guides that the interactive UIs use `./Config.ini` from the execution folder by default.
   - Updated documentation with all changes.
 
 ---

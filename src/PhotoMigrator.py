@@ -145,6 +145,40 @@ def PhotoMigrator():
     detect_and_run_execution_mode()
 
 def pre_parse_args():
+    def extract_ui_launcher_state(argv_items):
+        explicit_tui = "--tui" in argv_items
+        explicit_gui = "--gui" in argv_items
+        filtered_args = []
+        config_path = ""
+        index = 0
+        while index < len(argv_items):
+            arg = argv_items[index]
+            if arg in {"--tui", "--gui"}:
+                index += 1
+                continue
+            if arg in {"--configuration-file", "-config"}:
+                if index + 1 >= len(argv_items):
+                    filtered_args.append(arg)
+                    index += 1
+                    continue
+                config_path = str(argv_items[index + 1] or "").strip()
+                index += 2
+                continue
+            if arg.startswith("--configuration-file="):
+                config_path = str(arg.split("=", 1)[1] or "").strip()
+                index += 1
+                continue
+            if arg.startswith("-config="):
+                config_path = str(arg.split("=", 1)[1] or "").strip()
+                index += 1
+                continue
+            filtered_args.append(arg)
+            index += 1
+        initial_values = {}
+        if config_path:
+            initial_values["configuration-file"] = config_path
+        return explicit_tui, explicit_gui, filtered_args, initial_values
+
     def supports_graphical_terminal():
         if not sys.stdin.isatty() or not sys.stdout.isatty():
             return False
@@ -537,34 +571,27 @@ def pre_parse_args():
     # END OF AUX FUNCTIONS
     # -----------------------------------------------------------------------------------
 
-    explicit_tui = "--tui" in sys.argv[1:]
-    explicit_gui = "--gui" in sys.argv[1:]
-    if explicit_tui:
-        sys.argv = [arg for arg in sys.argv if arg != "--tui"]
-    if explicit_gui:
-        sys.argv = [arg for arg in sys.argv if arg != "--gui"]
-
-    initial_tui_values = {}
+    explicit_tui, explicit_gui, filtered_args, initial_tui_values = extract_ui_launcher_state(sys.argv[1:])
     no_arguments_provided = False
     folder_already_provided = False
 
     # Case 1: Called with a single argument and it's a valid folder
-    if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
-        takeout_path = sys.argv[1]
+    if len(filtered_args) == 1 and os.path.isdir(filtered_args[0]):
+        takeout_path = filtered_args[0]
         custom_print(f"Valid folder detected as input: '{takeout_path}'", log_level=logging.INFO)
         custom_print(f"Executing Google Takeout Photos Processor Feature with the provided input folder...", log_level=logging.INFO)
-        initial_tui_values = {
+        initial_tui_values.update({
             "active_module": "google_takeout",
             "google-takeout": takeout_path,
-        }
+        })
         sys.argv.insert(1, "--google-takeout")
         folder_already_provided = True
 
     # Case 2: Called without arguments
-    elif len(sys.argv) == 1:
+    elif len(filtered_args) == 0:
         no_arguments_provided = True
         custom_print(
-            "No arguments provided. PhotoMigrator will try to open the desktop GUI by default.",
+            "No execution arguments provided. PhotoMigrator will try to open the desktop GUI by default.",
             log_level=logging.INFO,
         )
     else:

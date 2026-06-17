@@ -16,6 +16,7 @@ from UI.shared import (
     TIMEZONE_CHOICES,
     build_argument_specs,
     build_full_command,
+    command_preview_string,
     build_parser_schema,
     command_to_string,
     compose_migration_endpoint,
@@ -32,6 +33,7 @@ from UI.shared import (
     prepare_values_for_command,
     save_config_editor_values,
     save_json_file,
+    resolve_ui_config_path,
     to_list,
     ui_option_name,
 )
@@ -675,10 +677,7 @@ if TEXTUAL_AVAILABLE:
             return CONFIG_EDITOR_SECTIONS_ORDER[0]
 
         def current_config_path(self) -> Path:
-            raw = str(self.state_values.get("configuration-file") or "").strip()
-            if raw:
-                return Path(raw).expanduser()
-            return self.project_root / "Config.ini"
+            return resolve_ui_config_path(self.state_values.get("configuration-file"))
 
         def reload_config_model(self) -> None:
             model = load_config_editor_model(self.project_root, self.current_config_path())
@@ -1397,7 +1396,7 @@ if TEXTUAL_AVAILABLE:
             elif self.active_module == "standalone_features":
                 selected_action = self.standalone_action_dest
             command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
-            self.query_one("#command-preview", Static).update(command_to_string(command))
+            self.query_one("#command-preview", Static).update(command_preview_string(command))
             self.running_command = command
             self.refresh_action_buttons()
 

@@ -12,6 +12,7 @@ try:
     from UI.shared import (
         build_cli_args,
         build_parser_schema,
+        command_preview_string,
         command_to_string,
         compose_migration_endpoint,
         compose_find_duplicates_value,
@@ -22,6 +23,7 @@ try:
         parse_migration_endpoint,
         parse_rename_albums_value,
         parse_template_to_form_schema,
+        resolve_ui_config_path,
     )
     SHARED_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -98,6 +100,13 @@ class TestCliTuiShared(unittest.TestCase):
             "/srv/library",
         )
 
+    def test_command_preview_string_omits_absolute_python_and_entrypoint_paths(self):
+        preview = command_preview_string(
+            ["/usr/bin/python3", "/opt/PhotoMigrator/src/PhotoMigrator.py", "--google-takeout", "/tmp/Takeout"]
+        )
+
+        self.assertEqual(preview, 'PhotoMigrator --google-takeout /tmp/Takeout')
+
     def test_config_schema_marks_multi_account_sections(self):
         template_text = Path("Config.ini").read_text(encoding="utf-8")
         schema = parse_template_to_form_schema(template_text)
@@ -114,6 +123,13 @@ class TestCliTuiShared(unittest.TestCase):
 
         self.assertEqual(merged["TimeZone"]["timezone"], "UTC")
         self.assertIn("GOOGLE_PHOTOS_CLIENT_ID_1", merged["Google Photos"])
+
+    def test_resolve_ui_config_path_uses_cwd_for_default_and_expands_user_for_custom_path(self):
+        default_path = resolve_ui_config_path("")
+        custom_path = resolve_ui_config_path("~/custom-config.ini")
+
+        self.assertEqual(default_path, Path.cwd() / "Config.ini")
+        self.assertEqual(custom_path, Path.home() / "custom-config.ini")
 
 
 if __name__ == "__main__":

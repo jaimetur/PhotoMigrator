@@ -18,7 +18,13 @@ These flags are handled before the normal argparse parser starts, so they are la
 ```bash
 PhotoMigrator.run --gui
 PhotoMigrator.run --tui
+PhotoMigrator.run --gui --configuration-file ./Config.ini
+PhotoMigrator.run --gui --configuration-file /srv/PhotoMigrator/custom.ini
 ```
+
+Notes:
+- GUI/TUI startup also honors `--configuration-file`.
+- Without that argument, both interfaces use `./Config.ini` from the current execution folder by default.
 
 ## 🧩 Core Arguments
 
@@ -26,6 +32,7 @@ PhotoMigrator.run --tui
 |----------------------------------------------------|----------------------------------------------------------------------------------------------------|
 | `-h`,<br>`--help`                                  | Show help and exit                                                                                 |
 | `-v`,<br>`--version`                               | Show tool version and exit                                                                         |
+| `-config`,<br>`--configuration-file`               | Config file path for CLI and for GUI/TUI startup                                                   |
 | `-noConfirm`,<br>`--no-request-user-confirmation`  | No Request User Confirmation before to execute any Feature.                                        |
 | `-noLog`,<br>`--no-log-file`                       | Disable log file creation                                                                          |
 | `-logLevel`,<br>`--log-level`                      | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`                                     |

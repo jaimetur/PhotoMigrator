@@ -18,6 +18,7 @@ from UI.shared import (
     build_argument_specs,
     build_full_command,
     build_parser_schema,
+    command_preview_string,
     command_to_string,
     compose_migration_endpoint,
     default_state_values,
@@ -29,6 +30,7 @@ from UI.shared import (
     parse_migration_endpoint,
     parse_folder_list_value,
     parse_rename_albums_value,
+    resolve_ui_config_path,
     save_config_editor_values,
     save_json_file,
     to_list,
@@ -285,10 +287,7 @@ class PhotoMigratorTkGUI:
         return CONFIG_EDITOR_SECTIONS_ORDER[0]
 
     def current_config_path(self) -> Path:
-        raw = str(self.state_values.get("configuration-file") or "").strip()
-        if raw:
-            return Path(raw).expanduser()
-        return self.project_root / "Config.ini"
+        return resolve_ui_config_path(self.state_values.get("configuration-file"))
 
     def reload_config_model(self) -> None:
         model = load_config_editor_model(self.project_root, self.current_config_path())
@@ -1327,7 +1326,7 @@ class PhotoMigratorTkGUI:
         elif self.active_module == "standalone_features":
             selected_action = self.standalone_action_dest
         command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
-        self.preview_label.configure(text=command_to_string(command))
+        self.preview_label.configure(text=command_preview_string(command))
         self.running_command = command
         self.refresh_action_buttons()
 

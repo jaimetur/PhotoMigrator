@@ -969,6 +969,12 @@ def build_full_command(cli_entrypoint: Path, schema: Dict[str, Any], tab: str, v
     return [sys.executable, str(cli_entrypoint), *build_cli_args(schema, tab, values, selected_action_dest)]
 
 
+def resolve_ui_config_path(configured_path: Any) -> Path:
+    raw = str(configured_path or "").strip()
+    candidate = os.path.expanduser(raw) if raw else "Config.ini"
+    return Path(os.path.abspath(candidate))
+
+
 def load_json_file(path: Path, fallback: Any) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -983,3 +989,9 @@ def save_json_file(path: Path, payload: Any) -> None:
 
 def command_to_string(command: List[str]) -> str:
     return subprocess.list2cmdline(command)
+
+
+def command_preview_string(command: List[str], display_name: str = "PhotoMigrator") -> str:
+    if len(command) >= 3:
+        return command_to_string([display_name, *command[2:]])
+    return command_to_string(command)

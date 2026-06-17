@@ -84,6 +84,11 @@ Default launcher behavior:
 Explicit launchers:
 - `PhotoMigrator --gui` opens the Desktop GUI explicitly.
 - `PhotoMigrator --tui` opens the Terminal TUI explicitly.
+- `PhotoMigrator --configuration-file /path/to/Config.ini` can be combined with either launcher, or used on its own, to open the default interactive UI with a different configuration file preloaded.
+
+Config file behavior in GUI/TUI:
+- If no explicit configuration path is provided, both interfaces use `./Config.ini` from the current execution folder, matching the classic CLI behavior.
+- You can also change the file later inside `General Arguments > Configuration File`.
 
 Typical use:
 - Use the **Desktop GUI** on Windows, macOS, or Linux systems with graphical desktop access.
@@ -284,6 +289,13 @@ Open the desktop GUI explicitly:
 
 ```bash
 python ./src/PhotoMigrator.py --gui
+```
+
+Open either interactive UI with an explicit configuration file:
+
+```bash
+python ./src/PhotoMigrator.py --gui --configuration-file ./Config.ini
+python ./src/PhotoMigrator.py --tui --configuration-file ~/PhotoMigrator/custom.ini
 ```
 
 Launcher fallback order when no arguments are provided:

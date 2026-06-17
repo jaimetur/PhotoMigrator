@@ -70,6 +70,8 @@ Or if you prefer to execute the tool directly from the built package just use:
 
 This now opens the desktop GUI by default.
 
+By default, the interactive interfaces use `./Config.ini` from the current execution folder.
+
 ### ⌨️ 9. Launch the CLI TUI explicitly:
    ```bash
    python ./src/PhotoMigrator.py --tui
@@ -78,6 +80,13 @@ This now opens the desktop GUI by default.
 ### 🪟 10. Launch the desktop GUI explicitly:
    ```bash
    python ./src/PhotoMigrator.py --gui
+   ```
+
+### ⚙️ 11. Launch GUI/TUI with a custom configuration file:
+   ```bash
+   python ./src/PhotoMigrator.py --gui --configuration-file ./Config.ini
+   python ./src/PhotoMigrator.py --tui --configuration-file ~/PhotoMigrator/custom.ini
+   python ./src/PhotoMigrator.py --configuration-file ./Config.ini
    ```
 
 Notes:

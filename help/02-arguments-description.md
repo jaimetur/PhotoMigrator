@@ -20,7 +20,13 @@ These flags are handled before the normal argparse parser starts, so they are la
 ```bash
 PhotoMigrator.run --gui
 PhotoMigrator.run --tui
+PhotoMigrator.run --gui --configuration-file ./Config.ini
+PhotoMigrator.run --gui --configuration-file /srv/PhotoMigrator/custom.ini
 ```
+
+Notes:
+- GUI and TUI now also read `--configuration-file` during startup so the selected interactive interface can open with a custom config path already loaded.
+- If `--configuration-file` is not provided, both interfaces default to `./Config.ini` in the current execution folder.
 
 ## 🧩 Core Arguments
 
@@ -28,7 +34,7 @@ PhotoMigrator.run --tui
 |----------------------------------------------------|------------------------------|:--------:|:--------------------------------------------------------------:|----------------------------------------------------------------------------------------------------|
 | `-h`,<br>`--help`                                  |                              |   flag   |                                                                | Displays the help message and exits.                                                               |
 | `-v`,<br>`--version`                               |                              |   flag   |                                                                | Shows the tool version and exits.                                                                  |
-| `-config`,<br>`--configuration-file`               | `<CONFIGURATION_FILE>`       | FilePath |                 `Any valid Configuration File`                 | Specify the file that contains the Configuration to connect to the different Photo Cloud Services. |
+| `-config`,<br>`--configuration-file`               | `<CONFIGURATION_FILE>`       | FilePath |                 `Any valid Configuration File`                 | Specify the file that contains the Configuration to connect to the different Photo Cloud Services. The same argument is also honored by GUI/TUI launch so interactive interfaces can open with that file preselected. |
 | `-noConfirm`,<br>`--no-request-user-confirmation`  |                              |   flag   |                                                                | No Request User Confirmation before to execute any Feature.                                        |
 | `-noLog`,<br>`--no-log-file`                       |                              |   flag   |                                                                | Disables writing to log file.                                                                      |
 | `-logLevel`,<br>`--log-level`                      | `<LEVEL>`                    |  string  | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                                                            |
