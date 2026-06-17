@@ -4,12 +4,57 @@ import platform
 import posixpath
 import shutil
 import sys
+import zipfile
 from pathlib import Path
 
 from colorama import Fore, Style
 
 from Core.GlobalVariables import MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, TOOL_NAME, PROJECT_ROOT
 import Core.GlobalVariables as GV
+
+
+def _embedded_exiftool_module_path(executable_path: str | Path) -> Path:
+    return Path(executable_path).resolve().parent / "lib" / "Image" / "ExifTool.pm"
+
+
+def _extract_exiftool_bundle_if_needed(executable_path: str | Path) -> None:
+    exe_path = Path(executable_path).resolve()
+    module_path = _embedded_exiftool_module_path(exe_path)
+    if module_path.exists():
+        return
+
+    bundle_root = exe_path.parent
+    archive_candidates = [bundle_root / "others.zip"]
+    if exe_path.suffix.lower() == ".exe":
+        archive_candidates.insert(0, bundle_root / "windows.zip")
+
+    for archive_path in archive_candidates:
+        if not archive_path.exists():
+            continue
+        try:
+            with zipfile.ZipFile(archive_path) as archive:
+                archive.extractall(bundle_root)
+        except Exception:
+            continue
+        if module_path.exists():
+            return
+
+
+def _is_valid_exiftool_candidate(candidate_path: str | Path) -> bool:
+    candidate = Path(candidate_path)
+    if not candidate.exists() or not candidate.is_file():
+        return False
+
+    executable_name = candidate.name.lower()
+    if executable_name not in {"exiftool", "exiftool.exe"}:
+        return True
+
+    module_path = _embedded_exiftool_module_path(candidate)
+    if module_path.exists():
+        return True
+
+    sibling_archives = [candidate.parent / "others.zip", candidate.parent / "windows.zip"]
+    return not any(archive.exists() for archive in sibling_archives)
 
 
 def change_working_dir(change_dir=None):
@@ -68,7 +113,10 @@ def get_exif_tool_path(base_path: str, step_name='') -> str:
     # --------- Case 1: it is already a file path ----------
     # Return the file even if it is not executable yet; ensure_executable() can fix permissions later.
     if p.exists() and p.is_file():
-        return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
+        resolved_file = resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
+        _extract_exiftool_bundle_if_needed(resolved_file)
+        if _is_valid_exiftool_candidate(resolved_file):
+            return resolved_file
 
     # --------- Case 2: the user supplied an executable name available in PATH ----------
     if raw_base_path and not any(sep and sep in raw_base_path for sep in (os.sep, os.altsep)):
@@ -79,6 +127,8 @@ def get_exif_tool_path(base_path: str, step_name='') -> str:
     # --------- Case 3: it is (or will be) a directory ----------
     candidate = resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
     if os.path.exists(candidate):
+        _extract_exiftool_bundle_if_needed(candidate)
+    if _is_valid_exiftool_candidate(candidate):
         return candidate
 
     fallback_dirs = [
@@ -90,6 +140,8 @@ def get_exif_tool_path(base_path: str, step_name='') -> str:
     for folder in fallback_dirs:
         fallback = os.path.join(folder, exec_name)
         if os.path.exists(fallback):
+            _extract_exiftool_bundle_if_needed(fallback)
+        if _is_valid_exiftool_candidate(fallback):
             return fallback
 
     system_candidate = shutil.which(exec_name)
@@ -310,11 +362,11 @@ def custom_print(*args, log_level=logging.INFO, **kwargs):
     if _supports_ansi_colors():
         color_tags = {
             "VERBOSE": f"{Fore.CYAN}{MSG_TAGS['VERBOSE']}",
-            "DEBUG": f"{Fore.LIGHTCYAN_EX}{MSG_TAGS['DEBUG']}",
+            "DEBUG": f"{Fore.LIGHTBLUE_EX}{MSG_TAGS['DEBUG']}",
             "INFO": f"{Fore.LIGHTWHITE_EX}{MSG_TAGS['INFO']}",
             "WARNING": f"{Fore.YELLOW}{MSG_TAGS['WARNING']}",
             "ERROR": f"{Fore.RED}{MSG_TAGS['ERROR']}",
-            "CRITICAL": f"{Fore.LIGHTMAGENTA_EX}{MSG_TAGS['CRITICAL']}",
+            "CRITICAL": f"{Fore.WHITE}{Style.BRIGHT}{MSG_TAGS['CRITICAL']}",
         }
         colortag = color_tags.get(log_level_name, color_tags["INFO"])
         print(f"{colortag}{message}{Style.RESET_ALL}", **kwargs)

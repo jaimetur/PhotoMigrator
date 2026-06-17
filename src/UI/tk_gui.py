@@ -505,8 +505,23 @@ class PhotoMigratorTkGUI:
         theme = self.current_theme()
         tk = self.tk
         self.root.configure(bg=theme["root_bg"])
-        self.style.configure("PM.TCombobox", fieldbackground=theme["entry_bg"], background=theme["entry_bg"], foreground=theme["entry_fg"])
-        self.style.map("PM.TCombobox", fieldbackground=[("readonly", theme["entry_bg"])], foreground=[("readonly", theme["entry_fg"])])
+        self.style.configure(
+            "PM.TCombobox",
+            fieldbackground=theme["entry_bg"],
+            background=theme["entry_bg"],
+            foreground=theme["entry_fg"],
+            selectbackground=theme["entry_bg"],
+            selectforeground=theme["entry_fg"],
+            arrowsize=16,
+        )
+        self.style.map(
+            "PM.TCombobox",
+            fieldbackground=[("readonly", theme["entry_bg"]), ("focus", theme["entry_bg"])],
+            background=[("readonly", theme["entry_bg"]), ("focus", theme["entry_bg"])],
+            foreground=[("readonly", theme["entry_fg"]), ("focus", theme["entry_fg"])],
+            selectbackground=[("readonly", theme["entry_bg"]), ("focus", theme["entry_bg"])],
+            selectforeground=[("readonly", theme["entry_fg"]), ("focus", theme["entry_fg"])],
+        )
         self.configure_button_styles()
         self.sidebar.configure(bg=theme["sidebar_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
         self.sidebar_scroll.frame.configure(bg=theme["sidebar_bg"])
@@ -1236,6 +1251,16 @@ class PhotoMigratorTkGUI:
         label = self.tk.Label(parent, text=text, width=width, anchor="w", justify="left", bg=theme["panel_bg"], fg=fg)
         return label
 
+    def _clear_combobox_selection(self, combo: Any) -> None:
+        try:
+            combo.selection_clear()
+        except Exception:
+            pass
+        try:
+            combo.icursor("end")
+        except Exception:
+            pass
+
     def _section_label(self, parent: Any, text: str, *, accent: bool = False) -> Any:
         theme = self.current_theme()
         label = self.tk.Label(parent, text=text, anchor="w", justify="left", bg=theme["panel_bg"], fg=(theme["accent"] if accent else theme["text"]), font=("TkDefaultFont", 10, "bold"))
@@ -1402,12 +1427,14 @@ class PhotoMigratorTkGUI:
 
                 def on_account_change(_event: Any = None) -> None:
                     state["account"] = str(account_var.get() or "1")
+                    self._clear_combobox_selection(account_combo)
                     sync_endpoint_state()
 
                 account_combo.bind("<<ComboboxSelected>>", on_account_change)
 
         def on_kind_change(_event: Any = None) -> None:
             state["kind"] = kind_map.get(type_var.get(), self.migration_default_kind(dest))
+            self._clear_combobox_selection(type_combo)
             render_secondary()
             sync_endpoint_state()
 
@@ -1588,6 +1615,7 @@ class PhotoMigratorTkGUI:
 
         def on_change(_event: Any = None) -> None:
             selected = mapping.get(var.get(), "")
+            self._clear_combobox_selection(combo)
             if widget_id == "cloud-action-select":
                 if selected == str(self.cloud_action_dest.get(self.active_module) or ""):
                     return
@@ -1756,7 +1784,10 @@ class PhotoMigratorTkGUI:
             combo = self.ttk.Combobox(row, textvariable=var, values=values, state="readonly", style="PM.TCombobox")
             combo.pack(side="left", fill="x", expand=True, padx=(0, 8))
             self._bind_help(combo, help_text)
-            combo.bind("<<ComboboxSelected>>", lambda _e, v=var, s=section_name, k=key: self.config_values.setdefault(s, {}).__setitem__(k, v.get()))
+            combo.bind(
+                "<<ComboboxSelected>>",
+                lambda _e, w=combo, v=var, s=section_name, k=key: (self._clear_combobox_selection(w), self.config_values.setdefault(s, {}).__setitem__(k, v.get())),
+            )
             return
         var = self.tk.StringVar(value=value)
         entry = self._entry(row, var)

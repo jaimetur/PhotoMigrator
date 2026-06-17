@@ -343,14 +343,23 @@ if TEXTUAL_AVAILABLE:
         def _as_text(self, renderable: Any) -> Text:
             if isinstance(renderable, Text):
                 try:
-                    return renderable.copy()
+                    text = renderable.copy()
+                    text.no_wrap = True
+                    text.overflow = "ignore"
+                    return text
                 except Exception:
-                    return Text(str(renderable))
+                    text = Text(str(renderable))
+                    text.no_wrap = True
+                    text.overflow = "ignore"
+                    return text
             raw = str(renderable or "").replace("\ufe0f", "")
             try:
-                return Text.from_ansi(raw)
+                text = Text.from_ansi(raw)
             except Exception:
-                return Text(raw)
+                text = Text(raw)
+            text.no_wrap = True
+            text.overflow = "ignore"
+            return text
 
         def _line_plain(self, index: int) -> str:
             if index < 0 or index >= len(self._lines):
@@ -402,9 +411,9 @@ if TEXTUAL_AVAILABLE:
                     selected_lines.append(line)
             return "\n".join(selected_lines)
 
-        def get_selection(self, selection: Any) -> str | None:
+        def get_selection(self, selection: Any) -> tuple[str, str] | None:
             selected_text = self._selected_text_from_selection(selection)
-            return selected_text or None
+            return (selected_text, "") if selected_text else None
 
         def get_selection_text(self, selection: Any) -> str | None:
             selected_text = self._selected_text_from_selection(selection)
@@ -476,6 +485,14 @@ if TEXTUAL_AVAILABLE:
                 max_scroll_x = float(getattr(self, "max_scroll_x", 0) or 0)
             except Exception:
                 max_scroll_x = 0
+            if max_scroll_x <= 0:
+                try:
+                    visible_width = int(getattr(getattr(self, "size", None), "width", 0) or 0)
+                    content_width = max((len(self._line_plain(index)) for index in range(len(self._lines))), default=0)
+                    if visible_width > 0 and content_width > visible_width:
+                        max_scroll_x = float(content_width - visible_width)
+                except Exception:
+                    max_scroll_x = 0
             if max_scroll_x <= 0:
                 return False
             try:
@@ -1939,6 +1956,14 @@ if TEXTUAL_AVAILABLE:
                     selected_text = candidate
                 return selected_text or str(getattr(widget, "value", "") or "")
             if isinstance(widget, ExecutionLogView):
+                selection = getattr(widget, "selection", None)
+                if selection is not None:
+                    try:
+                        selected_text = widget.get_selection_text(selection)
+                        if selected_text:
+                            return selected_text
+                    except Exception:
+                        pass
                 return "\n".join(self.log_buffer.render_lines(include_partial=True))
             widget_id = str(getattr(widget, "id", "") or "")
             if widget_id == "command-preview":
@@ -2214,12 +2239,20 @@ if TEXTUAL_AVAILABLE:
                 max_scroll_x = float(getattr(target, "max_scroll_x", 0) or 0)
             except Exception:
                 max_scroll_x = 0
+            if max_scroll_x <= 0 and isinstance(target, ExecutionLogView):
+                try:
+                    visible_width = int(getattr(getattr(target, "size", None), "width", 0) or 0)
+                    content_width = max((len(target._line_plain(index)) for index in range(len(target._lines))), default=0)
+                    if visible_width > 0 and content_width > visible_width:
+                        max_scroll_x = float(content_width - visible_width)
+                except Exception:
+                    max_scroll_x = 0
             if max_scroll_x <= 0:
                 return False
             try:
                 scroll_relative = getattr(target, "scroll_relative", None)
                 if callable(scroll_relative):
-                    scroll_relative(x=delta, animate=False, immediate=True)
+                    scroll_relative(x=delta, animate=False, immediate=True, force=True)
                     return True
             except Exception:
                 pass

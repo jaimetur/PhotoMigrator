@@ -98,11 +98,11 @@ class CustomConsoleFormatter(logging.Formatter):
             # Custom ANSI color formatting
             COLORS = {
                 "VERBOSE": Fore.CYAN,
-                "DEBUG": Fore.LIGHTCYAN_EX,
+                "DEBUG": Fore.LIGHTBLUE_EX,
                 "INFO": Fore.LIGHTWHITE_EX,
                 "WARNING": Fore.YELLOW,
                 "ERROR": Fore.RED,
-                "CRITICAL": Fore.LIGHTMAGENTA_EX,
+                "CRITICAL": f"{Fore.WHITE}{Style.BRIGHT}",
             }
             # Apply color by logging level
             color = COLORS.get(record.levelname, "")

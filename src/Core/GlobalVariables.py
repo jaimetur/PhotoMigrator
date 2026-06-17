@@ -85,11 +85,11 @@ def _supports_ansi_colors() -> bool:
 if _supports_ansi_colors():
     MSG_TAGS_COLORED = {
         'VERBOSE'                   : f"{Fore.CYAN}{MSG_TAGS['VERBOSE']}",
-        'DEBUG'                     : f"{Fore.LIGHTCYAN_EX}{MSG_TAGS['DEBUG']}",
+        'DEBUG'                     : f"{Fore.LIGHTBLUE_EX}{MSG_TAGS['DEBUG']}",
         'INFO'                      : f"{Fore.LIGHTWHITE_EX}{MSG_TAGS['INFO']}",
         'WARNING'                   : f"{Fore.YELLOW}{MSG_TAGS['WARNING']}",
         'ERROR'                     : f"{Fore.RED}{MSG_TAGS['ERROR']}",
-        'CRITICAL'                  : f"{Fore.LIGHTMAGENTA_EX}{MSG_TAGS['CRITICAL']}",
+        'CRITICAL'                  : f"{Fore.WHITE}{MSG_TAGS['CRITICAL']}",
     }
 else:
     MSG_TAGS_COLORED = MSG_TAGS.copy()
@@ -177,4 +177,3 @@ TOOL_DESCRIPTION = textwrap.dedent(f"""{TOOL_NAME_VERSION} - {TOOL_DATE}
           ©️ 2024-2026 by Jaime Tur (@jaimetur)
           """
                                    )
-
