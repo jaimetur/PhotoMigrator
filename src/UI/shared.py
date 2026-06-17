@@ -329,6 +329,48 @@ def compose_rename_albums_value(pattern: Any, replacement: Any) -> str:
     return f"{pattern_text}, {replacement_text}"
 
 
+def parse_migration_endpoint(raw_value: Any, fallback_kind: str = "folder") -> Dict[str, str]:
+    text = str(raw_value or "").strip()
+    if not text:
+        return {"kind": fallback_kind, "account": "1", "path": ""}
+
+    synology_match = re.fullmatch(r"synology(?:-photos)?(?:-([123]))?", text, flags=re.IGNORECASE)
+    if synology_match:
+        return {"kind": "synology", "account": synology_match.group(1) or "1", "path": ""}
+
+    immich_match = re.fullmatch(r"immich(?:-photos)?(?:-([123]))?", text, flags=re.IGNORECASE)
+    if immich_match:
+        return {"kind": "immich", "account": immich_match.group(1) or "1", "path": ""}
+
+    nextcloud_match = re.fullmatch(r"nextcloud(?:-photos)?(?:-([123]))?", text, flags=re.IGNORECASE)
+    if nextcloud_match:
+        return {"kind": "nextcloud", "account": nextcloud_match.group(1) or "1", "path": ""}
+
+    google_match = re.fullmatch(r"google(?:-?photos)?(?:-([123]))?", text, flags=re.IGNORECASE)
+    if google_match:
+        return {"kind": "google", "account": google_match.group(1) or "1", "path": ""}
+
+    return {"kind": "folder", "account": "1", "path": text}
+
+
+def compose_migration_endpoint(state: Dict[str, Any] | None) -> str:
+    current = state or {}
+    kind = str(current.get("kind") or "").strip().lower()
+    account = str(current.get("account") or "1").strip() or "1"
+    path = str(current.get("path") or "").strip()
+    if kind == "folder":
+        return path
+    if kind == "synology":
+        return f"synology-photos-{account}"
+    if kind == "immich":
+        return f"immich-photos-{account}"
+    if kind == "nextcloud":
+        return f"nextcloud-photos-{account}"
+    if kind == "google":
+        return f"google-photos-{account}"
+    return path
+
+
 def parse_find_duplicates_value(raw_value: Any) -> Dict[str, Any]:
     parts = parse_folder_list_value(raw_value)
     action = "list"

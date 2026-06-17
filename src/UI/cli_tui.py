@@ -18,6 +18,7 @@ from UI.shared import (
     build_full_command,
     build_parser_schema,
     command_to_string,
+    compose_migration_endpoint,
     config_section_account_selector,
     default_state_values,
     get_field_by_dest,
@@ -25,6 +26,7 @@ from UI.shared import (
     load_json_file,
     normalize_field_for_context,
     parse_find_duplicates_value,
+    parse_migration_endpoint,
     parse_folder_list_value,
     parse_rename_albums_value,
     prepare_values_for_command,
@@ -648,6 +650,7 @@ if TEXTUAL_AVAILABLE:
             self.active_general_tab = str(self.ui_state.get("active_general_tab") or "feature")
             self.cloud_action_dest = dict(self.ui_state.get("cloud_action_dest") or {})
             self.standalone_action_dest = str(self.ui_state.get("standalone_action_dest") or "")
+            self.migration_endpoints_state = dict(self.ui_state.get("migration_endpoints") or {})
             self.active_config_section = str(self.ui_state.get("active_config_section") or "")
             self.active_config_account = dict(self.ui_state.get("active_config_account") or {})
             self.config_widget_map: Dict[str, tuple[str, str]] = {}
@@ -868,6 +871,14 @@ if TEXTUAL_AVAILABLE:
 
         def build_module_only_fields(self, tab_key: str, fields: List[Dict[str, Any]]) -> List[Any]:
             widgets = []
+            if tab_key == "automatic_migration":
+                widgets.append(Static("Module Fields", classes="section-title feature-section-title"))
+                for field in fields:
+                    if str(field.get("dest") or "") in {"source", "target"}:
+                        widgets.append(self.build_migration_endpoint_row(str(field.get("dest") or ""), str(field.get("help") or "").strip()))
+                    else:
+                        widgets.extend(self.build_field_widgets(field, context=tab_key))
+                return widgets
             if tab_key in {"google_takeout", "icloud_takeout"}:
                 regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
                 toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
@@ -886,6 +897,60 @@ if TEXTUAL_AVAILABLE:
             for field in fields:
                 widgets.extend(self.build_field_widgets(field, context=tab_key))
             return widgets
+
+        def migration_default_kind(self, dest: str) -> str:
+            return "synology" if dest == "source" else "immich"
+
+        def migration_endpoint_state(self, dest: str) -> Dict[str, str]:
+            fallback_kind = self.migration_default_kind(dest)
+            persisted = self.migration_endpoints_state.get(dest) or {}
+            parsed = parse_migration_endpoint(self.state_values.get(dest, ""), fallback_kind)
+            state = {
+                "kind": str(persisted.get("kind") or parsed.get("kind") or fallback_kind),
+                "account": str(persisted.get("account") or parsed.get("account") or "1"),
+                "path": str(persisted.get("path") or parsed.get("path") or ""),
+            }
+            self.migration_endpoints_state[dest] = state
+            self.state_values[dest] = compose_migration_endpoint(state)
+            return state
+
+        def build_migration_endpoint_row(self, dest: str, help_text: str) -> Horizontal:
+            state = self.migration_endpoint_state(dest)
+            kind_options = [
+                ("Synology Photos", "synology"),
+                ("Immich Photos", "immich"),
+                ("NextCloud Photos", "nextcloud"),
+                ("Google Photos", "google"),
+                ("Select Folder", "folder"),
+            ]
+            kind_select = self.build_select_row(
+                dest.title(),
+                f"migration-kind-{dest}",
+                kind_options,
+                state.get("kind") or self.migration_default_kind(dest),
+                help_text=help_text,
+            )
+            secondary: Any
+            if state.get("kind") == "folder":
+                path_value = str(state.get("path") or "")
+                input_widget = Input(value=path_value, id=f"field-{dest}", classes="field-control-widget")
+                self.register_field_help(f"field-{dest}", help_text)
+                self.register_field_help(f"browse-{dest}", help_text or dest.title())
+                secondary = Horizontal(
+                    Label("Folder Path", classes="field-label"),
+                    Grid(input_widget, Button("...", id=f"browse-{dest}", classes="path-button"), classes="field-path-control"),
+                    classes="field-row",
+                )
+            else:
+                account_options = [("Account 1", "1"), ("Account 2", "2"), ("Account 3", "3")]
+                secondary = self.build_select_row(
+                    "Account",
+                    f"migration-account-{dest}",
+                    account_options,
+                    state.get("account") or "1",
+                    help_text=help_text,
+                )
+            return Vertical(kind_select, secondary, classes="general-group-card")
 
         def build_flags_columns(self, fields: List[Dict[str, Any]], context: str) -> Horizontal:
             total = len(fields or [])
@@ -1346,6 +1411,7 @@ if TEXTUAL_AVAILABLE:
                     "active_general_tab": self.active_general_tab,
                     "cloud_action_dest": self.cloud_action_dest,
                     "standalone_action_dest": self.standalone_action_dest,
+                    "migration_endpoints": self.migration_endpoints_state,
                     "active_config_section": self.active_config_section,
                     "active_config_account": self.active_config_account,
                     "theme": self.selected_theme,
@@ -1462,6 +1528,12 @@ if TEXTUAL_AVAILABLE:
             if widget_id.startswith("field-"):
                 dest = widget_id.replace("field-", "", 1)
                 field = get_field_by_dest(self.schema, dest)
+                if dest in {"source", "target"}:
+                    state = self.migration_endpoint_state(dest)
+                    state["path"] = event.value
+                    self.state_values[dest] = compose_migration_endpoint(state)
+                    self.update_command_preview()
+                    return
                 if dest == "rename-pattern" or dest == "replacement-pattern":
                     self.state_values[dest] = event.value
                 elif dest == "find-duplicates-folders":
@@ -1528,6 +1600,27 @@ if TEXTUAL_AVAILABLE:
                 self.selected_theme = value if value else "ocean"
                 self.apply_theme()
                 self.persist_ui_state()
+                return
+            if widget_id.startswith("migration-kind-"):
+                dest = widget_id.replace("migration-kind-", "", 1)
+                state = self.migration_endpoint_state(dest)
+                if value == state.get("kind"):
+                    return
+                state["kind"] = value or self.migration_default_kind(dest)
+                self.migration_endpoints_state[dest] = state
+                self.state_values[dest] = compose_migration_endpoint(state)
+                await self.rebuild_content()
+                self.update_command_preview()
+                return
+            if widget_id.startswith("migration-account-"):
+                dest = widget_id.replace("migration-account-", "", 1)
+                state = self.migration_endpoint_state(dest)
+                if value == state.get("account"):
+                    return
+                state["account"] = value or "1"
+                self.migration_endpoints_state[dest] = state
+                self.state_values[dest] = compose_migration_endpoint(state)
+                self.update_command_preview()
                 return
             if widget_id.startswith("field-"):
                 if value == str(self.state_values.get(widget_id.replace("field-", "", 1)) or ""):

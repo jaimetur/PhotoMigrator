@@ -13,11 +13,13 @@ try:
         build_cli_args,
         build_parser_schema,
         command_to_string,
+        compose_migration_endpoint,
         compose_find_duplicates_value,
         compose_rename_albums_value,
         config_section_account_selector,
         merge_values_with_schema,
         parse_find_duplicates_value,
+        parse_migration_endpoint,
         parse_rename_albums_value,
         parse_template_to_form_schema,
     )
@@ -77,6 +79,24 @@ class TestCliTuiShared(unittest.TestCase):
 
         duplicates_value = compose_find_duplicates_value("delete", ["/a", "/b"])
         self.assertEqual(parse_find_duplicates_value(duplicates_value), {"action": "delete", "folders": ["/a", "/b"]})
+
+    def test_parse_helpers_roundtrip_migration_endpoints(self):
+        self.assertEqual(
+            parse_migration_endpoint("synology-photos-2", "synology"),
+            {"kind": "synology", "account": "2", "path": ""},
+        )
+        self.assertEqual(
+            parse_migration_endpoint("/mnt/photos", "synology"),
+            {"kind": "folder", "account": "1", "path": "/mnt/photos"},
+        )
+        self.assertEqual(
+            compose_migration_endpoint({"kind": "immich", "account": "3", "path": ""}),
+            "immich-photos-3",
+        )
+        self.assertEqual(
+            compose_migration_endpoint({"kind": "folder", "account": "1", "path": "/srv/library"}),
+            "/srv/library",
+        )
 
     def test_config_schema_marks_multi_account_sections(self):
         template_text = Path("Config.ini").read_text(encoding="utf-8")

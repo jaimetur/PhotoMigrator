@@ -24,6 +24,7 @@
   - Improved the TUI path picker with quick navigation buttons to go to the parent folder or return to the launch working directory.
   - Removed the `Upload to Server` module from the local GUI/TUI feature selectors because that workflow only makes sense in the Web Interface.
   - Refined the desktop GUI visual styling so themed buttons, module tabs, panel titles, and boolean toggles are more consistent with the TUI and Web Interface presentation.
+  - Updated `Automatic Migration` in both the desktop GUI and the CLI TUI so `source` and `target` now use the same endpoint selector concept as the Web Interface, allowing users to choose between local folders and supported cloud services, and to pick account `1` / `2` / `3` whenever a cloud endpoint is selected.
 
 #### 🚀 GPTH Enhancements:
 

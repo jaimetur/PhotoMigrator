@@ -19,12 +19,14 @@ from UI.shared import (
     build_full_command,
     build_parser_schema,
     command_to_string,
+    compose_migration_endpoint,
     default_state_values,
     get_field_by_dest,
     load_config_editor_model,
     load_json_file,
     normalize_field_for_context,
     parse_find_duplicates_value,
+    parse_migration_endpoint,
     parse_folder_list_value,
     parse_rename_albums_value,
     save_config_editor_values,
@@ -231,6 +233,7 @@ class PhotoMigratorTkGUI:
         self.active_general_tab = str(self.ui_state.get("active_general_tab") or "feature")
         self.cloud_action_dest = dict(self.ui_state.get("cloud_action_dest") or {})
         self.standalone_action_dest = str(self.ui_state.get("standalone_action_dest") or "")
+        self.migration_endpoints_state = dict(self.ui_state.get("migration_endpoints") or {})
         self.active_config_section = str(self.ui_state.get("active_config_section") or "")
         self.active_config_account = dict(self.ui_state.get("active_config_account") or {})
         self.selected_theme = str(self.ui_state.get("theme") or "ocean")
@@ -845,6 +848,14 @@ class PhotoMigratorTkGUI:
         return []
 
     def build_module_only_fields(self, parent: Any, tab_key: str, fields: List[Dict[str, Any]]) -> None:
+        if tab_key == "automatic_migration":
+            self._section_label(parent, "Module Fields", accent=True)
+            for field in fields:
+                if str(field.get("dest") or "") in {"source", "target"}:
+                    self.build_migration_endpoint_row(parent, str(field.get("dest") or ""), str(field.get("help") or "").strip())
+                else:
+                    self.build_field_widgets(parent, field, context=tab_key)
+            return
         if tab_key in {"google_takeout", "icloud_takeout"}:
             regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
             toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
@@ -859,6 +870,92 @@ class PhotoMigratorTkGUI:
         self._section_label(parent, "Module Fields", accent=True)
         for field in fields:
             self.build_field_widgets(parent, field, context=tab_key)
+
+    def migration_default_kind(self, dest: str) -> str:
+        return "synology" if dest == "source" else "immich"
+
+    def migration_endpoint_state(self, dest: str) -> Dict[str, str]:
+        fallback_kind = self.migration_default_kind(dest)
+        persisted = self.migration_endpoints_state.get(dest) or {}
+        parsed = parse_migration_endpoint(self.state_values.get(dest, ""), fallback_kind)
+        state = {
+            "kind": str(persisted.get("kind") or parsed.get("kind") or fallback_kind),
+            "account": str(persisted.get("account") or parsed.get("account") or "1"),
+            "path": str(persisted.get("path") or parsed.get("path") or ""),
+        }
+        self.migration_endpoints_state[dest] = state
+        self.state_values[dest] = compose_migration_endpoint(state)
+        return state
+
+    def build_migration_endpoint_row(self, parent: Any, dest: str, help_text: str) -> None:
+        state = self.migration_endpoint_state(dest)
+        row = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])
+        row.pack(fill="x", padx=6, pady=2)
+        self._label(row, dest.title()).pack(side="left")
+
+        controls = self.tk.Frame(row, bg=self.current_theme()["panel_bg"])
+        controls.pack(side="left", fill="x", expand=True)
+
+        kind_map = {
+            "Synology Photos": "synology",
+            "Immich Photos": "immich",
+            "NextCloud Photos": "nextcloud",
+            "Google Photos": "google",
+            "Select Folder": "folder",
+        }
+        reverse_kind_map = {value: key for key, value in kind_map.items()}
+        type_var = self.tk.StringVar(value=reverse_kind_map.get(state.get("kind") or "", "Select Folder"))
+        type_combo = self.ttk.Combobox(controls, textvariable=type_var, values=list(kind_map.keys()), state="readonly", style="PM.TCombobox")
+        type_combo.pack(fill="x", expand=True, padx=(0, 8))
+        self._bind_help(type_combo, help_text)
+
+        secondary = self.tk.Frame(controls, bg=self.current_theme()["panel_bg"])
+        secondary.pack(fill="x", expand=True, pady=(4, 0))
+
+        def sync_endpoint_state() -> None:
+            self.migration_endpoints_state[dest] = state
+            self.state_values[dest] = compose_migration_endpoint(state)
+            self.update_command_preview()
+
+        def render_secondary() -> None:
+            for child in list(secondary.winfo_children()):
+                child.destroy()
+            if state.get("kind") == "folder":
+                path_var = self.tk.StringVar(value=str(state.get("path") or ""))
+                self.field_widget_map[dest] = path_var
+                entry = self._entry(secondary, path_var)
+                entry.pack(side="left", fill="x", expand=True)
+                self._bind_help(entry, help_text)
+                btn = self.ttk.Button(secondary, text="...", width=4, command=lambda d=dest: self.browse_path(d), style="PM.Neutral.TButton")
+                btn.pack(side="left", padx=(6, 8))
+                self._bind_help(btn, help_text or dest.title())
+
+                def on_path_change(*_args: Any) -> None:
+                    state["path"] = path_var.get()
+                    sync_endpoint_state()
+
+                path_var.trace_add("write", on_path_change)
+            else:
+                self.field_widget_map.pop(dest, None)
+                account_var = self.tk.StringVar(value=str(state.get("account") or "1"))
+                account_combo = self.ttk.Combobox(secondary, textvariable=account_var, values=["1", "2", "3"], state="readonly", style="PM.TCombobox", width=8)
+                account_combo.pack(side="left", fill="x", padx=(0, 8))
+                self._bind_help(account_combo, help_text)
+
+                def on_account_change(_event: Any = None) -> None:
+                    state["account"] = str(account_var.get() or "1")
+                    sync_endpoint_state()
+
+                account_combo.bind("<<ComboboxSelected>>", on_account_change)
+
+        def on_kind_change(_event: Any = None) -> None:
+            state["kind"] = kind_map.get(type_var.get(), self.migration_default_kind(dest))
+            render_secondary()
+            sync_endpoint_state()
+
+        type_combo.bind("<<ComboboxSelected>>", on_kind_change)
+        render_secondary()
+        sync_endpoint_state()
 
     def build_flags_grid(self, parent: Any, fields: List[Dict[str, Any]], context: str) -> None:
         theme = self.current_theme()
@@ -1373,6 +1470,7 @@ class PhotoMigratorTkGUI:
                 "active_general_tab": self.active_general_tab,
                 "cloud_action_dest": self.cloud_action_dest,
                 "standalone_action_dest": self.standalone_action_dest,
+                "migration_endpoints": self.migration_endpoints_state,
                 "active_config_section": self.active_config_section,
                 "active_config_account": self.active_config_account,
                 "theme": self.selected_theme,
