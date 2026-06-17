@@ -336,12 +336,18 @@ class PhotoMigratorTkGUI:
         return label
 
     def _create_panel_shell(self, parent: Any, title: str, panel_key: str, *, use_grid: bool = False) -> Tuple[Any, Any, Any, Any, Any]:
-        panel = self.tk.LabelFrame(parent, text=title, bd=2)
+        panel = self.tk.LabelFrame(parent, text="", bd=2)
         panel.grid_columnconfigure(0, weight=1)
         panel.grid_rowconfigure(0, weight=1)
 
+        topbar = self.tk.Frame(panel, bd=0)
+        panel.configure(labelwidget=topbar)
+
+        title_label = self.tk.Label(topbar, text=title, anchor="w", font=("TkDefaultFont", 10, "bold"), padx=0, pady=0)
+        title_label.pack(side="left")
+
         toggle = self._create_panel_toggle(panel, panel_key)
-        toggle.place(relx=1.0, x=-10, y=-8, anchor="ne")
+        toggle.place(relx=1.0, x=-10, y=-12, anchor="ne")
 
         body = self.tk.Frame(panel, bd=0)
         body.grid(row=0, column=0, sticky="nsew", padx=8, pady=(8, 8))
@@ -351,7 +357,7 @@ class PhotoMigratorTkGUI:
 
         toggle.lift()
 
-        return panel, panel, panel, toggle, body
+        return panel, topbar, title_label, toggle, body
 
     def _build_layout(self) -> None:
         tk = self.tk
@@ -504,19 +510,25 @@ class PhotoMigratorTkGUI:
         self.topbar.configure(bg=theme["root_bg"])
         self.tabs_left.configure(bg=theme["root_bg"])
         self.tabs_right.configure(bg=theme["root_bg"])
-        self.content_panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.content_panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.content_header.configure(bg=theme["root_bg"])
+        self.content_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
         self.content_body.configure(bg=theme["panel_bg"])
         self.content_scroll.frame.configure(bg=theme["panel_bg"])
         self.content_scroll.canvas.configure(bg=theme["panel_bg"])
         self.content_scroll.body.configure(bg=theme["panel_bg"])
-        for panel, _header, _title, body in (
+        for panel, header, title, body in (
             (self.description_panel, self.description_header, self.description_title_label, self.description_body),
             (self.preview_panel, self.preview_header, self.preview_title_label, self.preview_body),
             (self.status_panel, self.status_header, self.status_title_label, self.status_body),
         ):
-            panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+            panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+            header.configure(bg=theme["root_bg"])
+            title.configure(bg=theme["root_bg"], fg=theme["accent"])
             body.configure(bg=theme["panel_bg"])
-        self.log_panel.configure(bg=theme["log_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.log_panel.configure(bg=theme["log_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.log_header.configure(bg=theme["root_bg"])
+        self.log_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
         self.description_body.configure(bg=theme["panel_bg"])
         self.preview_body.configure(bg=theme["panel_bg"])
         self.status_body.configure(bg=theme["panel_bg"])
@@ -525,7 +537,9 @@ class PhotoMigratorTkGUI:
         self.preview_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], insertbackground=theme["panel_fg"])
         self.status_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], wraplength=max(200, self.root.winfo_width() - 420))
         self.log_text.configure(bg=theme["log_bg"], fg=theme["log_fg"], insertbackground=theme["log_fg"])
-        self.input_panel.configure(bg=theme["panel_bg"], fg=theme["accent"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.input_panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
+        self.input_header.configure(bg=theme["root_bg"])
+        self.input_title_label.configure(bg=theme["root_bg"], fg=theme["accent"])
         self.input_row.configure(bg=theme["panel_bg"])
         self.job_input_entry.configure(bg=theme["entry_bg"], fg=theme["entry_fg"], insertbackground=theme["entry_fg"], relief="solid", bd=1)
         for button in (
@@ -904,11 +918,11 @@ class PhotoMigratorTkGUI:
     def refresh_panel_titles(self) -> None:
         title = self.current_content_panel_title()
         desc = self.current_content_panel_description()
-        self.content_panel.configure(text=(f"{title}: {desc}" if desc else title))
-        self.description_panel.configure(text="Argument Description")
-        self.preview_panel.configure(text="Command Preview")
-        self.log_panel.configure(text="Execution Log")
-        self.status_panel.configure(text="Status")
+        self.content_title_label.configure(text=(f"{title}: {desc}" if desc else title))
+        self.description_title_label.configure(text="Argument Description")
+        self.preview_title_label.configure(text="Command Preview")
+        self.log_title_label.configure(text="Execution Log")
+        self.status_title_label.configure(text="Status")
         self.refresh_panel_toggle_buttons()
 
     def select_module(self, module_key: str) -> None:
