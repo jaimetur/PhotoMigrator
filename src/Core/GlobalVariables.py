@@ -69,6 +69,9 @@ MSG_TAGS = {
     'CRITICAL'                  : "CRITICAL: ",
 }
 def _supports_ansi_colors() -> bool:
+    force_color = str(os.environ.get("PHOTOMIGRATOR_FORCE_COLOR") or os.environ.get("FORCE_COLOR") or os.environ.get("PY_COLORS") or os.environ.get("CLICOLOR_FORCE") or "").strip().lower()
+    if force_color not in {"", "0", "false", "no", "off"}:
+        return True
     if os.environ.get("NO_COLOR"):
         return False
     if not sys.stdout.isatty():
@@ -86,7 +89,7 @@ if _supports_ansi_colors():
         'INFO'                      : f"{Fore.LIGHTWHITE_EX}{MSG_TAGS['INFO']}",
         'WARNING'                   : f"{Fore.YELLOW}{MSG_TAGS['WARNING']}",
         'ERROR'                     : f"{Fore.RED}{MSG_TAGS['ERROR']}",
-        'CRITICAL'                  : f"{Fore.MAGENTA}{MSG_TAGS['CRITICAL']}",
+        'CRITICAL'                  : f"{Fore.LIGHTMAGENTA_EX}{MSG_TAGS['CRITICAL']}",
     }
 else:
     MSG_TAGS_COLORED = MSG_TAGS.copy()
@@ -174,6 +177,4 @@ TOOL_DESCRIPTION = textwrap.dedent(f"""{TOOL_NAME_VERSION} - {TOOL_DATE}
           ©️ 2024-2026 by Jaime Tur (@jaimetur)
           """
                                    )
-
-
 

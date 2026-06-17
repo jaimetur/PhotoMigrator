@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -18,6 +19,7 @@ from UI.shared import (
     GENERAL_TAB_NAMES,
     MODULE_TAB_NAMES,
     TIMEZONE_CHOICES,
+    build_ui_subprocess_env,
     build_argument_specs,
     build_full_command,
     command_preview_string,
@@ -47,12 +49,13 @@ TEXTUAL_IMPORT_ERROR: Exception | None = None
 TEXTUAL_AVAILABLE = False
 
 try:
+    from rich.text import Text
     from textual import events
     from textual.app import App, ComposeResult
     from textual.binding import Binding
     from textual.containers import Grid, Horizontal, Vertical, VerticalScroll
     from textual.screen import ModalScreen
-    from textual.widgets import Button, Checkbox, DirectoryTree, Header, Input, Label, Select, Static, TextArea
+    from textual.widgets import Button, Checkbox, DirectoryTree, Header, Input, Label, RichLog, Select, Static
 
     TEXTUAL_AVAILABLE = True
 except Exception as exc:  # pragma: no cover - dependency may be optional in test envs
@@ -79,6 +82,7 @@ MODULE_TO_CONFIG_SECTION = {
     "nextcloud_photos": "NextCloud Photos",
 }
 INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.items() if key != "upload_folder"}
+LOG_LEVEL_PREFIX_RE = re.compile(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*")
 
 
 def textual_runtime_available() -> tuple[bool, str | None]:
@@ -89,7 +93,7 @@ def textual_runtime_available() -> tuple[bool, str | None]:
 
 if TEXTUAL_AVAILABLE:
     class PathPickerScreen(ModalScreen[Dict[str, str] | None]):
-        BINDINGS = [("escape", "cancel", "Cancel"), ("enter", "confirm", "Select")]
+        BINDINGS = [("escape", "cancel", "Cancel"), ("enter", "confirm", "Select"), ("ctrl+v", "paste_text", "Paste")]
 
         def __init__(self, dest: str, title: str, start_path: str = "", home_path: Path | None = None, subtitle: str | None = None):
             super().__init__()
@@ -121,8 +125,8 @@ if TEXTUAL_AVAILABLE:
                 ),
                 DirectoryTree(root_value, id="picker-tree"),
                 Horizontal(
-                    Button("Cancel", id="picker-cancel"),
-                    Button("Select", id="picker-select", variant="primary"),
+                    Button("Cancel", id="picker-cancel", classes="modal-btn modal-btn-cancel"),
+                    Button("Select", id="picker-select", variant="primary", classes="modal-btn modal-btn-primary"),
                     id="picker-actions",
                 ),
                 id="picker-dialog",
@@ -168,6 +172,43 @@ if TEXTUAL_AVAILABLE:
         def action_go_home(self) -> None:
             self._set_tree_root(self.home_path)
 
+        def _read_system_clipboard(self) -> str:
+            commands: List[List[str]] = []
+            if sys.platform == "darwin" and shutil.which("pbpaste"):
+                commands.append(["pbpaste"])
+            elif sys.platform.startswith("win"):
+                if shutil.which("powershell"):
+                    commands.append(["powershell", "-NoProfile", "-Command", "Get-Clipboard"])
+                if shutil.which("pwsh"):
+                    commands.append(["pwsh", "-NoProfile", "-Command", "Get-Clipboard"])
+            else:
+                if shutil.which("wl-paste"):
+                    commands.append(["wl-paste", "-n"])
+                if shutil.which("xclip"):
+                    commands.append(["xclip", "-selection", "clipboard", "-o"])
+                if shutil.which("xsel"):
+                    commands.append(["xsel", "--clipboard", "--output"])
+            for command in commands:
+                try:
+                    result = subprocess.run(command, capture_output=True, text=True, check=True)
+                    text = str(result.stdout or "")
+                    if text:
+                        return text
+                except Exception:
+                    continue
+            return ""
+
+        def action_paste_text(self) -> None:
+            text = self._read_system_clipboard()
+            if not text:
+                return
+            try:
+                input_widget = self.query_one("#picker-path-input", Input)
+                input_widget.value = text.strip()
+                input_widget.focus()
+            except Exception:
+                pass
+
         def on_input_submitted(self, event: Input.Submitted) -> None:
             if event.input.id == "picker-path-input":
                 raw = str(event.value or "").strip()
@@ -194,31 +235,61 @@ if TEXTUAL_AVAILABLE:
 
 
     class ConfirmActionScreen(ModalScreen[bool]):
-        BINDINGS = [("escape", "cancel", "Cancel"), ("enter", "confirm", "Confirm")]
+        BINDINGS = [
+            ("escape", "cancel", "Cancel"),
+            ("enter", "confirm", "Confirm"),
+            ("left", "focus_previous_button", "Previous"),
+            ("right", "focus_next_button", "Next"),
+        ]
 
-        def __init__(self, title: str, message: str, confirm_label: str = "Confirm"):
+        def __init__(self, title: str, message: str, confirm_label: str = "Confirm", cancel_label: str = "Cancel"):
             super().__init__()
             self.title = title
             self.message = message
             self.confirm_label = confirm_label
+            self.cancel_label = cancel_label
 
         def compose(self) -> ComposeResult:
             yield Vertical(
                 Static(self.title, classes="modal-title"),
                 Static(self.message, classes="modal-subtitle"),
                 Horizontal(
-                    Button("Cancel", id="confirm-cancel"),
-                    Button(self.confirm_label, id="confirm-accept", variant="primary"),
+                    Button(self.cancel_label, id="confirm-cancel", classes="modal-btn modal-btn-cancel"),
+                    Button(self.confirm_label, id="confirm-accept", variant="primary", classes="modal-btn modal-btn-primary"),
                     id="picker-actions",
                 ),
                 id="picker-dialog",
             )
+
+        def on_mount(self) -> None:
+            self.set_focus(self.query_one("#confirm-accept", Button))
 
         def action_cancel(self) -> None:
             self.dismiss(False)
 
         def action_confirm(self) -> None:
             self.dismiss(True)
+
+        def _focus_button_by_delta(self, delta: int) -> None:
+            buttons = list(self.query("#picker-actions Button"))
+            if not buttons:
+                return
+            try:
+                focused = self.focused
+            except Exception:
+                focused = None
+            try:
+                current_index = buttons.index(focused) if focused in buttons else 0
+            except ValueError:
+                current_index = 0
+            next_index = (current_index + delta) % len(buttons)
+            self.set_focus(buttons[next_index])
+
+        def action_focus_previous_button(self) -> None:
+            self._focus_button_by_delta(-1)
+
+        def action_focus_next_button(self) -> None:
+            self._focus_button_by_delta(1)
 
         def on_button_pressed(self, event: Button.Pressed) -> None:
             if event.button.id == "confirm-cancel":
@@ -241,7 +312,7 @@ if TEXTUAL_AVAILABLE:
                 Static(self.title, classes="modal-title"),
                 Static(self.message, classes="modal-subtitle"),
                 Horizontal(
-                    Button(self.ok_label, id="info-ok", variant="primary"),
+                    Button(self.ok_label, id="info-ok", variant="primary", classes="modal-btn modal-btn-primary"),
                     id="picker-actions",
                 ),
                 id="picker-dialog",
@@ -255,8 +326,205 @@ if TEXTUAL_AVAILABLE:
                 self.dismiss(None)
 
 
+    class ExecutionLogView(RichLog):
+        ALLOW_SELECT = True
+        FOCUS_ON_CLICK = True
+        can_focus = True
+
+        def __init__(self, *args: Any, auto_scroll: bool = True, **kwargs: Any) -> None:
+            super().__init__(*args, auto_scroll=auto_scroll, **kwargs)
+            self.auto_scroll = auto_scroll
+            self._lines: List[Text] = []
+
+        @property
+        def allow_select(self) -> bool:
+            return True
+
+        def _as_text(self, renderable: Any) -> Text:
+            if isinstance(renderable, Text):
+                try:
+                    return renderable.copy()
+                except Exception:
+                    return Text(str(renderable))
+            raw = str(renderable or "").replace("\ufe0f", "")
+            try:
+                return Text.from_ansi(raw)
+            except Exception:
+                return Text(raw)
+
+        def _line_plain(self, index: int) -> str:
+            if index < 0 or index >= len(self._lines):
+                return ""
+            try:
+                return str(self._lines[index].plain or "")
+            except Exception:
+                return str(self._lines[index] or "")
+
+        def _selection_coord(self, point: Any) -> tuple[int, int]:
+            if point is None:
+                return 0, 0
+            x = getattr(point, "x", None)
+            y = getattr(point, "y", None)
+            if x is None:
+                x = getattr(point, "column", None)
+            if x is None:
+                x = getattr(point, "col", None)
+            if y is None:
+                y = getattr(point, "row", None)
+            if y is None:
+                y = getattr(point, "line", None)
+            return max(0, int(x or 0)), max(0, int(y or 0))
+
+        def get_selection(self, selection: Any) -> tuple[str, str] | None:
+            start_point = getattr(selection, "start", None) or getattr(selection, "anchor", None)
+            end_point = getattr(selection, "end", None) or getattr(selection, "cursor", None)
+            if start_point is None or end_point is None:
+                return None
+            start_x, start_y = self._selection_coord(start_point)
+            end_x, end_y = self._selection_coord(end_point)
+            if (end_y, end_x) < (start_y, start_x):
+                start_x, end_x = end_x, start_x
+                start_y, end_y = end_y, start_y
+            if not self._lines:
+                return None
+            start_y = max(0, min(start_y, len(self._lines) - 1))
+            end_y = max(0, min(end_y, len(self._lines) - 1))
+            selected_lines: List[str] = []
+            for row in range(start_y, end_y + 1):
+                line = self._line_plain(row)
+                if row == start_y == end_y:
+                    selected_lines.append(line[start_x:end_x])
+                elif row == start_y:
+                    selected_lines.append(line[start_x:])
+                elif row == end_y:
+                    selected_lines.append(line[:end_x])
+                else:
+                    selected_lines.append(line)
+            selected_text = "\n".join(selected_lines)
+            return (selected_text, "") if selected_text else None
+
+        def _scroll_to_end_if_needed(self, scroll_end: bool | None) -> None:
+            if scroll_end is False or not self.auto_scroll:
+                return
+            try:
+                scroll_end_fn = getattr(self, "scroll_end", None)
+                if callable(scroll_end_fn):
+                    self.call_after_refresh(lambda: scroll_end_fn(animate=False, immediate=True))
+                    return
+            except Exception:
+                pass
+            try:
+                def _scroll() -> None:
+                    max_y = float(getattr(self, "max_scroll_y", 0) or 0)
+                    scroll_to = getattr(self, "scroll_to", None)
+                    if callable(scroll_to):
+                        scroll_to(x=None, y=max_y, animate=False, immediate=True, force=True)
+                self.call_after_refresh(_scroll)
+            except Exception:
+                pass
+
+        def clear(self) -> None:
+            self._lines = []
+            try:
+                super().clear()
+            except Exception:
+                pass
+
+        def write(self, renderable: Any, *, scroll_end: bool | None = None) -> None:
+            text = self._as_text(renderable)
+            self._lines.append(text)
+            try:
+                super().write(text, scroll_end=self.auto_scroll if scroll_end is None else bool(scroll_end))
+            except TypeError:
+                super().write(text)
+                self._scroll_to_end_if_needed(scroll_end)
+
+        def set_lines(self, lines: List[Any], *, scroll_end: bool | None = None) -> None:
+            self._lines = [self._as_text(line) for line in lines]
+            try:
+                super().clear()
+            except Exception:
+                pass
+            last_index = len(self._lines) - 1
+            for index, line in enumerate(self._lines):
+                try:
+                    super().write(line, scroll_end=(self.auto_scroll if scroll_end is None else bool(scroll_end)) and index == last_index)
+                except TypeError:
+                    super().write(line)
+            self._scroll_to_end_if_needed(scroll_end)
+
+        def on_mouse_down(self, event: events.MouseDown) -> None:
+            if int(getattr(event, "button", 0) or 0) == 1:
+                try:
+                    self.focus()
+                except Exception:
+                    pass
+            try:
+                super().on_mouse_down(event)
+            except Exception:
+                pass
+
+        def _scroll_horizontally(self, delta: int) -> bool:
+            try:
+                max_scroll_x = float(getattr(self, "max_scroll_x", 0) or 0)
+            except Exception:
+                max_scroll_x = 0
+            if max_scroll_x <= 0:
+                return False
+            try:
+                scroll_relative = getattr(self, "scroll_relative", None)
+                if callable(scroll_relative):
+                    scroll_relative(x=delta, animate=False, immediate=True, force=True)
+                    return True
+            except Exception:
+                pass
+            try:
+                current_x = float(getattr(self, "scroll_x", 0) or 0)
+                scroll_to = getattr(self, "scroll_to", None)
+                if callable(scroll_to):
+                    next_x = max(0, min(max_scroll_x, current_x + delta))
+                    scroll_to(x=next_x, y=None, animate=False, immediate=True, force=True)
+                    return True
+            except Exception:
+                pass
+            return False
+
+        def on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
+            if getattr(event, "shift", False) and self._scroll_horizontally(4):
+                event.stop()
+                try:
+                    event.prevent_default()
+                except Exception:
+                    pass
+
+        def on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
+            if getattr(event, "shift", False) and self._scroll_horizontally(-4):
+                event.stop()
+                try:
+                    event.prevent_default()
+                except Exception:
+                    pass
+
+        def on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
+            if self._scroll_horizontally(-4):
+                event.stop()
+                try:
+                    event.prevent_default()
+                except Exception:
+                    pass
+
+        def on_mouse_scroll_right(self, event: events.MouseScrollRight) -> None:
+            if self._scroll_horizontally(4):
+                event.stop()
+                try:
+                    event.prevent_default()
+                except Exception:
+                    pass
+
+
     class PhotoMigratorTUI(App[None]):
         TITLE = "PhotoMigrator CLI TUI"
+        ALLOW_SELECT = True
         CSS = """
         Screen {
             layout: vertical;
@@ -693,6 +961,7 @@ if TEXTUAL_AVAILABLE:
         #log-panel-container {
             height: 1fr;
             min-height: 3;
+            padding: 0;
         }
         #field-description,
         #command-preview,
@@ -709,10 +978,21 @@ if TEXTUAL_AVAILABLE:
             min-height: 4;
             background: transparent;
             border: none;
-        }
-        #log-panel .text-area--selection {
-            background: #6f8fb4;
-            color: #ffffff;
+            padding: 0;
+            margin: 0;
+            text-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: auto;
+            scrollbar-gutter: stable;
+            scrollbar-size-horizontal: 1;
+            scrollbar-size-vertical: 1;
+            scrollbar-background: #060a10;
+            scrollbar-background-hover: #060a10;
+            scrollbar-background-active: #060a10;
+            scrollbar-color: #0d4b79;
+            scrollbar-color-hover: #0d4b79;
+            scrollbar-color-active: #0d4b79;
+            scrollbar-corner-color: #060a10;
         }
         #job-input-row {
             height: auto;
@@ -804,7 +1084,39 @@ if TEXTUAL_AVAILABLE:
         .modal-subtitle { color: #92a8c3; margin-bottom: 1; }
         #picker-nav-actions { height: auto; margin: 0 0 0 0; }
         #picker-tree { height: 1fr; margin: 0; }
-        #picker-actions { height: auto; }
+        #picker-actions {
+            height: auto;
+            align-horizontal: right;
+            margin-top: 1;
+        }
+        .modal-btn {
+            min-width: 22;
+            height: 3;
+            min-height: 3;
+            text-style: bold;
+            padding: 0 1;
+            margin-right: 1;
+        }
+        .modal-btn-primary {
+            background: #cce4f3;
+            color: #244862;
+            border: round #6f92b0;
+        }
+        .modal-btn-primary:focus {
+            background: #d9efff;
+            color: #16364a;
+            border: round #8eb7d7;
+        }
+        .modal-btn-cancel {
+            background: #e8c5c5;
+            color: #703131;
+            border: round #b97d7d;
+        }
+        .modal-btn-cancel:focus {
+            background: #f1d2d2;
+            color: #5f2222;
+            border: round #d59a9a;
+        }
         .danger-note { color: #ffb4b4; }
         .empty-note { color: #8da4be; margin-top: 1; }
         .theme-ocean {
@@ -930,6 +1242,7 @@ if TEXTUAL_AVAILABLE:
             self.running_command: List[str] = []
             self.log_buffer = CompactLogBuffer()
             self.log_history: List[str] = []
+            self.job_starting = False
             self.current_status_text = "Ready."
             self.current_command_preview_text = ""
             self.current_field_description_text = "Move focus to a field to see its description here."
@@ -1014,7 +1327,7 @@ if TEXTUAL_AVAILABLE:
                             with Horizontal(classes="panel-topbar"):
                                 yield Static("", classes="panel-topbar-spacer")
                                 yield Button("−", id="toggle-log-panel", classes="panel-toggle")
-                            yield TextArea("", id="log-panel", read_only=True, show_cursor=False, soft_wrap=True, compact=True)
+                            yield ExecutionLogView(id="log-panel", auto_scroll=True)
                         with Vertical(id="status-panel", classes="panel-shell"):
                             with Horizontal(classes="panel-topbar"):
                                 yield Static("", classes="panel-topbar-spacer")
@@ -1044,6 +1357,10 @@ if TEXTUAL_AVAILABLE:
                 yield Static("Quit", classes="shortcut-desc")
 
         async def on_mount(self) -> None:
+            try:
+                self.screen.ALLOW_SELECT = True
+            except Exception:
+                pass
             self.apply_theme()
             self.refresh_tab_styles()
             await self.rebuild_content()
@@ -1113,7 +1430,6 @@ if TEXTUAL_AVAILABLE:
                     self.query_one(f"#{widget_id}", Button).label = self._toggle_label(panel_key)
                 except Exception:
                     pass
-
         def apply_panel_states(self) -> None:
             body_map = {
                 "content": "content-body",
@@ -1615,9 +1931,8 @@ if TEXTUAL_AVAILABLE:
                 if isinstance(candidate, str):
                     selected_text = candidate
                 return selected_text or str(getattr(widget, "value", "") or "")
-            if isinstance(widget, TextArea):
-                selected_text = str(getattr(widget, "selected_text", "") or "")
-                return selected_text or str(getattr(widget, "text", "") or "")
+            if isinstance(widget, ExecutionLogView):
+                return "\n".join(self.log_buffer.render_lines(include_partial=True))
             widget_id = str(getattr(widget, "id", "") or "")
             if widget_id == "command-preview":
                 return self.current_command_preview_text
@@ -1723,6 +2038,18 @@ if TEXTUAL_AVAILABLE:
                 self.context_menu_visible = False
 
         def action_copy_text(self) -> None:
+            try:
+                get_selected_text = getattr(self.screen, "get_selected_text", None)
+                if callable(get_selected_text):
+                    selected_text = str(get_selected_text() or "")
+                    if selected_text:
+                        if self._copy_to_system_clipboard(selected_text):
+                            self.update_status("Selected text copied to system clipboard.")
+                        else:
+                            self.update_status("Unable to access the system clipboard from this terminal environment.")
+                        return
+            except Exception:
+                pass
             widget = self._context_widget()
             text = self._copy_text_for_widget(widget)
             if not text:
@@ -1759,7 +2086,7 @@ if TEXTUAL_AVAILABLE:
             target = None
             while current is not None:
                 current_id = str(getattr(current, "id", "") or "")
-                if isinstance(current, (Input, Static, TextArea)) and current_id:
+                if isinstance(current, (Input, Static, ExecutionLogView)) and current_id:
                     target = current
                     break
                 current = getattr(current, "parent", None)
@@ -1816,6 +2143,14 @@ if TEXTUAL_AVAILABLE:
 
         def on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
             hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
+            if getattr(event, "shift", False) and self._widget_is_within(hovered_widget, "log-panel"):
+                if self._scroll_widget_horizontally(hovered_widget, 4):
+                    event.stop()
+                    try:
+                        event.prevent_default()
+                    except Exception:
+                        pass
+                    return
             if self._widget_is_within(hovered_widget, "content-body") and not self._content_panel_overflows():
                 event.stop()
                 try:
@@ -1825,12 +2160,72 @@ if TEXTUAL_AVAILABLE:
 
         def on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
             hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
+            if getattr(event, "shift", False) and self._widget_is_within(hovered_widget, "log-panel"):
+                if self._scroll_widget_horizontally(hovered_widget, -4):
+                    event.stop()
+                    try:
+                        event.prevent_default()
+                    except Exception:
+                        pass
+                    return
             if self._widget_is_within(hovered_widget, "content-body") and not self._content_panel_overflows():
                 event.stop()
                 try:
                     event.prevent_default()
                 except Exception:
                     pass
+
+        def on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
+            hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
+            if self._widget_is_within(hovered_widget, "log-panel") and self._scroll_widget_horizontally(hovered_widget, -4):
+                event.stop()
+                try:
+                    event.prevent_default()
+                except Exception:
+                    pass
+
+        def on_mouse_scroll_right(self, event: events.MouseScrollRight) -> None:
+            hovered_widget = self._widget_under_pointer(event.screen_x, event.screen_y)
+            if self._widget_is_within(hovered_widget, "log-panel") and self._scroll_widget_horizontally(hovered_widget, 4):
+                event.stop()
+                try:
+                    event.prevent_default()
+                except Exception:
+                    pass
+
+        def _scroll_widget_horizontally(self, widget: Any | None, delta: int) -> bool:
+            current = widget
+            target = None
+            while current is not None:
+                if str(getattr(current, "id", "") or "") == "log-panel":
+                    target = current
+                    break
+                current = getattr(current, "parent", None)
+            if target is None:
+                return False
+            try:
+                max_scroll_x = float(getattr(target, "max_scroll_x", 0) or 0)
+            except Exception:
+                max_scroll_x = 0
+            if max_scroll_x <= 0:
+                return False
+            try:
+                scroll_relative = getattr(target, "scroll_relative", None)
+                if callable(scroll_relative):
+                    scroll_relative(x=delta, animate=False, immediate=True)
+                    return True
+            except Exception:
+                pass
+            try:
+                current_x = float(getattr(target, "scroll_x", 0) or 0)
+                scroll_to = getattr(target, "scroll_to", None)
+                if callable(scroll_to):
+                    next_x = max(0, min(max_scroll_x, current_x + delta))
+                    scroll_to(x=next_x, y=None, animate=False, immediate=True, force=True)
+                    return True
+            except Exception:
+                pass
+            return False
 
         def build_select_row(
             self,
@@ -1896,7 +2291,7 @@ if TEXTUAL_AVAILABLE:
         def build_field_widgets(self, field: Dict[str, Any], required: bool = False, context: str = "") -> List[Any]:
             field = normalize_field_for_context(field, context) or field
             dest = str(field.get("dest") or "")
-            label = ui_option_name(field) if dest in FEATURE_LABELS else dest.replace("-", " ").strip().title()
+            label = ui_option_name(field)
             help_text = str(field.get("help") or "").strip()
             kind = str(field.get("kind") or "text")
             value = self.state_values.get(dest)
@@ -1947,16 +2342,85 @@ if TEXTUAL_AVAILABLE:
                     pass
 
         def can_run_job(self) -> bool:
-            return not (self.running_process is not None and self.running_process.poll() is None)
+            return not self.job_starting and not (self.running_process is not None and self.running_process.poll() is None)
 
         def module_buttons(self) -> List[str]:
             return list(INTERACTIVE_MODULE_TAB_NAMES.keys())
 
         def can_stop_job(self) -> bool:
-            return self.running_process is not None and self.running_process.poll() is None
+            return not self.job_starting and self.running_process is not None and self.running_process.poll() is None
 
         def can_exit_app(self) -> bool:
-            return not self.can_stop_job()
+            return not self.job_starting and not self.can_stop_job()
+
+        def _should_run_dashboard_fullscreen(self) -> bool:
+            return self.active_module == "automatic_migration" and bool(self.state_values.get("dashboard"))
+
+        def _selected_action_for_active_module(self) -> str | None:
+            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+                return self.cloud_action_dest.get(self.active_module)
+            if self.active_module == "standalone_features":
+                return self.standalone_action_dest
+            return None
+
+        def _build_current_command(self, *, dashboard_enabled: bool | None = None) -> List[str]:
+            values = dict(self.state_values)
+            if self.active_module == "automatic_migration" and dashboard_enabled is not None:
+                values["dashboard"] = bool(dashboard_enabled)
+            return build_full_command(
+                self.cli_entrypoint,
+                self.schema,
+                self.active_module,
+                values,
+                self._selected_action_for_active_module(),
+            )
+
+        def _reset_log_for_command(self, command: List[str]) -> None:
+            self.running_command = command
+            self.log_buffer.clear()
+            self.log_history = []
+            self.query_one("#log-panel", ExecutionLogView).clear()
+            self.append_log(f"> {command_to_string(command)}")
+
+        def _start_embedded_job(self, command: List[str]) -> None:
+            self.job_starting = True
+            self.update_status("Preparing job...")
+            self.sync_content_panel_for_run_state(True)
+            self.refresh_action_buttons()
+            self.call_after_refresh(lambda: self._start_job_after_layout(command))
+
+        def _confirm_dashboard_fullscreen_run(self) -> None:
+            message = (
+                "Live Dashboard is enabled for Automatic Migration.\n\n"
+                "If you continue, the current Textual screen will temporarily switch to the Rich Live Dashboard "
+                "for the duration of the process.\n\n"
+                "When the migration finishes, PhotoMigrator will return automatically to the main TUI screen.\n\n"
+                "Do you want to use the Live Dashboard for this run?"
+            )
+            self.push_screen(
+                ConfirmActionScreen(
+                    "Automatic Migration Live Dashboard",
+                    message,
+                    confirm_label="Use Live Dashboard",
+                    cancel_label="Run Without Dashboard",
+                ),
+                callback=self.handle_dashboard_fullscreen_confirmation,
+            )
+
+        def handle_dashboard_fullscreen_confirmation(self, confirmed: bool) -> None:
+            if confirmed:
+                command = self._build_current_command(dashboard_enabled=True)
+                self._reset_log_for_command(command)
+                self.job_starting = True
+                self.update_status("Launching full-screen dashboard...")
+                self.refresh_action_buttons()
+                self.call_after_refresh(lambda: self._run_dashboard_job_in_terminal(command))
+                return
+            command = self._build_current_command(dashboard_enabled=False)
+            self._reset_log_for_command(command)
+            self.append_log("[internal] Live Dashboard disabled for this run by user confirmation.")
+            self.update_status("Running Automatic Migration without Live Dashboard.")
+            self._start_embedded_job(command)
 
         def refresh_action_buttons(self) -> None:
             try:
@@ -2294,10 +2758,64 @@ if TEXTUAL_AVAILABLE:
         def append_log(self, line: str) -> None:
             self.consume_log_output(f"{line}\n")
 
+        def _render_log_line(self, line: str) -> Text:
+            raw = str(line or "").replace("\ufe0f", "")
+            try:
+                text = Text.from_ansi(raw)
+            except Exception:
+                text = Text(raw)
+            match = LOG_LEVEL_PREFIX_RE.match(text.plain)
+            if not match:
+                return text
+            styles = {
+                "VERBOSE": "cyan",
+                "DEBUG": "bright_cyan",
+                "INFO": "bright_white",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "bold bright_magenta",
+            }
+            level_name = match.group(1)
+            style = styles.get(level_name)
+            if style:
+                try:
+                    text.stylize(style, 0, len(text.plain))
+                except Exception:
+                    pass
+            return text
+
+        def _write_log_line(self, line: str, *, scroll_end: bool | None = None) -> None:
+            self.query_one("#log-panel", ExecutionLogView).write(self._render_log_line(line), scroll_end=scroll_end)
+
+        def _log_view_dimensions(self) -> tuple[int, int]:
+            width = 0
+            height = 0
+            try:
+                active_widget = self.query_one("#log-panel")
+                size = getattr(active_widget, "size", None)
+                width = int(getattr(size, "width", 0) or 0)
+                height = int(getattr(size, "height", 0) or 0)
+            except Exception:
+                pass
+            if width > 0 and height > 0:
+                return width, height
+            try:
+                container = self.query_one("#log-panel-container", Vertical)
+                size = getattr(container, "size", None)
+                width = max(width, int(getattr(size, "width", 0) or 0))
+                height = max(height, int(getattr(size, "height", 0) or 0) - 2)
+            except Exception:
+                pass
+            return max(1, width), max(1, height)
+
         def refresh_log_view(self) -> None:
             self.log_history = self.log_buffer.render_lines()
-            log = self.query_one("#log-panel", TextArea)
-            log.load_text(self.log_buffer.render_text(include_partial=True))
+            lines = self.log_buffer.render_lines(include_partial=True)
+            log = self.query_one("#log-panel", ExecutionLogView)
+            if not lines:
+                log.clear()
+                return
+            log.set_lines([self._render_log_line(line) for line in lines], scroll_end=True)
 
         def consume_log_output(self, text: str) -> None:
             update = self.log_buffer.append_text(text)
@@ -2307,13 +2825,72 @@ if TEXTUAL_AVAILABLE:
             if not update.appended_lines:
                 return
             self.log_history.extend(update.appended_lines)
-            log = self.query_one("#log-panel", TextArea)
-            log.load_text(self.log_buffer.render_text(include_partial=True))
+            last_index = len(update.appended_lines) - 1
+            for index, line in enumerate(update.appended_lines):
+                self._write_log_line(line, scroll_end=index == last_index)
 
         def on_job_finished(self, return_code: int) -> None:
+            self.job_starting = False
             self.update_status(f"Job finished with exit code {return_code}")
             self.running_process = None
             self.sync_content_panel_for_run_state(False)
+            self.refresh_action_buttons()
+
+        def _start_job_after_layout(self, command: List[str]) -> None:
+            env = build_ui_subprocess_env(ui_mode="tui")
+            log_width, log_height = self._log_view_dimensions()
+            env["PHOTOMIGRATOR_TUI_LOG_WIDTH"] = str(log_width)
+            env["PHOTOMIGRATOR_TUI_LOG_HEIGHT"] = str(log_height)
+            env["COLUMNS"] = str(log_width)
+            env["LINES"] = str(log_height)
+            try:
+                process = subprocess.Popen(
+                    command,
+                    cwd=str(self.project_root),
+                    env=env,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    bufsize=1,
+                )
+            except Exception as exc:
+                self.job_starting = False
+                self.sync_content_panel_for_run_state(False)
+                self.update_status(f"Unable to start job: {exc}")
+                self.append_log(f"[internal] Unable to start job: {exc}")
+                self.refresh_action_buttons()
+                return
+            self.running_process = process
+            self.job_starting = False
+            self.update_status("Job running...")
+            self.refresh_action_buttons()
+            threading.Thread(target=self._job_output_worker, args=(process,), daemon=True).start()
+
+        def _run_dashboard_job_in_terminal(self, command: List[str]) -> None:
+            env = build_ui_subprocess_env(ui_mode="tui", embedded_ui=False)
+            try:
+                with self.suspend():
+                    return_code = subprocess.run(
+                        command,
+                        cwd=str(self.project_root),
+                        env=env,
+                        check=False,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                    ).returncode
+            except Exception as exc:
+                self.job_starting = False
+                self.update_status(f"Unable to launch full-screen dashboard: {exc}")
+                self.append_log(f"[internal] Full-screen dashboard launch failed: {exc}")
+                self.refresh_action_buttons()
+                return
+            self.job_starting = False
+            self.append_log(f"[internal] Full-screen dashboard finished with exit code {return_code}")
+            self.update_status(f"Job finished with exit code {return_code}")
             self.refresh_action_buttons()
 
         def _job_output_worker(self, process: subprocess.Popen[str]) -> None:
@@ -2344,41 +2921,17 @@ if TEXTUAL_AVAILABLE:
             if self.active_module == "upload_folder":
                 self.update_status("Upload to Server is only available in the Web Interface.")
                 return
-            if self.running_process is not None and self.running_process.poll() is None:
+            if self.job_starting or (self.running_process is not None and self.running_process.poll() is None):
                 self.update_status("A job is already running.")
                 return
-            selected_action = None
-            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
-                selected_action = self.cloud_action_dest.get(self.active_module)
-            elif self.active_module == "standalone_features":
-                selected_action = self.standalone_action_dest
-            command = build_full_command(self.cli_entrypoint, self.schema, self.active_module, self.state_values, selected_action)
-            self.running_command = command
-            self.log_buffer.clear()
-            self.log_history = []
-            self.query_one("#log-panel", TextArea).load_text("")
-            self.append_log(f"> {command_to_string(command)}")
-            try:
-                process = subprocess.Popen(
-                    command,
-                    cwd=str(self.project_root),
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                    bufsize=1,
-                )
-            except Exception as exc:
-                self.update_status(f"Unable to start job: {exc}")
-                self.append_log(f"[internal] Unable to start job: {exc}")
+            if self._should_run_dashboard_fullscreen():
+                self.update_status("Waiting for Live Dashboard confirmation...")
+                self.refresh_action_buttons()
+                self._confirm_dashboard_fullscreen_run()
                 return
-            self.running_process = process
-            self.update_status("Job running...")
-            self.sync_content_panel_for_run_state(True)
-            self.refresh_action_buttons()
-            threading.Thread(target=self._job_output_worker, args=(process,), daemon=True).start()
+            command = self._build_current_command()
+            self._reset_log_for_command(command)
+            self._start_embedded_job(command)
 
         def action_stop_job(self) -> None:
             if self.running_process is None or self.running_process.poll() is not None:

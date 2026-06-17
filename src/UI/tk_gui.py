@@ -19,6 +19,7 @@ from UI.shared import (
     GENERAL_TAB_NAMES,
     MODULE_TAB_NAMES,
     TIMEZONE_CHOICES,
+    build_ui_subprocess_env,
     build_argument_specs,
     build_full_command,
     build_parser_schema,
@@ -1688,7 +1689,7 @@ class PhotoMigratorTkGUI:
     def build_field_widgets(self, parent: Any, field: Dict[str, Any], required: bool = False, context: str = "") -> None:
         field = normalize_field_for_context(field, context) or field
         dest = str(field.get("dest") or "")
-        label = ui_option_name(field) if dest in FEATURE_LABELS else dest.replace("-", " ").strip().title()
+        label = ui_option_name(field)
         help_text = str(field.get("help") or "").strip()
         kind = str(field.get("kind") or "text")
         value = self.state_values.get(dest)
@@ -1845,6 +1846,7 @@ class PhotoMigratorTkGUI:
             process = subprocess.Popen(
                 command,
                 cwd=str(self.project_root),
+                env=build_ui_subprocess_env(ui_mode="gui"),
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

@@ -68,6 +68,9 @@ FEATURE_LABELS = {
     "find-duplicates": "Find Duplicates",
     "process-duplicates": "Process Duplicates",
 }
+UI_FIELD_LABELS = {
+    "dashboard": "Live Dashboard",
+}
 
 GENERAL_GROUPS = [
     {"key": "logs", "title": "Logs", "dests": ["no-log-file", "log-level", "log-format", "foldername-logs"]},
@@ -252,6 +255,24 @@ PROGRESS_CUSTOM_PARTIAL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2
 PROGRESS_TQDM_PARTIAL_RE = re.compile(r"(\d{1,3}%\|[^|]*)")
 PROGRESS_STEP_PREFIX_RE = re.compile(r"^(.*?\[\s*step\s+\d+/\d+\][^:]*:)", re.IGNORECASE)
 PROGRESS_SEPARATOR_RE = re.compile(r"^[=\-_\s]{6,}$")
+
+
+def build_ui_subprocess_env(base_env: Dict[str, str] | None = None, *, ui_mode: str = "", embedded_ui: bool = True) -> Dict[str, str]:
+    """Build an environment for GUI/TUI child jobs that preserves ANSI colors over pipes."""
+    env = dict(base_env or os.environ)
+    env["PHOTOMIGRATOR_FORCE_COLOR"] = "1"
+    env["FORCE_COLOR"] = "1"
+    env["PY_COLORS"] = "1"
+    env["CLICOLOR_FORCE"] = "1"
+    if embedded_ui:
+        env["PHOTOMIGRATOR_EMBEDDED_UI"] = "1"
+    else:
+        env.pop("PHOTOMIGRATOR_EMBEDDED_UI", None)
+    if ui_mode:
+        env[f"PHOTOMIGRATOR_{str(ui_mode).upper()}_MODE"] = "1"
+    env.setdefault("TERM", "xterm-256color")
+    env.pop("NO_COLOR", None)
+    return env
 
 
 @dataclass
@@ -536,6 +557,8 @@ def ui_option_name(field_or_dest: Any) -> str:
         dest = str(field_or_dest.get("dest") or "")
     else:
         dest = str(field_or_dest or "")
+    if dest in UI_FIELD_LABELS:
+        return UI_FIELD_LABELS[dest]
     if dest in FEATURE_LABELS:
         return FEATURE_LABELS[dest]
     return dest.replace("-", " ").strip().title()

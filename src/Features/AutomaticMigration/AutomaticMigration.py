@@ -313,7 +313,10 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # 1) Creamos un evento para indicar cuándo termina la migración
             migration_finished = threading.Event()
             web_mode = os.environ.get("PHOTOMIGRATOR_WEB_MODE") == "1"
-            effective_dashboard = bool(show_dashboard and not web_mode)
+            embedded_ui_mode = os.environ.get("PHOTOMIGRATOR_EMBEDDED_UI") == "1"
+            if show_dashboard and embedded_ui_mode:
+                LOGGER.info("Embedded GUI/TUI execution detected. Rich Live Dashboard is disabled in embedded panels because it is full-screen terminal output and degrades rendering/performance there.")
+            effective_dashboard = bool(show_dashboard and not web_mode and not embedded_ui_mode)
             # ---------------------------------------------------------------------------------------------------------
 
             # ------------------------------------------------------------------------------------------------------
@@ -1495,8 +1498,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             BG_PROGRESS_BAR_TITTLE_WIDTH = 60
 
             # Calculate terminal_height and terminal_width
-            terminal_height = console.size.height
-            terminal_width = console.size.width
+            forced_height = int(str(os.environ.get("PHOTOMIGRATOR_TUI_LOG_HEIGHT") or "0").strip() or 0)
+            forced_width = int(str(os.environ.get("PHOTOMIGRATOR_TUI_LOG_WIDTH") or "0").strip() or 0)
+            terminal_height = forced_height if forced_height > 0 else console.size.height
+            terminal_width = forced_width if forced_width > 0 else console.size.width
 
             LOGGER.info(f"Detected terminal height = {terminal_height}")
             LOGGER.info(f"Detected terminal width  = {terminal_width}")

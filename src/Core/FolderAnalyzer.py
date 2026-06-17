@@ -27,7 +27,7 @@ from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import TIMESTAMP, FOLDERNAME_EXIFTOOL, LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, FOLDERNAME_EXTRACTED_DATES, MSG_TAGS, TOOL_NAME, TOOL_VERSION, ARGS
 from Utils.DateUtils import is_date_valid, guess_date_from_filename
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, matches_any_pattern, should_exclude_path
-from Utils.GeneralUtils import print_dict_pretty
+from Utils.GeneralUtils import print_dict_pretty, ensure_executable
 from Utils.StandaloneUtils import get_exif_tool_path, custom_print, change_working_dir
 
 # ========================
@@ -589,6 +589,8 @@ class FolderAnalyzer:
         ]
 
         exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
+        if Path(exif_tool_path).exists():
+            ensure_executable(exif_tool_path)
         local_tz = datetime.now().astimezone().tzinfo
         timestamp = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S").replace(tzinfo=local_tz)  # in your local TZ
 

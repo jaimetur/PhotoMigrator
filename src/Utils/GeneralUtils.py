@@ -520,6 +520,16 @@ def ensure_executable(path):
         # Add execution permissions for user, group and others without removing existing ones
         current_permissions = os.stat(path).st_mode
         os.chmod(path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    if platform.system() == "Darwin":
+        try:
+            subprocess.run(
+                ["xattr", "-d", "com.apple.quarantine", str(path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+        except Exception:
+            pass
 
 
 def get_os(log_level=logging.INFO, step_name="", use_logger=True):

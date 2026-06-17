@@ -10,6 +10,7 @@ import piexif
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT, FOLDERNAME_EXIFTOOL, DATE_SEPARATOR, RANGE_OF_DATES_SEPARATOR
+from Utils.GeneralUtils import ensure_executable
 from Utils.StandaloneUtils import get_exif_tool_path
 from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions, batch_replace_sourcefiles_in_json
 
@@ -127,6 +128,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 if not Path(exif_tool_path).exists():
                     LOGGER.warning(f"{step_name}⚠️ Exiftool not found at '{exif_tool_path}'.")
                     return None
+                ensure_executable(exif_tool_path)
 
                 # OS filename charset
                 filename_charset = 'cp1252' if platform.system() == 'Windows' else 'utf8'

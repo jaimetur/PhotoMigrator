@@ -102,7 +102,7 @@ class CustomConsoleFormatter(logging.Formatter):
                 "INFO": Fore.LIGHTWHITE_EX,
                 "WARNING": Fore.YELLOW,
                 "ERROR": Fore.RED,
-                "CRITICAL": Fore.MAGENTA,
+                "CRITICAL": Fore.LIGHTMAGENTA_EX,
             }
             # Apply color by logging level
             color = COLORS.get(record.levelname, "")
@@ -320,6 +320,11 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
 # ==============================================================================
 def check_color_support(log_level=None):
     """Detect whether the current terminal supports ANSI colors."""
+    force_color = str(os.getenv("PHOTOMIGRATOR_FORCE_COLOR") or os.getenv("FORCE_COLOR") or os.getenv("PY_COLORS") or os.getenv("CLICOLOR_FORCE") or "").strip().lower()
+    if force_color not in {"", "0", "false", "no", "off"}:
+        return True
+    if os.getenv("NO_COLOR"):
+        return False
     if sys.stdout.isatty():  # Check if this is an interactive terminal
         term = os.getenv("TERM", "")
         if term in ("dumb", "linux", "xterm-mono"):  # Terminals without colors

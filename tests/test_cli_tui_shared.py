@@ -11,6 +11,7 @@ if str(SRC_ROOT) not in sys.path:
 try:
     from UI.shared import (
         build_cli_args,
+        build_ui_subprocess_env,
         build_parser_schema,
         command_preview_string,
         command_to_string,
@@ -130,6 +131,18 @@ class TestCliTuiShared(unittest.TestCase):
 
         self.assertEqual(default_path, Path.cwd() / "Config.ini")
         self.assertEqual(custom_path, Path.home() / "custom-config.ini")
+
+    def test_build_ui_subprocess_env_forces_color_and_removes_no_color(self):
+        env = build_ui_subprocess_env({"NO_COLOR": "1", "TERM": "dumb"}, ui_mode="tui")
+
+        self.assertEqual(env["PHOTOMIGRATOR_FORCE_COLOR"], "1")
+        self.assertEqual(env["FORCE_COLOR"], "1")
+        self.assertEqual(env["PY_COLORS"], "1")
+        self.assertEqual(env["CLICOLOR_FORCE"], "1")
+        self.assertEqual(env["PHOTOMIGRATOR_EMBEDDED_UI"], "1")
+        self.assertEqual(env["PHOTOMIGRATOR_TUI_MODE"], "1")
+        self.assertEqual(env["TERM"], "dumb")
+        self.assertNotIn("NO_COLOR", env)
 
 
 if __name__ == "__main__":

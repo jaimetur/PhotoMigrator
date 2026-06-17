@@ -5,9 +5,9 @@ import posixpath
 import sys
 from pathlib import Path
 
-from colorama import Style
+from colorama import Fore, Style
 
-from Core.GlobalVariables import MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, TOOL_NAME, MSG_TAGS_COLORED, PROJECT_ROOT
+from Core.GlobalVariables import MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, TOOL_NAME, PROJECT_ROOT
 import Core.GlobalVariables as GV
 
 
@@ -41,9 +41,8 @@ def get_gpth_tool_path(base_path: str, exec_name: str, step_name='') -> str:
     p = Path(base_path)
 
     # --------- Case 1: looks like a full executable ----------
-    # `exists()` avoids false positives with non-existing folder paths
-    # `os.access(..., os.X_OK)` ensures it is actually executable (optional but useful)
-    if p.exists() and p.is_file() and os.access(p, os.X_OK):
+    # Return the file even if it is not executable yet; ensure_executable() can fix permissions later.
+    if p.exists() and p.is_file():
         return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
     # --------- Case 2: directory (or a not-yet-created path) ----------
@@ -63,13 +62,28 @@ def get_exif_tool_path(base_path: str, step_name='') -> str:
     """
     p = Path(base_path)
 
-    # --------- Case 1: it is already a valid executable ----------
-    if p.exists() and p.is_file() and os.access(p, os.X_OK):
+    # --------- Case 1: it is already a file path ----------
+    # Return the file even if it is not executable yet; ensure_executable() can fix permissions later.
+    if p.exists() and p.is_file():
         return resolve_internal_path(path_to_resolve=str(p), step_name=step_name)
 
     # --------- Case 2: it is (or will be) a directory ----------
     exec_name = "exiftool.exe" if platform.system().lower() == "windows" else "exiftool"
-    return resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
+    candidate = resolve_internal_path(path_to_resolve=str(p / exec_name), step_name=step_name)
+    if os.path.exists(candidate):
+        return candidate
+
+    fallback_dirs = [
+        os.path.join(PROJECT_ROOT, "exif_tool"),
+        os.path.join(PROJECT_ROOT, "exif_Tool"),
+        os.path.join(os.getcwd(), "exif_tool"),
+        os.path.join(os.getcwd(), "exif_Tool"),
+    ]
+    for folder in fallback_dirs:
+        fallback = os.path.join(folder, exec_name)
+        if os.path.exists(fallback):
+            return fallback
+    return candidate
 
 
 def resolve_internal_path(path_to_resolve, step_name=''):
@@ -141,6 +155,16 @@ def resolve_internal_path(path_to_resolve, step_name=''):
         resolved_path = path_to_resolve
     else:
         resolved_path = os.path.join(base_path, path_to_resolve)
+        # When the working directory changes during long-running jobs, bundled relative resources
+        # such as exif_tool/ or gpth_tool/ must still resolve back to the project root.
+        if (
+            path_to_resolve
+            and not os.path.isabs(path_to_resolve)
+            and not os.path.exists(resolved_path)
+        ):
+            project_candidate = os.path.join(PROJECT_ROOT, path_to_resolve)
+            if os.path.exists(project_candidate):
+                resolved_path = project_candidate
     if DEBUG_MODE:
         custom_print(f"{step_name}return path                 : {resolved_path}", log_level=logging.DEBUG)
         custom_print(f"{step_name}--- END RESOURCE_PATH DEBUG INFO", log_level=logging.DEBUG)
@@ -246,6 +270,9 @@ def is_inside_docker():
 
 def _supports_ansi_colors() -> bool:
     """Best-effort ANSI color support detection."""
+    force_color = str(os.environ.get("PHOTOMIGRATOR_FORCE_COLOR") or os.environ.get("FORCE_COLOR") or os.environ.get("PY_COLORS") or os.environ.get("CLICOLOR_FORCE") or "").strip().lower()
+    if force_color not in {"", "0", "false", "no", "off"}:
+        return True
     if os.environ.get("NO_COLOR"):
         return False
     if not sys.stdout.isatty():
@@ -269,7 +296,15 @@ def custom_print(*args, log_level=logging.INFO, **kwargs):
     message = " ".join(str(a) for a in args)
     log_level_name = logging.getLevelName(log_level)
     if _supports_ansi_colors():
-        colortag = MSG_TAGS_COLORED.get(log_level_name, MSG_TAGS_COLORED['INFO'])
+        color_tags = {
+            "VERBOSE": f"{Fore.CYAN}{MSG_TAGS['VERBOSE']}",
+            "DEBUG": f"{Fore.LIGHTCYAN_EX}{MSG_TAGS['DEBUG']}",
+            "INFO": f"{Fore.LIGHTWHITE_EX}{MSG_TAGS['INFO']}",
+            "WARNING": f"{Fore.YELLOW}{MSG_TAGS['WARNING']}",
+            "ERROR": f"{Fore.RED}{MSG_TAGS['ERROR']}",
+            "CRITICAL": f"{Fore.LIGHTMAGENTA_EX}{MSG_TAGS['CRITICAL']}",
+        }
+        colortag = color_tags.get(log_level_name, color_tags["INFO"])
         print(f"{colortag}{message}{Style.RESET_ALL}", **kwargs)
     else:
         plain_tag = MSG_TAGS.get(log_level_name, MSG_TAGS['INFO'])

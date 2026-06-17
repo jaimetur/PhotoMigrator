@@ -18,6 +18,7 @@ from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXTRACTED_DATES, FOLDERNAME_EXIFTOOL
 from Utils.DateUtils import normalize_datetime_utc, is_date_valid
 from Utils.FileUtils import merge_exclusion_patterns, matches_any_pattern, should_exclude_path
+from Utils.GeneralUtils import ensure_executable
 from Utils.StandaloneUtils import get_exif_tool_path
 
 
@@ -176,6 +177,7 @@ def count_files_and_extract_dates(input_folder, max_files=None, exclude_ext=None
             ]
             exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
             if Path(exif_tool_path).exists():
+                ensure_executable(exif_tool_path)
                 error_log_path = f"{GV.LOG_FILENAME}.log"
                 LOGGER.info(f"{step_name}🔎 [Block {block_index}]: Running block {block_index} with exiftool...")
                 LOGGER.verbose(f"{step_name}📃 [Block {block_index}]: error_log_path: {error_log_path}")
