@@ -32,7 +32,9 @@ def _runtime_is_frozen() -> bool:
 def _looks_like_python_runtime_path(path: Path | None) -> bool:
     if path is None:
         return False
-    return path.name.strip().lower() in {"python", "python3", "python.exe", "python3.exe", "pythonw", "pythonw.exe"}
+    name = path.name.strip().lower()
+    stem = path.stem.strip().lower()
+    return stem.startswith("python") or name.startswith("python")
 
 
 def _launcher_name_patterns() -> list[str]:

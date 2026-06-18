@@ -1319,7 +1319,8 @@ def _looks_like_python_runtime(path: Path | None) -> bool:
     if path is None:
         return False
     name = path.name.strip().lower()
-    return name in {"python", "python3", "python.exe", "python3.exe", "pythonw", "pythonw.exe"}
+    stem = path.stem.strip().lower()
+    return stem.startswith("python") or name.startswith("python")
 
 
 def _launcher_glob_patterns() -> List[str]:
