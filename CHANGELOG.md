@@ -20,6 +20,7 @@
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
+  - Hardened `iCloud Takeout` date parsing so Apple `Photo Details.csv` timestamps are now parsed with strict known formats before any heuristic fallback, preventing explicit years like `2023` from being silently replaced by the current year during EXIF and filesystem date writes. Added regression coverage for the reported `December 27,2023 3:42 AM GMT` case. (Issue #1133).
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

@@ -172,6 +172,47 @@ class TestICloudTakeout(unittest.TestCase):
         self.assertIn("-FileModifyDate=2023:05:14 03:36:00", args)
         self.assertIn("-FileCreateDate=2023:05:14 03:36:00", args)
 
+    def test_parse_icloud_datetime_preserves_explicit_year_from_photo_details_format(self):
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            parsed = processor._parse_icloud_datetime("Wednesday December 27,2023 3:42 AM GMT")
+
+        self.assertEqual(parsed, datetime(2023, 12, 27, 3, 42, 0))
+
+    def test_load_photo_details_rows_keeps_csv_year_in_chosen_dt(self):
+        photos_folder = self.takeout_root / "Photos"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        self._write_photo_details(
+            photos_folder / "Photo Details.csv",
+            [
+                {
+                    "imgName": "IMG_72671.JPG",
+                    "fileChecksum": "",
+                    "favorite": "no",
+                    "hidden": "no",
+                    "deleted": "no",
+                    "originalCreationDate": "Wednesday December 27,2023 3:42 AM GMT",
+                    "viewCount": 0,
+                    "importDate": "Wednesday December 27,2023 3:43 AM GMT",
+                }
+            ],
+        )
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            csv_files, _, _ = processor._collect_csv_inputs(self.takeout_root)
+            rows = processor._load_photo_details_rows(csv_files)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["chosen_dt"], datetime(2023, 12, 27, 3, 42, 0))
+
+    def test_parse_exiftool_datetime_keeps_explicit_year(self):
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            parsed = processor._parse_exiftool_datetime("2023:12:27 03:42:00")
+
+        self.assertEqual(parsed, datetime(2023, 12, 27, 3, 42, 0))
+
     def test_photo_native_exif_state_detects_matching_dates(self):
         with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
             processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))

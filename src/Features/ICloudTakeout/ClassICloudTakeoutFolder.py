@@ -3,6 +3,7 @@ import csv
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -82,6 +83,28 @@ class _ExifToolSession:
 
 class ClassICloudTakeoutFolder:
     _NATIVE_EXIF_SUFFIXES = {".jpg", ".jpeg", ".jpe", ".tif", ".tiff", ".webp"}
+    _ICLOUD_DATETIME_FORMATS = (
+        "%A %B %d, %Y %I:%M %p",
+        "%A %B %d, %Y %H:%M",
+        "%a %b %d, %Y %I:%M %p",
+        "%a %b %d, %Y %H:%M",
+        "%B %d, %Y %I:%M %p",
+        "%B %d, %Y %H:%M",
+        "%b %d, %Y %I:%M %p",
+        "%b %d, %Y %H:%M",
+    )
+    _EXIFTOOL_DATETIME_FORMATS = (
+        "%Y:%m:%d %H:%M:%S",
+        "%Y:%m:%d %H:%M:%S%z",
+        "%Y:%m:%d %H:%M:%S %z",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S%z",
+        "%Y-%m-%d %H:%M:%S %z",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%S.%f",
+        "%Y-%m-%dT%H:%M:%S.%f%z",
+    )
     _PHOTO_NATIVE_EXIF_TAGS = (
         ("Exif", piexif.ExifIFD.DateTimeOriginal),
         ("Exif", piexif.ExifIFD.DateTimeDigitized),
@@ -154,6 +177,40 @@ class ClassICloudTakeoutFolder:
         return str(value or "").strip().replace("=", "").casefold()
 
     @staticmethod
+    def _extract_explicit_year(text):
+        match = re.search(r"(?<!\d)((?:19|20)\d{2})(?!\d)", str(text or ""))
+        if not match:
+            return None
+        try:
+            return int(match.group(1))
+        except Exception:
+            return None
+
+    @staticmethod
+    def _normalize_icloud_datetime_text(raw_value):
+        text = " ".join(str(raw_value or "").strip().split())
+        if not text:
+            return ""
+        text = re.sub(r",(?=\d{4}\b)", ", ", text)
+        text = re.sub(r"\s+(?:GMT|UTC|Z)$", "", text, flags=re.IGNORECASE)
+        return text
+
+    @classmethod
+    def _parse_datetime_with_formats(cls, text, formats):
+        normalized = str(text or "").strip()
+        if not normalized:
+            return None
+        for fmt in formats:
+            try:
+                dt = datetime.strptime(normalized, fmt)
+            except ValueError:
+                continue
+            if dt.tzinfo is not None:
+                dt = dt.replace(tzinfo=None)
+            return dt.replace(microsecond=0)
+        return None
+
+    @staticmethod
     def _is_photo_details_csv(path_obj: Path) -> bool:
         stem = path_obj.stem.casefold().replace("_", " ").replace("-", " ")
         return stem.startswith("photo details")
@@ -167,17 +224,29 @@ class ClassICloudTakeoutFolder:
             if suffix in PHOTO_EXT or suffix in VIDEO_EXT:
                 yield path
 
-    @staticmethod
-    def _parse_icloud_datetime(raw_value):
+    @classmethod
+    def _parse_icloud_datetime(cls, raw_value):
         text = str(raw_value or "").strip()
         if not text:
             return None
+        normalized = cls._normalize_icloud_datetime_text(text)
+        strict_match = cls._parse_datetime_with_formats(normalized, cls._ICLOUD_DATETIME_FORMATS)
+        if strict_match is not None:
+            return strict_match
+        expected_year = cls._extract_explicit_year(text)
         try:
             dt = parser.parse(text)
         except Exception:
             return None
         if dt.tzinfo is not None:
             dt = dt.replace(tzinfo=None)
+        dt = dt.replace(microsecond=0)
+        if expected_year is not None and dt.year != expected_year:
+            LOGGER.warning(
+                f"Rejected ambiguous iCloud datetime '{text}' because parsed year '{dt.year}' "
+                f"does not match the explicit year '{expected_year}'."
+            )
+            return None
         return dt
 
     @staticmethod
@@ -427,13 +496,24 @@ class ClassICloudTakeoutFolder:
         text = str(raw_value or "").strip()
         if not text:
             return None
+        strict_match = self._parse_datetime_with_formats(text, self._EXIFTOOL_DATETIME_FORMATS)
+        if strict_match is not None:
+            return strict_match
+        expected_year = self._extract_explicit_year(text)
         try:
             dt = parser.parse(text)
         except Exception:
             return None
         if dt.tzinfo is not None:
             dt = dt.replace(tzinfo=None)
-        return dt.replace(microsecond=0)
+        dt = dt.replace(microsecond=0)
+        if expected_year is not None and dt.year != expected_year:
+            LOGGER.debug(
+                f"Rejected ambiguous ExifTool datetime '{text}' because parsed year '{dt.year}' "
+                f"does not match the explicit year '{expected_year}'."
+            )
+            return None
+        return dt
 
     def _build_exiftool_read_args(self, file_path: Path):
         args = ["-j"]
