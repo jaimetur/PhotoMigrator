@@ -34,6 +34,7 @@
   - Reworked the GUI/TUI configuration toolbar so `Load Config` now validates an external `.ini` file before asking permission to overwrite the active configuration file, while `Save Config` and `Save UI State` now go through explicit confirmation dialogs and the save-oriented toolbar actions use a distinct pastel-blue visual treatment.
   - Improved runtime behavior in the desktop GUI and CLI TUI so the upper `Feature` panel now auto-collapses while a job is running, `Execution Log` compactly rewrites progress-bar updates instead of appending a new line for every refresh, and the TUI log panel now supports context-aware copy actions via `Ctrl+C` and the right-click context menu.
   - Renamed the local interactive window titles so the terminal interface now identifies itself as `Terminal Interactive User Interface (TUI)` and the desktop window as `Graphical User Interface (GUI)`, both keeping the current PhotoMigrator version in the title bar.
+  - Updated the desktop GUI so `Automatic Migration` runs launched with `Live Dashboard` in an external terminal now report their exit code back into the GUI `Execution Log`, restore the GUI window to the foreground when the dashboard finishes, and raise the main `tkinter` window to the foreground on startup.
 
 #### 🚀 GPTH Enhancements:
 

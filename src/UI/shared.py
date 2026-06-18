@@ -292,7 +292,12 @@ def _posix_command_to_shell(command: List[str]) -> str:
     return " ".join(shlex.quote(str(part)) for part in (command or []))
 
 
-def _posix_terminal_job_command(command: List[str], cwd: Path, env: Dict[str, str] | None = None) -> str:
+def _posix_terminal_job_command(
+    command: List[str],
+    cwd: Path,
+    env: Dict[str, str] | None = None,
+    completion_file: Path | None = None,
+) -> str:
     parts: List[str] = []
     effective_env = dict(env or {})
     for key in EXTERNAL_TERMINAL_ENV_KEYS:
@@ -300,11 +305,25 @@ def _posix_terminal_job_command(command: List[str], cwd: Path, env: Dict[str, st
         if value is not None and str(value) != "":
             parts.append(f"export {key}={shlex.quote(str(value))}")
     parts.append(f"cd {shlex.quote(str(Path(cwd)))}")
-    parts.append(_posix_command_to_shell(command))
+    command_text = _posix_command_to_shell(command)
+    if completion_file is None:
+        parts.append(command_text)
+    else:
+        completion_target = shlex.quote(str(Path(completion_file)))
+        parts.append(
+            f"{command_text}; _photomigrator_exit_code=$?; "
+            f"printf '%s' \"$_photomigrator_exit_code\" > {completion_target}; "
+            "exit $_photomigrator_exit_code"
+        )
     return "; ".join(parts)
 
 
-def _windows_terminal_job_command(command: List[str], cwd: Path, env: Dict[str, str] | None = None) -> str:
+def _windows_terminal_job_command(
+    command: List[str],
+    cwd: Path,
+    env: Dict[str, str] | None = None,
+    completion_file: Path | None = None,
+) -> str:
     parts: List[str] = []
     effective_env = dict(env or {})
     for key in EXTERNAL_TERMINAL_ENV_KEYS:
@@ -312,8 +331,16 @@ def _windows_terminal_job_command(command: List[str], cwd: Path, env: Dict[str, 
         if value is not None and str(value) != "":
             parts.append(f'set "{key}={value}"')
     parts.append(f'cd /d "{Path(cwd)}"')
-    parts.append(command_to_string(command))
-    return " && ".join(parts)
+    command_text = command_to_string(command)
+    if completion_file is None:
+        parts.append(command_text)
+        return " && ".join(parts)
+    parts.append(
+        f'{command_text} & set "PHOTOMIGRATOR_EXIT_CODE=!ERRORLEVEL!" '
+        f'& > "{Path(completion_file)}" echo(!PHOTOMIGRATOR_EXIT_CODE! '
+        '& exit /b !PHOTOMIGRATOR_EXIT_CODE!'
+    )
+    return " & ".join(parts)
 
 
 def _escape_applescript_string(text: str) -> str:
@@ -326,13 +353,14 @@ def build_external_terminal_command(
     env: Dict[str, str] | None = None,
     *,
     platform_name: str | None = None,
+    completion_file: Path | None = None,
 ) -> List[str]:
     target_platform = str(platform_name or sys.platform or "").lower()
 
     if target_platform == "darwin":
         if not shutil.which("osascript"):
             return []
-        shell_command = _posix_terminal_job_command(command, cwd, env)
+        shell_command = _posix_terminal_job_command(command, cwd, env, completion_file)
         apple_script = (
             'tell application "Terminal"\n'
             "activate\n"
@@ -342,10 +370,10 @@ def build_external_terminal_command(
         return ["osascript", "-e", apple_script]
 
     if target_platform.startswith("win"):
-        shell_command = _windows_terminal_job_command(command, cwd, env)
-        return ["cmd", "/c", f'start "PhotoMigrator Live Dashboard" cmd /k "{shell_command}"']
+        shell_command = _windows_terminal_job_command(command, cwd, env, completion_file)
+        return ["cmd", "/v:on", "/c", f'start "PhotoMigrator Live Dashboard" cmd /v:on /k "{shell_command}"']
 
-    shell_command = _posix_terminal_job_command(command, cwd, env)
+    shell_command = _posix_terminal_job_command(command, cwd, env, completion_file)
     if shutil.which("x-terminal-emulator"):
         return ["x-terminal-emulator", "-e", "bash", "-lc", shell_command]
     if shutil.which("gnome-terminal"):

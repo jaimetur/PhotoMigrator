@@ -5,6 +5,7 @@ import queue
 import re
 import shutil
 import subprocess
+import tempfile
 import threading
 import time
 from pathlib import Path
@@ -255,6 +256,8 @@ class PhotoMigratorTkGUI:
         self.field_help_map: Dict[str, str] = {}
         self.config_widget_map: Dict[str, tuple[str, str]] = {}
         self.running_process: subprocess.Popen[str] | None = None
+        self.external_dashboard_active = False
+        self.external_dashboard_status_file: Path | None = None
         self.running_command: List[str] = []
         self.output_queue: queue.Queue[str | tuple[str, int]] = queue.Queue()
         self.log_buffer = CompactLogBuffer()
@@ -298,6 +301,8 @@ class PhotoMigratorTkGUI:
         self.update_command_preview()
         self.apply_panel_states()
         self.apply_runtime_layout()
+        self.root.after(0, self._restore_gui_focus)
+        self.root.after(250, self._restore_gui_focus)
         self.root.after(120, self.poll_process_queue)
 
     def preferred_config_section(self) -> str:
@@ -912,13 +917,13 @@ class PhotoMigratorTkGUI:
         self.apply_runtime_layout()
 
     def can_run_job(self) -> bool:
-        return not (self.running_process is not None and self.running_process.poll() is None)
+        return not self.can_stop_job() and not self.external_dashboard_active
 
     def can_stop_job(self) -> bool:
         return self.running_process is not None and self.running_process.poll() is None
 
     def can_exit_app(self) -> bool:
-        return not self.can_stop_job()
+        return not self.can_stop_job() and not self.external_dashboard_active
 
     def refresh_action_buttons(self) -> None:
         can_run = self.can_run_job()
@@ -1469,18 +1474,66 @@ class PhotoMigratorTkGUI:
     def _restore_gui_focus(self) -> None:
         try:
             self.root.deiconify()
+        except Exception:
+            return
+        try:
             self.root.lift()
+        except Exception:
+            pass
+        try:
+            self.root.attributes("-topmost", True)
+        except Exception:
+            pass
+        try:
             self.root.focus_force()
+        except Exception:
+            pass
+        self.root.after(250, self._clear_topmost_hint)
+
+    def _clear_topmost_hint(self) -> None:
+        try:
+            self.root.attributes("-topmost", False)
         except Exception:
             pass
 
     def _launch_dashboard_job_in_external_terminal(self, command: List[str]) -> None:
         env = build_ui_subprocess_env(ui_mode="gui", embedded_ui=False)
-        launcher = build_external_terminal_command(command, self.launch_cwd, env)
+        status_path = Path(tempfile.gettempdir()) / f"photomigrator_dashboard_exit_{time.time_ns()}.txt"
+        self.external_dashboard_status_file = status_path
+        launcher = build_external_terminal_command(command, self.launch_cwd, env, completion_file=status_path)
         if not launcher:
+            self.external_dashboard_status_file = None
             raise RuntimeError("No supported external terminal launcher was found on this system.")
-        subprocess.Popen(launcher, cwd=str(self.launch_cwd), env=env)
+        try:
+            subprocess.Popen(launcher, cwd=str(self.launch_cwd), env=env)
+        except Exception:
+            self.external_dashboard_status_file = None
+            raise
+        self.external_dashboard_active = True
+        self.sync_content_panel_for_run_state(True)
+        self.refresh_action_buttons()
+        threading.Thread(target=self._external_dashboard_watcher, args=(status_path,), daemon=True).start()
         self.root.after(150, self._restore_gui_focus)
+
+    def _external_dashboard_watcher(self, status_path: Path) -> None:
+        exit_code = -1
+        try:
+            while True:
+                if status_path.exists():
+                    payload = status_path.read_text(encoding="utf-8", errors="replace").strip()
+                    if payload:
+                        try:
+                            exit_code = int(payload)
+                        except ValueError:
+                            exit_code = -1
+                        break
+                time.sleep(0.2)
+        finally:
+            try:
+                status_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+        self.output_queue.put(("dashboard_finished", exit_code))
 
     def build_flags_grid(self, parent: Any, fields: List[Dict[str, Any]], context: str) -> None:
         theme = self.current_theme()
@@ -1855,6 +1908,14 @@ class PhotoMigratorTkGUI:
                 self.update_status(f"Job finished with exit code {item[1]}")
                 self.sync_content_panel_for_run_state(False)
                 self.refresh_action_buttons()
+            elif isinstance(item, tuple) and item and item[0] == "dashboard_finished":
+                self.external_dashboard_active = False
+                self.external_dashboard_status_file = None
+                self.append_log(f"[internal] Live Dashboard finished with exit code {item[1]}")
+                self.update_status(f"Job finished with exit code {item[1]}")
+                self.sync_content_panel_for_run_state(False)
+                self.refresh_action_buttons()
+                self.root.after(0, self._restore_gui_focus)
             elif isinstance(item, tuple) and item and item[0] == "output":
                 self.consume_log_output(str(item[1]))
             else:
@@ -1891,6 +1952,9 @@ class PhotoMigratorTkGUI:
         if self.running_process is not None and self.running_process.poll() is None:
             self.update_status("A job is already running.")
             return
+        if self.external_dashboard_active:
+            self.update_status("A Live Dashboard run is already active in an external terminal.")
+            return
         if self._should_run_dashboard_in_external_terminal():
             from tkinter import messagebox
 
@@ -1915,7 +1979,6 @@ class PhotoMigratorTkGUI:
                     return
                 self.append_log("[internal] Live Dashboard launched in an external terminal window.")
                 self.update_status("Live Dashboard launched in an external terminal window.")
-                self.refresh_action_buttons()
                 return
             command = self._build_current_command(dashboard_enabled=False)
             self.running_command = command
