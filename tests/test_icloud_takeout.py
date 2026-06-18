@@ -172,6 +172,27 @@ class TestICloudTakeout(unittest.TestCase):
         self.assertIn("-FileModifyDate=2023:05:14 03:36:00", args)
         self.assertIn("-FileCreateDate=2023:05:14 03:36:00", args)
 
+    def test_photo_native_exif_state_detects_matching_dates(self):
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            dt_value = datetime(2023, 5, 14, 3, 36, 0)
+            exif_bytes = b"2023:05:14 03:36:00"
+
+            fake_exif = {
+                "0th": {icloud_module.piexif.ImageIFD.DateTime: exif_bytes},
+                "Exif": {
+                    icloud_module.piexif.ExifIFD.DateTimeOriginal: exif_bytes,
+                    icloud_module.piexif.ExifIFD.DateTimeDigitized: exif_bytes,
+                },
+            }
+
+            with patch.object(icloud_module.piexif, "load", return_value=fake_exif):
+                state = processor._photo_native_exif_state(Path("/tmp/example.jpg"), dt_value)
+
+        self.assertIsNotNone(state)
+        self.assertTrue(state["supported"])
+        self.assertTrue(state["matches"])
+
 
 if __name__ == "__main__":
     unittest.main()

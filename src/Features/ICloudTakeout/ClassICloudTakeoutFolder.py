@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import csv
+import json
 import logging
 import os
 import shutil
@@ -10,6 +11,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from dateutil import parser
+import piexif
 
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_process_results
@@ -79,6 +81,22 @@ class _ExifToolSession:
 
 
 class ClassICloudTakeoutFolder:
+    _NATIVE_EXIF_SUFFIXES = {".jpg", ".jpeg", ".jpe", ".tif", ".tiff", ".webp"}
+    _PHOTO_NATIVE_EXIF_TAGS = (
+        ("Exif", piexif.ExifIFD.DateTimeOriginal),
+        ("Exif", piexif.ExifIFD.DateTimeDigitized),
+        ("0th", piexif.ImageIFD.DateTime),
+    )
+    _VIDEO_EMBEDDED_DATE_KEYS = (
+        "QuickTime:CreateDate",
+        "QuickTime:ModifyDate",
+        "QuickTime:TrackCreateDate",
+        "QuickTime:TrackModifyDate",
+        "QuickTime:MediaCreateDate",
+        "QuickTime:MediaModifyDate",
+        "Keys:CreationDate",
+    )
+
     def __init__(self, takeout_folder):
         self.ARGS = ARGS
         self.takeout_folder = Path(takeout_folder).expanduser().resolve()
@@ -338,6 +356,124 @@ class ClassICloudTakeoutFolder:
     def _date_to_general_string(self, dt_value):
         return dt_value.strftime("%Y-%m-%d %H:%M:%S")
 
+    @staticmethod
+    def _normalize_exif_value(raw_value):
+        if raw_value is None:
+            return ""
+        if isinstance(raw_value, bytes):
+            try:
+                return raw_value.decode("utf-8", errors="ignore").strip()
+            except Exception:
+                return str(raw_value).strip()
+        return str(raw_value).strip()
+
+    def _photo_native_exif_state(self, file_path: Path, dt_value: datetime):
+        if file_path.suffix.lower() not in self._NATIVE_EXIF_SUFFIXES:
+            return None
+        try:
+            exif_dict = piexif.load(str(file_path))
+        except Exception:
+            return {"supported": True, "matches": False}
+        desired = self._date_to_exif_string(dt_value)
+        values = []
+        for ifd_name, tag_id in self._PHOTO_NATIVE_EXIF_TAGS:
+            values.append(self._normalize_exif_value(exif_dict.get(ifd_name, {}).get(tag_id)))
+        populated = [value for value in values if value]
+        if not populated:
+            return {"supported": True, "matches": False}
+        has_match = any(value == desired for value in populated)
+        has_conflict = any(value != desired for value in populated)
+        return {"supported": True, "matches": bool(has_match and not has_conflict)}
+
+    def _write_photo_exif_natively(self, file_path: Path, dt_value: datetime, step_name="", log_level=None):
+        with set_log_level(LOGGER, log_level):
+            try:
+                try:
+                    exif_dict = piexif.load(str(file_path))
+                except Exception:
+                    exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
+                date_text = self._date_to_exif_string(dt_value).encode("utf-8")
+                exif_dict.setdefault("0th", {})
+                exif_dict.setdefault("Exif", {})
+                exif_dict["0th"][piexif.ImageIFD.DateTime] = date_text
+                exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_text
+                exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_text
+                for ifd_name in ["0th", "Exif"]:
+                    for tag, value in list(exif_dict.get(ifd_name, {}).items()):
+                        if isinstance(value, int):
+                            exif_dict[ifd_name][tag] = str(value).encode("utf-8")
+                exif_bytes = piexif.dump(exif_dict)
+                piexif.insert(exif_bytes, str(file_path))
+                return True
+            except Exception as exc:
+                LOGGER.debug(f"{step_name}Native EXIF write failed for '{file_path}': {exc}")
+                return False
+
+    def _filesystem_dates_match(self, file_path: Path, dt_value: datetime):
+        try:
+            stats = file_path.stat()
+        except Exception:
+            return False
+        desired_ts = dt_value.timestamp()
+        if abs(float(stats.st_mtime) - desired_ts) > 1.5:
+            return False
+        if sys.platform.startswith("win"):
+            return abs(float(stats.st_ctime) - desired_ts) <= 1.5
+        if sys.platform == "darwin" and hasattr(stats, "st_birthtime"):
+            return abs(float(stats.st_birthtime) - desired_ts) <= 1.5
+        return True
+
+    def _parse_exiftool_datetime(self, raw_value):
+        text = str(raw_value or "").strip()
+        if not text:
+            return None
+        try:
+            dt = parser.parse(text)
+        except Exception:
+            return None
+        if dt.tzinfo is not None:
+            dt = dt.replace(tzinfo=None)
+        return dt.replace(microsecond=0)
+
+    def _build_exiftool_read_args(self, file_path: Path):
+        args = ["-j"]
+        suffix = file_path.suffix.lower()
+        if suffix in PHOTO_EXT:
+            args.extend(["-DateTimeOriginal", "-CreateDate", "-ModifyDate", "-DateTimeDigitized"])
+        else:
+            args.extend([f"-{tag}" for tag in self._VIDEO_EMBEDDED_DATE_KEYS])
+        args.append(str(file_path))
+        return args
+
+    def _exiftool_embedded_dates_match(self, file_path: Path, dt_value: datetime, step_name=""):
+        session = self._get_exiftool_session(step_name=step_name)
+        if session is None:
+            return False
+        try:
+            payload = session.execute(self._build_exiftool_read_args(file_path))
+            data = json.loads(payload or "[]")
+        except Exception:
+            return False
+        if not data:
+            return False
+        record = data[0] or {}
+        suffix = file_path.suffix.lower()
+        if suffix in PHOTO_EXT:
+            relevant_keys = ("DateTimeOriginal", "CreateDate", "ModifyDate", "DateTimeDigitized")
+        else:
+            relevant_keys = self._VIDEO_EMBEDDED_DATE_KEYS
+        populated = []
+        desired = dt_value.replace(microsecond=0)
+        for key in relevant_keys:
+            parsed = self._parse_exiftool_datetime(record.get(key))
+            if parsed is not None:
+                populated.append(parsed)
+        if not populated:
+            return False
+        has_match = any(value == desired for value in populated)
+        has_conflict = any(value != desired for value in populated)
+        return bool(has_match and not has_conflict)
+
     def _get_exiftool_path(self, step_name=""):
         if self._exiftool_path is not None:
             return self._exiftool_path
@@ -422,6 +558,7 @@ class ClassICloudTakeoutFolder:
         with set_log_level(LOGGER, log_level):
             extracted_dates = {}
             updated_files = 0
+            skipped_files = 0
             unmatched_rows = 0
             ambiguous_rows = 0
             processed_paths = set()
@@ -449,8 +586,36 @@ class ClassICloudTakeoutFolder:
                         if entry and not entry.get("OldestDate"):
                             entry["OldestDate"] = dt_value.isoformat(sep=" ")
                         continue
-                    if not self._write_exif_with_exiftool(dest_path, dt_value, step_name=step_name, log_level=log_level):
+                    native_photo_state = None
+                    if dest_path.suffix.lower() in PHOTO_EXT:
+                        native_photo_state = self._photo_native_exif_state(dest_path, dt_value)
+                    timestamps_match = self._filesystem_dates_match(dest_path, dt_value)
+                    if native_photo_state is not None:
+                        embedded_match = bool(native_photo_state.get("matches"))
+                    else:
+                        embedded_match = self._exiftool_embedded_dates_match(dest_path, dt_value, step_name=step_name)
+                    if embedded_match and timestamps_match:
+                        processed_paths.add(dest_key)
+                        skipped_files += 1
+                        extracted_dates[dest_key] = {
+                            "SourceFile": str(record["source"]),
+                            "TargetFile": dest_key,
+                            "OldestDate": dt_value.isoformat(sep=" "),
+                            "Source": f"iCloud Photo Details CSV ({Path(row['source_csv']).name})",
+                            "ICloudChecksum": row.get("checksum", ""),
+                            "ICloudFavorite": row.get("favorite", ""),
+                            "ICloudHidden": row.get("hidden", ""),
+                            "ICloudDeleted": row.get("deleted", ""),
+                        }
+                        continue
+                    write_ok = embedded_match
+                    if not embedded_match and native_photo_state is not None:
+                        write_ok = self._write_photo_exif_natively(dest_path, dt_value, step_name=step_name, log_level=log_level)
+                    if not write_ok and not embedded_match:
+                        write_ok = self._write_exif_with_exiftool(dest_path, dt_value, step_name=step_name, log_level=log_level)
+                    if not write_ok:
                         update_metadata(str(dest_path), self._date_to_general_string(dt_value), log_level=log_level)
+                    if not timestamps_match:
                         update_file_timestamps(str(dest_path), self._date_to_general_string(dt_value), log_level=log_level)
                     processed_paths.add(dest_key)
                     extracted_dates[dest_key] = {
@@ -465,6 +630,7 @@ class ClassICloudTakeoutFolder:
                     }
                     updated_files += 1
             LOGGER.info(f"{step_name}iCloud dates applied to {updated_files} assets.")
+            LOGGER.info(f"{step_name}Assets skipped because dates already matched: {skipped_files}")
             LOGGER.info(f"{step_name}Rows without matching media: {unmatched_rows}")
             LOGGER.info(f"{step_name}Rows matched to multiple media files: {ambiguous_rows}")
             return extracted_dates

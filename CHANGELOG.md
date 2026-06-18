@@ -12,15 +12,17 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
-  - Optimized `iCloud Takeout` date writing by switching from one `ExifTool` process per asset to a persistent shared `ExifTool` session reused across the whole run, which should significantly reduce the runtime of the `Write Dates` step on large exports.
-  - Extended `iCloud Takeout` date application so it now also updates filesystem timestamps for processed assets: file modified dates are refreshed for all supported platforms, and file creation dates are also updated where the platform provides support (`Windows` directly, `macOS` when `SetFile` is available, plus `ExifTool` file-date tags on supported systems).
+  - Added a new mismatch-detection pass for `iCloud Takeout` date application so files whose embedded dates and filesystem timestamps already match the target CSV date are now skipped instead of being rewritten unnecessarily. (Issue #1133).
+  - Added a native EXIF-writing path for supported `iCloud Takeout` photo files, using `piexif` first for common image formats and leaving `ExifTool` as the fallback for unsupported formats or native-write failures. (Issue #1133).
+  - Optimized `iCloud Takeout` date writing by switching from one `ExifTool` process per asset to a persistent shared `ExifTool` session reused across the whole run, which should significantly reduce the runtime of the `Write Dates` step on large exports. (Issue #1133).
+  - Extended `iCloud Takeout` date application so it now also updates filesystem timestamps for processed assets: file modified dates are refreshed for all supported platforms, and file creation dates are also updated where the platform provides support (`Windows` directly, `macOS` when `SetFile` is available, plus `ExifTool` file-date tags on supported systems). (Issue #1133).
 
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
 
 #### 📚 Documentation:
-  - Updated documentation with all changes. 
+  - Updated documentation with all changes.
 
 ---
 
