@@ -449,6 +449,7 @@ class PhotoMigratorTkGUI:
         self.description_var = tk.StringVar(value="Move focus to a field to see its description here.")
         self.description_text = self.tk.Label(self.description_body, textvariable=self.description_var, anchor="w", justify="left", padx=0, pady=0)
         self.description_text.pack(fill="x")
+        self.description_body.bind("<Configure>", lambda event: self._sync_wrapped_label_width(self.description_text, event.width), add="+")
 
         self.preview_panel, self.preview_header, self.preview_title_label, self.preview_toggle_button, self.preview_body = self._create_panel_shell(self.bottom, "Command Preview", "preview", use_grid=True)
         self.preview_panel.grid(row=1, column=0, sticky="ew", pady=(10, 0))
@@ -495,6 +496,7 @@ class PhotoMigratorTkGUI:
         self.status_var = tk.StringVar(value="Ready.")
         self.status_text = self.tk.Label(self.status_body, textvariable=self.status_var, anchor="w", justify="left", padx=0, pady=0)
         self.status_text.pack(fill="x")
+        self.status_body.bind("<Configure>", lambda event: self._sync_wrapped_label_width(self.status_text, event.width), add="+")
 
         self.input_panel, self.input_header, self.input_title_label, self.input_toggle_spacer, self.input_row = self._create_panel_shell(self.bottom, "Process Input", "status")
         self.input_panel.grid(row=4, column=0, sticky="ew", pady=(10, 0))
@@ -563,9 +565,9 @@ class PhotoMigratorTkGUI:
         self.preview_body.configure(bg=theme["panel_bg"])
         self.status_body.configure(bg=theme["panel_bg"])
         self.log_body.configure(bg=theme["log_bg"])
-        self.description_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], wraplength=max(200, self.root.winfo_width() - 420))
+        self.description_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"])
         self.preview_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], insertbackground=theme["panel_fg"])
-        self.status_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"], wraplength=max(200, self.root.winfo_width() - 420))
+        self.status_text.configure(bg=theme["panel_bg"], fg=theme["panel_fg"])
         self.log_text.configure(bg=theme["log_bg"], fg=theme["log_fg"], insertbackground=theme["log_fg"])
         self._configure_log_ansi_tags()
         self.input_panel.configure(bg=theme["panel_bg"], highlightbackground=theme["border"], highlightcolor=theme["border"])
@@ -600,7 +602,9 @@ class PhotoMigratorTkGUI:
         self.refresh_log_view()
         if rebuild:
             self.rebuild_content()
-            self.update_command_preview()
+        self._sync_wrapped_label_width(self.description_text)
+        self._sync_wrapped_label_width(self.status_text)
+        self.update_command_preview()
 
     def configure_button_styles(self) -> None:
         theme = self.current_theme()
@@ -1140,6 +1144,22 @@ class PhotoMigratorTkGUI:
             line_count = body.count("\n") + 1 if body else 1
         try:
             widget.configure(height=max(1, min(4, line_count)))
+        except Exception:
+            pass
+
+    def _sync_wrapped_label_width(self, widget: Any, width: int | None = None) -> None:
+        try:
+            effective_width = int(width if width is not None else widget.winfo_width())
+        except Exception:
+            effective_width = 0
+        if effective_width <= 1:
+            try:
+                widget.after_idle(lambda w=widget: self._sync_wrapped_label_width(w))
+            except Exception:
+                pass
+            return
+        try:
+            widget.configure(wraplength=max(80, effective_width - 4))
         except Exception:
             pass
 

@@ -56,6 +56,7 @@
   - Updated the local interactive dependency baseline from legacy `textual~=0.72.0` to `textual>=8.2.7,<9` so compiled TUI builds use the same modern CSS-capable Textual generation already validated in the development environment
   - Adjusted frozen-binary relaunch detection to prefer the original `sys.argv[0]` launcher path over the temporary bundle `python3` runtime on macOS onefile builds.
   - Hardened the GUI/TUI subprocess relaunch logic in frozen binaries so it now captures the original launcher context at startup, prefers the real `PhotoMigrator` packaged artifact path, and rejects temporary `python` runtime executables when composing child commands. This reduces false relaunches against `python3.exe` / `python3` extracted into onefile temp folders on Windows, macOS, and Linux.
+  - Fixed the desktop GUI `Argument Description` panel so wrapped text now uses the actual panel body width instead of an approximate root-window width, avoiding premature line breaks before the available horizontal space is filled.
 
 #### 📚 Documentation:
   - Added desktop GUI documentation to the README and execution/help pages, including the explicit `--gui` launcher flag and the fact that the desktop GUI is now the default startup experience when PhotoMigrator is executed without arguments.
