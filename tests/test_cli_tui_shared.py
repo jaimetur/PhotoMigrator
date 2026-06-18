@@ -169,8 +169,43 @@ class TestCliTuiShared(unittest.TestCase):
             launcher.write_text("", encoding="utf-8")
 
             with (
+                patch.dict("UI.shared.os.environ", {"PHOTOMIGRATOR_LAUNCHER_PATH": "", "PHOTOMIGRATOR_ORIGINAL_CWD": ""}, clear=False),
                 patch("UI.shared.sys.argv", [str(launcher)]),
                 patch("UI.shared.sys.executable", "/var/tmp/PhotoMigrator/python3"),
+            ):
+                resolved = ui_runtime_launcher_executable()
+
+        self.assertEqual(resolved, str(launcher))
+
+    def test_ui_runtime_launcher_executable_prefers_explicit_launcher_env(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            launcher = Path(temp_dir) / "PhotoMigrator_v4.3.0_windows_x64.exe"
+            launcher.write_text("", encoding="utf-8")
+
+            with (
+                patch.dict("UI.shared.os.environ", {"PHOTOMIGRATOR_LAUNCHER_PATH": str(launcher)}, clear=False),
+                patch("UI.shared.sys.argv", ["/var/tmp/PhotoMigrator/python3.exe"]),
+                patch("UI.shared.sys.executable", "/var/tmp/PhotoMigrator/python3.exe"),
+            ):
+                resolved = ui_runtime_launcher_executable()
+
+        self.assertEqual(resolved, str(launcher))
+
+    def test_ui_runtime_launcher_executable_recovers_versioned_binary_from_original_cwd(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            launch_dir = Path(temp_dir)
+            launcher = launch_dir / "PhotoMigrator_v4.3.0_windows_x64.exe"
+            launcher.write_text("", encoding="utf-8")
+
+            with (
+                patch.dict(
+                    "UI.shared.os.environ",
+                    {"PHOTOMIGRATOR_LAUNCHER_PATH": "", "PHOTOMIGRATOR_ORIGINAL_CWD": str(launch_dir)},
+                    clear=False,
+                ),
+                patch("UI.shared.sys.argv", ["/var/tmp/PhotoMigrator/python3.exe"]),
+                patch("UI.shared.sys.executable", "/var/tmp/PhotoMigrator/python3.exe"),
+                patch("UI.shared.sys.platform", "win32"),
             ):
                 resolved = ui_runtime_launcher_executable()
 

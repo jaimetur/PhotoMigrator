@@ -17,12 +17,72 @@ sys.path.insert(0, src_path)            # Now src is the root for imports
 from Core import GlobalVariables as GV
 from Utils.StandaloneUtils import change_working_dir, custom_print
 
+ORIGINAL_LAUNCH_CWD = Path.cwd().resolve()
+
+
+def _runtime_is_frozen() -> bool:
+    return bool(
+        getattr(sys, "frozen", False)
+        or hasattr(sys, "_MEIPASS")
+        or ("NUITKA_ONEFILE_PARENT" in os.environ)
+        or (globals().get("__compiled__") is not None)
+    )
+
+
+def _looks_like_python_runtime_path(path: Path | None) -> bool:
+    if path is None:
+        return False
+    return path.name.strip().lower() in {"python", "python3", "python.exe", "python3.exe", "pythonw", "pythonw.exe"}
+
+
+def _launcher_name_patterns() -> list[str]:
+    if sys.platform.startswith("win"):
+        return [f"{GV.TOOL_NAME}*.exe"]
+    if sys.platform == "darwin":
+        return [f"{GV.TOOL_NAME}*.command", f"{GV.TOOL_NAME}*"]
+    return [f"{GV.TOOL_NAME}*.bin", GV.TOOL_NAME, f"{GV.TOOL_NAME}*"]
+
+
+def _record_launcher_context() -> None:
+    os.environ.setdefault("PHOTOMIGRATOR_ORIGINAL_CWD", str(ORIGINAL_LAUNCH_CWD))
+    if not _runtime_is_frozen():
+        return
+    if os.environ.get("PHOTOMIGRATOR_LAUNCHER_PATH"):
+        return
+
+    orig_argv = getattr(sys, "orig_argv", None) or []
+    for raw_candidate in [
+        orig_argv[0] if orig_argv else "",
+        sys.argv[0] if sys.argv else "",
+        sys.executable,
+    ]:
+        text = str(raw_candidate or "").strip()
+        if not text:
+            continue
+        candidate = Path(text).expanduser()
+        if not candidate.is_absolute():
+            candidate = (ORIGINAL_LAUNCH_CWD / candidate).resolve(strict=False)
+        if candidate.exists() and not _looks_like_python_runtime_path(candidate):
+            os.environ["PHOTOMIGRATOR_LAUNCHER_PATH"] = str(candidate.resolve(strict=False))
+            return
+
+    for pattern in _launcher_name_patterns():
+        matches = sorted(
+            (path for path in ORIGINAL_LAUNCH_CWD.glob(pattern) if path.is_file()),
+            key=lambda path: (len(path.name), path.name.lower()),
+        )
+        for match in matches:
+            if not _looks_like_python_runtime_path(match):
+                os.environ["PHOTOMIGRATOR_LAUNCHER_PATH"] = str(match.resolve(strict=False))
+                return
+
 
 # -------------------------------------------------------------
 # MAIN FUNCTION
 # -------------------------------------------------------------
 def PhotoMigrator():
     # Limpiar la pantalla y parseamos argumentos de entrada
+    _record_launcher_context()
     if os.name == 'nt':
         os.system('cls')
     elif os.environ.get('TERM') and sys.stdout.isatty():

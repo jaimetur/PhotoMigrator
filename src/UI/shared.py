@@ -12,6 +12,7 @@ from typing import Any, Dict, List
 from zoneinfo import available_timezones
 
 from Core.ArgsParser import parse_arguments
+from Core.GlobalVariables import TOOL_NAME
 
 TIMEZONE_DEFAULT = "Europe/Madrid"
 TIMEZONE_CHOICES = sorted(list(available_timezones()))
@@ -1302,14 +1303,92 @@ def ui_runtime_is_frozen() -> bool:
     )
 
 
+def _existing_path(raw_path: str | os.PathLike[str] | None) -> Path | None:
+    text = str(raw_path or "").strip()
+    if not text:
+        return None
+    candidate = Path(text).expanduser()
+    if not candidate.is_absolute():
+        candidate = (Path.cwd() / candidate).resolve(strict=False)
+    if candidate.exists():
+        return candidate.resolve(strict=False)
+    return None
+
+
+def _looks_like_python_runtime(path: Path | None) -> bool:
+    if path is None:
+        return False
+    name = path.name.strip().lower()
+    return name in {"python", "python3", "python.exe", "python3.exe", "pythonw", "pythonw.exe"}
+
+
+def _launcher_glob_patterns() -> List[str]:
+    if sys.platform.startswith("win"):
+        return [f"{TOOL_NAME}*.exe"]
+    if sys.platform == "darwin":
+        return [f"{TOOL_NAME}*.command", f"{TOOL_NAME}*"]
+    return [f"{TOOL_NAME}*.bin", TOOL_NAME, f"{TOOL_NAME}*"]
+
+
+def _search_launcher_in_root(root: Path | None) -> Path | None:
+    if root is None or not root.exists() or not root.is_dir():
+        return None
+    for pattern in _launcher_glob_patterns():
+        matches = sorted(
+            (path for path in root.glob(pattern) if path.is_file()),
+            key=lambda path: (len(path.name), path.name.lower()),
+        )
+        for match in matches:
+            resolved = match.resolve(strict=False)
+            if not _looks_like_python_runtime(resolved):
+                return resolved
+    return None
+
+
 def ui_runtime_launcher_executable() -> str:
-    argv0 = str(sys.argv[0] or "").strip()
-    if argv0:
-        candidate = Path(argv0).expanduser()
-        if not candidate.is_absolute():
-            candidate = (Path.cwd() / candidate).resolve(strict=False)
-        if candidate.exists():
+    env_launcher = _existing_path(os.environ.get("PHOTOMIGRATOR_LAUNCHER_PATH"))
+    if env_launcher is not None and not _looks_like_python_runtime(env_launcher):
+        return str(env_launcher)
+
+    orig_argv = getattr(sys, "orig_argv", None) or []
+    for raw_candidate in [
+        orig_argv[0] if orig_argv else "",
+        sys.argv[0] if sys.argv else "",
+        sys.executable,
+    ]:
+        candidate = _existing_path(raw_candidate)
+        if candidate is not None and not _looks_like_python_runtime(candidate):
             return str(candidate)
+
+    search_roots: List[Path] = []
+    original_cwd = _existing_path(os.environ.get("PHOTOMIGRATOR_ORIGINAL_CWD"))
+    if original_cwd is not None and original_cwd.is_dir():
+        search_roots.append(original_cwd)
+    cwd_root = _existing_path(Path.cwd())
+    if cwd_root is not None and cwd_root.is_dir():
+        search_roots.append(cwd_root)
+    for raw_candidate in [
+        orig_argv[0] if orig_argv else "",
+        sys.argv[0] if sys.argv else "",
+        sys.executable,
+    ]:
+        candidate = _existing_path(raw_candidate)
+        if candidate is not None:
+            search_roots.append(candidate.parent)
+
+    seen_roots = set()
+    for root in search_roots:
+        root_key = str(root)
+        if root_key in seen_roots:
+            continue
+        seen_roots.add(root_key)
+        launcher = _search_launcher_in_root(root)
+        if launcher is not None:
+            return str(launcher)
+
+    argv0 = _existing_path(sys.argv[0] if sys.argv else "")
+    if argv0 is not None:
+        return str(argv0)
     return str(Path(sys.executable).resolve(strict=False))
 
 
