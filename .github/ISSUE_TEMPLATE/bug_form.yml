@@ -20,8 +20,10 @@ body:
     label: Version
     description: What tool version are you running?
     options:
-    - v4.0.0 (latest)
-    - v3.8.0 (latest-stable)
+    - v4.3.0 (latest)
+    - v4.2.0
+    - v4.1.0 (latest-stable)
+    - v3.8.0
     - v3.7.1
     - v3.7.0
     - v3.6.2
@@ -80,12 +82,17 @@ body:
     options:
     - Global (all features will be affected)
     - Web Interface
+    - GUI Interface
+    - TUI Interface
     - Logging / Text Messages
     - Documentation
     - Automatic Migration
     - Google Takeout Fixing
+    - iCloud Takeout Fixing
+    - Google Photos
     - Synology Photos
     - Immich Photos
+    - NExtCloud Photos
     - Local Folder Class
     - Album Auto-Renaming
     - Find Duplicates
