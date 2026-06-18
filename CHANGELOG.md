@@ -20,7 +20,7 @@
 #### 🐛 Bug fixes:
 
 #### 📚 Documentation:
-  - Updated documentation with all changes.
+  - Updated documentation with all changes. 
 
 ---
 
