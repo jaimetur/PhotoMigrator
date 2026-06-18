@@ -51,8 +51,8 @@ ANSI_CSI_RE = re.compile(r"\x1b\[([0-9;?]*)([@-~])")
 THEME_CHOICES = [("Ocean", "ocean"), ("Emerald", "emerald"), ("Sunset", "sunset"), ("Dark", "dark")]
 MODULE_GROUP_CLASSES = {
     "automatic_migration": ("#c9ebcf", "#22462a"),
-    "google_takeout": ("#f8f1c8", "#7a6410"),
-    "icloud_takeout": ("#f8f1c8", "#7a6410"),
+    "google_takeout": ("#d7e7f6", "#24527a"),
+    "icloud_takeout": ("#d7e7f6", "#24527a"),
     "google_photos": ("#eee0d1", "#5f432b"),
     "synology_photos": ("#eee0d1", "#5f432b"),
     "immich_photos": ("#eee0d1", "#5f432b"),
@@ -61,8 +61,8 @@ MODULE_GROUP_CLASSES = {
     "upload_folder": ("#efc8c8", "#6c2727"),
 }
 MODULE_ACTIVE_STYLE_OVERRIDES = {
-    "google_takeout": ("#f1cf57", "#5a4700"),
-    "icloud_takeout": ("#f1cf57", "#5a4700"),
+    "google_takeout": ("#9fc4e7", "#163b5b"),
+    "icloud_takeout": ("#9fc4e7", "#163b5b"),
 }
 MODULE_TO_CONFIG_SECTION = {
     "google_photos": "Google Photos",
@@ -396,7 +396,7 @@ class PhotoMigratorTkGUI:
         self.module_buttons: Dict[str, Any] = {}
         for idx, (key, label) in enumerate(INTERACTIVE_MODULE_TAB_NAMES.items()):
             btn = self.ttk.Button(self.sidebar_scroll.body, text=label, command=lambda tab=key: self.select_module(tab))
-            btn.grid(row=idx, column=0, sticky="ew", pady=(0, 6))
+            btn.grid(row=idx, column=0, sticky="ew", pady=(0, 20))
             self.module_buttons[key] = btn
         self.sidebar_scroll.body.grid_columnconfigure(0, weight=1)
 

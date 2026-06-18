@@ -35,6 +35,7 @@
   - Improved runtime behavior in the desktop GUI and CLI TUI so the upper `Feature` panel now auto-collapses while a job is running, `Execution Log` compactly rewrites progress-bar updates instead of appending a new line for every refresh, and the TUI log panel now supports context-aware copy actions via `Ctrl+C` and the right-click context menu.
   - Renamed the local interactive window titles so the terminal interface now identifies itself as `Terminal Interactive User Interface (TUI)` and the desktop window as `Graphical User Interface (GUI)`, both keeping the current PhotoMigrator version in the title bar.
   - Updated the desktop GUI so `Automatic Migration` runs launched with `Live Dashboard` in an external terminal now report their exit code back into the GUI `Execution Log`, restore the GUI window to the foreground when the dashboard finishes, and raise the main `tkinter` window to the foreground on startup.
+  - Increased the vertical spacing between `Feature Selector` buttons in the desktop GUI so the different feature entries are visually separated more clearly.
 
 #### 🚀 GPTH Enhancements:
 
@@ -57,6 +58,7 @@
   - Adjusted frozen-binary relaunch detection to prefer the original `sys.argv[0]` launcher path over the temporary bundle `python3` runtime on macOS onefile builds.
   - Hardened the GUI/TUI subprocess relaunch logic in frozen binaries so it now captures the original launcher context at startup, prefers the real `PhotoMigrator` packaged artifact path, and rejects temporary `python` runtime executables when composing child commands. This reduces false relaunches against `python3.exe` / `python3` extracted into onefile temp folders on Windows, macOS, and Linux.
   - Fixed the desktop GUI `Argument Description` panel so wrapped text now uses the actual panel body width instead of an approximate root-window width, avoiding premature line breaks before the available horizontal space is filled.
+  - Adjusted the desktop GUI `GOOGLE TAKEOUT` and `iCLOUD TAKEOUT` feature buttons again so they now use a pastel blue palette, including matching active-state styling.
 
 #### 📚 Documentation:
   - Added desktop GUI documentation to the README and execution/help pages, including the explicit `--gui` launcher flag and the fact that the desktop GUI is now the default startup experience when PhotoMigrator is executed without arguments.
