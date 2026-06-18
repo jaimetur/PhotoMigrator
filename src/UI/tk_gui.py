@@ -1513,7 +1513,6 @@ class PhotoMigratorTkGUI:
         self.sync_content_panel_for_run_state(True)
         self.refresh_action_buttons()
         threading.Thread(target=self._external_dashboard_watcher, args=(status_path,), daemon=True).start()
-        self.root.after(150, self._restore_gui_focus)
 
     def _external_dashboard_watcher(self, status_path: Path) -> None:
         exit_code = -1
