@@ -7,6 +7,7 @@ import logging
 import os
 import platform
 import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -721,6 +722,54 @@ def update_metadata(file_path, date_time, log_level=None):
             GV.LOGGER.debug(f"Metadata updated for {file_path} with timestamp {date_time}")
         except Exception as e:
             GV.LOGGER.error(f"Failed to update metadata for {file_path}. {e}")
+
+
+def update_file_timestamps(file_path, asset_time, log_level=None):
+    """
+    Updates filesystem timestamps for any local file.
+
+    - Always updates file modified/accessed times through ``os.utime``.
+    - Updates creation time on Windows via ``SetFileTime`` when possible.
+    - Attempts to update creation time on macOS via ``SetFile`` when available.
+
+    Args:
+        file_path (str): Path to the file.
+        asset_time (int | float | str): Timestamp in UNIX Epoch format or
+            a string in ``YYYY-MM-DD HH:MM:SS`` format.
+        log_level (logging.LEVEL): log_level for logs and console
+    """
+    with set_log_level(GV.LOGGER, log_level):
+        try:
+            if isinstance(asset_time, str):
+                try:
+                    asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
+                except ValueError:
+                    GV.LOGGER.warning(f"Invalid date format for asset_time: {asset_time}")
+                    return
+
+            timestamp = float(asset_time)
+            os.utime(file_path, (timestamp, timestamp))
+
+            system_name = platform.system()
+            if system_name == "Windows":
+                try:
+                    windows_time = int((timestamp + 11644473600) * 10000000)
+                    handle = ctypes.windll.kernel32.CreateFileW(file_path, 256, 0, None, 3, 128, None)
+                    if handle != -1:
+                        ctypes.windll.kernel32.SetFileTime(handle, ctypes.byref(ctypes.c_int64(windows_time)), None, None)
+                        ctypes.windll.kernel32.CloseHandle(handle)
+                except Exception as exc:
+                    GV.LOGGER.warning(f"Failed to update file creation time on Windows. {exc}")
+            elif system_name == "Darwin":
+                setfile = shutil.which("SetFile")
+                if setfile:
+                    try:
+                        mac_creation = datetime.fromtimestamp(timestamp).strftime("%m/%d/%Y %H:%M:%S")
+                        subprocess.run([setfile, "-d", mac_creation, str(file_path)], check=False, capture_output=True, text=True)
+                    except Exception as exc:
+                        GV.LOGGER.warning(f"Failed to update file creation time on macOS. {exc}")
+        except Exception as exc:
+            GV.LOGGER.warning(f"Failed to update file timestamps for {file_path}. {exc}")
 
 
 def update_exif_date(image_path, asset_time, log_level=None):

@@ -27,8 +27,55 @@ from Core.GlobalVariables import (
 )
 from Features.GoogleTakeout.ClassTakeoutFolder import organize_files_by_date
 from Utils.FileUtils import contains_zip_files, remove_empty_dirs, sanitize_and_unpack_zips
-from Utils.GeneralUtils import ensure_executable, sha1_checksum, tqdm, update_metadata
+from Utils.GeneralUtils import ensure_executable, sha1_checksum, tqdm, update_file_timestamps, update_metadata
 from Utils.StandaloneUtils import get_exif_tool_path
+
+
+class _ExifToolSession:
+    def __init__(self, exiftool_path: str):
+        self.exiftool_path = str(exiftool_path)
+        self.process = subprocess.Popen(
+            [self.exiftool_path, "-stay_open", "True", "-@", "-"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+        )
+
+    def execute(self, args):
+        if self.process.stdin is None or self.process.stdout is None:
+            raise RuntimeError("ExifTool persistent session streams are not available.")
+        for arg in args:
+            self.process.stdin.write(f"{arg}\n")
+        self.process.stdin.write("-execute\n")
+        self.process.stdin.flush()
+        output_lines = []
+        while True:
+            line = self.process.stdout.readline()
+            if line == "":
+                break
+            if line.strip() == "{ready}":
+                break
+            output_lines.append(line)
+        return "".join(output_lines).strip()
+
+    def close(self):
+        if self.process.stdin is not None:
+            try:
+                self.process.stdin.write("-stay_open\nFalse\n")
+                self.process.stdin.flush()
+            except Exception:
+                pass
+        try:
+            self.process.wait(timeout=5)
+        except Exception:
+            try:
+                self.process.kill()
+            except Exception:
+                pass
 
 
 class ClassICloudTakeoutFolder:
@@ -50,6 +97,8 @@ class ClassICloudTakeoutFolder:
         self.initial_filedates_json = ""
         self.final_filedates_json = ""
         self.CLIENT_NAME = f"iCloud Takeout Folder ({self.takeout_folder.name})"
+        self._exiftool_path = None
+        self._exiftool_session = None
 
     def _build_output_folder(self):
         if self.ARGS.get("output-folder"):
@@ -289,44 +338,83 @@ class ClassICloudTakeoutFolder:
     def _date_to_general_string(self, dt_value):
         return dt_value.strftime("%Y-%m-%d %H:%M:%S")
 
+    def _get_exiftool_path(self, step_name=""):
+        if self._exiftool_path is not None:
+            return self._exiftool_path
+        exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
+        if not os.path.exists(exif_tool_path):
+            self._exiftool_path = ""
+            return ""
+        ensure_executable(exif_tool_path)
+        self._exiftool_path = exif_tool_path
+        return self._exiftool_path
+
+    def _get_exiftool_session(self, step_name=""):
+        if self._exiftool_session is not None:
+            return self._exiftool_session
+        exif_tool_path = self._get_exiftool_path(step_name=step_name)
+        if not exif_tool_path:
+            return None
+        self._exiftool_session = _ExifToolSession(exif_tool_path)
+        return self._exiftool_session
+
+    def _close_exiftool_session(self):
+        if self._exiftool_session is None:
+            return
+        try:
+            self._exiftool_session.close()
+        finally:
+            self._exiftool_session = None
+
+    def _build_exiftool_args(self, file_path: Path, dt_value: datetime):
+        date_text = self._date_to_exif_string(dt_value)
+        args = ["-overwrite_original"]
+        suffix = file_path.suffix.lower()
+        if suffix in PHOTO_EXT:
+            args.extend(
+                [
+                    f"-DateTimeOriginal={date_text}",
+                    f"-CreateDate={date_text}",
+                    f"-ModifyDate={date_text}",
+                    f"-DateTimeDigitized={date_text}",
+                ]
+            )
+        else:
+            args.extend(
+                [
+                    f"-QuickTime:CreateDate={date_text}",
+                    f"-QuickTime:ModifyDate={date_text}",
+                    f"-QuickTime:TrackCreateDate={date_text}",
+                    f"-QuickTime:TrackModifyDate={date_text}",
+                    f"-QuickTime:MediaCreateDate={date_text}",
+                    f"-QuickTime:MediaModifyDate={date_text}",
+                    f"-Keys:CreationDate={date_text}",
+                ]
+            )
+        args.append(f"-FileModifyDate={date_text}")
+        if sys.platform.startswith("win") or sys.platform == "darwin":
+            args.append(f"-FileCreateDate={date_text}")
+        args.append(str(file_path))
+        return args
+
     def _write_exif_with_exiftool(self, file_path: Path, dt_value: datetime, step_name="", log_level=None):
         with set_log_level(LOGGER, log_level):
-            exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
-            if not os.path.exists(exif_tool_path):
+            session = self._get_exiftool_session(step_name=step_name)
+            if session is None:
                 return False
-            ensure_executable(exif_tool_path)
-            date_text = self._date_to_exif_string(dt_value)
-            cmd = [exif_tool_path, "-overwrite_original", "-P"]
-            suffix = file_path.suffix.lower()
-            if suffix in PHOTO_EXT:
-                cmd.extend(
-                    [
-                        f"-DateTimeOriginal={date_text}",
-                        f"-CreateDate={date_text}",
-                        f"-ModifyDate={date_text}",
-                        f"-DateTimeDigitized={date_text}",
-                    ]
+            try:
+                output = session.execute(self._build_exiftool_args(file_path, dt_value))
+            except Exception as exc:
+                LOGGER.warning(
+                    f"{step_name}ExifTool persistent session failed for '{file_path}'. "
+                    f"Falling back to native metadata update. Details: {str(exc)[:400]}"
                 )
-            else:
-                cmd.extend(
-                    [
-                        f"-QuickTime:CreateDate={date_text}",
-                        f"-QuickTime:ModifyDate={date_text}",
-                        f"-QuickTime:TrackCreateDate={date_text}",
-                        f"-QuickTime:TrackModifyDate={date_text}",
-                        f"-QuickTime:MediaCreateDate={date_text}",
-                        f"-QuickTime:MediaModifyDate={date_text}",
-                        f"-Keys:CreationDate={date_text}",
-                    ]
-                )
-            cmd.append(str(file_path))
-            completed = subprocess.run(cmd, capture_output=True, text=True, check=False)
-            if completed.returncode == 0:
+                return False
+            if "Error:" not in output:
                 return True
-            stderr = (completed.stderr or completed.stdout or "").strip()
             LOGGER.warning(
-                f"{step_name}ExifTool could not update '{file_path}' (exit={completed.returncode}). "
-                f"Falling back to native metadata update. Details: {stderr[:400]}"
+                f"{step_name}ExifTool could not update '{file_path}'. "
+                f"Falling back to native metadata update. Details: {output[:400]}"
             )
             return False
 
@@ -363,6 +451,7 @@ class ClassICloudTakeoutFolder:
                         continue
                     if not self._write_exif_with_exiftool(dest_path, dt_value, step_name=step_name, log_level=log_level):
                         update_metadata(str(dest_path), self._date_to_general_string(dt_value), log_level=log_level)
+                        update_file_timestamps(str(dest_path), self._date_to_general_string(dt_value), log_level=log_level)
                     processed_paths.add(dest_key)
                     extracted_dates[dest_key] = {
                         "SourceFile": str(record["source"]),
@@ -463,97 +552,100 @@ class ClassICloudTakeoutFolder:
 
     def process(self, log_level=None):
         with set_log_level(LOGGER, log_level):
-            if not self.takeout_folder.exists() or not self.takeout_folder.is_dir():
-                LOGGER.error(f"The iCloud Takeout folder does not exist: '{self.takeout_folder}'")
-                sys.exit(1)
+            try:
+                if not self.takeout_folder.exists() or not self.takeout_folder.is_dir():
+                    LOGGER.error(f"The iCloud Takeout folder does not exist: '{self.takeout_folder}'")
+                    sys.exit(1)
 
-            processing_start = datetime.now()
-            LOGGER.info("=============================================================")
-            LOGGER.info("Starting iCloud Takeout Processor Feature...")
-            LOGGER.info("=============================================================")
-            LOGGER.info("")
+                processing_start = datetime.now()
+                LOGGER.info("=============================================================")
+                LOGGER.info("Starting iCloud Takeout Processor Feature...")
+                LOGGER.info("=============================================================")
+                LOGGER.info("")
 
-            if self.needs_unzip:
-                self.unzipped_folder = Path(f"{self.takeout_folder}_unzipped_{TIMESTAMP}").resolve()
-                step_name = "[iCloud PRE-CHECK]-[Unzip Takeout] : "
-                LOGGER.info(f"{step_name}ZIP files detected. Extracting to '{self.unzipped_folder}'...")
-                sanitize_and_unpack_zips(
-                    input_folder=str(self.takeout_folder),
-                    unzip_folder=str(self.unzipped_folder),
-                    step_name=step_name,
-                    log_level=LOG_LEVEL,
-                )
-            self._refresh_input_folder()
+                if self.needs_unzip:
+                    self.unzipped_folder = Path(f"{self.takeout_folder}_unzipped_{TIMESTAMP}").resolve()
+                    step_name = "[iCloud PRE-CHECK]-[Unzip Takeout] : "
+                    LOGGER.info(f"{step_name}ZIP files detected. Extracting to '{self.unzipped_folder}'...")
+                    sanitize_and_unpack_zips(
+                        input_folder=str(self.takeout_folder),
+                        unzip_folder=str(self.unzipped_folder),
+                        step_name=step_name,
+                        log_level=LOG_LEVEL,
+                    )
+                self._refresh_input_folder()
 
-            LOGGER.info(f"Input iCloud Takeout folder  : '{self.input_folder}'")
-            LOGGER.info(f"Output processed folder      : '{self.output_folder}'")
-            LOGGER.info(f"Albums structure             : '{self.ARGS.get('icloud-albums-folders-structure', 'flatten')}'")
-            LOGGER.info(f"ALL_PHOTOS structure         : '{self.ARGS.get('icloud-no-albums-folders-structure', 'year/month')}'")
-            LOGGER.info(f"Use copies for albums        : '{self.ARGS.get('icloud-no-symbolic-albums', False)}'")
-            LOGGER.info(f"Include Memories             : '{self.ARGS.get('icloud-include-memories', False)}'")
-            LOGGER.info("")
+                LOGGER.info(f"Input iCloud Takeout folder  : '{self.input_folder}'")
+                LOGGER.info(f"Output processed folder      : '{self.output_folder}'")
+                LOGGER.info(f"Albums structure             : '{self.ARGS.get('icloud-albums-folders-structure', 'flatten')}'")
+                LOGGER.info(f"ALL_PHOTOS structure         : '{self.ARGS.get('icloud-no-albums-folders-structure', 'year/month')}'")
+                LOGGER.info(f"Use copies for albums        : '{self.ARGS.get('icloud-no-symbolic-albums', False)}'")
+                LOGGER.info(f"Include Memories             : '{self.ARGS.get('icloud-include-memories', False)}'")
+                LOGGER.info("")
 
-            self.output_folder.mkdir(parents=True, exist_ok=True)
+                self.output_folder.mkdir(parents=True, exist_ok=True)
 
-            step_name = "[iCloud PREP]-[Scan CSVs] : "
-            photo_details_csvs, album_csvs, memory_csvs = self._collect_csv_inputs(self.input_folder)
-            LOGGER.info(f"{step_name}Photo Details CSV files found : {len(photo_details_csvs)}")
-            LOGGER.info(f"{step_name}Album CSV files found         : {len(album_csvs)}")
-            LOGGER.info(f"{step_name}Memory CSV files found        : {len(memory_csvs)}")
+                step_name = "[iCloud PREP]-[Scan CSVs] : "
+                photo_details_csvs, album_csvs, memory_csvs = self._collect_csv_inputs(self.input_folder)
+                LOGGER.info(f"{step_name}Photo Details CSV files found : {len(photo_details_csvs)}")
+                LOGGER.info(f"{step_name}Album CSV files found         : {len(album_csvs)}")
+                LOGGER.info(f"{step_name}Memory CSV files found        : {len(memory_csvs)}")
 
-            step_name = "[iCloud PROCESS]-[Stage Media] : "
-            source_records, source_index = self._stage_original_assets(self.input_folder, step_name=step_name, log_level=LOG_LEVEL)
-            LOGGER.info(f"{step_name}Media assets staged into '{self.no_albums_folder}': {len(source_records)}")
+                step_name = "[iCloud PROCESS]-[Stage Media] : "
+                source_records, source_index = self._stage_original_assets(self.input_folder, step_name=step_name, log_level=LOG_LEVEL)
+                LOGGER.info(f"{step_name}Media assets staged into '{self.no_albums_folder}': {len(source_records)}")
 
-            step_name = "[iCloud PROCESS]-[Read Photo Details] : "
-            photo_rows = self._load_photo_details_rows(photo_details_csvs)
-            LOGGER.info(f"{step_name}Rows loaded from Photo Details CSV files: {len(photo_rows)}")
-            matched_rows = [(row, self._match_row_to_records(row, source_index)) for row in photo_rows]
+                step_name = "[iCloud PROCESS]-[Read Photo Details] : "
+                photo_rows = self._load_photo_details_rows(photo_details_csvs)
+                LOGGER.info(f"{step_name}Rows loaded from Photo Details CSV files: {len(photo_rows)}")
+                matched_rows = [(row, self._match_row_to_records(row, source_index)) for row in photo_rows]
 
-            step_name = "[iCloud PROCESS]-[Write Dates] : "
-            extracted_dates = self._apply_dates(matched_rows, step_name=step_name, log_level=LOG_LEVEL)
+                step_name = "[iCloud PROCESS]-[Write Dates] : "
+                extracted_dates = self._apply_dates(matched_rows, step_name=step_name, log_level=LOG_LEVEL)
 
-            step_name = "[iCloud POST]-[Organize ALL_PHOTOS] : "
-            source_index = self._organize_originals(source_records, extracted_dates, step_name=step_name, log_level=LOG_LEVEL)
+                step_name = "[iCloud POST]-[Organize ALL_PHOTOS] : "
+                source_index = self._organize_originals(source_records, extracted_dates, step_name=step_name, log_level=LOG_LEVEL)
 
-            step_name = "[iCloud POST]-[Build Albums] : "
-            album_count = self._build_collection_from_csvs(
-                csv_files=album_csvs,
-                source_index=source_index,
-                root_folder=self.albums_folder,
-                structure=self.ARGS.get("icloud-albums-folders-structure", "flatten"),
-                step_name=step_name,
-                log_level=LOG_LEVEL,
-            )
-            LOGGER.info(f"{step_name}Album folders created: {album_count}")
-            self.result["valid_albums_found"] = album_count
-
-            if self.ARGS.get("icloud-include-memories", False):
-                step_name = "[iCloud POST]-[Build Memories] : "
-                memories_count = self._build_collection_from_csvs(
-                    csv_files=memory_csvs,
+                step_name = "[iCloud POST]-[Build Albums] : "
+                album_count = self._build_collection_from_csvs(
+                    csv_files=album_csvs,
                     source_index=source_index,
-                    root_folder=self.memories_folder,
+                    root_folder=self.albums_folder,
                     structure=self.ARGS.get("icloud-albums-folders-structure", "flatten"),
                     step_name=step_name,
                     log_level=LOG_LEVEL,
                 )
-                LOGGER.info(f"{step_name}Memories folders created: {memories_count}")
+                LOGGER.info(f"{step_name}Album folders created: {album_count}")
+                self.result["valid_albums_found"] = album_count
 
-            step_name = "[iCloud FINAL]-[Cleanup] : "
-            remove_empty_dirs(str(self.output_folder), log_level=LOG_LEVEL)
-            self.final_filedates_json = self._save_dates_json(step_name=step_name, log_level=LOG_LEVEL)
-            if getattr(self.local_analyzer, "extracted_dates", None):
-                self.local_analyzer.show_files_without_dates(relative_folder=str(self.output_folder), step_name=step_name)
+                if self.ARGS.get("icloud-include-memories", False):
+                    step_name = "[iCloud POST]-[Build Memories] : "
+                    memories_count = self._build_collection_from_csvs(
+                        csv_files=memory_csvs,
+                        source_index=source_index,
+                        root_folder=self.memories_folder,
+                        structure=self.ARGS.get("icloud-albums-folders-structure", "flatten"),
+                        step_name=step_name,
+                        log_level=LOG_LEVEL,
+                    )
+                    LOGGER.info(f"{step_name}Memories folders created: {memories_count}")
 
-            processing_end = datetime.now()
-            LOGGER.info("")
-            LOGGER.info("=============================================================")
-            LOGGER.info("iCloud Takeout Processing finished")
-            LOGGER.info("=============================================================")
-            LOGGER.info(f"Processed folder : '{self.output_folder}'")
-            LOGGER.info(f"Duration         : {str(timedelta(seconds=round((processing_end - processing_start).total_seconds())))}")
-            if self.final_filedates_json:
-                LOGGER.info(f"Dates JSON       : '{self.final_filedates_json}'")
-            LOGGER.info("")
-            return self.result
+                step_name = "[iCloud FINAL]-[Cleanup] : "
+                remove_empty_dirs(str(self.output_folder), log_level=LOG_LEVEL)
+                self.final_filedates_json = self._save_dates_json(step_name=step_name, log_level=LOG_LEVEL)
+                if getattr(self.local_analyzer, "extracted_dates", None):
+                    self.local_analyzer.show_files_without_dates(relative_folder=str(self.output_folder), step_name=step_name)
+
+                processing_end = datetime.now()
+                LOGGER.info("")
+                LOGGER.info("=============================================================")
+                LOGGER.info("iCloud Takeout Processing finished")
+                LOGGER.info("=============================================================")
+                LOGGER.info(f"Processed folder : '{self.output_folder}'")
+                LOGGER.info(f"Duration         : {str(timedelta(seconds=round((processing_end - processing_start).total_seconds())))}")
+                if self.final_filedates_json:
+                    LOGGER.info(f"Dates JSON       : '{self.final_filedates_json}'")
+                LOGGER.info("")
+                return self.result
+            finally:
+                self._close_exiftool_session()

@@ -2,6 +2,7 @@ import csv
 import sys
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
@@ -158,6 +159,18 @@ class TestICloudTakeout(unittest.TestCase):
         trip_b_files = sorted(path.read_bytes() for path in (self.base_path / "output" / "Albums" / "Trip B").iterdir())
         self.assertEqual(trip_a_files, [b"scope-a"])
         self.assertEqual(trip_b_files, [b"scope-b"])
+
+    def test_build_exiftool_args_include_filesystem_dates(self):
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            dt_value = datetime(2023, 5, 14, 3, 36, 0)
+
+            with patch.object(icloud_module.sys, "platform", "win32"):
+                args = processor._build_exiftool_args(Path("/tmp/example.jpg"), dt_value)
+
+        self.assertIn("-DateTimeOriginal=2023:05:14 03:36:00", args)
+        self.assertIn("-FileModifyDate=2023:05:14 03:36:00", args)
+        self.assertIn("-FileCreateDate=2023:05:14 03:36:00", args)
 
 
 if __name__ == "__main__":

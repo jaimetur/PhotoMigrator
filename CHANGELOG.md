@@ -12,6 +12,8 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
+  - Optimized `iCloud Takeout` date writing by switching from one `ExifTool` process per asset to a persistent shared `ExifTool` session reused across the whole run, which should significantly reduce the runtime of the `Write Dates` step on large exports.
+  - Extended `iCloud Takeout` date application so it now also updates filesystem timestamps for processed assets: file modified dates are refreshed for all supported platforms, and file creation dates are also updated where the platform provides support (`Windows` directly, `macOS` when `SetFile` is available, plus `ExifTool` file-date tags on supported systems).
 
 #### 🚀 GPTH Enhancements:
 
