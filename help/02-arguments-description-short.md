@@ -147,15 +147,15 @@ If only the argument `-iTakeout, --icloud-takeout <ICLOUD_EXPORT_FOLDER>` is det
 
 Following arguments allow you to interact with Apple iCloud Photos export folders.
 
-| Argument                                           | Description                                                                                           |
-|----------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| `-iTakeout`,<br>`--icloud-takeout`                 | Path to the iCloud export folder (mandatory for this mode)                                            |
-| `-iofs`,<br>`--icloud-output-folder-suffix`        | Suffix for the iCloud processed output folder (default: `processed`)                                  |
-| `-iafs`,<br>`--icloud-albums-folders-structure`    | Reconstructed album folder structure: `flatten`, `year`, `year/month`, `year-month`                   |
-| `-inas`,<br>`--icloud-no-albums-folders-structure` | No-Album folder structure (same values as above; default: `year/month`)                               |
-| `-insa`,<br>`--icloud-no-symbolic-albums`          | Duplicate reconstructed iCloud album assets instead of creating symlinks in `<NO_ALBUMS_FOLDER>`      |
-| `-iMem`,<br>`--icloud-include-memories`            | Also reconstruct iCloud `Memories` CSV collections as folders. Pre-selected by default in Web/TUI/GUI |
-| `-iNExif`,<br>`--icloud-prefer-native-exif-writer` | Prefer the native EXIF writer when possible. Pre-selected by default in Web/TUI/GUI                   |
+| Argument                                           | Description                                                                                                          |
+|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| `-iTakeout`,<br>`--icloud-takeout`                 | Path to the iCloud export folder (mandatory for this mode)                                                           |
+| `-iofs`,<br>`--icloud-output-folder-suffix`        | Suffix for the iCloud processed output folder (default: `processed`)                                                 |
+| `-iafs`,<br>`--icloud-albums-folders-structure`    | Reconstructed album folder structure: `flatten`, `year`, `year/month`, `year-month`                                  |
+| `-inas`,<br>`--icloud-no-albums-folders-structure` | No-Album folder structure (same values as above; default: `year/month`)                                              |
+| `-insa`,<br>`--icloud-no-symbolic-albums`          | Duplicate reconstructed iCloud album assets instead of creating symlinks in `<NO_ALBUMS_FOLDER>` (default: symlinks) |
+| `-iMem`,<br>`--icloud-include-memories`            | Also reconstruct iCloud `Memories` CSV collections as folders. Pre-selected by default in Web/TUI/GUI                |
+| `-iNExif`,<br>`--icloud-prefer-native-exif-writer` | Prefer the native EXIF writer when possible. Pre-selected by default in Web/TUI/GUI                                  |
 
 #### 🧪 Examples:
 ```bash

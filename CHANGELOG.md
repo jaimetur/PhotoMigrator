@@ -27,6 +27,7 @@
   - Improved Web Interface job logs so indeterminate `tqdm` progress lines are compacted instead of being appended repeatedly, and each finished job now writes an explicit completion line with final status and exit code.
 
 #### 📚 Documentation:
+  - Clarified the iCloud Takeout documentation so it now states explicitly that reconstructed `Albums` and `Memories` use symlinks by default, and that `--icloud-no-symbolic-albums` switches that behavior to duplicated copies.
   - Updated documentation with all changes.
 
 ---

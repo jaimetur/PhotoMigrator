@@ -322,6 +322,8 @@ default values for the rest of the arguments for this extra mode.
 -insa        ; --icloud-no-symbolic-albums
                Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within
                <NO_ALBUMS_FOLDER>.
+               By default, Albums and Memories are reconstructed as symlinks pointing to the assets stored in
+               <NO_ALBUMS_FOLDER>.
 -iMem        ; --icloud-include-memories
                Also reconstruct iCloud 'Memories' CSV collections as folders.
 -iNExif      ; --icloud-prefer-native-exif-writer
