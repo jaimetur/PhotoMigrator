@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -257,10 +257,10 @@ class TestICloudTakeout(unittest.TestCase):
         png_path = png_folder / "IMG_0001.PNG"
         png_path.write_bytes(b"not-a-real-png-but-good-enough-for-mtime")
 
-        with patch.object(google_takeout_module.LOGGER, "warning") as warning_mock:
+        with patch.object(google_takeout_module, "LOGGER", Mock()) as logger_mock:
             google_takeout_module.organize_files_by_date(str(png_folder), type="year")
 
-        warning_messages = " ".join(str(call.args[0]) for call in warning_mock.call_args_list if call.args)
+        warning_messages = " ".join(str(call.args[0]) for call in logger_mock.warning.call_args_list if call.args)
         self.assertNotIn("Error reading EXIF", warning_messages)
 
     def test_apply_dates_does_not_pre_read_embedded_exif_dates(self):
@@ -283,7 +283,10 @@ class TestICloudTakeout(unittest.TestCase):
         }
         records = [{"source": source_file, "dest": dest_file}]
 
-        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+        with (
+            patch.object(icloud_module, "ARGS", _args(self.base_path / "output")),
+            patch.object(icloud_module, "LOGGER", Mock()),
+        ):
             processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
             with (
                 patch.object(processor, "_exiftool_embedded_dates_match", side_effect=AssertionError("pre-read should be disabled")),
@@ -317,7 +320,10 @@ class TestICloudTakeout(unittest.TestCase):
 
         args = _args(self.base_path / "output")
         args["icloud-prefer-native-exif-writer"] = False
-        with patch.object(icloud_module, "ARGS", args):
+        with (
+            patch.object(icloud_module, "ARGS", args),
+            patch.object(icloud_module, "LOGGER", Mock()),
+        ):
             processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
             with (
                 patch.object(processor, "_write_photo_exif_natively", side_effect=AssertionError("native writer should not be used")),
@@ -350,7 +356,10 @@ class TestICloudTakeout(unittest.TestCase):
 
         args = _args(self.base_path / "output")
         args["icloud-prefer-native-exif-writer"] = True
-        with patch.object(icloud_module, "ARGS", args):
+        with (
+            patch.object(icloud_module, "ARGS", args),
+            patch.object(icloud_module, "LOGGER", Mock()),
+        ):
             processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
             with (
                 patch.object(processor, "_write_photo_exif_natively", return_value=True) as native_mock,
