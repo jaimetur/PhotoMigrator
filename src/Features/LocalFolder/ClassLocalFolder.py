@@ -47,6 +47,7 @@ class ClassLocalFolder:
         """
         self.base_folder = Path(base_folder)
         self.albums_folder = self.base_folder / f"{FOLDERNAME_ALBUMS}"
+        self.memories_folder = self.base_folder / "Memories"
         self.shared_albums_folder = self.base_folder / f"{FOLDERNAME_ALBUMS}-shared"
         self.no_albums_folder = self.base_folder / FOLDERNAME_NO_ALBUMS
 
@@ -166,18 +167,27 @@ class ClassLocalFolder:
     def _iter_album_roots(self):
         if self._uses_managed_layout():
             yield self.albums_folder, "owned"
+            if self.memories_folder.exists() and self.memories_folder.is_dir():
+                yield self.memories_folder, "owned"
             yield self.shared_albums_folder, "shared"
             yield self._get_partner_shared_albums_folder(), "partner_shared"
             yield self._get_special_folders_root(), "special"
 
-    def _get_plain_album_name_from_file(self, file_path):
+    def _get_plain_layout_album_name(self, file_path):
         try:
             rel = Path(file_path).resolve().relative_to(self.base_folder.resolve())
         except ValueError:
             return None
         if len(rel.parts) < 2:
             return None
+        if self._normalized_name(rel.parts[0]) == "memories":
+            if len(rel.parts) < 3:
+                return None
+            return rel.parts[1]
         return rel.parts[0]
+
+    def _get_plain_album_name_from_file(self, file_path):
+        return self._get_plain_layout_album_name(file_path)
 
     @staticmethod
     def _get_top_level_folder_name(folder_path, root_path):

@@ -62,50 +62,15 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 ## 🖥️ Automatic Migration on Terminal
 ![Live Dashboard](assets/screenshots/live_dashboard.jpg?raw=true)  
 
-## 🪟 Graphical User Interface (GUI) and Terminal Interactive User Interface (TUI)
-PhotoMigrator includes two local interactive interfaces in addition to the Web Interface:
-
-- **Desktop GUI**: a native windowed interface built with `tkinter`.
-- **Terminal TUI**: an interactive terminal interface built with `Textual`.
-
-Both interfaces expose the same high-level structure:
-- `Feature Selector`
-- `Feature`
-- `General Arguments`
-- `Features Config`
-- `App Settings`
-- command preview, status panel, and execution log
-
-Default launcher behavior:
-- Running `PhotoMigrator` without arguments tries to open the **Desktop GUI** first.
-- If the GUI cannot be started because `tkinter` or a graphical display is not available, PhotoMigrator falls back to the **Terminal TUI**.
-- If neither interactive interface can be started, PhotoMigrator falls back to the same output as `--help`.
-
-Explicit launchers:
-- `PhotoMigrator --gui` opens the Desktop GUI explicitly.
-- `PhotoMigrator --tui` opens the Terminal TUI explicitly.
-- `PhotoMigrator --configuration-file /path/to/Config.ini` can be combined with either launcher, or used on its own, to open the default interactive UI with a different configuration file preloaded.
-
-Config file behavior in GUI/TUI:
-- If no explicit configuration path is provided, both interfaces use `./Config.ini` from the current execution folder, matching the classic CLI behavior.
-- You can also change the file later inside `General Arguments > Configuration File`.
-
-Typical use:
-- Use the **Desktop GUI** on Windows, macOS, or Linux systems with graphical desktop access.
-- Use the **Terminal TUI** on SSH sessions, server terminals, or environments where a graphical window is not available but the terminal supports interactive rendering.
-
-### Graphical User Interface (GUI):
-![GUI](assets/screenshots/gui-interface.png?raw=true)  
-
-### Terminal Interactive User Interface (TUI):
-![TUI](assets/screenshots/tui-interface.png?raw=true)  
-
 # 🌟 Main Modules:
 ## 🚀 1. Automatic Migration   
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.  
 
 > [!IMPORTANT]
 > Since April 1, 2025, Google Photos can no longer be used by third-party apps as a full-library `SOURCE` for Automatic Migration because Google removed the legacy read scopes from the Library API. Use Google Takeout as `--source` instead. Google Photos remains usable as an upload target with the supported scopes.
+
+> [!TIP]
+> Automatic Migration now also auto-detects raw Apple iCloud Takeout folders used as `--source`, preprocesses them first, and then migrates the resulting library to the target. When a local source contains a `Memories` folder, those collections are treated the same way as `Albums`.
 
 > [!TIP]
 > For local-folder based migrations and uploads, you can exclude generated thumbnails or other unwanted content using glob patterns with `--exclude-folders` and `--exclude-files`.
@@ -207,8 +172,10 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
 >
 > [**(Other Standalone Features Documentation)**](help/10-other-features.md)
 
+---
+## Tool Interfaces
 
-## 🌐 Web Interface (New)
+## 🌐 1. Web Interface (New)
 PhotoMigrator now includes a Web Interface that executes the same CLI arguments under the hood.
 
 Main characteristics:
@@ -234,7 +201,7 @@ Main characteristics:
 >    Username: demo  
 >    Password: demo
 
-## Deploy Web Interface with Docker
+### Deploy Web Interface with Docker
 
 The complete Docker guide for the Web Interface now lives in:
 
@@ -259,8 +226,45 @@ Then open:
 
 - `http://localhost:6078`
 
+## 🪟 2. Graphical User Interface (GUI) and Terminal Interactive User Interface (TUI)
+PhotoMigrator includes two local interactive interfaces in addition to the Web Interface:
 
-## ⌨️ Command Line Interface
+- **Desktop GUI**: a native windowed interface built with `tkinter`.
+- **Terminal TUI**: an interactive terminal interface built with `Textual`.
+
+Both interfaces expose the same high-level structure:
+- `Feature Selector`
+- `Feature`
+- `General Arguments`
+- `Features Config`
+- `App Settings`
+- command preview, status panel, and execution log
+
+Default launcher behavior:
+- Running `PhotoMigrator` without arguments tries to open the **Desktop GUI** first.
+- If the GUI cannot be started because `tkinter` or a graphical display is not available, PhotoMigrator falls back to the **Terminal TUI**.
+- If neither interactive interface can be started, PhotoMigrator falls back to the same output as `--help`.
+
+Explicit launchers:
+- `PhotoMigrator --gui` opens the Desktop GUI explicitly.
+- `PhotoMigrator --tui` opens the Terminal TUI explicitly.
+- `PhotoMigrator --configuration-file /path/to/Config.ini` can be combined with either launcher, or used on its own, to open the default interactive UI with a different configuration file preloaded.
+
+Config file behavior in GUI/TUI:
+- If no explicit configuration path is provided, both interfaces use `./Config.ini` from the current execution folder, matching the classic CLI behavior.
+- You can also change the file later inside `General Arguments > Configuration File`.
+
+Typical use:
+- Use the **Desktop GUI** on Windows, macOS, or Linux systems with graphical desktop access.
+- Use the **Terminal TUI** on SSH sessions, server terminals, or environments where a graphical window is not available but the terminal supports interactive rendering.
+
+### 2.1 Graphical User Interface (GUI):
+![GUI](assets/screenshots/gui-interface.png?raw=true)  
+
+### 2.2 Terminal Interactive User Interface (TUI):
+![TUI](assets/screenshots/tui-interface.png?raw=true)  
+
+## ⌨️ 3. Command Line Interface (CLI)
 This Tool is based on commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
 
 PhotoMigrator now also includes an interactive CLI TUI that mirrors the Web Interface structure much more closely:
@@ -306,7 +310,7 @@ Launcher fallback order when no arguments are provided:
 You can check the whole list of features and arguments with the right syntax here:
 [Command Line Interface (CLI)](help/01-command-line-interface.md)
 
-## Arguments Description
+### Arguments Description
 Check all arguments descriptions and usage examples in the [Arguments Description](help/02-arguments-description.md)  or in the [shorter version](help/02-arguments-description-short.md).
 
 

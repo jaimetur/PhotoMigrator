@@ -72,6 +72,11 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
 > Example:  
 > `<INPUT_FOLDER>/<ALBUMS_FOLDER>/Album1`  
 > `<INPUT_FOLDER>/<ALBUMS_FOLDER>/Album2`  
+>
+> If the same local source also contains a top-level `Memories` folder, PhotoMigrator will treat each subfolder inside `Memories` exactly like an album and migrate it to the target too.
+
+> [!TIP]
+> If `--source` points to a raw Apple iCloud Takeout export, PhotoMigrator now detects it automatically, preprocesses it first, and only then starts the normal Automatic Migration upload flow.
 
 > [!IMPORTANT]  
 > It is important that you configure properly the file `Config.ini` (included with the tool), to set properly the accounts for your Photo Cloud Service.  
@@ -145,6 +150,14 @@ In this example, the Tool will do an Automatic Migration Process which has two s
   - In parallel, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
+
+
+- **Example 5**:
+```
+./PhotoMigrator.bin --source=/homes/iCloudExport --target=immich-1 --icloud-include-memories
+```
+
+In this example, the Tool will first detect that `/homes/iCloudExport` is a raw Apple iCloud Takeout export, preprocess it automatically, and then migrate the resulting `ALL_PHOTOS`, `Albums`, and optional `Memories` collections into your Immich Photos account 1.
 
 ---
 ## ⚙️ Config.ini

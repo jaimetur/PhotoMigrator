@@ -177,6 +177,49 @@ class TestAutomaticMigrationMode(unittest.TestCase):
         self.assertEqual(mock_ensure_analyzer.call_count, 1)
         self.assertEqual(mock_parallel.call_count, 1)
 
+    def test_mode_automatic_migration_processes_icloud_takeout_source_before_parallel_flow(self):
+        (self.source / "PartA").mkdir(parents=True, exist_ok=True)
+        (self.source / "PartA" / "Photo Details.csv").write_text(
+            "imgName,fileChecksum,originalCreationDate,importDate\n",
+            encoding="utf-8",
+        )
+
+        with (
+            patch.object(automatic_module, "ARGS", dict(self.base_args)),
+            patch.object(automatic_module, "HELP_TEXTS", self.help_texts),
+            patch.object(automatic_module, "LOGGER", self.logger),
+            patch.object(GV, "ARGS", dict(self.base_args)),
+            patch.object(automatic_module, "confirm_continue", return_value=True),
+            patch.object(automatic_module, "contains_zip_files", return_value=False),
+            patch.object(automatic_module, "contains_takeout_structure", return_value=False),
+            patch.object(
+                automatic_module,
+                "contains_icloud_takeout_structure",
+                side_effect=lambda path, log_level=None: Path(path) == self.source,
+            ),
+            patch("Features.LocalFolder.ClassLocalFolder.ARGS", dict(self.base_args)),
+            patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.ARGS", dict(self.base_args)),
+            patch("Features.LocalFolder.ClassLocalFolder.LOGGER", self.logger),
+            patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.LOGGER", self.logger),
+            patch("Core.FolderAnalyzer.LOGGER", self.logger),
+            patch("Core.FolderAnalyzer.ARGS", dict(self.base_args)),
+            patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.ClassICloudTakeoutFolder.process") as mock_process,
+            patch.object(automatic_module, "parallel_automatic_migration") as mock_parallel,
+        ):
+            automatic_module.mode_AUTOMATIC_MIGRATION(
+                source=str(self.source),
+                target=str(self.target),
+                show_dashboard=False,
+                parallel=False,
+                log_level=logging.INFO,
+            )
+
+        self.assertEqual(mock_process.call_count, 1)
+        self.assertEqual(mock_parallel.call_count, 1)
+        kwargs = mock_parallel.call_args.kwargs
+        self.assertIn("Local Folder", kwargs["source_client"].CLIENT_NAME)
+        self.assertIn("_processed_", str(kwargs["source_client"].base_folder))
+
 
 if __name__ == "__main__":
     unittest.main()

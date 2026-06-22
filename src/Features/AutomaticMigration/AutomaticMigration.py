@@ -17,6 +17,7 @@ from typing import Union, cast
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
 from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE, FOLDERNAME_EXTRACTED_DATES
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
+from Features.ICloudTakeout.ClassICloudTakeoutFolder import ClassICloudTakeoutFolder, contains_icloud_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
@@ -205,6 +206,10 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             elif client_type.lower() in ['google-photos', 'googlephotos'] and ARGS['account-id'] > 1:
                 return ClassGooglePhotos(account_id=ARGS['account-id'])
 
+            # Return ClassICloudTakeoutFolder
+            elif Path(client_type).is_dir() and contains_icloud_takeout_structure(client_type, log_level=logging.INFO):
+                return ClassICloudTakeoutFolder(client_type)  # In this class, client_type is the path to the iCloud Takeout Folder
+
             # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (contains_zip_files(client_type, log_level=logging.WARNING) or contains_takeout_structure(client_type, log_level=logging.INFO)):
                 return ClassTakeoutFolder(client_type)  # In this clase, client_type is the path to the Takeout Folder
@@ -226,7 +231,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         # Check if source_client support specified filters
         unsupported_text = ""
-        if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
+        if isinstance(source_client, (ClassTakeoutFolder, ClassICloudTakeoutFolder, ClassLocalFolder)):
             unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
         # Check if '-move, --move-assets' have been passed as argument
@@ -253,7 +258,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         LOGGER.info(f"")
         LOGGER.info(f"*** Automatic Migration Mode *** detected")
         LOGGER.info('-' * (terminal_width-10))
-        if not isinstance(source_client, ClassTakeoutFolder):
+        if not isinstance(source_client, (ClassTakeoutFolder, ClassICloudTakeoutFolder)):
             LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
         else:
             LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
@@ -361,10 +366,38 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                     else:
                         source_client._ensure_analyzer(log_level=log_level)
 
+            if isinstance(source_client, ClassICloudTakeoutFolder):
+                LOGGER.info(f"🔢 Source Folder contains an iCloud Takeout Structure and needs to be processed first. Processing it...")
+                if source_client.ARGS.get("output-folder"):
+                    source_client.ARGS = dict(source_client.ARGS)
+                    source_client.ARGS["output-folder"] = ""
+                    source_client.output_folder = source_client._build_output_folder()
+                    source_client.no_albums_folder = source_client.output_folder / source_client.no_albums_folder.name
+                    source_client.albums_folder = source_client.output_folder / source_client.albums_folder.name
+                    source_client.memories_folder = source_client.output_folder / source_client.memories_folder.name
+                source_client.process(log_level=log_level)
+                source_client = ClassLocalFolder(base_folder=str(source_client.output_folder))
+                source_client_name = source_client.get_client_name()
+                SHARED_DATA.info.update({"source_client_name": source_client_name})
+
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
                     LOGGER.info(f"🔢 Target Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
                     target_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=print_messages)
+
+            if isinstance(target_client, ClassICloudTakeoutFolder):
+                LOGGER.info(f"🔢 Target Folder contains an iCloud Takeout Structure and needs to be processed first. Processing it...")
+                if target_client.ARGS.get("output-folder"):
+                    target_client.ARGS = dict(target_client.ARGS)
+                    target_client.ARGS["output-folder"] = ""
+                    target_client.output_folder = target_client._build_output_folder()
+                    target_client.no_albums_folder = target_client.output_folder / target_client.no_albums_folder.name
+                    target_client.albums_folder = target_client.output_folder / target_client.albums_folder.name
+                    target_client.memories_folder = target_client.output_folder / target_client.memories_folder.name
+                target_client.process(log_level=log_level)
+                target_client = ClassLocalFolder(base_folder=str(target_client.output_folder))
+                target_client_name = target_client.get_client_name()
+                SHARED_DATA.info.update({"target_client_name": target_client_name})
 
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)

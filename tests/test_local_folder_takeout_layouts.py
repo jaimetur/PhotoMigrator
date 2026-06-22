@@ -78,6 +78,19 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
             ["partner-no-album.jpg", "root-no-album.jpg"],
         )
 
+    def test_managed_layout_treats_memories_root_as_album_collections(self):
+        self._create_file("Memories/Summer Recap/memory-a.jpg")
+
+        local_folder = ClassLocalFolder(base_folder=self.root)
+
+        albums = local_folder.get_albums_including_shared_with_user(log_level=logging.INFO)
+        album_names = sorted(album["albumName"] for album in albums)
+        self.assertIn("Summer Recap", album_names)
+
+        no_album_assets = local_folder.get_all_assets_without_albums(log_level=logging.INFO)
+        no_album_filenames = sorted(asset["filename"] for asset in no_album_assets)
+        self.assertNotIn("memory-a.jpg", no_album_filenames)
+
     def test_remove_assets_refreshes_analyzer_with_supported_methods_and_invalidates_caches(self):
         removable = self.root / "ALL_PHOTOS/2024/remove-me.jpg"
         removable.parent.mkdir(parents=True, exist_ok=True)
@@ -218,6 +231,25 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         no_album_assets = local_folder.get_all_assets_without_albums(log_level=logging.INFO)
         no_album_filenames = sorted(asset["filename"] for asset in no_album_assets)
         self.assertEqual(no_album_filenames, ["root-photo.jpg", "root-video.mp4"])
+
+    def test_plain_local_folder_treats_memories_subfolders_as_album_collections(self):
+        plain_root = self.root / "plain-memories-source"
+        plain_root.mkdir(parents=True, exist_ok=True)
+        (plain_root / "root-photo.jpg").write_text("data", encoding="utf-8")
+        (plain_root / "Family").mkdir(parents=True, exist_ok=True)
+        (plain_root / "Family" / "family-a.jpg").write_text("data", encoding="utf-8")
+        (plain_root / "Memories" / "Summer Recap").mkdir(parents=True, exist_ok=True)
+        (plain_root / "Memories" / "Summer Recap" / "memory-a.jpg").write_text("data", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=plain_root)
+
+        albums = local_folder.get_albums_including_shared_with_user(log_level=logging.INFO)
+        album_names = sorted(album["albumName"] for album in albums)
+        self.assertEqual(album_names, ["Family", "Summer Recap"])
+
+        no_album_assets = local_folder.get_all_assets_without_albums(log_level=logging.INFO)
+        no_album_filenames = sorted(asset["filename"] for asset in no_album_assets)
+        self.assertEqual(no_album_filenames, ["root-photo.jpg"])
 
     def test_shared_albums_folder_is_created_only_when_a_shared_album_is_created(self):
         plain_root = self.root / "plain-target"

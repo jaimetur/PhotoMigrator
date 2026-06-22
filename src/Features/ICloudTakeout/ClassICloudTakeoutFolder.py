@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
+import zipfile
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -32,6 +33,50 @@ from Features.GoogleTakeout.ClassTakeoutFolder import organize_files_by_date
 from Utils.FileUtils import contains_zip_files, remove_empty_dirs, sanitize_and_unpack_zips
 from Utils.GeneralUtils import ensure_executable, sha1_checksum, tqdm, update_file_timestamps, update_metadata
 from Utils.StandaloneUtils import get_exif_tool_path
+
+
+def _normalized_icloud_name(value):
+    return str(value or "").strip().casefold().replace("_", " ").replace("-", " ")
+
+
+def _is_icloud_photo_details_csv_name(path_value) -> bool:
+    stem = Path(str(path_value or "")).stem
+    return _normalized_icloud_name(stem).startswith("photo details")
+
+
+def _zip_contains_icloud_takeout_structure(zip_path: Path, log_level=None) -> bool:
+    with set_log_level(LOGGER, log_level):
+        try:
+            with zipfile.ZipFile(zip_path, "r") as handle:
+                for member in handle.namelist():
+                    if _is_icloud_photo_details_csv_name(member):
+                        return True
+        except zipfile.BadZipFile:
+            LOGGER.debug(f"Skipping invalid ZIP while checking iCloud Takeout structure: '{zip_path}'")
+        except Exception as exc:
+            LOGGER.debug(f"Could not inspect ZIP '{zip_path}' while checking iCloud Takeout structure: {exc}")
+        return False
+
+
+def contains_icloud_takeout_structure(input_folder, step_name="", log_level=None):
+    with set_log_level(LOGGER, log_level):
+        folder = Path(input_folder).expanduser()
+        if not folder.exists() or not folder.is_dir():
+            return False
+
+        for csv_path in folder.rglob("*.csv"):
+            if _is_icloud_photo_details_csv_name(csv_path):
+                LOGGER.info(f"{step_name}iCloud Takeout structure detected by CSV metadata in '{csv_path}'.")
+                return True
+
+        for zip_path in folder.rglob("*.zip"):
+            if not zip_path.is_file():
+                continue
+            if _zip_contains_icloud_takeout_structure(zip_path, log_level=log_level):
+                LOGGER.info(f"{step_name}iCloud Takeout structure detected inside ZIP '{zip_path.name}'.")
+                return True
+
+        return False
 
 
 class _ExifToolSession:

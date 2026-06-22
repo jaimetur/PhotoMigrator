@@ -7,6 +7,8 @@ This feature is independent from the Google Takeout pipeline:
 - it assigns those dates to the photo/video files,
 - it builds a portable output library with `ALL_PHOTOS` and `Albums`.
 
+It is also integrated into `Automatic Migration`: when `--source` points to a raw iCloud Takeout export, PhotoMigrator preprocesses it automatically before pushing anything to the target.
+
 > [!TIP]
 > **How to request the export from Apple**
 >
@@ -143,6 +145,7 @@ Inside it, PhotoMigrator creates:
 
 - This feature does not require Google Takeout or GPTH.
 - `Memories` is optional because exports can contain thousands of memory CSV files.
+- During `Automatic Migration`, any processed `Memories` folder is treated the same way as `Albums`, so each memory collection is migrated to the target as an album-like collection.
 - `Photo Details.csv` files are interpreted per export folder, which avoids mixing assets that share the same basename across different iCloud export blocks.
 - If the export contains the same basename multiple times inside the same export block, PhotoMigrator tries to disambiguate using `fileChecksum`.
 - If Apple exports multiple files with the same basename and there is not enough metadata to disambiguate album membership, some album reconstruction cases can still be ambiguous.

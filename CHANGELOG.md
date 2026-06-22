@@ -19,6 +19,8 @@
   - Added a new iCloud Takeout flag `-iNExif, --icloud-prefer-native-exif-writer` to prefer the native EXIF writer for supported photo files and fall back to the shared persistent `ExifTool` session otherwise. This option is opt-in in CLI and pre-selected by default in the Web Interface, TUI, and GUI so performance can be compared without hard-coding one strategy.
   - Added `Migration Filters` to `Automatic Migration` in the desktop GUI and CLI TUI, matching the Web Interface behavior with per-migration override fields that fall back to `General Arguments` when left empty.
   - Improved CLI TUI keyboard ergonomics so the interface can now be navigated with `Tab` / `Shift+Tab` and arrow keys, while `Enter`, `Esc`, and `Backspace` / `Delete` can be used to activate controls or leave the current non-text control more consistently.
+  - `Automatic Migration` now auto-detects raw Apple iCloud Takeout folders used as local `--source` paths, preprocesses them first with the iCloud pipeline, and only then uploads the resulting library to the selected target.
+  - Local-folder and processed-takeout sources now treat a top-level `Memories` folder the same way as `Albums`, so each memory collection is migrated to the target as an album-like collection.
 
 #### 🚀 GPTH Enhancements:
 
