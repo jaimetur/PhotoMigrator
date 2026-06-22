@@ -6,6 +6,6 @@
 ---
 
 ## 🌟 Future Features:
-  - Include Apple Support (initially just for downloading)
-    - Create Class ClassApplePhotos with the same methods and behavior as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
   - Improve Analysis and Filtering phase at the beginning of Automatic Migration. 
+  - Simplify Web, GUI and TUI Interfaces with simple and advance modes.
+  - Configuration Wizard to create initial Config.ini.
