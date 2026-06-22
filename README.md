@@ -234,16 +234,15 @@ PhotoMigrator includes two local interactive interfaces in addition to the Web I
 
 Both interfaces expose the same high-level structure:
 - `Feature Selector`
-- `Feature`
-- `General Arguments`
 - `Features Config`
+- `General Arguments`
 - `App Settings`
 - command preview, status panel, and execution log
 
 Default launcher behavior:
 - Running `PhotoMigrator` without arguments tries to open the **Desktop GUI** first.
 - If the GUI cannot be started because `tkinter` or a graphical display is not available, PhotoMigrator falls back to the **Terminal TUI**.
-- If neither interactive interface can be started, PhotoMigrator falls back to the same output as `--help`.
+- If neither interactive interface can be started, PhotoMigrator falls back to the CLI and shows the arguments descriptions (same output as `--help`).
 
 Explicit launchers:
 - `PhotoMigrator --gui` opens the Desktop GUI explicitly.

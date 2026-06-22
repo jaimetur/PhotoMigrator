@@ -196,6 +196,11 @@ class ClassICloudTakeoutFolder:
         self.input_folder = self.unzipped_folder or self.takeout_folder
         return self.input_folder
 
+    def get_client_name(self, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            LOGGER.debug("Fetching the client name.")
+            return self.CLIENT_NAME
+
     @staticmethod
     def _path_key(path_obj: Path) -> str:
         return Path(path_obj).resolve().as_posix()

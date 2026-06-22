@@ -173,21 +173,26 @@ class ClassLocalFolder:
             yield self._get_partner_shared_albums_folder(), "partner_shared"
             yield self._get_special_folders_root(), "special"
 
-    def _get_plain_layout_album_name(self, file_path):
+    def _get_plain_layout_album_info(self, file_path):
         try:
             rel = Path(file_path).resolve().relative_to(self.base_folder.resolve())
         except ValueError:
-            return None
+            return None, None
         if len(rel.parts) < 2:
-            return None
-        if self._normalized_name(rel.parts[0]) == "memories":
+            return None, None
+        if self._normalize_folder_token(rel.parts[0]) == "memories":
             if len(rel.parts) < 3:
-                return None
-            return rel.parts[1]
-        return rel.parts[0]
+                return None, None
+            album_name = rel.parts[1]
+            album_path = (self.base_folder / rel.parts[0] / rel.parts[1]).resolve()
+            return album_name, album_path
+        album_name = rel.parts[0]
+        album_path = (self.base_folder / rel.parts[0]).resolve()
+        return album_name, album_path
 
     def _get_plain_album_name_from_file(self, file_path):
-        return self._get_plain_layout_album_name(file_path)
+        album_name, _ = self._get_plain_layout_album_info(file_path)
+        return album_name
 
     @staticmethod
     def _get_top_level_folder_name(folder_path, root_path):
@@ -517,22 +522,29 @@ class ClassLocalFolder:
             source_files = self.analyzer.filtered_file_list if filter_assets else self.analyzer.file_list
             owned = []
             if self._uses_managed_layout():
-                base = Path(self.albums_folder.resolve())
-                # discover all album folders present in the relevant analyzer view
+                managed_roots = []
+                if self.albums_folder.exists() and self.albums_folder.is_dir():
+                    managed_roots.append(self.albums_folder.resolve())
+                if self.memories_folder.exists() and self.memories_folder.is_dir():
+                    managed_roots.append(self.memories_folder.resolve())
                 for p in source_files:
-                    try:
-                        rel = Path(p).relative_to(base)
-                    except ValueError:
-                        continue
-                    album_name = rel.parts[0]
-                    album_id = str((self.albums_folder / album_name).resolve())
-                    owned.append((album_id, album_name))
+                    for album_root in managed_roots:
+                        try:
+                            rel = Path(p).resolve().relative_to(album_root)
+                        except ValueError:
+                            continue
+                        if not rel.parts:
+                            continue
+                        album_name = rel.parts[0]
+                        album_id = str((album_root / album_name).resolve())
+                        owned.append((album_id, album_name))
+                        break
             else:
                 for p in source_files:
-                    album_name = self._get_plain_album_name_from_file(p)
-                    if not album_name:
+                    album_name, album_path = self._get_plain_layout_album_info(p)
+                    if not album_name or album_path is None:
                         continue
-                    album_id = str((self.base_folder / album_name).resolve())
+                    album_id = str(album_path)
                     owned.append((album_id, album_name))
 
             # dedupe
