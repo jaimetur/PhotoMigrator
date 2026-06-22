@@ -262,6 +262,39 @@ class TestICloudTakeout(unittest.TestCase):
         warning_messages = " ".join(str(call.args[0]) for call in warning_mock.call_args_list if call.args)
         self.assertNotIn("Error reading EXIF", warning_messages)
 
+    def test_apply_dates_does_not_pre_read_embedded_exif_dates(self):
+        photos_folder = self.takeout_root / "Photos"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        source_file = photos_folder / "IMG_0001.JPG"
+        source_file.write_bytes(b"jpeg-bytes")
+        output_folder = self.base_path / "output"
+        output_folder.mkdir(parents=True, exist_ok=True)
+        dest_file = output_folder / "IMG_0001.JPG"
+        dest_file.write_bytes(b"jpeg-bytes")
+
+        row = {
+            "chosen_dt": datetime(2023, 5, 14, 3, 36, 0),
+            "source_csv": str(photos_folder / "Photo Details.csv"),
+            "checksum": "",
+            "favorite": "no",
+            "hidden": "no",
+            "deleted": "no",
+        }
+        records = [{"source": source_file, "dest": dest_file}]
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            with (
+                patch.object(processor, "_photo_native_exif_state", side_effect=AssertionError("pre-read should be disabled")),
+                patch.object(processor, "_exiftool_embedded_dates_match", side_effect=AssertionError("pre-read should be disabled")),
+                patch.object(processor, "_write_photo_exif_natively", return_value=True),
+                patch.object(processor, "_filesystem_dates_match", return_value=False),
+                patch.object(icloud_module, "update_file_timestamps", return_value=None),
+            ):
+                extracted = processor._apply_dates([(row, records)])
+
+        self.assertIn(dest_file.resolve().as_posix(), extracted)
+
     def test_photo_native_exif_state_detects_matching_dates(self):
         with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
             processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))

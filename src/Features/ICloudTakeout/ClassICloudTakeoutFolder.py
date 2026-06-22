@@ -638,7 +638,6 @@ class ClassICloudTakeoutFolder:
         with set_log_level(LOGGER, log_level):
             extracted_dates = {}
             updated_files = 0
-            skipped_files = 0
             unmatched_rows = 0
             ambiguous_rows = 0
             processed_paths = set()
@@ -666,32 +665,11 @@ class ClassICloudTakeoutFolder:
                         if entry and not entry.get("OldestDate"):
                             entry["OldestDate"] = dt_value.isoformat(sep=" ")
                         continue
-                    native_photo_state = None
-                    if dest_path.suffix.lower() in PHOTO_EXT:
-                        native_photo_state = self._photo_native_exif_state(dest_path, dt_value)
                     timestamps_match = self._filesystem_dates_match(dest_path, dt_value)
-                    if native_photo_state is not None:
-                        embedded_match = bool(native_photo_state.get("matches"))
-                    else:
-                        embedded_match = self._exiftool_embedded_dates_match(dest_path, dt_value, step_name=step_name)
-                    if embedded_match and timestamps_match:
-                        processed_paths.add(dest_key)
-                        skipped_files += 1
-                        extracted_dates[dest_key] = {
-                            "SourceFile": str(record["source"]),
-                            "TargetFile": dest_key,
-                            "OldestDate": dt_value.isoformat(sep=" "),
-                            "Source": f"iCloud Photo Details CSV ({Path(row['source_csv']).name})",
-                            "ICloudChecksum": row.get("checksum", ""),
-                            "ICloudFavorite": row.get("favorite", ""),
-                            "ICloudHidden": row.get("hidden", ""),
-                            "ICloudDeleted": row.get("deleted", ""),
-                        }
-                        continue
-                    write_ok = embedded_match
-                    if not embedded_match and native_photo_state is not None:
+                    write_ok = False
+                    if dest_path.suffix.lower() in PHOTO_EXT:
                         write_ok = self._write_photo_exif_natively(dest_path, dt_value, step_name=step_name, log_level=log_level)
-                    if not write_ok and not embedded_match:
+                    if not write_ok:
                         write_ok = self._write_exif_with_exiftool(dest_path, dt_value, step_name=step_name, log_level=log_level)
                     if not write_ok:
                         update_metadata(str(dest_path), self._date_to_general_string(dt_value), log_level=log_level)
@@ -710,7 +688,7 @@ class ClassICloudTakeoutFolder:
                     }
                     updated_files += 1
             LOGGER.info(f"{step_name}iCloud dates applied to {updated_files} assets.")
-            LOGGER.info(f"{step_name}Assets skipped because dates already matched: {skipped_files}")
+            LOGGER.info(f"{step_name}Assets skipped because dates already matched: disabled")
             LOGGER.info(f"{step_name}Rows without matching media: {unmatched_rows}")
             LOGGER.info(f"{step_name}Rows matched to multiple media files: {ambiguous_rows}")
             return extracted_dates
