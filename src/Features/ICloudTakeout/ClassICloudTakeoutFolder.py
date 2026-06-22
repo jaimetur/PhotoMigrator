@@ -688,7 +688,6 @@ class ClassICloudTakeoutFolder:
                     }
                     updated_files += 1
             LOGGER.info(f"{step_name}iCloud dates applied to {updated_files} assets.")
-            LOGGER.info(f"{step_name}Assets skipped because dates already matched: disabled")
             LOGGER.info(f"{step_name}Rows without matching media: {unmatched_rows}")
             LOGGER.info(f"{step_name}Rows matched to multiple media files: {ambiguous_rows}")
             return extracted_dates
