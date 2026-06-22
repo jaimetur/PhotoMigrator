@@ -2012,6 +2012,7 @@ if TEXTUAL_AVAILABLE:
                         yield Button("Copy", id="context-copy", classes="context-menu-btn")
                         yield Button("Paste", id="context-paste", classes="context-menu-btn")
             with Horizontal(id="shortcut-bar"):
+                yield Static("Tab", classes="shortcut-key")
                 yield Static("Panel+", classes="shortcut-desc")
                 yield Static("S-Tab", classes="shortcut-key")
                 yield Static("Panel-", classes="shortcut-desc")
@@ -2033,7 +2034,6 @@ if TEXTUAL_AVAILABLE:
                 yield Static("Paste", classes="shortcut-desc")
                 yield Static("^Q", classes="shortcut-key")
                 yield Static("Quit", classes="shortcut-desc")
-                yield Static("Tab", classes="shortcut-key")
 
         async def on_mount(self) -> None:
             try:
