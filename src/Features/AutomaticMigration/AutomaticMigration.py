@@ -368,8 +368,9 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
             if isinstance(source_client, ClassICloudTakeoutFolder):
                 LOGGER.info(f"🔢 Source Folder contains an iCloud Takeout Structure and needs to be processed first. Processing it...")
+                source_client.ARGS = dict(source_client.ARGS)
+                source_client.ARGS["icloud-include-memories"] = True
                 if source_client.ARGS.get("output-folder"):
-                    source_client.ARGS = dict(source_client.ARGS)
                     source_client.ARGS["output-folder"] = ""
                     source_client.output_folder = source_client._build_output_folder()
                     source_client.no_albums_folder = source_client.output_folder / source_client.no_albums_folder.name
@@ -387,8 +388,9 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
             if isinstance(target_client, ClassICloudTakeoutFolder):
                 LOGGER.info(f"🔢 Target Folder contains an iCloud Takeout Structure and needs to be processed first. Processing it...")
+                target_client.ARGS = dict(target_client.ARGS)
+                target_client.ARGS["icloud-include-memories"] = True
                 if target_client.ARGS.get("output-folder"):
-                    target_client.ARGS = dict(target_client.ARGS)
                     target_client.ARGS["output-folder"] = ""
                     target_client.output_folder = target_client._build_output_folder()
                     target_client.no_albums_folder = target_client.output_folder / target_client.no_albums_folder.name

@@ -107,10 +107,6 @@ Customize output structures:
 ## Web Interface
 
 In the Web Interface, use the new `iCloud Takeout` tab.
-It is placed after `GOOGLE TAKEOUT` and before `GOOGLE PHOTOS`.
-
-Tip:
-- In Docker/Compose deployments, you can pre-fill the input path field with `PHOTOMIGRATOR_DEFAULT_ICLOUD_TAKEOUT_PATH`.
 
 Main fields:
 - `--icloud-takeout`: input export folder
@@ -122,11 +118,14 @@ Main fields:
 - `--icloud-include-memories`: also build folders from `Memories/*.csv`
 - `--icloud-prefer-native-exif-writer`: prefer the native EXIF writer for supported photo files and fall back to `ExifTool` otherwise
 
-Tip:
-- By default, the Web Interface reconstructs `Albums` and `Memories` with symbolic links to the files stored in `ALL_PHOTOS`.
-- Enable `--icloud-no-symbolic-albums` only if you explicitly want duplicated copies instead of symlinks.
-- In the Web Interface, TUI, and GUI this option is pre-selected by default.
-- The `Prefer native EXIF writer when possible` option is also pre-selected by default in the Web Interface, TUI, and GUI. In CLI it remains opt-in.
+> [!TIP]
+> - In Docker/Compose deployments, you can pre-fill the input path field with `PHOTOMIGRATOR_DEFAULT_ICLOUD_TAKEOUT_PATH`.
+
+> [!TIP]
+> - By default, the Web Interface reconstructs `Albums` and `Memories` with symbolic links to the files stored in `ALL_PHOTOS`.
+> - Enable `--icloud-no-symbolic-albums` only if you explicitly want duplicated copies instead of symlinks.
+> - In the Web Interface, TUI, and GUI this option is pre-selected by default.
+> - The `Prefer native EXIF writer when possible` option is also pre-selected by default in the Web Interface, TUI, and GUI. In CLI it remains opt-in.
 
 ## Expected output
 

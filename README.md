@@ -70,7 +70,7 @@ The main use case is the **Automatic Migration Feature** to migrate all your pho
 > Since April 1, 2025, Google Photos can no longer be used by third-party apps as a full-library `SOURCE` for Automatic Migration because Google removed the legacy read scopes from the Library API. Use Google Takeout as `--source` instead. Google Photos remains usable as an upload target with the supported scopes.
 
 > [!TIP]
-> Automatic Migration now also auto-detects raw Apple iCloud Takeout folders used as `--source`, preprocesses them first, and then migrates the resulting library to the target. When a local source contains a `Memories` folder, those collections are treated the same way as `Albums`.
+> Automatic Migration now also auto-detects raw Apple iCloud Takeout folders used as `--source`, preprocesses them first, and then migrates the resulting library to the target. That automatic iCloud preprocessing enables `Memories` by default, and when a local source contains a `Memories` folder those collections are treated the same way as `Albums`.
 
 > [!TIP]
 > For local-folder based migrations and uploads, you can exclude generated thumbnails or other unwanted content using glob patterns with `--exclude-folders` and `--exclude-files`.

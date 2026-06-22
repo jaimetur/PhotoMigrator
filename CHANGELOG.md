@@ -20,6 +20,7 @@
   - Added `Migration Filters` to `Automatic Migration` in the desktop GUI and CLI TUI, matching the Web Interface behavior with per-migration override fields that fall back to `General Arguments` when left empty.
   - Improved CLI TUI keyboard ergonomics so the interface can now be navigated with `Tab` / `Shift+Tab` and arrow keys, while `Enter`, `Esc`, and `Backspace` / `Delete` can be used to activate controls or leave the current non-text control more consistently.
   - `Automatic Migration` now auto-detects raw Apple iCloud Takeout folders used as local `--source` paths, preprocesses them first with the iCloud pipeline, and only then uploads the resulting library to the selected target.
+  - When `Automatic Migration` auto-detects a raw Apple iCloud Takeout local folder and preprocesses it through the iCloud pipeline, `Memories` are now included by default for that automatic preprocessing pass even if the CLI invocation did not explicitly add `--icloud-include-memories`.
   - Local-folder and processed-takeout sources now treat a top-level `Memories` folder the same way as `Albums`, so each memory collection is migrated to the target as an album-like collection.
 
 #### 🚀 GPTH Enhancements:

@@ -183,6 +183,10 @@ class TestAutomaticMigrationMode(unittest.TestCase):
             "imgName,fileChecksum,originalCreationDate,importDate\n",
             encoding="utf-8",
         )
+        process_calls = []
+
+        def capture_process(self, *args, **kwargs):
+            process_calls.append(dict(self.ARGS))
 
         with (
             patch.object(automatic_module, "ARGS", dict(self.base_args)),
@@ -203,7 +207,11 @@ class TestAutomaticMigrationMode(unittest.TestCase):
             patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.ARGS", dict(self.base_args)),
-            patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.ClassICloudTakeoutFolder.process") as mock_process,
+            patch(
+                "Features.ICloudTakeout.ClassICloudTakeoutFolder.ClassICloudTakeoutFolder.process",
+                autospec=True,
+                side_effect=capture_process,
+            ) as mock_process,
             patch.object(automatic_module, "parallel_automatic_migration") as mock_parallel,
         ):
             automatic_module.mode_AUTOMATIC_MIGRATION(
@@ -216,6 +224,8 @@ class TestAutomaticMigrationMode(unittest.TestCase):
 
         self.assertEqual(mock_process.call_count, 1)
         self.assertEqual(mock_parallel.call_count, 1)
+        self.assertEqual(len(process_calls), 1)
+        self.assertTrue(process_calls[0]["icloud-include-memories"])
         kwargs = mock_parallel.call_args.kwargs
         self.assertIn("Local Folder", kwargs["source_client"].CLIENT_NAME)
         self.assertIn("_processed_", str(kwargs["source_client"].base_folder))
