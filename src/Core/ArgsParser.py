@@ -352,7 +352,7 @@ def parse_arguments():
                         help="Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within <NO_ALBUMS_FOLDER>.")
 
     PARSER.add_argument("-iMem", "--icloud-include-memories", action="store_true",
-                        help="Also reconstruct iCloud 'Memories' CSV collections as folders. Disabled by default because exports can contain thousands of them.")
+                        help="Also reconstruct iCloud 'Memories' CSV collections as folders.")
 
     # FEATURES FOR SYNOLOGY/IMMICH PHOTOS:
     # -----------------------------------

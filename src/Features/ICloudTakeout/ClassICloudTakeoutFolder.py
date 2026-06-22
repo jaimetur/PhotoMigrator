@@ -751,7 +751,15 @@ class ClassICloudTakeoutFolder:
         if use_copy:
             shutil.copy2(source_path, final_path)
         else:
-            os.symlink(source_path, final_path)
+            try:
+                relative_target = os.path.relpath(str(source_path), start=str(final_path.parent))
+                os.symlink(relative_target, final_path)
+            except OSError as exc:
+                LOGGER.warning(
+                    f"Could not create symlink '{final_path}' -> '{source_path}'. "
+                    f"Falling back to a copied file. Details: {exc}"
+                )
+                shutil.copy2(source_path, final_path)
         return final_path
 
     def _build_collection_from_csvs(self, csv_files, source_index, root_folder: Path, structure: str, step_name="", log_level=None):

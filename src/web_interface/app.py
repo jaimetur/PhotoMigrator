@@ -1900,6 +1900,9 @@ PROGRESS_CUSTOM_FULL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591
 PROGRESS_TQDM_RE = re.compile(r"(\d{1,3}%\|[^|]*\|\s*\d+/\d+)")
 PROGRESS_CUSTOM_PARTIAL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$")
 PROGRESS_TQDM_PARTIAL_RE = re.compile(r"(\d{1,3}%\|[^|]*)")
+PROGRESS_TQDM_INDETERMINATE_RE = re.compile(
+    r"^(.*?:)\s*(\d[\d,]*)\s+\w+\s+\[\d{2}:\d{2}(?::\d{2})?,\s*[^\]]+\]\s*$"
+)
 PROGRESS_STEP_PREFIX_RE = re.compile(r"^(.*?\[\s*step\s+\d+/\d+\][^:]*:)", re.IGNORECASE)
 PROGRESS_SEPARATOR_RE = re.compile(r"^[=\-_\s]{6,}$")
 
@@ -1948,6 +1951,10 @@ def _extract_progress_key(line: str) -> str | None:
     m = PROGRESS_TQDM_PARTIAL_RE.search(clean)
     if m and m.start() >= 0:
         return clean[:m.start()].strip().lower() or None
+
+    m = PROGRESS_TQDM_INDETERMINATE_RE.match(clean)
+    if m:
+        return str(m.group(1) or "").strip().lower() or None
 
     m = PROGRESS_STEP_PREFIX_RE.match(clean)
     if m:
@@ -2012,6 +2019,13 @@ def _append_job_output(job: JobData, text: str) -> None:
         job.dropped_output_lines += 1
         if removed.progress_key and job.progress_lines.get(removed.progress_key) is removed:
             del job.progress_lines[removed.progress_key]
+
+
+def _append_job_summary(job: JobData, status: str, return_code: int | None) -> None:
+    finished_local = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    code_text = "unknown" if return_code is None else str(return_code)
+    summary = f"[web-interface] Job finished with status '{status}' and exit code {code_text} at {finished_local}.\n"
+    _append_job_output(job, summary)
 
 
 def _get_job_output_tail(job: JobData, max_chars: int) -> str:
@@ -2079,6 +2093,8 @@ def _tab_for_dest(dest: str) -> str:
 
 
 def _field_kind(action: argparse.Action, dest: str) -> str:
+    if isinstance(action, argparse.BooleanOptionalAction):
+        return "bool"
     if isinstance(action, argparse._StoreTrueAction):
         return "flag"
     if dest in BOOL_VALUE_DESTS:
@@ -2159,6 +2175,7 @@ def _load_parser_schema() -> Dict[str, Any]:
         field = {
             "dest": dest,
             "long_option": long_option,
+            "false_option": long_options[1] if len(long_options) > 1 else "",
             "help": (action.help or "").replace("%(default)s", str(action.default)),
             "default": action.default,
             "choices": list(action.choices) if action.choices else [],
@@ -2171,6 +2188,8 @@ def _load_parser_schema() -> Dict[str, Any]:
             field["default"] = WEB_DEFAULT_GOOGLE_TAKEOUT_PATH
         if dest == "icloud-takeout" and WEB_DEFAULT_ICLOUD_TAKEOUT_PATH:
             field["default"] = WEB_DEFAULT_ICLOUD_TAKEOUT_PATH
+        if dest == "icloud-include-memories":
+            field["default"] = True
         fields.append(field)
         by_dest[dest] = field
 
@@ -2273,7 +2292,11 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
             current = _bool_from_value(raw_value)
             default_bool = _bool_from_value(default)
             if current != default_bool:
-                args.extend([long_option, "true" if current else "false"])
+                false_option = str(field.get("false_option") or "").strip()
+                if false_option:
+                    args.append(long_option if current else false_option)
+                else:
+                    args.extend([long_option, "true" if current else "false"])
             continue
 
         if kind == "list":
@@ -2631,6 +2654,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
                 job.status = "stopped"
             else:
                 job.status = "success" if rc == 0 else "failed"
+            _append_job_summary(job, job.status, rc)
             job.finished_at = datetime.now(timezone.utc).isoformat()
             job.awaiting_confirmation = False
             job.process = None
@@ -2645,6 +2669,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
                 _append_job_output(job, f"\n[web-interface] Internal error: {exc}\n")
                 job.return_code = -1
                 job.status = "failed"
+            _append_job_summary(job, job.status, job.return_code)
             job.finished_at = datetime.now(timezone.utc).isoformat()
             job.awaiting_confirmation = False
             job.process = None

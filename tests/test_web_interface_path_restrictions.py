@@ -1,9 +1,11 @@
 import importlib
+import io
 import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -198,6 +200,40 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertFalse(web_interface["account_selector"]["enabled"])
         self.assertEqual(web_interface["account_selector"]["accounts"], [])
         self.assertEqual(web_interface["account_selector"]["default_account"], "")
+
+    def test_icloud_include_memories_defaults_to_true_in_ui_and_appends_existing_flag(self):
+        field = self.web_app.PARSER_FIELDS_BY_DEST["icloud-include-memories"]
+
+        self.assertTrue(bool(field["default"]))
+        self.assertEqual(field["long_option"], "--icloud-include-memories")
+
+        enabled_args = self.web_app._build_cli_args("icloud_takeout", {"icloud-include-memories": True}, None)
+        disabled_args = self.web_app._build_cli_args("icloud_takeout", {"icloud-include-memories": False}, None)
+
+        self.assertIn("--icloud-include-memories", enabled_args)
+        self.assertNotIn("--icloud-include-memories", disabled_args)
+
+    def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="icloud_takeout", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : [iCloud PROCESS]-[Stage Media] : Staging iCloud assets: 1262 files [00:33, 29.74 files/s]\n",
+            )
+            self.web_app._append_job_output(
+                job,
+                "INFO    : [iCloud PROCESS]-[Stage Media] : Staging iCloud assets: 1289 files [00:34, 38.65 files/s]\n",
+            )
+            output = self.web_app._read_job_output_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertIn("1289 files", output)
+        self.assertNotIn("1262 files", output)
 
 
 if __name__ == "__main__":

@@ -111,6 +111,9 @@ Main fields:
 - `--icloud-no-symbolic-albums`: copy files instead of creating symlinks in albums
 - `--icloud-include-memories`: also build folders from `Memories/*.csv`
 
+Tip:
+- In the Web Interface, TUI, and GUI this option is pre-selected by default.
+
 ## Expected output
 
 By default the processed output is created as:

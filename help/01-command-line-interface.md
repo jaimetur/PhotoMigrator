@@ -323,8 +323,7 @@ default values for the rest of the arguments for this extra mode.
                Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within
                <NO_ALBUMS_FOLDER>.
 -iMem        ; --icloud-include-memories
-               Also reconstruct iCloud 'Memories' CSV collections as folders. Disabled by default because exports can
-               contain thousands of them.
+               Also reconstruct iCloud 'Memories' CSV collections as folders.
 
 
 GOOGLE PHOTOS/SYNOLOGY/IMMICH/NEXTCLOUD MANAGEMENT:

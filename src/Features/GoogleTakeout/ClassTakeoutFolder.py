@@ -2682,10 +2682,10 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], fol
 
         # 2. Try to extract EXIF date directly if it's a photo
         ext = Path(file_path).suffix.lower()
-        if ext in PIL_SUPPORTED_EXTENSIONS:
+        if ext in {".jpg", ".jpeg", ".tif", ".tiff"}:
             try:
                 if LOGGER.isEnabledFor(logging.VERBOSE):
-                    LOGGER.verbose(f"{step_name}Falling back to read EXIF with PIL for: {file_path}")
+                    LOGGER.verbose(f"{step_name}Falling back to read EXIF with piexif for: {file_path}")
                 exif_dict = piexif.load(file_path)
                 for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
                 # for tag in ["DateTimeOriginal", "DateTime"]:

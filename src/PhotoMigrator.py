@@ -205,6 +205,7 @@ def PhotoMigrator():
 
     # Get the execution mode and run it.
     detect_and_run_execution_mode()
+    GV.LOGGER.info("PhotoMigrator finished. Exit code: 0")
 
 def pre_parse_args():
     def extract_ui_launcher_state(argv_items):

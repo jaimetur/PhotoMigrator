@@ -32,6 +32,9 @@ CUSTOM_PROGRESS_RE = re.compile(
     r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
     r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+(?P<pct>\d+(?:\.\d+)?)%\s*$"
 )
+INDETERMINATE_TQDM_RE = re.compile(
+    r"^(?P<desc>.*?:)\s*(?P<current>[0-9][0-9,]*)\s+\w+\s+\[\d{2}:\d{2}(?::\d{2})?,\s*(?P<rate>[^\]]+)\]\s*$"
+)
 
 
 # ------------------------------------------------------------------
@@ -94,6 +97,12 @@ class TqdmLoggerConsole:
             total = str(custom_match.group("total") or "0").replace(",", "")
             return f"{TQDM_DASHBOARD_META_PREFIX}{desc}\t{current}\t{total}"
 
+        indeterminate_match = INDETERMINATE_TQDM_RE.match(text)
+        if indeterminate_match:
+            desc = str(indeterminate_match.group("desc") or "").strip(" :-") or "Progress"
+            current = str(indeterminate_match.group("current") or "0").replace(",", "")
+            return f"{TQDM_DASHBOARD_META_PREFIX}{desc}\t{current}\t0"
+
         return None
 
     def _build_log_record(self, payload: str):
@@ -154,6 +163,12 @@ class TqdmLoggerConsole:
             total = self._parse_int(tqdm_match.group("total"), 0)
             pct = float(self._parse_int(tqdm_match.group("pct"), 0))
             return desc.lower(), current, total, pct
+
+        indeterminate_match = INDETERMINATE_TQDM_RE.match(text)
+        if indeterminate_match:
+            desc = str(indeterminate_match.group("desc") or "").strip(" :-") or "Progress"
+            current = self._parse_int(indeterminate_match.group("current"), 0)
+            return desc.lower(), current, 0, 0.0
 
         return None
 

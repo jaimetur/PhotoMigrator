@@ -256,6 +256,9 @@ PROGRESS_CUSTOM_FULL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591
 PROGRESS_TQDM_RE = re.compile(r"(\d{1,3}%\|[^|]*\|\s*\d+/\d+)")
 PROGRESS_CUSTOM_PARTIAL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$")
 PROGRESS_TQDM_PARTIAL_RE = re.compile(r"(\d{1,3}%\|[^|]*)")
+PROGRESS_TQDM_INDETERMINATE_RE = re.compile(
+    r"^(.*?:)\s*(\d[\d,]*)\s+\w+\s+\[\d{2}:\d{2}(?::\d{2})?,\s*[^\]]+\]\s*$"
+)
 PROGRESS_STEP_PREFIX_RE = re.compile(r"^(.*?\[\s*step\s+\d+/\d+\][^:]*:)", re.IGNORECASE)
 PROGRESS_SEPARATOR_RE = re.compile(r"^[=\-_\s]{6,}$")
 
@@ -429,6 +432,10 @@ def extract_progress_key(line: str) -> str | None:
     if match and match.start() >= 0:
         return clean[:match.start()].strip().lower() or None
 
+    match = PROGRESS_TQDM_INDETERMINATE_RE.match(clean)
+    if match:
+        return str(match.group(1) or "").strip().lower() or None
+
     match = PROGRESS_STEP_PREFIX_RE.match(clean)
     if match:
         return str(match.group(1) or "").strip().lower() or None
@@ -532,6 +539,8 @@ def _tab_for_dest(dest: str) -> str:
 
 
 def _field_kind(action: argparse.Action, dest: str) -> str:
+    if isinstance(action, argparse.BooleanOptionalAction):
+        return "bool"
     if isinstance(action, argparse._StoreTrueAction):
         return "flag"
     if dest in BOOL_VALUE_DESTS:
@@ -701,6 +710,7 @@ def build_parser_schema(
         field = {
             "dest": dest,
             "long_option": long_option,
+            "false_option": long_options[1] if len(long_options) > 1 else "",
             "help": (action.help or "").replace("%(default)s", str(action.default)),
             "default": action.default,
             "choices": list(action.choices) if action.choices else [],
@@ -713,6 +723,8 @@ def build_parser_schema(
             field["default"] = default_google_takeout_path
         if dest == "icloud-takeout" and default_icloud_takeout_path:
             field["default"] = default_icloud_takeout_path
+        if dest == "icloud-include-memories":
+            field["default"] = True
         fields.append(field)
         by_dest[dest] = field
 
@@ -1261,7 +1273,11 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
             current = bool_from_value(raw_value)
             default_bool = bool_from_value(default)
             if current != default_bool:
-                args.extend([long_option, "true" if current else "false"])
+                false_option = str(field.get("false_option") or "").strip()
+                if false_option:
+                    args.append(long_option if current else false_option)
+                else:
+                    args.extend([long_option, "true" if current else "false"])
             continue
         if kind == "list":
             if dest == "rename-albums":

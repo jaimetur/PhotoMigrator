@@ -1,4 +1,5 @@
 import csv
+import os
 import sys
 import tempfile
 import unittest
@@ -16,6 +17,11 @@ try:
 except ModuleNotFoundError as exc:
     icloud_module = exc
 
+try:
+    import Features.GoogleTakeout.ClassTakeoutFolder as google_takeout_module
+except ModuleNotFoundError as exc:
+    google_takeout_module = exc
+
 
 def _args(output_folder):
     return {
@@ -24,7 +30,7 @@ def _args(output_folder):
         "icloud-albums-folders-structure": "flatten",
         "icloud-no-albums-folders-structure": "flatten",
         "icloud-no-symbolic-albums": True,
-        "icloud-include-memories": False,
+        "icloud-include-memories": True,
     }
 
 
@@ -32,6 +38,8 @@ class TestICloudTakeout(unittest.TestCase):
     def setUp(self):
         if isinstance(icloud_module, ModuleNotFoundError):
             self.skipTest(f"iCloud Takeout dependencies are not installed in this environment: {icloud_module}")
+        if isinstance(google_takeout_module, ModuleNotFoundError):
+            self.skipTest(f"Google Takeout dependencies are not installed in this environment: {google_takeout_module}")
         self.temp_dir = tempfile.TemporaryDirectory()
         self.base_path = Path(self.temp_dir.name)
         self.takeout_root = self.base_path / "iCloudExport"
@@ -160,6 +168,35 @@ class TestICloudTakeout(unittest.TestCase):
         self.assertEqual(trip_a_files, [b"scope-a"])
         self.assertEqual(trip_b_files, [b"scope-b"])
 
+    def test_album_symlinks_use_relative_targets(self):
+        photos_folder = self.takeout_root / "Photos"
+        albums_folder = self.takeout_root / "Albums"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        albums_folder.mkdir(parents=True, exist_ok=True)
+
+        (photos_folder / "IMG_0001.JPG").write_bytes(b"scope-a")
+        self._write_membership_csv(albums_folder / "Favorites.csv", ["IMG_0001.JPG"])
+
+        args = _args(self.base_path / "output")
+        args["icloud-no-symbolic-albums"] = False
+
+        with patch.object(icloud_module, "ARGS", args):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            _, source_index = processor._stage_original_assets(self.takeout_root)
+            _, album_csvs, _ = processor._collect_csv_inputs(self.takeout_root)
+            processor._build_collection_from_csvs(
+                csv_files=album_csvs,
+                source_index=source_index,
+                root_folder=processor.albums_folder,
+                structure="flatten",
+            )
+
+        link_path = self.base_path / "output" / "Albums" / "Favorites" / "IMG_0001.JPG"
+        self.assertTrue(link_path.is_symlink())
+        link_target = os.readlink(link_path)
+        self.assertFalse(Path(link_target).is_absolute())
+        self.assertEqual(link_path.resolve().read_bytes(), b"scope-a")
+
     def test_build_exiftool_args_include_filesystem_dates(self):
         with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
             processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
@@ -212,6 +249,18 @@ class TestICloudTakeout(unittest.TestCase):
             parsed = processor._parse_exiftool_datetime("2023:12:27 03:42:00")
 
         self.assertEqual(parsed, datetime(2023, 12, 27, 3, 42, 0))
+
+    def test_organize_files_by_date_does_not_log_exif_warning_for_png_files(self):
+        png_folder = self.base_path / "pngs"
+        png_folder.mkdir(parents=True, exist_ok=True)
+        png_path = png_folder / "IMG_0001.PNG"
+        png_path.write_bytes(b"not-a-real-png-but-good-enough-for-mtime")
+
+        with patch.object(google_takeout_module.LOGGER, "warning") as warning_mock:
+            google_takeout_module.organize_files_by_date(str(png_folder), type="year")
+
+        warning_messages = " ".join(str(call.args[0]) for call in warning_mock.call_args_list if call.args)
+        self.assertNotIn("Error reading EXIF", warning_messages)
 
     def test_photo_native_exif_state_detects_matching_dates(self):
         with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
