@@ -913,7 +913,7 @@ class ClassICloudTakeoutFolder:
                 photo_details_csvs, album_csvs, memory_csvs = self._collect_csv_inputs(self.input_folder)
                 LOGGER.info(f"{step_name}Photo Details CSV files found : {len(photo_details_csvs)}")
                 LOGGER.info(f"{step_name}Album CSV files found         : {len(album_csvs)}")
-                LOGGER.info(f"{step_name}Memory CSV files found        : {len(memory_csvs)}")
+                LOGGER.info(f"{step_name}Memories CSV files found      : {len(memory_csvs)}")
 
                 step_name = "[iCloud PROCESS]-[Stage Media] : "
                 source_records, source_index = self._stage_original_assets(self.input_folder, step_name=step_name, log_level=LOG_LEVEL)
