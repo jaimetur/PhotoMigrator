@@ -12,11 +12,11 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
-  - Added a native EXIF-writing path for supported `iCloud Takeout` photo files, using `piexif` first for common image formats and leaving `ExifTool` as the fallback for unsupported formats or native-write failures. (Issue #1133).
   - Optimized `iCloud Takeout` date writing by switching from one `ExifTool` process per asset to a persistent shared `ExifTool` session reused across the whole run, which should significantly reduce the runtime of the `Write Dates` step on large exports. (Issue #1133).
   - Extended `iCloud Takeout` date application so it now also updates filesystem timestamps for processed assets: file modified dates are refreshed for all supported platforms, and file creation dates are also updated where the platform provides support (`Windows` directly, `macOS` when `SetFile` is available, plus `ExifTool` file-date tags on supported systems). (Issue #1133).
   - The iCloud `Memories` option is now pre-selected by default in the Web Interface, TUI, and GUI, while CLI semantics remain unchanged and still use the existing `-iMem, --icloud-include-memories` flag.
-  - Removed the iCloud embedded-date pre-read skip pass during `Write Dates` because it added extra metadata reads (`piexif`/`ExifTool`) and, in practice, was not producing useful skips on real exports. The processor now writes the target CSV date directly and only performs the lightweight filesystem timestamp comparison needed to avoid redundant timestamp updates.
+  - Removed the iCloud embedded-date pre-read skip pass during `Write Dates` because it added extra metadata reads and, in practice, was not producing useful skips on real exports. The processor now writes the target CSV date directly and only performs the lightweight filesystem timestamp comparison needed to avoid redundant timestamp updates.
+  - Simplified `iCloud Takeout` metadata writing so the processor now uses the shared persistent `ExifTool` session as the single EXIF/embedded-metadata writer path. The previous native `piexif` write branch was removed to make performance comparisons and maintenance simpler.
 
 #### 🚀 GPTH Enhancements:
 
