@@ -121,7 +121,7 @@ Main fields:
 > [!TIP]
 > - In Docker/Compose deployments, you can pre-fill the input path field with `PHOTOMIGRATOR_DEFAULT_ICLOUD_TAKEOUT_PATH`.
 
-> [!TIP]
+> [!NOTE]
 > - By default, the Web Interface reconstructs `Albums` and `Memories` with symbolic links to the files stored in `ALL_PHOTOS`.
 > - Enable `--icloud-no-symbolic-albums` only if you explicitly want duplicated copies instead of symlinks.
 > - In the Web Interface, TUI, and GUI this option is pre-selected by default.
