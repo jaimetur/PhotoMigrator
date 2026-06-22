@@ -17,6 +17,8 @@
   - The iCloud `Memories` option is now pre-selected by default in the Web Interface, TUI, and GUI, while CLI semantics remain unchanged and still use the existing `-iMem, --icloud-include-memories` flag.
   - Removed the iCloud embedded-date pre-read skip pass during `Write Dates` because it added extra metadata reads and, in practice, was not producing useful skips on real exports. The processor now writes the target CSV date directly and only performs the lightweight filesystem timestamp comparison needed to avoid redundant timestamp updates.
   - Added a new iCloud Takeout flag `-iNExif, --icloud-prefer-native-exif-writer` to prefer the native EXIF writer for supported photo files and fall back to the shared persistent `ExifTool` session otherwise. This option is opt-in in CLI and pre-selected by default in the Web Interface, TUI, and GUI so performance can be compared without hard-coding one strategy.
+  - Added `Migration Filters` to `Automatic Migration` in the desktop GUI and CLI TUI, matching the Web Interface behavior with per-migration override fields that fall back to `General Arguments` when left empty.
+  - Improved CLI TUI keyboard ergonomics so the interface can now be navigated with `Tab` / `Shift+Tab` and arrow keys, while `Enter`, `Esc`, and `Backspace` / `Delete` can be used to activate controls or leave the current non-text control more consistently.
 
 #### 🚀 GPTH Enhancements:
 

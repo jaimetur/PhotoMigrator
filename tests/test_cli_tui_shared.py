@@ -12,6 +12,8 @@ if str(SRC_ROOT) not in sys.path:
 
 try:
     from UI.shared import (
+        MIGRATION_FILTER_DESTS,
+        build_automatic_migration_filter_fields,
         build_cli_args,
         build_full_command,
         build_ui_subprocess_env,
@@ -65,6 +67,35 @@ class TestCliTuiShared(unittest.TestCase):
 
         self.assertIn("--icloud-prefer-native-exif-writer", enabled_args)
         self.assertNotIn("--icloud-prefer-native-exif-writer", disabled_args)
+
+    def test_build_automatic_migration_filter_fields_create_am_overrides(self):
+        schema = build_parser_schema()
+
+        fields = build_automatic_migration_filter_fields(schema)
+
+        self.assertEqual(len(fields), len(MIGRATION_FILTER_DESTS))
+        self.assertTrue(all(str(field["dest"]).startswith("am-") for field in fields))
+        self.assertEqual(fields[0]["label"], "Filter By Type")
+        self.assertEqual(fields[0]["default"], "")
+
+    def test_build_cli_args_automatic_migration_promotes_am_filter_overrides(self):
+        schema = build_parser_schema()
+        values = {
+            "source": "/tmp/source",
+            "target": "/tmp/target",
+            "filter-by-type": "image",
+            "am-filter-by-type": "video",
+            "exclude-files": ["Thumbs.db"],
+            "am-exclude-files": [".DS_Store", "Thumbs.db"],
+        }
+
+        args = build_cli_args(schema, "automatic_migration", values)
+
+        self.assertIn("--filter-by-type", args)
+        self.assertIn("video", args)
+        self.assertIn("--exclude-files", args)
+        exclude_index = args.index("--exclude-files")
+        self.assertEqual(args[exclude_index + 1 : exclude_index + 3], [".DS_Store", "Thumbs.db"])
 
     def test_build_cli_args_composes_cloud_rename_albums_value(self):
         schema = build_parser_schema()

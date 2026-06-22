@@ -22,6 +22,7 @@ from UI.shared import (
     MODULE_TAB_NAMES,
     TIMEZONE_CHOICES,
     build_external_terminal_command,
+    build_automatic_migration_filter_fields,
     build_ui_subprocess_env,
     build_argument_specs,
     build_full_command,
@@ -1356,6 +1357,7 @@ class PhotoMigratorTkGUI:
         if tab_key == "automatic_migration":
             regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
             toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
+            migration_filter_fields = build_automatic_migration_filter_fields(self.schema)
             if regular_fields:
                 self._section_label(parent, "Module Fields", accent=True)
                 for field in regular_fields:
@@ -1366,6 +1368,11 @@ class PhotoMigratorTkGUI:
             if toggle_fields:
                 self._section_label(parent, "Flags", accent=True)
                 self.build_flags_grid(parent, toggle_fields, tab_key)
+            if migration_filter_fields:
+                self._section_label(parent, "Migration Filters", accent=True)
+                self._empty_label(parent, "If empty, value from General Arguments will be used.").pack(anchor="w", padx=8, pady=(0, 4))
+                for field in migration_filter_fields:
+                    self.build_field_widgets(parent, field, context=tab_key)
             return
         if tab_key in {"google_takeout", "icloud_takeout"}:
             regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]

@@ -74,6 +74,16 @@ FEATURE_LABELS = {
 UI_FIELD_LABELS = {
     "dashboard": "Live Dashboard",
 }
+MIGRATION_FILTER_DESTS = (
+    "filter-by-type",
+    "filter-from-date",
+    "filter-to-date",
+    "filter-by-country",
+    "filter-by-city",
+    "filter-by-person",
+    "exclude-folders",
+    "exclude-files",
+)
 
 GENERAL_GROUPS = [
     {"key": "logs", "title": "Logs", "dests": ["no-log-file", "log-level", "log-format", "foldername-logs"]},
@@ -677,6 +687,9 @@ def compose_find_duplicates_value(action_ui: Any, folders: List[str]) -> str:
 
 def ui_option_name(field_or_dest: Any) -> str:
     if isinstance(field_or_dest, dict):
+        custom_label = str(field_or_dest.get("label") or "").strip()
+        if custom_label:
+            return custom_label
         dest = str(field_or_dest.get("dest") or "")
     else:
         dest = str(field_or_dest or "")
@@ -768,6 +781,20 @@ def get_all_fields(schema: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def get_field_by_dest(schema: Dict[str, Any], dest: str) -> Dict[str, Any] | None:
     return (schema.get("fields_by_dest") or {}).get(dest)
+
+
+def build_automatic_migration_filter_fields(schema: Dict[str, Any]) -> List[Dict[str, Any]]:
+    fields: List[Dict[str, Any]] = []
+    for dest in MIGRATION_FILTER_DESTS:
+        base_field = get_field_by_dest(schema, dest)
+        if not base_field:
+            continue
+        override_field = dict(base_field)
+        override_field["dest"] = f"am-{dest}"
+        override_field["default"] = ""
+        override_field["label"] = ui_option_name(base_field)
+        fields.append(override_field)
+    return fields
 
 
 def normalize_field_for_context(field: Dict[str, Any] | None, tab_key: str) -> Dict[str, Any] | None:
@@ -1224,6 +1251,18 @@ def prepare_values_for_command(values: Dict[str, Any], tab: str, selected_action
     if tab == "standalone_features" and selected_action_dest == "find-duplicates":
         folders = parse_folder_list_value(prepared.get("find-duplicates-folders", []))
         prepared["find-duplicates"] = compose_find_duplicates_value(prepared.get("find-duplicates-action", "list"), folders)
+    if tab == "automatic_migration":
+        for dest in MIGRATION_FILTER_DESTS:
+            override_dest = f"am-{dest}"
+            override_raw = prepared.get(override_dest)
+            if override_raw is None:
+                continue
+            if isinstance(override_raw, list):
+                if to_list(override_raw):
+                    prepared[dest] = override_raw
+                continue
+            if str(override_raw).strip() != "":
+                prepared[dest] = override_raw
     return prepared
 
 

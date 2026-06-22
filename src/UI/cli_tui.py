@@ -20,6 +20,7 @@ from UI.shared import (
     GENERAL_TAB_NAMES,
     MODULE_TAB_NAMES,
     TIMEZONE_CHOICES,
+    build_automatic_migration_filter_fields,
     build_ui_subprocess_env,
     build_argument_specs,
     build_full_command,
@@ -84,6 +85,12 @@ MODULE_TO_CONFIG_SECTION = {
 }
 INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.items() if key != "upload_folder"}
 LOG_LEVEL_PREFIX_RE = re.compile(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*")
+FOCUS_PANEL_IDS = (
+    "sidebar-features",
+    "general-tabs",
+    "content-body",
+    "job-input-panel",
+)
 
 
 def textual_runtime_available() -> tuple[bool, str | None]:
@@ -93,8 +100,144 @@ def textual_runtime_available() -> tuple[bool, str | None]:
 
 
 if TEXTUAL_AVAILABLE:
+    class NavigableInput(Input):
+        def on_key(self, event: events.Key) -> None:
+            app = getattr(self, "app", None)
+            if event.key == "tab":
+                next_panel = getattr(app, "action_focus_next_panel", None)
+                if callable(next_panel):
+                    next_panel()
+                    event.stop()
+                    return
+            if event.key in {"shift+tab", "backtab"}:
+                previous_panel = getattr(app, "action_focus_previous_panel", None)
+                if callable(previous_panel):
+                    previous_panel()
+                    event.stop()
+                    return
+            if event.key == "up":
+                move_up = getattr(app, "action_move_up", None)
+                if callable(move_up):
+                    move_up()
+                    event.stop()
+                    return
+            if event.key == "down":
+                move_down = getattr(app, "action_move_down", None)
+                if callable(move_down):
+                    move_down()
+                    event.stop()
+                    return
+            if event.key == "left":
+                move_left = getattr(app, "action_move_left", None)
+                if callable(move_left):
+                    move_left()
+                    event.stop()
+                    return
+            if event.key == "right":
+                move_right = getattr(app, "action_move_right", None)
+                if callable(move_right):
+                    move_right()
+                    event.stop()
+                    return
+            if event.key == "enter" and str(getattr(self, "id", "") or "") == "job-input":
+                send_input = getattr(app, "action_send_job_input", None)
+                if callable(send_input):
+                    send_input()
+                    event.stop()
+                    return
+            if event.key in {"escape", "enter"}:
+                exit_widget = getattr(app, "_exit_focused_widget", None)
+                if callable(exit_widget) and exit_widget():
+                    event.stop()
+                    return
+
+
+    class NavigableSelect(Select):
+        def _is_open(self) -> bool:
+            for attr in ("expanded", "overlay_visible", "menu_open", "is_expanded"):
+                try:
+                    if bool(getattr(self, attr)):
+                        return True
+                except Exception:
+                    continue
+            return False
+
+        def _call_first(self, method_names: List[str]) -> bool:
+            for method_name in method_names:
+                method = getattr(self, method_name, None)
+                if callable(method):
+                    try:
+                        method()
+                        return True
+                    except Exception:
+                        continue
+            return False
+
+        def on_key(self, event: events.Key) -> None:
+            app = getattr(self, "app", None)
+            if not self._is_open():
+                if event.key == "tab":
+                    next_panel = getattr(app, "action_focus_next_panel", None)
+                    if callable(next_panel):
+                        next_panel()
+                        event.stop()
+                        return
+                if event.key in {"shift+tab", "backtab"}:
+                    previous_panel = getattr(app, "action_focus_previous_panel", None)
+                    if callable(previous_panel):
+                        previous_panel()
+                        event.stop()
+                        return
+                if event.key == "up":
+                    move_up = getattr(app, "action_move_up", None)
+                    if callable(move_up):
+                        move_up()
+                        event.stop()
+                        return
+                if event.key == "down":
+                    move_down = getattr(app, "action_move_down", None)
+                    if callable(move_down):
+                        move_down()
+                        event.stop()
+                        return
+                if event.key == "left":
+                    move_left = getattr(app, "action_move_left", None)
+                    if callable(move_left):
+                        move_left()
+                        event.stop()
+                        return
+                if event.key == "right":
+                    move_right = getattr(app, "action_move_right", None)
+                    if callable(move_right):
+                        move_right()
+                        event.stop()
+                        return
+                if event.key == "enter":
+                    if self._call_first(["action_show_overlay", "action_toggle_overlay", "action_expand", "action_open"]):
+                        event.stop()
+                        return
+                if event.key in {"escape", "backspace", "delete"}:
+                    exit_widget = getattr(app, "_exit_focused_widget", None)
+                    if callable(exit_widget) and exit_widget():
+                        event.stop()
+                        return
+            else:
+                if event.key in {"escape", "backspace", "delete"}:
+                    if self._call_first(["action_dismiss", "action_hide_overlay", "action_collapse", "action_close"]):
+                        event.stop()
+                        return
+
+
     class PathPickerScreen(ModalScreen[Dict[str, str] | None]):
-        BINDINGS = [("escape", "cancel", "Cancel"), ("enter", "confirm", "Select"), ("ctrl+v", "paste_text", "Paste")]
+        BINDINGS = [
+            Binding("escape", "cancel", "Cancel", priority=True),
+            Binding("tab", "focus_next_widget", "Next", priority=True),
+            Binding("shift+tab", "focus_previous_widget", "Previous", priority=True),
+            Binding("backtab", "focus_previous_widget", "Previous", priority=True),
+            Binding("left", "focus_previous_widget", "Previous", priority=True),
+            Binding("right", "focus_next_widget", "Next", priority=True),
+            Binding("ctrl+v", "paste_text", "Paste", priority=True),
+        ]
 
         def __init__(self, dest: str, title: str, start_path: str = "", home_path: Path | None = None, subtitle: str | None = None):
             super().__init__()
@@ -133,12 +276,73 @@ if TEXTUAL_AVAILABLE:
                 id="picker-dialog",
             )
 
+        def _refresh_modal_button_focus(self) -> None:
+            try:
+                focused = self.focused
+            except Exception:
+                focused = None
+            try:
+                for button in self.query("Button"):
+                    button.set_class(button is focused, "is-focused")
+            except Exception:
+                pass
+
+        def _focusable_widgets(self) -> List[Any]:
+            widgets: List[Any] = []
+            for widget_id in (
+                "picker-path-input",
+                "picker-up",
+                "picker-home",
+                "picker-tree",
+                "picker-cancel",
+                "picker-select",
+            ):
+                try:
+                    widget = self.query_one(f"#{widget_id}")
+                except Exception:
+                    continue
+                if bool(getattr(widget, "can_focus", False)):
+                    widgets.append(widget)
+            return widgets
+
+        def _focus_widget_by_delta(self, delta: int) -> None:
+            widgets = self._focusable_widgets()
+            if not widgets:
+                return
+            try:
+                focused = self.focused
+            except Exception:
+                focused = None
+            try:
+                current_index = widgets.index(focused) if focused in widgets else 0
+            except ValueError:
+                current_index = 0
+            next_index = (current_index + delta) % len(widgets)
+            try:
+                self.set_focus(widgets[next_index])
+            except Exception:
+                return
+            self._refresh_modal_button_focus()
+
         def action_cancel(self) -> None:
             self.dismiss(None)
 
         def action_confirm(self) -> None:
             selected = self._selected_path()
             self.dismiss({"dest": self.dest, "path": selected})
+
+        def on_mount(self) -> None:
+            try:
+                self.set_focus(self.query_one("#picker-path-input", Input))
+            except Exception:
+                pass
+            self._refresh_modal_button_focus()
+
+        def action_focus_next_widget(self) -> None:
+            self._focus_widget_by_delta(1)
+
+        def action_focus_previous_widget(self) -> None:
+            self._focus_widget_by_delta(-1)
 
         def _selected_path(self) -> str:
             try:
@@ -224,6 +428,48 @@ if TEXTUAL_AVAILABLE:
         def on_directory_tree_file_selected(self, event: DirectoryTree.FileSelected) -> None:
             self.query_one("#picker-path-input", Input).value = str(event.path)
 
+        def on_descendant_focus(self, event: events.DescendantFocus) -> None:
+            self._refresh_modal_button_focus()
+
+        def on_descendant_blur(self, event: events.DescendantBlur) -> None:
+            self._refresh_modal_button_focus()
+
+        async def on_key(self, event: events.Key) -> None:
+            if event.key == "enter":
+                focused = self.focused
+                if isinstance(focused, Button):
+                    try:
+                        focused.press()
+                    except Exception:
+                        pass
+                    event.stop()
+                    return
+                if isinstance(focused, Input):
+                    return
+                self.action_confirm()
+                event.stop()
+                return
+            if event.key == "tab":
+                self.action_focus_next_widget()
+                event.stop()
+                return
+            if event.key in {"shift+tab", "backtab"}:
+                self.action_focus_previous_widget()
+                event.stop()
+                return
+            if event.key == "left":
+                focused = self.focused
+                if isinstance(focused, Button):
+                    self.action_focus_previous_widget()
+                    event.stop()
+                    return
+            if event.key == "right":
+                focused = self.focused
+                if isinstance(focused, Button):
+                    self.action_focus_next_widget()
+                    event.stop()
+                    return
+
         def on_button_pressed(self, event: Button.Pressed) -> None:
             if event.button.id == "picker-cancel":
                 self.dismiss(None)
@@ -237,10 +483,12 @@ if TEXTUAL_AVAILABLE:
 
     class ConfirmActionScreen(ModalScreen[bool]):
         BINDINGS = [
-            ("escape", "cancel", "Cancel"),
-            ("enter", "confirm", "Confirm"),
-            ("left", "focus_previous_button", "Previous"),
-            ("right", "focus_next_button", "Next"),
+            Binding("escape", "cancel", "Cancel", priority=True),
+            Binding("tab", "focus_next_button", "Next", priority=True),
+            Binding("shift+tab", "focus_previous_button", "Previous", priority=True),
+            Binding("backtab", "focus_previous_button", "Previous", priority=True),
+            Binding("left", "focus_previous_button", "Previous", priority=True),
+            Binding("right", "focus_next_button", "Next", priority=True),
         ]
 
         def __init__(self, title: str, message: str, confirm_label: str = "Confirm", cancel_label: str = "Cancel"):
@@ -264,6 +512,7 @@ if TEXTUAL_AVAILABLE:
 
         def on_mount(self) -> None:
             self.set_focus(self.query_one("#confirm-accept", Button))
+            self._refresh_modal_button_focus()
 
         def action_cancel(self) -> None:
             self.dismiss(False)
@@ -285,12 +534,54 @@ if TEXTUAL_AVAILABLE:
                 current_index = 0
             next_index = (current_index + delta) % len(buttons)
             self.set_focus(buttons[next_index])
+            self._refresh_modal_button_focus()
+
+        def _refresh_modal_button_focus(self) -> None:
+            try:
+                focused = self.focused
+            except Exception:
+                focused = None
+            try:
+                for button in self.query("#picker-actions Button"):
+                    button.set_class(button is focused, "is-focused")
+            except Exception:
+                pass
 
         def action_focus_previous_button(self) -> None:
             self._focus_button_by_delta(-1)
 
         def action_focus_next_button(self) -> None:
             self._focus_button_by_delta(1)
+
+        def on_descendant_focus(self, event: events.DescendantFocus) -> None:
+            self._refresh_modal_button_focus()
+
+        def on_descendant_blur(self, event: events.DescendantBlur) -> None:
+            self._refresh_modal_button_focus()
+
+        async def on_key(self, event: events.Key) -> None:
+            if event.key == "enter":
+                try:
+                    focused = self.focused
+                except Exception:
+                    focused = None
+                if isinstance(focused, Button):
+                    try:
+                        focused.press()
+                    except Exception:
+                        pass
+                else:
+                    self.action_confirm()
+                event.stop()
+                return
+            if event.key == "tab":
+                self.action_focus_next_button()
+                event.stop()
+                return
+            if event.key in {"shift+tab", "backtab"}:
+                self.action_focus_previous_button()
+                event.stop()
+                return
 
         def on_button_pressed(self, event: Button.Pressed) -> None:
             if event.button.id == "confirm-cancel":
@@ -300,7 +591,14 @@ if TEXTUAL_AVAILABLE:
 
 
     class InfoMessageScreen(ModalScreen[None]):
-        BINDINGS = [("escape", "close", "Close"), ("enter", "close", "OK")]
+        BINDINGS = [
+            Binding("escape", "close", "Close", priority=True),
+            Binding("tab", "focus_ok", "OK", priority=True),
+            Binding("shift+tab", "focus_ok", "OK", priority=True),
+            Binding("backtab", "focus_ok", "OK", priority=True),
+            Binding("left", "focus_ok", "OK", priority=True),
+            Binding("right", "focus_ok", "OK", priority=True),
+        ]
 
         def __init__(self, title: str, message: str, ok_label: str = "OK"):
             super().__init__()
@@ -319,8 +617,49 @@ if TEXTUAL_AVAILABLE:
                 id="picker-dialog",
             )
 
+        def on_mount(self) -> None:
+            try:
+                self.set_focus(self.query_one("#info-ok", Button))
+            except Exception:
+                pass
+            self._refresh_modal_button_focus()
+
+        def _refresh_modal_button_focus(self) -> None:
+            try:
+                focused = self.focused
+            except Exception:
+                focused = None
+            try:
+                button = self.query_one("#info-ok", Button)
+                button.set_class(button is focused, "is-focused")
+            except Exception:
+                pass
+
+        def action_focus_ok(self) -> None:
+            try:
+                self.set_focus(self.query_one("#info-ok", Button))
+            except Exception:
+                return
+            self._refresh_modal_button_focus()
+
         def action_close(self) -> None:
             self.dismiss(None)
+
+        def on_descendant_focus(self, event: events.DescendantFocus) -> None:
+            self._refresh_modal_button_focus()
+
+        def on_descendant_blur(self, event: events.DescendantBlur) -> None:
+            self._refresh_modal_button_focus()
+
+        async def on_key(self, event: events.Key) -> None:
+            if event.key == "enter":
+                try:
+                    button = self.query_one("#info-ok", Button)
+                    button.press()
+                except Exception:
+                    self.action_close()
+                event.stop()
+                return
 
         def on_button_pressed(self, event: Button.Pressed) -> None:
             if event.button.id == "info-ok":
@@ -796,20 +1135,38 @@ if TEXTUAL_AVAILABLE:
             text-style: bold;
             border: round #495c73;
         }
+        .module-tab:focus {
+            border: round #495c73;
+            text-style: bold;
+        }
         .module-tab.is-active {
-            border: heavy #ffffff;
+            border: heavy #d7a35a;
+            text-style: bold;
+        }
+        .module-tab.is-active:focus {
+            border: heavy #f0c88b;
             text-style: bold;
         }
         .module-tab--migration { background: #c9ebcf; color: #22462a; }
+        .module-tab--migration:focus { background: #9fdcab; color: #17351e; }
         .module-tab--migration.is-active { background: #8fd89d; color: #17351e; }
+        .module-tab--migration.is-active:focus { background: #7fcb8d; color: #122816; }
         .module-tab--takeout { background: #f4edbe; color: #5e5420; }
+        .module-tab--takeout:focus { background: #efd97d; color: #5a4700; }
         .module-tab--takeout.is-active { background: #f1cf57; color: #5a4700; }
+        .module-tab--takeout.is-active:focus { background: #e7c44a; color: #473700; }
         .module-tab--cloud { background: #eee0d1; color: #5f432b; }
+        .module-tab--cloud:focus { background: #dcc1a6; color: #432c1a; }
         .module-tab--cloud.is-active { background: #d5b290; color: #432c1a; }
+        .module-tab--cloud.is-active:focus { background: #c89e79; color: #301f12; }
         .module-tab--standalone { background: #e6d8ef; color: #54366f; }
+        .module-tab--standalone:focus { background: #d4bce5; color: #3e2257; }
         .module-tab--standalone.is-active { background: #c6addf; color: #3e2257; }
+        .module-tab--standalone.is-active:focus { background: #b594d4; color: #2c183e; }
         .module-tab--upload { background: #efc8c8; color: #6c2727; }
+        .module-tab--upload:focus { background: #e4acac; color: #581e1e; }
         .module-tab--upload.is-active { background: #e59a9a; color: #581e1e; }
+        .module-tab--upload.is-active:focus { background: #d98686; color: #451515; }
         #content-stack {
             width: 1fr;
             height: 1fr;
@@ -837,9 +1194,21 @@ if TEXTUAL_AVAILABLE:
             background: #152131;
             color: #d6dfeb;
         }
+        .general-tab:focus {
+            border: round #43566d;
+            background: #2b4769;
+            color: #f6fbff;
+            text-style: bold;
+        }
         .general-tab.is-active {
             background: #2e4f78;
             color: #ffffff;
+            border: heavy #d7a35a;
+            text-style: bold;
+        }
+        .general-tab.is-active:focus {
+            border: heavy #d7a35a;
+            background: #3a628f;
             text-style: bold;
         }
         .toolbar-btn {
@@ -849,17 +1218,43 @@ if TEXTUAL_AVAILABLE:
             color: #6c2727;
             text-style: bold;
         }
+        .toolbar-btn:focus,
+        .sidebar-action:focus,
+        .panel-toggle:focus {
+            border: round #495c73;
+            text-style: bold;
+        }
         .toolbar-btn-save {
             border: round #6f95bf;
             background: #cddff3;
             color: #284866;
             text-style: bold;
         }
+        .toolbar-btn-save:focus {
+            background: #9fc4e5;
+            color: #18344d;
+        }
         .toolbar-btn-load {
             border: round #8a5b5b;
             background: #efc8c8;
             color: #6c2727;
             text-style: bold;
+        }
+        .toolbar-btn-load:focus {
+            background: #e0aaaa;
+            color: #531b1b;
+        }
+        .sidebar-action--run:focus {
+            background: #8fd89d;
+            color: #17351e;
+        }
+        .sidebar-action--stop:focus {
+            background: #e59a9a;
+            color: #581e1e;
+        }
+        .sidebar-action--exit:focus {
+            background: #de8b8b;
+            color: #4f1717;
         }
         #content-panel {
             height: 1fr;
@@ -1033,6 +1428,22 @@ if TEXTUAL_AVAILABLE:
             border: none;
             padding: 0 1;
         }
+        .field-main > Input:focus,
+        .field-path-control > Input:focus,
+        .field-control > Input:focus,
+        .field-input-widget:focus,
+        .field-main > Select.field-select-widget:focus,
+        .field-control > Select.field-select-widget:focus,
+        .path-button:focus,
+        .bool-switch:focus {
+            background: #223a57;
+            color: #ffffff;
+            text-style: bold;
+        }
+        .field-row:focus-within .field-label {
+            color: #fff3c4;
+            text-style: bold;
+        }
         .field-select-widget {
             width: 1fr;
             min-width: 0;
@@ -1080,10 +1491,14 @@ if TEXTUAL_AVAILABLE:
         }
         .flags-grid {
             height: auto;
-            margin-bottom: 0;
+            min-height: 1;
+            margin-bottom: 1;
+            align-vertical: top;
         }
         .flags-column {
             width: 1fr;
+            height: auto;
+            min-height: 1;
             padding-right: 1;
         }
         .panel-shell {
@@ -1116,6 +1531,10 @@ if TEXTUAL_AVAILABLE:
             color: #dfeaf8;
             text-style: bold;
             padding: 0;
+        }
+        .panel-toggle:focus {
+            background: #365d88;
+            color: #ffffff;
         }
         .context-menu-btn {
             width: 1fr;
@@ -1298,15 +1717,23 @@ if TEXTUAL_AVAILABLE:
             padding: 0 1;
             margin-right: 1;
         }
+        .modal-btn:focus {
+            text-style: bold;
+        }
         .modal-btn-primary {
             background: #cce4f3;
             color: #244862;
             border: round #6f92b0;
         }
         .modal-btn-primary:focus {
-            background: #d9efff;
-            color: #16364a;
-            border: round #8eb7d7;
+            background: #8fbfe3;
+            color: #102b3d;
+            border: round #5f8fb2;
+        }
+        .modal-btn-primary.is-focused {
+            background: #7aa8cb;
+            color: #0f2a3b;
+            border: heavy #4a7699;
         }
         .modal-btn-cancel {
             background: #e8c5c5;
@@ -1314,9 +1741,23 @@ if TEXTUAL_AVAILABLE:
             border: round #b97d7d;
         }
         .modal-btn-cancel:focus {
-            background: #f1d2d2;
-            color: #5f2222;
-            border: round #d59a9a;
+            background: #de9f9f;
+            color: #4d1717;
+            border: round #b57070;
+        }
+        .modal-btn-cancel.is-focused {
+            background: #c98585;
+            color: #451515;
+            border: heavy #9c5c5c;
+        }
+        #picker-up:focus,
+        #picker-home:focus,
+        #picker-up.is-focused,
+        #picker-home.is-focused {
+            background: #27496f;
+            color: #ffffff;
+            border: heavy #3f6994;
+            text-style: bold;
         }
         .danger-note { color: #ffb4b4; }
         .empty-note { color: #8da4be; margin-top: 1; }
@@ -1397,6 +1838,13 @@ if TEXTUAL_AVAILABLE:
         """
 
         BINDINGS = [
+            Binding("tab", "focus_next_panel", "Next Panel", priority=True),
+            Binding("shift+tab", "focus_previous_panel", "Previous Panel", priority=True),
+            Binding("backtab", "focus_previous_panel", "Previous Panel", priority=True),
+            Binding("up", "move_up", "Move Up", priority=True),
+            Binding("left", "move_left", "Move Left", priority=True),
+            Binding("down", "move_down", "Move Down", priority=True),
+            Binding("right", "move_right", "Move Right", priority=True),
             Binding("ctrl+r", "run_job", "Run"),
             Binding("ctrl+s", "save_config", "Save Config"),
             Binding("ctrl+l", "load_config", "Load Config"),
@@ -1452,6 +1900,25 @@ if TEXTUAL_AVAILABLE:
             if self.active_module not in INTERACTIVE_MODULE_TAB_NAMES:
                 self.active_module = "automatic_migration"
             self.reload_config_model()
+
+        def _modal_screen_active(self) -> bool:
+            try:
+                current_screen = self.screen
+            except Exception:
+                return False
+            return current_screen is not self and isinstance(current_screen, ModalScreen)
+
+        def check_action(self, action: str, parameters: tuple[object, ...]) -> bool:
+            if self._modal_screen_active() and action in {
+                "focus_next_panel",
+                "focus_previous_panel",
+                "move_up",
+                "move_down",
+                "move_left",
+                "move_right",
+            }:
+                return False
+            return True
 
         def preferred_config_section(self) -> str:
             mapped = MODULE_TO_CONFIG_SECTION.get(self.active_module)
@@ -1538,13 +2005,22 @@ if TEXTUAL_AVAILABLE:
                         with Vertical(id="job-input-panel", classes="panel-shell"):
                             yield Static("", classes="panel-topbar-spacer")
                             with Horizontal(id="job-input-row"):
-                                yield Input(placeholder="Send input to running job if it requests confirmation", id="job-input")
+                                yield NavigableInput(placeholder="Send input to running job if it requests confirmation", id="job-input")
                                 yield Button("Send", id="send-input-btn", classes="sidebar-action sidebar-action--run")
                 with Vertical(id="context-popup"):
                     with Vertical(id="context-popup-actions"):
                         yield Button("Copy", id="context-copy", classes="context-menu-btn")
                         yield Button("Paste", id="context-paste", classes="context-menu-btn")
             with Horizontal(id="shortcut-bar"):
+                yield Static("Panel+", classes="shortcut-desc")
+                yield Static("S-Tab", classes="shortcut-key")
+                yield Static("Panel-", classes="shortcut-desc")
+                yield Static("↑↓←→", classes="shortcut-key")
+                yield Static("Fields", classes="shortcut-desc")
+                yield Static("Enter", classes="shortcut-key")
+                yield Static("Open", classes="shortcut-desc")
+                yield Static("Esc", classes="shortcut-key")
+                yield Static("Back", classes="shortcut-desc")
                 yield Static("^R", classes="shortcut-key")
                 yield Static("Run", classes="shortcut-desc")
                 yield Static("^S", classes="shortcut-key")
@@ -1557,6 +2033,7 @@ if TEXTUAL_AVAILABLE:
                 yield Static("Paste", classes="shortcut-desc")
                 yield Static("^Q", classes="shortcut-key")
                 yield Static("Quit", classes="shortcut-desc")
+                yield Static("Tab", classes="shortcut-key")
 
         async def on_mount(self) -> None:
             try:
@@ -1571,6 +2048,7 @@ if TEXTUAL_AVAILABLE:
             self.apply_panel_states()
             self.refresh_runtime_layout()
             self.set_interval(0.15, self.sync_field_description_from_focus)
+            self.set_timer(0.05, self._focus_default_widget)
 
         async def rebuild_content(self) -> None:
             host = self.query_one("#content-host", Vertical)
@@ -1586,9 +2064,7 @@ if TEXTUAL_AVAILABLE:
                 Button("−", id="toggle-content-panel", classes="panel-toggle"),
                 classes="panel-topbar",
             )
-            content_body: Any = Vertical(id="content-body")
-            if self.active_general_tab != "feature":
-                content_body = VerticalScroll(id="content-body")
+            content_body: Any = VerticalScroll(id="content-body")
             await host.mount(content_panel)
             await content_panel.mount(header_row, content_body)
             if widgets:
@@ -1599,6 +2075,7 @@ if TEXTUAL_AVAILABLE:
             self.refresh_runtime_layout()
             self.call_after_refresh(self.refresh_panel_titles)
             self.call_after_refresh(self.refresh_content_scrollbar)
+            self.call_after_refresh(self._focus_default_widget)
             self.set_timer(0.05, self.refresh_panel_titles)
             self.set_timer(0.05, self.refresh_content_scrollbar)
 
@@ -1810,6 +2287,7 @@ if TEXTUAL_AVAILABLE:
             if tab_key == "automatic_migration":
                 regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
                 toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
+                migration_filter_fields = build_automatic_migration_filter_fields(self.schema)
 
                 if regular_fields:
                     widgets.append(Static("Module Fields", classes="section-title feature-section-title"))
@@ -1822,6 +2300,12 @@ if TEXTUAL_AVAILABLE:
                 if toggle_fields:
                     widgets.append(Static("Flags", classes="section-title feature-section-title feature-section-title--spaced"))
                     widgets.append(self.build_flags_columns(toggle_fields, tab_key))
+
+                if migration_filter_fields:
+                    widgets.append(Static("Migration Filters", classes="section-title feature-section-title feature-section-title--spaced"))
+                    widgets.append(Static("If empty, value from General Arguments will be used.", classes="field-help"))
+                    for field in migration_filter_fields:
+                        widgets.extend(self.build_field_widgets(field, context=tab_key))
                 return widgets
             if tab_key in {"google_takeout", "icloud_takeout"}:
                 regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
@@ -2539,7 +3023,7 @@ if TEXTUAL_AVAILABLE:
             current_value = str(value or "")
             if current_value and all(option_value != current_value for _, option_value in normalized_options):
                 normalized_options = [*normalized_options, (current_value, current_value)]
-            select = Select(
+            select = NavigableSelect(
                 normalized_options,
                 value=current_value or (normalized_options[0][1] if normalized_options else None),
                 id=widget_id,
@@ -2573,7 +3057,7 @@ if TEXTUAL_AVAILABLE:
 
         def build_input_block(self, label: str, dest: str, value: str, required: bool, help_text: str, path_hint: str = "", browse_title: str | None = None, password: bool = False) -> List[Any]:
             label_text = f"{label}{' *' if required else ''}"
-            input_widget = Input(value=value, password=password, id=f"field-{dest}", classes="field-input-widget")
+            input_widget = NavigableInput(value=value, password=password, id=f"field-{dest}", classes="field-input-widget")
             self.register_field_help(f"field-{dest}", help_text)
             if path_hint == "path":
                 row = Horizontal(
@@ -2620,7 +3104,7 @@ if TEXTUAL_AVAILABLE:
             if choices:
                 options = [(str(choice), str(choice)) for choice in choices]
                 return [self.build_select_row(label, widget_id, options, value, help_text=help_text, label_classes=label_classes)]
-            input_widget = Input(value=value, password=bool(field.get("sensitive")), id=widget_id, classes="field-input-widget")
+            input_widget = NavigableInput(value=value, password=bool(field.get("sensitive")), id=widget_id, classes="field-input-widget")
             self.register_field_help(widget_id, help_text)
             row = Horizontal(Label(label, classes=label_classes), Horizontal(input_widget, classes="field-control"), classes="field-row")
             return [row]
@@ -2638,6 +3122,244 @@ if TEXTUAL_AVAILABLE:
                     button.set_class(key == self.active_general_tab, "is-active")
                 except Exception:
                     pass
+
+        def _focused_widget(self) -> Any | None:
+            try:
+                return getattr(self.screen, "focused", None)
+            except Exception:
+                return None
+
+        def _widget_is_focus_candidate(self, widget: Any) -> bool:
+            if not isinstance(widget, (Button, Input, Select, Checkbox)):
+                return False
+            if getattr(widget, "disabled", False):
+                return False
+            try:
+                if widget.styles.display == "none":
+                    return False
+            except Exception:
+                pass
+            if self._widget_is_in_context_popup(widget) and not self.context_menu_visible:
+                return False
+            return True
+
+        def _focusable_widgets_in_order(self) -> List[Any]:
+            widgets: List[Any] = []
+            try:
+                for widget in self.screen.query("*"):
+                    if self._widget_is_focus_candidate(widget):
+                        widgets.append(widget)
+            except Exception:
+                return []
+            return widgets
+
+        def _focus_default_widget(self) -> None:
+            focused = self._focused_widget()
+            if focused is not None and self._widget_is_focus_candidate(focused):
+                return
+            preferred_ids = [
+                f"general-tab-{self.active_general_tab}",
+                f"module-tab-{self.active_module}",
+                "run-btn",
+            ]
+            for widget_id in preferred_ids:
+                try:
+                    widget = self.query_one(f"#{widget_id}")
+                except Exception:
+                    continue
+                if self._widget_is_focus_candidate(widget):
+                    try:
+                        self.screen.set_focus(widget)
+                        return
+                    except Exception:
+                        continue
+            widgets = self._focusable_widgets_in_order()
+            if widgets:
+                try:
+                    self.screen.set_focus(widgets[0])
+                except Exception:
+                    pass
+
+        def _widget_panel_id(self, widget: Any | None) -> str:
+            current = widget
+            while current is not None:
+                widget_id = str(getattr(current, "id", "") or "")
+                if widget_id == "sidebar-actions":
+                    return "sidebar-features"
+                if widget_id in FOCUS_PANEL_IDS:
+                    return widget_id
+                current = getattr(current, "parent", None)
+            return ""
+
+        def _panel_widgets(self, panel_id: str) -> List[Any]:
+            widgets: List[Any] = []
+            if not panel_id:
+                return widgets
+            try:
+                for widget in self.screen.query("*"):
+                    if not self._widget_is_focus_candidate(widget):
+                        continue
+                    if self._widget_panel_id(widget) == panel_id:
+                        widgets.append(widget)
+            except Exception:
+                return []
+            return widgets
+
+        def _available_panel_ids(self) -> List[str]:
+            panel_ids: List[str] = []
+            for panel_id in FOCUS_PANEL_IDS:
+                if self._panel_widgets(panel_id):
+                    panel_ids.append(panel_id)
+            return panel_ids
+
+        def _focus_panel_by_delta(self, delta: int) -> None:
+            panel_ids = self._available_panel_ids()
+            if not panel_ids:
+                return
+            focused = self._focused_widget()
+            current_panel = self._widget_panel_id(focused)
+            try:
+                current_index = panel_ids.index(current_panel) if current_panel in panel_ids else (-1 if delta > 0 else 0)
+            except ValueError:
+                current_index = -1 if delta > 0 else 0
+            next_index = (current_index + delta) % len(panel_ids)
+            target_panel = panel_ids[next_index]
+            panel_widgets = self._panel_widgets(target_panel)
+            if not panel_widgets:
+                return
+            target_widget = panel_widgets[0] if delta > 0 else panel_widgets[-1]
+            try:
+                self.screen.set_focus(target_widget)
+            except Exception:
+                pass
+
+        def _focus_widget_by_delta(self, delta: int) -> None:
+            focused = self._focused_widget()
+            panel_id = self._widget_panel_id(focused)
+            widgets = self._panel_widgets(panel_id) if panel_id else []
+            if not widgets:
+                widgets = self._focusable_widgets_in_order()
+            if not widgets:
+                return
+            try:
+                current_index = widgets.index(focused) if focused in widgets else (-1 if delta > 0 else 0)
+            except ValueError:
+                current_index = -1 if delta > 0 else 0
+            next_index = (current_index + delta) % len(widgets)
+            try:
+                self.screen.set_focus(widgets[next_index])
+            except Exception:
+                pass
+
+        def _widget_is_open_or_editing(self, widget: Any | None) -> bool:
+            if widget is None:
+                return False
+            try:
+                if isinstance(widget, Input):
+                    return True
+            except Exception:
+                pass
+            for attr in ("expanded", "overlay_visible", "menu_open", "is_expanded"):
+                try:
+                    if bool(getattr(widget, attr)):
+                        return True
+                except Exception:
+                    continue
+            return False
+
+        def action_focus_next_widget(self) -> None:
+            self._focus_widget_by_delta(1)
+
+        def action_focus_previous_widget(self) -> None:
+            self._focus_widget_by_delta(-1)
+
+        def action_focus_next_panel(self) -> None:
+            self._focus_panel_by_delta(1)
+
+        def action_focus_previous_panel(self) -> None:
+            self._focus_panel_by_delta(-1)
+
+        def action_move_up(self) -> None:
+            panel_id = self._widget_panel_id(self._focused_widget())
+            if panel_id == "sidebar-features":
+                self.action_focus_previous_widget()
+            elif panel_id in {"content-body", "job-input-panel"}:
+                self.action_focus_previous_widget()
+
+        def action_move_down(self) -> None:
+            panel_id = self._widget_panel_id(self._focused_widget())
+            if panel_id == "sidebar-features":
+                self.action_focus_next_widget()
+            elif panel_id in {"content-body", "job-input-panel"}:
+                self.action_focus_next_widget()
+
+        def action_move_left(self) -> None:
+            panel_id = self._widget_panel_id(self._focused_widget())
+            if panel_id == "general-tabs":
+                self.action_focus_previous_widget()
+            elif panel_id in {"content-body", "job-input-panel"}:
+                self.action_focus_previous_widget()
+
+        def action_move_right(self) -> None:
+            panel_id = self._widget_panel_id(self._focused_widget())
+            if panel_id == "general-tabs":
+                self.action_focus_next_widget()
+            elif panel_id in {"content-body", "job-input-panel"}:
+                self.action_focus_next_widget()
+
+        def _activate_focused_widget(self) -> bool:
+            focused = self._focused_widget()
+            if focused is None:
+                self.action_focus_next_widget()
+                return True
+            if isinstance(focused, Button):
+                try:
+                    focused.press()
+                    return True
+                except Exception:
+                    return False
+            if isinstance(focused, Checkbox):
+                try:
+                    focused.value = not bool(getattr(focused, "value", False))
+                    return True
+                except Exception:
+                    return False
+            for method_name in ("action_show_overlay", "action_toggle_overlay", "action_expand", "action_open", "action_press"):
+                method = getattr(focused, method_name, None)
+                if callable(method):
+                    try:
+                        method()
+                        return True
+                    except Exception:
+                        continue
+            return False
+
+        def _exit_focused_widget(self) -> bool:
+            if self.context_menu_visible:
+                self.hide_context_popup()
+                return True
+            focused = self._focused_widget()
+            if focused is None:
+                return False
+            if isinstance(focused, Input):
+                try:
+                    self.screen.set_focus(None)
+                    return True
+                except Exception:
+                    return False
+            for method_name in ("action_dismiss", "action_hide_overlay", "action_collapse", "action_close"):
+                method = getattr(focused, method_name, None)
+                if callable(method):
+                    try:
+                        method()
+                        return True
+                    except Exception:
+                        continue
+            try:
+                self.screen.set_focus(None)
+                return True
+            except Exception:
+                return False
 
         def can_run_job(self) -> bool:
             return not self.job_starting and not (self.running_process is not None and self.running_process.poll() is None)
@@ -2814,6 +3536,25 @@ if TEXTUAL_AVAILABLE:
 
         def on_unmount(self) -> None:
             self.persist_ui_state()
+
+        async def on_key(self, event: events.Key) -> None:
+            focused = self._focused_widget()
+            if event.key == "enter":
+                if isinstance(focused, Input) and str(getattr(focused, "id", "") or "") == "job-input":
+                    self.action_send_job_input()
+                    event.stop()
+                    return
+                if not isinstance(focused, Input) and self._activate_focused_widget():
+                    event.stop()
+                return
+            if event.key == "escape":
+                if self._exit_focused_widget():
+                    event.stop()
+                return
+            if event.key in {"backspace", "delete"}:
+                if not isinstance(focused, Input) and self._exit_focused_widget():
+                    event.stop()
+                return
 
         async def on_button_pressed(self, event: Button.Pressed) -> None:
             button_id = event.button.id or ""
