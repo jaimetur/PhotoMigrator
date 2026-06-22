@@ -85,6 +85,12 @@ Include `Memories/*.csv` collections too:
 ./PhotoMigrator.bin --icloud-takeout /path/to/iCloudExport --icloud-include-memories
 ```
 
+Prefer the native EXIF writer when possible:
+
+```bash
+./PhotoMigrator.bin --icloud-takeout /path/to/iCloudExport --icloud-prefer-native-exif-writer
+```
+
 Customize output structures:
 
 ```bash
@@ -110,9 +116,11 @@ Main fields:
 - `--icloud-no-albums-folders-structure`: structure for `ALL_PHOTOS`
 - `--icloud-no-symbolic-albums`: copy files instead of creating symlinks in albums
 - `--icloud-include-memories`: also build folders from `Memories/*.csv`
+- `--icloud-prefer-native-exif-writer`: prefer the native EXIF writer for supported photo files and fall back to `ExifTool` otherwise
 
 Tip:
 - In the Web Interface, TUI, and GUI this option is pre-selected by default.
+- The `Prefer native EXIF writer when possible` option is also pre-selected by default in the Web Interface, TUI, and GUI. In CLI it remains opt-in.
 
 ## Expected output
 

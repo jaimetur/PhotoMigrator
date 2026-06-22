@@ -155,12 +155,14 @@ Following arguments allow you to interact with Apple iCloud Photos export folder
 | `-inas`,<br>`--icloud-no-albums-folders-structure` | No-Album folder structure (same values as above; default: `year/month`)                               |
 | `-insa`,<br>`--icloud-no-symbolic-albums`          | Duplicate reconstructed iCloud album assets instead of creating symlinks in `<NO_ALBUMS_FOLDER>`      |
 | `-iMem`,<br>`--icloud-include-memories`            | Also reconstruct iCloud `Memories` CSV collections as folders. Pre-selected by default in Web/TUI/GUI |
+| `-iNExif`,<br>`--icloud-prefer-native-exif-writer` | Prefer the native EXIF writer when possible. Pre-selected by default in Web/TUI/GUI                   |
 
 #### 🧪 Examples:
 ```bash
 PhotoMigrator.bin --icloud-takeout="/home/user/iCloudExport"
 PhotoMigrator.bin --icloud-takeout="/home/user/iCloudExport" --icloud-no-symbolic-albums
 PhotoMigrator.bin --icloud-takeout="/home/user/iCloudExport" --icloud-include-memories
+PhotoMigrator.bin --icloud-takeout="/home/user/iCloudExport" --icloud-prefer-native-exif-writer
 
 or using short arguments,
 PhotoMigrator.bin -iTakeout="/home/user/iCloudExport" -iofs="cleaned"

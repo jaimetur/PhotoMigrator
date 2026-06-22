@@ -317,6 +317,7 @@ def mode_icloud_takeout(user_confirmation=True, log_level=None):
     LOGGER.info(f"No Albums Folder Structure                : '{ARGS['icloud-no-albums-folders-structure']}'")
     LOGGER.info(f"Duplicate album assets instead of symlink : '{ARGS['icloud-no-symbolic-albums']}'")
     LOGGER.info(f"Include Memories CSV collections          : '{ARGS['icloud-include-memories']}'")
+    LOGGER.info(f"Prefer Native EXIF writer when possible   : '{ARGS['icloud-prefer-native-exif-writer']}'")
     LOGGER.info(f"")
 
     if user_confirmation:

@@ -31,6 +31,7 @@ def _args(output_folder):
         "icloud-no-albums-folders-structure": "flatten",
         "icloud-no-symbolic-albums": True,
         "icloud-include-memories": True,
+        "icloud-prefer-native-exif-writer": False,
     }
 
 
@@ -293,6 +294,73 @@ class TestICloudTakeout(unittest.TestCase):
                 extracted = processor._apply_dates([(row, records)])
 
         self.assertIn(dest_file.resolve().as_posix(), extracted)
+
+    def test_apply_dates_uses_only_exiftool_when_native_preference_is_disabled(self):
+        photos_folder = self.takeout_root / "Photos"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        source_file = photos_folder / "IMG_0001.JPG"
+        source_file.write_bytes(b"jpeg-bytes")
+        output_folder = self.base_path / "output"
+        output_folder.mkdir(parents=True, exist_ok=True)
+        dest_file = output_folder / "IMG_0001.JPG"
+        dest_file.write_bytes(b"jpeg-bytes")
+
+        row = {
+            "chosen_dt": datetime(2023, 5, 14, 3, 36, 0),
+            "source_csv": str(photos_folder / "Photo Details.csv"),
+            "checksum": "",
+            "favorite": "no",
+            "hidden": "no",
+            "deleted": "no",
+        }
+        records = [{"source": source_file, "dest": dest_file}]
+
+        args = _args(self.base_path / "output")
+        args["icloud-prefer-native-exif-writer"] = False
+        with patch.object(icloud_module, "ARGS", args):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            with (
+                patch.object(processor, "_write_photo_exif_natively", side_effect=AssertionError("native writer should not be used")),
+                patch.object(processor, "_write_exif_with_exiftool", return_value=True) as exiftool_mock,
+                patch.object(processor, "_filesystem_dates_match", return_value=True),
+            ):
+                processor._apply_dates([(row, records)])
+
+        exiftool_mock.assert_called_once()
+
+    def test_apply_dates_prefers_native_writer_when_enabled(self):
+        photos_folder = self.takeout_root / "Photos"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        source_file = photos_folder / "IMG_0001.JPG"
+        source_file.write_bytes(b"jpeg-bytes")
+        output_folder = self.base_path / "output"
+        output_folder.mkdir(parents=True, exist_ok=True)
+        dest_file = output_folder / "IMG_0001.JPG"
+        dest_file.write_bytes(b"jpeg-bytes")
+
+        row = {
+            "chosen_dt": datetime(2023, 5, 14, 3, 36, 0),
+            "source_csv": str(photos_folder / "Photo Details.csv"),
+            "checksum": "",
+            "favorite": "no",
+            "hidden": "no",
+            "deleted": "no",
+        }
+        records = [{"source": source_file, "dest": dest_file}]
+
+        args = _args(self.base_path / "output")
+        args["icloud-prefer-native-exif-writer"] = True
+        with patch.object(icloud_module, "ARGS", args):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            with (
+                patch.object(processor, "_write_photo_exif_natively", return_value=True) as native_mock,
+                patch.object(processor, "_write_exif_with_exiftool", return_value=True) as exiftool_mock,
+                patch.object(processor, "_filesystem_dates_match", return_value=True),
+            ):
+                processor._apply_dates([(row, records)])
+
+        native_mock.assert_called_once()
+        exiftool_mock.assert_not_called()
 
 
 if __name__ == "__main__":

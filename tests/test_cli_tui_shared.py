@@ -52,6 +52,20 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("google_photos", schema["tabs"])
         self.assertIn("configuration-file", schema["fields_by_dest"])
 
+    def test_build_parser_schema_defaults_native_icloud_writer_to_true_for_ui(self):
+        schema = build_parser_schema()
+
+        self.assertTrue(bool(schema["fields_by_dest"]["icloud-prefer-native-exif-writer"]["default"]))
+
+    def test_build_cli_args_appends_native_icloud_writer_flag_only_when_enabled(self):
+        schema = build_parser_schema()
+
+        enabled_args = build_cli_args(schema, "icloud_takeout", {"icloud-prefer-native-exif-writer": True})
+        disabled_args = build_cli_args(schema, "icloud_takeout", {"icloud-prefer-native-exif-writer": False})
+
+        self.assertIn("--icloud-prefer-native-exif-writer", enabled_args)
+        self.assertNotIn("--icloud-prefer-native-exif-writer", disabled_args)
+
     def test_build_cli_args_composes_cloud_rename_albums_value(self):
         schema = build_parser_schema()
         values = {

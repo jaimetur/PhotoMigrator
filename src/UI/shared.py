@@ -145,6 +145,7 @@ ICLOUD_DESTS = {
     "icloud-no-albums-folders-structure",
     "icloud-no-symbolic-albums",
     "icloud-include-memories",
+    "icloud-prefer-native-exif-writer",
 }
 CLOUD_DESTS = {
     "upload-albums",
@@ -724,6 +725,8 @@ def build_parser_schema(
         if dest == "icloud-takeout" and default_icloud_takeout_path:
             field["default"] = default_icloud_takeout_path
         if dest == "icloud-include-memories":
+            field["default"] = True
+        if dest == "icloud-prefer-native-exif-writer":
             field["default"] = True
         fields.append(field)
         by_dest[dest] = field

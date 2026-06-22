@@ -213,6 +213,18 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("--icloud-include-memories", enabled_args)
         self.assertNotIn("--icloud-include-memories", disabled_args)
 
+    def test_icloud_native_writer_defaults_to_true_in_web_ui_but_remains_optional_in_cli_args(self):
+        field = self.web_app.PARSER_FIELDS_BY_DEST["icloud-prefer-native-exif-writer"]
+
+        self.assertTrue(bool(field["default"]))
+        self.assertEqual(field["long_option"], "--icloud-prefer-native-exif-writer")
+
+        enabled_args = self.web_app._build_cli_args("icloud_takeout", {"icloud-prefer-native-exif-writer": True}, None)
+        disabled_args = self.web_app._build_cli_args("icloud_takeout", {"icloud-prefer-native-exif-writer": False}, None)
+
+        self.assertIn("--icloud-prefer-native-exif-writer", enabled_args)
+        self.assertNotIn("--icloud-prefer-native-exif-writer", disabled_args)
+
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")

@@ -354,6 +354,12 @@ def parse_arguments():
     PARSER.add_argument("-iMem", "--icloud-include-memories", action="store_true",
                         help="Also reconstruct iCloud 'Memories' CSV collections as folders.")
 
+    PARSER.add_argument(
+        "-iNExif", "--icloud-prefer-native-exif-writer", action="store_true",
+        help="Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool. "
+             "Disabled by default in CLI."
+    )
+
     # FEATURES FOR SYNOLOGY/IMMICH PHOTOS:
     # -----------------------------------
     PARSER.add_argument("-uAlb", "--upload-albums", metavar="<ALBUMS_FOLDER>", default="",

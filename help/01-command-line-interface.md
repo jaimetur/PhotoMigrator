@@ -324,6 +324,8 @@ default values for the rest of the arguments for this extra mode.
                <NO_ALBUMS_FOLDER>.
 -iMem        ; --icloud-include-memories
                Also reconstruct iCloud 'Memories' CSV collections as folders.
+-iNExif      ; --icloud-prefer-native-exif-writer
+               Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool.
 
 
 GOOGLE PHOTOS/SYNOLOGY/IMMICH/NEXTCLOUD MANAGEMENT:
