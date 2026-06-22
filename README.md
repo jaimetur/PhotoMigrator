@@ -173,7 +173,7 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
 > [**(Other Standalone Features Documentation)**](help/10-other-features.md)
 
 ---
-## Tool Interfaces
+#  🖥️ Tool Interfaces
 
 ## 🌐 1. Web Interface (New)
 PhotoMigrator now includes a Web Interface that executes the same CLI arguments under the hood.
