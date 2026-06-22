@@ -249,13 +249,13 @@ jobs:
 
       # Checkout Repository
       - name: 🧾 Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.TOKEN_GITHUB }}
 
       # Set up Python
       - name: 🐍 Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
 
@@ -395,21 +395,21 @@ jobs:
       - name: ⬆️ Upload compressed dist folder as artifact (standalone mode only)
         if: ${{ matrix.compilation_mode == 'standalone' && env.ZIP_FILE != '' && env.ZIP_FILE != null }}
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ZIP_FILE }}
           path: ${{ env.ZIP_FILE }}
 
       - name: ⬆️ Upload build binary as artifact (onefile mode only)
         if: matrix.compilation_mode == 'onefile'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         continue-on-error: true
         with:
           name: ${{ env.ARCHIVE_NAME }}
           path: ${{ env.ARCHIVE_PATH }}
 
       - name: ⬆️ Upload RELEASE-NOTES.md as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         continue-on-error: true
         with:
@@ -452,7 +452,7 @@ jobs:
 
     steps:
       - name: 🧾 Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ✅ Check Final-Release
         run: |
@@ -626,7 +626,7 @@ jobs:
 
     steps:
       - name: 🧾 Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 📥 Download RELEASE-NOTES.md
         uses: actions/download-artifact@v4
