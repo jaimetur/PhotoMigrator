@@ -362,7 +362,7 @@ class ClassICloudTakeoutFolder:
             source_records = []
             for source_path in tqdm(
                 self._iter_media_files(input_folder),
-                desc=f"[INFO] {step_name}Staging iCloud assets",
+                desc=f"{step_name}Staging iCloud assets",
                 unit=" files",
                 smoothing=0.1,
                 dynamic_ncols=True,
@@ -625,7 +625,7 @@ class ClassICloudTakeoutFolder:
             processed_paths = set()
             for row, records in tqdm(
                 matched_rows,
-                desc=f"[INFO] {step_name}Applying iCloud dates",
+                desc=f"{step_name}Applying iCloud dates",
                 unit=" rows",
                 smoothing=0.1,
                 dynamic_ncols=True,

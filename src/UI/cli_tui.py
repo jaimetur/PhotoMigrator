@@ -1808,12 +1808,20 @@ if TEXTUAL_AVAILABLE:
         def build_module_only_fields(self, tab_key: str, fields: List[Dict[str, Any]]) -> List[Any]:
             widgets = []
             if tab_key == "automatic_migration":
-                widgets.append(Static("Module Fields", classes="section-title feature-section-title"))
-                for field in fields:
-                    if str(field.get("dest") or "") in {"source", "target"}:
-                        widgets.append(self.build_migration_endpoint_row(str(field.get("dest") or ""), str(field.get("help") or "").strip()))
-                    else:
-                        widgets.extend(self.build_field_widgets(field, context=tab_key))
+                regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
+                toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
+
+                if regular_fields:
+                    widgets.append(Static("Module Fields", classes="section-title feature-section-title"))
+                    for field in regular_fields:
+                        if str(field.get("dest") or "") in {"source", "target"}:
+                            widgets.append(self.build_migration_endpoint_row(str(field.get("dest") or ""), str(field.get("help") or "").strip()))
+                        else:
+                            widgets.extend(self.build_field_widgets(field, context=tab_key))
+
+                if toggle_fields:
+                    widgets.append(Static("Flags", classes="section-title feature-section-title feature-section-title--spaced"))
+                    widgets.append(self.build_flags_columns(toggle_fields, tab_key))
                 return widgets
             if tab_key in {"google_takeout", "icloud_takeout"}:
                 regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
@@ -1890,7 +1898,10 @@ if TEXTUAL_AVAILABLE:
 
         def build_flags_columns(self, fields: List[Dict[str, Any]], context: str) -> Horizontal:
             total = len(fields or [])
-            num_columns = 3 if total >= 9 else 2
+            if context in {"automatic_migration", "google_takeout", "icloud_takeout"}:
+                num_columns = 3
+            else:
+                num_columns = 3 if total >= 9 else 2
             num_columns = min(num_columns, total) if total > 0 else 1
             columns: List[List[Dict[str, Any]]] = [[] for _ in range(max(1, num_columns))]
             for index, field in enumerate(fields or []):

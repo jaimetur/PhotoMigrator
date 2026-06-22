@@ -1354,12 +1354,18 @@ class PhotoMigratorTkGUI:
 
     def build_module_only_fields(self, parent: Any, tab_key: str, fields: List[Dict[str, Any]]) -> None:
         if tab_key == "automatic_migration":
-            self._section_label(parent, "Module Fields", accent=True)
-            for field in fields:
-                if str(field.get("dest") or "") in {"source", "target"}:
-                    self.build_migration_endpoint_row(parent, str(field.get("dest") or ""), str(field.get("help") or "").strip())
-                else:
-                    self.build_field_widgets(parent, field, context=tab_key)
+            regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
+            toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
+            if regular_fields:
+                self._section_label(parent, "Module Fields", accent=True)
+                for field in regular_fields:
+                    if str(field.get("dest") or "") in {"source", "target"}:
+                        self.build_migration_endpoint_row(parent, str(field.get("dest") or ""), str(field.get("help") or "").strip())
+                    else:
+                        self.build_field_widgets(parent, field, context=tab_key)
+            if toggle_fields:
+                self._section_label(parent, "Flags", accent=True)
+                self.build_flags_grid(parent, toggle_fields, tab_key)
             return
         if tab_key in {"google_takeout", "icloud_takeout"}:
             regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
@@ -1558,7 +1564,11 @@ class PhotoMigratorTkGUI:
         theme = self.current_theme()
         frame = self.tk.Frame(parent, bg=theme["panel_bg"])
         frame.pack(fill="x", padx=4, pady=2)
-        columns = 3 if len(fields) >= 9 else 2
+        if context in {"automatic_migration", "google_takeout", "icloud_takeout"}:
+            columns = 3
+        else:
+            columns = 3 if len(fields) >= 9 else 2
+        columns = min(columns, len(fields)) if fields else 1
         for col in range(columns):
             frame.grid_columnconfigure(col, weight=1)
         for index, field in enumerate(fields):
