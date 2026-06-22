@@ -39,9 +39,64 @@ def _normalized_icloud_name(value):
     return str(value or "").strip().casefold().replace("_", " ").replace("-", " ")
 
 
+def _normalized_icloud_header(value):
+    return re.sub(r"\s+", "", _normalized_icloud_name(value))
+
+
 def _is_icloud_photo_details_csv_name(path_value) -> bool:
     stem = Path(str(path_value or "")).stem
     return _normalized_icloud_name(stem).startswith("photo details")
+
+
+def _looks_like_icloud_photo_details_headers(fieldnames) -> bool:
+    headers = {_normalized_icloud_header(name) for name in (fieldnames or []) if name}
+    if "imgname" not in headers:
+        return False
+    evidence_headers = {
+        "filechecksum",
+        "originalcreationdate",
+        "importdate",
+        "favorite",
+        "hidden",
+        "deleted",
+    }
+    return len(headers.intersection(evidence_headers)) >= 2
+
+
+def _looks_like_icloud_membership_headers(path_value, fieldnames) -> bool:
+    headers = {_normalized_icloud_header(name) for name in (fieldnames or []) if name}
+    if "imgname" not in headers:
+        return False
+    parts_norm = [_normalized_icloud_name(part) for part in Path(str(path_value or "")).parts]
+    return "albums" in parts_norm or "memories" in parts_norm
+
+
+def _read_csv_header_from_path(csv_path: Path):
+    try:
+        with open(csv_path, "r", encoding="utf-8-sig", newline="") as handle:
+            reader = csv.reader(handle)
+            return next(reader, [])
+    except Exception:
+        return []
+
+
+def _read_csv_header_from_zip_member(handle: zipfile.ZipFile, member_name: str):
+    try:
+        with handle.open(member_name, "r") as member_handle:
+            first_line = member_handle.readline().decode("utf-8-sig", errors="replace")
+        if not first_line:
+            return []
+        return next(csv.reader([first_line]), [])
+    except Exception:
+        return []
+
+
+def _is_icloud_metadata_csv(path_value, fieldnames) -> bool:
+    return (
+        _is_icloud_photo_details_csv_name(path_value)
+        or _looks_like_icloud_photo_details_headers(fieldnames)
+        or _looks_like_icloud_membership_headers(path_value, fieldnames)
+    )
 
 
 def _zip_contains_icloud_takeout_structure(zip_path: Path, log_level=None) -> bool:
@@ -49,7 +104,10 @@ def _zip_contains_icloud_takeout_structure(zip_path: Path, log_level=None) -> bo
         try:
             with zipfile.ZipFile(zip_path, "r") as handle:
                 for member in handle.namelist():
-                    if _is_icloud_photo_details_csv_name(member):
+                    if not member.lower().endswith(".csv"):
+                        continue
+                    header = _read_csv_header_from_zip_member(handle, member)
+                    if _is_icloud_metadata_csv(member, header):
                         return True
         except zipfile.BadZipFile:
             LOGGER.debug(f"Skipping invalid ZIP while checking iCloud Takeout structure: '{zip_path}'")
@@ -65,7 +123,8 @@ def contains_icloud_takeout_structure(input_folder, step_name="", log_level=None
             return False
 
         for csv_path in folder.rglob("*.csv"):
-            if _is_icloud_photo_details_csv_name(csv_path):
+            header = _read_csv_header_from_path(csv_path)
+            if _is_icloud_metadata_csv(csv_path, header):
                 LOGGER.info(f"{step_name}iCloud Takeout structure detected by CSV metadata in '{csv_path}'.")
                 return True
 

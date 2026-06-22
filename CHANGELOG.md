@@ -22,6 +22,7 @@
   - `Automatic Migration` now auto-detects raw Apple iCloud Takeout folders used as local `--source` paths, preprocesses them first with the iCloud pipeline, and only then uploads the resulting library to the selected target.
   - When `Automatic Migration` auto-detects a raw Apple iCloud Takeout local folder and preprocesses it through the iCloud pipeline, `Memories` are now included by default for that automatic preprocessing pass even if the CLI invocation did not explicitly add `--icloud-include-memories`.
   - Local-folder and processed-takeout sources now treat a top-level `Memories` folder the same way as `Albums`, so each memory collection is migrated to the target as an album-like collection.
+  - Hardened raw iCloud Takeout auto-detection for local folders and ZIP containers so it now also inspects iCloud CSV metadata headers, not just known file names, which keeps detection working even when users rename the extracted folder tree or the CSV filenames.
 
 #### 🚀 GPTH Enhancements:
 

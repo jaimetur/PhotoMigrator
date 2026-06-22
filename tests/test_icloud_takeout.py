@@ -3,6 +3,7 @@ import os
 import sys
 import tempfile
 import unittest
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -135,6 +136,46 @@ class TestICloudTakeout(unittest.TestCase):
         for scope_key, records in matches_by_scope.items():
             self.assertEqual(len(records), 1)
             self.assertEqual(records[0]["scope_key"], scope_key)
+
+    def test_contains_icloud_takeout_structure_detects_renamed_metadata_csv_by_header(self):
+        photos_folder = self.takeout_root / "RenamedExport" / "Photos"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        self._write_photo_details(
+            photos_folder / "metadata.csv",
+            [
+                {
+                    "imgName": "IMG_0001.JPG",
+                    "fileChecksum": "",
+                    "favorite": "no",
+                    "hidden": "no",
+                    "deleted": "no",
+                    "originalCreationDate": "Sunday May 14,2023 3:36 AM GMT",
+                    "viewCount": 0,
+                    "importDate": "Sunday May 14,2023 3:37 AM GMT",
+                }
+            ],
+        )
+
+        with patch.object(icloud_module, "LOGGER", Mock()):
+            detected = icloud_module.contains_icloud_takeout_structure(self.takeout_root)
+
+        self.assertTrue(detected)
+
+    def test_contains_icloud_takeout_structure_detects_renamed_metadata_csv_inside_zip_by_header(self):
+        zip_path = self.takeout_root / "renamed-export.zip"
+        with zipfile.ZipFile(zip_path, "w") as handle:
+            handle.writestr(
+                "RenamedBundle/Photos/metadata.csv",
+                (
+                    "imgName,fileChecksum,favorite,hidden,deleted,originalCreationDate,viewCount,importDate\n"
+                    "IMG_0001.JPG,,no,no,no,\"Sunday May 14,2023 3:36 AM GMT\",0,\"Sunday May 14,2023 3:37 AM GMT\"\n"
+                ),
+            )
+
+        with patch.object(icloud_module, "LOGGER", Mock()):
+            detected = icloud_module.contains_icloud_takeout_structure(self.takeout_root)
+
+        self.assertTrue(detected)
 
     def test_album_membership_uses_only_assets_from_the_same_scope(self):
         scope_a_photos = self.takeout_root / "PartA" / "Photos"
