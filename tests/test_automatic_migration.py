@@ -230,6 +230,60 @@ class TestAutomaticMigrationMode(unittest.TestCase):
         self.assertIn("Local Folder", kwargs["source_client"].CLIENT_NAME)
         self.assertIn("_processed_", str(kwargs["source_client"].base_folder))
 
+    def test_mode_automatic_migration_unzips_local_zip_source_before_detecting_icloud_takeout(self):
+        expected_unzip = Path(f"{self.source}_unzipped_{automatic_module.TIMESTAMP}").resolve()
+        process_takeout_roots = []
+
+        def fake_unzip(input_folder, unzip_folder, step_name="", log_level=None):
+            Path(unzip_folder).mkdir(parents=True, exist_ok=True)
+
+        def capture_process(self, *args, **kwargs):
+            process_takeout_roots.append(self.takeout_folder)
+
+        with (
+            patch.object(automatic_module, "ARGS", dict(self.base_args)),
+            patch.object(automatic_module, "HELP_TEXTS", self.help_texts),
+            patch.object(automatic_module, "LOGGER", self.logger),
+            patch.object(GV, "ARGS", dict(self.base_args)),
+            patch.object(automatic_module, "confirm_continue", return_value=True),
+            patch.object(
+                automatic_module,
+                "contains_zip_files",
+                side_effect=lambda path, log_level=None: Path(path).resolve() == self.source.resolve(),
+            ),
+            patch.object(automatic_module, "contains_takeout_structure", return_value=False),
+            patch.object(
+                automatic_module,
+                "contains_icloud_takeout_structure",
+                side_effect=lambda path, log_level=None: Path(path).resolve() == expected_unzip,
+            ),
+            patch.object(automatic_module, "sanitize_and_unpack_zips", side_effect=fake_unzip) as mock_unzip,
+            patch("Features.LocalFolder.ClassLocalFolder.ARGS", dict(self.base_args)),
+            patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.ARGS", dict(self.base_args)),
+            patch("Features.LocalFolder.ClassLocalFolder.LOGGER", self.logger),
+            patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.LOGGER", self.logger),
+            patch("Core.FolderAnalyzer.LOGGER", self.logger),
+            patch("Core.FolderAnalyzer.ARGS", dict(self.base_args)),
+            patch(
+                "Features.ICloudTakeout.ClassICloudTakeoutFolder.ClassICloudTakeoutFolder.process",
+                autospec=True,
+                side_effect=capture_process,
+            ) as mock_process,
+            patch.object(automatic_module, "parallel_automatic_migration") as mock_parallel,
+        ):
+            automatic_module.mode_AUTOMATIC_MIGRATION(
+                source=str(self.source),
+                target=str(self.target),
+                show_dashboard=False,
+                parallel=False,
+                log_level=logging.INFO,
+            )
+
+        self.assertEqual(mock_unzip.call_count, 1)
+        self.assertEqual(mock_process.call_count, 1)
+        self.assertEqual(mock_parallel.call_count, 1)
+        self.assertEqual(process_takeout_roots, [expected_unzip])
+
 
 if __name__ == "__main__":
     unittest.main()

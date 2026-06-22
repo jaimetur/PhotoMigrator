@@ -22,7 +22,7 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_empty_dirs, contains_zip_files, normalize_path
+from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
 from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
@@ -163,7 +163,27 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target
         # ---------------------------------------------------------------------------------------------------------
-        def get_client_object(client_type):
+        def _prepare_local_folder_for_detection(client_type, client_label):
+            client_path = Path(str(client_type)).expanduser()
+            if not client_path.is_dir():
+                return client_type
+            if not contains_zip_files(str(client_path), log_level=logging.WARNING):
+                return str(client_path)
+
+            unzip_folder = Path(f"{client_path}_unzipped_{TIMESTAMP}").resolve()
+            LOGGER.info(
+                f"📦 {client_label} Folder contains ZIP files. "
+                f"Unzipping first into '{unzip_folder}' before Automatic Migration source-type detection..."
+            )
+            sanitize_and_unpack_zips(
+                input_folder=str(client_path),
+                unzip_folder=str(unzip_folder),
+                step_name=f"[Automatic Migration]-[{client_label} PRE-CHECK]-[Unzip] : ",
+                log_level=log_level,
+            )
+            return str(unzip_folder)
+
+        def get_client_object(client_type, client_label="Local"):
             """Retorna la instancia del cliente en función del tipo de fuente o destino."""
 
             # Return ClassSynologyPhotos
@@ -206,26 +226,28 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             elif client_type.lower() in ['google-photos', 'googlephotos'] and ARGS['account-id'] > 1:
                 return ClassGooglePhotos(account_id=ARGS['account-id'])
 
+            local_detection_path = _prepare_local_folder_for_detection(client_type, client_label)
+
             # Return ClassICloudTakeoutFolder
-            elif Path(client_type).is_dir() and contains_icloud_takeout_structure(client_type, log_level=logging.INFO):
-                return ClassICloudTakeoutFolder(client_type)  # In this class, client_type is the path to the iCloud Takeout Folder
+            if Path(local_detection_path).is_dir() and contains_icloud_takeout_structure(local_detection_path, log_level=logging.INFO):
+                return ClassICloudTakeoutFolder(local_detection_path)  # In this class, client_type is the path to the iCloud Takeout Folder
 
             # Return ClassTakeoutFolder
-            elif Path(client_type).is_dir() and (contains_zip_files(client_type, log_level=logging.WARNING) or contains_takeout_structure(client_type, log_level=logging.INFO)):
-                return ClassTakeoutFolder(client_type)  # In this clase, client_type is the path to the Takeout Folder
+            elif Path(local_detection_path).is_dir() and contains_takeout_structure(local_detection_path, log_level=logging.INFO):
+                return ClassTakeoutFolder(local_detection_path)  # In this clase, client_type is the path to the Takeout Folder
 
             # Return ClassLocalFolder
-            elif Path(client_type).is_dir():
-                return ClassLocalFolder(base_folder=client_type)  # In this clase, client_type is the path to the base Local Folder
+            elif Path(local_detection_path).is_dir():
+                return ClassLocalFolder(base_folder=local_detection_path)  # In this clase, client_type is the path to the base Local Folder
             else:
                 raise ValueError(f"{MSG_TAGS['ERROR']}Tipo de cliente no válido: {client_type}")
 
         # Creamos los objetos source_client y target_client y obtenemos sus nombres para mostrar en el show_dashboard
-        source_client = get_client_object(source)
+        source_client = get_client_object(source, client_label="Source")
         source_client_name = source_client.get_client_name()
         SHARED_DATA.info.update({"source_client_name": source_client_name})
 
-        target_client = get_client_object(target)
+        target_client = get_client_object(target, client_label="Target")
         target_client_name = target_client.get_client_name()
         SHARED_DATA.info.update({"target_client_name": target_client_name})
 
