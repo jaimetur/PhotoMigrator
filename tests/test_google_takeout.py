@@ -1,19 +1,35 @@
+import contextlib
+import io
 import logging
+import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-import Features.GoogleTakeout.ClassTakeoutFolder as takeout_module
-from Features.GoogleTakeout.ClassTakeoutFolder import (
-    _find_forbidden_special_folder_in_path,
-    _is_takeout_year_folder,
-    contains_takeout_structure,
-)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+sys.modules.setdefault("piexif", MagicMock())
+
+try:
+    import Features.GoogleTakeout.ClassTakeoutFolder as takeout_module
+    from Features.GoogleTakeout.ClassTakeoutFolder import (
+        _find_forbidden_special_folder_in_path,
+        _is_takeout_year_folder,
+        contains_takeout_structure,
+    )
+    TAKEOUT_IMPORT_ERROR = None
+except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
+    TAKEOUT_IMPORT_ERROR = exc
 
 
 class TestGoogleTakeoutHelpers(unittest.TestCase):
     def setUp(self):
+        if TAKEOUT_IMPORT_ERROR is not None:
+            self.skipTest(f"Google Takeout dependencies are not installed in this environment: {TAKEOUT_IMPORT_ERROR}")
         self.logger = logging.getLogger("test-google-takeout")
         self.logger.handlers = []
         self.logger.propagate = False
@@ -38,6 +54,44 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
                 detected = contains_takeout_structure(str(root), log_level=logging.INFO)
 
         self.assertTrue(detected)
+
+    def test_run_command_compacts_repeated_createfile_failed_warnings(self):
+        class FakeProcess:
+            def __init__(self):
+                self.stdout = io.StringIO(
+                    '[WARNING] [Step 8/8] CreateFile failed for "\\\\?\\D:\\\\Albums\\\\a.jpg" (error=2)\n'
+                    '[WARNING] [Step 8/8] CreateFile failed for "\\\\?\\D:\\\\Albums\\\\b.jpg" (error=2)\n'
+                    'INFO  processing completed\n'
+                )
+                self.stderr = io.StringIO("")
+                self.returncode = 0
+
+            def wait(self):
+                return self.returncode
+
+        fake_logger = MagicMock()
+
+        with (
+            patch.object(takeout_module, "LOGGER", fake_logger),
+            patch.object(takeout_module, "custom_print"),
+            patch.object(takeout_module, "suppress_console_output_temporarily", new=lambda *_args, **_kwargs: contextlib.nullcontext()),
+            patch.object(takeout_module.subprocess, "Popen", return_value=FakeProcess()),
+        ):
+            returncode = takeout_module.run_command(
+                ["dummy-gpth"],
+                capture_output=True,
+                capture_errors=True,
+                print_messages=True,
+                step_name="STEP : ",
+            )
+
+        self.assertEqual(returncode, 0)
+        warning_messages = [call.args[0] for call in fake_logger.warning.call_args_list]
+        self.assertEqual(len(warning_messages), 1)
+        self.assertIn('Collapsed 2 repeated GPTH "CreateFile failed" warnings', warning_messages[0])
+        self.assertIn('First example: "\\\\?\\D:\\\\Albums\\\\a.jpg"', warning_messages[0])
+        info_messages = [call.args[0] for call in fake_logger.info.call_args_list]
+        self.assertIn("STEP : INFO  processing completed", info_messages)
 
 
 if __name__ == "__main__":

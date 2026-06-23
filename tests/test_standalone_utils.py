@@ -1,3 +1,4 @@
+import io
 import sys
 import tempfile
 import unittest
@@ -11,10 +12,18 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 try:
-    from Utils.StandaloneUtils import get_exif_tool_path
+    from Utils.StandaloneUtils import custom_print, get_exif_tool_path
     STANDALONE_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
     STANDALONE_IMPORT_ERROR = exc
+
+
+class Cp1252Stream(io.StringIO):
+    encoding = "cp1252"
+
+    def write(self, s):
+        s.encode(self.encoding)
+        return super().write(s)
 
 
 class TestStandaloneUtils(unittest.TestCase):
@@ -47,6 +56,14 @@ class TestStandaloneUtils(unittest.TestCase):
                 resolved = get_exif_tool_path("exiftool-custom")
 
         self.assertEqual(resolved, str(exiftool_path))
+
+    def test_custom_print_replaces_unencodable_chars_for_cp1252_streams(self):
+        stream = Cp1252Stream()
+
+        with patch("Utils.StandaloneUtils._supports_ansi_colors", return_value=False):
+            custom_print("🧠 Metadata Processing", file=stream)
+
+        self.assertIn("INFO    : ? Metadata Processing", stream.getvalue())
 
 
 if __name__ == "__main__":

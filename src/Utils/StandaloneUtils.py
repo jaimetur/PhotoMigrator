@@ -1,4 +1,5 @@
 import logging
+import locale
 import os
 import platform
 import posixpath
@@ -346,6 +347,26 @@ def _supports_ansi_colors() -> bool:
         return False
     return True
 
+
+def _get_stream_encoding(stream) -> str:
+    encoding = getattr(stream, "encoding", None)
+    if encoding:
+        return encoding
+    preferred = locale.getpreferredencoding(False)
+    return preferred or "utf-8"
+
+
+def _make_stream_safe_text(message: str, stream) -> str:
+    """
+    Replace characters unsupported by the target stream encoding so printing
+    cannot crash on Windows GUI/CP1252 consoles.
+    """
+    try:
+        encoding = _get_stream_encoding(stream)
+        return message.encode(encoding, errors="replace").decode(encoding, errors="replace")
+    except Exception:
+        return message
+
 #------------------------------------------------------------------
 # Replace original print to use the same GV.LOGGER formatter
 def custom_print(*args, log_level=logging.INFO, **kwargs):
@@ -359,6 +380,7 @@ def custom_print(*args, log_level=logging.INFO, **kwargs):
     """
     message = " ".join(str(a) for a in args)
     log_level_name = logging.getLevelName(log_level)
+    stream = kwargs.get("file", sys.stdout)
     if _supports_ansi_colors():
         color_tags = {
             "VERBOSE": f"{Fore.CYAN}{MSG_TAGS['VERBOSE']}",
@@ -369,7 +391,13 @@ def custom_print(*args, log_level=logging.INFO, **kwargs):
             "CRITICAL": f"{Fore.WHITE}{Style.BRIGHT}{MSG_TAGS['CRITICAL']}",
         }
         colortag = color_tags.get(log_level_name, color_tags["INFO"])
-        print(f"{colortag}{message}{Style.RESET_ALL}", **kwargs)
+        rendered_message = f"{colortag}{message}{Style.RESET_ALL}"
     else:
         plain_tag = MSG_TAGS.get(log_level_name, MSG_TAGS['INFO'])
-        print(f"{plain_tag}{message}", **kwargs)
+        rendered_message = f"{plain_tag}{message}"
+
+    try:
+        print(rendered_message, **kwargs)
+    except UnicodeEncodeError:
+        safe_message = _make_stream_safe_text(rendered_message, stream)
+        print(safe_message, **kwargs)

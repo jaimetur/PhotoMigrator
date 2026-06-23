@@ -29,6 +29,8 @@
 
 #### 🐛 Bug fixes:
   - Hardened `iCloud Takeout` date parsing so Apple `Photo Details.csv` timestamps are now parsed with strict known formats before any heuristic fallback, preventing explicit years like `2023` from being silently replaced by the current year during EXIF and filesystem date writes. Added regression coverage for the reported `December 27,2023 3:42 AM GMT` case. (Issue #1133).
+  - Hardened shared console output so Windows GUI/desktop runs no longer crash with `UnicodeEncodeError` when GPTH progress messages include Unicode symbols on non-UTF consoles such as `cp1252`. (Issue #1141).
+  - Compacted repeated GPTH Windows `CreateFile failed ... (error=2)` warnings during the final creation-time update step into a single summary message so large Takeout runs no longer flood the console/log with thousands of near-identical lines. (Issue #1142).
   - Fixed iCloud reconstructed album and memory symlinks to use relative targets instead of container-only absolute paths, so exported folders remain valid outside Docker mounts and on macOS/Linux filesystems.
   - Stopped emitting misleading `Error reading EXIF ... Given file is neither JPEG nor TIFF` warnings during iCloud `ALL_PHOTOS` organization for PNG/GIF files whose date already comes from CSV metadata plus filesystem timestamps.
   - Improved Web Interface job logs so indeterminate `tqdm` progress lines are compacted instead of being appended repeatedly, and each finished job now writes an explicit completion line with final status and exit code.

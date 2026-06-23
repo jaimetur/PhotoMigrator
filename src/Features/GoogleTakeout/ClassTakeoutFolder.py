@@ -37,6 +37,8 @@ from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path,
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, profile_and_print
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, custom_print, get_exif_tool_path
 
+CREATEFILE_FAILED_RE = re.compile(r'CreateFile failed for "(?P<path>.+?)" \(error=(?P<error>\d+)\)')
+
 def _normalize_special_folder_token(value):
     return re.sub(r"[\s_-]+", "", str(value or "").strip().lower())
 
@@ -64,6 +66,19 @@ def _looks_like_google_photos_container(folder_name):
 def _is_takeout_year_folder(folder_name):
     normalized = _normalize_folder_name(folder_name)
     return any(pattern.match(normalized) for pattern in TAKEOUT_YEAR_FOLDER_PATTERNS)
+
+
+def _parse_createfile_failed_warning(line):
+    if "CreateFile failed for" not in str(line):
+        return None
+    match = CREATEFILE_FAILED_RE.search(str(line))
+    if not match:
+        return None
+    return {
+        "line": str(line),
+        "path": match.group("path"),
+        "error": match.group("error"),
+    }
 
 
 def remap_extracted_dates_json_for_new_root(filedates_json, source_root, target_root, step_name="", log_level=None):
@@ -2062,6 +2077,62 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
     Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
     Loguea solo líneas distintas a las de progreso. Corrige pegado de líneas en consola.
     """
+    buffered_createfile_failures = []
+    warning_keywords = [
+        "WARNING",
+        "ExifTool command failed with exit code",
+        "Error output",
+    ]
+
+    def emit_line(line, is_error=False):
+        if print_messages:
+            if is_error:
+                custom_print(f"{step_name}{line}", log_level=logging.ERROR)
+            else:
+                if "VERBOSE" in line:
+                    custom_print(f"{step_name}{line}", log_level=logging.VERBOSE)
+                elif "DEBUG" in line:
+                    custom_print(f"{step_name}{line}", log_level=logging.DEBUG)
+                elif "WARNING" in line or any(kw in line for kw in warning_keywords):
+                    custom_print(f"{step_name}{line}", log_level=logging.WARNING)
+                elif "ERROR" in line:
+                    custom_print(f"{step_name}{line}", log_level=logging.ERROR)
+                else:
+                    custom_print(f"{step_name}{line}", log_level=logging.INFO)
+
+        if is_error:
+            LOGGER.error(f"{step_name}{line}")
+        else:
+            if "ERROR" in line:
+                LOGGER.error(f"{step_name}{line}")
+            elif "WARNING" in line:
+                LOGGER.warning(f"{step_name}{line}")
+            elif "DEBUG" in line:
+                LOGGER.debug(f"{step_name}{line}")
+            elif "VERBOSE" in line:
+                LOGGER.verbose(f"{step_name}{line}")
+            elif any(kw in line for kw in warning_keywords):
+                LOGGER.warning(f"{step_name}{line}")
+            else:
+                LOGGER.info(f"{step_name}{line}")
+
+    def flush_createfile_failed_warnings():
+        if not buffered_createfile_failures:
+            return
+
+        if len(buffered_createfile_failures) == 1:
+            emit_line(buffered_createfile_failures[0]["line"], is_error=False)
+            return
+
+        first = buffered_createfile_failures[0]
+        error_codes = ", ".join(sorted({entry["error"] for entry in buffered_createfile_failures}))
+        summary = (
+            f'[WARNING] Collapsed {len(buffered_createfile_failures)} repeated GPTH "CreateFile failed" warnings '
+            f'during the Windows creation-time update step (error codes: {error_codes}). '
+            f'First example: "{first["path"]}".'
+        )
+        emit_line(summary, is_error=False)
+
     # ----------------------------------------------------------------- AUXILIARY FUNCTIONS -------------------------------------------------------------------
     def handle_stream(stream, is_error=False):
         init(autoreset=True)
@@ -2136,53 +2207,13 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                 print()
             last_was_progress = False
 
-            # 3) Impresión normal
-            warning_keywords = [
-                "WARNING",
-                "ExifTool command failed with exit code",
-                "Error output",
-            ]
-            if print_messages:
-                if is_error:
-                    # print(f"{MSG_TAGS_COLORED['ERROR']}{step_name}{line}{Style.RESET_ALL}")
-                    custom_print(f"{step_name}{line}", log_level=logging.ERROR)
-                else:
-                    if "VERBOSE" in line:
-                        # print(f"{MSG_TAGS_COLORED['VERBOSE']}{step_name}{line}{Style.RESET_ALL}")
-                        custom_print(f"{step_name}{line}", log_level=logging.VERBOSE)         # Could raise error if we have not previously set logging.VERBOSE properly
-                        # custom_print(f"{step_name}{line}", log_level=VERBOSE_LEVEL_NUM)
-                    elif "DEBUG" in line:
-                        # print(f"{MSG_TAGS_COLORED['DEBUG']}{step_name}{line}{Style.RESET_ALL}")
-                        custom_print(f"{step_name}{line}", log_level=logging.DEBUG)
-                    elif "WARNING" in line:
-                        # print(f"{MSG_TAGS_COLORED['WARNING']}{step_name}{line}{Style.RESET_ALL}")
-                        custom_print(f"{step_name}{line}", log_level=logging.WARNING)
-                    elif any(kw in line for kw in warning_keywords):
-                        # print(f"{MSG_TAGS_COLORED['WARNING']}{step_name}{line}{Style.RESET_ALL}")
-                        custom_print(f"{step_name}{line}", log_level=logging.WARNING)
-                    elif "ERROR" in line:
-                        # print(f"{MSG_TAGS_COLORED['ERROR']}{step_name}{line}{Style.RESET_ALL}")
-                        custom_print(f"{step_name}{line}", log_level=logging.ERROR)
-                    else:
-                        # print(f"{MSG_TAGS_COLORED['INFO']}{step_name}{line}{Style.RESET_ALL}")
-                        custom_print(f"{step_name}{line}", log_level=logging.INFO)
+            createfile_failed = None if is_error else _parse_createfile_failed_warning(line)
+            if createfile_failed:
+                buffered_createfile_failures.append(createfile_failed)
+                continue
 
-            # 4) Logging normal
-            if is_error:
-                LOGGER.error(f"{step_name}{line}")
-            else:
-                if "ERROR" in line:
-                    LOGGER.error(f"{step_name}{line}")
-                elif "WARNING" in line:
-                    LOGGER.warning(f"{step_name}{line}")
-                elif "DEBUG" in line:
-                    LOGGER.debug(f"{step_name}{line}")
-                elif "VERBOSE" in line:
-                    LOGGER.verbose(f"{step_name}{line}")
-                elif any(kw in line for kw in warning_keywords):
-                    LOGGER.warning(f"{step_name}{line}")
-                else:
-                    LOGGER.info(f"{step_name}{line}")
+            # 3) Impresión/logging normal
+            emit_line(line, is_error=is_error)
 
         # 5) Al cerrar stream, si quedó un progreso vivo, cerramos línea
         if last_was_progress and print_messages:
@@ -2205,6 +2236,7 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                 handle_stream(process.stderr, is_error=True)
 
             process.wait()  # Esperar a que el proceso termine
+            flush_createfile_failed_warnings()
             return process.returncode
 
 
