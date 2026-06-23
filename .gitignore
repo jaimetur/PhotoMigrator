@@ -12,7 +12,6 @@
 
 # Auxiliary Scripts
 copy-src-to-nas*.*
-run.sh
 
 # FreeFilesync files
 /sync.ffs_db
