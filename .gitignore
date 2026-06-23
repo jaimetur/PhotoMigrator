@@ -185,7 +185,9 @@ celerybeat.pid
 .env
 !docker-web/.env
 .venv
-.venv_mac
+.venv_macmini
+.venv_macbook
+.venv_windows
 env/
 venv/
 ENV/

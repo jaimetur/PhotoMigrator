@@ -5,6 +5,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/.venv_mac" />
+      <excludeFolder url="file://$MODULE_DIR$/.venv_macmini" />
+      <excludeFolder url="file://$MODULE_DIR$/.venv_windows" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (PhotoMigrator)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
