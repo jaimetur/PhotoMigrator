@@ -176,6 +176,8 @@ class TestAutomaticMigrationMode(unittest.TestCase):
         self.assertEqual(mock_process.call_count, 1)
         self.assertEqual(mock_ensure_analyzer.call_count, 1)
         self.assertEqual(mock_parallel.call_count, 1)
+        self.assertNotIn("metadata_json_file", mock_ensure_analyzer.call_args.kwargs)
+        self.assertEqual(mock_ensure_analyzer.call_args.kwargs.get("log_level"), logging.INFO)
 
     def test_mode_automatic_migration_processes_icloud_takeout_source_before_parallel_flow(self):
         (self.source / "PartA").mkdir(parents=True, exist_ok=True)

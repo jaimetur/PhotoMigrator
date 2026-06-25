@@ -17,6 +17,7 @@
 
 #### 🐛 Bug fixes:
   - Added a Google Takeout post-process repair for processed videos whose native container date remains correct but GPTH leaves conflicting `XMP` date tags behind, so `Automatic Migration` targets such as Immich no longer misgroup those videos under the wrong day/month. The final extracted-dates metadata snapshot is now updated in-memory as part of that repair as well. (Issue #1145).
+  - Fixed `Automatic Migration` from processed Google Takeout sources so album discovery is now rebuilt from the processed folder tree on disk instead of the final dates JSON snapshot. This preserves albums made only of shortcuts/symlinks into `ALL_PHOTOS`, allowing Immich album creation to include those Takeout albums as expected. (Issue #1146).
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
