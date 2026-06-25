@@ -222,6 +222,10 @@ GENERAL_OPTIONAL_DESTS = {
     "exec-exif-tool",
 }
 
+WEB_HIDDEN_GENERAL_DESTS = {
+    "configuration-file",
+}
+
 FEATURE_SCOPED_DESTS = {
     "input-folder",
     "output-folder",
@@ -1537,6 +1541,12 @@ def _user_config_db_path(current_user: Dict[str, Any]) -> str:
     return f"db://users/{username}/Config.ini"
 
 
+def _display_command_for_user(command: List[str], config_path: Path, current_user: Dict[str, Any]) -> str:
+    safe_config_path = _user_config_db_path(current_user)
+    rendered_parts = [safe_config_path if str(part) == str(config_path) else str(part) for part in (command or [])]
+    return subprocess.list2cmdline(rendered_parts)
+
+
 def _apply_state_defaults(values: Dict[str, Any]) -> Dict[str, Any]:
     normalized = dict(values or {})
     if WEB_DEFAULT_GOOGLE_TAKEOUT_PATH and not str(normalized.get("google-takeout", "") or "").strip():
@@ -2197,7 +2207,12 @@ def _load_parser_schema() -> Dict[str, Any]:
         by_dest[dest] = field
 
     cloud_common = [field for field in fields if field["tab"] == "cloud_common"]
-    merged_general = [field for field in fields if field["dest"] in (GENERAL_CORE_DESTS | GENERAL_OPTIONAL_DESTS)]
+    merged_general = [
+        field
+        for field in fields
+        if field["dest"] in (GENERAL_CORE_DESTS | GENERAL_OPTIONAL_DESTS)
+        and field["dest"] not in WEB_HIDDEN_GENERAL_DESTS
+    ]
     schema = {
         "general_tabs": {
             "general": merged_general,
@@ -2333,19 +2348,16 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
 
 def _normalize_incoming_values(values: Dict[str, Any], config_path: Path) -> Dict[str, Any]:
     incoming_values = dict(values or {})
+    incoming_values.pop("configuration-file", None)
     for key, value in list(incoming_values.items()):
         if not isinstance(value, str):
             continue
         trimmed = value.strip()
         if not trimmed.startswith("/docker"):
             continue
-        if key == "configuration-file":
-            incoming_values[key] = str(config_path)
-        else:
-            incoming_values[key] = trimmed.replace("/docker", "/app/data", 1)
+        incoming_values[key] = trimmed.replace("/docker", "/app/data", 1)
 
-    if not str(incoming_values.get("configuration-file", "")).strip():
-        incoming_values["configuration-file"] = str(config_path)
+    incoming_values["configuration-file"] = str(config_path)
     return incoming_values
 
 
@@ -2379,7 +2391,7 @@ def _build_command_from_payload(payload: RunRequest, config_path: Path) -> List[
                     ),
                 )
     cli_args = _build_cli_args(payload.tab, normalized_values, payload.selected_action_dest)
-    return [sys.executable, str(CLI_ENTRYPOINT), *cli_args]
+    return [sys.executable, str(CLI_ENTRYPOINT), *cli_args, "--configuration-file", str(config_path)]
 
 
 def _value_is_provided(dest: str, values: Dict[str, Any]) -> bool:
@@ -2969,6 +2981,7 @@ def import_config(payload: ConfigUpdateRequest, current_user: Dict[str, Any] = D
     )
     parsed_values = _parse_ini_text_to_values(payload.content or "", strict=True)
     merged = _merge_values_with_schema(parsed_values, CONFIG_FORM_SCHEMA)
+    merged = _sanitize_config_values_for_user(merged, CONFIG_FORM_SCHEMA, current_user)
     _save_user_config_values(current_user, merged, CONFIG_FORM_SCHEMA)
     _sync_user_theme_to_state(current_user, merged)
     response = _build_config_form_response(current_user, merged=merged)
@@ -3338,7 +3351,7 @@ def preview_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_req
     scope = _path_validation_scope_for_payload(payload.tab, payload.selected_action_dest, normalized_values)
     normalized_values = _sanitize_payload_paths_for_user(normalized_values, current_user, path_scope=scope)
     command = _build_command_from_payload(RunRequest(tab=payload.tab, values=normalized_values, selected_action_dest=payload.selected_action_dest), config_path=config_path)
-    return {"command": subprocess.list2cmdline(command)}
+    return {"command": _display_command_for_user(command, config_path, current_user)}
 
 
 @app.post("/api/run")
@@ -3354,6 +3367,7 @@ def run_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_require
         raise HTTPException(status_code=400, detail=f"Missing required argument(s): {joined}")
     payload = RunRequest(tab=payload.tab, values=normalized_values, selected_action_dest=payload.selected_action_dest)
     command = _build_command_from_payload(payload, config_path=config_path)
+    display_command = _display_command_for_user(command, config_path, current_user)
     child_env = os.environ.copy()
     child_env["PHOTOMIGRATOR_ALLOW_STDIN_PIPE"] = "1"
     child_env["PHOTOMIGRATOR_WEB_MODE"] = "1"
@@ -3376,11 +3390,12 @@ def run_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_require
 
     with JOBS_LOCK:
         JOBS[job_id] = JobData(command=command, process=process, tab=payload.tab, owner_user_id=int(current_user["id"]))
+        JOBS[job_id].command_string = display_command
 
     thread = threading.Thread(target=_run_job, args=(job_id, process), daemon=True)
     thread.start()
 
-    return {"job_id": job_id, "command": subprocess.list2cmdline(command)}
+    return {"job_id": job_id, "command": display_command}
 
 
 @app.get("/api/jobs/_active")

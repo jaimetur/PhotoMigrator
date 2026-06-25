@@ -34,6 +34,7 @@
   - Fixed iCloud reconstructed album and memory symlinks to use relative targets instead of container-only absolute paths, so exported folders remain valid outside Docker mounts and on macOS/Linux filesystems.
   - Stopped emitting misleading `Error reading EXIF ... Given file is neither JPEG nor TIFF` warnings during iCloud `ALL_PHOTOS` organization for PNG/GIF files whose date already comes from CSV metadata plus filesystem timestamps.
   - Improved Web Interface job logs so indeterminate `tqdm` progress lines are compacted instead of being appended repeatedly, and each finished job now writes an explicit completion line with final status and exit code.
+  - Hardened Web Interface multi-user config isolation so web sessions can no longer override `--configuration-file` with an arbitrary path, command previews/jobs no longer expose the physical generated `Config_*.ini` cache path, and imported config values are now revalidated against the authenticated user's allowed roots before being persisted.
 
 #### 📚 Documentation:
   - Clarified the iCloud Takeout documentation so it now states explicitly that reconstructed `Albums` and `Memories` use symlinks by default, and that `--icloud-no-symbolic-albums` switches that behavior to duplicated copies.

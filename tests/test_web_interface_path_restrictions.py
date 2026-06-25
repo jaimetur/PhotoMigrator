@@ -146,6 +146,72 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(context.exception.status_code, 400)
         self.assertIn("Config path", str(context.exception.detail))
 
+    def test_web_normalize_incoming_values_forces_authenticated_user_config_path(self):
+        own_config_path = self.web_app._materialize_user_config_to_file(self.current_user, self.web_app.CONFIG_FORM_SCHEMA)
+        normalized = self.web_app._normalize_incoming_values(
+            {"configuration-file": "/app/config/generated/Config_admin_999.ini"},
+            config_path=own_config_path,
+        )
+
+        self.assertEqual(normalized["configuration-file"], str(own_config_path))
+
+    def test_build_command_ignores_user_supplied_configuration_file(self):
+        own_config_path = self.web_app._materialize_user_config_to_file(self.current_user, self.web_app.CONFIG_FORM_SCHEMA)
+        takeout_subfolder = self.allowed_roots[0] / "TakeoutInput"
+        takeout_subfolder.mkdir(parents=True, exist_ok=True)
+        payload = self.web_app.RunRequest(
+            tab="google_takeout",
+            values={
+                "google-takeout": str(takeout_subfolder),
+                "configuration-file": "/app/config/generated/Config_admin_999.ini",
+            },
+        )
+
+        command = self.web_app._build_command_from_payload(payload, own_config_path)
+
+        self.assertIn("--configuration-file", command)
+        self.assertIn(str(own_config_path), command)
+        self.assertNotIn("/app/config/generated/Config_admin_999.ini", command)
+
+    def test_display_command_hides_materialized_config_path(self):
+        own_config_path = self.web_app._materialize_user_config_to_file(self.current_user, self.web_app.CONFIG_FORM_SCHEMA)
+        command = [
+            "python",
+            "PhotoMigrator.py",
+            "--google-takeout",
+            str(self.allowed_roots[0] / "TakeoutInput"),
+            "--configuration-file",
+            str(own_config_path),
+        ]
+
+        rendered = self.web_app._display_command_for_user(command, own_config_path, self.current_user)
+
+        self.assertIn(self.web_app._user_config_db_path(self.current_user), rendered)
+        self.assertNotIn(str(own_config_path), rendered)
+
+    def test_import_config_rejects_paths_outside_user_roots(self):
+        original_schema = self.web_app.CONFIG_FORM_SCHEMA
+        self.web_app.CONFIG_FORM_SCHEMA = [
+            {
+                "name": "Google Takeout",
+                "fields": [
+                    {"key": "INPUT_FOLDER", "default": "", "help": "", "sensitive": False},
+                ],
+            }
+        ]
+        payload = self.web_app.ConfigUpdateRequest(
+            content="[Google Takeout]\nINPUT_FOLDER = /etc/passwd\n",
+        )
+
+        try:
+            with self.assertRaises(self.HTTPException) as context:
+                self.web_app.import_config(payload, self.current_user)
+        finally:
+            self.web_app.CONFIG_FORM_SCHEMA = original_schema
+
+        self.assertEqual(context.exception.status_code, 403)
+        self.assertIn("allowed user roots", str(context.exception.detail))
+
     def test_exclusion_pattern_fields_are_not_treated_as_paths(self):
         self.assertEqual(self.web_app._path_hint("exclude-folders", "<FOLDER_PATTERN>"), "")
         self.assertEqual(self.web_app._path_hint("exclude-files", "<FILE_PATTERN>"), "")
@@ -200,6 +266,10 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertFalse(web_interface["account_selector"]["enabled"])
         self.assertEqual(web_interface["account_selector"]["accounts"], [])
         self.assertEqual(web_interface["account_selector"]["default_account"], "")
+
+    def test_web_schema_hides_configuration_file_argument(self):
+        general_dests = {str(field.get("dest") or "") for field in self.web_app.PARSER_SCHEMA["general_tabs"]["general"]}
+        self.assertNotIn("configuration-file", general_dests)
 
     def test_icloud_include_memories_defaults_to_true_in_ui_and_appends_existing_flag(self):
         field = self.web_app.PARSER_FIELDS_BY_DEST["icloud-include-memories"]
