@@ -44,6 +44,18 @@ VIDEO_XMP_DATE_TAGS = (
     "XMP:CreateDate",
     "XMP:ModifyDate",
 )
+VIDEO_NATIVE_DATE_TAGS = (
+    "QuickTime:CreateDate",
+    "QuickTime:TrackCreateDate",
+    "QuickTime:MediaCreateDate",
+    "Track:CreateDate",
+    "Media:CreateDate",
+    "QuickTime:ModifyDate",
+    "QuickTime:TrackModifyDate",
+    "QuickTime:MediaModifyDate",
+    "Track:ModifyDate",
+    "Media:ModifyDate",
+)
 VIDEO_METADATA_REPAIR_SOURCE_PREFIXES = ("QuickTime:", "Track:", "Media:")
 VIDEO_METADATA_REPAIR_EXTENSIONS = {".mp4", ".mov", ".m4v", ".3gp", ".3g2"}
 
@@ -128,18 +140,35 @@ def _build_video_metadata_repair_args(file_path, dt_value):
     return args
 
 
+def _select_video_native_metadata_date(entry):
+    native_candidates = []
+    for tag_name in VIDEO_NATIVE_DATE_TAGS:
+        parsed = _parse_metadata_datetime(entry.get(tag_name))
+        if parsed is None:
+            continue
+        native_candidates.append((parsed, tag_name))
+    if not native_candidates:
+        return None, None
+    native_candidates.sort(key=lambda item: _normalize_dt_for_metadata_compare(item[0]))
+    return native_candidates[0]
+
+
 def _video_entry_needs_metadata_repair(file_path, entry):
     suffix = Path(file_path).suffix.lower()
-    source = str(entry.get("Source") or "")
-    desired_dt = _parse_metadata_datetime(entry.get("OldestDate"))
-    if desired_dt is None:
-        return False, None, []
+    desired_dt, desired_source = _select_video_native_metadata_date(entry)
     if suffix not in VIDEO_EXT:
-        return False, desired_dt, []
-    if suffix not in VIDEO_METADATA_REPAIR_EXTENSIONS and not source.startswith(VIDEO_METADATA_REPAIR_SOURCE_PREFIXES):
-        return False, desired_dt, []
-    if not source.startswith(VIDEO_METADATA_REPAIR_SOURCE_PREFIXES):
-        return False, desired_dt, []
+        return False, desired_dt, desired_source, []
+    if desired_dt is None:
+        fallback_source = str(entry.get("Source") or "")
+        fallback_dt = _parse_metadata_datetime(entry.get("OldestDate"))
+        if fallback_dt is None:
+            return False, None, None, []
+        if suffix not in VIDEO_METADATA_REPAIR_EXTENSIONS and not fallback_source.startswith(VIDEO_METADATA_REPAIR_SOURCE_PREFIXES):
+            return False, fallback_dt, fallback_source or None, []
+        if not fallback_source.startswith(VIDEO_METADATA_REPAIR_SOURCE_PREFIXES):
+            return False, fallback_dt, fallback_source or None, []
+        desired_dt = fallback_dt
+        desired_source = fallback_source
 
     desired_cmp = _normalize_dt_for_metadata_compare(desired_dt)
     conflicting_tags = []
@@ -150,11 +179,14 @@ def _video_entry_needs_metadata_repair(file_path, entry):
         if _normalize_dt_for_metadata_compare(parsed) != desired_cmp:
             conflicting_tags.append(tag_name)
 
-    return bool(conflicting_tags), desired_dt, conflicting_tags
+    return bool(conflicting_tags), desired_dt, desired_source, conflicting_tags
 
 
-def _update_video_entry_after_metadata_repair(entry, dt_value):
+def _update_video_entry_after_metadata_repair(entry, dt_value, source_tag):
     iso_value = dt_value.isoformat()
+    entry["OldestDate"] = iso_value
+    if source_tag:
+        entry["Source"] = source_tag
     for tag_name in (
         "QuickTime:CreateDate",
         "QuickTime:ModifyDate",
@@ -192,7 +224,7 @@ def repair_conflicting_video_xmp_dates(folder_analyzer=None, step_name="", log_l
         repaired_count = 0
         skipped_missing_files = 0
         for file_path, entry in extracted_dates.items():
-            needs_fix, desired_dt, conflicting_tags = _video_entry_needs_metadata_repair(file_path, entry)
+            needs_fix, desired_dt, desired_source, conflicting_tags = _video_entry_needs_metadata_repair(file_path, entry)
             if not needs_fix:
                 continue
 
@@ -211,7 +243,7 @@ def repair_conflicting_video_xmp_dates(folder_analyzer=None, step_name="", log_l
                 )
                 continue
 
-            _update_video_entry_after_metadata_repair(entry, desired_dt)
+            _update_video_entry_after_metadata_repair(entry, desired_dt, desired_source)
             repaired_count += 1
             LOGGER.debug(
                 f"{step_name}Normalized conflicting video XMP dates for '{resolved_path}' "
