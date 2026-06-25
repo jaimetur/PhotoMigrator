@@ -93,6 +93,84 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         info_messages = [call.args[0] for call in fake_logger.info.call_args_list]
         self.assertIn("STEP : INFO  processing completed", info_messages)
 
+    def test_repair_conflicting_video_xmp_dates_rewrites_conflicting_video_tags(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            video_path = root / "clip.mp4"
+            exiftool_path = root / "exiftool"
+            video_path.write_bytes(b"video")
+            exiftool_path.write_text("", encoding="utf-8")
+            entry = {
+                "TargetFile": video_path.as_posix(),
+                "OldestDate": "2025-10-19T08:02:06-04:00",
+                "Source": "QuickTime:CreateDate",
+                "QuickTime:CreateDate": "2025-10-19T08:02:06-04:00",
+                "XMP:DateTimeOriginal": "2025-11-26T18:19:48-04:00",
+                "XMP:DateTime": "2025-11-26T18:19:48-04:00",
+                "XMP:ModifyDate": "2025-11-26T18:19:48-04:00",
+            }
+            analyzer = MagicMock()
+            analyzer.get_extracted_dates.return_value = {video_path.as_posix(): entry}
+
+            with (
+                patch.object(takeout_module, "LOGGER", self.logger),
+                patch.object(takeout_module, "get_exif_tool_path", return_value=str(exiftool_path)),
+                patch.object(takeout_module, "ensure_executable"),
+                patch.object(
+                    takeout_module.subprocess,
+                    "run",
+                    return_value=MagicMock(returncode=0, stdout="", stderr=""),
+                ) as mock_run,
+            ):
+                repaired = takeout_module.repair_conflicting_video_xmp_dates(
+                    folder_analyzer=analyzer,
+                    step_name="STEP : ",
+                    log_level=logging.INFO,
+                )
+
+        self.assertEqual(repaired, 1)
+        command = mock_run.call_args.args[0]
+        self.assertEqual(command[0], str(exiftool_path))
+        self.assertIn("-QuickTime:CreateDate=2025:10:19 08:02:06", command)
+        self.assertIn("-XMP:DateTimeOriginal=2025:10:19 08:02:06", command)
+        self.assertEqual(entry["XMP:DateTimeOriginal"], "2025-10-19T08:02:06-04:00")
+        self.assertEqual(entry["XMP:DateTime"], "2025-10-19T08:02:06-04:00")
+        self.assertEqual(entry["XMP:ModifyDate"], "2025-10-19T08:02:06-04:00")
+
+    def test_repair_conflicting_video_xmp_dates_skips_already_aligned_video_tags(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            video_path = root / "clip.mp4"
+            exiftool_path = root / "exiftool"
+            video_path.write_bytes(b"video")
+            exiftool_path.write_text("", encoding="utf-8")
+            entry = {
+                "TargetFile": video_path.as_posix(),
+                "OldestDate": "2025-10-19T08:02:06-04:00",
+                "Source": "QuickTime:CreateDate",
+                "QuickTime:CreateDate": "2025-10-19T08:02:06-04:00",
+                "XMP:DateTimeOriginal": "2025-10-19T08:02:06-04:00",
+                "XMP:DateTime": "2025-10-19T08:02:06-04:00",
+                "XMP:ModifyDate": "2025-10-19T08:02:06-04:00",
+            }
+            analyzer = MagicMock()
+            analyzer.get_extracted_dates.return_value = {video_path.as_posix(): entry}
+
+            with (
+                patch.object(takeout_module, "LOGGER", self.logger),
+                patch.object(takeout_module, "get_exif_tool_path", return_value=str(exiftool_path)),
+                patch.object(takeout_module, "ensure_executable"),
+                patch.object(takeout_module.subprocess, "run") as mock_run,
+            ):
+                repaired = takeout_module.repair_conflicting_video_xmp_dates(
+                    folder_analyzer=analyzer,
+                    step_name="STEP : ",
+                    log_level=logging.INFO,
+                )
+
+        self.assertEqual(repaired, 0)
+        mock_run.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

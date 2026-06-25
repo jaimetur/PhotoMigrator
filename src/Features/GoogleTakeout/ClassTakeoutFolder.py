@@ -38,6 +38,14 @@ from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, custom_print, get_exif_tool_path
 
 CREATEFILE_FAILED_RE = re.compile(r'CreateFile failed for "(?P<path>.+?)" \(error=(?P<error>\d+)\)')
+VIDEO_XMP_DATE_TAGS = (
+    "XMP:DateTimeOriginal",
+    "XMP:DateTime",
+    "XMP:CreateDate",
+    "XMP:ModifyDate",
+)
+VIDEO_METADATA_REPAIR_SOURCE_PREFIXES = ("QuickTime:", "Track:", "Media:")
+VIDEO_METADATA_REPAIR_EXTENSIONS = {".mp4", ".mov", ".m4v", ".3gp", ".3g2"}
 
 def _normalize_special_folder_token(value):
     return re.sub(r"[\s_-]+", "", str(value or "").strip().lower())
@@ -79,6 +87,141 @@ def _parse_createfile_failed_warning(line):
         "path": match.group("path"),
         "error": match.group("error"),
     }
+
+
+def _normalize_dt_for_metadata_compare(dt_value):
+    if dt_value is None:
+        return None
+    return dt_value.replace(microsecond=0, tzinfo=None) if dt_value.tzinfo else dt_value.replace(microsecond=0)
+
+
+def _parse_metadata_datetime(raw_value):
+    if not isinstance(raw_value, str) or not raw_value.strip():
+        return None
+    try:
+        return parser.parse(raw_value.strip())
+    except Exception:
+        return None
+
+
+def _build_video_metadata_repair_args(file_path, dt_value):
+    date_text = _normalize_dt_for_metadata_compare(dt_value).strftime("%Y:%m:%d %H:%M:%S")
+    args = [
+        "-overwrite_original",
+        "-m",
+        f"-QuickTime:CreateDate={date_text}",
+        f"-QuickTime:ModifyDate={date_text}",
+        f"-QuickTime:TrackCreateDate={date_text}",
+        f"-QuickTime:TrackModifyDate={date_text}",
+        f"-QuickTime:MediaCreateDate={date_text}",
+        f"-QuickTime:MediaModifyDate={date_text}",
+        f"-Keys:CreationDate={date_text}",
+        f"-XMP:DateTimeOriginal={date_text}",
+        f"-XMP:DateTime={date_text}",
+        f"-XMP:CreateDate={date_text}",
+        f"-XMP:ModifyDate={date_text}",
+        f"-FileModifyDate={date_text}",
+    ]
+    if sys.platform.startswith("win") or sys.platform == "darwin":
+        args.append(f"-FileCreateDate={date_text}")
+    args.append(str(file_path))
+    return args
+
+
+def _video_entry_needs_metadata_repair(file_path, entry):
+    suffix = Path(file_path).suffix.lower()
+    source = str(entry.get("Source") or "")
+    desired_dt = _parse_metadata_datetime(entry.get("OldestDate"))
+    if desired_dt is None:
+        return False, None, []
+    if suffix not in VIDEO_EXT:
+        return False, desired_dt, []
+    if suffix not in VIDEO_METADATA_REPAIR_EXTENSIONS and not source.startswith(VIDEO_METADATA_REPAIR_SOURCE_PREFIXES):
+        return False, desired_dt, []
+    if not source.startswith(VIDEO_METADATA_REPAIR_SOURCE_PREFIXES):
+        return False, desired_dt, []
+
+    desired_cmp = _normalize_dt_for_metadata_compare(desired_dt)
+    conflicting_tags = []
+    for tag_name in VIDEO_XMP_DATE_TAGS:
+        parsed = _parse_metadata_datetime(entry.get(tag_name))
+        if parsed is None:
+            continue
+        if _normalize_dt_for_metadata_compare(parsed) != desired_cmp:
+            conflicting_tags.append(tag_name)
+
+    return bool(conflicting_tags), desired_dt, conflicting_tags
+
+
+def _update_video_entry_after_metadata_repair(entry, dt_value):
+    iso_value = dt_value.isoformat()
+    for tag_name in (
+        "QuickTime:CreateDate",
+        "QuickTime:ModifyDate",
+        "QuickTime:TrackCreateDate",
+        "QuickTime:TrackModifyDate",
+        "QuickTime:MediaCreateDate",
+        "QuickTime:MediaModifyDate",
+        "Keys:CreationDate",
+        "XMP:DateTimeOriginal",
+        "XMP:DateTime",
+        "XMP:CreateDate",
+        "XMP:ModifyDate",
+        "File:FileModifyDate",
+    ):
+        entry[tag_name] = iso_value
+
+
+def repair_conflicting_video_xmp_dates(folder_analyzer=None, step_name="", log_level=None):
+    """
+    Normalize processed video metadata when GPTH leaves conflicting XMP dates
+    after writing a valid native container date.
+    """
+    with set_log_level(LOGGER, log_level):
+        extracted_dates = folder_analyzer.get_extracted_dates() if folder_analyzer else {}
+        if not extracted_dates:
+            LOGGER.info(f"{step_name}No extracted dates available. Skipping processed video metadata repair.")
+            return 0
+
+        exif_tool_path = get_exif_tool_path(base_path=FOLDERNAME_EXIFTOOL, step_name=step_name)
+        if not Path(exif_tool_path).exists():
+            LOGGER.warning(f"{step_name}ExifTool not found at '{exif_tool_path}'. Skipping processed video metadata repair.")
+            return 0
+        ensure_executable(exif_tool_path)
+
+        repaired_count = 0
+        skipped_missing_files = 0
+        for file_path, entry in extracted_dates.items():
+            needs_fix, desired_dt, conflicting_tags = _video_entry_needs_metadata_repair(file_path, entry)
+            if not needs_fix:
+                continue
+
+            resolved_path = Path(entry.get("TargetFile") or file_path)
+            if not resolved_path.exists():
+                skipped_missing_files += 1
+                continue
+
+            command = [exif_tool_path, *_build_video_metadata_repair_args(resolved_path, desired_dt)]
+            result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+            if result.returncode != 0:
+                details = (result.stderr or result.stdout or "").strip()
+                LOGGER.warning(
+                    f"{step_name}Failed to normalize video metadata for '{resolved_path}': "
+                    f"{details[:400] or f'ExifTool exit code {result.returncode}'}"
+                )
+                continue
+
+            _update_video_entry_after_metadata_repair(entry, desired_dt)
+            repaired_count += 1
+            LOGGER.debug(
+                f"{step_name}Normalized conflicting video XMP dates for '{resolved_path}' "
+                f"(tags: {', '.join(conflicting_tags)})."
+            )
+
+        LOGGER.info(f"{step_name}Processed video metadata normalized for {repaired_count} files.")
+        if skipped_missing_files:
+            LOGGER.warning(f"{step_name}Skipped {skipped_missing_files} video files that no longer exist during metadata repair.")
+        return repaired_count
 
 
 def remap_extracted_dates_json_for_new_root(filedates_json, source_root, target_root, step_name="", log_level=None):
@@ -1167,6 +1310,28 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Timestamps of '.MP4' file with Live pictures files (.HEIC, .JPG, .JPEG) if both files have the same name and are in the same folder...")
             sync_mp4_timestamps_with_images(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+            # Step 4.2: Normalize conflicting video XMP dates left by GPTH
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🎞️ [POST-PROCESS]-[Repair Video XMP Dates] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. NORMALIZING CONFLICTING VIDEO XMP DATES...")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            repair_conflicting_video_xmp_dates(
+                folder_analyzer=self.output_folder_analyzer,
+                step_name=step_name,
+                log_level=LOG_LEVEL,
+            )
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
             LOGGER.info(f"")
