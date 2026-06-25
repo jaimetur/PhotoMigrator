@@ -34,7 +34,7 @@ from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Utils.DateUtils import normalize_datetime_utc
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path, sanitize_and_unpack_zips
-from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, profile_and_print
+from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, profile_and_print, TQDM_DASHBOARD_PREFIX
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, custom_print, get_exif_tool_path
 
 CREATEFILE_FAILED_RE = re.compile(r'CreateFile failed for "(?P<path>.+?)" \(error=(?P<error>\d+)\)')
@@ -2313,6 +2313,25 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
             else:
                 LOGGER.info(f"{step_name}{line}")
 
+    def emit_dashboard_progress(line):
+        payload = f"{TQDM_DASHBOARD_PREFIX}{line}"
+        for handler in getattr(LOGGER, "handlers", []) or []:
+            if not getattr(handler, "accept_tqdm", False):
+                continue
+            try:
+                record = logging.LogRecord(
+                    name=getattr(LOGGER, "name", "PhotoMigrator"),
+                    level=logging.INFO,
+                    pathname="",
+                    lineno=0,
+                    msg=payload,
+                    args=(),
+                    exc_info=None,
+                )
+                handler.emit(record)
+            except Exception:
+                continue
+
     def flush_createfile_failed_warnings():
         if not buffered_createfile_failures:
             return
@@ -2341,14 +2360,31 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
         last_was_progress = False
         printed_final = set()
 
-        while True:
-            raw = stream.readline()
-            if not raw:
-                break
+        def iter_stream_frames(input_stream):
+            buffer = []
+            while True:
+                char = input_stream.read(1)
+                if char == "":
+                    break
+                if char in ("\r", "\n"):
+                    if buffer:
+                        yield "".join(buffer)
+                        buffer = []
+                    continue
+                buffer.append(char)
+            if buffer:
+                yield "".join(buffer)
+
+        for raw in iter_stream_frames(stream):
 
             # Limpiar ANSI y espacios finales
             ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
             line = ansi_escape.sub('', raw).rstrip()
+            if not line.strip():
+                if last_was_progress and print_messages:
+                    print()
+                last_was_progress = False
+                continue
 
             # Prefijo para agrupar barras
             common_part = line.split(' : ')[0] if ' : ' in line else line
@@ -2360,6 +2396,8 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
 
                 # 1.a) Barra vacía (0/x)
                 if n == 0:
+                    if not print_messages:
+                        emit_dashboard_progress(line)
                     if not print_messages:
                         # Log inicial
                         log_msg = f"{step_name}{line}"
@@ -2376,12 +2414,16 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                     if print_messages:
                         print(f"\r{MSG_TAGS['INFO']}{step_name}{line}", end='', flush=True)
                         # custom_print(f"\r{step_name}{line}", end='', flush=True, log_level=logging.INFO)
+                    else:
+                        emit_dashboard_progress(line)
                     last_was_progress = True
                     # no logueamos intermedias
                     continue
 
                 # 1.c) Barra completa (n >= total), solo una vez
                 if common_part not in printed_final:
+                    if not print_messages:
+                        emit_dashboard_progress(line)
                     # impresión en pantalla
                     if print_messages:
                         print(f"\r{MSG_TAGS['INFO']}{step_name}{line}", end='', flush=True)

@@ -93,6 +93,63 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         info_messages = [call.args[0] for call in fake_logger.info.call_args_list]
         self.assertIn("STEP : INFO  processing completed", info_messages)
 
+    def test_run_command_emits_carriage_return_progress_frames_to_dashboard_handlers(self):
+        class FakeProcess:
+            def __init__(self):
+                self.stdout = io.StringIO(
+                    "[INFO] [Step 6/8] Moving entities : 0/10\r"
+                    "[INFO] [Step 6/8] Moving entities : 5/10\r"
+                    "\n"
+                    "[INFO] [Step 6/8] Moving entities : 10/10"
+                )
+                self.stderr = io.StringIO("")
+                self.returncode = 0
+
+            def wait(self):
+                return self.returncode
+
+        class DashboardHandler:
+            accept_tqdm = True
+
+            def __init__(self):
+                self.messages = []
+
+            def emit(self, record):
+                self.messages.append(record.msg)
+
+        fake_logger = MagicMock()
+        dashboard_handler = DashboardHandler()
+        fake_logger.handlers = [dashboard_handler]
+        fake_logger.name = "PhotoMigrator"
+
+        with (
+            patch.object(takeout_module, "LOGGER", fake_logger),
+            patch.object(takeout_module, "custom_print"),
+            patch.object(takeout_module, "suppress_console_output_temporarily", new=lambda *_args, **_kwargs: contextlib.nullcontext()),
+            patch.object(takeout_module.subprocess, "Popen", return_value=FakeProcess()),
+        ):
+            returncode = takeout_module.run_command(
+                ["dummy-gpth"],
+                capture_output=True,
+                capture_errors=True,
+                print_messages=False,
+                step_name="STEP : ",
+            )
+
+        self.assertEqual(returncode, 0)
+        self.assertEqual(
+            dashboard_handler.messages,
+            [
+                "__TQDM__ [INFO] [Step 6/8] Moving entities : 0/10",
+                "__TQDM__ [INFO] [Step 6/8] Moving entities : 5/10",
+                "__TQDM__ [INFO] [Step 6/8] Moving entities : 10/10",
+            ],
+        )
+        info_messages = [call.args[0] for call in fake_logger.info.call_args_list]
+        self.assertIn("STEP : [INFO] [Step 6/8] Moving entities : 0/10", info_messages)
+        self.assertIn("STEP : [INFO] [Step 6/8] Moving entities : 10/10", info_messages)
+        self.assertNotIn("STEP : ", [msg for msg in info_messages if msg.strip() == "STEP :"])
+
     def test_repair_conflicting_video_xmp_dates_rewrites_conflicting_video_tags(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

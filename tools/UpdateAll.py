@@ -14,6 +14,7 @@ from tkinter import messagebox
 ROOT = Path(__file__).resolve().parents[1]
 GLOBAL_VARS_PATH = ROOT / "src" / "Core" / "GlobalVariables.py"
 DOWNLOAD_SCRIPT = ROOT / "tools" / "UpdateDownloadLinks.py"
+CLI_DOC_PATH = ROOT / "help" / "01-command-line-interface.md"
 
 
 def read_version_date() -> tuple[str, str, str]:
@@ -40,6 +41,21 @@ def write_version_date(content: str, new_version: str, new_date: str) -> str:
     )
     GLOBAL_VARS_PATH.write_text(updated, encoding="utf-8")
     return updated
+
+
+def write_cli_doc_version_date(new_version: str, new_date: str) -> None:
+    content = CLI_DOC_PATH.read_text(encoding="utf-8")
+    updated, count = re.subn(
+        r"^PhotoMigrator v\d+\.\d+\.\d+ - \d{4}-\d{2}-\d{2}$",
+        f"PhotoMigrator v{new_version} - {new_date}",
+        content,
+        flags=re.MULTILINE,
+    )
+    if count != 1:
+        raise RuntimeError(
+            "Unable to update version/date in help/01-command-line-interface.md"
+        )
+    CLI_DOC_PATH.write_text(updated, encoding="utf-8")
 
 
 def center_window(win: tk.Tk) -> None:
@@ -116,6 +132,7 @@ def main() -> None:
         print(f"Updating TOOL_VERSION_WITHOUT_V and TOOL_DATE to: {new_version} - {new_date}...")
         fresh = GLOBAL_VARS_PATH.read_text(encoding="utf-8")
         write_version_date(fresh, new_version, new_date)
+        write_cli_doc_version_date(new_version, new_date)
         return new_version, new_date
 
     def on_update_version_date() -> None:
@@ -159,4 +176,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
