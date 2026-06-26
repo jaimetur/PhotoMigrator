@@ -71,6 +71,34 @@ def _remove_source_asset_after_move(source_client, asset_id, log_level=logging.I
     return source_client.remove_assets(asset_ids=asset_id, log_level=log_level)
 
 
+def _mark_album_pushed_if_ready(album_name, album_folder_path, processed_albums, processed_albums_lock, counters, logger):
+    """
+    Count an album as pushed once its temp folder is no longer active and can be removed.
+    """
+    if not album_name or not album_folder_path or counters is None:
+        return False
+
+    with processed_albums_lock:
+        if album_name in processed_albums:
+            return False
+        if not os.path.isdir(album_folder_path):
+            return False
+
+        active_file = os.path.join(album_folder_path, ".active")
+        if os.path.exists(active_file):
+            return False
+
+        try:
+            os.rmdir(album_folder_path)
+        except OSError:
+            return False
+
+        processed_albums.add(album_name)
+        counters['total_pushed_albums'] += 1
+        logger.info(f"Album Pushed    : '{album_name}'")
+        return True
+
+
 def restore_log_info_on_exception(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -501,6 +529,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # Creamos un diccionario created_albums (protegido por candado para evitar condiciones de carrera entre workers) para registrar los albums que ya han sido creados y de este modo evitar que un album se cree 2 o más veces por varios workers en paralelo.
     album_creation_lock = threading.Lock()
     created_albums = {}
+    processed_albums = set()
+    processed_albums_lock = threading.Lock()
     immich_uploaded_records = []
     immich_uploaded_records_lock = threading.Lock()
 
@@ -868,9 +898,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             del all_sidecar
             del all_invalid
 
-            # Lista para marcar álbumes procesados (ya contados y/o creados en el destino)
-            processed_albums = []
-
             # ------------------------------------------------------------------------------------------------------
             # 1) Iniciar uno o varios hilos de pull y push para manejar los pull y push concurrentes
             # ------------------------------------------------------------------------------------------------------
@@ -884,7 +911,18 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
 
             pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
-            push_threads = [threading.Thread(target=pusher_worker, kwargs={"processed_albums": processed_albums, "worker_id": worker_id + 1}, daemon=True) for worker_id in range(num_push_threads)]
+            push_threads = [
+                threading.Thread(
+                    target=pusher_worker,
+                    kwargs={
+                        "processed_albums": processed_albums,
+                        "processed_albums_lock": processed_albums_lock,
+                        "worker_id": worker_id + 1,
+                    },
+                    daemon=True,
+                )
+                for worker_id in range(num_push_threads)
+            ]
 
             # 1) Arrancar pullers
             for t in pull_threads:
@@ -1138,6 +1176,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 # Incrementamos contador de álbumes descargados
                 SHARED_DATA.counters['total_pulled_albums'] += 1
                 LOGGER.info(f"Album Pulled    : '{album_name}'")
+                _mark_album_pushed_if_ready(
+                    album_name=album_name,
+                    album_folder_path=album_folder,
+                    processed_albums=processed_albums,
+                    processed_albums_lock=processed_albums_lock,
+                    counters=SHARED_DATA.counters,
+                    logger=LOGGER,
+                )
 
             # 1.2) Descarga de assets sin álbum
             assets_no_album = []
@@ -1253,14 +1299,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------
     # 2) PUSHER: Función pusher_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
-    def pusher_worker(processed_albums=None, worker_id=1, log_level=logging.INFO):
+    def pusher_worker(processed_albums=None, processed_albums_lock=None, worker_id=1, log_level=logging.INFO):
         # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
         # from Core.GlobalVariables import LOGGER as GV_LOGGER
         # thread_id = threading.get_ident()
         # LOGGER = GV_LOGGER.getChild(f"pusher-{thread_id}")
 
         if processed_albums is None:
-            processed_albums = []
+            processed_albums = set()
+        if processed_albums_lock is None:
+            processed_albums_lock = threading.Lock()
         removed_source_asset_ids = set()
 
         with set_log_level(LOGGER, log_level):
@@ -1428,28 +1476,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             # 4) Actualizar contador de fallos de álbum
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
-                        # Verificar si la carpeta local del álbum está vacía y borrarla
+                        # Verificar si la carpeta local del álbum ya quedó drenada.
                         album_folder_path = os.path.join(temp_folder, album_name)
-                        if os.path.exists(album_folder_path):
-                            try:
-                                # Si la carpeta tiene un archivo .active, significa que aún está en uso → NO BORRAR
-                                active_file = os.path.join(album_folder_path, ".active")
-                                if os.path.exists(active_file):
-                                    # No se borra porque aún está en uso
-                                    push_queue.task_done()
-                                    continue
-                                # Si la carpeta está vacía (o solo hay subcarpetas vacías), la borramos, de lo contrario saltaremos al bloque except generando una excepción que ignoraremos
-                                os.rmdir(album_folder_path)
-                                # Actualizamos contadores si el borrado de la carpeta ha tenido éxito (significa que el album está totalmente subido ya que el puller ha quitado el archivo .active y los pusher han borrado todos los archivos subidos)
-                                # Sólo actualizamos contadores si el album no había sido procesado antes
-                                if album_name not in processed_albums:
-                                    processed_albums.append(album_name)  # Lo incluimos en la lista de albumes procesados
-                                    SHARED_DATA.counters['total_pushed_albums'] += 1
-                                    SHARED_DATA.counters['total_pushed_albums'] = min(SHARED_DATA.counters['total_pushed_albums'], SHARED_DATA.counters['total_pulled_albums'])  # Avoid to set total_pushed_albums > total_pulled_albums
-                                    LOGGER.info(f"Album Pushed    : '{album_name}'")
-                            except OSError:
-                                # Si no está vacía, ignoramos el error
-                                pass
+                        _mark_album_pushed_if_ready(
+                            album_name=album_name,
+                            album_folder_path=album_folder_path,
+                            processed_albums=processed_albums,
+                            processed_albums_lock=processed_albums_lock,
+                            counters=SHARED_DATA.counters,
+                            logger=LOGGER,
+                        )
 
                     # Finalmente, marco la tarea como procesada
                     push_queue.task_done()

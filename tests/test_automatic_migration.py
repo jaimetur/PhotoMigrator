@@ -1,5 +1,6 @@
 import logging
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -53,6 +54,64 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
 
         self.assertEqual(removed, 1)
         remote_client.remove_assets.assert_called_once_with(asset_ids="abc123", log_level=logging.ERROR)
+
+    def test_mark_album_pushed_if_ready_counts_album_once_when_folder_is_drained(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            album_folder = Path(tmpdir) / "Album A"
+            album_folder.mkdir()
+            counters = {"total_pushed_albums": 0, "total_pulled_albums": 5}
+            processed_albums = set()
+            lock = threading.Lock()
+            logger = unittest.mock.Mock()
+
+            counted = automatic_module._mark_album_pushed_if_ready(
+                album_name="Album A",
+                album_folder_path=str(album_folder),
+                processed_albums=processed_albums,
+                processed_albums_lock=lock,
+                counters=counters,
+                logger=logger,
+            )
+
+        self.assertTrue(counted)
+        self.assertEqual(counters["total_pushed_albums"], 1)
+        self.assertEqual(processed_albums, {"Album A"})
+        logger.info.assert_called_once_with("Album Pushed    : 'Album A'")
+
+    def test_mark_album_pushed_if_ready_waits_until_active_marker_is_removed(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            album_folder = Path(tmpdir) / "Album B"
+            album_folder.mkdir()
+            active_file = album_folder / ".active"
+            active_file.write_text("busy", encoding="utf-8")
+            counters = {"total_pushed_albums": 0, "total_pulled_albums": 3}
+            processed_albums = set()
+            lock = threading.Lock()
+            logger = unittest.mock.Mock()
+
+            first_attempt = automatic_module._mark_album_pushed_if_ready(
+                album_name="Album B",
+                album_folder_path=str(album_folder),
+                processed_albums=processed_albums,
+                processed_albums_lock=lock,
+                counters=counters,
+                logger=logger,
+            )
+
+            active_file.unlink()
+
+            second_attempt = automatic_module._mark_album_pushed_if_ready(
+                album_name="Album B",
+                album_folder_path=str(album_folder),
+                processed_albums=processed_albums,
+                processed_albums_lock=lock,
+                counters=counters,
+                logger=logger,
+            )
+
+        self.assertFalse(first_attempt)
+        self.assertTrue(second_attempt)
+        self.assertEqual(counters["total_pushed_albums"], 1)
 
 
 class TestAutomaticMigrationMode(unittest.TestCase):

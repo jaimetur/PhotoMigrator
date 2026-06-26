@@ -1255,10 +1255,17 @@ class ClassImmichPhotos:
                     response.raise_for_status()
                     new_asset = response.json()
                 asset_id = new_asset.get("id")
-                is_duplicated = (new_asset.get("status") == 'duplicate')
+                status = str(new_asset.get("status") or "").lower()
+                is_duplicated = (status == 'duplicate')
+                if is_duplicated and not asset_id:
+                    LOGGER.error(
+                        f"Immich returned duplicate status without existing asset id for '{os.path.basename(file_path)}'. "
+                        f"Response payload: {new_asset}"
+                    )
+                    return None, None
                 if asset_id:
                     if is_duplicated:
-                        LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Skipped!")
+                        LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Existing asset_id={asset_id}")
                     else:
                         LOGGER.debug(f"Pushed '{os.path.basename(file_path)}' with asset_id={asset_id}")
                 return asset_id, is_duplicated

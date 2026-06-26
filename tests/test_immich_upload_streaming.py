@@ -77,6 +77,51 @@ class TestImmichStreamingUpload(unittest.TestCase):
         encoder = mock_post.call_args.kwargs["data"]
         self.assertIn("sidecarData", encoder.fields)
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    def test_push_asset_returns_existing_id_for_duplicate_response(
+        self, mock_post, _mock_logger
+    ):
+        manager = self._build_manager()
+
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"id": "existing-asset-id", "status": "duplicate"}
+        mock_post.return_value = response
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            asset_path = os.path.join(tmpdir, "photo.jpg")
+            with open(asset_path, "wb") as f:
+                f.write(b"binary-data")
+
+            asset_id, is_duplicated = manager.push_asset(asset_path)
+
+        self.assertEqual(asset_id, "existing-asset-id")
+        self.assertTrue(is_duplicated)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    def test_push_asset_rejects_duplicate_response_without_existing_id(
+        self, mock_post, mock_logger
+    ):
+        manager = self._build_manager()
+
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"status": "duplicate"}
+        mock_post.return_value = response
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            asset_path = os.path.join(tmpdir, "photo.jpg")
+            with open(asset_path, "wb") as f:
+                f.write(b"binary-data")
+
+            asset_id, is_duplicated = manager.push_asset(asset_path)
+
+        self.assertIsNone(asset_id)
+        self.assertIsNone(is_duplicated)
+        mock_logger.error.assert_called()
+
 
 if __name__ == "__main__":
     unittest.main()
