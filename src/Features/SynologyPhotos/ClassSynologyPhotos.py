@@ -1449,8 +1449,14 @@ class ClassSynologyPhotos:
                     else:
                         asset_id = data["data"].get("id")
                         is_duplicated = data["data"].get("action") == "ignore"
+                        if is_duplicated and not asset_id:
+                            LOGGER.warning(
+                                f"Synology returned duplicate action without existing asset id for '{os.path.basename(file_path)}'. "
+                                f"Response payload: {data}"
+                            )
+                            return None, None
                         if is_duplicated:
-                            LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Skipped!")
+                            LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Existing asset_id={asset_id}")
                         else:
                             LOGGER.debug(f"Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
                         return asset_id, is_duplicated
