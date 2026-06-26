@@ -113,6 +113,38 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertTrue(second_attempt)
         self.assertEqual(counters["total_pushed_albums"], 1)
 
+    def test_parse_dashboard_progress_line_supports_simple_gpth_counter_frames(self):
+        parsed = automatic_module._parse_dashboard_progress_line(
+            "__TQDM__ [INFO] [Step 8/8] Updating creation times : 42/100"
+        )
+
+        self.assertEqual(
+            parsed,
+            {
+                "desc": "[Step 8/8] Updating creation times",
+                "current": 42,
+                "total": 100,
+                "has_total": True,
+            },
+        )
+
+    def test_select_visible_bg_progress_rows_prioritizes_recent_active_rows(self):
+        rows = [
+            {"label": "Step 5", "completed": True, "last_update": 10.0},
+            {"label": "Step 6", "completed": False, "last_update": 20.0},
+            {"label": "Step 7", "completed": True, "last_update": 30.0},
+            {"label": "Step 8", "completed": False, "last_update": 40.0},
+            {"label": "Step 4", "completed": True, "last_update": 50.0},
+            {"label": "Step 3", "completed": False, "last_update": 5.0},
+        ]
+
+        visible = automatic_module._select_visible_bg_progress_rows(rows, 5)
+
+        self.assertEqual(
+            [item["label"] for item in visible],
+            ["Step 8", "Step 6", "Step 3", "Step 4", "Step 7"],
+        )
+
 
 class TestAutomaticMigrationMode(unittest.TestCase):
     def setUp(self):

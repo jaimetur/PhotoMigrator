@@ -27,6 +27,20 @@ from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DAS
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
 terminal_width = shutil.get_terminal_size().columns
+BG_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+BG_TQDM_PROGRESS_RE = re.compile(
+    r"(?P<pct>\d{1,3})%\|[^|]*\|\s*(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)"
+)
+BG_CUSTOM_PROGRESS_RE = re.compile(
+    r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
+    r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$"
+)
+BG_SIMPLE_PROGRESS_RE = re.compile(
+    r"^(?P<desc>.+?)\s*:\s*(?P<current>[0-9][0-9,]*)\s*/\s*(?P<total>[0-9][0-9,]*)\b.*$"
+)
+BG_INDETERMINATE_TQDM_RE = re.compile(
+    r"(?P<current>[0-9][0-9,]*)\s+(?P<unit>[A-Za-z][A-Za-z0-9_./-]*)\s+\[[^\]]+\]\s*$"
+)
 
 
 class SharedData:
@@ -34,6 +48,115 @@ class SharedData:
         self.info = info
         self.counters = counters
         self.logs_queue = logs_queue
+
+
+def _parse_int(value, default=0):
+    try:
+        return int(str(value or "").replace(",", "").strip())
+    except (TypeError, ValueError):
+        return default
+
+
+def _normalize_bg_progress_desc(desc):
+    text = re.sub(r"\s+", " ", str(desc or ""))
+    text = re.sub(r"^\[?(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\]?\s*:?\s*", "", text, flags=re.IGNORECASE)
+    if ":" in text:
+        text = text.split(":", 1)[1]
+    text = re.sub(
+        r"\s+\b(?:in|at|from)(?:\s+\w+){0,2}\s+[\"']?(?:[A-Za-z]:[\\/]|/)[^\"']*[\"']?\s*$",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(r"\s*:\s*$", "", text)
+    text = text.strip()
+    return text or "Progress"
+
+
+def _parse_dashboard_progress_line(line):
+    raw = str(line or "")
+    if not raw:
+        return None
+    plain = BG_ANSI_ESCAPE_RE.sub("", raw.replace("\r", "")).strip()
+    if not plain:
+        return None
+
+    if plain.startswith(TQDM_DASHBOARD_META_PREFIX):
+        payload = plain[len(TQDM_DASHBOARD_META_PREFIX):]
+        parts = payload.split("\t")
+        if len(parts) != 3:
+            return None
+        return {
+            "desc": parts[0],
+            "current": _parse_int(parts[1], 0),
+            "total": _parse_int(parts[2], 0),
+            "has_total": _parse_int(parts[2], 0) > 0,
+        }
+
+    if plain.startswith(TQDM_DASHBOARD_PREFIX):
+        plain = plain[len(TQDM_DASHBOARD_PREFIX):].strip()
+    elif plain.upper().startswith("TQDM "):
+        plain = plain[5:].strip()
+    plain = re.sub(r"^\[?(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\]?\s*:?\s*", "", plain, flags=re.IGNORECASE)
+
+    custom_match = BG_CUSTOM_PROGRESS_RE.match(plain)
+    if custom_match:
+        total = _parse_int(custom_match.group("total"), 0)
+        return {
+            "desc": custom_match.group("desc").strip(" :"),
+            "current": _parse_int(custom_match.group("current"), 0),
+            "total": total,
+            "has_total": total > 0,
+        }
+
+    simple_match = BG_SIMPLE_PROGRESS_RE.match(plain)
+    if simple_match:
+        total = _parse_int(simple_match.group("total"), 0)
+        return {
+            "desc": simple_match.group("desc").strip(" :"),
+            "current": _parse_int(simple_match.group("current"), 0),
+            "total": total,
+            "has_total": total > 0,
+        }
+
+    tqdm_match = BG_TQDM_PROGRESS_RE.search(plain)
+    if tqdm_match:
+        desc = plain[:tqdm_match.start()].strip(" :-")
+        if not desc:
+            return None
+        total = _parse_int(tqdm_match.group("total"), 0)
+        return {
+            "desc": desc,
+            "current": _parse_int(tqdm_match.group("current"), 0),
+            "total": total,
+            "has_total": total > 0,
+        }
+
+    indeterminate_match = BG_INDETERMINATE_TQDM_RE.search(plain)
+    if indeterminate_match:
+        desc = plain[:indeterminate_match.start()].strip(" :-")
+        if not desc:
+            return None
+        return {
+            "desc": desc,
+            "current": _parse_int(indeterminate_match.group("current"), 0),
+            "total": None,
+            "has_total": False,
+        }
+
+    return None
+
+
+def _select_visible_bg_progress_rows(rows, visible_limit):
+    ordered = list(rows or [])
+    ordered.sort(
+        key=lambda info: (
+            bool(info.get("completed")),
+            -float(info.get("last_update", 0.0)),
+            str(info.get("label", "")).lower(),
+        )
+    )
+    return ordered[:max(1, int(visible_limit or 1))]
 
 
 def _pull_has_content(pulled_result) -> bool:
@@ -1652,14 +1775,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             log_file = get_logger_filename(LOGGER)
 
             # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines),
-            # logs fill remainder, background_progress_panel (6 lines) at the bottom.
+            # logs fill remainder, background_progress_panel (7 lines) at the bottom.
             layout.split_column(
                 Layout(name="empty_line_1", size=1),  # Línea vacía
                 Layout(name="header_panel", size=8),
                 Layout(name="title_panel", size=3),
                 Layout(name="content_panel", size=12),
                 Layout(name="logs_panel", ratio=1),
-                Layout(name="background_progress_panel", size=6),
+                Layout(name="background_progress_panel", size=7),
                 Layout(name="empty_line_2", size=1),  # Línea vacía
             )
 
@@ -1907,47 +2030,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             # -------------------------------------------------------------------------
             # 5) Background Progress Panel (capture any tqdm emitted in background)
             # -------------------------------------------------------------------------
-            ansi_escape_re = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-            tqdm_progress_re = re.compile(
-                r"(?P<pct>\d{1,3})%\|[^|]*\|\s*(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)"
-            )
-            custom_progress_re = re.compile(
-                r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
-                r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$"
-            )
-            indeterminate_tqdm_re = re.compile(
-                r"(?P<current>[0-9][0-9,]*)\s+(?P<unit>[A-Za-z][A-Za-z0-9_./-]*)\s+\[[^\]]+\]\s*$"
-            )
             bg_progress_rows = {}
             bg_progress_colors = ["bright_yellow", "bright_blue", "bright_magenta", "bright_green"]
             bg_completed_retention_sec = 5.0
             bg_indeterminate_idle_retention_sec = 2.0
             bg_progress_next_color_idx = 0
             bg_progress_version = 0
-
-            def _parse_int(value, default=0):
-                try:
-                    return int(str(value or "").replace(",", "").strip())
-                except (TypeError, ValueError):
-                    return default
-
-            def _normalize_desc(desc):
-                text = re.sub(r"\s+", " ", str(desc or ""))
-                text = re.sub(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*", "", text, flags=re.IGNORECASE)
-                if ":" in text:
-                    text = text.split(":", 1)[1]
-                # Remove trailing location clauses that include Linux/Windows paths,
-                # e.g. "in '/volume/...'", "in folder /volume/...", "at C:\\...".
-                text = re.sub(
-                    r"\s+\b(?:in|at|from)(?:\s+\w+){0,2}\s+[\"']?(?:[A-Za-z]:[\\/]|/)[^\"']*[\"']?\s*$",
-                    "",
-                    text,
-                    flags=re.IGNORECASE,
-                )
-                # Remove trailing separators like " :", ":" or " : ".
-                text = re.sub(r"\s*:\s*$", "", text)
-                text = text.strip()
-                return text or "Progress"
 
             def _create_bg_bar(color, has_total=True):
                 counter = "{task.completed}/{task.total}" if has_total else "{task.completed}"
@@ -1968,7 +2056,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
             def _upsert_bg_progress(desc, current, total=None):
                 nonlocal bg_progress_next_color_idx, bg_progress_version
-                label = _normalize_desc(desc)
+                label = _normalize_bg_progress_desc(desc)
                 current_value = max(0, int(current))
                 has_total = total is not None and int(total) > 0
                 total_value = max(1, int(total)) if has_total else None
@@ -2020,54 +2108,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 return True
 
             def _consume_progress_line(line):
-                raw = str(line or "")
-                if not raw:
+                parsed = _parse_dashboard_progress_line(line)
+                if not parsed:
                     return False
-                plain = ansi_escape_re.sub("", raw.replace("\r", "")).strip()
-                if not plain:
-                    return False
-
-                if plain.startswith(TQDM_DASHBOARD_META_PREFIX):
-                    payload = plain[len(TQDM_DASHBOARD_META_PREFIX):]
-                    parts = payload.split("\t")
-                    if len(parts) == 3:
-                        desc = parts[0]
-                        current = _parse_int(parts[1], 0)
-                        total = _parse_int(parts[2], 0)
-                        return _upsert_bg_progress(desc, current, total)
-                    return False
-
-                if plain.startswith(TQDM_DASHBOARD_PREFIX):
-                    plain = plain[len(TQDM_DASHBOARD_PREFIX):].strip()
-                elif plain.upper().startswith("TQDM "):
-                    plain = plain[5:].strip()
-                plain = re.sub(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*", "", plain, flags=re.IGNORECASE)
-
-                custom_match = custom_progress_re.match(plain)
-                if custom_match:
-                    desc = custom_match.group("desc")
-                    current = _parse_int(custom_match.group("current"), 0)
-                    total = _parse_int(custom_match.group("total"), 0)
-                    return _upsert_bg_progress(desc, current, total)
-
-                tqdm_match = tqdm_progress_re.search(plain)
-                if tqdm_match:
-                    desc = plain[:tqdm_match.start()].strip(" :-")
-                    if not desc:
-                        return False
-                    current = _parse_int(tqdm_match.group("current"), 0)
-                    total = _parse_int(tqdm_match.group("total"), 0)
-                    return _upsert_bg_progress(desc, current, total)
-
-                indeterminate_match = indeterminate_tqdm_re.search(plain)
-                if indeterminate_match:
-                    desc = plain[:indeterminate_match.start()].strip(" :-")
-                    if not desc:
-                        return False
-                    current = _parse_int(indeterminate_match.group("current"), 0)
-                    return _upsert_bg_progress(desc, current, total=None)
-
-                return False
+                return _upsert_bg_progress(
+                    parsed["desc"],
+                    parsed["current"],
+                    parsed["total"] if parsed.get("has_total") else None,
+                )
 
             def build_background_progress_panel():
                 table = Table.grid(expand=True)
@@ -2077,8 +2125,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 if bg_progress_rows:
                     panel_height = int(getattr(layout["background_progress_panel"], "size", background_progress_panel_height) or background_progress_panel_height)
                     visible_limit = max(1, panel_height - 2)
-                    ordered = list(bg_progress_rows.values())  # preserve creation order for visual stability
-                    for info in ordered[:visible_limit]:
+                    ordered = _select_visible_bg_progress_rows(bg_progress_rows.values(), visible_limit)
+                    for info in ordered:
                         label = escape(str(info.get("label", "Progress")))
                         table.add_row(f"[{info['color']}]{label}[/{info['color']}]", info["bar"])
                 else:
@@ -2116,7 +2164,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     if _consume_progress_line(line):
                         continue
 
-                    clean_line = ansi_escape_re.sub("", str(line or "").replace("\r", "")).rstrip()
+                    clean_line = BG_ANSI_ESCAPE_RE.sub("", str(line or "").replace("\r", "")).rstrip()
                     if not clean_line:
                         continue
                     safe_line = clean_line
