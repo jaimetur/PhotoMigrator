@@ -2393,6 +2393,11 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                 last_was_progress = False
                 continue
 
+            createfile_failed = None if is_error else _parse_createfile_failed_warning(line)
+            if createfile_failed:
+                buffered_createfile_failures.append(createfile_failed)
+                continue
+
             # Prefijo para agrupar barras
             common_part = line.split(' : ')[0] if ' : ' in line else line
 
@@ -2449,11 +2454,6 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
             if last_was_progress and print_messages:
                 print()
             last_was_progress = False
-
-            createfile_failed = None if is_error else _parse_createfile_failed_warning(line)
-            if createfile_failed:
-                buffered_createfile_failures.append(createfile_failed)
-                continue
 
             # 3) Impresión/logging normal
             emit_line(line, is_error=is_error)

@@ -94,6 +94,44 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         info_messages = [call.args[0] for call in fake_logger.info.call_args_list]
         self.assertIn("STEP : INFO  processing completed", info_messages)
 
+    def test_run_command_compacts_createfile_warnings_even_when_they_include_progress_counters(self):
+        class FakeProcess:
+            def __init__(self):
+                self.stdout = io.StringIO(
+                    '[WARNING] [Step 8/8] Updating creation times : 1062/1063 CreateFile failed for "\\\\?\\D:\\\\Albums\\\\a.jpg" (error=2)\n'
+                    '[WARNING] [Step 8/8] Updating creation times : 1063/1063 CreateFile failed for "\\\\?\\D:\\\\Albums\\\\b.jpg" (error=2)\n'
+                )
+                self.stderr = io.StringIO("")
+                self.returncode = 0
+
+            def wait(self):
+                return self.returncode
+
+        fake_logger = MagicMock()
+
+        with (
+            patch.object(takeout_module, "LOGGER", fake_logger),
+            patch.object(takeout_module, "custom_print") as mock_custom_print,
+            patch.object(takeout_module, "suppress_console_output_temporarily", new=lambda *_args, **_kwargs: contextlib.nullcontext()),
+            patch.object(takeout_module.subprocess, "Popen", return_value=FakeProcess()),
+        ):
+            returncode = takeout_module.run_command(
+                ["dummy-gpth"],
+                capture_output=True,
+                capture_errors=True,
+                print_messages=True,
+                step_name="STEP : ",
+            )
+
+        self.assertEqual(returncode, 0)
+        warning_messages = [call.args[0] for call in fake_logger.warning.call_args_list]
+        self.assertEqual(len(warning_messages), 1)
+        self.assertIn('Collapsed 2 repeated GPTH "CreateFile failed" warnings', warning_messages[0])
+        console_lines = [call.args[0] for call in mock_custom_print.call_args_list]
+        self.assertEqual(len(console_lines), 1)
+        self.assertIn('Collapsed 2 repeated GPTH "CreateFile failed" warnings', console_lines[0])
+        self.assertFalse(any('CreateFile failed for "\\\\?\\D:\\\\Albums\\\\a.jpg"' in line for line in console_lines))
+
     def test_run_command_emits_carriage_return_progress_frames_to_dashboard_handlers(self):
         class FakeProcess:
             def __init__(self):
