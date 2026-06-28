@@ -2549,6 +2549,9 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         else:
             LOGGER.info(f"{step_name}Symbolic Albums will be created with links to the original files...")
             gpth_command.append("shortcut")
+            if current_os == "windows":
+                LOGGER.info(f"{step_name}Windows GPTH shortcut mode will force --hardlink so album entries remain real filesystem links instead of .lnk shortcut files.")
+                gpth_command.append("--hardlink")
 
         # Append --skip-extras to the gpth tool call based on the value of flag -se, --skip-extras
         if skip_extras:

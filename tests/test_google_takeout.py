@@ -230,6 +230,45 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         self.assertTrue(any("?" in message for message in printed_messages))
         self.assertIn("STEP : [INFO] [Step 1/8] 🧠 Fixing file extensions : 2/2", [call.args[0] for call in fake_logger.info.call_args_list])
 
+    def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_folder = root / "input"
+            output_folder = root / "output"
+            gpth_path = root / "gpth.exe"
+            input_folder.mkdir()
+            output_folder.mkdir()
+            gpth_path.write_text("", encoding="utf-8")
+
+            fake_logger = MagicMock()
+            fake_logger.handlers = []
+
+            with (
+                patch.object(takeout_module, "LOGGER", fake_logger),
+                patch.object(takeout_module, "ARGS", {"log-level": "info", "gpth-no-log": False}),
+                patch.object(takeout_module, "get_os", return_value="windows"),
+                patch.object(takeout_module, "get_arch", return_value="amd64"),
+                patch.object(takeout_module, "get_gpth_tool_path", return_value=str(gpth_path)),
+                patch.object(takeout_module, "ensure_executable"),
+                patch.object(takeout_module, "print_arguments_pretty"),
+                patch.object(takeout_module, "run_command", return_value=0) as mock_run_command,
+            ):
+                ok = takeout_module.fix_metadata_with_gpth_tool(
+                    input_folder=str(input_folder),
+                    output_folder=str(output_folder),
+                    capture_output=True,
+                    capture_errors=True,
+                    print_messages=False,
+                    no_symbolic_albums=False,
+                    step_name="STEP : ",
+                )
+
+        self.assertTrue(ok)
+        command = mock_run_command.call_args.args[0]
+        self.assertIn("--albums", command)
+        self.assertIn("shortcut", command)
+        self.assertIn("--hardlink", command)
+
     def test_repair_conflicting_video_xmp_dates_rewrites_conflicting_video_tags(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
