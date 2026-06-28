@@ -128,6 +128,25 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             },
         )
 
+    def test_parse_dashboard_progress_line_strips_spaced_info_prefixes(self):
+        parsed = automatic_module._parse_dashboard_progress_line(
+            "__TQDM__ [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 7/8] Writing EXIF data : 100/100"
+        )
+
+        self.assertEqual(
+            parsed,
+            {
+                "desc": "[PROCESS]-[Metadata Processing] : [ INFO  ] [Step 7/8] Writing EXIF data",
+                "current": 100,
+                "total": 100,
+                "has_total": True,
+            },
+        )
+        self.assertEqual(
+            automatic_module._normalize_bg_progress_desc(parsed["desc"]),
+            "[Step 7/8] Writing EXIF data",
+        )
+
     def test_select_visible_bg_progress_rows_prioritizes_recent_active_rows(self):
         rows = [
             {"label": "Step 5", "completed": True, "last_update": 10.0},

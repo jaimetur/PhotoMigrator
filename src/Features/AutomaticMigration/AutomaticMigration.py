@@ -41,6 +41,10 @@ BG_SIMPLE_PROGRESS_RE = re.compile(
 BG_INDETERMINATE_TQDM_RE = re.compile(
     r"(?P<current>[0-9][0-9,]*)\s+(?P<unit>[A-Za-z][A-Za-z0-9_./-]*)\s+\[[^\]]+\]\s*$"
 )
+BG_LEVEL_PREFIX_RE = re.compile(
+    r"^(?:\[\s*(?:VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*\]|(?:VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL))\s*:?\s*",
+    flags=re.IGNORECASE,
+)
 
 
 class SharedData:
@@ -57,11 +61,21 @@ def _parse_int(value, default=0):
         return default
 
 
+def _strip_bg_level_prefix(text):
+    value = str(text or "")
+    previous = None
+    while value != previous:
+        previous = value
+        value = BG_LEVEL_PREFIX_RE.sub("", value, count=1)
+    return value
+
+
 def _normalize_bg_progress_desc(desc):
     text = re.sub(r"\s+", " ", str(desc or ""))
-    text = re.sub(r"^\[?(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\]?\s*:?\s*", "", text, flags=re.IGNORECASE)
+    text = _strip_bg_level_prefix(text)
     if ":" in text:
         text = text.split(":", 1)[1]
+    text = _strip_bg_level_prefix(text)
     text = re.sub(
         r"\s+\b(?:in|at|from)(?:\s+\w+){0,2}\s+[\"']?(?:[A-Za-z]:[\\/]|/)[^\"']*[\"']?\s*$",
         "",
@@ -97,7 +111,7 @@ def _parse_dashboard_progress_line(line):
         plain = plain[len(TQDM_DASHBOARD_PREFIX):].strip()
     elif plain.upper().startswith("TQDM "):
         plain = plain[5:].strip()
-    plain = re.sub(r"^\[?(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\]?\s*:?\s*", "", plain, flags=re.IGNORECASE)
+    plain = _strip_bg_level_prefix(plain)
 
     custom_match = BG_CUSTOM_PROGRESS_RE.match(plain)
     if custom_match:
