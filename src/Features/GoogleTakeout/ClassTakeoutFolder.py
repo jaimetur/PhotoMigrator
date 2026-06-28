@@ -2332,6 +2332,13 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
             except Exception:
                 continue
 
+    def emit_progress_console_line(line, final=False):
+        if not print_messages:
+            return
+        custom_print(f"\r{step_name}{line}", end="", flush=True, log_level=logging.INFO)
+        if final:
+            print()
+
     def flush_createfile_failed_warnings():
         if not buffered_createfile_failures:
             return
@@ -2412,8 +2419,7 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                 # 1.b) Progreso intermedio (1 <= n < total)
                 if n < total:
                     if print_messages:
-                        print(f"\r{MSG_TAGS['INFO']}{step_name}{line}", end='', flush=True)
-                        # custom_print(f"\r{step_name}{line}", end='', flush=True, log_level=logging.INFO)
+                        emit_progress_console_line(line, final=False)
                     else:
                         emit_dashboard_progress(line)
                     last_was_progress = True
@@ -2426,9 +2432,7 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                         emit_dashboard_progress(line)
                     # impresión en pantalla
                     if print_messages:
-                        print(f"\r{MSG_TAGS['INFO']}{step_name}{line}", end='', flush=True)
-                        # custom_print(f"\r{step_name}{line}", end='', flush=True, log_level=logging.INFO)
-                        print()
+                        emit_progress_console_line(line, final=True)
                     # log final
                     log_msg = f"{step_name}{line}"
                     if is_error:

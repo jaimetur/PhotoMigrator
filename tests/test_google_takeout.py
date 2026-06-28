@@ -1,4 +1,5 @@
 import contextlib
+import builtins
 import io
 import logging
 import sys
@@ -149,6 +150,47 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         self.assertIn("STEP : [INFO] [Step 6/8] Moving entities : 0/10", info_messages)
         self.assertIn("STEP : [INFO] [Step 6/8] Moving entities : 10/10", info_messages)
         self.assertNotIn("STEP : ", [msg for msg in info_messages if msg.strip() == "STEP :"])
+
+    def test_run_command_progress_output_uses_safe_console_printing_for_unicode_lines(self):
+        class FakeProcess:
+            def __init__(self):
+                self.stdout = io.StringIO(
+                    "[INFO] [Step 1/8] 🧠 Fixing file extensions : 1/2\r"
+                    "[INFO] [Step 1/8] 🧠 Fixing file extensions : 2/2\n"
+                )
+                self.stderr = io.StringIO("")
+                self.returncode = 0
+
+            def wait(self):
+                return self.returncode
+
+        fake_logger = MagicMock()
+        printed_messages = []
+
+        def fake_print(*args, **kwargs):
+            text = "".join(str(arg) for arg in args)
+            if "🧠" in text:
+                raise UnicodeEncodeError("cp1252", text, 0, 1, "character maps to <undefined>")
+            printed_messages.append(text)
+
+        with (
+            patch.object(takeout_module, "LOGGER", fake_logger),
+            patch.object(takeout_module, "suppress_console_output_temporarily", new=lambda *_args, **_kwargs: contextlib.nullcontext()),
+            patch.object(takeout_module.subprocess, "Popen", return_value=FakeProcess()),
+            patch.object(builtins, "print", side_effect=fake_print),
+        ):
+            returncode = takeout_module.run_command(
+                ["dummy-gpth"],
+                capture_output=True,
+                capture_errors=True,
+                print_messages=True,
+                step_name="STEP : ",
+            )
+
+        self.assertEqual(returncode, 0)
+        self.assertTrue(any("[INFO]" in message for message in printed_messages))
+        self.assertTrue(any("?" in message for message in printed_messages))
+        self.assertIn("STEP : [INFO] [Step 1/8] 🧠 Fixing file extensions : 2/2", [call.args[0] for call in fake_logger.info.call_args_list])
 
     def test_repair_conflicting_video_xmp_dates_rewrites_conflicting_video_tags(self):
         with tempfile.TemporaryDirectory() as temp_dir:
