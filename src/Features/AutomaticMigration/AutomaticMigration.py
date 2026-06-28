@@ -71,11 +71,11 @@ def _strip_bg_level_prefix(text):
 
 
 def _normalize_bg_progress_desc(desc):
-    text = re.sub(r"\s+", " ", str(desc or ""))
+    text = re.sub(r"\s+", " ", str(desc or "")).strip()
     text = _strip_bg_level_prefix(text)
     if ":" in text:
-        text = text.split(":", 1)[1]
-    text = _strip_bg_level_prefix(text)
+        text = text.split(":", 1)[1].strip()
+    text = _strip_bg_level_prefix(text.strip())
     text = re.sub(
         r"\s+\b(?:in|at|from)(?:\s+\w+){0,2}\s+[\"']?(?:[A-Za-z]:[\\/]|/)[^\"']*[\"']?\s*$",
         "",

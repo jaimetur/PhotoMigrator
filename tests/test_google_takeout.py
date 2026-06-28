@@ -14,6 +14,7 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 sys.modules.setdefault("piexif", MagicMock())
+import Utils.StandaloneUtils as standalone_utils
 
 try:
     import Features.GoogleTakeout.ClassTakeoutFolder as takeout_module
@@ -204,6 +205,8 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
 
         fake_logger = MagicMock()
         printed_messages = []
+        fake_cp1252_stdout = MagicMock()
+        fake_cp1252_stdout.encoding = "cp1252"
 
         def fake_print(*args, **kwargs):
             text = "".join(str(arg) for arg in args)
@@ -216,6 +219,7 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             patch.object(takeout_module, "suppress_console_output_temporarily", new=lambda *_args, **_kwargs: contextlib.nullcontext()),
             patch.object(takeout_module.subprocess, "Popen", return_value=FakeProcess()),
             patch.object(builtins, "print", side_effect=fake_print),
+            patch.object(standalone_utils.sys, "stdout", fake_cp1252_stdout),
         ):
             returncode = takeout_module.run_command(
                 ["dummy-gpth"],
