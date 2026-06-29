@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 from Core.GlobalVariables import TOOL_VERSION
 
-from UI.shared import (
+from UI.ui_shared import (
     CLOUD_ACTIONS_AVAILABLE_BY_TAB,
     CompactLogBuffer,
     CONFIG_EDITOR_SECTIONS_ORDER,

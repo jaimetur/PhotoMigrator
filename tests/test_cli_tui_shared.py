@@ -11,7 +11,7 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 try:
-    from UI.shared import (
+    from UI.ui_shared import (
         MIGRATION_FILTER_DESTS,
         build_automatic_migration_filter_fields,
         build_cli_args,

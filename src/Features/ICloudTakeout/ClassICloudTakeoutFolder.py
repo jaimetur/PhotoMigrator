@@ -229,6 +229,7 @@ class ClassICloudTakeoutFolder:
 
     def __init__(self, takeout_folder):
         self.ARGS = ARGS
+        self.logger = LOGGER or logging.getLogger(__name__)
         self.takeout_folder = Path(takeout_folder).expanduser().resolve()
         self.unzipped_folder = None
         self.needs_unzip = self.takeout_folder.is_dir() and contains_zip_files(self.takeout_folder, log_level=logging.WARNING)
@@ -241,7 +242,7 @@ class ClassICloudTakeoutFolder:
         self.steps_duration = []
         self.step = 0
         self.substep = 0
-        self.local_analyzer = FolderAnalyzer(logger=LOGGER)
+        self.local_analyzer = FolderAnalyzer(logger=self.logger)
         self.initial_filedates_json = ""
         self.final_filedates_json = ""
         self.CLIENT_NAME = f"iCloud Takeout Folder ({self.takeout_folder.name})"
@@ -256,6 +257,9 @@ class ClassICloudTakeoutFolder:
             "assets_without_csv_match": 0,
             "assets_with_ambiguous_csv_match": 0,
         }
+
+    def _get_logger(self):
+        return self.logger or LOGGER or logging.getLogger(__name__)
 
     def _build_output_folder(self):
         if self.ARGS.get("output-folder"):
@@ -850,7 +854,8 @@ class ClassICloudTakeoutFolder:
             return self._update_source_record_destinations(source_records, replacements)
 
     def _move_unknown_date_assets(self, source_records, extracted_dates, step_name="", log_level=None):
-        with set_log_level(LOGGER, log_level):
+        logger = self._get_logger()
+        with set_log_level(logger, log_level):
             known_destinations = {str(path_key) for path_key in (extracted_dates or {}).keys()}
             ambiguous_destinations = {
                 str(path_key)
@@ -881,17 +886,18 @@ class ClassICloudTakeoutFolder:
                 shutil.move(str(current_dest), str(destination_path))
                 replacements.append((current_dest, destination_path))
 
-            if replacements and self.local_analyzer is not None:
+            if replacements and self.local_analyzer is not None and getattr(self.local_analyzer, "_initialized_with_valid_input", False):
                 self.local_analyzer.apply_replacements(replacements, step_name=step_name, log_level=log_level)
             self._last_unknown_date_report = {
                 "assets_without_csv_match": no_csv_count,
                 "assets_with_ambiguous_csv_match": ambiguous_count,
             }
-            LOGGER.info(f"{step_name}Assets moved to 'Unknown Date/No CSV Match' : {no_csv_count}")
-            LOGGER.info(f"{step_name}Assets moved to 'Unknown Date/Ambiguous Match' : {ambiguous_count}")
+            logger.info(f"{step_name}Assets moved to 'Unknown Date/No CSV Match' : {no_csv_count}")
+            logger.info(f"{step_name}Assets moved to 'Unknown Date/Ambiguous Match' : {ambiguous_count}")
             return self._update_source_record_destinations(source_records, replacements)
 
     def _create_link_or_copy(self, source_path: Path, destination_path: Path, use_copy: bool):
+        logger = self._get_logger()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         final_path = destination_path
         if final_path.exists() or final_path.is_symlink():
@@ -903,7 +909,7 @@ class ClassICloudTakeoutFolder:
                 relative_target = os.path.relpath(str(source_path), start=str(final_path.parent))
                 os.symlink(relative_target, final_path)
             except OSError as exc:
-                LOGGER.warning(
+                logger.warning(
                     f"Could not create symlink '{final_path}' -> '{source_path}'. "
                     f"Falling back to a copied file. Details: {exc}"
                 )
@@ -911,7 +917,8 @@ class ClassICloudTakeoutFolder:
         return final_path
 
     def _build_collection_from_csvs(self, csv_files, source_index, root_folder: Path, structure: str, step_name="", log_level=None):
-        with set_log_level(LOGGER, log_level):
+        logger = self._get_logger()
+        with set_log_level(logger, log_level):
             use_copy = self.ARGS.get("icloud-no-symbolic-albums", False)
             stats = {
                 "collections_created": 0,
@@ -964,11 +971,11 @@ class ClassICloudTakeoutFolder:
                         step_name=step_name,
                         log_level=log_level,
                     )
-            LOGGER.info(f"{step_name}Collections created              : {stats['collections_created']}")
-            LOGGER.info(f"{step_name}Collections fully resolved       : {stats['collections_fully_resolved']}")
-            LOGGER.info(f"{step_name}Collections partially resolved   : {stats['collections_partially_resolved']}")
-            LOGGER.info(f"{step_name}Collections created empty        : {stats['collections_empty']}")
-            LOGGER.info(f"{step_name}Collection members unresolved    : {stats['members_unresolved']}")
+            logger.info(f"{step_name}Collections created              : {stats['collections_created']}")
+            logger.info(f"{step_name}Collections fully resolved       : {stats['collections_fully_resolved']}")
+            logger.info(f"{step_name}Collections partially resolved   : {stats['collections_partially_resolved']}")
+            logger.info(f"{step_name}Collections created empty        : {stats['collections_empty']}")
+            logger.info(f"{step_name}Collection members unresolved    : {stats['members_unresolved']}")
             return stats
 
     def _save_dates_json(self, step_name="", log_level=None):
