@@ -28,6 +28,7 @@ try:
         effective_interactive_field_value,
         merge_values_with_schema,
         load_config_editor_model,
+        normalize_organize_local_folder_ui_state,
         parse_find_duplicates_value,
         parse_migration_endpoint,
         parse_rename_albums_value,
@@ -95,6 +96,30 @@ class TestCliTuiShared(unittest.TestCase):
         )
 
         self.assertEqual(shown_value, "_processed")
+
+    def test_normalize_organize_local_folder_ui_state_clears_suffix_when_output_folder_is_selected(self):
+        schema = build_parser_schema()
+        values = {
+            "output-folder": "/photos/organized",
+            "organize-output-folder-suffix": "_processed",
+        }
+
+        changed = normalize_organize_local_folder_ui_state(values, schema)
+
+        self.assertTrue(changed)
+        self.assertEqual(values["organize-output-folder-suffix"], "")
+
+    def test_normalize_organize_local_folder_ui_state_restores_default_suffix_when_output_folder_is_empty(self):
+        schema = build_parser_schema()
+        values = {
+            "output-folder": "",
+            "organize-output-folder-suffix": "",
+        }
+
+        changed = normalize_organize_local_folder_ui_state(values, schema)
+
+        self.assertTrue(changed)
+        self.assertEqual(values["organize-output-folder-suffix"], "_processed")
 
     def test_build_cli_args_appends_native_icloud_writer_flag_only_when_enabled(self):
         schema = build_parser_schema()

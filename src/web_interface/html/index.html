@@ -1635,6 +1635,24 @@
         return wrapper;
     }
 
+    function normalizeOrganizeLocalFolderUiState() {
+        const outputFolder = String(stateValues["output-folder"] || "").trim();
+        if (outputFolder) {
+            stateValues["organize-output-folder-suffix"] = "";
+            return;
+        }
+        const current = String(stateValues["organize-output-folder-suffix"] || "").trim();
+        if (!current) stateValues["organize-output-folder-suffix"] = "_processed";
+    }
+
+    function syncOrganizeSuffixInput() {
+        const input = document.querySelector('[data-dest="organize-output-folder-suffix"]');
+        if (!input) return;
+        const desired = String(stateValues["organize-output-folder-suffix"] || "");
+        if (input.type === "checkbox") return;
+        if (input.value !== desired) input.value = desired;
+    }
+
     function createArgumentRow(field, isRequired = false) {
         const row = document.createElement("div");
         row.className = "arg-row";
@@ -1828,11 +1846,6 @@
 
         const mapped = (MODULE_DEPENDENCIES[tabKey] || {})[selectedField?.dest || ""] || [];
         mapped.forEach((item) => pushSpec(item.dest, item.required === true, true));
-        const actionMapped = (MODULE_ACTION_ARGUMENTS[tabKey] || {})[selectedField?.dest || ""] || [];
-        actionMapped.forEach((item) => {
-            const dest = String(item?.dest || "").trim();
-            if (dest) pushSpec(dest, item.required === true, true);
-        });
         parseRequiredFromHelp(selectedField?.help || "", {ignoreDests: [selectedField?.dest]}).forEach((dest) => pushSpec(dest, true, true));
         return specs;
     }
@@ -3130,6 +3143,10 @@
             const updateState = () => {
                 if (el.type === "checkbox") stateValues[el.dataset.dest] = stateValueFromUiCheckbox(el.dataset.dest, el.checked);
                 else stateValues[el.dataset.dest] = el.value;
+                if (el.dataset.dest === "output-folder" || el.dataset.dest === "organize-output-folder-suffix") {
+                    normalizeOrganizeLocalFolderUiState();
+                    syncOrganizeSuffixInput();
+                }
                 queueSaveState();
                 queueCommandPreview();
             };
@@ -4086,6 +4103,7 @@
             const response = await apiFetch("/api/state");
             const data = await response.json();
             stateValues = data.values || {};
+            normalizeOrganizeLocalFolderUiState();
             uiState = data.ui_state || {collapsed_panels: {}};
             if (!uiState.collapsed_panels) uiState.collapsed_panels = {};
             if (uiState.active_module_tab && MODULE_TAB_NAMES[uiState.active_module_tab]) {
@@ -4106,6 +4124,7 @@
         } catch (error) {
             console.error(error);
             stateValues = {};
+            normalizeOrganizeLocalFolderUiState();
             uiState = {collapsed_panels: {}};
             uiState.theme = "ocean";
         }

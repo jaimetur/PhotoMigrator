@@ -35,6 +35,7 @@ from UI.ui_shared import (
     load_config_editor_model,
     load_json_file,
     normalize_field_for_context,
+    normalize_organize_local_folder_ui_state,
     parse_find_duplicates_value,
     parse_migration_endpoint,
     parse_folder_list_value,
@@ -1887,6 +1888,7 @@ if TEXTUAL_AVAILABLE:
             self.state_values = default_state_values(self.schema)
             self.state_values.update(self.persisted.get("values") or {})
             self.state_values.update(self.initial_values)
+            normalize_organize_local_folder_ui_state(self.state_values, self.schema)
             self.ui_state = dict(self.persisted.get("ui_state") or {})
             self.active_module = str(self.ui_state.get("active_module") or self.initial_values.get("active_module") or "automatic_migration")
             self.active_general_tab = str(self.ui_state.get("active_general_tab") or "feature")
@@ -3419,6 +3421,15 @@ if TEXTUAL_AVAILABLE:
                 return self.standalone_action_dest
             return None
 
+        def sync_organize_suffix_widget(self) -> None:
+            try:
+                widget = self.query_one("#field-organize-output-folder-suffix", Input)
+            except Exception:
+                return
+            effective_value = str(self.state_values.get("organize-output-folder-suffix") or "")
+            if widget.value != effective_value:
+                widget.value = effective_value
+
         def _build_current_command(self, *, dashboard_enabled: bool | None = None) -> List[str]:
             values = dict(self.state_values)
             if self.active_module == "automatic_migration" and dashboard_enabled is not None:
@@ -3737,6 +3748,9 @@ if TEXTUAL_AVAILABLE:
                     self.state_values[dest] = to_list(event.value)
                 else:
                     self.state_values[dest] = event.value
+                if dest in {"output-folder", "organize-output-folder-suffix"}:
+                    normalize_organize_local_folder_ui_state(self.state_values, self.schema)
+                    self.sync_organize_suffix_widget()
                 self.update_command_preview()
                 return
             if widget_id.startswith("config-"):

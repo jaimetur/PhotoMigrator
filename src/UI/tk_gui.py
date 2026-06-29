@@ -36,6 +36,7 @@ from UI.ui_shared import (
     load_config_editor_model,
     load_json_file,
     normalize_field_for_context,
+    normalize_organize_local_folder_ui_state,
     parse_find_duplicates_value,
     parse_migration_endpoint,
     parse_folder_list_value,
@@ -242,6 +243,7 @@ class PhotoMigratorTkGUI:
         self.state_values = default_state_values(self.schema)
         self.state_values.update(self.persisted.get("values") or {})
         self.state_values.update(self.initial_values)
+        normalize_organize_local_folder_ui_state(self.state_values, self.schema)
         self.ui_state = dict(self.persisted.get("ui_state") or {})
         self.active_module = str(self.ui_state.get("active_module") or self.initial_values.get("active_module") or "automatic_migration")
         self.active_general_tab = str(self.ui_state.get("active_general_tab") or "feature")
@@ -1833,6 +1835,12 @@ class PhotoMigratorTkGUI:
                 self.state_values[dest] = to_list(raw)
             else:
                 self.state_values[dest] = raw
+            if dest in {"output-folder", "organize-output-folder-suffix"}:
+                normalize_organize_local_folder_ui_state(self.state_values, self.schema)
+                suffix_var = self.field_widget_map.get("organize-output-folder-suffix")
+                normalized_suffix = str(self.state_values.get("organize-output-folder-suffix") or "")
+                if suffix_var is not None and str(suffix_var.get() or "") != normalized_suffix:
+                    suffix_var.set(normalized_suffix)
             self.update_command_preview()
 
         var.trace_add("write", on_change)

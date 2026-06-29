@@ -1277,11 +1277,39 @@ def effective_interactive_field_value(field: Dict[str, Any] | None, values: Dict
 
     if dest == "organize-output-folder-suffix":
         output_folder = str(state_values.get("output-folder") or "").strip()
-        if not output_folder and not str(raw_value or "").strip():
+        if output_folder:
+            return ""
+        if not str(raw_value or "").strip():
             default_value = field.get("default")
             return "_processed" if default_value in (None, "") else default_value
 
     return raw_value
+
+
+def normalize_organize_local_folder_ui_state(values: Dict[str, Any] | None, schema: Dict[str, Any] | None = None) -> bool:
+    if not isinstance(values, dict):
+        return False
+
+    output_folder = str(values.get("output-folder") or "").strip()
+    suffix_dest = "organize-output-folder-suffix"
+    current_suffix = str(values.get(suffix_dest) or "").strip()
+
+    default_suffix = "_processed"
+    if schema:
+        field = get_field_by_dest(schema, suffix_dest)
+        if field:
+            default_suffix = str(field.get("default") or "_processed") or "_processed"
+
+    if output_folder:
+        if current_suffix != "":
+            values[suffix_dest] = ""
+            return True
+        return False
+
+    if current_suffix == "":
+        values[suffix_dest] = default_suffix
+        return True
+    return False
 
 
 def prepare_values_for_command(values: Dict[str, Any], tab: str, selected_action_dest: str | None) -> Dict[str, Any]:
