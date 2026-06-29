@@ -1049,7 +1049,7 @@ class ClassICloudTakeoutFolder:
                     log_level=LOG_LEVEL,
                 )
 
-                step_name = "[iCloud POST]-[Build Albums] : "
+                step_name = "[iCloud POST]-[Build Albums]   : "
                 album_stats = self._build_collection_from_csvs(
                     csv_files=album_csvs,
                     source_index=source_index,
@@ -1085,7 +1085,7 @@ class ClassICloudTakeoutFolder:
                 self.final_filedates_json = self._save_dates_json(step_name=step_name, log_level=LOG_LEVEL)
                 if getattr(self.local_analyzer, "extracted_dates", None):
                     self.local_analyzer.show_files_without_dates(relative_folder=str(self.output_folder), step_name=step_name)
-                LOGGER.info(f"{step_name}Rows without matching media      : {self._last_date_application_report['rows_without_matching_media']}")
+                LOGGER.info(f"{step_name}Rows without matching media     : {self._last_date_application_report['rows_without_matching_media']}")
                 LOGGER.info(f"{step_name}Rows matched to multiple media  : {self._last_date_application_report['rows_matched_to_multiple_media_files']}")
                 LOGGER.info(f"{step_name}Assets without CSV date match   : {self._last_unknown_date_report['assets_without_csv_match']}")
                 LOGGER.info(f"{step_name}Assets with ambiguous CSV match : {self._last_unknown_date_report['assets_with_ambiguous_csv_match']}")
