@@ -25,6 +25,7 @@ try:
         compose_find_duplicates_value,
         compose_rename_albums_value,
         config_section_account_selector,
+        effective_interactive_field_value,
         merge_values_with_schema,
         load_config_editor_model,
         parse_find_duplicates_value,
@@ -80,6 +81,20 @@ class TestCliTuiShared(unittest.TestCase):
         schema = build_parser_schema()
 
         self.assertEqual(schema["fields_by_dest"]["organize-output-folder-suffix"]["default"], "_processed")
+
+    def test_effective_interactive_field_value_shows_processed_suffix_when_output_folder_is_empty(self):
+        schema = build_parser_schema()
+        field = schema["fields_by_dest"]["organize-output-folder-suffix"]
+
+        shown_value = effective_interactive_field_value(
+            field,
+            {
+                "output-folder": "",
+                "organize-output-folder-suffix": "",
+            },
+        )
+
+        self.assertEqual(shown_value, "_processed")
 
     def test_build_cli_args_appends_native_icloud_writer_flag_only_when_enabled(self):
         schema = build_parser_schema()

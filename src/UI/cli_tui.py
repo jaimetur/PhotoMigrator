@@ -30,6 +30,7 @@ from UI.ui_shared import (
     compose_migration_endpoint,
     config_section_account_selector,
     default_state_values,
+    effective_interactive_field_value,
     get_field_by_dest,
     load_config_editor_model,
     load_json_file,
@@ -3099,7 +3100,7 @@ if TEXTUAL_AVAILABLE:
             label = ui_option_name(field)
             help_text = str(field.get("help") or "").strip()
             kind = str(field.get("kind") or "text")
-            value = self.state_values.get(dest)
+            value = effective_interactive_field_value(field, self.state_values)
             path_hint = str(field.get("path_hint") or "")
             if dest == "process-duplicates":
                 path_hint = "path"

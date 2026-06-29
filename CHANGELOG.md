@@ -22,6 +22,7 @@
 
 #### 🐛 Bug fixes:
   - Fixed the Web Interface form for the standalone `Organize Local Folder By Date` feature so its action-scoped optional arguments now render correctly (`Output Folder`, `Output Folder Suffix`, `Folder Structure`, and `Move Original Files`) instead of only showing the generic output folder field. The interactive UI schema now also defaults `Output Folder Suffix` to `_processed`, matching the generated `<INPUT_FOLDER>_processed_<TIMESTAMP>` output naming when no explicit output folder is provided.
+  - Fixed the local TUI and desktop GUI forms for the standalone `Organize Local Folder By Date` feature so `Output Folder Suffix` now shows the effective `_processed` default whenever `Output Folder` is empty, even if an older persisted UI state had previously stored that suffix as blank.
 
 #### 📚 Documentation:
   - Documented the new standalone `Organize Local Folder By Date` feature in `help/01-command-line-interface.md`, `help/02-arguments-description.md`, and `help/02-arguments-description-short.md`, including its CLI syntax, folder-structure options, generated output-folder suffix behavior, explicit `--output-folder` behavior, and `--move-original-files` mode.

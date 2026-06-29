@@ -1268,6 +1268,22 @@ def default_state_values(schema: Dict[str, Any]) -> Dict[str, Any]:
     return values
 
 
+def effective_interactive_field_value(field: Dict[str, Any] | None, values: Dict[str, Any] | None) -> Any:
+    if not field:
+        return None
+    state_values = values or {}
+    dest = str(field.get("dest") or "")
+    raw_value = state_values.get(dest)
+
+    if dest == "organize-output-folder-suffix":
+        output_folder = str(state_values.get("output-folder") or "").strip()
+        if not output_folder and not str(raw_value or "").strip():
+            default_value = field.get("default")
+            return "_processed" if default_value in (None, "") else default_value
+
+    return raw_value
+
+
 def prepare_values_for_command(values: Dict[str, Any], tab: str, selected_action_dest: str | None) -> Dict[str, Any]:
     prepared = dict(values or {})
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and selected_action_dest == "rename-albums":
