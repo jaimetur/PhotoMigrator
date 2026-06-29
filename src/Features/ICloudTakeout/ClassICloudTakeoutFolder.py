@@ -252,6 +252,10 @@ class ClassICloudTakeoutFolder:
             "rows_matched_to_multiple_media_files": 0,
             "ambiguous_destinations": set(),
         }
+        self._last_unknown_date_report = {
+            "assets_without_csv_match": 0,
+            "assets_with_ambiguous_csv_match": 0,
+        }
 
     def _build_output_folder(self):
         if self.ARGS.get("output-folder"):
@@ -879,6 +883,10 @@ class ClassICloudTakeoutFolder:
 
             if replacements and self.local_analyzer is not None:
                 self.local_analyzer.apply_replacements(replacements, step_name=step_name, log_level=log_level)
+            self._last_unknown_date_report = {
+                "assets_without_csv_match": no_csv_count,
+                "assets_with_ambiguous_csv_match": ambiguous_count,
+            }
             LOGGER.info(f"{step_name}Assets moved to 'Unknown Date/No CSV Match' : {no_csv_count}")
             LOGGER.info(f"{step_name}Assets moved to 'Unknown Date/Ambiguous Match' : {ambiguous_count}")
             return self._update_source_record_destinations(source_records, replacements)
@@ -905,29 +913,49 @@ class ClassICloudTakeoutFolder:
     def _build_collection_from_csvs(self, csv_files, source_index, root_folder: Path, structure: str, step_name="", log_level=None):
         with set_log_level(LOGGER, log_level):
             use_copy = self.ARGS.get("icloud-no-symbolic-albums", False)
-            created_collections = 0
+            stats = {
+                "collections_created": 0,
+                "collections_fully_resolved": 0,
+                "collections_partially_resolved": 0,
+                "collections_empty": 0,
+                "members_resolved": 0,
+                "members_unresolved": 0,
+            }
             for csv_path in csv_files:
                 collection_name = self._safe_collection_name(csv_path)
                 members = self._parse_membership_csv(csv_path)
                 if not members:
                     continue
                 collection_folder = root_folder / collection_name
+                collection_folder.mkdir(parents=True, exist_ok=True)
                 scope_key = self._path_key(self._scope_root_for_path(csv_path))
                 seen_sources = set()
+                resolved_members = 0
                 for member_name in members:
                     member_key = self._normalized_name(member_name)
                     scope_matches = source_index["by_scope_name"].get(scope_key, {}).get(member_key, [])
+                    matched_this_member = False
                     for record in scope_matches:
                         source_dest = Path(record["dest"]).resolve()
                         source_key = source_dest.as_posix()
                         if source_key in seen_sources:
                             continue
                         seen_sources.add(source_key)
+                        matched_this_member = True
                         self._create_link_or_copy(source_dest, collection_folder / source_dest.name, use_copy=use_copy)
-                if not collection_folder.exists():
-                    continue
-                created_collections += 1
-                if structure != "flatten":
+                    if matched_this_member:
+                        resolved_members += 1
+                    else:
+                        stats["members_unresolved"] += 1
+                stats["collections_created"] += 1
+                stats["members_resolved"] += resolved_members
+                if resolved_members == 0:
+                    stats["collections_empty"] += 1
+                elif resolved_members == len(members):
+                    stats["collections_fully_resolved"] += 1
+                else:
+                    stats["collections_partially_resolved"] += 1
+                if structure != "flatten" and resolved_members > 0:
                     organize_files_by_date(
                         input_folder=str(collection_folder),
                         type=structure,
@@ -936,7 +964,12 @@ class ClassICloudTakeoutFolder:
                         step_name=step_name,
                         log_level=log_level,
                     )
-            return created_collections
+            LOGGER.info(f"{step_name}Collections created              : {stats['collections_created']}")
+            LOGGER.info(f"{step_name}Collections fully resolved       : {stats['collections_fully_resolved']}")
+            LOGGER.info(f"{step_name}Collections partially resolved   : {stats['collections_partially_resolved']}")
+            LOGGER.info(f"{step_name}Collections created empty        : {stats['collections_empty']}")
+            LOGGER.info(f"{step_name}Collection members unresolved    : {stats['members_unresolved']}")
+            return stats
 
     def _save_dates_json(self, step_name="", log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -1010,7 +1043,7 @@ class ClassICloudTakeoutFolder:
                 )
 
                 step_name = "[iCloud POST]-[Build Albums] : "
-                album_count = self._build_collection_from_csvs(
+                album_stats = self._build_collection_from_csvs(
                     csv_files=album_csvs,
                     source_index=source_index,
                     root_folder=self.albums_folder,
@@ -1018,12 +1051,11 @@ class ClassICloudTakeoutFolder:
                     step_name=step_name,
                     log_level=LOG_LEVEL,
                 )
-                LOGGER.info(f"{step_name}Album folders created: {album_count}")
-                self.result["valid_albums_found"] = album_count
+                self.result["valid_albums_found"] = album_stats["collections_created"]
 
                 if self.ARGS.get("icloud-include-memories", False):
                     step_name = "[iCloud POST]-[Build Memories] : "
-                    memories_count = self._build_collection_from_csvs(
+                    memories_stats = self._build_collection_from_csvs(
                         csv_files=memory_csvs,
                         source_index=source_index,
                         root_folder=self.memories_folder,
@@ -1031,13 +1063,34 @@ class ClassICloudTakeoutFolder:
                         step_name=step_name,
                         log_level=LOG_LEVEL,
                     )
-                    LOGGER.info(f"{step_name}Memories folders created: {memories_count}")
+                else:
+                    memories_stats = {
+                        "collections_created": 0,
+                        "collections_fully_resolved": 0,
+                        "collections_partially_resolved": 0,
+                        "collections_empty": 0,
+                        "members_resolved": 0,
+                        "members_unresolved": 0,
+                    }
 
                 step_name = "[iCloud FINAL]-[Cleanup] : "
                 remove_empty_dirs(str(self.output_folder), log_level=LOG_LEVEL)
                 self.final_filedates_json = self._save_dates_json(step_name=step_name, log_level=LOG_LEVEL)
                 if getattr(self.local_analyzer, "extracted_dates", None):
                     self.local_analyzer.show_files_without_dates(relative_folder=str(self.output_folder), step_name=step_name)
+                LOGGER.info(f"{step_name}Rows without matching media      : {self._last_date_application_report['rows_without_matching_media']}")
+                LOGGER.info(f"{step_name}Rows matched to multiple media  : {self._last_date_application_report['rows_matched_to_multiple_media_files']}")
+                LOGGER.info(f"{step_name}Assets without CSV date match   : {self._last_unknown_date_report['assets_without_csv_match']}")
+                LOGGER.info(f"{step_name}Assets with ambiguous CSV match : {self._last_unknown_date_report['assets_with_ambiguous_csv_match']}")
+                LOGGER.info(f"{step_name}Albums created                  : {album_stats['collections_created']}")
+                LOGGER.info(f"{step_name}Albums partially resolved       : {album_stats['collections_partially_resolved']}")
+                LOGGER.info(f"{step_name}Albums created empty            : {album_stats['collections_empty']}")
+                LOGGER.info(f"{step_name}Album members unresolved        : {album_stats['members_unresolved']}")
+                if self.ARGS.get("icloud-include-memories", False):
+                    LOGGER.info(f"{step_name}Memories created                : {memories_stats['collections_created']}")
+                    LOGGER.info(f"{step_name}Memories partially resolved     : {memories_stats['collections_partially_resolved']}")
+                    LOGGER.info(f"{step_name}Memories created empty          : {memories_stats['collections_empty']}")
+                    LOGGER.info(f"{step_name}Memory members unresolved       : {memories_stats['members_unresolved']}")
 
                 processing_end = datetime.now()
                 LOGGER.info("")

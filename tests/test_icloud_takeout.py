@@ -270,14 +270,15 @@ class TestICloudTakeout(unittest.TestCase):
             processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
             _, source_index = processor._stage_original_assets(self.takeout_root)
             _, album_csvs, _ = processor._collect_csv_inputs(self.takeout_root)
-            created = processor._build_collection_from_csvs(
+            stats = processor._build_collection_from_csvs(
                 csv_files=album_csvs,
                 source_index=source_index,
                 root_folder=processor.albums_folder,
                 structure="flatten",
             )
 
-        self.assertEqual(created, 2)
+        self.assertEqual(stats["collections_created"], 2)
+        self.assertEqual(stats["collections_fully_resolved"], 2)
         trip_a_files = sorted(path.read_bytes() for path in (self.base_path / "output" / "Albums" / "Trip A").iterdir())
         trip_b_files = sorted(path.read_bytes() for path in (self.base_path / "output" / "Albums" / "Trip B").iterdir())
         self.assertEqual(trip_a_files, [b"scope-a"])
@@ -311,6 +312,61 @@ class TestICloudTakeout(unittest.TestCase):
         link_target = os.readlink(link_path)
         self.assertFalse(Path(link_target).is_absolute())
         self.assertEqual(link_path.resolve().read_bytes(), b"scope-a")
+
+    def test_album_folder_is_created_empty_when_no_members_resolve(self):
+        photos_folder = self.takeout_root / "Photos"
+        albums_folder = self.takeout_root / "Albums"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        albums_folder.mkdir(parents=True, exist_ok=True)
+
+        (photos_folder / "IMG_0001.JPG").write_bytes(b"scope-a")
+        self._write_membership_csv(albums_folder / "Missing.csv", ["IMG_9999.JPG"])
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            _, source_index = processor._stage_original_assets(self.takeout_root)
+            _, album_csvs, _ = processor._collect_csv_inputs(self.takeout_root)
+            stats = processor._build_collection_from_csvs(
+                csv_files=album_csvs,
+                source_index=source_index,
+                root_folder=processor.albums_folder,
+                structure="flatten",
+            )
+
+        empty_album = self.base_path / "output" / "Albums" / "Missing"
+        self.assertTrue(empty_album.exists())
+        self.assertEqual(list(empty_album.iterdir()), [])
+        self.assertEqual(stats["collections_created"], 1)
+        self.assertEqual(stats["collections_empty"], 1)
+        self.assertEqual(stats["members_unresolved"], 1)
+
+    def test_album_stats_track_partial_resolution(self):
+        photos_folder = self.takeout_root / "Photos"
+        albums_folder = self.takeout_root / "Albums"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        albums_folder.mkdir(parents=True, exist_ok=True)
+
+        (photos_folder / "IMG_0001.JPG").write_bytes(b"scope-a")
+        self._write_membership_csv(albums_folder / "Mixed.csv", ["IMG_0001.JPG", "IMG_9999.JPG"])
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            _, source_index = processor._stage_original_assets(self.takeout_root)
+            _, album_csvs, _ = processor._collect_csv_inputs(self.takeout_root)
+            stats = processor._build_collection_from_csvs(
+                csv_files=album_csvs,
+                source_index=source_index,
+                root_folder=processor.albums_folder,
+                structure="flatten",
+            )
+
+        mixed_album = self.base_path / "output" / "Albums" / "Mixed"
+        self.assertTrue(mixed_album.exists())
+        self.assertEqual(sorted(path.name for path in mixed_album.iterdir()), ["IMG_0001.JPG"])
+        self.assertEqual(stats["collections_created"], 1)
+        self.assertEqual(stats["collections_partially_resolved"], 1)
+        self.assertEqual(stats["members_resolved"], 1)
+        self.assertEqual(stats["members_unresolved"], 1)
 
     def test_build_exiftool_args_include_filesystem_dates(self):
         with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
