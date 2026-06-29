@@ -137,6 +137,79 @@ class TestICloudTakeout(unittest.TestCase):
             self.assertEqual(len(records), 1)
             self.assertEqual(records[0]["scope_key"], scope_key)
 
+    def test_photo_details_rows_can_fallback_to_unique_global_name_when_local_scope_match_fails(self):
+        source_photos = self.takeout_root / "PartA" / "Photos"
+        metadata_photos = self.takeout_root / "PartB" / "Photos"
+        source_photos.mkdir(parents=True, exist_ok=True)
+        metadata_photos.mkdir(parents=True, exist_ok=True)
+
+        (source_photos / "IMG_0099.JPG").write_bytes(b"only-copy")
+        self._write_photo_details(
+            metadata_photos / "Photo Details.csv",
+            [
+                {
+                    "imgName": "IMG_0099.JPG",
+                    "fileChecksum": "",
+                    "favorite": "no",
+                    "hidden": "no",
+                    "deleted": "no",
+                    "originalCreationDate": "Sunday May 14,2023 3:36 AM GMT",
+                    "viewCount": 0,
+                    "importDate": "Sunday May 14,2023 3:37 AM GMT",
+                }
+            ],
+        )
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            _, source_index = processor._stage_original_assets(self.takeout_root)
+            csv_files, _, _ = processor._collect_csv_inputs(self.takeout_root)
+            row = processor._load_photo_details_rows(csv_files)[0]
+            matches = processor._match_row_to_records(row, source_index)
+
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["source"].resolve(), (source_photos / "IMG_0099.JPG").resolve())
+
+    def test_photo_details_rows_can_fallback_globally_by_checksum_when_name_is_not_unique(self):
+        source_a = self.takeout_root / "PartA" / "Photos"
+        source_b = self.takeout_root / "PartB" / "Photos"
+        metadata_scope = self.takeout_root / "PartC" / "Photos"
+        source_a.mkdir(parents=True, exist_ok=True)
+        source_b.mkdir(parents=True, exist_ok=True)
+        metadata_scope.mkdir(parents=True, exist_ok=True)
+
+        file_a = source_a / "IMG_0100.JPG"
+        file_b = source_b / "IMG_0100.JPG"
+        file_a.write_bytes(b"same-name-a")
+        file_b.write_bytes(b"same-name-b")
+
+        checksum_hex, _ = icloud_module.sha1_checksum(str(file_b))
+        self._write_photo_details(
+            metadata_scope / "Photo Details.csv",
+            [
+                {
+                    "imgName": "IMG_0100.JPG",
+                    "fileChecksum": checksum_hex,
+                    "favorite": "no",
+                    "hidden": "no",
+                    "deleted": "no",
+                    "originalCreationDate": "Sunday May 14,2023 3:36 AM GMT",
+                    "viewCount": 0,
+                    "importDate": "Sunday May 14,2023 3:37 AM GMT",
+                }
+            ],
+        )
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            _, source_index = processor._stage_original_assets(self.takeout_root)
+            csv_files, _, _ = processor._collect_csv_inputs(self.takeout_root)
+            row = processor._load_photo_details_rows(csv_files)[0]
+            matches = processor._match_row_to_records(row, source_index)
+
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["source"].resolve(), file_b.resolve())
+
     def test_contains_icloud_takeout_structure_detects_renamed_metadata_csv_by_header(self):
         photos_folder = self.takeout_root / "RenamedExport" / "Photos"
         photos_folder.mkdir(parents=True, exist_ok=True)
