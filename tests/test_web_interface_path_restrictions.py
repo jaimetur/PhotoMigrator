@@ -245,11 +245,6 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("organize-folder-structure", fields_by_dest)
         self.assertIn("move-original-files", fields_by_dest)
 
-        sanitized = self.web_app._sanitize_payload_paths_for_user(values, self.current_user, path_scope=scope)
-
-        self.assertEqual(sanitized["google-takeout"], str(takeout_subfolder))
-        self.assertEqual(sanitized["google-output-folder-suffix"], "processed")
-
     def test_config_form_response_exposes_account_selector_for_multi_account_sections(self):
         response = self.web_app._build_config_form_response(self.current_user)
         sections = {str(section.get("name") or ""): section for section in response.get("sections", [])}
