@@ -1791,7 +1791,7 @@
     }
 
     function getFieldByDest(dest) {
-        return getAllFields().find((f) => f.dest === dest);
+        return schema?.fields_by_dest?.[dest] || getAllFields().find((f) => f.dest === dest);
     }
 
     function normalizeFieldForContext(field, tabKey) {

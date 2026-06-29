@@ -2232,6 +2232,7 @@ def _load_parser_schema() -> Dict[str, Any]:
             "config_editor": [],
         },
         "feature_scoped": [field for field in fields if field["dest"] in FEATURE_SCOPED_DESTS],
+        "fields_by_dest": by_dest,
         "tabs": {
             "google_takeout": [field for field in fields if field["tab"] == "google_takeout"],
             "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"],

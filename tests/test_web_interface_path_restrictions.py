@@ -238,6 +238,13 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("google-takeout", scope)
         self.assertNotIn("google-output-folder-suffix", scope)
 
+    def test_web_parser_schema_exposes_auxiliary_organize_fields_by_dest(self):
+        fields_by_dest = self.web_app.PARSER_SCHEMA.get("fields_by_dest", {})
+
+        self.assertIn("organize-output-folder-suffix", fields_by_dest)
+        self.assertIn("organize-folder-structure", fields_by_dest)
+        self.assertIn("move-original-files", fields_by_dest)
+
         sanitized = self.web_app._sanitize_payload_paths_for_user(values, self.current_user, path_scope=scope)
 
         self.assertEqual(sanitized["google-takeout"], str(takeout_subfolder))
