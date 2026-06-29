@@ -93,6 +93,29 @@ FOCUS_PANEL_IDS = (
 )
 
 
+def preferred_tui_panel_widget_ids(panel_id: str, active_general_tab: str = "", active_module: str = "") -> List[str]:
+    preferred: List[str] = []
+
+    def push(widget_id: str) -> None:
+        value = str(widget_id or "").strip()
+        if value and value not in preferred:
+            preferred.append(value)
+
+    if panel_id == "sidebar-features":
+        if str(active_module or "").strip():
+            push(f"module-tab-{active_module}")
+        for widget_id in ["module-tab-automatic_migration", "run-btn", "stop-btn", "exit-btn"]:
+            push(widget_id)
+        return preferred
+    if panel_id == "general-tabs":
+        if str(active_general_tab or "").strip():
+            push(f"general-tab-{active_general_tab}")
+        for widget_id in ["general-tab-feature", "load-config-btn"]:
+            push(widget_id)
+        return preferred
+    return []
+
+
 def textual_runtime_available() -> tuple[bool, str | None]:
     if TEXTUAL_AVAILABLE:
         return True, None
@@ -3227,7 +3250,19 @@ if TEXTUAL_AVAILABLE:
             panel_widgets = self._panel_widgets(target_panel)
             if not panel_widgets:
                 return
-            target_widget = panel_widgets[0] if delta > 0 else panel_widgets[-1]
+            target_widget = None
+            preferred_ids = preferred_tui_panel_widget_ids(
+                target_panel,
+                active_general_tab=self.active_general_tab,
+                active_module=self.active_module,
+            )
+            for widget_id in preferred_ids:
+                candidate = next((widget for widget in panel_widgets if str(getattr(widget, "id", "") or "") == widget_id), None)
+                if candidate is not None:
+                    target_widget = candidate
+                    break
+            if target_widget is None:
+                target_widget = panel_widgets[0]
             try:
                 self.screen.set_focus(target_widget)
             except Exception:

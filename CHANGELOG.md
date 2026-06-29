@@ -5,7 +5,7 @@
 ---
 
 ## Release: v4.3.3
-### Release Date: 2026-06-29
+### Release Date: 2026-06-30
   
 #### 🚨 Breaking Changes:
 
@@ -16,6 +16,7 @@
   - Improved `iCloud Takeout` handling of media that cannot be dated from `Photo Details.csv` so those assets are no longer left to fall back into misleading current-month folders. After `ALL_PHOTOS` date organization, unresolved items are now moved under `ALL_PHOTOS/Unknown Date/No CSV Match` and `ALL_PHOTOS/Unknown Date/Ambiguous Match`, while ambiguous CSV rows are no longer written blindly to multiple files. This keeps the processed library auditable and still fully compatible with `Automatic Migration`, which already ingests everything placed under `ALL_PHOTOS`. (Discussion #1118).
   - Added a narrow global fallback for `iCloud Takeout` `Photo Details.csv` matching so rows that still fail their normal same-folder / same-scope lookup can now recover against the staged media pool only by checksum or, when there is no ambiguity, by a globally unique filename. This improves recovery of split or oddly structured exports without reintroducing the broad cross-folder matching that previously caused duplicate associations. (Discussion #1118).
   - Expanded the `iCloud Takeout` album and memories rebuild report so it now tracks fully resolved, partially resolved, and unresolved member counts, and changed collection materialization to always create the destination album/memory folder whenever its CSV contains members even if none of them can be resolved. That makes empty collections explicit instead of silently hiding them, which is more useful for support and user verification. (Discussion #1118).
+  - Fixed reverse `Shift+Tab` panel navigation in the CLI TUI so entering the `Feature Selector` or `General Tabs` panels now focuses the panel's primary control instead of the last button in that panel. This prevents backward navigation from landing on `Exit` instead of `Automatic Migration`, or on `Load Config` instead of `FEATURE`, while keeping normal forward `Tab` behavior unchanged.
 
 #### 🚀 GPTH Enhancements:
 

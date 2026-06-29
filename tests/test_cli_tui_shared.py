@@ -39,6 +39,13 @@ try:
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
     SHARED_IMPORT_ERROR = exc
 
+try:
+    from UI.cli_tui import preferred_tui_panel_widget_ids
+    CLI_TUI_IMPORT_ERROR = None
+except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
+    preferred_tui_panel_widget_ids = None
+    CLI_TUI_IMPORT_ERROR = exc
+
 
 class TestCliTuiShared(unittest.TestCase):
     def setUp(self):
@@ -367,6 +374,19 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertEqual(command[3], "-lc")
         self.assertIn("cd /tmp/project", command[4])
         self.assertIn("/usr/bin/python3", command[4])
+
+    def test_preferred_tui_panel_widget_ids_prioritize_primary_controls(self):
+        if CLI_TUI_IMPORT_ERROR is not None:
+            self.skipTest(f"CLI TUI dependencies are not installed in this environment: {CLI_TUI_IMPORT_ERROR}")
+
+        self.assertEqual(
+            preferred_tui_panel_widget_ids("sidebar-features", active_general_tab="feature", active_module="automatic_migration")[:2],
+            ["module-tab-automatic_migration", "run-btn"],
+        )
+        self.assertEqual(
+            preferred_tui_panel_widget_ids("general-tabs", active_general_tab="feature", active_module="automatic_migration")[:2],
+            ["general-tab-feature", "load-config-btn"],
+        )
 
 
 if __name__ == "__main__":
