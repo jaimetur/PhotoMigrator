@@ -412,6 +412,103 @@ class TestICloudTakeout(unittest.TestCase):
         native_mock.assert_called_once()
         exiftool_mock.assert_not_called()
 
+    def test_apply_dates_marks_multi_match_rows_as_ambiguous_without_writing_dates(self):
+        photos_a = self.takeout_root / "PartA" / "Photos"
+        photos_b = self.takeout_root / "PartB" / "Photos"
+        photos_a.mkdir(parents=True, exist_ok=True)
+        photos_b.mkdir(parents=True, exist_ok=True)
+        source_a = photos_a / "IMG_0001.JPG"
+        source_b = photos_b / "IMG_0001.JPG"
+        source_a.write_bytes(b"a")
+        source_b.write_bytes(b"b")
+
+        output_folder = self.base_path / "output"
+        output_folder.mkdir(parents=True, exist_ok=True)
+        dest_a = output_folder / "IMG_0001.JPG"
+        dest_b = output_folder / "IMG_0001 (2).JPG"
+        dest_a.write_bytes(b"a")
+        dest_b.write_bytes(b"b")
+
+        row = {
+            "chosen_dt": datetime(2023, 5, 14, 3, 36, 0),
+            "source_csv": str(photos_a / "Photo Details.csv"),
+            "checksum": "",
+            "favorite": "no",
+            "hidden": "no",
+            "deleted": "no",
+        }
+        records = [{"source": source_a, "dest": dest_a}, {"source": source_b, "dest": dest_b}]
+
+        with (
+            patch.object(icloud_module, "ARGS", _args(self.base_path / "output")),
+            patch.object(icloud_module, "LOGGER", Mock()),
+        ):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            with (
+                patch.object(processor, "_write_photo_exif_natively", side_effect=AssertionError("should not write ambiguous rows")),
+                patch.object(processor, "_write_exif_with_exiftool", side_effect=AssertionError("should not write ambiguous rows")),
+            ):
+                extracted = processor._apply_dates([(row, records)])
+
+        self.assertEqual(extracted, {})
+        self.assertEqual(processor._last_date_application_report["rows_matched_to_multiple_media_files"], 1)
+        self.assertEqual(
+            processor._last_date_application_report["ambiguous_destinations"],
+            {dest_a.resolve().as_posix(), dest_b.resolve().as_posix()},
+        )
+
+    def test_unknown_date_assets_are_bucketed_into_no_csv_and_ambiguous_folders(self):
+        photos_folder = self.takeout_root / "Photos"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        dated_source = photos_folder / "IMG_0001.JPG"
+        unmatched_source = photos_folder / "IMG_0002.JPG"
+        ambiguous_source = photos_folder / "IMG_0003.JPG"
+        dated_source.write_bytes(b"dated")
+        unmatched_source.write_bytes(b"unmatched")
+        ambiguous_source.write_bytes(b"ambiguous")
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            source_records, source_index = processor._stage_original_assets(self.takeout_root)
+            dated_record = source_index["by_name"][processor._normalized_name("IMG_0001.JPG")][0]
+            ambiguous_record = source_index["by_name"][processor._normalized_name("IMG_0003.JPG")][0]
+            extracted_dates = {
+                Path(dated_record["dest"]).resolve().as_posix(): {
+                    "SourceFile": str(dated_source),
+                    "TargetFile": Path(dated_record["dest"]).resolve().as_posix(),
+                    "OldestDate": "2023-05-14 03:36:00",
+                    "Source": "test",
+                }
+            }
+            processor._last_date_application_report = {
+                "rows_without_matching_media": 0,
+                "rows_matched_to_multiple_media_files": 1,
+                "ambiguous_destinations": {Path(ambiguous_record["dest"]).resolve().as_posix()},
+            }
+            updated_index = processor._move_unknown_date_assets(source_records, extracted_dates)
+
+        no_csv_path = (
+            self.base_path / "output" / "ALL_PHOTOS" / "Unknown Date" / "No CSV Match" / "IMG_0002.JPG"
+        )
+        ambiguous_path = (
+            self.base_path / "output" / "ALL_PHOTOS" / "Unknown Date" / "Ambiguous Match" / "IMG_0003.JPG"
+        )
+        dated_path = self.base_path / "output" / "ALL_PHOTOS" / "IMG_0001.JPG"
+
+        self.assertTrue(no_csv_path.exists())
+        self.assertTrue(ambiguous_path.exists())
+        self.assertTrue(dated_path.exists())
+        self.assertEqual(no_csv_path.read_bytes(), b"unmatched")
+        self.assertEqual(ambiguous_path.read_bytes(), b"ambiguous")
+        self.assertEqual(
+            Path(updated_index["by_name"][processor._normalized_name("IMG_0002.JPG")][0]["dest"]).resolve(),
+            no_csv_path.resolve(),
+        )
+        self.assertEqual(
+            Path(updated_index["by_name"][processor._normalized_name("IMG_0003.JPG")][0]["dest"]).resolve(),
+            ambiguous_path.resolve(),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

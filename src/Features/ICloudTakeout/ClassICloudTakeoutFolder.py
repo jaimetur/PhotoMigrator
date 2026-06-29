@@ -186,6 +186,9 @@ class _ExifToolSession:
 
 
 class ClassICloudTakeoutFolder:
+    _UNKNOWN_DATE_FOLDER = "Unknown Date"
+    _UNKNOWN_DATE_NO_CSV_FOLDER = "No CSV Match"
+    _UNKNOWN_DATE_AMBIGUOUS_FOLDER = "Ambiguous Match"
     _NATIVE_EXIF_SUFFIXES = {".jpg", ".jpeg", ".jpe", ".tif", ".tiff", ".webp"}
     _ICLOUD_DATETIME_FORMATS = (
         "%A %B %d, %Y %I:%M %p",
@@ -244,6 +247,11 @@ class ClassICloudTakeoutFolder:
         self.CLIENT_NAME = f"iCloud Takeout Folder ({self.takeout_folder.name})"
         self._exiftool_path = None
         self._exiftool_session = None
+        self._last_date_application_report = {
+            "rows_without_matching_media": 0,
+            "rows_matched_to_multiple_media_files": 0,
+            "ambiguous_destinations": set(),
+        }
 
     def _build_output_folder(self):
         if self.ARGS.get("output-folder"):
@@ -517,6 +525,19 @@ class ClassICloudTakeoutFolder:
                 source_index["by_scope_name"].get(row.get("scope_key", ""), {}).get(basename_key, [])
             )
         if not candidates:
+            global_candidates = list(source_index["by_name"].get(basename_key, []))
+            if not global_candidates:
+                return []
+            checksum = self._normalized_checksum(row.get("checksum"))
+            if checksum:
+                checksum_matches = [
+                    record for record in global_candidates
+                    if checksum in self._record_checksum_variants(record)
+                ]
+                if checksum_matches:
+                    return checksum_matches
+            if len(global_candidates) == 1:
+                return global_candidates
             return []
         checksum = self._normalized_checksum(row.get("checksum"))
         if len(candidates) > 1 and checksum:
@@ -527,6 +548,9 @@ class ClassICloudTakeoutFolder:
             if checksum_matches:
                 candidates = checksum_matches
         return candidates
+
+    def _unknown_date_folder(self, bucket_name: str) -> Path:
+        return self.no_albums_folder / self._UNKNOWN_DATE_FOLDER / bucket_name
 
     def _date_to_exif_string(self, dt_value):
         return dt_value.strftime("%Y:%m:%d %H:%M:%S")
@@ -731,6 +755,7 @@ class ClassICloudTakeoutFolder:
             updated_files = 0
             unmatched_rows = 0
             ambiguous_rows = 0
+            ambiguous_destinations = set()
             processed_paths = set()
             for row, records in tqdm(
                 matched_rows,
@@ -748,6 +773,9 @@ class ClassICloudTakeoutFolder:
                     continue
                 if len(records) > 1:
                     ambiguous_rows += 1
+                    for record in records:
+                        ambiguous_destinations.add(Path(record["dest"]).resolve().as_posix())
+                    continue
                 for record in records:
                     dest_path = Path(record["dest"]).resolve()
                     dest_key = dest_path.as_posix()
@@ -779,6 +807,11 @@ class ClassICloudTakeoutFolder:
                         "ICloudDeleted": row.get("deleted", ""),
                     }
                     updated_files += 1
+            self._last_date_application_report = {
+                "rows_without_matching_media": unmatched_rows,
+                "rows_matched_to_multiple_media_files": ambiguous_rows,
+                "ambiguous_destinations": ambiguous_destinations,
+            }
             LOGGER.info(f"{step_name}iCloud dates applied to {updated_files} assets.")
             LOGGER.info(f"{step_name}Rows without matching media: {unmatched_rows}")
             LOGGER.info(f"{step_name}Rows matched to multiple media files: {ambiguous_rows}")
@@ -810,6 +843,44 @@ class ClassICloudTakeoutFolder:
             )
             if replacements:
                 self.local_analyzer.apply_replacements(replacements, step_name=step_name, log_level=log_level)
+            return self._update_source_record_destinations(source_records, replacements)
+
+    def _move_unknown_date_assets(self, source_records, extracted_dates, step_name="", log_level=None):
+        with set_log_level(LOGGER, log_level):
+            known_destinations = {str(path_key) for path_key in (extracted_dates or {}).keys()}
+            ambiguous_destinations = {
+                str(path_key)
+                for path_key in self._last_date_application_report.get("ambiguous_destinations", set())
+            }
+            replacements = []
+            no_csv_count = 0
+            ambiguous_count = 0
+
+            for record in source_records:
+                current_dest = Path(record["dest"]).resolve()
+                current_key = current_dest.as_posix()
+                if current_key in known_destinations:
+                    continue
+
+                if current_key in ambiguous_destinations:
+                    bucket_name = self._UNKNOWN_DATE_AMBIGUOUS_FOLDER
+                    ambiguous_count += 1
+                else:
+                    bucket_name = self._UNKNOWN_DATE_NO_CSV_FOLDER
+                    no_csv_count += 1
+
+                destination_folder = self._unknown_date_folder(bucket_name)
+                destination_folder.mkdir(parents=True, exist_ok=True)
+                destination_path = self._unique_file_path(destination_folder, current_dest.name)
+                if destination_path.resolve().as_posix() == current_key:
+                    continue
+                shutil.move(str(current_dest), str(destination_path))
+                replacements.append((current_dest, destination_path))
+
+            if replacements and self.local_analyzer is not None:
+                self.local_analyzer.apply_replacements(replacements, step_name=step_name, log_level=log_level)
+            LOGGER.info(f"{step_name}Assets moved to 'Unknown Date/No CSV Match' : {no_csv_count}")
+            LOGGER.info(f"{step_name}Assets moved to 'Unknown Date/Ambiguous Match' : {ambiguous_count}")
             return self._update_source_record_destinations(source_records, replacements)
 
     def _create_link_or_copy(self, source_path: Path, destination_path: Path, use_copy: bool):
@@ -929,6 +1000,14 @@ class ClassICloudTakeoutFolder:
 
                 step_name = "[iCloud POST]-[Organize ALL_PHOTOS] : "
                 source_index = self._organize_originals(source_records, extracted_dates, step_name=step_name, log_level=LOG_LEVEL)
+
+                step_name = "[iCloud POST]-[Handle Unknown Dates] : "
+                source_index = self._move_unknown_date_assets(
+                    source_records,
+                    extracted_dates,
+                    step_name=step_name,
+                    log_level=LOG_LEVEL,
+                )
 
                 step_name = "[iCloud POST]-[Build Albums] : "
                 album_count = self._build_collection_from_csvs(

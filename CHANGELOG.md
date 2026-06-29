@@ -5,13 +5,14 @@
 ---
 
 ## Release: v4.3.3
-### Release Date: 2026-06-29
+### Release Date: 2026-06-30
   
 #### 🚨 Breaking Changes:
 
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
+  - Improved `iCloud Takeout` handling of media that cannot be dated from `Photo Details.csv` so those assets are no longer left to fall back into misleading current-month folders. After `ALL_PHOTOS` date organization, unresolved items are now moved under `ALL_PHOTOS/Unknown Date/No CSV Match` and `ALL_PHOTOS/Unknown Date/Ambiguous Match`, while ambiguous CSV rows are no longer written blindly to multiple files. This keeps the processed library auditable and still fully compatible with `Automatic Migration`, which already ingests everything placed under `ALL_PHOTOS`. (Discussion #1118).
 
 #### 🚀 GPTH Enhancements:
 
