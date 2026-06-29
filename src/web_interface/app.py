@@ -189,9 +189,6 @@ STANDALONE_DESTS = {
     "fix-symlinks-broken",
     "rename-folders-content-based",
     "organize-local-folder-by-date",
-    "organize-output-folder-suffix",
-    "organize-folder-structure",
-    "move-original-files",
     "find-duplicates",
     "process-duplicates",
 }

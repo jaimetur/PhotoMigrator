@@ -54,6 +54,16 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("google_photos", schema["tabs"])
         self.assertIn("configuration-file", schema["fields_by_dest"])
 
+    def test_build_parser_schema_standalone_actions_exclude_auxiliary_organize_fields(self):
+        schema = build_parser_schema()
+
+        standalone_dests = {field["dest"] for field in schema["tabs"]["standalone_features"]}
+
+        self.assertIn("organize-local-folder-by-date", standalone_dests)
+        self.assertNotIn("organize-output-folder-suffix", standalone_dests)
+        self.assertNotIn("organize-folder-structure", standalone_dests)
+        self.assertNotIn("move-original-files", standalone_dests)
+
     def test_build_parser_schema_defaults_native_icloud_writer_to_true_for_ui(self):
         schema = build_parser_schema()
 
@@ -221,8 +231,8 @@ class TestCliTuiShared(unittest.TestCase):
         values = {"google-takeout": "/tmp/Takeout"}
 
         with (
-            patch("UI.shared.ui_runtime_is_frozen", return_value=True),
-            patch("UI.shared.ui_runtime_launcher_executable", return_value="/Applications/PhotoMigrator"),
+            patch("UI.ui_shared.ui_runtime_is_frozen", return_value=True),
+            patch("UI.ui_shared.ui_runtime_launcher_executable", return_value="/Applications/PhotoMigrator"),
         ):
             command = build_full_command(Path("/opt/PhotoMigrator/src/PhotoMigrator.py"), schema, "google_takeout", values)
 
@@ -236,9 +246,9 @@ class TestCliTuiShared(unittest.TestCase):
             launcher.write_text("", encoding="utf-8")
 
             with (
-                patch.dict("UI.shared.os.environ", {"PHOTOMIGRATOR_LAUNCHER_PATH": "", "PHOTOMIGRATOR_ORIGINAL_CWD": ""}, clear=False),
-                patch("UI.shared.sys.argv", [str(launcher)]),
-                patch("UI.shared.sys.executable", "/var/tmp/PhotoMigrator/python3"),
+                patch.dict("UI.ui_shared.os.environ", {"PHOTOMIGRATOR_LAUNCHER_PATH": "", "PHOTOMIGRATOR_ORIGINAL_CWD": ""}, clear=False),
+                patch("UI.ui_shared.sys.argv", [str(launcher)]),
+                patch("UI.ui_shared.sys.executable", "/var/tmp/PhotoMigrator/python3"),
             ):
                 resolved = ui_runtime_launcher_executable()
 
@@ -250,9 +260,9 @@ class TestCliTuiShared(unittest.TestCase):
             launcher.write_text("", encoding="utf-8")
 
             with (
-                patch.dict("UI.shared.os.environ", {"PHOTOMIGRATOR_LAUNCHER_PATH": str(launcher)}, clear=False),
-                patch("UI.shared.sys.argv", ["/var/tmp/PhotoMigrator/python3.exe"]),
-                patch("UI.shared.sys.executable", "/var/tmp/PhotoMigrator/python3.exe"),
+                patch.dict("UI.ui_shared.os.environ", {"PHOTOMIGRATOR_LAUNCHER_PATH": str(launcher)}, clear=False),
+                patch("UI.ui_shared.sys.argv", ["/var/tmp/PhotoMigrator/python3.exe"]),
+                patch("UI.ui_shared.sys.executable", "/var/tmp/PhotoMigrator/python3.exe"),
             ):
                 resolved = ui_runtime_launcher_executable()
 
@@ -266,13 +276,13 @@ class TestCliTuiShared(unittest.TestCase):
 
             with (
                 patch.dict(
-                    "UI.shared.os.environ",
+                    "UI.ui_shared.os.environ",
                     {"PHOTOMIGRATOR_LAUNCHER_PATH": "", "PHOTOMIGRATOR_ORIGINAL_CWD": str(launch_dir)},
                     clear=False,
                 ),
-                patch("UI.shared.sys.argv", ["/var/tmp/PhotoMigrator/python3.exe"]),
-                patch("UI.shared.sys.executable", "/var/tmp/PhotoMigrator/python3.exe"),
-                patch("UI.shared.sys.platform", "win32"),
+                patch("UI.ui_shared.sys.argv", ["/var/tmp/PhotoMigrator/python3.exe"]),
+                patch("UI.ui_shared.sys.executable", "/var/tmp/PhotoMigrator/python3.exe"),
+                patch("UI.ui_shared.sys.platform", "win32"),
             ):
                 resolved = ui_runtime_launcher_executable()
 
@@ -329,7 +339,7 @@ class TestCliTuiShared(unittest.TestCase):
     def test_build_external_terminal_command_uses_osascript_on_macos(self):
         env = build_ui_subprocess_env({"TERM": "xterm-256color"}, ui_mode="gui", embedded_ui=False)
 
-        with patch("UI.shared.shutil.which", side_effect=lambda name: "/usr/bin/osascript" if name == "osascript" else None):
+        with patch("UI.ui_shared.shutil.which", side_effect=lambda name: "/usr/bin/osascript" if name == "osascript" else None):
             command = build_external_terminal_command(
                 ["/usr/bin/python3", "/tmp/PhotoMigrator.py", "--automatic-migration"],
                 Path("/tmp/project"),
@@ -345,7 +355,7 @@ class TestCliTuiShared(unittest.TestCase):
     def test_build_external_terminal_command_uses_linux_terminal_emulator(self):
         env = build_ui_subprocess_env({"TERM": "xterm-256color"}, ui_mode="gui", embedded_ui=False)
 
-        with patch("UI.shared.shutil.which", side_effect=lambda name: "/usr/bin/gnome-terminal" if name == "gnome-terminal" else None):
+        with patch("UI.ui_shared.shutil.which", side_effect=lambda name: "/usr/bin/gnome-terminal" if name == "gnome-terminal" else None):
             command = build_external_terminal_command(
                 ["/usr/bin/python3", "/tmp/PhotoMigrator.py", "--automatic-migration"],
                 Path("/tmp/project"),
