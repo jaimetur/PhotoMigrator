@@ -212,18 +212,25 @@ PhotoMigrator.bin -client=synology -rAlb="tmp_*" -rAlbAsset -OTP
 If more than one Feature is detected, only the first one will be executed.  
 Following arguments can be used to execute the Tool in any of the usefully additional Extra Standalone Features included.  
 
-| Argument                                         | Description                                                    |
-|--------------------------------------------------|----------------------------------------------------------------|
-| `-fixSym`,<br>`--fix-symlinks-broken`            | Fix broken symlinks in folder                                  |
-| `-renFldcb`,<br>`--rename-folders-content-based` | Rename folders based on media content date                     |
-| `-findDup`,<br>`--find-duplicates`               | Find duplicates in folder(s). Action: `list`, `move`, `remove` |
-| `-procDup`,<br>`--process-duplicates`            | Execute actions from a reviewed duplicates CSV file            |
+| Argument                                         | Description                                                                                                  |
+|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| `-fixSym`,<br>`--fix-symlinks-broken`            | Fix broken symlinks in folder                                                                                |
+| `-renFldcb`,<br>`--rename-folders-content-based` | Rename folders based on media content date                                                                   |
+| `-orgDate`,<br>`--organize-local-folder-by-date` | Create a processed copy of a local folder and reorganize its media by date                                   |
+| `-olfs`,<br>`--organize-output-folder-suffix`    | Change generated suffix for `--organize-local-folder-by-date` when no explicit `--output-folder` is provided |
+| `-olstr`,<br>`--organize-folder-structure`       | Select layout for organized output: `flatten`, `year`, `year/month`, `year-month`                            |
+| `-omove`,<br>`--move-original-files`             | Move original files instead of copying them first when organizing a local folder by date                     |
+| `-findDup`,<br>`--find-duplicates`               | Find duplicates in folder(s). Action: `list`, `move`, `remove`                                               |
+| `-procDup`,<br>`--process-duplicates`            | Execute actions from a reviewed duplicates CSV file                                                          |
 
 
 #### 🧪 Examples:
 ```bash
 PhotoMigrator.bin --fix-symlinks-broken="/mnt/albums"
 PhotoMigrator.bin --rename-folders-content-based="/mnt/albums"
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --organize-folder-structure=year/month
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --output-folder="/mnt/organized"
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --move-original-files --organize-output-folder-suffix=archive
 PhotoMigrator.bin --find-duplicates list "/mnt/folder1" "/mnt/folder2"
 PhotoMigrator.bin --process-duplicates revised_duplicates.csv
 ```

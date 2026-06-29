@@ -76,6 +76,11 @@ class TestCliTuiShared(unittest.TestCase):
 
         self.assertTrue(bool(schema["fields_by_dest"]["icloud-prefer-native-exif-writer"]["default"]))
 
+    def test_build_parser_schema_defaults_organize_suffix_to_interactive_processed_value(self):
+        schema = build_parser_schema()
+
+        self.assertEqual(schema["fields_by_dest"]["organize-output-folder-suffix"]["default"], "_processed")
+
     def test_build_cli_args_appends_native_icloud_writer_flag_only_when_enabled(self):
         schema = build_parser_schema()
 

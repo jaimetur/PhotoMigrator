@@ -2214,6 +2214,8 @@ def _load_parser_schema() -> Dict[str, Any]:
             field["default"] = True
         if dest == "icloud-prefer-native-exif-writer":
             field["default"] = True
+        if dest == "organize-output-folder-suffix":
+            field["default"] = "_processed"
         fields.append(field)
         by_dest[dest] = field
 

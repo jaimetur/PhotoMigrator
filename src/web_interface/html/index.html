@@ -419,9 +419,9 @@
         "find-duplicates": "Find Duplicates Input",
         "process-duplicates": "Duplicates CSV",
         "rename-folders-content-based": "ALBUMS_FOLDER",
-        "organize-local-folder-by-date": "INPUT_FOLDER",
-        "organize-output-folder-suffix": "output-folder-suffix",
-        "organize-folder-structure": "folder-structure",
+        "organize-local-folder-by-date": "Input Folder",
+        "organize-output-folder-suffix": "Output Folder Suffix",
+        "organize-folder-structure": "Folder Structure",
         "move-original-files": "Move Original Files",
         "fix-symlinks-broken": "FOLDER_TO_FIX",
         "configuration-file": "Configuration File",
@@ -1828,6 +1828,11 @@
 
         const mapped = (MODULE_DEPENDENCIES[tabKey] || {})[selectedField?.dest || ""] || [];
         mapped.forEach((item) => pushSpec(item.dest, item.required === true, true));
+        const actionMapped = (MODULE_ACTION_ARGUMENTS[tabKey] || {})[selectedField?.dest || ""] || [];
+        actionMapped.forEach((item) => {
+            const dest = String(item?.dest || "").trim();
+            if (dest) pushSpec(dest, item.required === true, true);
+        });
         parseRequiredFromHelp(selectedField?.help || "", {ignoreDests: [selectedField?.dest]}).forEach((dest) => pushSpec(dest, true, true));
         return specs;
     }

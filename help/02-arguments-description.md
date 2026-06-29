@@ -210,17 +210,24 @@ PhotoMigrator.bin -client=synology -rAlb="tmp_*" -rAlbAsset -OTP
 If more than one Feature is detected, only the first one will be executed.  
 Following arguments can be used to execute the Tool in any of the usefully additionals Extra Standalone Features included.  
 
-| Argument                                         | Parameter              | Type          |                  Valid Values                  | Description                                                                                                                                                                  |
-|--------------------------------------------------|------------------------|---------------|:----------------------------------------------:|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-fixSym` ,<br>`--fix-symlinks-broken`           | `<FOLDER>`             | path          |                `existing path`                 | Fixes broken album symbolic links.                                                                                                                                           |
-| `-renFldcb`,<br>`--rename-folders-content-based` | `<ALBUMS_FOLDER>`      | path          |                `existing path`                 | Renames folders based on internal dates.                                                                                                                                     |
-| `-findDup`,<br>`--find-duplicates`               | `<ACTION> <FOLDER(S)>` | string + list | `move`, `remove`, `list` <br>+<br> `[folders]` | Finds duplicate files in the given folders and applies the specified action. <br><br>If action is `list`, only the output CSV will be generated and no file will be touched. |
-| `-procDup`,<br>`--process-duplicates`            | `<CSV_FILE>`           | path          |                 `path to .csv`                 | Processes duplicate file actions from CSV and applies what the action set in Action column for each file.                                                                    |
+| Argument                                         | Parameter              | Type          |                                     Valid Values                                      | Description                                                                                                                                                                    |
+|--------------------------------------------------|------------------------|---------------|:-------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-fixSym` ,<br>`--fix-symlinks-broken`           | `<FOLDER>`             | path          |                                    `existing path`                                    | Fixes broken album symbolic links.                                                                                                                                             |
+| `-renFldcb`,<br>`--rename-folders-content-based` | `<ALBUMS_FOLDER>`      | path          |                                    `existing path`                                    | Renames folders based on internal dates.                                                                                                                                       |
+| `-orgDate`,<br>`--organize-local-folder-by-date` | `<INPUT_FOLDER>`       | path          |                                    `existing path`                                    | Creates a processed local copy of the input folder and reorganizes its media by date. If `--output-folder` is omitted, the tool creates `<INPUT_FOLDER>_<SUFFIX>_<TIMESTAMP>`. |
+| `-olfs`,<br>`--organize-output-folder-suffix`    | `<SUFFIX>`             | string        |                        `any suffix` <br>`(default: processed)`                        | Changes the generated suffix used by `--organize-local-folder-by-date` when no explicit `--output-folder` is provided. Ignored if `--output-folder` is set.                    |
+| `-olstr`,<br>`--organize-folder-structure`       | `<STRUCTURE>`          | string        | `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: year/month)` | Selects the folder layout used by `--organize-local-folder-by-date`.                                                                                                           |
+| `-omove`,<br>`--move-original-files`             |                        | flag          |                                                                                       | Used together with `--organize-local-folder-by-date`, move the original files into the destination folder instead of copying them first.                                       |
+| `-findDup`,<br>`--find-duplicates`               | `<ACTION> <FOLDER(S)>` | string + list |                    `move`, `remove`, `list` <br>+<br> `[folders]`                     | Finds duplicate files in the given folders and applies the specified action. <br><br>If action is `list`, only the output CSV will be generated and no file will be touched.   |
+| `-procDup`,<br>`--process-duplicates`            | `<CSV_FILE>`           | path          |                                    `path to .csv`                                     | Processes duplicate file actions from CSV and applies what the action set in Action column for each file.                                                                      |
 
 #### 🧪 Examples:
 ```bash
 PhotoMigrator.bin --fix-symlinks-broken="/mnt/albums"
 PhotoMigrator.bin --rename-folders-content-based="/mnt/albums"
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --organize-folder-structure=year/month
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --output-folder="/mnt/organized"
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --move-original-files --organize-output-folder-suffix=archive
 PhotoMigrator.bin --find-duplicates list "/mnt/folder1" "/mnt/folder2"
 PhotoMigrator.bin --process-duplicates revised_duplicates.csv
 ```
@@ -330,6 +337,24 @@ Fix symbolic links found in the given folder
 PhotoMigrator.bin --rename-folders-content-based="/mnt/albums"
 
 Renames album folders based on content creation dates.
+```
+
+```bash
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --organize-folder-structure=year/month
+
+Creates a processed copy of the input folder and organizes media into a year/month structure.
+```
+
+```bash
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --output-folder="/mnt/organized"
+
+Creates the organized library directly in the explicit output folder, without generating a suffix/timestamp folder name.
+```
+
+```bash
+PhotoMigrator.bin --organize-local-folder-by-date="/mnt/unsorted" --move-original-files --organize-output-folder-suffix=archive
+
+Moves the original files into a generated '<INPUT_FOLDER>_archive_<TIMESTAMP>' output folder before reorganizing them by date.
 ```
 
 ```bash

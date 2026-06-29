@@ -93,7 +93,8 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>]
                      [-renAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>] [-rAlb <ALBUMS_NAME_PATTERN>]
                      [-rAllAlb] [-rAll] [-rEmpAlb] [-rDupAlb] [-mDupAlb] [-rOrphan] [-OTP]
-                     [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
+                     [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>] [-orgDate <INPUT_FOLDER>]
+                     [-olfs <SUFFIX>] [-olstr ['flatten', 'year', 'year/month', 'year-month']] [-omove]
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
 
@@ -423,6 +424,27 @@ If more than one Feature is detected, only the first one will be executed.
                Date and range separators can be customized with '--date-separator' and '--range-separator'.
                IMPORTANT: This modifies original folder names in place; create a backup if needed.
                Example: --rename-folders-content-based ./MyLocalPhotoLibrary
+-orgDate     ; --organize-local-folder-by-date <INPUT_FOLDER>
+               Create a processed copy of <INPUT_FOLDER> and reorganize its assets by date.
+               If no explicit '-o, --output-folder' is provided, the output folder will be created as
+               '<INPUT_FOLDER>_<SUFFIX>_<TIMESTAMP>'.
+               Use '--organize-folder-structure' to choose the output layout and '--move-original-files' if you
+               prefer moving the original files instead of copying them first.
+               Example: --organize-local-folder-by-date ./UnsortedLibrary
+-olfs        ; --organize-output-folder-suffix <SUFFIX>
+               Specify the suffix used by '--organize-local-folder-by-date' when no explicit output folder is
+               provided. Default: 'processed'.
+               This argument is ignored if '-o, --output-folder' is given.
+-olstr       ; --organize-folder-structure ['flatten', 'year', 'year/month', 'year-month']
+               Specify the folder structure used by '--organize-local-folder-by-date'. Default: 'year/month'.
+               - 'flatten' keeps all files in one folder.
+               - 'year' creates one folder per year.
+               - 'year/month' creates a nested year/month layout.
+               - 'year-month' creates one folder per year-month.
+-omove       ; --move-original-files
+               Used together with '--organize-local-folder-by-date', move the original files into the destination
+               folder instead of copying them first.
+               IMPORTANT: This avoids duplicating disk usage, but the source folder is consumed by the process.
 -findDup     ; --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
                Find duplicates in one or more folders using file size and content checks.
                <ACTION> can be 'list', 'move' or 'remove'. Default: 'list'.
