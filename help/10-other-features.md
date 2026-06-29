@@ -1,11 +1,12 @@
 # 🛠️ Other Standalone Extra Features
 
-Additionally, this Tool can be executed with 4 Standalone Extra Features: 
+Additionally, this Tool can be executed with 5 Standalone Extra Features: 
  
 1. **Find Duplicates**
 2. **Process Duplicates**
 3. **Fix Symbolic Links Broken**
-4. **Folder Rename Content Based** 
+4. **Folder Rename Content Based**
+5. **Organize Local Folder By Date**
 
 If more than one Stand Alone Extra Feature is detected, only the first one will be executed
 
@@ -118,6 +119,54 @@ If more than one Stand Alone Extra Feature is detected, only the first one will 
 > This Feature will modify the original subfolder names found in <ALBUMS_FOLDER>. 
 > 
 > If you don't want to lose your original subfolder names, you should make a backup before to run this feature.
+
+
+# Organize Local Folder By Date (Extra Feature)
+- **From:** v4.3.3
+- **Usage:**
+  - To run this feature you have to use the argument `-orgDate, --organize-local-folder-by-date <INPUT_FOLDER>`.
+  - Optional arguments for this feature are:
+    - `-o, --output-folder <OUTPUT_FOLDER>`
+    - `-olfs, --organize-output-folder-suffix <SUFFIX>`
+    - `-olstr, --organize-folder-structure ['flatten', 'year', 'year/month', 'year-month']`
+    - `-omove, --move-original-files`
+  - where:
+    - `<INPUT_FOLDER>` is the local folder that contains the assets to reorganize.
+    - `<OUTPUT_FOLDER>` is an explicit destination folder. If you provide this argument, the tool writes directly there and does not append any suffix or timestamp to the folder name.
+    - `<SUFFIX>` is the suffix used when no explicit output folder is provided. The generated folder name will be `<INPUT_FOLDER>_<SUFFIX>_<TIMESTAMP>`.
+    - `--move-original-files` moves the original files into the generated destination instead of copying them first.
+- **Pre-Requisites:**
+  - None
+- **Explanation:**
+  - With this feature, the Tool creates a processed copy of any local photo/video folder and reorganizes the assets by date.
+  - Supported output structures are:
+    - `flatten`: keep all assets in one folder.
+    - `year`: create one folder per year.
+    - `year/month`: create a nested year/month structure.
+    - `year-month`: create one folder per year-month.
+  - By default, if `--output-folder` is not provided, the Tool creates a new output folder next to the input using the generated name `<INPUT_FOLDER>_processed_<TIMESTAMP>`.
+  - If `--move-original-files` is enabled, the Tool avoids duplicating disk usage because the source files are moved into the destination before the date organization step.
+- **Example of use:**
+  ```
+  ./PhotoMigrator.bin --organize-local-folder-by-date ./UnsortedLibrary
+  ```
+  With this example, the Tool will create a new folder `./UnsortedLibrary_processed_<TIMESTAMP>` and organize the assets using the default `year/month` structure.
+
+  ```
+  ./PhotoMigrator.bin --organize-local-folder-by-date ./UnsortedLibrary --output-folder ./OrganizedLibrary --organize-folder-structure year
+  ```
+  With this example, the Tool will write the organized result directly into `./OrganizedLibrary` using a `year` structure.
+
+  ```
+  ./PhotoMigrator.bin --organize-local-folder-by-date ./UnsortedLibrary --move-original-files --organize-output-folder-suffix archive
+  ```
+  With this example, the Tool will move the original files into `./UnsortedLibrary_archive_<TIMESTAMP>` and then reorganize them by date.
+
+> [!TIP]
+> This feature is useful when you have a large unsorted local folder and you simply want to rebuild it into a date-based structure without going through Google Takeout or iCloud Takeout processing.
+
+> [!CAUTION]
+> If you use `--move-original-files`, the original source folder is consumed by the process and will no longer remain in its previous location after the move.
 
 ---
 ## 🏠 [Back to Main Page](../README.md)
