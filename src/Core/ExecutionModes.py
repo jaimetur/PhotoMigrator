@@ -15,6 +15,7 @@ from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates, process_duplicates_actions
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
+from Features.StandAloneFeatures.OrganizeLocalFolderByDate import organize_local_folder_by_date
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import dir_exists, contains_zip_files
 from Utils.GeneralUtils import confirm_continue, capitalize_first_letter, profile_and_print
@@ -150,6 +151,9 @@ def detect_and_run_execution_mode():
     elif ARGS['rename-folders-content-based'] != "":
         EXECUTION_MODE = 'rename-folders-content-based'
         mode_folders_rename_content_based()
+    elif ARGS['organize-local-folder-by-date'] != "":
+        EXECUTION_MODE = 'organize-local-folder-by-date'
+        mode_organize_local_folder_by_date()
 
     else:
         EXECUTION_MODE = ''  # Default option if no condition is met
@@ -663,6 +667,57 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
         LOGGER.info(f"         PROCESS COMPLETED SUCCESSFULLY!          ")
         LOGGER.info(f"==================================================")
         LOGGER.info(f"")
+
+
+#############################################
+# OTHER STAND-ALONE FEATURES / LOCAL FOLDER #
+#############################################
+def mode_organize_local_folder_by_date(user_confirmation=True, log_level=None):
+    input_folder = ARGS['organize-local-folder-by-date']
+    output_folder = ARGS['output-folder']
+    output_suffix = ARGS['organize-output-folder-suffix']
+    folder_structure = ARGS['organize-folder-structure']
+    move_original_files = ARGS['move-original-files']
+
+    LOGGER.info("=============================================================")
+    LOGGER.info("Starting Organize Local Folder By Date Feature...")
+    LOGGER.info("=============================================================")
+    LOGGER.info("")
+    LOGGER.info("Folders for Organize Local Folder By Date Feature :")
+    LOGGER.info("-------------------------------------------")
+    LOGGER.info(f"Input folder                                : '{input_folder}'")
+    if output_folder:
+        LOGGER.info(f"Output folder (explicit)                    : '{output_folder}'")
+    else:
+        LOGGER.info(f"Output folder suffix                        : '{output_suffix}'")
+    LOGGER.info("")
+    LOGGER.info("Settings for Organize Local Folder By Date Feature:")
+    LOGGER.info("-------------------------------------------")
+    LOGGER.info(f"Folder structure                            : '{folder_structure}'")
+    LOGGER.info(f"Move original files                         : '{move_original_files}'")
+    LOGGER.info("")
+
+    if user_confirmation:
+        LOGGER.info('-' * (terminal_width - 10))
+        if move_original_files:
+            LOGGER.warning("This feature will move the original local folder into the processed output before organizing files by date.")
+        else:
+            LOGGER.warning("This feature will create a processed copy of the local folder and then organize files by date inside that copy.")
+        LOGGER.info('-' * (terminal_width - 10))
+        if not confirm_continue():
+            LOGGER.info("Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):
+        organize_local_folder_by_date(
+            input_folder=input_folder,
+            output_folder=output_folder,
+            folder_structure=folder_structure,
+            output_folder_suffix=output_suffix,
+            move_original_files=move_original_files,
+            step_name="[Organize Local Folder By Date] : ",
+            log_level=log_level,
+        )
         LOGGER.info(f"==================================================")
         LOGGER.info(f"                  FINAL SUMMARY:                  ")
         LOGGER.info(f"==================================================")

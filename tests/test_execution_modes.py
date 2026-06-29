@@ -1,8 +1,14 @@
 import unittest
 from unittest.mock import patch
 
-import Features.AutomaticMigration.AutomaticMigration as automatic_module
-import Core.ExecutionModes as execution_modes
+try:
+    import Features.AutomaticMigration.AutomaticMigration as automatic_module
+    import Core.ExecutionModes as execution_modes
+    EXECUTION_MODES_IMPORT_ERROR = None
+except ModuleNotFoundError as exc:
+    automatic_module = exc
+    execution_modes = exc
+    EXECUTION_MODES_IMPORT_ERROR = exc
 
 
 def _base_args():
@@ -27,6 +33,7 @@ def _base_args():
         "find-duplicates": ["list", ""],
         "process-duplicates": "",
         "rename-folders-content-based": "",
+        "organize-local-folder-by-date": "",
         "show-gpth-info": False,
         "account-id": 1,
         "client": "immich",
@@ -34,6 +41,10 @@ def _base_args():
 
 
 class TestExecutionModes(unittest.TestCase):
+    def setUp(self):
+        if EXECUTION_MODES_IMPORT_ERROR is not None:
+            self.skipTest(f"Execution mode dependencies are not installed in this environment: {EXECUTION_MODES_IMPORT_ERROR}")
+
     def test_detect_and_run_execution_mode_dispatches_automatic_migration(self):
         args = _base_args()
         args["source"] = "synology"
@@ -84,6 +95,18 @@ class TestExecutionModes(unittest.TestCase):
             execution_modes.detect_and_run_execution_mode()
 
         mock_mode.assert_called_once_with(client="nextcloud")
+
+    def test_detect_and_run_execution_mode_dispatches_organize_local_folder_by_date(self):
+        args = _base_args()
+        args["organize-local-folder-by-date"] = "/tmp/library"
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "mode_organize_local_folder_by_date") as mock_mode,
+        ):
+            execution_modes.detect_and_run_execution_mode()
+
+        mock_mode.assert_called_once()
 
 
 if __name__ == "__main__":

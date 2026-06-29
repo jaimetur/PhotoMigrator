@@ -455,6 +455,27 @@ def parse_arguments():
                              "IMPORTANT: This modifies original folder names in place; create a backup if needed.\n"
                              "Example: --rename-folders-content-based ./MyLocalPhotoLibrary")
 
+    PARSER.add_argument("-orgDate", "--organize-local-folder-by-date", metavar="<INPUT_FOLDER>", default="",
+                        help="Create a processed copy (or moved clone) of <INPUT_FOLDER> and organize its files by date.\n"
+                             "By default the output uses 'year/month' structure and is saved to "
+                             "'<INPUT_FOLDER>_processed_<TIMESTAMP>' unless '-o/--output-folder' is provided.\n"
+                             "Use '--organize-folder-structure' to change the layout, '--organize-output-folder-suffix' to change the generated suffix when no explicit output folder is provided, and '--move-original-files' to move instead of copy.\n"
+                             "Example: --organize-local-folder-by-date ./UnsortedLibrary")
+
+    PARSER.add_argument("-olfs", "--organize-output-folder-suffix", metavar="<SUFFIX>", default="processed",
+                        help="Specify the suffix for the organized local-folder output when '-o/--output-folder' is not provided. Default: 'processed'.")
+
+    PARSER.add_argument("-olstr", "--organize-folder-structure",
+                        metavar=f"{choices_for_folder_structure}",
+                        default="year/month",
+                        help="Specify the folder structure type for the organized local-folder output (Default: 'year/month').",
+                        type=lambda s: s.lower(),
+                        choices=choices_for_folder_structure)
+
+    PARSER.add_argument("-omove", "--move-original-files", action="store_true",
+                        help="Move the original folder into the processed output instead of copying it first.\n"
+                             "Useful to avoid duplicating disk usage for large local libraries.")
+
     PARSER.add_argument("-findDup", "--find-duplicates",
                         metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]",
                         nargs="+", default=["list", ""],
@@ -593,6 +614,7 @@ def checkArgs(ARGS, PARSER):
     ARGS['download-all']                    = fix_path(ARGS['download-all'])
     ARGS['fix-symlinks-broken']             = fix_path(ARGS['fix-symlinks-broken'])
     ARGS['rename-folders-content-based']    = fix_path(ARGS['rename-folders-content-based'])
+    ARGS['organize-local-folder-by-date']   = fix_path(ARGS['organize-local-folder-by-date'])
 
     # Resolve paths (docker vs normal instance). Only for selected keys.
     keys_to_check = [
@@ -609,6 +631,7 @@ def checkArgs(ARGS, PARSER):
         'find-duplicates',
         'fix-symlinks-broken',
         'rename-folders-content-based',
+        'organize-local-folder-by-date',
         'configuration-file',
         'exec-gpth-tool',
         'exec-exif-tool',
@@ -623,6 +646,7 @@ def checkArgs(ARGS, PARSER):
     # Remove '_' at the beginning of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
     ARGS['icloud-output-folder-suffix'] = ARGS['icloud-output-folder-suffix'].lstrip('_')
+    ARGS['organize-output-folder-suffix'] = ARGS['organize-output-folder-suffix'].lstrip('_')
 
     # Set None for google-input-zip-folder (will be set only if unzip is needed)
     ARGS['google-input-zip-folder'] = None

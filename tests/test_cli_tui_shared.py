@@ -128,6 +128,28 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertEqual(args[1], "remove")
         self.assertEqual(args[2:], ["/photos/Albums", "/photos/ALL_PHOTOS"])
 
+    def test_build_cli_args_includes_optional_fields_for_organize_local_folder_by_date(self):
+        schema = build_parser_schema()
+        values = {
+            "organize-local-folder-by-date": "/photos/raw",
+            "output-folder": "/photos/processed",
+            "organize-output-folder-suffix": "sorted",
+            "organize-folder-structure": "year",
+            "move-original-files": True,
+        }
+
+        args = build_cli_args(schema, "standalone_features", values, "organize-local-folder-by-date")
+
+        self.assertIn("--organize-local-folder-by-date", args)
+        self.assertIn("/photos/raw", args)
+        self.assertIn("--output-folder", args)
+        self.assertIn("/photos/processed", args)
+        self.assertIn("--organize-output-folder-suffix", args)
+        self.assertIn("sorted", args)
+        self.assertIn("--organize-folder-structure", args)
+        self.assertIn("year", args)
+        self.assertIn("--move-original-files", args)
+
     def test_parse_helpers_roundtrip_special_fields(self):
         rename_value = compose_rename_albums_value("old", "new")
         self.assertEqual(parse_rename_albums_value(rename_value), {"pattern": "old", "replacement": "new"})

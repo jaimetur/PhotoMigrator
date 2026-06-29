@@ -5,11 +5,12 @@
 ---
 
 ## Release: v4.3.3
-### Release Date: 2026-06-30
+### Release Date: 2026-06-29
   
 #### 🚨 Breaking Changes:
 
 #### 🌟 New Features:
+  - Added a new standalone `Organize Local Folder By Date` feature under `Other Features`, available from CLI, GUI, TUI, and Web Interface. It can reorganize a local folder into `year`, `year/month`, `year-month`, or `flatten` output structures, optionally write into an explicit `--output-folder`, generate a processed output folder using a configurable suffix when no explicit output is provided, and optionally `--move-original-files` instead of copying to avoid duplicating disk usage. (Discussion #1118).
 
 #### 🚀 Enhancements:
   - Improved `iCloud Takeout` handling of media that cannot be dated from `Photo Details.csv` so those assets are no longer left to fall back into misleading current-month folders. After `ALL_PHOTOS` date organization, unresolved items are now moved under `ALL_PHOTOS/Unknown Date/No CSV Match` and `ALL_PHOTOS/Unknown Date/Ambiguous Match`, while ambiguous CSV rows are no longer written blindly to multiple files. This keeps the processed library auditable and still fully compatible with `Automatic Migration`, which already ingests everything placed under `ALL_PHOTOS`. (Discussion #1118).

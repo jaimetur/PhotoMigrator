@@ -419,6 +419,10 @@
         "find-duplicates": "Find Duplicates Input",
         "process-duplicates": "Duplicates CSV",
         "rename-folders-content-based": "ALBUMS_FOLDER",
+        "organize-local-folder-by-date": "INPUT_FOLDER",
+        "organize-output-folder-suffix": "output-folder-suffix",
+        "organize-folder-structure": "folder-structure",
+        "move-original-files": "Move Original Files",
         "fix-symlinks-broken": "FOLDER_TO_FIX",
         "configuration-file": "Configuration File",
         "albums-folders": "Albums Folders",
@@ -453,6 +457,7 @@
         "remove-orphan-assets": "Remove Orphan Assets",
         "fix-symlinks-broken": "Fix Broken Symlinks",
         "rename-folders-content-based": "Auto Rename Folders Content Based",
+        "organize-local-folder-by-date": "Organize Local Folder By Date",
         "find-duplicates": "Find Duplicates",
         "process-duplicates": "Process Duplicates"
     };
@@ -508,7 +513,14 @@
             "remove-albums": [{dest: "remove-albums-assets", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
-        standalone_features: {},
+        standalone_features: {
+            "organize-local-folder-by-date": [
+                {dest: "output-folder", required: false},
+                {dest: "organize-output-folder-suffix", required: false},
+                {dest: "organize-folder-structure", required: false},
+                {dest: "move-original-files", required: false}
+            ]
+        },
         google_takeout: {},
         icloud_takeout: {}
     };
@@ -635,6 +647,14 @@
             return {
                 title: "Dangerous Module",
                 message: "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?",
+                acceptLabel: "Run module",
+                danger: true
+            };
+        }
+        if (payload.tab === "standalone_features" && action === "organize-local-folder-by-date" && Boolean(payload?.values?.["move-original-files"])) {
+            return {
+                title: "Dangerous Module",
+                message: "This module will move the original local folder into the processed output before reorganizing it by date. The source folder path will no longer exist after the move. Do you want to continue?",
                 acceptLabel: "Run module",
                 danger: true
             };

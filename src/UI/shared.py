@@ -68,6 +68,7 @@ FEATURE_LABELS = {
     "remove-orphan-assets": "Remove Orphan Assets",
     "fix-symlinks-broken": "Fix Broken Symlinks",
     "rename-folders-content-based": "Auto Rename Folders Content Based",
+    "organize-local-folder-by-date": "Organize Local Folder By Date",
     "find-duplicates": "Find Duplicates",
     "process-duplicates": "Process Duplicates",
 }
@@ -215,7 +216,16 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "merge-duplicates-albums",
     },
 }
-STANDALONE_DESTS = {"fix-symlinks-broken", "rename-folders-content-based", "find-duplicates", "process-duplicates"}
+STANDALONE_DESTS = {
+    "fix-symlinks-broken",
+    "rename-folders-content-based",
+    "organize-local-folder-by-date",
+    "organize-output-folder-suffix",
+    "organize-folder-structure",
+    "move-original-files",
+    "find-duplicates",
+    "process-duplicates",
+}
 GENERAL_CORE_DESTS = {
     "filter-from-date",
     "filter-to-date",
@@ -250,6 +260,16 @@ MODULE_DEPENDENCIES_REQUIRED = {
     "synology_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
     "immich_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
     "nextcloud_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
+}
+MODULE_ACTION_ARGUMENTS = {
+    "standalone_features": {
+        "organize-local-folder-by-date": [
+            {"dest": "output-folder", "required": False},
+            {"dest": "organize-output-folder-suffix", "required": False},
+            {"dest": "organize-folder-structure", "required": False},
+            {"dest": "move-original-files", "required": False},
+        ]
+    }
 }
 TAB_TO_CATEGORY = {
     "google_takeout": "google_takeout",
@@ -848,10 +868,15 @@ def build_argument_specs(schema: Dict[str, Any], tab_key: str, selected_field: D
     if include_selected_value and selected_field and selected_field.get("kind") != "flag":
         push_spec(str(selected_field.get("dest") or ""), True)
 
-    for dep in (MODULE_DEPENDENCIES_REQUIRED.get(tab_key, {}) or {}).get(str((selected_field or {}).get("dest") or ""), set()):
+    action_dest = str((selected_field or {}).get("dest") or "")
+    for dep in (MODULE_DEPENDENCIES_REQUIRED.get(tab_key, {}) or {}).get(action_dest, set()):
         push_spec(dep, True, True)
+    for item in (MODULE_ACTION_ARGUMENTS.get(tab_key, {}) or {}).get(action_dest, []):
+        dep_dest = str((item or {}).get("dest") or "").strip()
+        if dep_dest:
+            push_spec(dep_dest, bool((item or {}).get("required")), True)
 
-    for dest in parse_required_from_help(str((selected_field or {}).get("help") or ""), {str((selected_field or {}).get("dest") or "")}):
+    for dest in parse_required_from_help(str((selected_field or {}).get("help") or ""), {action_dest}):
         push_spec(dest, True, True)
     return specs
 
@@ -1290,6 +1315,10 @@ def _allowed_dests_for_tab(schema: Dict[str, Any], tab: str, selected_action_des
             if selected_action_dest not in tab_dests:
                 raise ValueError(f"Invalid selected action for tab {tab}: {selected_action_dest}")
             allowed_dests.add(selected_action_dest)
+            for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest, []):
+                dest = str((item or {}).get("dest") or "").strip()
+                if dest:
+                    allowed_dests.add(dest)
         else:
             allowed_dests.update(tab_dests)
     else:

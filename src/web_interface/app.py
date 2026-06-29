@@ -188,6 +188,10 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
 STANDALONE_DESTS = {
     "fix-symlinks-broken",
     "rename-folders-content-based",
+    "organize-local-folder-by-date",
+    "organize-output-folder-suffix",
+    "organize-folder-structure",
+    "move-original-files",
     "find-duplicates",
     "process-duplicates",
 }
@@ -249,6 +253,16 @@ MODULE_DEPENDENCIES_REQUIRED = {
         "download-albums": {"output-folder"},
         "rename-albums": {"replacement-pattern"},
     },
+}
+MODULE_ACTION_ARGUMENTS = {
+    "standalone_features": {
+        "organize-local-folder-by-date": [
+            {"dest": "output-folder", "required": False},
+            {"dest": "organize-output-folder-suffix", "required": False},
+            {"dest": "organize-folder-structure", "required": False},
+            {"dest": "move-original-files", "required": False},
+        ]
+    }
 }
 
 TAB_TO_CATEGORY = {
@@ -2264,6 +2278,10 @@ def _allowed_dests_for_tab(tab: str, selected_action_dest: str | None = None) ->
             if selected_action_dest not in tab_dests:
                 raise HTTPException(status_code=400, detail=f"Invalid selected action for tab {tab}: {selected_action_dest}")
             allowed_dests.add(selected_action_dest)
+            for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest, []):
+                dest = str((item or {}).get("dest") or "").strip()
+                if dest:
+                    allowed_dests.add(dest)
         else:
             # Backward-compatible fallback for older UI payloads.
             allowed_dests.update(tab_dests)
@@ -2448,6 +2466,10 @@ def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> s
         selected_field = tab_fields.get(selected_action_dest)
         if selected_field and selected_field.get("kind") != "flag":
             required.add(selected_action_dest)
+        for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest, []):
+            dep_dest = str((item or {}).get("dest") or "").strip()
+            if dep_dest and bool((item or {}).get("required")):
+                required.add(dep_dest)
         for dep in MODULE_DEPENDENCIES_REQUIRED.get(tab, {}).get(selected_action_dest, set()):
             required.add(dep)
         if selected_field:
