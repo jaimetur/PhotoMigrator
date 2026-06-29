@@ -759,7 +759,7 @@ def build_parser_schema(
         if dest == "icloud-prefer-native-exif-writer":
             field["default"] = True
         if dest == "organize-output-folder-suffix":
-            field["default"] = "_processed"
+            field["default"] = "processed"
         fields.append(field)
         by_dest[dest] = field
 
@@ -1281,7 +1281,7 @@ def effective_interactive_field_value(field: Dict[str, Any] | None, values: Dict
             return ""
         if not str(raw_value or "").strip():
             default_value = field.get("default")
-            return "_processed" if default_value in (None, "") else default_value
+            return "processed" if default_value in (None, "") else default_value
 
     return raw_value
 
@@ -1294,11 +1294,11 @@ def normalize_organize_local_folder_ui_state(values: Dict[str, Any] | None, sche
     suffix_dest = "organize-output-folder-suffix"
     current_suffix = str(values.get(suffix_dest) or "").strip()
 
-    default_suffix = "_processed"
+    default_suffix = "processed"
     if schema:
         field = get_field_by_dest(schema, suffix_dest)
         if field:
-            default_suffix = str(field.get("default") or "_processed") or "_processed"
+            default_suffix = str(field.get("default") or "processed") or "processed"
 
     if output_folder:
         if current_suffix != "":

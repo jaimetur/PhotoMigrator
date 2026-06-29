@@ -81,7 +81,7 @@ class TestCliTuiShared(unittest.TestCase):
     def test_build_parser_schema_defaults_organize_suffix_to_interactive_processed_value(self):
         schema = build_parser_schema()
 
-        self.assertEqual(schema["fields_by_dest"]["organize-output-folder-suffix"]["default"], "_processed")
+        self.assertEqual(schema["fields_by_dest"]["organize-output-folder-suffix"]["default"], "processed")
 
     def test_effective_interactive_field_value_shows_processed_suffix_when_output_folder_is_empty(self):
         schema = build_parser_schema()
@@ -95,13 +95,13 @@ class TestCliTuiShared(unittest.TestCase):
             },
         )
 
-        self.assertEqual(shown_value, "_processed")
+        self.assertEqual(shown_value, "processed")
 
     def test_normalize_organize_local_folder_ui_state_clears_suffix_when_output_folder_is_selected(self):
         schema = build_parser_schema()
         values = {
             "output-folder": "/photos/organized",
-            "organize-output-folder-suffix": "_processed",
+            "organize-output-folder-suffix": "processed",
         }
 
         changed = normalize_organize_local_folder_ui_state(values, schema)
@@ -119,7 +119,7 @@ class TestCliTuiShared(unittest.TestCase):
         changed = normalize_organize_local_folder_ui_state(values, schema)
 
         self.assertTrue(changed)
-        self.assertEqual(values["organize-output-folder-suffix"], "_processed")
+        self.assertEqual(values["organize-output-folder-suffix"], "processed")
 
     def test_build_cli_args_appends_native_icloud_writer_flag_only_when_enabled(self):
         schema = build_parser_schema()
