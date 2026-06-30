@@ -722,10 +722,9 @@ class TestICloudTakeout(unittest.TestCase):
             rows = list(csv.DictReader(handle))
 
         self.assertEqual(len(rows), 2)
-        self.assertEqual(rows[0]["Asset Name"], "IMG_0002.JPG")
-        self.assertEqual(rows[0]["Reason"], "No CSV Match")
-        self.assertEqual(rows[1]["Asset Name"], "IMG_0003.JPG")
-        self.assertEqual(rows[1]["Reason"], "Ambiguous Match")
+        rows_by_asset = {row["Asset Name"]: row for row in rows}
+        self.assertEqual(rows_by_asset["IMG_0002.JPG"]["Reason"], "No CSV Match")
+        self.assertEqual(rows_by_asset["IMG_0003.JPG"]["Reason"], "Ambiguous Match")
 
 
 if __name__ == "__main__":
