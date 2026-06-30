@@ -32,6 +32,7 @@
 #### 📚 Documentation:
   - Documented the new standalone `Organize Local Folder By Date` feature in `help/01-command-line-interface.md`, `help/02-arguments-description.md`, and `help/02-arguments-description-short.md`, including its CLI syntax, folder-structure options, generated output-folder suffix behavior, explicit `--output-folder` behavior, and `--move-original-files` mode.
   - Expanded `help/10-other-features.md` with a full section for `Organize Local Folder By Date` and updated the `README.md` `Other Standalone Features` overview so that local date-based library organization is explicitly listed there as well.
+  - Expanded `help/05-icloud-takeout.md` so the `iCloud Takeout` documentation now also covers the `ALL_PHOTOS/Unknown Date/...` fallback flow and the audit CSV reports `Unresolved_Assets.csv` and `No_Date_Assets.csv`, including when each report is emitted and which fields it contains.
   - Updated documentation with all changes.
 
 ---

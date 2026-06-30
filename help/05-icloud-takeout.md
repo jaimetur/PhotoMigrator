@@ -57,6 +57,10 @@ Typical headers seen in real exports:
    - `Albums`
    - optional `Memories`
 6. Organizes `ALL_PHOTOS` by date according to the selected folder structure.
+   - If a staged asset cannot be assigned a usable CSV date, it is moved under `ALL_PHOTOS/Unknown Date/No CSV Match` or `ALL_PHOTOS/Unknown Date/Ambiguous Match`.
+7. Writes audit CSV reports into the processed output folder when needed:
+   - `Unresolved_Assets.csv` when an `Album` or `Memory` is only partially resolved or ends up empty after reconstruction.
+   - `No_Date_Assets.csv` when a staged media file has no usable CSV date and is redirected to `ALL_PHOTOS/Unknown Date/...`.
 
 > [!NOTE]
 > For compiled binaries, macOS now uses `PhotoMigrator.command`. Linux and Synology SSH continue using `PhotoMigrator.bin`. Replace the binary name accordingly when following the CLI examples below.
@@ -139,6 +143,31 @@ Inside it, PhotoMigrator creates:
 - `ALL_PHOTOS`
 - `Albums`
 - optional `Memories`
+- optional `Unresolved_Assets.csv`
+- optional `No_Date_Assets.csv`
+
+### Audit reports
+
+`Unresolved_Assets.csv`
+- Written only when at least one `Album` or `Memory` collection cannot be rebuilt completely.
+- Helps identify collections that were partially resolved or fully unresolved.
+- Includes:
+  - collection type
+  - collection name
+  - collection status
+  - unresolved asset name
+  - source CSV
+  - resolved count for that collection
+  - unresolved count for that collection
+
+`No_Date_Assets.csv`
+- Written only when at least one staged asset cannot be matched to a usable date from `Photo Details.csv`.
+- Helps audit everything moved into `ALL_PHOTOS/Unknown Date/...`.
+- Includes:
+  - asset name
+  - reason: `No CSV Match` or `Ambiguous Match`
+  - source path
+  - output path
 
 ## Notes and limitations
 
@@ -147,7 +176,8 @@ Inside it, PhotoMigrator creates:
 - During `Automatic Migration`, any processed `Memories` folder is treated the same way as `Albums`, so each memory collection is migrated to the target as an album-like collection.
 - `Photo Details.csv` files are interpreted per export folder, which avoids mixing assets that share the same basename across different iCloud export blocks.
 - If the export contains the same basename multiple times inside the same export block, PhotoMigrator tries to disambiguate using `fileChecksum`.
-- If Apple exports multiple files with the same basename and there is not enough metadata to disambiguate album membership, some album reconstruction cases can still be ambiguous.
+- If Apple exports multiple files with the same basename and there is not enough metadata to disambiguate album membership, some album reconstruction cases can still be ambiguous. Those cases are now surfaced in `Unresolved_Assets.csv` instead of failing silently.
+- If no usable CSV date can be assigned to an asset, PhotoMigrator preserves it under `ALL_PHOTOS/Unknown Date/...` and records the case in `No_Date_Assets.csv` for later review.
 
 ## Related sources
 
