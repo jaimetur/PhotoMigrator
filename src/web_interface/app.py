@@ -2,6 +2,7 @@ import argparse
 import base64
 from collections import deque
 from configparser import ConfigParser
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 import hashlib
 import hmac
@@ -1890,6 +1891,16 @@ def _start_backup_scheduler() -> None:
     BACKUP_THREAD.start()
 
 
+def _stop_backup_scheduler() -> None:
+    global BACKUP_THREAD
+    if BACKUP_THREAD is None:
+        return
+    BACKUP_THREAD_STOP.set()
+    BACKUP_THREAD.join(timeout=1)
+    if not BACKUP_THREAD.is_alive():
+        BACKUP_THREAD = None
+
+
 def _sync_user_theme_to_state(current_user: Dict[str, Any], config_values: Dict[str, Dict[str, str]]) -> None:
     theme = str(
         (config_values or {}).get(WEB_INTERFACE_SECTION_NAME, {}).get(WEB_INTERFACE_THEME_KEY, WEB_INTERFACE_THEME_DEFAULT)
@@ -2094,7 +2105,28 @@ BACKUP_LOCK = threading.Lock()
 BACKUP_THREAD: threading.Thread | None = None
 BACKUP_THREAD_STOP = threading.Event()
 
-app = FastAPI(title="PhotoMigrator Web Interface")
+
+def _initialize_web_app_state() -> None:
+    global PARSER_SCHEMA, CONFIG_TEMPLATE_CONTENT, CONFIG_FORM_SCHEMA
+    PARSER_SCHEMA = _load_parser_schema()
+    CONFIG_TEMPLATE_CONTENT = _load_default_config_template()
+    CONFIG_FORM_SCHEMA = _extend_form_schema_with_web_interface_theme(
+        _parse_template_to_form_schema(CONFIG_TEMPLATE_CONTENT)
+    )
+    _init_web_db(CONFIG_FORM_SCHEMA)
+    _start_backup_scheduler()
+
+
+@asynccontextmanager
+async def _web_app_lifespan(_app: FastAPI):
+    _initialize_web_app_state()
+    try:
+        yield
+    finally:
+        _stop_backup_scheduler()
+
+
+app = FastAPI(title="PhotoMigrator Web Interface", lifespan=_web_app_lifespan)
 app.mount("/static", StaticFiles(directory=str(SRC_ROOT / "web_interface" / "static")), name="static")
 app.mount("/assets", StaticFiles(directory=str(PROJECT_ROOT / "assets")), name="assets")
 templates = Jinja2Templates(directory=str(SRC_ROOT / "web_interface" / "html"))
@@ -2769,18 +2801,6 @@ def _resolve_help_doc_path(doc_file: str) -> Path:
     if not target.exists() or not target.is_file():
         raise HTTPException(status_code=404, detail=f"Help document not found: {requested}")
     return target
-
-
-@app.on_event("startup")
-def _startup() -> None:
-    global PARSER_SCHEMA, CONFIG_TEMPLATE_CONTENT, CONFIG_FORM_SCHEMA
-    PARSER_SCHEMA = _load_parser_schema()
-    CONFIG_TEMPLATE_CONTENT = _load_default_config_template()
-    CONFIG_FORM_SCHEMA = _extend_form_schema_with_web_interface_theme(
-        _parse_template_to_form_schema(CONFIG_TEMPLATE_CONTENT)
-    )
-    _init_web_db(CONFIG_FORM_SCHEMA)
-    _start_backup_scheduler()
 
 
 @app.get("/login", response_class=HTMLResponse)
