@@ -257,6 +257,8 @@ class ClassICloudTakeoutFolder:
             "assets_without_csv_match": 0,
             "assets_with_ambiguous_csv_match": 0,
         }
+        self._last_unresolved_collections_csv = ""
+        self._last_no_date_assets_csv = ""
 
     def _get_logger(self):
         return self.logger or LOGGER or logging.getLogger(__name__)
@@ -916,7 +918,16 @@ class ClassICloudTakeoutFolder:
                 shutil.copy2(source_path, final_path)
         return final_path
 
-    def _build_collection_from_csvs(self, csv_files, source_index, root_folder: Path, structure: str, step_name="", log_level=None):
+    def _build_collection_from_csvs(
+        self,
+        csv_files,
+        source_index,
+        root_folder: Path,
+        structure: str,
+        step_name="",
+        log_level=None,
+        collection_type: str = "Collection",
+    ):
         logger = self._get_logger()
         with set_log_level(logger, log_level):
             use_copy = self.ARGS.get("icloud-no-symbolic-albums", False)
@@ -927,6 +938,7 @@ class ClassICloudTakeoutFolder:
                 "collections_empty": 0,
                 "members_resolved": 0,
                 "members_unresolved": 0,
+                "unresolved_entries": [],
             }
             for csv_path in csv_files:
                 collection_name = self._safe_collection_name(csv_path)
@@ -938,6 +950,7 @@ class ClassICloudTakeoutFolder:
                 scope_key = self._path_key(self._scope_root_for_path(csv_path))
                 seen_sources = set()
                 resolved_members = 0
+                unresolved_members = []
                 for member_name in members:
                     member_key = self._normalized_name(member_name)
                     scope_matches = source_index["by_scope_name"].get(scope_key, {}).get(member_key, [])
@@ -954,14 +967,31 @@ class ClassICloudTakeoutFolder:
                         resolved_members += 1
                     else:
                         stats["members_unresolved"] += 1
+                        unresolved_members.append(member_name)
                 stats["collections_created"] += 1
                 stats["members_resolved"] += resolved_members
+                unresolved_count = len(unresolved_members)
+                collection_status = "Empty" if resolved_members == 0 else ("Partially Resolved" if unresolved_count else "Fully Resolved")
                 if resolved_members == 0:
                     stats["collections_empty"] += 1
                 elif resolved_members == len(members):
                     stats["collections_fully_resolved"] += 1
                 else:
                     stats["collections_partially_resolved"] += 1
+                if unresolved_members:
+                    for member_name in unresolved_members:
+                        stats["unresolved_entries"].append(
+                            {
+                                "Collection Type": collection_type,
+                                "Collection Name": collection_name,
+                                "Collection Status": collection_status,
+                                "Asset Name": member_name,
+                                "Source CSV": str(csv_path),
+                                "Resolved Members": resolved_members,
+                                "Total Members": len(members),
+                                "Unresolved Members": unresolved_count,
+                            }
+                        )
                 if structure != "flatten" and resolved_members > 0:
                     organize_files_by_date(
                         input_folder=str(collection_folder),
@@ -977,6 +1007,68 @@ class ClassICloudTakeoutFolder:
             logger.info(f"{step_name}Collections created empty        : {stats['collections_empty']}")
             logger.info(f"{step_name}Collection members unresolved    : {stats['members_unresolved']}")
             return stats
+
+    def _write_unresolved_assets_csv(self, unresolved_entries, step_name="", log_level=None):
+        logger = self._get_logger()
+        with set_log_level(logger, log_level):
+            rows = list(unresolved_entries or [])
+            if not rows:
+                self._last_unresolved_collections_csv = ""
+                return ""
+            output_path = self.output_folder / "Unresolved_Assets.csv"
+            fieldnames = [
+                "Collection Type",
+                "Collection Name",
+                "Collection Status",
+                "Asset Name",
+                "Source CSV",
+                "Resolved Members",
+                "Total Members",
+                "Unresolved Members",
+            ]
+            with open(output_path, "w", encoding="utf-8", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            self._last_unresolved_collections_csv = str(output_path)
+            logger.info(f"{step_name}Unresolved collections CSV saved : {output_path}")
+            return str(output_path)
+
+    def _write_no_date_assets_csv(self, source_records, step_name="", log_level=None):
+        logger = self._get_logger()
+        with set_log_level(logger, log_level):
+            rows = []
+            no_csv_folder = self._unknown_date_folder(self._UNKNOWN_DATE_NO_CSV_FOLDER).resolve()
+            ambiguous_folder = self._unknown_date_folder(self._UNKNOWN_DATE_AMBIGUOUS_FOLDER).resolve()
+            for record in (source_records or []):
+                dest_path = Path(record["dest"]).resolve()
+                reason = ""
+                if no_csv_folder in (dest_path, *dest_path.parents):
+                    reason = "No CSV Match"
+                elif ambiguous_folder in (dest_path, *dest_path.parents):
+                    reason = "Ambiguous Match"
+                if not reason:
+                    continue
+                rows.append(
+                    {
+                        "Asset Name": dest_path.name,
+                        "Reason": reason,
+                        "Source File": str(record.get("source") or ""),
+                        "Output File": str(dest_path),
+                    }
+                )
+            if not rows:
+                self._last_no_date_assets_csv = ""
+                return ""
+            output_path = self.output_folder / "No_Date_Assets.csv"
+            fieldnames = ["Asset Name", "Reason", "Source File", "Output File"]
+            with open(output_path, "w", encoding="utf-8", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            self._last_no_date_assets_csv = str(output_path)
+            logger.info(f"{step_name}No-date assets CSV saved         : {output_path}")
+            return str(output_path)
 
     def _save_dates_json(self, step_name="", log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -1057,6 +1149,7 @@ class ClassICloudTakeoutFolder:
                     structure=self.ARGS.get("icloud-albums-folders-structure", "flatten"),
                     step_name=step_name,
                     log_level=LOG_LEVEL,
+                    collection_type="Album",
                 )
                 self.result["valid_albums_found"] = album_stats["collections_created"]
 
@@ -1069,6 +1162,7 @@ class ClassICloudTakeoutFolder:
                         structure=self.ARGS.get("icloud-albums-folders-structure", "flatten"),
                         step_name=step_name,
                         log_level=LOG_LEVEL,
+                        collection_type="Memory",
                     )
                 else:
                     memories_stats = {
@@ -1078,9 +1172,13 @@ class ClassICloudTakeoutFolder:
                         "collections_empty": 0,
                         "members_resolved": 0,
                         "members_unresolved": 0,
+                        "unresolved_entries": [],
                     }
 
                 step_name = "[iCloud FINAL]-[Cleanup] : "
+                unresolved_entries = list(album_stats.get("unresolved_entries", [])) + list(memories_stats.get("unresolved_entries", []))
+                self._write_unresolved_assets_csv(unresolved_entries, step_name=step_name, log_level=LOG_LEVEL)
+                self._write_no_date_assets_csv(source_records, step_name=step_name, log_level=LOG_LEVEL)
                 remove_empty_dirs(str(self.output_folder), log_level=LOG_LEVEL)
                 self.final_filedates_json = self._save_dates_json(step_name=step_name, log_level=LOG_LEVEL)
                 if getattr(self.local_analyzer, "extracted_dates", None):

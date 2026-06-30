@@ -368,6 +368,54 @@ class TestICloudTakeout(unittest.TestCase):
         self.assertEqual(stats["members_resolved"], 1)
         self.assertEqual(stats["members_unresolved"], 1)
 
+    def test_unresolved_assets_csv_is_generated_for_partial_and_empty_collections(self):
+        photos_folder = self.takeout_root / "Photos"
+        albums_folder = self.takeout_root / "Albums"
+        memories_folder = self.takeout_root / "Memories"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        albums_folder.mkdir(parents=True, exist_ok=True)
+        memories_folder.mkdir(parents=True, exist_ok=True)
+
+        (photos_folder / "IMG_0001.JPG").write_bytes(b"scope-a")
+        self._write_membership_csv(albums_folder / "Mixed Album.csv", ["IMG_0001.JPG", "IMG_9999.JPG"])
+        self._write_membership_csv(memories_folder / "Empty Memory.csv", ["IMG_8888.JPG"])
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            _, source_index = processor._stage_original_assets(self.takeout_root)
+            _, album_csvs, memory_csvs = processor._collect_csv_inputs(self.takeout_root)
+            album_stats = processor._build_collection_from_csvs(
+                csv_files=album_csvs,
+                source_index=source_index,
+                root_folder=processor.albums_folder,
+                structure="flatten",
+                collection_type="Album",
+            )
+            memory_stats = processor._build_collection_from_csvs(
+                csv_files=memory_csvs,
+                source_index=source_index,
+                root_folder=processor.memories_folder,
+                structure="flatten",
+                collection_type="Memory",
+            )
+            csv_path = processor._write_unresolved_assets_csv(
+                list(album_stats["unresolved_entries"]) + list(memory_stats["unresolved_entries"])
+            )
+
+        self.assertTrue(Path(csv_path).exists())
+        with open(csv_path, "r", encoding="utf-8", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["Collection Type"], "Album")
+        self.assertEqual(rows[0]["Collection Name"], "Mixed Album")
+        self.assertEqual(rows[0]["Collection Status"], "Partially Resolved")
+        self.assertEqual(rows[0]["Asset Name"], "IMG_9999.JPG")
+        self.assertEqual(rows[1]["Collection Type"], "Memory")
+        self.assertEqual(rows[1]["Collection Name"], "Empty Memory")
+        self.assertEqual(rows[1]["Collection Status"], "Empty")
+        self.assertEqual(rows[1]["Asset Name"], "IMG_8888.JPG")
+
     def test_build_exiftool_args_include_filesystem_dates(self):
         with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
             processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
@@ -637,6 +685,47 @@ class TestICloudTakeout(unittest.TestCase):
             Path(updated_index["by_name"][processor._normalized_name("IMG_0003.JPG")][0]["dest"]).resolve(),
             ambiguous_path.resolve(),
         )
+
+    def test_no_date_assets_csv_is_generated_only_for_unknown_date_assets(self):
+        photos_folder = self.takeout_root / "Photos"
+        photos_folder.mkdir(parents=True, exist_ok=True)
+        dated_source = photos_folder / "IMG_0001.JPG"
+        unmatched_source = photos_folder / "IMG_0002.JPG"
+        ambiguous_source = photos_folder / "IMG_0003.JPG"
+        dated_source.write_bytes(b"dated")
+        unmatched_source.write_bytes(b"unmatched")
+        ambiguous_source.write_bytes(b"ambiguous")
+
+        with patch.object(icloud_module, "ARGS", _args(self.base_path / "output")):
+            processor = icloud_module.ClassICloudTakeoutFolder(str(self.takeout_root))
+            source_records, source_index = processor._stage_original_assets(self.takeout_root)
+            dated_record = source_index["by_name"][processor._normalized_name("IMG_0001.JPG")][0]
+            ambiguous_record = source_index["by_name"][processor._normalized_name("IMG_0003.JPG")][0]
+            extracted_dates = {
+                Path(dated_record["dest"]).resolve().as_posix(): {
+                    "SourceFile": str(dated_source),
+                    "TargetFile": Path(dated_record["dest"]).resolve().as_posix(),
+                    "OldestDate": "2023-05-14 03:36:00",
+                    "Source": "test",
+                }
+            }
+            processor._last_date_application_report = {
+                "rows_without_matching_media": 0,
+                "rows_matched_to_multiple_media_files": 1,
+                "ambiguous_destinations": {Path(ambiguous_record["dest"]).resolve().as_posix()},
+            }
+            processor._move_unknown_date_assets(source_records, extracted_dates)
+            csv_path = processor._write_no_date_assets_csv(source_records)
+
+        self.assertTrue(Path(csv_path).exists())
+        with open(csv_path, "r", encoding="utf-8", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["Asset Name"], "IMG_0002.JPG")
+        self.assertEqual(rows[0]["Reason"], "No CSV Match")
+        self.assertEqual(rows[1]["Asset Name"], "IMG_0003.JPG")
+        self.assertEqual(rows[1]["Reason"], "Ambiguous Match")
 
 
 if __name__ == "__main__":
