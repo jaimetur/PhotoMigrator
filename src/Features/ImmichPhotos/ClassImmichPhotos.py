@@ -497,7 +497,10 @@ class ClassImmichPhotos:
                 user_id = self.get_user_id(log_level=logging.WARNING)
                 albums_filtered = []
                 for album in albums:
-                    if self._get_album_owner_id(album) == user_id:
+                    owner_id = self._get_album_owner_id(album)
+                    # Guard against None == None: if neither the album owner nor the current
+                    # user id can be determined, do not treat the album as owned by the user.
+                    if owner_id is not None and owner_id == user_id:
                         album_id = album.get('id')
                         album_name = album.get("albumName", "")
                         if filter_assets and has_any_filter():
@@ -974,25 +977,30 @@ class ClassImmichPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
-            list: Raw asset dicts belonging to the album ([] if none / on error).
+            list: Raw asset dicts belonging to the album ([] if the album is empty).
+
+        Raises:
+            Exception: Request/HTTP errors are intentionally propagated (not swallowed)
+                so the caller treats a partially-paginated album as a failure and returns
+                [] with an error, rather than silently returning a truncated list that
+                looks complete.
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/search/metadata"
             album_assets = []
             next_page = 1
-            try:
-                while True:
-                    payload = json.dumps({"albumIds": [album_id], "page": next_page, "order": "desc"})
-                    resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
-                    resp.raise_for_status()
-                    data = resp.json()
-                    album_assets.extend(data.get("assets", {}).get("items", []))
-                    next_page = data.get("assets", {}).get("nextPage", None)
-                    if next_page is None:
-                        break
-            except Exception as e:
-                LOGGER.error(f"Failed to retrieve assets from album ID={album_id} via search: {str(e)}")
+            while True:
+                # Immich returns 'nextPage' as a string, but 'page' is validated as an
+                # integer (strictly, under v3's Zod validation), so coerce before sending.
+                payload = json.dumps({"albumIds": [album_id], "page": int(next_page), "order": "desc"})
+                resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+                album_assets.extend(data.get("assets", {}).get("items", []))
+                next_page = data.get("assets", {}).get("nextPage", None)
+                if next_page is None:
+                    break
             return album_assets
 
     def get_all_assets_from_album(self, album_id, album_name=None, log_level=None):
