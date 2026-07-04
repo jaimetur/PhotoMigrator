@@ -445,6 +445,30 @@ class ClassImmichPhotos:
                 return False
 
 
+    @staticmethod
+    def _get_album_owner_id(album):
+        """
+        Return the owner user id of an album, compatible with all Immich versions.
+
+        Immich <= v2 exposes 'ownerId' directly on the album object. Immich v3 removed
+        'ownerId' (and the 'owner' object) from AlbumResponseDto and moved that information
+        into 'albumUsers' as the entry whose role is 'owner'.
+
+        Args:
+            album (dict): Album object as returned by the Immich API.
+
+        Returns:
+            str: The owner user id, or None if it cannot be determined.
+        """
+        owner_id = album.get('ownerId')
+        if owner_id:
+            return owner_id
+        for album_user in album.get('albumUsers', []) or []:
+            if album_user.get('role') == 'owner':
+                return (album_user.get('user') or {}).get('id')
+        return None
+
+
     def get_albums_owned_by_user(self, filter_assets=True, log_level=None):
         """
         Get all albums in Immich Photos for the current user.
@@ -473,7 +497,7 @@ class ClassImmichPhotos:
                 user_id = self.get_user_id(log_level=logging.WARNING)
                 albums_filtered = []
                 for album in albums:
-                    if album.get('ownerId') == user_id:
+                    if self._get_album_owner_id(album) == user_id:
                         album_id = album.get('id')
                         album_name = album.get("albumName", "")
                         if filter_assets and has_any_filter():
@@ -936,6 +960,41 @@ class ClassImmichPhotos:
             return all_filtered_assets
 
 
+    def _get_album_assets_via_search(self, album_id, log_level=None):
+        """
+        Retrieve all assets of an album using 'POST /api/search/metadata' filtered by
+        'albumIds', paginating through the results.
+
+        This is required for Immich v3+, where the 'assets' property was removed from
+        AlbumResponseDto (i.e. 'GET /api/albums/{id}' no longer returns the album's assets).
+        It also works on older Immich versions, so it is safe to use as a fallback.
+
+        Args:
+            album_id (str): ID of the album.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            list: Raw asset dicts belonging to the album ([] if none / on error).
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/search/metadata"
+            album_assets = []
+            next_page = 1
+            try:
+                while True:
+                    payload = json.dumps({"albumIds": [album_id], "page": next_page, "order": "desc"})
+                    resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    album_assets.extend(data.get("assets", {}).get("items", []))
+                    next_page = data.get("assets", {}).get("nextPage", None)
+                    if next_page is None:
+                        break
+            except Exception as e:
+                LOGGER.error(f"Failed to retrieve assets from album ID={album_id} via search: {str(e)}")
+            return album_assets
+
     def get_all_assets_from_album(self, album_id, album_name=None, log_level=None):
         """
         Get assets in a specific album.
@@ -955,7 +1014,14 @@ class ClassImmichPhotos:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
-                album_assets = data.get("assets", [])
+                # Immich <= v2 returns the album's assets inline in AlbumResponseDto.
+                # Immich v3 removed the 'assets' property from GET /api/albums/{id}, so fall
+                # back to POST /api/search/metadata (filtered by albumIds) to fetch them. The
+                # inline path is kept for backward compatibility with older Immich servers.
+                if isinstance(data.get("assets"), list):
+                    album_assets = data.get("assets", [])
+                else:
+                    album_assets = self._get_album_assets_via_search(album_id, log_level=log_level)
                 # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
                 for asset in album_assets:
                     asset["time"] = asset["fileCreatedAt"]
@@ -992,7 +1058,14 @@ class ClassImmichPhotos:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
-                album_assets = data.get("assets", [])
+                # Immich <= v2 returns the album's assets inline in AlbumResponseDto.
+                # Immich v3 removed the 'assets' property from GET /api/albums/{id}, so fall
+                # back to POST /api/search/metadata (filtered by albumIds) to fetch them. The
+                # inline path is kept for backward compatibility with older Immich servers.
+                if isinstance(data.get("assets"), list):
+                    album_assets = data.get("assets", [])
+                else:
+                    album_assets = self._get_album_assets_via_search(album_id, log_level=log_level)
                 # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
                 for asset in album_assets:
                     asset["time"] = asset["fileCreatedAt"]
