@@ -2667,7 +2667,7 @@ class ClassSynologyPhotos:
                 print(f"  '{album_info['album_name']}' --> '{album_info['new_name']}'")
 
             # Ask for confirmation only if requested
-            if request_user_confirmation and not confirm_continue():
+            if request_user_confirmation and not confirm_continue(force_prompt=True):
                 LOGGER.info(f"Exiting program.")
                 return 0
 
@@ -2742,7 +2742,7 @@ class ClassSynologyPhotos:
                 LOGGER.warning(f"{album_info['album_name']}' (ID={album_info['album_id']})")
 
             # Ask for confirmation only if requested
-            if request_user_confirmation and not confirm_continue():
+            if request_user_confirmation and not confirm_continue(force_prompt=True):
                 LOGGER.info(f"Exiting program.")
                 # self.logout(log_level=log_level)
                 return 0, 0

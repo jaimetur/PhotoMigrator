@@ -637,18 +637,21 @@ def check_OS_and_Terminal(log_level=None):
         GV.LOGGER.info(f"")
 
 
-def confirm_continue(log_level=None):
+def confirm_continue(log_level=None, force_prompt=False):
     """
-    Asks the user whether to continue unless `no-request-user-confirmation` is enabled.
+    Asks the user whether to continue unless `no-request-user-confirmation` is enabled,
+    unless prompting is explicitly forced for action previews.
 
     Args:
         log_level: Optional logging level override for this operation.
+        force_prompt (bool): If True, ignore the global no-confirm flag and always
+            try to request interactive confirmation.
 
     Returns:
         bool: True to continue, False to cancel.
     """
     # If argument 'no-request-user-confirmation' is true then don't ask and wait for user confirmation
-    if GV.ARGS['no-request-user-confirmation']:
+    if GV.ARGS['no-request-user-confirmation'] and not force_prompt:
         return True
 
     with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function

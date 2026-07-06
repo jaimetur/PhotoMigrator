@@ -20,6 +20,7 @@
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
+  - Fixed the `--preview-album-actions` flow for cloud `Rename Albums` and `Remove Albums` so the preview confirmation now takes precedence over the global `--no-request-user-confirmation` flag. When preview mode is enabled, PhotoMigrator now always waits for an explicit user decision before applying the rename or delete action, including Web Interface jobs that send confirmation through the running-job input channel.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

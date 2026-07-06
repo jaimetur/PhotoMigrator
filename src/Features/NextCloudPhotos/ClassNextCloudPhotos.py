@@ -1488,7 +1488,7 @@ class ClassNextCloudPhotos:
                 LOGGER.info("Albums to be renamed:")
                 for item in albums_to_rename:
                     print(f"  '{item['old_name']}' --> '{item['new_name']}'")
-                if not confirm_continue():
+                if not confirm_continue(force_prompt=True):
                     LOGGER.info("Exiting program.")
                     return 0
 
@@ -1541,7 +1541,7 @@ class ClassNextCloudPhotos:
                 LOGGER.warning("Albums marked for deletion:")
                 for album in albums_to_remove:
                     LOGGER.warning(f"'{album['albumName']}' (PATH={album['id']})")
-                if not confirm_continue():
+                if not confirm_continue(force_prompt=True):
                     LOGGER.info("Exiting program.")
                     return 0, 0
 

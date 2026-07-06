@@ -2,6 +2,7 @@ import sys
 import types
 import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +27,8 @@ if "colorama" not in sys.modules:
     sys.modules["colorama"] = colorama_stub
 
 try:
-    from Utils.GeneralUtils import match_pattern, replace_pattern
+    import Core.GlobalVariables as GV
+    from Utils.GeneralUtils import match_pattern, replace_pattern, confirm_continue
     GENERAL_UTILS_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
     GENERAL_UTILS_IMPORT_ERROR = exc
@@ -60,6 +62,24 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
             replace_pattern("2026.07.06 - Summer", r"\b(\d{4})\.(\d{2})\.(\d{2})\b", r"\1-\2-\3"),
             "2026-07-06 - Summer",
         )
+
+    def test_confirm_continue_honors_no_confirm_by_default(self):
+        with (
+            patch.object(GV, "ARGS", {"no-request-user-confirmation": True}),
+            patch.object(GV, "LOGGER", MagicMock()),
+        ):
+            self.assertTrue(confirm_continue())
+
+    def test_confirm_continue_force_prompt_overrides_no_confirm_flag(self):
+        fake_stdin = MagicMock()
+        fake_stdin.isatty.return_value = True
+        with (
+            patch.object(GV, "ARGS", {"no-request-user-confirmation": True}),
+            patch.object(GV, "LOGGER", MagicMock()),
+            patch("Utils.GeneralUtils.sys.stdin", fake_stdin),
+            patch("builtins.input", return_value="yes"),
+        ):
+            self.assertTrue(confirm_continue(force_prompt=True))
 
 
 if __name__ == "__main__":
