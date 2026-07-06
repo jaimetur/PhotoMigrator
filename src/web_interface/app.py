@@ -2410,6 +2410,11 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
             continue
 
         if kind == "list":
+            if dest == "rename-albums":
+                text = str(raw_value or "").strip()
+                if text:
+                    args.extend([long_option, text])
+                continue
             values_list = _to_list(raw_value)
             if values_list:
                 args.append(long_option)
