@@ -12,6 +12,7 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
+  - Restored full album compatibility with `Immich v3` by adapting album owner detection and album asset retrieval to the new API responses. Owned albums are now detected through `albumUsers` when `ownerId` is absent, and album contents now fall back to `POST /api/search/metadata` when `GET /api/albums/{id}` no longer returns inline `assets`, preventing silent migrations of empty albums on `Immich v3` while keeping backward compatibility with older Immich servers.
 
 #### 🚀 GPTH Enhancements:
 
