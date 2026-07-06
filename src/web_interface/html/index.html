@@ -2736,7 +2736,7 @@
         flagsTitle.textContent = "Migration Flags";
         flagsCard.appendChild(flagsTitle);
 
-        ["move-assets", "dashboard", "parallel-migration"].forEach((dest) => {
+        ["move-assets", "dashboard", "parallel-migration", "reuse-similar-existing-albums"].forEach((dest) => {
             if (!byDest[dest]) return;
             flagsCard.appendChild(createArgumentRow(byDest[dest]));
         });
@@ -2782,6 +2782,7 @@
             help: "Run an end-to-end migration from <SOURCE> to <TARGET> including albums and non-album assets.\n"
                 + "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders.\n"
                 + "By default migration runs in parallel with live dashboard enabled.\n"
+                + "Use --reuse-similar-existing-albums if you want cloud targets to reuse conservatively similar existing album names instead of only exact matches.\n"
                 + "IMPORTANT: Configure Config.ini credentials/API keys before running cloud migrations.\n"
                 + "\n"
                 + "Example: --source=synology-2 --target=google-photos-1\n"
@@ -2791,6 +2792,7 @@
             byDest["move-assets"],
             byDest["dashboard"],
             byDest["parallel-migration"],
+            byDest["reuse-similar-existing-albums"],
             getFieldByDest("filter-by-type"),
             getFieldByDest("filter-from-date"),
             getFieldByDest("filter-to-date"),

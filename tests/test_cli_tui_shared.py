@@ -63,6 +63,13 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("google_photos", schema["tabs"])
         self.assertIn("configuration-file", schema["fields_by_dest"])
 
+    def test_build_parser_schema_exposes_reuse_similar_existing_albums_in_automatic_migration(self):
+        schema = build_parser_schema()
+
+        automatic_dests = {field["dest"] for field in schema["tabs"]["automatic_migration"]}
+
+        self.assertIn("reuse-similar-existing-albums", automatic_dests)
+
     def test_build_parser_schema_standalone_actions_exclude_auxiliary_organize_fields(self):
         schema = build_parser_schema()
 
