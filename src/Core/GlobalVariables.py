@@ -14,10 +14,10 @@ COPYRIGHT_TEXT                  = "(c) 2024-2026 - Jaime Tur (@jaimetur)"
 TOOL_NAME                       = "PhotoMigrator"
 TOOL_VERSION_WITHOUT_V          = "4.4.0"
 TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
-TOOL_DATE                       = "2026-07-07"
+TOOL_DATE                       = "2026-07-06"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
-GPTH_VERSION                    = "6.1.5"
+GPTH_VERSION                    = "6.1.6"
 EXIFTOOL_VERSION                = "13.30"
 INCLUDE_EXIF_TOOL               = True
 COMPILE_IN_ONE_FILE             = True

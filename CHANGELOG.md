@@ -5,7 +5,7 @@
 ---
 
 ## Release: v4.4.0
-### Release Date: 2026-07-07
+### Release Date: 2026-07-06
   
 #### 🚨 Breaking Changes:
 
@@ -17,8 +17,19 @@
   - Expanded cloud `Remove Albums` pattern handling across supported services so album deletion now accepts plain text, simple wildcard patterns, and regular expressions, and added a shared `--preview-album-actions` flag for `Rename Albums` and `Remove Albums` across CLI, GUI, TUI, and Web Interface to list the affected albums and request confirmation before applying the change.
   - Hardened cloud album uploads and `Automatic Migration` so duplicate-detected assets can still be attached to every destination album that references them instead of only the first one. `Immich` and `Synology` now first reuse cached asset IDs from the current run and, when needed, also resolve pre-existing destination assets remotely by metadata before album association. `Google Photos` now resolves the already-existing media item before album association and uses the same add-to-album flow for both fresh and duplicate uploads, and the migration worker now assigns any reusable destination asset ID to the source album regardless of whether the upload was new or deduplicated.
   - Added `--reuse-similar-existing-albums` to cloud `Upload Albums`, cloud `Upload All`, and `Automatic Migration` across CLI, GUI, TUI, and Web Interface. By default PhotoMigrator still reuses only exact existing album names, but when this flag is enabled it can also reuse a conservatively normalized equivalent album name (for example different date separators, repeated dashes, or extra spaces) instead of creating a duplicate destination album.
+  - Updated GPTH to v6.1.6 which includes several New Features and Bug Fixes.
 
 #### 🚀 GPTH Enhancements:
+✨ New Features
+  - New --no-resume flag — GPTH automatically resumes a previous run when the output folder contains a progress.json. Pass --no-resume to discard that saved progress and always start fresh (--resume remains the default). When resume is disabled, the step-resume state is wiped at pipeline start so later runs cannot pick up a half-stale mixture of old and new step records.
+  - Interactive mode now asks before resuming a previous run — When the selected output folder contains saved progress from an earlier run, interactive mode shows which steps were already completed and asks whether to resume or start fresh, instead of resuming silently. Part of the fix for issue #131.
+
+🐛 Bug Fixes
+  - Reusing folders from a previous run no longer aborts interactive mode — Selecting an extraction folder that still contained data from an earlier run made GPTH exit with a fatal error right after the disk-space notice, before any of the processing questions were asked. Interactive mode now validates the extraction folder the same way CLI mode does: a completed previous extraction of the same ZIP set is reused (extraction is skipped entirely), and any unsafe state (leftover data, a different ZIP set, an interrupted extraction) is explained with a prompt to select a different folder. Interactive runs also record the extraction sentinel in progress.json now, so future runs can safely detect and reuse the extracted data. This resolves issue #131.
+  - Stale resume state is detected and discarded — If a previous run's progress.json marked processing as completed but the recorded output files no longer exist (e.g. the output folder was emptied between runs), GPTH used to "resume" by skipping every step and reporting success within seconds while doing nothing. The saved state is now validated against the files on disk at pipeline start and discarded with a clear warning when it is stale, so the run processes everything fresh. This resolves issue #131.
+  - --fix mode no longer exits with ERROR_CODE_13 — In fix mode the output directory is the input directory, so the non-empty-output safety check always triggered and refused to run. The check is now skipped when output equals input. This resolves issue #128.
+  - Partner-shared companion videos and numbered files are now sorted into PARTNER_SHARED — MP4/MOV companion videos paired with HEIC/JPG stills, and numbered files like IMG_1976(1).MP4 (whose sidecar is IMG_1976.HEIC.supplemental-metadata(1).json) or x(1).jpg, were not flagged as partner-shared because the cross-extension and numbered JSON matching strategies were not applied during discovery. JSON sidecar matching now supports numbered suffixes and cross-extension pairing, using three-level matching (exact, dot-boundary, first match) to prevent false positives such as photo matching photograph. This resolves issue #123.
+  - ZIP selection no longer crashes when the file picker returns files without paths — On certain system configurations the file picker returns ZIP entries with a null path, which crashed interactive ZIP selection with a null-check exception. Null-path entries are now filtered out with a visible warning (also when only some of the selected files are affected, which previously dropped them silently), and a clear error message guides the user to extract manually if no usable ZIPs remain. This resolves issue #129.
 
 #### 🐛 Bug fixes:
   - Fixed the `--preview-album-actions` flow for cloud `Rename Albums` and `Remove Albums` so the preview confirmation now takes precedence over the global `--no-request-user-confirmation` flag. When preview mode is enabled, PhotoMigrator now always waits for an explicit user decision before applying the rename or delete action, including Web Interface jobs that send confirmation through the running-job input channel.
