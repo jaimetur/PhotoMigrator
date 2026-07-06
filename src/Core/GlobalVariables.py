@@ -12,9 +12,9 @@ from colorama import Fore
 #---------------------------------------
 COPYRIGHT_TEXT                  = "(c) 2024-2026 - Jaime Tur (@jaimetur)"
 TOOL_NAME                       = "PhotoMigrator"
-TOOL_VERSION_WITHOUT_V          = "4.3.3"
+TOOL_VERSION_WITHOUT_V          = "4.4.0"
 TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
-TOOL_DATE                       = "2026-06-30"
+TOOL_DATE                       = "2026-07-06"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
 GPTH_VERSION                    = "6.1.5"
