@@ -416,6 +416,7 @@
         "rename-albums": "Rename Pattern",
         "replacement-pattern": "Replacement Pattern",
         "remove-albums": "Albums Name Pattern",
+        "preview-album-actions": "Preview Album Actions",
         "find-duplicates": "Find Duplicates Input",
         "process-duplicates": "Duplicates CSV",
         "rename-folders-content-based": "ALBUMS_FOLDER",
@@ -488,29 +489,29 @@
         synology_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
             "upload-all": [{dest: "albums-folders", required: false}],
-            "rename-albums": [{dest: "replacement-pattern", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         immich_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
             "upload-all": [{dest: "albums-folders", required: false}],
-            "rename-albums": [{dest: "replacement-pattern", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         nextcloud_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
             "upload-all": [{dest: "albums-folders", required: false}],
-            "rename-albums": [{dest: "replacement-pattern", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         google_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
             "upload-all": [{dest: "albums-folders", required: false}],
-            "rename-albums": [{dest: "replacement-pattern", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         standalone_features: {
@@ -1545,7 +1546,7 @@
             "filter-by-person": "Example: Peter",
             "exclude-folders": "Example: @eaDir, .@__thumb, @Recycle",
             "exclude-files": "Example: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store",
-            "remove-albums": "Album name pattern (text or regex). Example: ^Temp|^Test"
+            "remove-albums": "Album name pattern (text, wildcard, or regex). Example: *Temp* or ^Temp|^Test"
         };
 
         if (effectiveDest === "filter-by-type") {
@@ -2111,7 +2112,7 @@
             const patternInput = document.createElement("input");
             patternInput.type = "text";
             patternInput.className = "field__input";
-            patternInput.placeholder = "Album name pattern (text or regex)";
+            patternInput.placeholder = "Album name pattern (text, wildcard, or regex)";
             patternInput.value = parsedRename.pattern || "";
             patternRow.appendChild(patternInput);
             left.appendChild(patternRow);
@@ -2129,7 +2130,7 @@
             const replacementInput = document.createElement("input");
             replacementInput.type = "text";
             replacementInput.className = "field__input";
-            replacementInput.placeholder = "Replacement pattern (text or regex)";
+            replacementInput.placeholder = "Replacement text";
             replacementInput.dataset.dest = "replacement-pattern";
             replacementInput.value = String(stateValues["replacement-pattern"] || parsedRename.replacement || "");
             replacementRow.appendChild(replacementInput);

@@ -207,14 +207,18 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
-  - The Tool will connect automatically to your Synology Photos account and will remove all Albums whose name matches with the provided pattern.  
+  - The Tool will connect automatically to your Synology Photos account and will remove all Albums whose name matches with the provided pattern.
+  - The remove pattern can be plain text, a wildcard expression (for example `*Temp*` or `Temp*`), or a regular expression.
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
   - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**`-rAlbAsset, --remove-albums-assets`**_
+  - If you also include _**`--preview-album-actions`**_ then the matching albums will be listed and the tool will ask for confirmation before deleting them.
 - **Example of use:**
   ```
+  ./PhotoMigrator.bin --client=synology --remove-albums "Temp" --preview-album-actions
+  ./PhotoMigrator.bin --client=synology --remove-albums "*Temp*" --preview-album-actions
   ./PhotoMigrator.bin --client=synology --remove-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
   ```
-  With this example, the Tool will connect to your Synology Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary argument.
+  With these examples, the Tool can remove albums by literal text, simple wildcard patterns, or regular expressions. When `--preview-album-actions` is used, it first shows the affected albums and asks for confirmation before proceeding.
 
 > [!CAUTION]  
 > This process is irreversible and will remove all the Albums (and optionally also all the assets included) whose name matches with the provided pattern from your Synology Photos account. Use it if you are completely sure of what you are doing.
@@ -228,13 +232,18 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
-  - The Tool will connect automatically to your Synology Photos account and will rename all Albums whose name matches with the provided pattern.  
+  - The Tool will connect automatically to your Synology Photos account and will rename all Albums whose name matches with the provided pattern.
+  - The rename pattern can be plain text (for example `--`), a wildcard expression (for example `*--*` or `--*`), or a regular expression.
+  - If you also include _**`--preview-album-actions`**_ then the matching albums will be listed and the tool will ask for confirmation before renaming them.
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be renamed.
 - **Example of use:**
   ```
+  ./PhotoMigrator.bin --client=synology --rename-albums "--" "-" --preview-album-actions
+  ./PhotoMigrator.bin --client=synology --rename-albums "--", "-"
+  ./PhotoMigrator.bin --client=synology --rename-albums "*--*", "-"
   ./PhotoMigrator.bin --client=synology --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
   ```
-  With this example, the Tool will connect to your Synology Photos account and will rename all Albums whose name contains a date like this ("2023-08-15 - Vacation photos") replacing the date with the string "DATE", as a result the new album name would be: "DATE - Vacation photos".
+  With these examples, the Tool can replace literal text such as double dashes, use simple wildcards to target leading or inner matches, or apply a regular-expression replacement such as turning "2023-08-15 - Vacation photos" into "DATE - Vacation photos".
    
 
 ## Remove Empty Albums from Synology Photos:

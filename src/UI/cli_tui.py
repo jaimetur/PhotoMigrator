@@ -2461,8 +2461,8 @@ if TEXTUAL_AVAILABLE:
                 for spec in specs:
                     if spec["field"]["dest"] not in {"rename-albums"}:
                         widgets.extend(self.build_field_widgets(spec["field"], required=spec["required"], context=self.active_module))
-                widgets.extend(self.build_pseudo_text_field("Rename Pattern", "rename-pattern", self.state_values.get("rename-pattern", ""), True, "Album name pattern (text or regex)."))
-                widgets.extend(self.build_pseudo_text_field("Replacement Pattern", "replacement-pattern", self.state_values.get("replacement-pattern", ""), True, "Replacement pattern used during album rename."))
+                widgets.extend(self.build_pseudo_text_field("Rename Pattern", "rename-pattern", self.state_values.get("rename-pattern", ""), True, "Album name pattern (text, wildcard, or regex)."))
+                widgets.extend(self.build_pseudo_text_field("Replacement Pattern", "replacement-pattern", self.state_values.get("replacement-pattern", ""), True, "Replacement text used during album rename."))
             else:
                 for spec in specs:
                     widgets.extend(self.build_field_widgets(spec["field"], required=spec["required"], context=self.active_module))

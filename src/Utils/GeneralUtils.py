@@ -1028,11 +1028,41 @@ def match_pattern(string, pattern):
 def replace_pattern(string, pattern, pattern_to_replace):
     """
     Replaces occurrences of pattern in string.
-    Tries regex replacement first; if no effective change, falls back to literal replacement.
+    Tries regex replacement first; if no effective change, falls back to
+    wildcard-aware and literal replacement.
     """
     text = str(string or "")
     expr = str(pattern or "")
     repl = str(pattern_to_replace or "")
+    if not expr:
+        return text
+
+    simple_glob_candidate = False
+    literal_chunks = []
+    if "*" in expr and "?" not in expr and "[" not in expr and "]" not in expr:
+        literal_chunks = [chunk for chunk in expr.split("*") if chunk]
+        simple_glob_candidate = (
+            len(literal_chunks) == 1
+            and not any(ch in literal_chunks[0] for ch in ".^$+?{}[]\\|()")
+        )
+
+    # Prefer simple glob-like semantics over regex for patterns such as:
+    #   *--* -> replace all inner `--`
+    #   --*  -> replace leading `--`
+    #   *--  -> replace trailing `--`
+    if simple_glob_candidate:
+        token = literal_chunks[0]
+        anchored_start = not expr.startswith("*")
+        anchored_end = not expr.endswith("*")
+        if anchored_start and not anchored_end:
+            replaced = re.sub(rf"^{re.escape(token)}", repl, text)
+        elif not anchored_start and anchored_end:
+            replaced = re.sub(rf"{re.escape(token)}$", repl, text)
+        else:
+            replaced = text.replace(token, repl)
+        if replaced != text:
+            return replaced
+
     try:
         replaced = re.sub(expr, repl, text)
     except re.error:

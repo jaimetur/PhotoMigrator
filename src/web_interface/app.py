@@ -253,6 +253,31 @@ MODULE_DEPENDENCIES_REQUIRED = {
     },
 }
 MODULE_ACTION_ARGUMENTS = {
+    "google_photos": {
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [{"dest": "preview-album-actions", "required": False}],
+    },
+    "synology_photos": {
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [
+            {"dest": "remove-albums-assets", "required": False},
+            {"dest": "preview-album-actions", "required": False},
+        ],
+    },
+    "immich_photos": {
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [
+            {"dest": "remove-albums-assets", "required": False},
+            {"dest": "preview-album-actions", "required": False},
+        ],
+    },
+    "nextcloud_photos": {
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [
+            {"dest": "remove-albums-assets", "required": False},
+            {"dest": "preview-album-actions", "required": False},
+        ],
+    },
     "standalone_features": {
         "organize-local-folder-by-date": [
             {"dest": "output-folder", "required": False},
@@ -2300,6 +2325,13 @@ def _allowed_dests_for_tab(tab: str, selected_action_dest: str | None = None) ->
             if selected_action_dest not in available_actions:
                 raise HTTPException(status_code=400, detail=f"Invalid selected action for tab {tab}: {selected_action_dest}")
             allowed_dests.add(selected_action_dest)
+            for dep in MODULE_DEPENDENCIES_REQUIRED.get(tab, {}).get(selected_action_dest, set()):
+                if dep in PARSER_FIELDS_BY_DEST:
+                    allowed_dests.add(dep)
+            for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest, []):
+                dest = str((item or {}).get("dest") or "").strip()
+                if dest and dest in PARSER_FIELDS_BY_DEST:
+                    allowed_dests.add(dest)
         else:
             # Backward-compatible fallback for older UI payloads.
             allowed_dests.update(available_actions)

@@ -757,12 +757,12 @@ class ClassGooglePhotos:
             LOGGER.info(f"{MSG_TAGS['WARNING']}Google Photos API does not support deleting media items via public Library API. No action applied.")
             return 0, 0
 
-    def rename_albums(self, pattern, pattern_to_replace, log_level=None):
+    def rename_albums(self, pattern, pattern_to_replace, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"{MSG_TAGS['WARNING']}Google Photos API does not support renaming albums via public Library API. No action applied.")
             return 0
 
-    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, log_level=None):
+    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"{MSG_TAGS['WARNING']}Google Photos API does not support deleting albums via public Library API. No action applied.")
             return 0, 0

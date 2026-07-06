@@ -1620,8 +1620,8 @@ class PhotoMigratorTkGUI:
             for spec in specs:
                 if spec["field"]["dest"] not in {"rename-albums"}:
                     self.build_field_widgets(parent, spec["field"], required=spec["required"], context=self.active_module)
-            self.build_pseudo_text_field(parent, "Rename Pattern", "rename-pattern", self.state_values.get("rename-pattern", ""), True, "Album name pattern (text or regex).")
-            self.build_pseudo_text_field(parent, "Replacement Pattern", "replacement-pattern", self.state_values.get("replacement-pattern", ""), True, "Replacement pattern used during album rename.")
+            self.build_pseudo_text_field(parent, "Rename Pattern", "rename-pattern", self.state_values.get("rename-pattern", ""), True, "Album name pattern (text, wildcard, or regex).")
+            self.build_pseudo_text_field(parent, "Replacement Pattern", "replacement-pattern", self.state_values.get("replacement-pattern", ""), True, "Replacement text used during album rename.")
         else:
             for spec in specs:
                 self.build_field_widgets(parent, spec["field"], required=spec["required"], context=self.active_module)

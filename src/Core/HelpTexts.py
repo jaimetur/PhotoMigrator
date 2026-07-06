@@ -89,12 +89,14 @@ def set_help_texts():
             """)
 
     HELP_TEXTS["remove-albums"] = textwrap.dedent(f"""
-            CAUTION!!! The Tool will remove those Albums from your Photos account Database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>'.
+            CAUTION!!! The Tool will remove those Albums from your Photos account Database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>'. The remove pattern can be plain text, a wildcard expression, or a regular expression.
             Optionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAsset, --remove-albums-assets' argument.
+            Use '--preview-album-actions' if you want to preview the affected albums and request confirmation before applying the action.
             """)
 
     HELP_TEXTS["rename-albums"] = textwrap.dedent(f"""
-            CAUTION!!! The Tool will rename those Albums from your Photos account Database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>' and will replace them with the pattern '<ALBUMS_NAME_REPLACEMENT_PATTERN>'.
+            CAUTION!!! The Tool will rename those Albums from your Photos account Database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>' and will replace them with the pattern '<ALBUMS_NAME_REPLACEMENT_PATTERN>'. The rename pattern can be plain text, a wildcard expression (for example '*--*' or '--*'), or a regular expression.
+            Use '--preview-album-actions' if you want to preview the affected albums and request confirmation before applying the action.
             """)
 
     ############################

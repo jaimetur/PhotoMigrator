@@ -207,9 +207,13 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
   - Removes albums whose name matches `<ALBUMS_NAME_PATTERN>`.
+  - The remove pattern can be plain text, a wildcard expression (for example `*Temp*` or `Temp*`), or a regular expression.
   - If `--remove-albums-assets` is set, assets inside removed albums are also removed.
+  - If `--preview-album-actions` is set, the matching albums are listed and the tool asks for confirmation before deleting them.
 - **Example of use:**
   ```bash
+  ./PhotoMigrator.bin --client=nextcloud --remove-albums "Temp" --preview-album-actions
+  ./PhotoMigrator.bin --client=nextcloud --remove-albums "*Temp*" --preview-album-actions
   ./PhotoMigrator.bin --client=nextcloud --remove-albums "^Temp" --remove-albums-assets
   ```
 
@@ -225,8 +229,13 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - Configure `Config.ini` with valid NextCloud credentials.
 - **Explanation:**
   - Renames albums whose names match the provided pattern.
+  - The rename pattern can be plain text (for example `--`), a wildcard expression (for example `*--*` or `--*`), or a regular expression.
+  - If `--preview-album-actions` is set, the matching albums are listed and the tool asks for confirmation before renaming them.
 - **Example of use:**
   ```bash
+  ./PhotoMigrator.bin --client=nextcloud --rename-albums "--" "-" --preview-album-actions
+  ./PhotoMigrator.bin --client=nextcloud --rename-albums "--" "-"
+  ./PhotoMigrator.bin --client=nextcloud --rename-albums "*--*" "-"
   ./PhotoMigrator.bin --client=nextcloud --rename-albums "\\d{4}-\\d{2}-\\d{2}" "DATE"
   ```
 

@@ -194,6 +194,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
+  - For supported cloud clients, the rename pattern can now be plain text, a wildcard expression, or a regular expression, and `--preview-album-actions` can be used to preview and confirm the affected albums before renaming.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=google-photos --remove-all-assets
@@ -228,6 +229,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
+  - For supported cloud clients, the remove pattern can now be plain text, a wildcard expression, or a regular expression, and `--preview-album-actions` can be used to preview and confirm the affected albums before deletion.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=google-photos --remove-albums "^Temp" --remove-albums-assets

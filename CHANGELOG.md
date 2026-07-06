@@ -13,6 +13,8 @@
 
 #### 🚀 Enhancements:
   - Restored full album compatibility with `Immich v3` by adapting album owner detection and album asset retrieval to the new API responses. Owned albums are now detected through `albumUsers` when `ownerId` is absent, and album contents now fall back to `POST /api/search/metadata` when `GET /api/albums/{id}` no longer returns inline `assets`, preventing silent migrations of empty albums on `Immich v3` while keeping backward compatibility with older Immich servers.
+  - Expanded cloud `Rename Albums` pattern handling across supported services so album renames now accept plain-text replacements (for example `--` -> `-`) and simple wildcard forms such as `*--*`, `--*`, and `*--`, while keeping existing regular-expression replacements available for advanced cases.
+  - Expanded cloud `Remove Albums` pattern handling across supported services so album deletion now accepts plain text, simple wildcard patterns, and regular expressions, and added a shared `--preview-album-actions` flag for `Rename Albums` and `Remove Albums` across CLI, GUI, TUI, and Web Interface to list the affected albums and request confirmation before applying the change.
 
 #### 🚀 GPTH Enhancements:
 

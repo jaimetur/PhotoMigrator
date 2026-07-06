@@ -2193,6 +2193,8 @@ class ClassImmichPhotos:
                 album_thumbnail = album.get("albumThumbnailAssetId", "")
                 if match_pattern(album_name, pattern):
                     new_name = replace_pattern(album_name, pattern=pattern, pattern_to_replace=pattern_to_replace)
+                    if not new_name or new_name == album_name:
+                        continue
                     albums_to_rename[album_id] = {
                         "album_name": album_name,
                         "new_name": new_name,

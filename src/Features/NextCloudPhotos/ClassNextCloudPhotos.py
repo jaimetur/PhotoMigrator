@@ -1464,9 +1464,9 @@ class ClassNextCloudPhotos:
             albums_removed, _ = self.remove_all_albums(removeAlbumsAssets=False, log_level=log_level)
             return total_assets, albums_removed
 
-    def rename_albums(self, pattern, pattern_to_replace, log_level=None):
+    def rename_albums(self, pattern, pattern_to_replace, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
-            renamed = 0
+            albums_to_rename = []
             for album in self._list_album_directories(log_level=log_level):
                 old_name = album["albumName"]
                 if not match_pattern(old_name, pattern):
@@ -1474,7 +1474,29 @@ class ClassNextCloudPhotos:
                 new_name = replace_pattern(old_name, pattern, pattern_to_replace)
                 if not new_name or new_name == old_name:
                     continue
-                src = album["id"]
+                albums_to_rename.append({
+                    "src": album["id"],
+                    "old_name": old_name,
+                    "new_name": new_name,
+                })
+
+            if not albums_to_rename:
+                LOGGER.info("No albums matched the pattern.")
+                return 0
+
+            if request_user_confirmation:
+                LOGGER.info("Albums to be renamed:")
+                for item in albums_to_rename:
+                    print(f"  '{item['old_name']}' --> '{item['new_name']}'")
+                if not confirm_continue():
+                    LOGGER.info("Exiting program.")
+                    return 0
+
+            renamed = 0
+            for item in albums_to_rename:
+                old_name = item["old_name"]
+                new_name = item["new_name"]
+                src = item["src"]
                 dst = f"{self._albums_root().rstrip('/')}/{new_name}"
                 try:
                     destination_url = self._dav_url(dst)
@@ -1503,13 +1525,29 @@ class ClassNextCloudPhotos:
                     LOGGER.warning(f"{MSG_TAGS['WARNING']}Failed to rename album '{old_name}' -> '{new_name}': {error}")
             return renamed
 
-    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, log_level=None):
+    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
-            removed_albums = 0
-            removed_assets = 0
+            albums_to_remove = []
             for album in self._list_album_directories(log_level=log_level):
                 if not match_pattern(album["albumName"], pattern):
                     continue
+                albums_to_remove.append(album)
+
+            if not albums_to_remove:
+                LOGGER.info("No albums matched the pattern.")
+                return 0, 0
+
+            if request_user_confirmation:
+                LOGGER.warning("Albums marked for deletion:")
+                for album in albums_to_remove:
+                    LOGGER.warning(f"'{album['albumName']}' (PATH={album['id']})")
+                if not confirm_continue():
+                    LOGGER.info("Exiting program.")
+                    return 0, 0
+
+            removed_albums = 0
+            removed_assets = 0
+            for album in albums_to_remove:
                 if removeAlbumsAssets:
                     removed_assets += len(self.get_all_assets_from_album(album["id"], log_level=log_level))
                 if self._remove_remote(album["id"]):

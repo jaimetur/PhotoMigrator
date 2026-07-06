@@ -74,6 +74,7 @@ FEATURE_LABELS = {
 }
 UI_FIELD_LABELS = {
     "dashboard": "Live Dashboard",
+    "preview-album-actions": "Preview Album Actions",
 }
 MIGRATION_FILTER_DESTS = (
     "filter-by-type",
@@ -259,6 +260,31 @@ MODULE_DEPENDENCIES_REQUIRED = {
     "nextcloud_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
 }
 MODULE_ACTION_ARGUMENTS = {
+    "google_photos": {
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [{"dest": "preview-album-actions", "required": False}],
+    },
+    "synology_photos": {
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [
+            {"dest": "remove-albums-assets", "required": False},
+            {"dest": "preview-album-actions", "required": False},
+        ],
+    },
+    "immich_photos": {
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [
+            {"dest": "remove-albums-assets", "required": False},
+            {"dest": "preview-album-actions", "required": False},
+        ],
+    },
+    "nextcloud_photos": {
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [
+            {"dest": "remove-albums-assets", "required": False},
+            {"dest": "preview-album-actions", "required": False},
+        ],
+    },
     "standalone_features": {
         "organize-local-folder-by-date": [
             {"dest": "output-folder", "required": False},
@@ -1349,6 +1375,13 @@ def _allowed_dests_for_tab(schema: Dict[str, Any], tab: str, selected_action_des
             if selected_action_dest not in available_actions:
                 raise ValueError(f"Invalid selected action for tab {tab}: {selected_action_dest}")
             allowed_dests.add(selected_action_dest)
+            for dep in (MODULE_DEPENDENCIES_REQUIRED.get(tab, {}) or {}).get(selected_action_dest, set()):
+                if dep in schema["fields_by_dest"]:
+                    allowed_dests.add(dep)
+            for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest, []):
+                dest = str((item or {}).get("dest") or "").strip()
+                if dest and dest in schema["fields_by_dest"]:
+                    allowed_dests.add(dest)
         else:
             allowed_dests.update(available_actions)
         if "one-time-password" in tab_dests:

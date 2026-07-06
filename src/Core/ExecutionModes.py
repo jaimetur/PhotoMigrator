@@ -1072,15 +1072,13 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None
     client = capitalize_first_letter(client)
     albums_name_pattern = ARGS['rename-albums'][0]
     albums_name_replacement_pattern = ARGS['rename-albums'][1]
+    preview_album_actions = bool(ARGS.get('preview-album-actions', False))
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Argument detected  : '-renAlb, --rename-albums'.")
     LOGGER.info('-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["rename-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>',albums_name_replacement_pattern))
     LOGGER.info('-' * (terminal_width-10))
-
-    if user_confirmation and not confirm_continue():
-        LOGGER.info(f"Exiting program.")
-        sys.exit(0)
+    LOGGER.info(f"Preview album actions                  : {preview_album_actions}")
 
     cloud_client_obj = _build_cloud_client_obj(client)
 
@@ -1091,7 +1089,12 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_renamed = cloud_client_obj.rename_albums(pattern=albums_name_pattern, pattern_to_replace=albums_name_replacement_pattern, log_level=logging.WARNING)
+        albums_renamed = cloud_client_obj.rename_albums(
+            pattern=albums_name_pattern,
+            pattern_to_replace=albums_name_replacement_pattern,
+            request_user_confirmation=preview_album_actions,
+            log_level=logging.WARNING,
+        )
         # logout
         LOGGER.info(f"")
         LOGGER.info(f"Logged out from {client} Photos.")
@@ -1140,6 +1143,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         albums_name_pattern = ARGS['remove-albums']
 
     remove_albums_assets = ARGS['remove-albums-assets']
+    preview_album_actions = bool(ARGS.get('preview-album-actions', False))
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Argument detected  : '-rAlb, --remove-albums'.")
     LOGGER.info('-' * terminal_width)
@@ -1149,10 +1153,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         LOGGER.info(f"Flag detected  : '-rAlbAsset, --remove-albums-assets'.")
         LOGGER.info(f"Since, flag '-rAlbAsset, --remove-albums-assets' have been detected, ALL the Assets associated to any removed Albums will also be removed.")
         LOGGER.info(f"")
-
-    if user_confirmation and not confirm_continue():
-        LOGGER.info(f"Exiting program.")
-        sys.exit(0)
+    LOGGER.info(f"Preview album actions                  : {preview_album_actions}")
 
     cloud_client_obj = _build_cloud_client_obj(client)
 
@@ -1163,7 +1164,12 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = cloud_client_obj.remove_albums_by_name(pattern=albums_name_pattern, removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
+        albums_removed, assets_removed = cloud_client_obj.remove_albums_by_name(
+            pattern=albums_name_pattern,
+            removeAlbumsAssets=remove_albums_assets,
+            request_user_confirmation=preview_album_actions,
+            log_level=logging.WARNING,
+        )
         # logout
         LOGGER.info(f"")
         LOGGER.info(f"Logged out from {client} Photos.")

@@ -184,8 +184,9 @@ Following arguments allow you to interact with Google Photos, Synology, Immich, 
 | `-dAlb`,<br>`--download-albums`             | Download specific albums                       |
 | `-uAll`,<br>`--upload-all`                  | Upload all assets and albums from input folder |
 | `-dAll`,<br>`--download-all`                | Download all assets and albums                 |
-| `-renAlb`,<br>`--rename-albums`             | Rename albums matching pattern                 |
-| `-rAlb`,<br>`--remove-albums`               | Delete albums matching pattern                 |
+| `-renAlb`,<br>`--rename-albums`             | Rename albums using text, wildcard, or regex   |
+| `-rAlb`,<br>`--remove-albums`               | Delete albums using text, wildcard, or regex   |
+| `-prevAlbAct`,<br>`--preview-album-actions` | Preview rename/remove matches and confirm      |
 | `-rEmpAlb`,<br>`--remove-empty-albums`      | Delete empty albums                            |
 | `-rDupAlb`,<br>`--remove-duplicates-albums` | Delete duplicate albums                        |
 | `-mDupAlb`,<br>`--merge-duplicates-albums`  | Merge duplicate albums                         |

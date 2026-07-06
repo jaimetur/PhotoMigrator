@@ -392,17 +392,25 @@ def parse_arguments():
     PARSER.add_argument("-renAlb", "--rename-albums",
                         metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>",
                         nargs="+", default="",
-                        help="CAUTION!!! Rename albums matching a pattern using replacement pattern.\n"
+                        help="CAUTION!!! Rename albums using a text, wildcard, or regex pattern with a replacement value.\n"
                              "Requires '--client'.\n"
+                             "Use '--preview-album-actions' to preview matches and request confirmation before applying changes.\n"
                              "Arguments must be passed as two values separated by comma.\n"
+                             "Examples: --rename-albums \"--\", \"-\"  or  --rename-albums \"*--*\", \"-\"\n"
                              "Example: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\"\n"
                              "This converts dates from YYYY.MM.DD format to YYYY-MM-DD.")
 
     PARSER.add_argument("-rAlb", "--remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
-                        help="CAUTION!!! Remove albums matching pattern.\n"
+                        help="CAUTION!!! Remove albums matching a text, wildcard, or regex pattern.\n"
                              "Requires '--client'.\n"
+                             "Use '--preview-album-actions' to preview matches and request confirmation before applying changes.\n"
                              "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.\n"
                              "Example: --client=synology --remove-albums \"^Temp\" --remove-albums-assets")
+
+    PARSER.add_argument("-prevAlbAct", "--preview-album-actions", action="store_true", default=False,
+                        help="Preview Rename Albums / Remove Albums matches and request confirmation before applying changes.\n"
+                             "Works with '--rename-albums' and '--remove-albums'.\n"
+                             "Example: --client=immich --rename-albums \"--\" \"-\" --preview-album-actions")
 
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! Remove ALL albums.\n"
@@ -771,6 +779,16 @@ def checkArgs(ARGS, PARSER):
             f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
             f"--remove-albums-assets is a modifier flag. It must be used together with one of:\n"
             f"--remove-all-albums\n"
+            f"--remove-albums\n"
+            f"{Style.RESET_ALL}"
+        )
+        exit(1)
+
+    if ARGS['preview-album-actions'] and not (ARGS['rename-albums'] or ARGS['remove-albums']):
+        PARSER.error(
+            f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
+            f"--preview-album-actions is a modifier flag. It must be used together with one of:\n"
+            f"--rename-albums\n"
             f"--remove-albums\n"
             f"{Style.RESET_ALL}"
         )

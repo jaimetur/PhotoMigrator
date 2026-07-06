@@ -165,6 +165,7 @@ class TestCliTuiShared(unittest.TestCase):
             "account-id": "2",
             "rename-pattern": r"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b",
             "replacement-pattern": r"\\1-\\2-\\3",
+            "preview-album-actions": True,
         }
 
         args = build_cli_args(schema, "synology_photos", values, "rename-albums")
@@ -174,8 +175,25 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--client", args)
         self.assertIn("synology", args)
         self.assertIn("--account-id", args)
+        self.assertIn("--preview-album-actions", args)
         self.assertIn("2", args)
         self.assertIn(r"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b, \\1-\\2-\\3", args_text)
+
+    def test_build_cli_args_includes_preview_flag_for_remove_albums(self):
+        schema = build_parser_schema()
+        values = {
+            "account-id": "1",
+            "remove-albums": "*Temp*",
+            "preview-album-actions": True,
+            "remove-albums-assets": True,
+        }
+
+        args = build_cli_args(schema, "immich_photos", values, "remove-albums")
+
+        self.assertIn("--remove-albums", args)
+        self.assertIn("*Temp*", args)
+        self.assertIn("--preview-album-actions", args)
+        self.assertIn("--remove-albums-assets", args)
 
     def test_build_cli_args_composes_find_duplicates_value(self):
         schema = build_parser_schema()

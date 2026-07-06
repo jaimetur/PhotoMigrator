@@ -182,6 +182,9 @@ Following general arguments have different purposses depending on the Execution 
 -rAlbAsset   ; --remove-albums-assets
                If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove
                the assets (photos/videos) inside each album.
+-prevAlbAct ; --preview-album-actions
+               If used together with '-renAlb, --rename-albums' or '-rAlb, --remove-albums', it first shows the
+               matching albums and asks for confirmation before applying the change.
 
 
 AUTOMATIC MIGRATION PROCESS:
@@ -367,15 +370,20 @@ If more than one optional arguments are detected, only the first one will be exe
                - Non-album assets go into <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ with year/month structure.
                Example: --client=synology --download-all ./MyLibrary
 -renAlb      ; --rename-albums <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>
-               CAUTION!!! Rename albums matching a pattern using replacement pattern.
+               CAUTION!!! Rename albums using a text, wildcard, or regex pattern with a replacement pattern.
                Requires '--client'.
+               Use '--preview-album-actions' to list the affected albums and ask for confirmation before renaming.
                Arguments must be passed as two values separated by comma.
+               Example: --rename-albums "--", "-"
+               Example: --rename-albums "*--*", "-"
                Example: --rename-albums "\b(\d{4})\.(\d{2})\.(\d{2})\b", "\1-\2-\3"
                This converts dates from YYYY.MM.DD format to YYYY-MM-DD.
 -rAlb        ; --remove-albums <ALBUMS_NAME_PATTERN>
-               CAUTION!!! Remove albums matching pattern.
+               CAUTION!!! Remove albums matching a text, wildcard, or regex pattern.
                Requires '--client'.
+               Use '--preview-album-actions' to list the affected albums and ask for confirmation before deleting.
                Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.
+               Example: --client=synology --remove-albums "*Temp*" --preview-album-actions
                Example: --client=synology --remove-albums "^Temp" --remove-albums-assets
 -rAllAlb     ; --remove-all-albums
                CAUTION!!! Remove ALL albums.

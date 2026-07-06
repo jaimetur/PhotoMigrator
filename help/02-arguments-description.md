@@ -176,21 +176,22 @@ If more than one optional arguments are detected, only the first one will be exe
 
 Following arguments allow you to interact with Google Photos, Synology, Immich, and NextCloud.
 
-| Argument                                    | Parameter                                       |       Type        |   Valid Values   | Description                                               |
-|---------------------------------------------|-------------------------------------------------|:-----------------:|:----------------:|-----------------------------------------------------------|
-| `-uAlb`,<br>`--upload-albums`               | `<ALBUMS_FOLDER>`                               |       path        | `existing path`  | Uploads albums from folders to the selected photo client. |
-| `-dAlb`,<br>`--download-albums`             | `<ALBUM_NAMES>`                                 |       list        | `existing album` | Downloads albums by name to the output folder.            |
-| `-uAll`,<br>`--upload-all`                  | `<INPUT_FOLDER>`                                |       path        | `existing path`  | Uploads all assets and creates albums by subfolder.       |
-| `-dAll`,<br>`--download-all`                | `<OUTPUT_FOLDER>`                               |       path        | `existing path`  | Downloads all albums and assets to this folder.           |
-| `-renAlb`,<br>`--rename-albums`             | `<ALBUMS_NAME_PATTERN>` `<PATTERN_REPLACEMENT>` | `string` `string` | `regex pattern`  | Renames albums using a name pattern.                      |
-| `-rAlb`,<br>`--remove-albums`               | `<PATTERN>`                                     |      string       | `regex pattern`  | Removes albums matching name pattern.                     |
-| `-rEmpAlb`,<br>`--remove-empty-albums`      |                                                 |       flag        |                  | Removes empty albums.                                     |
-| `-rDupAlb`,<br>`--remove-duplicates-albums` |                                                 |       flag        |                  | Removes duplicate albums with same name/size.             |
-| `-mDupAlb`,<br>`--merge-duplicates-albums`  |                                                 |       flag        |                  | Merges duplicate albums (moves all assets).               |
-| `-rAll`,<br>`--remove-all-assets`           |                                                 |       flag        |                  | Removes all albums and assets from the client.            |
-| `-rAllAlb`,<br>`--remove-all-albums`        |                                                 |       flag        |                  | Removes all albums from the photo client.                 |
-| `-rOrphan`,<br>`--remove-orphan-assets`     |                                                 |       flag        |                  | Removes orphan assets (admin API key required).           |
-| `-OTP`,<br>`--one-time-password`            |                                                 |       flag        |                  | Enables / Disables OTP login for Synology (2FA).          |
+| Argument                                    | Parameter                                       |       Type        |       Valid Values        | Description                                               |
+|---------------------------------------------|-------------------------------------------------|:-----------------:|:-------------------------:|-----------------------------------------------------------|
+| `-uAlb`,<br>`--upload-albums`               | `<ALBUMS_FOLDER>`                               |       path        |      `existing path`      | Uploads albums from folders to the selected photo client. |
+| `-dAlb`,<br>`--download-albums`             | `<ALBUM_NAMES>`                                 |       list        |     `existing album`      | Downloads albums by name to the output folder.            |
+| `-uAll`,<br>`--upload-all`                  | `<INPUT_FOLDER>`                                |       path        |      `existing path`      | Uploads all assets and creates albums by subfolder.       |
+| `-dAll`,<br>`--download-all`                | `<OUTPUT_FOLDER>`                               |       path        |      `existing path`      | Downloads all albums and assets to this folder.           |
+| `-renAlb`,<br>`--rename-albums`             | `<ALBUMS_NAME_PATTERN>` `<PATTERN_REPLACEMENT>` | `string` `string` | `text / wildcard / regex` | Renames albums using a name pattern.                      |
+| `-rAlb`,<br>`--remove-albums`               | `<PATTERN>`                                     |      string       | `text / wildcard / regex` | Removes albums matching name pattern.                     |
+| `-prevAlbAct`,<br>`--preview-album-actions` |                                                 |       flag        |                           | Previews rename/remove matches and asks for confirmation. |
+| `-rEmpAlb`,<br>`--remove-empty-albums`      |                                                 |       flag        |                           | Removes empty albums.                                     |
+| `-rDupAlb`,<br>`--remove-duplicates-albums` |                                                 |       flag        |                           | Removes duplicate albums with same name/size.             |
+| `-mDupAlb`,<br>`--merge-duplicates-albums`  |                                                 |       flag        |                           | Merges duplicate albums (moves all assets).               |
+| `-rAll`,<br>`--remove-all-assets`           |                                                 |       flag        |                           | Removes all albums and assets from the client.            |
+| `-rAllAlb`,<br>`--remove-all-albums`        |                                                 |       flag        |                           | Removes all albums from the photo client.                 |
+| `-rOrphan`,<br>`--remove-orphan-assets`     |                                                 |       flag        |                           | Removes orphan assets (admin API key required).           |
+| `-OTP`,<br>`--one-time-password`            |                                                 |       flag        |                           | Enables / Disables OTP login for Synology (2FA).          |
 
 
 #### 🧪 Examples:
