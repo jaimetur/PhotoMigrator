@@ -75,6 +75,7 @@ FEATURE_LABELS = {
 UI_FIELD_LABELS = {
     "dashboard": "Live Dashboard",
     "preview-album-actions": "Preview Album Actions",
+    "reuse-similar-existing-albums": "Reuse Similar Existing Albums",
 }
 MIGRATION_FILTER_DESTS = (
     "filter-by-type",
@@ -92,7 +93,7 @@ GENERAL_GROUPS = [
     {
         "key": "execution",
         "title": "Execution",
-        "dests": ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets"],
+        "dests": ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets", "reuse-similar-existing-albums"],
     },
     {
         "key": "naming",
@@ -130,7 +131,7 @@ BOOL_VALUE_DESTS = {
     "show-gpth-info",
     "show-gpth-errors",
 }
-AUTOMATION_DESTS = {"source", "target", "move-assets", "dashboard", "parallel-migration"}
+AUTOMATION_DESTS = {"source", "target", "move-assets", "dashboard", "parallel-migration", "reuse-similar-existing-albums"}
 GOOGLE_DESTS = {
     "google-takeout",
     "google-output-folder-suffix",
@@ -251,6 +252,7 @@ GENERAL_OPTIONAL_DESTS = {
     "foldername-extracted-dates",
     "exec-gpth-tool",
     "exec-exif-tool",
+    "reuse-similar-existing-albums",
 }
 FEATURE_SCOPED_DESTS = {"input-folder", "output-folder", "account-id"}
 MODULE_DEPENDENCIES_REQUIRED = {
@@ -261,10 +263,14 @@ MODULE_DEPENDENCIES_REQUIRED = {
 }
 MODULE_ACTION_ARGUMENTS = {
     "google_photos": {
+        "upload-albums": [{"dest": "reuse-similar-existing-albums", "required": False}],
+        "upload-all": [{"dest": "reuse-similar-existing-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [{"dest": "preview-album-actions", "required": False}],
     },
     "synology_photos": {
+        "upload-albums": [{"dest": "reuse-similar-existing-albums", "required": False}],
+        "upload-all": [{"dest": "reuse-similar-existing-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
@@ -272,6 +278,8 @@ MODULE_ACTION_ARGUMENTS = {
         ],
     },
     "immich_photos": {
+        "upload-albums": [{"dest": "reuse-similar-existing-albums", "required": False}],
+        "upload-all": [{"dest": "reuse-similar-existing-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
@@ -279,6 +287,8 @@ MODULE_ACTION_ARGUMENTS = {
         ],
     },
     "nextcloud_photos": {
+        "upload-albums": [{"dest": "reuse-similar-existing-albums", "required": False}],
+        "upload-all": [{"dest": "reuse-similar-existing-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},

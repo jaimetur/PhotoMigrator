@@ -74,6 +74,21 @@ def set_help_texts():
             - All Assets with no Albums associated will be downloaded within a subfolder '<OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>' and will have a year/month structure inside.
             """)
 
+    HELP_TEXTS["upload-albums"] = textwrap.dedent(f"""
+            ATTENTION!!!: This process will upload the assets found inside each subfolder of '<ALBUMS_FOLDER>' and will create or reuse one destination album per subfolder.
+            By default, only existing albums whose name matches exactly are reused.
+            If you include '--reuse-similar-existing-albums', the Tool will also try to reuse a conservatively normalized equivalent album name
+            (for example different date separators, repeated dashes, or extra spaces) instead of creating a duplicate album.
+            """)
+
+    HELP_TEXTS["upload-all"] = textwrap.dedent(f"""
+            ATTENTION!!!: This process will upload all supported assets found in '<INPUT_FOLDER>'.
+            Assets inside the '<ALBUMS_FOLDER>' tree (and any extra folders provided via '--albums-folders') will be grouped into albums.
+            By default, only existing albums whose name matches exactly are reused.
+            If you include '--reuse-similar-existing-albums', the Tool will also try to reuse a conservatively normalized equivalent album name
+            (for example different date separators, repeated dashes, or extra spaces) instead of creating a duplicate album.
+            """)
+
     HELP_TEXTS["remove-orphan-assets"] = textwrap.dedent(f"""
             ATTENTION!!!: In this process, the Tool will look for all Orphan Assets in your Photos account Database and will remove them. 
             IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in Config.ini.

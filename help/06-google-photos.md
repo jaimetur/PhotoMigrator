@@ -127,9 +127,11 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 - **Explanation:**
   - The Tool creates one Google Photos album per subfolder in `<ALBUMS_FOLDER>`.
   - Supported assets in each subfolder are uploaded and associated to that album.
+  - By default only exact existing album names are reused. Add `--reuse-similar-existing-albums` to also reuse conservatively normalized equivalent album names.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=google-photos --upload-albums ./My_Albums_Folder
+  ./PhotoMigrator.bin --client=google-photos --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums
   ```
 
 
@@ -161,6 +163,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - Uploads all supported assets from `<INPUT_FOLDER>`.
   - If `<INPUT_FOLDER>/Albums` exists, each subfolder is treated as an album.
   - Assets outside `Albums` are uploaded as no-album assets.
+  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to reuse conservatively normalized equivalent existing albums.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=google-photos --upload-all ./MyLibrary

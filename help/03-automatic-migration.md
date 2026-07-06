@@ -29,6 +29,8 @@ By default, (if your terminal size has enough width and height) a Live Dashboard
 
 Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **`--parallel-migration=false`**, so first, all the assets will be pulled from `<SOURCE>` and when finish, they will be pushed into `<TARGET>`, but take into account that in this case, you will need enough disk space to store all your assets pulled from `<SOURCE>` service.
 
+By default, destination albums are only reused when the existing target album name matches exactly. If you include **`--reuse-similar-existing-albums`**, PhotoMigrator will also try to reuse a conservatively normalized equivalent album name on the target (for example different date separators, repeated dashes, or extra spaces) instead of creating a duplicate album. If several existing target albums normalize to the same value, PhotoMigrator will not guess and will create a new album instead.
+
 Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. The available filters are: 
    - **by Type:**
      - argument: `-type, --filter-by-type`

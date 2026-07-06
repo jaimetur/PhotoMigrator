@@ -270,6 +270,7 @@ class TestAutomaticMigrationMode(unittest.TestCase):
             "exclude-folders": [],
             "exclude-files": [],
             "move-assets": False,
+            "reuse-similar-existing-albums": False,
             "google-takeout": "",
             "google-ignore-check-structure": False,
             "google-output-folder-suffix": "processed",

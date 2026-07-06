@@ -88,9 +88,11 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will create one Album per each Subfolder found in \<ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.
+  - By default only exact existing album names are reused. Add `--reuse-similar-existing-albums` to also reuse conservatively normalized equivalent album names.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin --client=synology --upload-albums ./My_Albums_Folder
+  ./PhotoMigrator.bin --client=synology --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and process the folder `./My_Albums_Folder` and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
   
@@ -133,6 +135,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   - If you want to create Albums for some specific subfolders you have two options:
     1. Move all the Albums subfolders into a `<INPUT_FOLDER>/<ALBUMS_FOLDER>`, in this way the Tool will consider all the subfolders inside as an Album, and will create an Album in Synology Photos with the same name as the subfolder, associating all the assets inside to it.
     2. Use the complementary argument _**`-AlbFolder, --albums-folders \<ALBUMS_FOLDER>`**_, in this way the Tool will create Albums also for each subfolder found in `<ALBUMS_FOLDER>` (apart from those found inside `<INPUT_FOLDER>/Albums`)
+  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to reuse conservatively normalized equivalent existing albums.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin --client=synology --upload-all ./MyLibrary

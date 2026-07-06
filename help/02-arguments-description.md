@@ -181,6 +181,7 @@ Following arguments allow you to interact with Google Photos, Synology, Immich, 
 | `-uAlb`,<br>`--upload-albums`               | `<ALBUMS_FOLDER>`                               |       path        |      `existing path`      | Uploads albums from folders to the selected photo client. |
 | `-dAlb`,<br>`--download-albums`             | `<ALBUM_NAMES>`                                 |       list        |     `existing album`      | Downloads albums by name to the output folder.            |
 | `-uAll`,<br>`--upload-all`                  | `<INPUT_FOLDER>`                                |       path        |      `existing path`      | Uploads all assets and creates albums by subfolder.       |
+| `-reuseSimAlb`,<br>`--reuse-similar-existing-albums` |                                                 |       flag        |                           | Reuses conservatively similar existing albums during cloud uploads and Automatic Migration. |
 | `-dAll`,<br>`--download-all`                | `<OUTPUT_FOLDER>`                               |       path        |      `existing path`      | Downloads all albums and assets to this folder.           |
 | `-renAlb`,<br>`--rename-albums`             | `<ALBUMS_NAME_PATTERN>` `<PATTERN_REPLACEMENT>` | `string` `string` | `text / wildcard / regex` | Renames albums using a name pattern.                      |
 | `-rAlb`,<br>`--remove-albums`               | `<PATTERN>`                                     |      string       | `text / wildcard / regex` | Removes albums matching name pattern.                     |

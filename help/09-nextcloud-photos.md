@@ -101,9 +101,11 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 - **Explanation:**
   - The Tool creates one album per subfolder inside `<ALBUMS_FOLDER>` and uploads supported assets.
   - In NextCloud implementation, files are uploaded under `NEXTCLOUD_ALBUMS_FOLDER_<id>/<AlbumName>`, and native Photos album association is handled automatically when supported.
+  - By default only exact existing album names are reused. Add `--reuse-similar-existing-albums` to also reuse conservatively normalized equivalent album names.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=nextcloud --upload-albums ./My_Albums_Folder
+  ./PhotoMigrator.bin --client=nextcloud --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums
   ```
 
 
@@ -140,6 +142,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - Assets outside `Albums` are uploaded into `NEXTCLOUD_PHOTOS_FOLDER_<id>`.
   - Album subfolders are uploaded into `NEXTCLOUD_ALBUMS_FOLDER_<id>`.
   - You can also provide extra albums folders via `-AlbFolder, --albums-folders`.
+  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to reuse conservatively normalized equivalent existing albums.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=nextcloud --upload-all ./MyLibrary

@@ -412,6 +412,12 @@ def parse_arguments():
                              "Works with '--rename-albums' and '--remove-albums'.\n"
                              "Example: --client=immich --rename-albums \"--\" \"-\" --preview-album-actions")
 
+    PARSER.add_argument("-reuseSimAlb", "--reuse-similar-existing-albums", action="store_true", default=False,
+                        help="When uploading albums to a cloud service or running Automatic Migration, reuse a similar existing album instead of creating a new one.\n"
+                             "By default only exact album-name matches are reused.\n"
+                             "This option enables conservative normalized matching for harmless differences such as date separators, repeated dashes, or extra spaces.\n"
+                             "Example: --client=immich --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums")
+
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! Remove ALL albums.\n"
                              "Requires '--client'.\n"

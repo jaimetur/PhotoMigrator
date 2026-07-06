@@ -417,6 +417,7 @@
         "replacement-pattern": "Replacement Pattern",
         "remove-albums": "Albums Name Pattern",
         "preview-album-actions": "Preview Album Actions",
+        "reuse-similar-existing-albums": "Reuse Similar Existing Albums",
         "find-duplicates": "Find Duplicates Input",
         "process-duplicates": "Duplicates CSV",
         "rename-folders-content-based": "ALBUMS_FOLDER",
@@ -480,7 +481,7 @@
 
     const GENERAL_GROUPS = [
         { key: "logs", title: "Logs", dests: ["no-log-file", "log-level", "log-format", "foldername-logs"] },
-        { key: "execution", title: "Execution", dests: ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets"] },
+        { key: "execution", title: "Execution", dests: ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets", "reuse-similar-existing-albums"] },
         { key: "naming", title: "Naming & Folders", dests: ["date-separator", "range-separator", "albums-folders", "foldername-albums", "foldername-no-albums", "foldername-duplicates-output", "foldername-extracted-dates"] },
         { key: "filters", title: "Filters", dests: ["filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country", "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files"] }
     ];
@@ -488,28 +489,32 @@
     const MODULE_DEPENDENCIES = {
         synology_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
-            "upload-all": [{dest: "albums-folders", required: false}],
+            "upload-albums": [{dest: "reuse-similar-existing-albums", required: false}],
+            "upload-all": [{dest: "albums-folders", required: false}, {dest: "reuse-similar-existing-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         immich_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
-            "upload-all": [{dest: "albums-folders", required: false}],
+            "upload-albums": [{dest: "reuse-similar-existing-albums", required: false}],
+            "upload-all": [{dest: "albums-folders", required: false}, {dest: "reuse-similar-existing-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         nextcloud_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
-            "upload-all": [{dest: "albums-folders", required: false}],
+            "upload-albums": [{dest: "reuse-similar-existing-albums", required: false}],
+            "upload-all": [{dest: "albums-folders", required: false}, {dest: "reuse-similar-existing-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         google_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
-            "upload-all": [{dest: "albums-folders", required: false}],
+            "upload-albums": [{dest: "reuse-similar-existing-albums", required: false}],
+            "upload-all": [{dest: "albums-folders", required: false}, {dest: "reuse-similar-existing-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]

@@ -98,6 +98,7 @@ def _base_args():
         "remove-albums": "",
         "rename-albums": "",
         "preview-album-actions": False,
+        "reuse-similar-existing-albums": False,
         "remove-empty-albums": False,
         "remove-duplicates-albums": False,
         "merge-duplicates-albums": False,

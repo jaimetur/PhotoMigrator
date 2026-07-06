@@ -28,7 +28,7 @@ if "colorama" not in sys.modules:
 
 try:
     import Core.GlobalVariables as GV
-    from Utils.GeneralUtils import match_pattern, replace_pattern, confirm_continue
+    from Utils.GeneralUtils import match_pattern, replace_pattern, confirm_continue, normalize_album_name_for_matching, find_reusable_album_candidate
     GENERAL_UTILS_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
     GENERAL_UTILS_IMPORT_ERROR = exc
@@ -62,6 +62,39 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
             replace_pattern("2026.07.06 - Summer", r"\b(\d{4})\.(\d{2})\.(\d{2})\b", r"\1-\2-\3"),
             "2026-07-06 - Summer",
         )
+
+    def test_normalize_album_name_for_matching_collapses_harmless_separator_differences(self):
+        self.assertEqual(
+            normalize_album_name_for_matching("2026.07.06 -- Viaje a Roma"),
+            normalize_album_name_for_matching("2026-07-06 — Viaje   a  Roma"),
+        )
+
+    def test_find_reusable_album_candidate_returns_unique_similar_match_when_enabled(self):
+        album, match_kind, ambiguous = find_reusable_album_candidate(
+            album_name="2026.07.06 -- Viaje a Roma",
+            albums=[{"id": "album-1", "albumName": "2026-07-06 - Viaje a Roma"}],
+            allow_similar=True,
+            exact_case_sensitive=False,
+        )
+
+        self.assertEqual(album, {"id": "album-1", "albumName": "2026-07-06 - Viaje a Roma"})
+        self.assertEqual(match_kind, "similar")
+        self.assertEqual(ambiguous, [])
+
+    def test_find_reusable_album_candidate_reports_ambiguous_similar_matches(self):
+        album, match_kind, ambiguous = find_reusable_album_candidate(
+            album_name="2026.07.06 -- Viaje a Roma",
+            albums=[
+                {"id": "album-1", "albumName": "2026-07-06 - Viaje a Roma"},
+                {"id": "album-2", "albumName": "2026 07 06 Viaje a Roma"},
+            ],
+            allow_similar=True,
+            exact_case_sensitive=False,
+        )
+
+        self.assertIsNone(album)
+        self.assertIsNone(match_kind)
+        self.assertEqual(len(ambiguous), 2)
 
     def test_confirm_continue_honors_no_confirm_by_default(self):
         with (

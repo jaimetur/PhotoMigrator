@@ -108,6 +108,7 @@ AUTOMATION_DESTS = {
     "move-assets",
     "dashboard",
     "parallel-migration",
+    "reuse-similar-existing-albums",
 }
 
 GOOGLE_DESTS = {
@@ -222,6 +223,7 @@ GENERAL_OPTIONAL_DESTS = {
     "foldername-extracted-dates",
     "exec-gpth-tool",
     "exec-exif-tool",
+    "reuse-similar-existing-albums",
 }
 
 WEB_HIDDEN_GENERAL_DESTS = {
@@ -254,10 +256,14 @@ MODULE_DEPENDENCIES_REQUIRED = {
 }
 MODULE_ACTION_ARGUMENTS = {
     "google_photos": {
+        "upload-albums": [{"dest": "reuse-similar-existing-albums", "required": False}],
+        "upload-all": [{"dest": "reuse-similar-existing-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [{"dest": "preview-album-actions", "required": False}],
     },
     "synology_photos": {
+        "upload-albums": [{"dest": "reuse-similar-existing-albums", "required": False}],
+        "upload-all": [{"dest": "reuse-similar-existing-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
@@ -265,6 +271,8 @@ MODULE_ACTION_ARGUMENTS = {
         ],
     },
     "immich_photos": {
+        "upload-albums": [{"dest": "reuse-similar-existing-albums", "required": False}],
+        "upload-all": [{"dest": "reuse-similar-existing-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
@@ -272,6 +280,8 @@ MODULE_ACTION_ARGUMENTS = {
         ],
     },
     "nextcloud_photos": {
+        "upload-albums": [{"dest": "reuse-similar-existing-albums", "required": False}],
+        "upload-all": [{"dest": "reuse-similar-existing-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},

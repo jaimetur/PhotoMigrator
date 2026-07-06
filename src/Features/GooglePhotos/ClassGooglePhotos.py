@@ -20,7 +20,7 @@ from Core.GlobalVariables import (
     VIDEO_EXT,
 )
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
-from Utils.GeneralUtils import convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum
+from Utils.GeneralUtils import convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate
 
 
 class ClassGooglePhotos:
@@ -640,6 +640,8 @@ class ClassGooglePhotos:
             total_albums_skipped = 0
             total_assets_uploaded = 0
             total_duplicates_skipped = 0
+            reuse_similar_existing_albums = bool(ARGS.get("reuse-similar-existing-albums", False))
+            existing_albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
             for folder in tqdm(subfolders, desc=f"{MSG_TAGS['INFO']}Uploading Albums to Google Photos", unit=" album"):
                 album_name = os.path.basename(folder)
                 media_files = [
@@ -653,10 +655,31 @@ class ClassGooglePhotos:
                 if not media_files:
                     total_albums_skipped += 1
                     continue
-                exists, album_id = self.album_exists(album_name=album_name, log_level=log_level)
-                if not exists or not album_id:
+                matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
+                    album_name=album_name,
+                    albums=existing_albums,
+                    allow_similar=reuse_similar_existing_albums,
+                    exact_case_sensitive=False,
+                )
+                if ambiguous_matches:
+                    candidate_names = ", ".join([f"'{item.get('albumName', '')}'" for item in ambiguous_matches[:3]])
+                    LOGGER.warning(
+                        f"Found multiple similar existing Google Photos albums for '{album_name}' "
+                        f"({candidate_names}). Creating a new album to avoid ambiguous reuse."
+                    )
+                if matched_album:
+                    album_id = matched_album.get("id")
+                    matched_name = matched_album.get("albumName", album_name)
+                    if match_kind == "similar" and matched_name != album_name:
+                        LOGGER.info(
+                            f"Reusing similar existing Google Photos album '{matched_name}' "
+                            f"for source album '{album_name}'."
+                        )
+                else:
                     album_id = self.create_album(album_name=album_name, log_level=log_level)
-                    total_albums_uploaded += 1
+                    if album_id:
+                        existing_albums.append({"id": album_id, "albumName": album_name})
+                        total_albums_uploaded += 1
                 album_media_ids = []
                 for file_path in tqdm(
                     media_files,

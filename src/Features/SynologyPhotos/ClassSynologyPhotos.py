@@ -21,7 +21,7 @@ from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
-from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum
+from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate
 
 """
 ----------------------
@@ -2120,6 +2120,8 @@ class ClassSynologyPhotos:
                 total_assets_uploaded = 0
                 total_duplicates_assets_removed = 0
                 total_duplicates_assets_skipped = 0
+                reuse_similar_existing_albums = bool(ARGS.get("reuse-similar-existing-albums", False))
+                existing_albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
 
 
                 # # If 'Albums' is not in subfolders_inclusion, add it (like original code).
@@ -2212,14 +2214,38 @@ class ClassSynologyPhotos:
                                     album_assets_ids.append(asset_id)
 
                         if album_assets_ids:
-                            album_id = self.create_album(album_name, log_level=log_level)
+                            matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
+                                album_name=album_name,
+                                albums=existing_albums,
+                                allow_similar=reuse_similar_existing_albums,
+                                exact_case_sensitive=True,
+                            )
+                            if ambiguous_matches:
+                                candidate_names = ", ".join([f"'{item.get('albumName', '')}'" for item in ambiguous_matches[:3]])
+                                LOGGER.warning(
+                                    f"Found multiple similar existing Synology albums for '{album_name}' "
+                                    f"({candidate_names}). Creating a new album to avoid ambiguous reuse."
+                                )
+                            if matched_album:
+                                album_id = matched_album.get("id")
+                                matched_name = matched_album.get("albumName", album_name)
+                                if match_kind == "similar" and matched_name != album_name:
+                                    LOGGER.info(
+                                        f"Reusing similar existing Synology album '{matched_name}' "
+                                        f"for source album '{album_name}'."
+                                    )
+                            else:
+                                album_id = self.create_album(album_name, log_level=log_level)
+                                if album_id:
+                                    existing_albums.append({"id": album_id, "albumName": album_name})
                             if not album_id:
                                 LOGGER.warning(f"Could not create album for subfolder '{subpath}'.")
                                 total_albums_skipped += 1
                             else:
                                 self.add_assets_to_album(album_id, album_assets_ids, album_name=album_name, log_level=log_level)
-                                LOGGER.debug(f"Album '{album_name}' created with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
-                                total_albums_uploaded += 1
+                                LOGGER.debug(f"Album '{album_name}' ready with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
+                                if not matched_album:
+                                    total_albums_uploaded += 1
                         else:
                             total_albums_skipped += 1
 

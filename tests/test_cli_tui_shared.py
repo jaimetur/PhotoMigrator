@@ -195,6 +195,35 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--preview-album-actions", args)
         self.assertIn("--remove-albums-assets", args)
 
+    def test_build_cli_args_includes_reuse_similar_existing_albums_for_cloud_upload(self):
+        schema = build_parser_schema()
+        values = {
+            "account-id": "2",
+            "upload-all": "/photos/library",
+            "albums-folders": ["Albums"],
+            "reuse-similar-existing-albums": True,
+        }
+
+        args = build_cli_args(schema, "immich_photos", values, "upload-all")
+
+        self.assertIn("--upload-all", args)
+        self.assertIn("/photos/library", args)
+        self.assertIn("--reuse-similar-existing-albums", args)
+
+    def test_build_cli_args_includes_reuse_similar_existing_albums_for_automatic_migration(self):
+        schema = build_parser_schema()
+        values = {
+            "source": "synology-photos-1",
+            "target": "immich-photos-2",
+            "reuse-similar-existing-albums": True,
+        }
+
+        args = build_cli_args(schema, "automatic_migration", values)
+
+        self.assertIn("--source", args)
+        self.assertIn("--target", args)
+        self.assertIn("--reuse-similar-existing-albums", args)
+
     def test_build_cli_args_composes_find_duplicates_value(self):
         schema = build_parser_schema()
         values = {

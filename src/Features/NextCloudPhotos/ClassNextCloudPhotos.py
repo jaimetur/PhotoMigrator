@@ -30,7 +30,7 @@ from Core.GlobalVariables import (
 )
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
 from Utils.DateUtils import guess_date_from_filename
-from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm
+from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, find_reusable_album_candidate
 
 
 class ClassNextCloudPhotos:
@@ -1054,6 +1054,8 @@ class ClassNextCloudPhotos:
             total_albums_skipped = 0
             total_assets_uploaded = 0
             total_duplicates_skipped = 0
+            reuse_similar_existing_albums = bool(ARGS.get("reuse-similar-existing-albums", False))
+            existing_albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
             for index, folder in enumerate(
                 tqdm(subfolders, desc=f"{MSG_TAGS['INFO']}Uploading Albums to NextCloud", unit=" album"),
                 start=1,
@@ -1074,10 +1076,35 @@ class ClassNextCloudPhotos:
                 if not media_files:
                     total_albums_skipped += 1
                     continue
-                exists, album_id = self.album_exists(album_name=album_name, log_level=log_level)
-                if not exists or not album_id:
+                matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
+                    album_name=album_name,
+                    albums=existing_albums,
+                    allow_similar=reuse_similar_existing_albums,
+                    exact_case_sensitive=False,
+                )
+                if ambiguous_matches:
+                    candidate_names = ", ".join([f"'{item.get('albumName', '')}'" for item in ambiguous_matches[:3]])
+                    LOGGER.warning(
+                        f"Found multiple similar existing NextCloud albums for '{album_name}' "
+                        f"({candidate_names}). Creating a new album to avoid ambiguous reuse."
+                    )
+                if matched_album:
+                    album_id = matched_album.get("id")
+                    effective_album_name = matched_album.get("albumName", album_name)
+                    if match_kind == "similar" and effective_album_name != album_name:
+                        LOGGER.info(
+                            f"Reusing similar existing NextCloud album '{effective_album_name}' "
+                            f"for source album '{album_name}'."
+                        )
+                else:
                     album_id = self.create_album(album_name=album_name, log_level=log_level)
-                    total_albums_uploaded += 1
+                    effective_album_name = album_name
+                    if album_id:
+                        existing_albums.append({"id": album_id, "albumName": album_name})
+                        total_albums_uploaded += 1
+                if not album_id:
+                    total_albums_skipped += 1
+                    continue
                 # Native Nextcloud Photos album (separate from files WebDAV folder tree)
                 native_enabled = True
                 native_album_path = ""
@@ -1088,12 +1115,12 @@ class ClassNextCloudPhotos:
                 }
                 existing_native_files = set()
                 try:
-                    native_album_path = self._ensure_native_album(album_name=album_name)
+                    native_album_path = self._ensure_native_album(album_name=effective_album_name)
                     existing_native_files = self._native_album_existing_file_names(native_album_path)
                 except Exception as error:
                     native_enabled = False
                     LOGGER.warning(
-                        f"{MSG_TAGS['WARNING']}Native album sync disabled for '{album_name}': {error}. "
+                        f"{MSG_TAGS['WARNING']}Native album sync disabled for '{effective_album_name}': {error}. "
                         f"Continuing with folder-only upload."
                     )
                 native_added = 0

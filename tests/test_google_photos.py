@@ -106,12 +106,15 @@ class TestGooglePhotosUnit(unittest.TestCase):
     @patch("Features.GooglePhotos.ClassGooglePhotos.tqdm", side_effect=lambda iterable, **kwargs: iterable)
     def test_push_albums_adds_duplicate_assets_to_each_album_when_id_is_resolved(self, _mock_tqdm):
         manager = self._build_manager()
-        manager.album_exists = MagicMock(side_effect=[(False, None), (False, None)])
+        manager.get_albums_owned_by_user = MagicMock(return_value=[])
         manager.create_album = MagicMock(side_effect=["album-1", "album-2"])
         manager.push_asset = MagicMock(side_effect=[("media-1", False), ("media-1", True)])
         manager.add_assets_to_album = MagicMock(return_value=1)
 
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with (
+            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"reuse-similar-existing-albums": False}),
+            tempfile.TemporaryDirectory() as tmpdir,
+        ):
             album_a = os.path.join(tmpdir, "Album A")
             album_b = os.path.join(tmpdir, "Album B")
             os.makedirs(album_a, exist_ok=True)
@@ -136,6 +139,39 @@ class TestGooglePhotosUnit(unittest.TestCase):
         self.assertEqual(first_call["asset_ids"], ["media-1"])
         self.assertEqual(second_call["album_id"], "album-2")
         self.assertEqual(second_call["asset_ids"], ["media-1"])
+
+    @patch("Features.GooglePhotos.ClassGooglePhotos.tqdm", side_effect=lambda iterable, **kwargs: iterable)
+    def test_push_albums_reuses_similar_existing_album_when_flag_enabled(self, _mock_tqdm):
+        manager = self._build_manager()
+        manager.get_albums_owned_by_user = MagicMock(
+            return_value=[{"id": "album-existing", "albumName": "2026-07-06 - Viaje a Roma"}]
+        )
+        manager.create_album = MagicMock()
+        manager.push_asset = MagicMock(return_value=("media-1", False))
+        manager.add_assets_to_album = MagicMock(return_value=1)
+
+        with (
+            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"reuse-similar-existing-albums": True}),
+            patch("Features.GooglePhotos.ClassGooglePhotos.LOGGER", MagicMock()),
+            tempfile.TemporaryDirectory() as tmpdir,
+        ):
+            album_folder = os.path.join(tmpdir, "2026.07.06 -- Viaje a Roma")
+            os.makedirs(album_folder, exist_ok=True)
+            with open(os.path.join(album_folder, "photo.jpg"), "wb") as handle:
+                handle.write(b"binary-data")
+
+            uploaded_albums, skipped_albums, uploaded_assets, _removed_dups, duplicate_assets = manager.push_albums(
+                input_folder=tmpdir,
+                remove_duplicates=False,
+            )
+
+        self.assertEqual(uploaded_albums, 0)
+        self.assertEqual(skipped_albums, 0)
+        self.assertEqual(uploaded_assets, 1)
+        self.assertEqual(duplicate_assets, 0)
+        manager.create_album.assert_not_called()
+        manager.add_assets_to_album.assert_called_once()
+        self.assertEqual(manager.add_assets_to_album.call_args.kwargs["album_id"], "album-existing")
 
 
 if __name__ == "__main__":

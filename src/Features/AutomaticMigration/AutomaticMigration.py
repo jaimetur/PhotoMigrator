@@ -23,7 +23,7 @@ from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
-from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX
+from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
 terminal_width = shutil.get_terminal_size().columns
@@ -670,6 +670,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     processed_albums_lock = threading.Lock()
     immich_uploaded_records = []
     immich_uploaded_records_lock = threading.Lock()
+    reuse_similar_existing_albums = bool(ARGS.get("reuse-similar-existing-albums", False))
+    target_exact_album_match_case_sensitive = isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos))
+    target_existing_albums = None
+    if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
+        try:
+            target_existing_albums = target_client.get_albums_owned_by_user(filter_assets=False, log_level=logging.ERROR) or []
+        except Exception as error:
+            LOGGER.warning(f"Could not preload existing target albums for album reuse checks. {error}")
+            target_existing_albums = []
 
     # ----------------------------------------------------------------------------------------
     # function to ensure that the puller put only 1 asset with the same filepath to the queue
@@ -1590,6 +1599,30 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         shared=album_is_shared,
                                         log_level=logging.ERROR,
                                     )
+                                elif target_existing_albums is not None:
+                                    matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
+                                        album_name=album_name,
+                                        albums=target_existing_albums,
+                                        allow_similar=reuse_similar_existing_albums,
+                                        exact_case_sensitive=target_exact_album_match_case_sensitive,
+                                    )
+                                    if ambiguous_matches:
+                                        candidate_names = ", ".join([f"'{item.get('albumName', '')}'" for item in ambiguous_matches[:3]])
+                                        LOGGER.warning(
+                                            f"Found multiple similar existing target albums for '{album_name}' "
+                                            f"({candidate_names}). Creating a new target album to avoid ambiguous reuse."
+                                        )
+                                    if matched_album:
+                                        aid = matched_album.get("id")
+                                        exists = bool(aid)
+                                        matched_name = matched_album.get("albumName", album_name)
+                                        if match_kind == "similar" and matched_name != album_name:
+                                            LOGGER.info(
+                                                f"Reusing similar existing target album '{matched_name}' "
+                                                f"for source album '{album_name}'."
+                                            )
+                                    else:
+                                        exists, aid = False, None
                                 else:
                                     exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                                 if not exists:
@@ -1602,6 +1635,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     else:
                                         aid = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
                                     LOGGER.info(f"Album Created   : '{album_name}' by pusher_worker={worker_id}")
+                                    if target_existing_albums is not None and aid:
+                                        target_existing_albums.append({"id": aid, "albumName": album_name})
                                 created_albums[album_name] = aid
                         # 2) Recuperar album_id cached que ya debe existir (añadido por este worker o cualquier otro worker previamente)
                         album_id_dest = created_albums.get(album_name)

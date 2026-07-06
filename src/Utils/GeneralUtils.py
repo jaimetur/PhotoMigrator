@@ -12,6 +12,7 @@ import stat
 import subprocess
 import sys
 import time
+import unicodedata
 from dataclasses import is_dataclass, asdict
 from datetime import datetime
 
@@ -1078,6 +1079,83 @@ def replace_pattern(string, pattern, pattern_to_replace):
         return text.replace(expr, repl)
 
     return text
+
+
+def normalize_album_name_for_matching(name):
+    """
+    Build a conservative canonical representation for album-name matching.
+
+    The goal is to treat harmless formatting differences as equivalent:
+    - repeated/Unicode dashes
+    - extra spaces
+    - different date separators such as '.', '-', '_', '/'
+    - different title separators such as '--', '—', '–', '_', ':'
+
+    It intentionally collapses punctuation into spaces instead of doing broad
+    fuzzy matching, so unrelated titles are less likely to collide.
+    """
+    text = str(name or "")
+    if not text:
+        return ""
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = text.casefold().strip()
+    if not text:
+        return ""
+    text = re.sub(r"[‐‑‒–—−]+", "-", text)
+    text = re.sub(r"(?<=\d)[\s._/\\-]+(?=\d)", " ", text)
+    text = re.sub(r"[^0-9a-z]+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def find_reusable_album_candidate(album_name, albums, allow_similar=False, exact_case_sensitive=False):
+    """
+    Resolve an existing album candidate from a list of album dicts.
+
+    Returns:
+        tuple: (matched_album_or_none, match_kind, ambiguous_candidates)
+            match_kind is one of: "exact", "similar", None
+    """
+    target_name = str(album_name or "").strip()
+    if not target_name:
+        return None, None, []
+
+    exact_matches = []
+    target_casefold = target_name.casefold()
+    for album in albums or []:
+        candidate_name = str((album or {}).get("albumName", "")).strip()
+        if not candidate_name:
+            continue
+        if exact_case_sensitive:
+            if candidate_name == target_name:
+                exact_matches.append(album)
+        else:
+            if candidate_name.casefold() == target_casefold:
+                exact_matches.append(album)
+    if exact_matches:
+        return exact_matches[0], "exact", []
+
+    if not allow_similar:
+        return None, None, []
+
+    target_normalized = normalize_album_name_for_matching(target_name)
+    if not target_normalized:
+        return None, None, []
+
+    similar_matches = []
+    for album in albums or []:
+        candidate_name = str((album or {}).get("albumName", "")).strip()
+        if not candidate_name:
+            continue
+        if normalize_album_name_for_matching(candidate_name) == target_normalized:
+            similar_matches.append(album)
+
+    if len(similar_matches) == 1:
+        return similar_matches[0], "similar", []
+    if len(similar_matches) > 1:
+        return None, None, similar_matches
+    return None, None, []
 
 
 def has_any_filter():
