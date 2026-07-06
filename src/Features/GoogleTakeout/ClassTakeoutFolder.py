@@ -104,6 +104,10 @@ def _parse_createfile_failed_warning(line):
 def _normalize_dt_for_metadata_compare(dt_value):
     if dt_value is None:
         return None
+    if isinstance(dt_value, str):
+        dt_value = _parse_metadata_datetime(dt_value)
+        if dt_value is None:
+            return None
     return dt_value.replace(microsecond=0, tzinfo=None) if dt_value.tzinfo else dt_value.replace(microsecond=0)
 
 
