@@ -1494,10 +1494,12 @@ class ClassNextCloudPhotos:
     def rename_albums(self, pattern, pattern_to_replace, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
             albums_to_rename = []
+            matched_album_names = []
             for album in self._list_album_directories(log_level=log_level):
                 old_name = album["albumName"]
                 if not match_pattern(old_name, pattern):
                     continue
+                matched_album_names.append(old_name)
                 new_name = replace_pattern(old_name, pattern, pattern_to_replace)
                 if not new_name or new_name == old_name:
                     continue
@@ -1508,7 +1510,13 @@ class ClassNextCloudPhotos:
                 })
 
             if not albums_to_rename:
-                LOGGER.info("No albums matched the pattern.")
+                if matched_album_names:
+                    LOGGER.info(
+                        f"Pattern matched {len(matched_album_names)} album(s), but the replacement pattern did not change any album name. "
+                        f"Nothing to rename."
+                    )
+                else:
+                    LOGGER.info("No albums matched the pattern.")
                 return 0
 
             if request_user_confirmation:

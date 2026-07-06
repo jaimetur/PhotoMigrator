@@ -51,6 +51,9 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
     def test_replace_pattern_supports_wildcard_replacement_in_middle(self):
         self.assertEqual(replace_pattern("Trip--Summer--2026", "*--*", "-"), "Trip-Summer-2026")
 
+    def test_replace_pattern_wildcard_with_same_replacement_keeps_original_text(self):
+        self.assertEqual(replace_pattern("2025-12-20 - Viaje", "*-*", "-"), "2025-12-20 - Viaje")
+
     def test_replace_pattern_supports_wildcard_replacement_at_start(self):
         self.assertEqual(replace_pattern("--Trip--Summer", "--*", "-"), "-Trip--Summer")
 

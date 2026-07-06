@@ -2667,6 +2667,7 @@ class ClassSynologyPhotos:
                 return 0
 
             albums_to_rename = {}
+            matched_album_names = []
             for album in tqdm(albums, desc=f"{MSG_TAGS['INFO']}Searching for albums to rename", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
@@ -2674,6 +2675,7 @@ class ClassSynologyPhotos:
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 if match_pattern(album_name, pattern):
+                    matched_album_names.append(album_name)
                     new_name = replace_pattern(album_name, pattern=pattern, pattern_to_replace=pattern_to_replace)
                     if not new_name or new_name == album_name:
                         continue
@@ -2683,7 +2685,13 @@ class ClassSynologyPhotos:
                     }
 
             if not albums_to_rename:
-                LOGGER.info(f"No albums matched the pattern.")
+                if matched_album_names:
+                    LOGGER.info(
+                        f"Pattern matched {len(matched_album_names)} album(s), but the replacement pattern did not change any album name. "
+                        f"Nothing to rename."
+                    )
+                else:
+                    LOGGER.info(f"No albums matched the pattern.")
                 # self.logout(log_level=log_level)
                 return 0
 

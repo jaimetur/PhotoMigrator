@@ -872,7 +872,7 @@ def parse_required_from_help(help_text: str, ignore_dests: set[str] | None = Non
         text = str(line or "").strip()
         if not text:
             continue
-        if re.match(r"^Example:", text, flags=re.IGNORECASE):
+        if re.match(r"^Examples?:", text, flags=re.IGNORECASE):
             continue
         if not re.search(r"\brequired?\b", text, flags=re.IGNORECASE) and not re.search(r"\brequires\b", text, flags=re.IGNORECASE):
             continue

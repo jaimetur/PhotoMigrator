@@ -396,7 +396,8 @@ def parse_arguments():
                              "Requires '--client'.\n"
                              "Use '--preview-album-actions' to preview matches and request confirmation before applying changes.\n"
                              "Arguments must be passed as two values separated by comma.\n"
-                             "Examples: --rename-albums \"--\", \"-\"  or  --rename-albums \"*--*\", \"-\"\n"
+                             "Example: --rename-albums \"--\", \"-\"\n"
+                             "Example: --rename-albums \"*--*\", \"-\"\n"
                              "Example: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\"\n"
                              "This converts dates from YYYY.MM.DD format to YYYY-MM-DD.")
 

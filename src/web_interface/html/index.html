@@ -694,8 +694,8 @@
             if (clientName) {
                 text = text.replace(/Synology Photos/gi, `${clientName} Photos`);
             }
-            if (forOptional && /^Example:/i.test(text)) return;
-            if (/^Example:/i.test(text)) {
+            if (forOptional && /^Examples?:/i.test(text)) return;
+            if (/^Examples?:/i.test(text)) {
                 text = text
                     .replace(/--client\s*=\s*(?:synology|immich|nextcloud|google-photos|google-takeout)\s*/gi, "")
                     .replace(/\s{2,}/g, " ")
@@ -744,7 +744,7 @@
                 return;
             }
             const escaped = escapeHtml(text);
-            if (/^Example:/i.test(text)) {
+            if (/^Examples?:/i.test(text)) {
                 mainHtml.push(`<span class="desc-example"><em>${escaped}</em></span>`);
             } else if (/^IMPORTANT(?:!+)?\s*:?/i.test(text)) {
                 mainHtml.push(`<span class="desc-important">${escaped}</span>`);
@@ -1821,7 +1821,7 @@
         lines.forEach((line) => {
             const text = String(line || "").trim();
             if (!text) return;
-            if (/^Example:/i.test(text)) return;
+            if (/^Examples?:/i.test(text)) return;
             if (!/\brequired?\b/i.test(text) && !/\brequires\b/i.test(text)) return;
             const regex = /--([a-z0-9-]+)/gi;
             let match = regex.exec(text);
