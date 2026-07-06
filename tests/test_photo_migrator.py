@@ -5,6 +5,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
 from Core.ArgsParser import checkArgs, create_global_variable_from_args, parse_arguments
 
 
@@ -39,6 +44,19 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
             args, parser = parse_arguments()
             with self.assertRaises(SystemExit):
                 checkArgs(args, parser)
+
+    def test_check_args_parses_single_comma_separated_rename_albums_value_for_dashdash_replacement(self):
+        argv = [
+            "photomigrator",
+            "--rename-albums",
+            "*-*, --",
+            "--client=immich",
+        ]
+        with patch.object(sys, "argv", argv):
+            args, parser = parse_arguments()
+            checked = checkArgs(args, parser)
+
+        self.assertEqual(checked["rename-albums"], ["*-*", "--"])
 
 
 if __name__ == "__main__":

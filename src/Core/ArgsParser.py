@@ -398,6 +398,7 @@ def parse_arguments():
                              "Arguments must be passed as two values separated by comma.\n"
                              "Example: --rename-albums \"--\", \"-\"\n"
                              "Example: --rename-albums \"*--*\", \"-\"\n"
+                             "Example: --rename-albums \"*-*, --\"   (single comma-separated value, useful when replacement starts with '--')\n"
                              "Example: --rename-albums \"\\b(\\d{4})\\.(\\d{2})\\.(\\d{2})\\b\", \"\\1-\\2-\\3\"\n"
                              "This converts dates from YYYY.MM.DD format to YYYY-MM-DD.")
 
@@ -764,21 +765,38 @@ def checkArgs(ARGS, PARSER):
 
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
-    # Parse rename-albums (must have exactly 2 args)
+    # Parse rename-albums.
+    # Supports:
+    #   --rename-albums "<pattern>" "<replacement>"
+    # and also a single comma-separated argument, which is required when the
+    # replacement itself starts with '-' or '--' because argparse treats a bare
+    # `--` token as end-of-options.
     if ARGS['rename-albums']:
-        if len(ARGS['rename-albums']) != 2:
+        rename_args = [str(subarg).strip() for subarg in ARGS['rename-albums'] if subarg is not None]
+        if len(rename_args) == 1:
+            combined = rename_args[0]
+            comma_index = combined.find(",")
+            if comma_index >= 0:
+                rename_args = [
+                    combined[:comma_index].strip(),
+                    combined[comma_index + 1:].strip(),
+                ]
+        if len(rename_args) != 2 or any(subarg == "" for subarg in rename_args):
             PARSER.error(
                 f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
-                f"--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n{Style.RESET_ALL}"
+                f"--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n"
+                f"If the replacement starts with '-' or '--', pass both values as a single comma-separated argument.\n"
+                f"Example: --rename-albums \"*-*, --\"\n{Style.RESET_ALL}"
             )
             exit(1)
-        for subarg in ARGS['rename-albums']:
+        for subarg in rename_args:
             if subarg is None:
                 PARSER.error(
                     f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
                     f"--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n{Style.RESET_ALL}"
                 )
                 exit(1)
+        ARGS['rename-albums'] = rename_args
 
     # remove-albums-assets must be used together with remove-all-albums or remove-albums
     if ARGS['remove-albums-assets'] and not (ARGS['remove-all-albums'] or ARGS['remove-albums']):

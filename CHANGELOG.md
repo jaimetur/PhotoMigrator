@@ -24,6 +24,7 @@
   - Fixed the `--preview-album-actions` flow for cloud `Rename Albums` and `Remove Albums` so the preview confirmation now takes precedence over the global `--no-request-user-confirmation` flag. When preview mode is enabled, PhotoMigrator now always waits for an explicit user decision before applying the rename or delete action, including Web Interface jobs that send confirmation through the running-job input channel.
   - Improved cloud `Rename Albums` preview feedback so wildcard patterns that do match albums but produce no effective name change (for example `*-*` replaced by `-`) are now reported explicitly as no-op renames instead of looking like zero matches. 
   - Fixed the Web Interface parsed help renderer so both `Example:` and `Examples:` lines are highlighted consistently.
+  - Fixed CLI parsing for `--rename-albums` when the replacement value itself starts with `--`. PhotoMigrator now accepts the safe single comma-separated form (for example `--rename-albums "*-*, --"`), avoiding `argparse` confusion with the end-of-options marker while keeping the normal two-argument form working for replacements such as `-`.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
