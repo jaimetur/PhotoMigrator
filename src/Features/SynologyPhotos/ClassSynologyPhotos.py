@@ -7,6 +7,7 @@ import mimetypes
 import os
 import shutil
 import sys
+import threading
 import time
 import uuid
 import zipfile
@@ -20,7 +21,7 @@ from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
-from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
+from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum
 
 """
 ----------------------
@@ -1384,6 +1385,123 @@ class ClassSynologyPhotos:
                 return 0
             except Exception as e:
                 LOGGER.error(f"Exception while removing duplicates assets from Synology Photos. {e}")
+
+    def _ensure_uploaded_asset_cache(self):
+        if not hasattr(self, "_uploaded_asset_cache"):
+            self._uploaded_asset_cache = {}
+        if not hasattr(self, "_uploaded_asset_cache_lock"):
+            self._uploaded_asset_cache_lock = threading.Lock()
+
+    def _build_uploaded_asset_cache_key(self, file_path):
+        if not file_path or not os.path.isfile(file_path):
+            return None
+        try:
+            checksum_hex, _ = sha1_checksum(file_path)
+            return checksum_hex
+        except Exception as error:
+            LOGGER.debug(f"Unable to compute upload cache key for '{file_path}': {error}")
+            return None
+
+    def _remember_uploaded_asset_id(self, file_path, asset_id):
+        cache_key = self._build_uploaded_asset_cache_key(file_path)
+        if not cache_key or not asset_id:
+            return
+        self._ensure_uploaded_asset_cache()
+        with self._uploaded_asset_cache_lock:
+            self._uploaded_asset_cache[cache_key] = str(asset_id)
+
+    def _lookup_uploaded_asset_id(self, file_path):
+        cache_key = self._build_uploaded_asset_cache_key(file_path)
+        if not cache_key:
+            return None
+        self._ensure_uploaded_asset_cache()
+        with self._uploaded_asset_cache_lock:
+            return self._uploaded_asset_cache.get(cache_key)
+
+    def _get_all_assets_unfiltered(self, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            if hasattr(self, "_all_assets_unfiltered_cache") and self._all_assets_unfiltered_cache is not None:
+                return self._all_assets_unfiltered_cache
+
+            self.login(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            base_params = {
+                'api': 'SYNO.Foto.Browse.Item',
+                'version': '2',
+                'method': 'list_with_filter',
+                'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
+            }
+            offset = 0
+            limit = 5000
+            all_assets = []
+            while True:
+                params = base_params.copy()
+                params["offset"] = offset
+                params["limit"] = limit
+                resp = self.SESSION.get(url, headers=headers, params=params, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+                if not data.get("success"):
+                    LOGGER.error("Failed to list assets while resolving Synology duplicate IDs")
+                    return []
+                batch = data.get("data", {}).get("list", [])
+                all_assets.extend(batch)
+                if len(batch) < limit:
+                    break
+                offset += limit
+            self._all_assets_unfiltered_cache = all_assets
+            return all_assets
+
+    def _resolve_existing_asset_id(self, file_path, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            cached_asset_id = self._lookup_uploaded_asset_id(file_path)
+            if cached_asset_id:
+                return cached_asset_id
+
+            target_name = os.path.basename(file_path).casefold()
+            try:
+                stat = os.stat(file_path)
+                target_time = int(stat.st_mtime)
+                target_size = int(stat.st_size)
+            except Exception:
+                target_time = None
+                target_size = None
+
+            best_asset_id = None
+            best_score = None
+            for item in self._get_all_assets_unfiltered(log_level=log_level):
+                candidate_name = str(item.get("filename") or item.get("name") or "").casefold()
+                if candidate_name != target_name:
+                    continue
+                candidate_id = str(item.get("id", "")).strip()
+                if not candidate_id:
+                    continue
+                candidate_time = item.get("time")
+                try:
+                    candidate_time = int(candidate_time) if candidate_time is not None else None
+                except Exception:
+                    candidate_time = None
+                candidate_size = item.get("filesize")
+                try:
+                    candidate_size = int(candidate_size) if candidate_size is not None else None
+                except Exception:
+                    candidate_size = None
+                time_delta = abs(candidate_time - target_time) if candidate_time is not None and target_time is not None else float("inf")
+                size_delta = abs(candidate_size - target_size) if candidate_size is not None and target_size is not None else float("inf")
+                score = (time_delta, size_delta)
+                if best_score is None or score < best_score:
+                    best_score = score
+                    best_asset_id = candidate_id
+                    if time_delta <= 1 and (size_delta == 0 or size_delta == float("inf")):
+                        break
+
+            if best_asset_id:
+                self._remember_uploaded_asset_id(file_path, best_asset_id)
+            return best_asset_id
             
 
     def push_asset(self, file_path, log_level=None):
@@ -1450,11 +1568,20 @@ class ClassSynologyPhotos:
                         asset_id = data["data"].get("id")
                         is_duplicated = data["data"].get("action") == "ignore"
                         if is_duplicated and not asset_id:
+                            resolved_asset_id = self._resolve_existing_asset_id(file_path, log_level=log_level)
+                            if resolved_asset_id:
+                                LOGGER.debug(
+                                    f"Synology duplicate response without asset id for '{os.path.basename(file_path)}'. "
+                                    f"Resolved existing asset_id={resolved_asset_id}."
+                                )
+                                return resolved_asset_id, True
                             LOGGER.warning(
                                 f"Synology returned duplicate action without existing asset id for '{os.path.basename(file_path)}'. "
                                 f"Response payload: {data}"
                             )
                             return None, None
+                        if asset_id:
+                            self._remember_uploaded_asset_id(file_path, asset_id)
                         if is_duplicated:
                             LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Existing asset_id={asset_id}")
                         else:

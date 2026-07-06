@@ -1578,8 +1578,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # aquí restauramos siempre el nivel original
                         LOGGER.setLevel(orig_level)
 
-                    # Si existe album_name y el asset ya fue subido, manejamos el álbum en destino
-                    if album_name and asset_pushed:
+                    # Si existe album_name y tenemos un asset_id reutilizable en destino,
+                    # lo asociamos al álbum incluso si la subida fue detectada como duplicada.
+                    if album_name and asset_id:
                         # 1) Asegurarnos de que el álbum existe (sólo un hilo lo crea)
                         with album_creation_lock:
                             if album_name not in created_albums:

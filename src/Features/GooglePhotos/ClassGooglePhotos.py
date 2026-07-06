@@ -20,7 +20,7 @@ from Core.GlobalVariables import (
     VIDEO_EXT,
 )
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
-from Utils.GeneralUtils import convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata
+from Utils.GeneralUtils import convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum
 
 
 class ClassGooglePhotos:
@@ -320,7 +320,78 @@ class ClassGooglePhotos:
             raise RuntimeError("Google Photos uploads endpoint returned empty upload token.")
         return token
 
-    def _batch_create_media_item(self, upload_token: str, file_name: str, album_id: str = "") -> Tuple[str, bool]:
+    def _ensure_uploaded_media_item_cache(self):
+        if not hasattr(self, "_uploaded_media_item_cache"):
+            self._uploaded_media_item_cache = {}
+        if not hasattr(self, "_uploaded_media_item_cache_lock"):
+            self._uploaded_media_item_cache_lock = threading.Lock()
+
+    def _build_uploaded_media_item_cache_key(self, file_path: str) -> Optional[str]:
+        if not file_path or not os.path.isfile(file_path):
+            return None
+        try:
+            checksum_hex, _ = sha1_checksum(file_path)
+            return checksum_hex
+        except Exception as error:
+            LOGGER.debug(f"Unable to compute Google Photos upload cache key for '{file_path}': {error}")
+            return None
+
+    def _remember_uploaded_media_item_id(self, file_path: str, media_item_id: str):
+        cache_key = self._build_uploaded_media_item_cache_key(file_path)
+        if not cache_key or not media_item_id:
+            return
+        self._ensure_uploaded_media_item_cache()
+        with self._uploaded_media_item_cache_lock:
+            self._uploaded_media_item_cache[cache_key] = str(media_item_id)
+
+    def _lookup_uploaded_media_item_id(self, file_path: str) -> Optional[str]:
+        cache_key = self._build_uploaded_media_item_cache_key(file_path)
+        if not cache_key:
+            return None
+        self._ensure_uploaded_media_item_cache()
+        with self._uploaded_media_item_cache_lock:
+            return self._uploaded_media_item_cache.get(cache_key)
+
+    def _resolve_existing_media_item_id(self, file_path: str, file_name: str) -> Optional[str]:
+        cached_media_id = self._lookup_uploaded_media_item_id(file_path)
+        if cached_media_id:
+            return cached_media_id
+
+        target_name = str(file_name or os.path.basename(file_path)).casefold()
+        target_dt = None
+        try:
+            target_dt = datetime.fromtimestamp(os.path.getmtime(file_path), tz=timezone.utc)
+        except Exception:
+            target_dt = None
+
+        best_media_id = None
+        best_delta = None
+        for item in self._search_media_items(album_id=""):
+            candidate_name = str(item.get("filename", "")).casefold()
+            if candidate_name != target_name:
+                continue
+            candidate_id = str(item.get("id", "")).strip()
+            if not candidate_id:
+                continue
+            if target_dt is None:
+                self._remember_uploaded_media_item_id(file_path, candidate_id)
+                return candidate_id
+            candidate_dt = self._to_datetime_utc(str((item.get("mediaMetadata", {}) or {}).get("creationTime", "")))
+            if candidate_dt is None:
+                delta = float("inf")
+            else:
+                delta = abs((candidate_dt - target_dt).total_seconds())
+            if best_delta is None or delta < best_delta:
+                best_delta = delta
+                best_media_id = candidate_id
+                if delta <= 1:
+                    break
+
+        if best_media_id:
+            self._remember_uploaded_media_item_id(file_path, best_media_id)
+        return best_media_id
+
+    def _batch_create_media_item(self, upload_token: str, file_name: str, album_id: str = "", file_path: str = "") -> Tuple[Optional[str], bool]:
         payload = {
             "newMediaItems": [
                 {
@@ -347,12 +418,17 @@ class ClassGooglePhotos:
             lower = message.lower()
             is_dup = "already exists" in lower or "duplicate" in lower
             if is_dup:
-                return f"duplicate::{file_name}", True
+                existing_media_id = self._resolve_existing_media_item_id(file_path=file_path, file_name=file_name) if file_path else None
+                if existing_media_id:
+                    return existing_media_id, True
+                return None, True
             raise RuntimeError(f"Google Photos batchCreate failed: {message}")
         media_item = result.get("mediaItem", {}) or {}
         media_item_id = str(media_item.get("id", "")).strip()
         if not media_item_id:
             raise RuntimeError("Google Photos batchCreate did not return mediaItem id.")
+        if file_path:
+            self._remember_uploaded_media_item_id(file_path, media_item_id)
         return media_item_id, False
 
     def _download_media_item(self, media_item: Dict, output_file: str) -> str:
@@ -495,7 +571,7 @@ class ClassGooglePhotos:
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None):
         with set_log_level(LOGGER, log_level):
-            media_ids = [str(item).strip() for item in (asset_ids or []) if str(item).strip() and not str(item).startswith("duplicate::")]
+            media_ids = [str(item).strip() for item in (asset_ids or []) if str(item).strip()]
             if not media_ids:
                 return 0
             added = 0
@@ -529,7 +605,12 @@ class ClassGooglePhotos:
             if not os.path.isfile(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}")
             upload_token = self._create_upload_token(file_path)
-            return self._batch_create_media_item(upload_token=upload_token, file_name=os.path.basename(file_path), album_id="")
+            return self._batch_create_media_item(
+                upload_token=upload_token,
+                file_name=os.path.basename(file_path),
+                album_id="",
+                file_path=file_path,
+            )
 
     def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_GooglePhotos", album_passphrase=None, log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -576,17 +657,21 @@ class ClassGooglePhotos:
                 if not exists or not album_id:
                     album_id = self.create_album(album_name=album_name, log_level=log_level)
                     total_albums_uploaded += 1
+                album_media_ids = []
                 for file_path in tqdm(
                     media_files,
                     desc=f"{MSG_TAGS['INFO']}   Uploading '{album_name}' Assets",
                     unit=" assets",
                 ):
-                    upload_token = self._create_upload_token(file_path)
-                    media_id, is_dup = self._batch_create_media_item(upload_token, os.path.basename(file_path), album_id=album_id)
-                    if is_dup or str(media_id).startswith("duplicate::"):
+                    media_id, is_dup = self.push_asset(file_path, log_level=log_level)
+                    if is_dup:
                         total_duplicates_skipped += 1
-                    else:
+                    elif media_id:
                         total_assets_uploaded += 1
+                    if media_id:
+                        album_media_ids.append(media_id)
+                if album_media_ids:
+                    self.add_assets_to_album(album_id=album_id, asset_ids=album_media_ids, album_name=album_name, log_level=log_level)
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, 0, total_duplicates_skipped
 
     def push_no_albums(self, input_folder, subfolders_exclusion=f"{FOLDERNAME_ALBUMS}", remove_duplicates=False, log_level=logging.WARNING):
@@ -606,11 +691,10 @@ class ClassGooglePhotos:
             uploaded = 0
             duplicates = 0
             for file_path in tqdm(files, desc=f"{MSG_TAGS['INFO']}Uploading Assets without Albums to Google Photos", unit=" asset"):
-                upload_token = self._create_upload_token(file_path)
-                media_id, is_dup = self._batch_create_media_item(upload_token, os.path.basename(file_path), album_id="")
-                if is_dup or str(media_id).startswith("duplicate::"):
+                media_id, is_dup = self.push_asset(file_path, log_level=log_level)
+                if is_dup:
                     duplicates += 1
-                else:
+                elif media_id:
                     uploaded += 1
             return uploaded, duplicates
 
