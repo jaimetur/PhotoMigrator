@@ -114,8 +114,15 @@ def _normalize_dt_for_metadata_compare(dt_value):
 def _parse_metadata_datetime(raw_value):
     if not isinstance(raw_value, str) or not raw_value.strip():
         return None
+    text = raw_value.strip()
     try:
-        return parser.parse(raw_value.strip())
+        parsed = parser.parse(text)
+        if isinstance(parsed, datetime):
+            return parsed
+    except Exception:
+        parsed = None
+    try:
+        return datetime.fromisoformat(text.replace("Z", "+00:00"))
     except Exception:
         return None
 

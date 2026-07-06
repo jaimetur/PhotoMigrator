@@ -25,6 +25,7 @@
   - Improved cloud `Rename Albums` preview feedback so wildcard patterns that do match albums but produce no effective name change (for example `*-*` replaced by `-`) are now reported explicitly as no-op renames instead of looking like zero matches. 
   - Fixed the Web Interface parsed help renderer so both `Example:` and `Examples:` lines are highlighted consistently.
   - Fixed CLI parsing for `--rename-albums` when the replacement value itself starts with `--`. PhotoMigrator now accepts the safe single comma-separated form (for example `--rename-albums "*-*, --"`), avoiding `argparse` confusion with the end-of-options marker while keeping the normal two-argument form working for replacements such as `-`.
+  - Fixed `Google Takeout` video metadata repair helpers so they now tolerate test/runtime environments where `dateutil.parser.parse()` is stubbed or returns a plain string. The metadata-date normalizer now falls back to `datetime.fromisoformat()` for ISO timestamps instead of crashing with `AttributeError: 'str' object has no attribute 'tzinfo'`.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
