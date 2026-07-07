@@ -17,7 +17,7 @@ from Features.StandAloneFeatures.Duplicates import find_duplicates, process_dupl
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Features.StandAloneFeatures.OrganizeLocalFolderByDate import organize_local_folder_by_date
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Utils.FileUtils import dir_exists, contains_zip_files
+from Utils.FileUtils import build_generated_output_folder, dir_exists, contains_zip_files
 from Utils.GeneralUtils import confirm_continue, capitalize_first_letter, profile_and_print
 
 DEFAULT_DUPLICATES_ACTION = False
@@ -201,7 +201,14 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
     if ARGS['output-folder']:
         OUTPUT_TAKEOUT_FOLDER = ARGS['output-folder']
     else:
-        OUTPUT_TAKEOUT_FOLDER = f"{ARGS['google-takeout']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
+        OUTPUT_TAKEOUT_FOLDER = str(
+            build_generated_output_folder(
+                ARGS['google-takeout'],
+                ARGS['google-output-folder-suffix'],
+                TIMESTAMP,
+                strip_stage_names={"unzipped"},
+            )
+        )
 
     if not dir_exists(input_folder):
         LOGGER.error(f"The Input Folder {input_folder} does not exists. Exiting...")

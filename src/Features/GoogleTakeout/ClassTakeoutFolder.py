@@ -33,7 +33,7 @@ from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_fol
 from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
 from Utils.DateUtils import normalize_datetime_utc
-from Utils.FileUtils import delete_subfolders, remove_empty_dirs, is_valid_path, sanitize_and_unpack_zips
+from Utils.FileUtils import build_generated_output_folder, delete_subfolders, remove_empty_dirs, is_valid_path, sanitize_and_unpack_zips
 from Utils.GeneralUtils import print_dict_pretty, tqdm, get_os, get_arch, ensure_executable, print_arguments_pretty, profile_and_print, TQDM_DASHBOARD_PREFIX
 from Utils.StandaloneUtils import change_working_dir, get_gpth_tool_path, custom_print, get_exif_tool_path
 
@@ -481,7 +481,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if self.ARGS['output-folder']:
                 self.output_folder = Path(self.ARGS['output-folder'])
             else:
-                self.output_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
+                self.output_folder = build_generated_output_folder(
+                    self.takeout_folder,
+                    self.ARGS['google-output-folder-suffix'],
+                    self.TIMESTAMP,
+                    strip_stage_names={"unzipped"},
+                )
         else:
             self.output_folder = self.takeout_folder
         # Call get_albums_folder to update it with the new output_folder

@@ -24,6 +24,8 @@ DEFAULT_FILE_EXCLUSION_PATTERNS = [
     "._*",
 ]
 
+GENERATED_STAGE_SUFFIX_RE = re.compile(r"_(?P<stage>[A-Za-z0-9-]+)_(?P<timestamp>\d{8}-\d{6})$")
+
 
 # ---------------------------------------------------------------------------------------------------------------------------
 # FILES & FOLDERS MANAGEMENT FUNCTIONS:
@@ -72,6 +74,38 @@ def dir_exists(dir):
         bool: True if the directory exists and is a directory, otherwise False.
     """
     return os.path.isdir(dir)
+
+
+def strip_generated_stage_suffix(path_value, stage_names=None):
+    """
+    Remove a trailing ``_<stage>_<YYYYmmdd-HHMMSS>`` suffix from the last path
+    component when the stage matches one of ``stage_names``.
+
+    This is used to normalize folders produced by PhotoMigrator itself, such as
+    ``Takeout_unzipped_20260707-012602`` back to ``Takeout`` before deriving
+    follow-up output folders like ``..._processed_<timestamp>``.
+    """
+    path_obj = Path(path_value)
+    if not stage_names:
+        return path_obj
+
+    allowed_stages = {str(item).strip().casefold() for item in stage_names if str(item).strip()}
+    match = GENERATED_STAGE_SUFFIX_RE.search(path_obj.name)
+    if not match:
+        return path_obj
+    if match.group("stage").casefold() not in allowed_stages:
+        return path_obj
+    return path_obj.with_name(path_obj.name[:match.start()])
+
+
+def build_generated_output_folder(input_folder, output_suffix, timestamp, strip_stage_names=None):
+    """
+    Build ``<base>_<output_suffix>_<timestamp>`` from ``input_folder`` and
+    optionally strip one generated staging suffix (for example ``unzipped``)
+    from the base folder first.
+    """
+    base_folder = strip_generated_stage_suffix(input_folder, stage_names=strip_stage_names)
+    return base_folder.with_name(f"{base_folder.name}_{output_suffix}_{timestamp}")
 
 
 def _normalize_patterns(patterns):

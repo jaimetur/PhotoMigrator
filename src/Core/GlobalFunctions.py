@@ -8,6 +8,7 @@ import Core.GlobalVariables as GV
 from Core.ArgsParser import parse_arguments, checkArgs
 from Core.CustomLogger import log_setup
 from Core.HelpTexts import set_help_texts
+from Utils.FileUtils import build_generated_output_folder
 from Utils.StandaloneUtils import resolve_external_path, resolve_internal_path
 
 
@@ -26,7 +27,16 @@ def set_GLOBAL_VARIABLES():
         if GV.ARGS['output-folder']:
             GV.OUTPUT_TAKEOUT_FOLDER    = resolve_external_path(GV.ARGS['output-folder'])                                                               or GV.OUTPUT_TAKEOUT_FOLDER
         else:
-            GV.OUTPUT_TAKEOUT_FOLDER    = resolve_external_path(f"{GV.ARGS['google-takeout']}_{GV.ARGS['google-output-folder-suffix']}_{GV.TIMESTAMP}") or GV.OUTPUT_TAKEOUT_FOLDER
+            GV.OUTPUT_TAKEOUT_FOLDER    = resolve_external_path(
+                str(
+                    build_generated_output_folder(
+                        GV.ARGS['google-takeout'],
+                        GV.ARGS['google-output-folder-suffix'],
+                        GV.TIMESTAMP,
+                        strip_stage_names={"unzipped"},
+                    )
+                )
+            ) or GV.OUTPUT_TAKEOUT_FOLDER
         GV.FOLDERNAME_EXTRACTED_DATES   = resolve_external_path(GV.ARGS.get('foldername-extracted-dates')                                               or GV.OUTPUT_TAKEOUT_FOLDER)
         GV.FOLDERNAME_DUPLICATES_OUTPUT = resolve_external_path(GV.ARGS.get('foldername-duplicates-output')                                             or GV.OUTPUT_TAKEOUT_FOLDER)
         GV.FOLDERNAME_LOGS              = resolve_external_path(GV.ARGS.get('foldername-logs')                                                          or GV.OUTPUT_TAKEOUT_FOLDER)
@@ -116,5 +126,4 @@ def set_LOGGER(level_str=None):
 
 def set_HELP_TEXTS():
     GV.HELP_TEXTS  = set_help_texts()
-
 

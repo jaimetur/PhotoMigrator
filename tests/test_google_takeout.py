@@ -13,6 +13,13 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+if "colorama" not in sys.modules:
+    colorama_stub = MagicMock()
+    colorama_stub.init = lambda *args, **kwargs: None
+    colorama_stub.Fore = MagicMock()
+    colorama_stub.Style = MagicMock()
+    sys.modules["colorama"] = colorama_stub
+
 sys.modules.setdefault("piexif", MagicMock())
 import Utils.StandaloneUtils as standalone_utils
 
@@ -56,6 +63,24 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
                 detected = contains_takeout_structure(str(root), log_level=logging.INFO)
 
         self.assertTrue(detected)
+
+    def test_get_output_folder_strips_generated_unzipped_suffix_from_takeout_root(self):
+        takeout = takeout_module.ClassTakeoutFolder.__new__(takeout_module.ClassTakeoutFolder)
+        takeout.ARGS = {
+            "google-ignore-check-structure": False,
+            "google-output-folder-suffix": "processed",
+            "google-skip-move-albums": False,
+            "output-folder": "",
+        }
+        takeout.TIMESTAMP = "20260707-012602"
+        takeout.needs_process = True
+        takeout.takeout_folder = Path("/tmp/Takeout_unzipped_20260707-012602")
+        takeout.get_albums_folder = lambda: None
+        takeout._sync_local_folder_view = lambda: None
+
+        output_folder = takeout_module.ClassTakeoutFolder.get_output_folder(takeout)
+
+        self.assertEqual(output_folder, Path("/tmp/Takeout_processed_20260707-012602"))
 
     def test_run_command_compacts_repeated_createfile_failed_warnings(self):
         class FakeProcess:

@@ -1,3 +1,4 @@
+import contextlib
 import unittest
 import sys
 import types
@@ -183,6 +184,52 @@ class TestExecutionModes(unittest.TestCase):
             execution_modes.detect_and_run_execution_mode()
 
         mock_mode.assert_called_once()
+
+    def test_mode_google_takeout_normalizes_pre_unzipped_input_output_folder_name(self):
+        args = _base_args()
+        args.update({
+            "google-takeout": "/tmp/Takeout_unzipped_20260707-012602",
+            "output-folder": "",
+            "google-output-folder-suffix": "processed",
+            "google-input-zip-folder": "",
+            "google-albums-folders-structure": "flatten",
+            "google-no-albums-folders-structure": "year/month",
+            "google-skip-gpth-tool": False,
+            "google-skip-extras-files": False,
+            "google-skip-move-albums": False,
+            "google-no-symbolic-albums": False,
+            "google-ignore-check-structure": False,
+            "google-keep-takeout-folder": False,
+            "google-remove-duplicates-files": False,
+            "google-rename-albums-folders": False,
+            "google-skip-preprocess": False,
+            "google-skip-postprocess": False,
+            "show-gpth-info": False,
+            "show-gpth-errors": False,
+            "no-log-file": False,
+        })
+        takeout_mock = unittest.mock.MagicMock()
+        takeout_mock.process.return_value = {}
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "TIMESTAMP", "20260707-012602"),
+            patch.object(execution_modes, "ClassTakeoutFolder", return_value=takeout_mock),
+            patch.object(execution_modes, "dir_exists", return_value=True),
+            patch.object(execution_modes, "contains_zip_files", return_value=False),
+            patch.object(execution_modes, "LOGGER", unittest.mock.MagicMock()),
+            patch.object(execution_modes, "set_log_level", return_value=contextlib.nullcontext()),
+        ):
+            execution_modes.mode_google_takeout(user_confirmation=False)
+
+        takeout_mock.process.assert_called_once_with(
+            output_folder="/tmp/Takeout_processed_20260707-012602",
+            capture_output=False,
+            capture_errors=False,
+            print_messages=True,
+            create_localfolder_object=False,
+            log_level=None,
+        )
 
     def test_mode_cloud_rename_albums_passes_preview_flag_to_client(self):
         args = _base_args()

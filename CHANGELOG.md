@@ -37,6 +37,7 @@
   - Fixed the Web Interface parsed help renderer so both `Example:` and `Examples:` lines are highlighted consistently.
   - Fixed CLI parsing for `--rename-albums` when the replacement value itself starts with `--`. PhotoMigrator now accepts the safe single comma-separated form (for example `--rename-albums "*-*, --"`), avoiding `argparse` confusion with the end-of-options marker while keeping the normal two-argument form working for replacements such as `-`.
   - Fixed `Google Takeout` video metadata repair helpers so they now tolerate test/runtime environments where `dateutil.parser.parse()` is stubbed or returns a plain string. The metadata-date normalizer now falls back to `datetime.fromisoformat()` for ISO timestamps instead of crashing with `AttributeError: 'str' object has no attribute 'tzinfo'`.
+  - Fixed `Google Takeout` output-folder naming when the processing input already points to a generated `..._unzipped_<TIMESTAMP>` folder, so PhotoMigrator now collapses that staging suffix before creating the processed folder and produces `Takeout_processed_<TIMESTAMP>` instead of `Takeout_unzipped_<TIMESTAMP>_processed_<TIMESTAMP>`.
   - Fixed Web Interface command generation for `Rename Albums` so replacement values that start with `-` or `--` are now kept as a single comma-separated `--rename-albums` argument in both the command preview and the executed job, matching the parser behavior already used by the shared CLI/TUI/GUI command builder.
 
 #### 📚 Documentation:
