@@ -29,6 +29,7 @@ try:
         _find_forbidden_special_folder_in_path,
         _is_takeout_year_folder,
         contains_takeout_structure,
+        recover_orphan_album_assets_from_json_sidecars,
     )
     TAKEOUT_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -258,6 +259,83 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         self.assertTrue(any("[INFO]" in message for message in printed_messages))
         self.assertTrue(any("?" in message for message in printed_messages))
         self.assertIn("STEP : [INFO] [Step 1/8] 🧠 Fixing file extensions : 2/2", [call.args[0] for call in fake_logger.info.call_args_list])
+
+    def test_recover_orphan_album_assets_from_json_sidecars_creates_album_entry_from_all_photos(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_root = root / "Takeout"
+            album_dir = input_root / "Google Photos" / "Album_1"
+            album_dir.mkdir(parents=True)
+            json_path = album_dir / "mi cocina.JPG.json"
+            json_path.write_text(
+                json.dumps(
+                    {
+                        "title": "mi cocina.JPG",
+                        "photoTakenTime": {"timestamp": "1024570414"},
+                        "creationTime": {"timestamp": "1415843421"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            output_root = root / "Processed"
+            all_photos_asset = output_root / "ALL_PHOTOS" / "2002" / "06" / "mi cocina.JPG"
+            all_photos_asset.parent.mkdir(parents=True)
+            all_photos_asset.write_bytes(b"fake-jpg")
+            albums_root = output_root / "Albums"
+            albums_root.mkdir(parents=True)
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_root,
+                    output_folder=output_root,
+                    albums_folder=albums_root,
+                    no_symbolic_albums=False,
+                    albums_structure="flatten",
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            recovered_entry = albums_root / "Album_1" / "mi cocina.JPG"
+            self.assertEqual(summary["orphan_json_detected"], 1)
+            self.assertEqual(summary["recovered_assets"], 1)
+            self.assertEqual(summary["unresolved_assets"], 0)
+            self.assertTrue(recovered_entry.exists() or recovered_entry.is_symlink())
+            self.assertTrue(recovered_entry.is_symlink() or recovered_entry.read_bytes() == b"fake-jpg")
+
+    def test_recover_orphan_album_assets_from_json_sidecars_respects_copy_mode(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_root = root / "Takeout"
+            album_dir = input_root / "Google Photos" / "Album_1"
+            album_dir.mkdir(parents=True)
+            (album_dir / "New Album 1.jpg.json").write_text(
+                json.dumps({"title": "New Album 1.jpg", "photoTakenTime": {"timestamp": "1024570414"}}),
+                encoding="utf-8",
+            )
+
+            output_root = root / "Processed"
+            all_photos_asset = output_root / "ALL_PHOTOS" / "2002" / "New Album 1.jpg"
+            all_photos_asset.parent.mkdir(parents=True)
+            all_photos_asset.write_bytes(b"asset")
+            albums_root = output_root / "Albums"
+            albums_root.mkdir(parents=True)
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_root,
+                    output_folder=output_root,
+                    albums_folder=albums_root,
+                    no_symbolic_albums=True,
+                    albums_structure="year/month",
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            recovered_entry = albums_root / "Album_1" / "2002" / "06" / "New Album 1.jpg"
+            self.assertEqual(summary["recovered_assets"], 1)
+            self.assertTrue(recovered_entry.is_file())
+            self.assertFalse(recovered_entry.is_symlink())
 
     def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
         with tempfile.TemporaryDirectory() as temp_dir:

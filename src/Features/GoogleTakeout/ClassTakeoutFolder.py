@@ -79,6 +79,268 @@ def _normalize_folder_name(value):
     return re.sub(r"\s+", " ", str(value or "").strip()).casefold()
 
 
+def _normalize_recoverable_asset_name(filename):
+    name = os.path.basename(str(filename or ""))
+    stem, ext = os.path.splitext(name)
+    stem = re.sub(r"\(\d+\)$", "", stem)
+    return f"{stem.casefold()}{ext.casefold()}"
+
+
+def _extract_orphan_album_json_descriptor(json_path):
+    try:
+        payload = json.loads(Path(json_path).read_text(encoding="utf-8", errors="replace"))
+    except Exception:
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    title = str(payload.get("title") or "").strip()
+    if not title:
+        return None
+
+    timestamp_raw = (
+        ((payload.get("photoTakenTime") or {}).get("timestamp"))
+        or ((payload.get("creationTime") or {}).get("timestamp"))
+    )
+    asset_dt = None
+    year = None
+    try:
+        if timestamp_raw not in (None, ""):
+            asset_dt = datetime.utcfromtimestamp(int(str(timestamp_raw)))
+            year = asset_dt.year
+    except Exception:
+        asset_dt = None
+        year = None
+
+    return {
+        "title": title,
+        "year": year,
+        "datetime": asset_dt,
+    }
+
+
+def _iter_google_takeout_album_dirs(input_folder):
+    root = Path(input_folder)
+    container_dirs = []
+    if _looks_like_google_photos_container(root.name):
+        container_dirs.append(root)
+    elif root.name.casefold() == "takeout":
+        container_dirs.extend(
+            child for child in sorted(root.iterdir(), key=lambda p: p.name.casefold())
+            if child.is_dir() and _looks_like_google_photos_container(child.name)
+        )
+    else:
+        seen = set()
+        for candidate in sorted(root.rglob("*"), key=lambda p: p.as_posix().casefold()):
+            if not candidate.is_dir() or not _looks_like_google_photos_container(candidate.name):
+                continue
+            candidate_key = candidate.resolve().as_posix()
+            if candidate_key in seen:
+                continue
+            seen.add(candidate_key)
+            container_dirs.append(candidate)
+
+    album_occurrences = {}
+    for container_dir in container_dirs:
+        for album_dir in sorted(container_dir.iterdir(), key=lambda p: p.name.casefold()):
+            if not album_dir.is_dir():
+                continue
+            if album_dir.name in {"@eaDir", FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALBUMS, "Takeout"}:
+                continue
+            if _is_takeout_year_folder(album_dir.name):
+                continue
+            if _find_forbidden_special_folder_in_path(album_dir.name):
+                continue
+            occurrence_index = album_occurrences.get(album_dir.name, 0)
+            album_occurrences[album_dir.name] = occurrence_index + 1
+            yield album_dir, ClassLocalFolder._manifest_album_key(album_dir.name, occurrence_index)
+
+
+def _build_non_album_candidate_index(no_albums_root):
+    exact = {}
+    normalized = {}
+    if not no_albums_root.exists() or not no_albums_root.is_dir():
+        return {"exact": exact, "normalized": normalized}
+
+    for path_obj in sorted(no_albums_root.rglob("*"), key=lambda p: p.as_posix().casefold()):
+        if not (path_obj.is_file() or path_obj.is_symlink()):
+            continue
+        if path_obj.suffix.lower() == ".json":
+            continue
+        exact.setdefault(path_obj.name.casefold(), []).append(path_obj)
+        normalized.setdefault(_normalize_recoverable_asset_name(path_obj.name), []).append(path_obj)
+    return {"exact": exact, "normalized": normalized}
+
+
+def _select_recoverable_asset_path(candidate_index, expected_filename, expected_year=None):
+    casefold_name = str(expected_filename or "").casefold()
+    normalized_name = _normalize_recoverable_asset_name(expected_filename)
+    candidates = list(candidate_index["exact"].get(casefold_name, []))
+    if not candidates:
+        candidates = list(candidate_index["normalized"].get(normalized_name, []))
+    if not candidates:
+        return None
+
+    def score(path_obj):
+        exact_penalty = 0 if path_obj.name.casefold() == casefold_name else 1
+        year_penalty = 1
+        if expected_year:
+            year_text = str(expected_year)
+            if year_text in path_obj.parts or any(part.startswith(f"{year_text}-") for part in path_obj.parts):
+                year_penalty = 0
+        depth_penalty = len(path_obj.parts)
+        return (exact_penalty, year_penalty, depth_penalty, path_obj.as_posix().casefold())
+
+    return sorted(candidates, key=score)[0]
+
+
+def _album_contains_expected_asset(album_root, expected_filename):
+    if not album_root.exists() or not album_root.is_dir():
+        return False
+
+    expected_casefold = str(expected_filename or "").casefold()
+    expected_normalized = _normalize_recoverable_asset_name(expected_filename)
+    for path_obj in album_root.rglob("*"):
+        if not (path_obj.is_file() or path_obj.is_symlink()):
+            continue
+        if path_obj.suffix.lower() == ".json":
+            continue
+        if path_obj.name.casefold() == expected_casefold:
+            return True
+        if _normalize_recoverable_asset_name(path_obj.name) == expected_normalized:
+            return True
+    return False
+
+
+def _build_album_output_target_path(album_root, filename, asset_dt=None, albums_structure="flatten"):
+    target_dir = Path(album_root)
+    normalized_structure = str(albums_structure or "flatten").strip().lower()
+    if normalized_structure == "year" and asset_dt:
+        target_dir = target_dir / asset_dt.strftime("%Y")
+    elif normalized_structure == "year/month" and asset_dt:
+        target_dir = target_dir / asset_dt.strftime("%Y") / asset_dt.strftime("%m")
+    elif normalized_structure == "year-month" and asset_dt:
+        target_dir = target_dir / asset_dt.strftime("%Y-%m")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    return target_dir / str(filename)
+
+
+def _create_symbolic_or_copied_album_entry(source_path, target_path, no_symbolic_albums, step_name="", log_level=None):
+    with set_log_level(LOGGER, log_level):
+        target_path = Path(target_path)
+        source_path = Path(source_path)
+        if target_path.exists() or target_path.is_symlink():
+            return False
+        try:
+            if no_symbolic_albums:
+                shutil.copy2(source_path, target_path)
+            elif os.name == "nt":
+                os.link(source_path, target_path)
+            else:
+                relative_path = os.path.relpath(source_path, start=target_path.parent)
+                target_path.symlink_to(relative_path)
+            return True
+        except Exception as error:
+            LOGGER.warning(f"{step_name}Failed to create recovered album entry '{target_path.name}' from '{source_path}': {error}. Copying instead.")
+            try:
+                shutil.copy2(source_path, target_path)
+                return True
+            except Exception as copy_error:
+                LOGGER.warning(f"{step_name}Failed to copy recovered album entry '{target_path.name}': {copy_error}")
+                return False
+
+
+def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, albums_folder, no_symbolic_albums=False, albums_structure="flatten", step_name="", log_level=None):
+    with set_log_level(LOGGER, log_level):
+        input_root = Path(input_folder)
+        output_root = Path(output_folder)
+        albums_root = Path(albums_folder)
+        no_albums_root = output_root / FOLDERNAME_NO_ALBUMS
+
+        summary = {
+            "orphan_json_detected": 0,
+            "recovered_assets": 0,
+            "unresolved_assets": 0,
+            "albums_touched": 0,
+        }
+
+        if not input_root.exists() or not input_root.is_dir():
+            LOGGER.warning(f"{step_name}Skipping orphan album JSON recovery because input folder does not exist: '{input_root}'")
+            return summary
+        if not no_albums_root.exists() or not no_albums_root.is_dir():
+            LOGGER.warning(f"{step_name}Skipping orphan album JSON recovery because '{FOLDERNAME_NO_ALBUMS}' folder does not exist in output: '{no_albums_root}'")
+            return summary
+
+        candidate_index = _build_non_album_candidate_index(no_albums_root)
+        per_album_stats = {}
+
+        for source_album_dir, output_album_name in _iter_google_takeout_album_dirs(input_root):
+            json_candidates = sorted(source_album_dir.rglob("*.json"), key=lambda p: p.as_posix().casefold())
+            if not json_candidates:
+                continue
+
+            output_album_dir = albums_root / output_album_name
+            album_stat = per_album_stats.setdefault(output_album_name, {"recovered": 0, "unresolved": 0})
+
+            for json_path in json_candidates:
+                descriptor = _extract_orphan_album_json_descriptor(json_path)
+                if not descriptor:
+                    continue
+
+                expected_title = descriptor["title"]
+                expected_year = descriptor["year"]
+                summary["orphan_json_detected"] += 1
+
+                if _album_contains_expected_asset(output_album_dir, expected_title):
+                    continue
+
+                source_candidate = _select_recoverable_asset_path(candidate_index, expected_title, expected_year)
+                if source_candidate is None:
+                    summary["unresolved_assets"] += 1
+                    album_stat["unresolved"] += 1
+                    LOGGER.warning(
+                        f"{step_name}Orphan album JSON unresolved: album='{output_album_name}', title='{expected_title}', year='{expected_year or 'unknown'}'."
+                    )
+                    continue
+
+                target_path = _build_album_output_target_path(
+                    output_album_dir,
+                    source_candidate.name,
+                    asset_dt=descriptor.get("datetime"),
+                    albums_structure=albums_structure,
+                )
+
+                if _album_contains_expected_asset(output_album_dir, expected_title):
+                    continue
+
+                if _create_symbolic_or_copied_album_entry(
+                    source_candidate,
+                    target_path,
+                    no_symbolic_albums=no_symbolic_albums,
+                    step_name=step_name,
+                    log_level=log_level,
+                ):
+                    summary["recovered_assets"] += 1
+                    album_stat["recovered"] += 1
+                else:
+                    summary["unresolved_assets"] += 1
+                    album_stat["unresolved"] += 1
+
+        for album_name, album_stat in per_album_stats.items():
+            if album_stat["recovered"] or album_stat["unresolved"]:
+                summary["albums_touched"] += 1
+                LOGGER.info(
+                    f"{step_name}Album JSON Recovery: '{album_name}' recovered {album_stat['recovered']} assets and left {album_stat['unresolved']} unresolved."
+                )
+
+        LOGGER.info(
+            f"{step_name}Orphan album JSON sidecars detected: {summary['orphan_json_detected']}. "
+            f"Recovered: {summary['recovered_assets']}. Unresolved: {summary['unresolved_assets']}."
+        )
+        return summary
+
+
 def preserve_archive_browser_artifacts(output_folder, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):
         try:
@@ -1363,6 +1625,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"Total Albums folders found in Output folder : {result['valid_albums_found']}")
+                if result.get('orphan_album_json_detected', 0) or result.get('orphan_album_assets_recovered', 0) or result.get('orphan_album_assets_unresolved', 0):
+                    LOGGER.info(f"Orphan Album JSON Sidecars Detected          : {result.get('orphan_album_json_detected', 0)}")
+                    LOGGER.info(f"Orphan Album Assets Recovered                : {result.get('orphan_album_assets_recovered', 0)}")
+                    LOGGER.info(f"Orphan Album Assets Unresolved              : {result.get('orphan_album_assets_unresolved', 0)}")
                 if ARGS['google-rename-albums-folders']:
                     LOGGER.info(f"Total Albums Renamed                        : {result['renamed_album_folders']}")
                     LOGGER.info(f"Total Albums Duplicated                     : {result['duplicates_album_folders']}")
@@ -1634,7 +1900,38 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.6: Count Albums
+            # Step 4.6: Recover orphan album assets from JSON-only source entries
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🧩 [POST-PROCESS]-[Recover Orphan Album Assets] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            sub_step_start_time = datetime.now()
+            self.substep += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. RECOVERING ORPHAN ALBUM ASSETS FROM SOURCE JSON SIDECARS...")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            recovery_summary = recover_orphan_album_assets_from_json_sidecars(
+                input_folder=input_folder,
+                output_folder=output_folder,
+                albums_folder=albums_folder,
+                no_symbolic_albums=self.ARGS['google-no-symbolic-albums'],
+                albums_structure=self.ARGS['google-albums-folders-structure'],
+                step_name=step_name,
+                log_level=LOG_LEVEL,
+            )
+            self.result['orphan_album_json_detected'] = recovery_summary['orphan_json_detected']
+            self.result['orphan_album_assets_recovered'] = recovery_summary['recovered_assets']
+            self.result['orphan_album_assets_unresolved'] = recovery_summary['unresolved_assets']
+            self.result['orphan_album_recovery_albums_touched'] = recovery_summary['albums_touched']
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+
+            # Step 4.7: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Count Albums] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -1658,7 +1955,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.7: Remove Empty Folders
+            # Step 4.8: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')

@@ -29,6 +29,7 @@
   - Added `--prefer-canonical-album-names` so new destination albums now also use the preferred normalized keeper name even when the target has no prior redundant/similar albums. This means source albums such as `Album_1` or `New_Album 1` are now created directly as `Album` / `New Album` instead of preserving the duplicate-like suffix when no conflicting target family exists yet.
   - Split the previous combined similar-album behavior into two independent flags across cloud `Upload Albums`, cloud `Upload All`, and `Automatic Migration`: `--prefer-canonical-album-names` controls normalization of newly created destination album names (for example `Album_1` -> `Album`), while `--consolidate-similar-albums` controls reuse/consolidation of equivalent existing album families.
   - Updated GPTH to v6.1.6 which includes several New Features and Bug Fixes.
+  - Added a post-GPTH Google Takeout repair step that scans original album-side `.json` metadata entries which were left without a materialized media file in the processed album output, locates the real asset under `ALL_PHOTOS` using the JSON `title` and timestamp-derived date, and recreates the missing album entry automatically as a symbolic link/hardlink or copied file depending on the selected album-link mode.
 
 #### 🚀 GPTH Enhancements:
 ✨ New Features
