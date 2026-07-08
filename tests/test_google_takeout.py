@@ -30,6 +30,7 @@ try:
         _find_forbidden_special_folder_in_path,
         _is_takeout_year_folder,
         contains_takeout_structure,
+        inspect_takeout_structure,
         recover_orphan_album_assets_from_json_sidecars,
     )
     TAKEOUT_IMPORT_ERROR = None
@@ -65,6 +66,41 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
                 detected = contains_takeout_structure(str(root), log_level=logging.INFO)
 
         self.assertTrue(detected)
+
+    def test_contains_takeout_structure_detects_album_only_takeout_with_archive_browser_and_json_sidecars(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            takeout_root = root / "Takeout"
+            photos_root = takeout_root / "Google Photos"
+            album_dir = photos_root / "Album 1"
+            album_dir.mkdir(parents=True)
+            (takeout_root / "archive_browser.html").write_text("<html></html>", encoding="utf-8")
+            (album_dir / "photo.jpg.json").write_text('{"title":"photo.jpg"}', encoding="utf-8")
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                detected = contains_takeout_structure(str(takeout_root), log_level=logging.INFO)
+                details = inspect_takeout_structure(str(takeout_root), log_level=logging.INFO)
+
+        self.assertTrue(detected)
+        self.assertTrue(details["is_takeout"])
+        self.assertEqual(details["mode"], "album-only")
+        self.assertTrue(details["has_archive_browser"])
+        self.assertTrue(details["has_album_json_sidecars"])
+
+    def test_contains_takeout_structure_does_not_detect_album_only_layout_without_archive_browser(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            photos_root = root / "Google Photos"
+            album_dir = photos_root / "Album 1"
+            album_dir.mkdir(parents=True)
+            (album_dir / "photo.jpg.json").write_text('{"title":"photo.jpg"}', encoding="utf-8")
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                detected = contains_takeout_structure(str(root), log_level=logging.INFO)
+                details = inspect_takeout_structure(str(root), log_level=logging.INFO)
+
+        self.assertFalse(detected)
+        self.assertFalse(details["is_takeout"])
 
     def test_get_output_folder_strips_generated_unzipped_suffix_from_takeout_root(self):
         takeout = takeout_module.ClassTakeoutFolder.__new__(takeout_module.ClassTakeoutFolder)

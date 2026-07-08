@@ -404,6 +404,106 @@ def _is_takeout_year_folder(folder_name):
     return any(pattern.match(normalized) for pattern in TAKEOUT_YEAR_FOLDER_PATTERNS)
 
 
+def inspect_takeout_structure(input_folder, step_name="", log_level=None):
+    with set_log_level(LOGGER, log_level):
+        LOGGER.info(f"{step_name}Looking for Google Takeout structure in folder: {input_folder}. This may take long time. Please be patient...")
+        root = Path(input_folder).expanduser()
+        result = {
+            "is_takeout": False,
+            "has_year_folders": False,
+            "has_google_photos_container": False,
+            "has_archive_browser": False,
+            "has_album_json_sidecars": False,
+            "mode": "none",
+            "matched_path": "",
+            "container_path": "",
+        }
+
+        if not root.exists() or not root.is_dir():
+            LOGGER.info(f"{step_name}No Google Takeout structure found in folder   : {input_folder}")
+            return result
+
+        queue = deque([str(root)])
+        container_candidates = []
+        while queue:
+            current = queue.popleft()
+            try:
+                with os.scandir(current) as entries:
+                    subdirs = [e for e in entries if e.is_dir(follow_symlinks=False)]
+                    for entry in subdirs:
+                        if _is_takeout_year_folder(entry.name):
+                            result.update({
+                                "is_takeout": True,
+                                "has_year_folders": True,
+                                "mode": "standard",
+                                "matched_path": current,
+                            })
+                            LOGGER.info(f"{step_name}Found Google Takeout structure in folder      : {current}")
+                            return result
+                        if _looks_like_google_photos_container(entry.name):
+                            container_candidates.append(Path(entry.path))
+                    if len(subdirs) > 5:
+                        LOGGER.debug(f"{step_name}Skipping {current} because it has {len(subdirs)} subdirectories")
+                        continue
+                    for entry in subdirs:
+                        queue.append(entry.path)
+            except PermissionError:
+                LOGGER.warning(f"{step_name}Permission denied accessing: {current}")
+            except Exception as e:
+                LOGGER.warning(f"{step_name}Error scanning {current}: {e}")
+
+        if _looks_like_google_photos_container(root.name):
+            container_candidates.insert(0, root)
+
+        seen_containers = set()
+        for container_path in container_candidates:
+            try:
+                resolved_key = container_path.resolve().as_posix()
+            except Exception:
+                resolved_key = container_path.as_posix()
+            if resolved_key in seen_containers:
+                continue
+            seen_containers.add(resolved_key)
+
+            result["has_google_photos_container"] = True
+            result["container_path"] = str(container_path)
+
+            archive_browser_path = container_path.parent / "archive_browser.html"
+            if not archive_browser_path.exists():
+                continue
+            result["has_archive_browser"] = True
+
+            try:
+                album_dirs = [child for child in container_path.iterdir() if child.is_dir()]
+            except Exception:
+                continue
+
+            for album_dir in sorted(album_dirs, key=lambda p: p.name.casefold()):
+                if _is_takeout_year_folder(album_dir.name):
+                    continue
+                if album_dir.name in {"@eaDir", FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, "Takeout"}:
+                    continue
+                try:
+                    has_json = any(
+                        item.is_file() and item.suffix.lower() == ".json"
+                        for item in album_dir.rglob("*.json")
+                    )
+                except Exception:
+                    has_json = False
+                if has_json:
+                    result.update({
+                        "is_takeout": True,
+                        "has_album_json_sidecars": True,
+                        "mode": "album-only",
+                        "matched_path": str(album_dir),
+                    })
+                    LOGGER.info(f"{step_name}Found Google Takeout album-only structure in folder: {album_dir}")
+                    return result
+
+        LOGGER.info(f"{step_name}No Google Takeout structure found in folder   : {input_folder}")
+        return result
+
+
 def _parse_createfile_failed_warning(line):
     if "CreateFile failed for" not in str(line):
         return None
@@ -726,6 +826,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             sys.exit(1)
         self.takeout_folder.mkdir(parents=True, exist_ok=True)  # Asegurar que takeout_folder existe
 
+        self.takeout_detection_info = {
+            "is_takeout": False,
+            "has_year_folders": False,
+            "has_google_photos_container": False,
+            "has_archive_browser": False,
+            "has_album_json_sidecars": False,
+            "mode": "none",
+            "matched_path": "",
+            "container_path": "",
+        }
+
         # Verificar si la carpeta necesita ser descomprimida
         self.needs_unzip = self.check_if_needs_unzip(log_level=logging.WARNING)
         self.unzipped_folder = None # Only will have value if the Takeout have been already unzipped
@@ -768,7 +879,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def check_if_needs_process(self, log_level=None):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            return contains_takeout_structure(input_folder=self.takeout_folder, log_level=log_level)
+            self.takeout_detection_info = inspect_takeout_structure(input_folder=self.takeout_folder, log_level=log_level)
+            return bool(self.takeout_detection_info.get("is_takeout"))
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def check_if_needs_unzip(self, log_level=None):
@@ -999,7 +1111,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.input_folder = self.unzipped_folder
                 # Change flag self.check_if_needs_unzip to False
                 self.needs_unzip = False
-                self.needs_process = contains_takeout_structure(input_folder=self.input_folder, step_name=step_name)
+                self.takeout_detection_info = inspect_takeout_structure(input_folder=self.input_folder, step_name=step_name)
+                self.needs_process = bool(self.takeout_detection_info.get("is_takeout"))
                 sub_step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"")
@@ -1268,6 +1381,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             if not self.ARGS['google-skip-gpth-tool']:
                 LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
+                takeout_mode = str((self.takeout_detection_info or {}).get("mode") or "").strip().lower()
+                auto_fix_album_only_takeout = takeout_mode == "album-only"
+                if auto_fix_album_only_takeout and not self.ARGS['google-ignore-check-structure']:
+                    LOGGER.warning(
+                        f"{step_name}Google Takeout album-only structure detected (album folders with JSON sidecars and archive_browser.html, but no year folders). "
+                        f"GPTH will be executed in fix mode automatically."
+                    )
+                    self.ARGS['google-ignore-check-structure'] = True
+
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning(f"{step_name}Ignore Google Takeout Structure flag detected ('-gics, --google-ignore-check-structure').")
                 else:
@@ -2080,33 +2202,8 @@ def unpack_zips(input_folder, unzip_folder, step_name="", log_level=None):
 
 
 def contains_takeout_structure(input_folder, step_name="", log_level=None):
-    with set_log_level(LOGGER, log_level):
-        LOGGER.info(f"{step_name}Looking for Google Takeout structure in folder: {input_folder}. This may take long time. Please be patient...")
-        queue = deque([input_folder])
-        while queue:
-            current = queue.popleft()
-            try:
-                with os.scandir(current) as entries:
-                    # Gather all subdirectories
-                    subdirs = [e for e in entries if e.is_dir(follow_symlinks=False)]
-                    # First check each subdir name against the pattern
-                    for entry in subdirs:
-                        if _is_takeout_year_folder(entry.name):
-                            LOGGER.info(f"{step_name}Found Google Takeout structure in folder      : {current}")
-                            return True
-                    # If too many subdirs, skip descending
-                    if len(subdirs) > 5:
-                        LOGGER.debug(f"{step_name}Skipping {current} because it has {len(subdirs)} subdirectories")
-                        continue
-                    # Otherwise, enqueue them for further scanning
-                    for entry in subdirs:
-                        queue.append(entry.path)
-            except PermissionError:
-                LOGGER.warning(f"{step_name}Permission denied accessing: {current}")
-            except Exception as e:
-                LOGGER.warning(f"{step_name}Error scanning {current}: {e}")
-        LOGGER.info(f"{step_name}No Google Takeout structure found in folder   : {input_folder}")
-        return False
+    result = inspect_takeout_structure(input_folder=input_folder, step_name=step_name, log_level=log_level)
+    return bool(result.get("is_takeout"))
 
 
 # ---------------------------------------------------------------------------------------------------------------------------

@@ -38,6 +38,15 @@ In the following link you can find the [Complete Pipeline and features of GPTH T
 
 - The Takeout Processing can be configured with different settings, depending on the arguments used during the call to the Tool.
 
+- PhotoMigrator now recognizes two valid Google Takeout layouts:
+  1. the standard layout with year folders such as `Photos from 2024` / localized equivalents
+  2. an album-only layout with no year folders, as long as it finds:
+     - a localized `Google Photos` / `Google Fotos` container
+     - `archive_browser.html` in the parent `Takeout` level
+     - album-side `.json` metadata files inside album folders
+
+- When that second album-only layout is detected, PhotoMigrator automatically runs GPTH in `--fix` mode. You no longer need to force `--google-ignore-check-structure` manually just because the export does not contain year folders.
+
 - The whole process will do the following posible Steps (depending on which flag/arguments are enabled):  
 
 ### Steps during Takeout Processing:
@@ -96,6 +105,9 @@ Below you can see the different steps of this feature:
 > - The JSON says `"title": "mi cocina.JPG"` and `"photoTakenTime.timestamp": "1024570414"` (year `2002`)
 > - The real media exists in processed output under `ALL_PHOTOS/2002/.../mi cocina.JPG`
 > - PhotoMigrator recreates `Albums/<Album Name>/mi cocina.JPG` as a symlink/hardlink by default, or as a copied file when `--google-no-symbolic-albums` is enabled
+
+> [!IMPORTANT]
+> Some Google Takeout exports do not include any `Photos from YYYY` folders at all and only contain album folders plus sidecar JSON metadata. Those exports are now detected as valid Google Takeouts as long as `archive_browser.html` is present at the `Takeout` level and the localized `Google Photos` container contains album-side `.json` files. In that scenario PhotoMigrator automatically switches GPTH to `--fix` mode because the normal year-folder-based GPTH flow is not applicable.
 
 #### 7. ✅ Final steps
   - 7.1. 🧹 Clean Final Media Library.
