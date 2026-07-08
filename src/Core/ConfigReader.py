@@ -2,11 +2,22 @@ import os
 import re
 import sys
 from configparser import ConfigParser
+import logging
 
-from Core.GlobalVariables import LOGGER, FOLDERNAME_LOGS, CONFIGURATION_FILE
+import Core.GlobalVariables as GV
+from Core.GlobalVariables import FOLDERNAME_LOGS, CONFIGURATION_FILE
 from Utils.StandaloneUtils import resolve_external_path
 
 CONFIG = None
+
+
+class _RuntimeLoggerProxy:
+    def __getattr__(self, attr):
+        active_logger = GV.LOGGER or logging.getLogger(__name__)
+        return getattr(active_logger, attr)
+
+
+LOGGER = _RuntimeLoggerProxy()
 
 
 def _read_env_override_value(key: str):

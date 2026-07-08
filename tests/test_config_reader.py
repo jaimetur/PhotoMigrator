@@ -70,6 +70,24 @@ SYNOLOGY_PASSWORD_1 = pass1
         self.assertEqual(loaded["Synology Photos"]["SYNOLOGY_URL"], "https://env-value.test")
         self.assertEqual(source, "SYNOLOGY_URL")
 
+    def test_load_config_uses_runtime_global_logger_proxy(self):
+        self._write_config(
+            """
+[Synology Photos]
+SYNOLOGY_URL = https://example.test
+SYNOLOGY_USERNAME_1 = user1
+SYNOLOGY_PASSWORD_1 = pass1
+"""
+        )
+
+        with patch.object(config_reader_module.GV, "LOGGER", self.logger):
+            loaded = config_reader_module.load_config(
+                config_file=str(self.config_file),
+                section_to_load="Synology Photos",
+            )
+
+        self.assertEqual(loaded["Synology Photos"]["SYNOLOGY_URL"], "https://example.test")
+
 
 if __name__ == "__main__":
     unittest.main()

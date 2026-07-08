@@ -1,4 +1,5 @@
 import json
+import logging
 import multiprocessing
 import os
 import time
@@ -15,11 +16,20 @@ from dateutil import parser
 import Core.GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXTRACTED_DATES, FOLDERNAME_EXIFTOOL
+from Core.GlobalVariables import PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXTRACTED_DATES, FOLDERNAME_EXIFTOOL
 from Utils.DateUtils import normalize_datetime_utc, is_date_valid
 from Utils.FileUtils import merge_exclusion_patterns, matches_any_pattern, should_exclude_path
 from Utils.GeneralUtils import ensure_executable
 from Utils.StandaloneUtils import get_exif_tool_path
+
+
+class _RuntimeLoggerProxy:
+    def __getattr__(self, attr):
+        active_logger = GV.LOGGER or logging.getLogger(__name__)
+        return getattr(active_logger, attr)
+
+
+LOGGER = _RuntimeLoggerProxy()
 
 
 # ---------------------------------------------------------------------------------------------------------------------------

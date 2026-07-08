@@ -10,7 +10,7 @@ import logging
 
 import Core.GlobalVariables as GV
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_ALBUMS
+from Core.GlobalVariables import MSG_TAGS, FOLDERNAME_ALBUMS
 from Utils.GeneralUtils import tqdm
 
 DEFAULT_FOLDER_EXCLUSION_PATTERNS = [".*", "@eaDir", "@Recycle"]
@@ -27,6 +27,15 @@ DEFAULT_FILE_EXCLUSION_PATTERNS = [
 ]
 
 GENERATED_STAGE_SUFFIX_RE = re.compile(r"_(?P<stage>[A-Za-z0-9-]+)_(?P<timestamp>\d{8}-\d{6})$")
+
+
+class _RuntimeLoggerProxy:
+    def __getattr__(self, attr):
+        active_logger = GV.LOGGER or logging.getLogger(__name__)
+        return getattr(active_logger, attr)
+
+
+LOGGER = _RuntimeLoggerProxy()
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
