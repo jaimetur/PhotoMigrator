@@ -411,6 +411,31 @@ def _windows_terminal_job_command(
     return " & ".join(parts)
 
 
+def build_windows_external_terminal_script(
+    command: List[str],
+    cwd: Path,
+    env: Dict[str, str] | None = None,
+    *,
+    completion_file: Path | None = None,
+    window_title: str = "PhotoMigrator Live Dashboard",
+) -> str:
+    lines: List[str] = ["@echo off"]
+    if window_title:
+        lines.append(f"title {window_title}")
+    effective_env = dict(env or {})
+    for key in EXTERNAL_TERMINAL_ENV_KEYS:
+        value = effective_env.get(key)
+        if value is not None and str(value) != "":
+            lines.append(f'set "{key}={value}"')
+    lines.append(f'cd /d "{Path(cwd)}"')
+    lines.append(command_to_string(command))
+    lines.append('set "PHOTOMIGRATOR_EXIT_CODE=%ERRORLEVEL%"')
+    if completion_file is not None:
+        lines.append(f'> "{Path(completion_file)}" echo(%PHOTOMIGRATOR_EXIT_CODE%')
+    lines.append("exit /b %PHOTOMIGRATOR_EXIT_CODE%")
+    return "\r\n".join(lines) + "\r\n"
+
+
 def _escape_applescript_string(text: str) -> str:
     return str(text or "").replace("\\", "\\\\").replace('"', '\\"')
 

@@ -19,6 +19,7 @@ try:
         build_ui_subprocess_env,
         build_parser_schema,
         build_external_terminal_command,
+        build_windows_external_terminal_script,
         command_preview_string,
         command_to_string,
         compose_migration_endpoint,
@@ -473,6 +474,25 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertEqual(command[3], "-lc")
         self.assertIn("cd /tmp/project", command[4])
         self.assertIn("/usr/bin/python3", command[4])
+
+    def test_build_windows_external_terminal_script_writes_title_env_and_completion_file(self):
+        env = build_ui_subprocess_env({"TERM": "xterm-256color"}, ui_mode="gui", embedded_ui=False)
+
+        script = build_windows_external_terminal_script(
+            [r"C:\Python311\python.exe", r"C:\PhotoMigrator\PhotoMigrator.py", "--automatic-migration"],
+            Path(r"C:\Users\Test User\PhotoMigrator"),
+            env,
+            completion_file=Path(r"C:\Temp\dashboard_status.txt"),
+        )
+
+        self.assertIn("@echo off", script)
+        self.assertIn("title PhotoMigrator Live Dashboard", script)
+        self.assertIn('set "PHOTOMIGRATOR_GUI_MODE=1"', script)
+        self.assertIn('cd /d "C:\\Users\\Test User\\PhotoMigrator"', script)
+        self.assertIn(r"C:\Python311\python.exe", script)
+        self.assertIn(r"C:\PhotoMigrator\PhotoMigrator.py --automatic-migration", script)
+        self.assertIn('> "C:\\Temp\\dashboard_status.txt" echo(%PHOTOMIGRATOR_EXIT_CODE%', script)
+        self.assertIn("exit /b %PHOTOMIGRATOR_EXIT_CODE%", script)
 
     def test_preferred_tui_panel_widget_ids_prioritize_primary_controls(self):
         if CLI_TUI_IMPORT_ERROR is not None:
