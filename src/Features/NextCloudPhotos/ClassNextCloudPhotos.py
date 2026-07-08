@@ -1172,6 +1172,7 @@ class ClassNextCloudPhotos:
                     continue
                 matched_album = None
                 match_kind = None
+                preferred_name = album_name
                 if reuse_similar_existing_albums:
                     matched_album, reuse_plan = self.consolidate_reusable_album_group(
                         album_name=album_name,
@@ -1201,10 +1202,16 @@ class ClassNextCloudPhotos:
                             f"for source album '{album_name}'."
                         )
                 else:
-                    album_id = self.create_album(album_name=album_name, log_level=log_level)
-                    effective_album_name = album_name
+                    album_name_to_create = preferred_name if reuse_similar_existing_albums else album_name
+                    if album_name_to_create != album_name:
+                        LOGGER.info(
+                            f"Normalizing source album name '{album_name}' to preferred keeper name "
+                            f"'{album_name_to_create}' before creating the destination album."
+                        )
+                    album_id = self.create_album(album_name=album_name_to_create, log_level=log_level)
+                    effective_album_name = album_name_to_create
                     if album_id:
-                        existing_albums.append({"id": album_id, "albumName": album_name})
+                        existing_albums.append({"id": album_id, "albumName": album_name_to_create})
                         total_albums_uploaded += 1
                 if not album_id:
                     total_albums_skipped += 1

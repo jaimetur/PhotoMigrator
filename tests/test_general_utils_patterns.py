@@ -28,7 +28,14 @@ if "colorama" not in sys.modules:
 
 try:
     import Core.GlobalVariables as GV
-    from Utils.GeneralUtils import match_pattern, replace_pattern, confirm_continue, normalize_album_name_for_matching, find_reusable_album_candidate
+    from Utils.GeneralUtils import (
+        match_pattern,
+        replace_pattern,
+        confirm_continue,
+        normalize_album_name_for_matching,
+        find_reusable_album_candidate,
+        build_reusable_album_group,
+    )
     GENERAL_UTILS_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
     GENERAL_UTILS_IMPORT_ERROR = exc
@@ -98,6 +105,18 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertIsNone(album)
         self.assertIsNone(match_kind)
         self.assertEqual(len(ambiguous), 2)
+
+    def test_build_reusable_album_group_prefers_normalized_name_even_without_existing_redundancy(self):
+        plan = build_reusable_album_group(
+            album_name="Huelva_1",
+            albums=[],
+            allow_similar=True,
+            exact_case_sensitive=False,
+        )
+
+        self.assertIsNone(plan["matched_album"])
+        self.assertEqual(plan["preferred_album_name"], "Huelva")
+        self.assertTrue(plan["should_create_preferred_album"])
 
     def test_confirm_continue_honors_no_confirm_by_default(self):
         with (

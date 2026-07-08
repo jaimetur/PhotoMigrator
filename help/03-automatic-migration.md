@@ -37,6 +37,7 @@ Examples that are treated as the same family:
 
 Behavior on cloud targets:
 - PhotoMigrator prefers the clean keeper name without a numeric suffix and with spaces instead of underscores.
+- Even when the target does not already contain a similar album, new destination albums are created directly with that preferred clean keeper name (for example `Huelva_1` becomes `Huelva`, and `New_Album 1` becomes `New Album`).
 - If needed, it creates that preferred keeper and merges the assets from the redundant variants into it.
 - `Immich`, `Synology`, and `NextCloud` then remove the redundant albums after the consolidation is confirmed by the target.
 - `Google Photos` also consolidates into the preferred keeper, but the redundant albums remain because the public Library API does not support deleting albums.
@@ -178,6 +179,8 @@ In this example, the Tool will first detect that `/homes/iCloudExport` is a raw 
 ```
 
 If the target already contains albums such as `Huelva_1`, `Huelva (2)`, and `Huelva_5`, and the source migration wants to create/use `Huelva`, PhotoMigrator will treat them as the same album family. It will prefer the clean keeper name `Huelva`, merge the assets from the numbered variants into that keeper, and continue assigning the incoming source assets to `Huelva`. On `Immich`, `Synology`, and `NextCloud`, the redundant variants are removed after the consolidation is confirmed. On `Google Photos`, the redundant variants remain because the public API cannot delete albums.
+
+If the target does not yet contain any `Huelva*` variant and the source migration wants to create/use `Huelva_1`, the same flag still normalizes the destination name and creates `Huelva` directly instead of preserving the duplicate-like suffix.
 
 ---
 ## ⚙️ Config.ini

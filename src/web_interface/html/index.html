@@ -2807,6 +2807,7 @@
                 + "SOURCE and TARGET can be cloud endpoints (synology/immich/nextcloud/google with account) or local folders.\n"
                 + "By default migration runs in parallel with live dashboard enabled.\n"
                 + "Use --reuse-similar-existing-albums if you want cloud targets to reuse equivalent album families such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', or 'New_Album 1' instead of only exact matches.\n"
+                + "With this flag enabled, PhotoMigrator also normalizes new destination album names to the preferred clean keeper form even when the target does not already contain any similar variant, for example 'Huelva_1' -> 'Huelva' or 'New_Album 1' -> 'New Album'.\n"
                 + "On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it.\n"
                 + "If the target supports album deletion (Immich, Synology, NextCloud), the redundant variants are then removed. Google Photos keeps them because the public API cannot delete albums.\n"
                 + "IMPORTANT: Configure Config.ini credentials/API keys before running cloud migrations.\n"

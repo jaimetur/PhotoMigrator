@@ -350,6 +350,9 @@ If more than one optional arguments are detected, only the first one will be exe
                You must provide the photo client using '--client'.
                Use '--reuse-similar-existing-albums' if you also want to treat equivalent names such as
                'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', or 'New_Album 1' as the same family.
+               The same flag also normalizes newly created destination album names to the preferred clean keeper form
+               even when the target does not already contain a similar album, for example 'Huelva_1' -> 'Huelva'
+               or 'New_Album 1' -> 'New Album'.
                On supported cloud targets, the preferred clean keeper name is used and redundant variants are consolidated into it.
                Immich, Synology, and NextCloud remove the redundant albums afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-albums ./My_Albums_Folder
@@ -367,6 +370,7 @@ If more than one optional arguments are detected, only the first one will be exe
                - If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those
                folders too.
                - Use '--reuse-similar-existing-albums' to reuse equivalent album families instead of only exact names.
+               - The same flag also normalizes newly created destination album names to the preferred clean keeper form even when the target has no prior similar variant.
                - On supported cloud targets, that flag also consolidates redundant variants into the preferred clean keeper.
                - Immich, Synology, and NextCloud remove the redundant albums afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-all ./MyLibrary
@@ -374,6 +378,7 @@ If more than one optional arguments are detected, only the first one will be exe
                Reuse similar existing destination album names during cloud Upload Albums / Upload All
                and Automatic Migration. Disabled by default: only exact album-name matches are reused.
                Equivalent examples: 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', 'New_Album 1'.
+               It also normalizes new destination album names to the preferred clean keeper form even when no similar target album exists yet.
                Supported cloud targets also merge redundant variants into the preferred clean keeper.
                Immich, Synology, and NextCloud remove them afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-albums ./Albums --reuse-similar-existing-albums

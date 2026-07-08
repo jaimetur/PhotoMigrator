@@ -1910,6 +1910,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                             exact_case_sensitive=target_exact_album_match_case_sensitive,
                                         )
                                         target_album_name_to_create = str(create_plan.get("preferred_album_name") or album_name).strip() or album_name
+                                        if target_album_name_to_create != album_name:
+                                            LOGGER.info(
+                                                f"Normalizing source album name '{album_name}' to preferred keeper name "
+                                                f"'{target_album_name_to_create}' before creating the destination album."
+                                            )
                                     if isinstance(target_client, ClassLocalFolder):
                                         aid = target_client.create_album(
                                             album_name=target_album_name_to_create,

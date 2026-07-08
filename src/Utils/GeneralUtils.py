@@ -1197,6 +1197,13 @@ def build_reusable_album_group(album_name, albums, allow_similar=False, exact_ca
       - should_create_preferred_album
     """
     target_name = str(album_name or "").strip()
+    preferred_target_name = target_name
+    if allow_similar and target_name:
+        normalized_target_name = canonicalize_album_name_for_reuse(target_name)
+        preferred_target_name = min(
+            [name for name in [target_name, normalized_target_name] if name],
+            key=album_name_preference_key,
+        )
     empty_result = {
         "matched_album": None,
         "keeper_album": None,
@@ -1204,9 +1211,9 @@ def build_reusable_album_group(album_name, albums, allow_similar=False, exact_ca
         "ambiguous_matches": [],
         "similar_albums": [],
         "redundant_albums": [],
-        "preferred_album_name": target_name,
+        "preferred_album_name": preferred_target_name,
         "similarity_key": album_name_reuse_key(target_name),
-        "should_create_preferred_album": False,
+        "should_create_preferred_album": bool(preferred_target_name and preferred_target_name.casefold() != target_name.casefold()),
     }
     if not target_name:
         return empty_result

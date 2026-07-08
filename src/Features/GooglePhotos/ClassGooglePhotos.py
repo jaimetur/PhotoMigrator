@@ -745,6 +745,7 @@ class ClassGooglePhotos:
                     total_albums_skipped += 1
                     continue
                 matched_album = None
+                preferred_name = album_name
                 if reuse_similar_existing_albums:
                     matched_album, reuse_plan = self.consolidate_reusable_album_group(
                         album_name=album_name,
@@ -768,9 +769,15 @@ class ClassGooglePhotos:
                 if matched_album:
                     album_id = matched_album.get("id")
                 else:
-                    album_id = self.create_album(album_name=album_name, log_level=log_level)
+                    album_name_to_create = preferred_name if reuse_similar_existing_albums else album_name
+                    if album_name_to_create != album_name:
+                        LOGGER.info(
+                            f"Normalizing source album name '{album_name}' to preferred keeper name "
+                            f"'{album_name_to_create}' before creating the destination album."
+                        )
+                    album_id = self.create_album(album_name=album_name_to_create, log_level=log_level)
                     if album_id:
-                        existing_albums.append({"id": album_id, "albumName": album_name})
+                        existing_albums.append({"id": album_id, "albumName": album_name_to_create})
                         total_albums_uploaded += 1
                 album_media_ids = []
                 for file_path in tqdm(

@@ -173,6 +173,31 @@ class TestGooglePhotosUnit(unittest.TestCase):
         manager.add_assets_to_album.assert_called_once()
         self.assertEqual(manager.add_assets_to_album.call_args.kwargs["album_id"], "album-existing")
 
+    @patch("Features.GooglePhotos.ClassGooglePhotos.tqdm", side_effect=lambda iterable, **kwargs: iterable)
+    def test_push_albums_normalizes_new_album_name_when_flag_enabled_even_without_existing_redundancy(self, _mock_tqdm):
+        manager = self._build_manager()
+        manager.get_albums_owned_by_user = MagicMock(return_value=[])
+        manager.create_album = MagicMock(return_value="album-new")
+        manager.push_asset = MagicMock(return_value=("media-1", False))
+        manager.add_assets_to_album = MagicMock(return_value=1)
+
+        with (
+            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"reuse-similar-existing-albums": True}),
+            patch("Features.GooglePhotos.ClassGooglePhotos.LOGGER", MagicMock()),
+            tempfile.TemporaryDirectory() as tmpdir,
+        ):
+            album_folder = os.path.join(tmpdir, "Huelva_1")
+            os.makedirs(album_folder, exist_ok=True)
+            with open(os.path.join(album_folder, "photo.jpg"), "wb") as handle:
+                handle.write(b"binary-data")
+
+            manager.push_albums(
+                input_folder=tmpdir,
+                remove_duplicates=False,
+            )
+
+        manager.create_album.assert_called_once_with("Huelva", log_level=unittest.mock.ANY)
+
 
 if __name__ == "__main__":
     unittest.main()
