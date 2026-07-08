@@ -76,10 +76,11 @@ def set_help_texts():
 
     HELP_TEXTS["upload-albums"] = textwrap.dedent(f"""
             ATTENTION!!!: This process will upload the assets found inside each subfolder of '<ALBUMS_FOLDER>' and will create or reuse one destination album per subfolder.
-            By default, only existing albums whose name matches exactly are reused.
-            If you include '--reuse-similar-existing-albums', the Tool will also treat equivalent names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album',
-            or 'New_Album 1' as the same reusable album family.
-            On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it.
+            By default, only existing albums whose name matches exactly are reused and newly created albums keep the original source name.
+            If you include '--prefer-canonical-album-names', newly created destination albums use the preferred clean keeper name
+            (for example 'Album_1' -> 'Album', 'New_Album 1' -> 'New Album').
+            If you include '--consolidate-similar-albums', the Tool will also treat equivalent names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album',
+            or 'New_Album 1' as the same reusable album family and merge the assets from redundant variants into the preferred keeper.
             If the destination service supports album deletion (Immich, Synology, NextCloud), the redundant albums are removed afterwards.
             On Google Photos, the redundant albums remain because the public API does not allow deleting albums.
             """)
@@ -87,10 +88,11 @@ def set_help_texts():
     HELP_TEXTS["upload-all"] = textwrap.dedent(f"""
             ATTENTION!!!: This process will upload all supported assets found in '<INPUT_FOLDER>'.
             Assets inside the '<ALBUMS_FOLDER>' tree (and any extra folders provided via '--albums-folders') will be grouped into albums.
-            By default, only existing albums whose name matches exactly are reused.
-            If you include '--reuse-similar-existing-albums', the Tool will also treat equivalent names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album',
-            or 'New_Album 1' as the same reusable album family.
-            On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it.
+            By default, only existing albums whose name matches exactly are reused and newly created albums keep the original source name.
+            If you include '--prefer-canonical-album-names', newly created destination albums use the preferred clean keeper name
+            (for example 'Album_1' -> 'Album', 'New_Album 1' -> 'New Album').
+            If you include '--consolidate-similar-albums', the Tool will also treat equivalent names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album',
+            or 'New_Album 1' as the same reusable album family and merge the assets from redundant variants into the preferred keeper.
             If the destination service supports album deletion (Immich, Synology, NextCloud), the redundant albums are removed afterwards.
             On Google Photos, the redundant albums remain because the public API does not allow deleting albums.
             """)

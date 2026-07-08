@@ -101,14 +101,15 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 - **Explanation:**
   - The Tool creates one album per subfolder inside `<ALBUMS_FOLDER>` and uploads supported assets.
   - In NextCloud implementation, files are uploaded under `NEXTCLOUD_ALBUMS_FOLDER_<id>/<AlbumName>`, and native Photos album association is handled automatically when supported.
-  - By default only exact existing album names are reused.
-  - Add `--reuse-similar-existing-albums` to also treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
-  - With this flag enabled, PhotoMigrator prefers the clean keeper name, also normalizes new destination album names to that keeper even when the target has no prior similar variant, merges the assets from numbered/underscored variants into that keeper, and reuses it for the incoming upload.
+  - By default only exact existing album names are reused and newly created albums keep the original source name.
+  - Add `--prefer-canonical-album-names` if you want new destination albums to be created directly as the preferred clean keeper name.
+  - Add `--consolidate-similar-albums` to also treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
+  - When these behaviors are active, PhotoMigrator prefers the clean keeper name, merges the assets from numbered/underscored variants into that keeper, and reuses it for the incoming upload.
   - After the consolidation is confirmed, redundant NextCloud albums are removed automatically.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=nextcloud --upload-albums ./My_Albums_Folder
-  ./PhotoMigrator.bin --client=nextcloud --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums
+  ./PhotoMigrator.bin --client=nextcloud --upload-albums ./My_Albums_Folder --prefer-canonical-album-names --consolidate-similar-albums
   ```
   Example: if `New_Album`, `New Album`, and `New_Album 1` exist, PhotoMigrator prefers `New Album` as the keeper, merges the assets from the other variants into it, uploads the incoming album there, and then removes the redundant variants.
   If no equivalent album already exists in the target and you upload `New_Album 1`, the same flag creates `New Album` directly.
@@ -147,12 +148,13 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   - Assets outside `Albums` are uploaded into `NEXTCLOUD_PHOTOS_FOLDER_<id>`.
   - Album subfolders are uploaded into `NEXTCLOUD_ALBUMS_FOLDER_<id>`.
   - You can also provide extra albums folders via `-AlbFolder, --albums-folders`.
-  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
-  - With this flag enabled, PhotoMigrator prefers the clean keeper name, also normalizes new destination album names to that keeper even when the target has no prior similar variant, merges the assets from redundant variants into that keeper, and removes the redundant NextCloud albums afterwards.
+  - Add `--prefer-canonical-album-names` if you want new destination album names inside this flow to be normalized to the preferred clean keeper.
+  - Add `--consolidate-similar-albums` if you want album uploads inside this flow to treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
+  - When these behaviors are active, PhotoMigrator prefers the clean keeper name, merges the assets from redundant variants into that keeper, and removes the redundant NextCloud albums afterwards.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=nextcloud --upload-all ./MyLibrary
-  ./PhotoMigrator.bin --client=nextcloud --upload-all ./MyLibrary --reuse-similar-existing-albums
+  ./PhotoMigrator.bin --client=nextcloud --upload-all ./MyLibrary --prefer-canonical-album-names --consolidate-similar-albums
   ```
 
 

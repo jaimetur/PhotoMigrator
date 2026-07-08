@@ -64,12 +64,13 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("google_photos", schema["tabs"])
         self.assertIn("configuration-file", schema["fields_by_dest"])
 
-    def test_build_parser_schema_exposes_reuse_similar_existing_albums_in_automatic_migration(self):
+    def test_build_parser_schema_exposes_album_name_flags_in_automatic_migration(self):
         schema = build_parser_schema()
 
         automatic_dests = {field["dest"] for field in schema["tabs"]["automatic_migration"]}
 
-        self.assertIn("reuse-similar-existing-albums", automatic_dests)
+        self.assertIn("prefer-canonical-album-names", automatic_dests)
+        self.assertIn("consolidate-similar-albums", automatic_dests)
 
     def test_build_parser_schema_standalone_actions_exclude_auxiliary_organize_fields(self):
         schema = build_parser_schema()
@@ -203,34 +204,38 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--preview-album-actions", args)
         self.assertIn("--remove-albums-assets", args)
 
-    def test_build_cli_args_includes_reuse_similar_existing_albums_for_cloud_upload(self):
+    def test_build_cli_args_includes_album_name_flags_for_cloud_upload(self):
         schema = build_parser_schema()
         values = {
             "account-id": "2",
             "upload-all": "/photos/library",
             "albums-folders": ["Albums"],
-            "reuse-similar-existing-albums": True,
+            "prefer-canonical-album-names": True,
+            "consolidate-similar-albums": True,
         }
 
         args = build_cli_args(schema, "immich_photos", values, "upload-all")
 
         self.assertIn("--upload-all", args)
         self.assertIn("/photos/library", args)
-        self.assertIn("--reuse-similar-existing-albums", args)
+        self.assertIn("--prefer-canonical-album-names", args)
+        self.assertIn("--consolidate-similar-albums", args)
 
-    def test_build_cli_args_includes_reuse_similar_existing_albums_for_automatic_migration(self):
+    def test_build_cli_args_includes_album_name_flags_for_automatic_migration(self):
         schema = build_parser_schema()
         values = {
             "source": "synology-photos-1",
             "target": "immich-photos-2",
-            "reuse-similar-existing-albums": True,
+            "prefer-canonical-album-names": True,
+            "consolidate-similar-albums": True,
         }
 
         args = build_cli_args(schema, "automatic_migration", values)
 
         self.assertIn("--source", args)
         self.assertIn("--target", args)
-        self.assertIn("--reuse-similar-existing-albums", args)
+        self.assertIn("--prefer-canonical-album-names", args)
+        self.assertIn("--consolidate-similar-albums", args)
 
     def test_build_cli_args_composes_find_duplicates_value(self):
         schema = build_parser_schema()

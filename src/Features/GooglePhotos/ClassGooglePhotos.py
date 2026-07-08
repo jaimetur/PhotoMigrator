@@ -20,7 +20,7 @@ from Core.GlobalVariables import (
     VIDEO_EXT,
 )
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
-from Utils.GeneralUtils import convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group
+from Utils.GeneralUtils import convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled
 
 
 class ClassGooglePhotos:
@@ -607,6 +607,8 @@ class ClassGooglePhotos:
                 allow_similar=True,
                 exact_case_sensitive=False,
             )
+            if not plan.get("matched_album") and not plan.get("similar_albums"):
+                return None, plan
             preferred_album_name = str(plan.get("preferred_album_name") or album_name).strip() or album_name
             keeper_album = plan.get("keeper_album")
             keeper_id = str((keeper_album or {}).get("id", "")).strip() if keeper_album else ""
@@ -729,7 +731,8 @@ class ClassGooglePhotos:
             total_albums_skipped = 0
             total_assets_uploaded = 0
             total_duplicates_skipped = 0
-            reuse_similar_existing_albums = bool(ARGS.get("reuse-similar-existing-albums", False))
+            prefer_canonical_album_names = prefer_canonical_album_names_enabled(ARGS)
+            consolidate_similar_albums = consolidate_similar_albums_enabled(ARGS)
             existing_albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
             for folder in tqdm(subfolders, desc=f"{MSG_TAGS['INFO']}Uploading Albums to Google Photos", unit=" album"):
                 album_name = os.path.basename(folder)
@@ -746,14 +749,15 @@ class ClassGooglePhotos:
                     continue
                 matched_album = None
                 preferred_name = album_name
-                if reuse_similar_existing_albums:
+                if consolidate_similar_albums:
                     matched_album, reuse_plan = self.consolidate_reusable_album_group(
                         album_name=album_name,
                         existing_albums=existing_albums,
                         log_level=log_level,
                     )
                     matched_name = (matched_album or {}).get("albumName", album_name) if matched_album else album_name
-                    preferred_name = str(reuse_plan.get("preferred_album_name") or album_name)
+                    if matched_album or reuse_plan.get("similar_albums"):
+                        preferred_name = str(reuse_plan.get("preferred_album_name") or album_name)
                     if matched_album and matched_name != album_name:
                         LOGGER.info(
                             f"Reusing consolidated Google Photos album '{matched_name}' "
@@ -766,10 +770,24 @@ class ClassGooglePhotos:
                         allow_similar=False,
                         exact_case_sensitive=False,
                     )
+                if not matched_album and prefer_canonical_album_names:
+                    preferred_name = str(canonicalize_album_name_for_reuse(album_name) or album_name).strip() or album_name
+                    if preferred_name.casefold() != album_name.casefold():
+                        matched_album, _, _ = find_reusable_album_candidate(
+                            album_name=preferred_name,
+                            albums=existing_albums,
+                            allow_similar=False,
+                            exact_case_sensitive=False,
+                        )
+                        if matched_album:
+                            LOGGER.info(
+                                f"Reusing canonical Google Photos album '{preferred_name}' "
+                                f"for source album '{album_name}'."
+                            )
                 if matched_album:
                     album_id = matched_album.get("id")
                 else:
-                    album_name_to_create = preferred_name if reuse_similar_existing_albums else album_name
+                    album_name_to_create = preferred_name if prefer_canonical_album_names else album_name
                     if album_name_to_create != album_name:
                         LOGGER.info(
                             f"Normalizing source album name '{album_name}' to preferred keeper name "

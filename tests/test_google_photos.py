@@ -112,7 +112,7 @@ class TestGooglePhotosUnit(unittest.TestCase):
         manager.add_assets_to_album = MagicMock(return_value=1)
 
         with (
-            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"reuse-similar-existing-albums": False}),
+            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"prefer-canonical-album-names": False, "consolidate-similar-albums": False}),
             tempfile.TemporaryDirectory() as tmpdir,
         ):
             album_a = os.path.join(tmpdir, "Album A")
@@ -151,7 +151,7 @@ class TestGooglePhotosUnit(unittest.TestCase):
         manager.add_assets_to_album = MagicMock(return_value=1)
 
         with (
-            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"reuse-similar-existing-albums": True}),
+            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"prefer-canonical-album-names": False, "consolidate-similar-albums": True}),
             patch("Features.GooglePhotos.ClassGooglePhotos.LOGGER", MagicMock()),
             tempfile.TemporaryDirectory() as tmpdir,
         ):
@@ -182,7 +182,7 @@ class TestGooglePhotosUnit(unittest.TestCase):
         manager.add_assets_to_album = MagicMock(return_value=1)
 
         with (
-            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"reuse-similar-existing-albums": True}),
+            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"prefer-canonical-album-names": True, "consolidate-similar-albums": False}),
             patch("Features.GooglePhotos.ClassGooglePhotos.LOGGER", MagicMock()),
             tempfile.TemporaryDirectory() as tmpdir,
         ):
@@ -196,7 +196,32 @@ class TestGooglePhotosUnit(unittest.TestCase):
                 remove_duplicates=False,
             )
 
-        manager.create_album.assert_called_once_with("Huelva", log_level=unittest.mock.ANY)
+        manager.create_album.assert_called_once_with(album_name="Huelva", log_level=unittest.mock.ANY)
+
+    @patch("Features.GooglePhotos.ClassGooglePhotos.tqdm", side_effect=lambda iterable, **kwargs: iterable)
+    def test_push_albums_does_not_normalize_new_album_name_with_consolidate_only_and_no_existing_family(self, _mock_tqdm):
+        manager = self._build_manager()
+        manager.get_albums_owned_by_user = MagicMock(return_value=[])
+        manager.create_album = MagicMock(return_value="album-new")
+        manager.push_asset = MagicMock(return_value=("media-1", False))
+        manager.add_assets_to_album = MagicMock(return_value=1)
+
+        with (
+            patch("Features.GooglePhotos.ClassGooglePhotos.ARGS", {"prefer-canonical-album-names": False, "consolidate-similar-albums": True}),
+            patch("Features.GooglePhotos.ClassGooglePhotos.LOGGER", MagicMock()),
+            tempfile.TemporaryDirectory() as tmpdir,
+        ):
+            album_folder = os.path.join(tmpdir, "Huelva_1")
+            os.makedirs(album_folder, exist_ok=True)
+            with open(os.path.join(album_folder, "photo.jpg"), "wb") as handle:
+                handle.write(b"binary-data")
+
+            manager.push_albums(
+                input_folder=tmpdir,
+                remove_duplicates=False,
+            )
+
+        manager.create_album.assert_called_once_with(album_name="Huelva_1", log_level=unittest.mock.ANY)
 
 
 if __name__ == "__main__":

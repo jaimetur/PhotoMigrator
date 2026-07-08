@@ -88,17 +88,19 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will create one Album per each Subfolder found in \<ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.
-  - By default only exact existing album names are reused.
-  - Add `--reuse-similar-existing-albums` to also treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
-  - On Synology, this flag prefers the clean keeper name without a numeric suffix and with spaces instead of underscores. Even when the target does not already contain a similar variant, new destination albums are created directly with that preferred name. If needed, PhotoMigrator creates that preferred keeper, merges the assets from the redundant variants into it, and then removes the redundant albums after the consolidation is confirmed.
+  - By default only exact existing album names are reused and newly created albums keep the original source name.
+  - Add `--prefer-canonical-album-names` if you want new destination albums to be created directly with the preferred clean keeper name.
+  - Add `--consolidate-similar-albums` to also treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
+  - On Synology, when these behaviors are active, PhotoMigrator prefers the clean keeper name without a numeric suffix and with spaces instead of underscores. If needed, it merges the assets from the redundant variants into that keeper and then removes the redundant albums after the consolidation is confirmed.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin --client=synology --upload-albums ./My_Albums_Folder
-  ./PhotoMigrator.bin --client=synology --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums
+  ./PhotoMigrator.bin --client=synology --upload-albums ./My_Albums_Folder --prefer-canonical-album-names --consolidate-similar-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and process the folder `./My_Albums_Folder` and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
-  If the target already contains `Huelva_1`, `Huelva (2)`, and `Huelva_5`, uploading `Huelva` with `--reuse-similar-existing-albums` consolidates all those variants into the preferred keeper `Huelva`.
-  If the target does not contain any `Huelva*` variant and you upload `Huelva_1`, the same flag creates `Huelva` directly.
+  If the target already contains `Album_1`, `Album (2)`, and `Album_5`, uploading `Album` with `--consolidate-similar-albums` consolidates all those variants into the preferred keeper `Album`.
+  If the target does not contain any `Album*` variant and you upload `Album_1`, `--prefer-canonical-album-names` creates `Album` directly.
+  If you enable only `--prefer-canonical-album-names` and the target already contains an exact `Album`, uploading `Album_1` reuses `Album`.
   
 
 ## Download Albums from Synology Photos:
@@ -139,12 +141,13 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   - If you want to create Albums for some specific subfolders you have two options:
     1. Move all the Albums subfolders into a `<INPUT_FOLDER>/<ALBUMS_FOLDER>`, in this way the Tool will consider all the subfolders inside as an Album, and will create an Album in Synology Photos with the same name as the subfolder, associating all the assets inside to it.
     2. Use the complementary argument _**`-AlbFolder, --albums-folders \<ALBUMS_FOLDER>`**_, in this way the Tool will create Albums also for each subfolder found in `<ALBUMS_FOLDER>` (apart from those found inside `<INPUT_FOLDER>/Albums`)
-  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
-  - On Synology, this flag also normalizes new destination album names to the preferred clean keeper even when the target has no prior similar variant, consolidates redundant variants into that keeper, and removes the old variants after the merge is confirmed.
+  - Add `--prefer-canonical-album-names` if you want new destination album names inside this flow to be normalized to the preferred clean keeper.
+  - Add `--consolidate-similar-albums` if you want album uploads inside this flow to treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
+  - On Synology, these behaviors can be enabled independently or together. Consolidation merges redundant variants into the preferred clean keeper and removes the old variants after the merge is confirmed.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin --client=synology --upload-all ./MyLibrary
-  ./PhotoMigrator.bin --client=synology --upload-all ./MyLibrary --reuse-similar-existing-albums
+  ./PhotoMigrator.bin --client=synology --upload-all ./MyLibrary --prefer-canonical-album-names --consolidate-similar-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and process the folder ./MyLibrary and will upload all supported assets found on it, creating a new Album per each subfolder found within `./MyLibrary/Albums` folder.
 

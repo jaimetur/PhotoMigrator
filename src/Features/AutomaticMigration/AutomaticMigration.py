@@ -24,7 +24,7 @@ from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
-from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group
+from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
 terminal_width = shutil.get_terminal_size().columns
@@ -700,7 +700,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     processed_albums_lock = threading.Lock()
     immich_uploaded_records = []
     immich_uploaded_records_lock = threading.Lock()
-    reuse_similar_existing_albums = bool(ARGS.get("reuse-similar-existing-albums", False))
+    prefer_canonical_album_names = prefer_canonical_album_names_enabled(ARGS)
+    consolidate_similar_albums = consolidate_similar_albums_enabled(ARGS)
     target_exact_album_match_case_sensitive = isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos))
     target_existing_albums = None
     if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
@@ -737,11 +738,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         existing_albums.append({"id": album_id, "albumName": album_name})
 
     def _consolidate_album_group_for_reuse(album_name, worker_id=1, log_level=logging.ERROR):
-        if not reuse_similar_existing_albums or not isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
+        if not consolidate_similar_albums or not isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
             matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
                 album_name=album_name,
                 albums=target_existing_albums,
-                allow_similar=reuse_similar_existing_albums,
+                allow_similar=False,
                 exact_case_sensitive=target_exact_album_match_case_sensitive,
             )
             return matched_album, match_kind, ambiguous_matches
@@ -1902,30 +1903,43 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                                 if not exists:
                                     target_album_name_to_create = album_name
-                                    if reuse_similar_existing_albums and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
-                                        create_plan = build_reusable_album_group(
-                                            album_name=album_name,
-                                            albums=[],
-                                            allow_similar=True,
-                                            exact_case_sensitive=target_exact_album_match_case_sensitive,
-                                        )
-                                        target_album_name_to_create = str(create_plan.get("preferred_album_name") or album_name).strip() or album_name
-                                        if target_album_name_to_create != album_name:
-                                            LOGGER.info(
-                                                f"Normalizing source album name '{album_name}' to preferred keeper name "
-                                                f"'{target_album_name_to_create}' before creating the destination album."
+                                    if prefer_canonical_album_names and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
+                                        target_album_name_to_create = str(canonicalize_album_name_for_reuse(album_name) or album_name).strip() or album_name
+                                        if target_album_name_to_create.casefold() != album_name.casefold():
+                                            canonical_match, _, _ = find_reusable_album_candidate(
+                                                album_name=target_album_name_to_create,
+                                                albums=target_existing_albums,
+                                                allow_similar=False,
+                                                exact_case_sensitive=target_exact_album_match_case_sensitive,
                                             )
+                                            if canonical_match:
+                                                aid = canonical_match.get("id")
+                                                exists = bool(aid)
+                                                matched_name = canonical_match.get("albumName", target_album_name_to_create)
+                                                if exists:
+                                                    LOGGER.info(
+                                                        f"Reusing canonical target album '{matched_name}' "
+                                                        f"for source album '{album_name}'."
+                                                    )
+                                            else:
+                                                LOGGER.info(
+                                                    f"Normalizing source album name '{album_name}' to preferred keeper name "
+                                                    f"'{target_album_name_to_create}' before creating the destination album."
+                                                )
                                     if isinstance(target_client, ClassLocalFolder):
-                                        aid = target_client.create_album(
-                                            album_name=target_album_name_to_create,
-                                            shared=album_is_shared,
-                                            log_level=logging.ERROR,
-                                        )
+                                        if not exists:
+                                            aid = target_client.create_album(
+                                                album_name=target_album_name_to_create,
+                                                shared=album_is_shared,
+                                                log_level=logging.ERROR,
+                                            )
                                     else:
-                                        aid = target_client.create_album(album_name=target_album_name_to_create, log_level=logging.ERROR)
-                                    LOGGER.info(f"Album Created   : '{target_album_name_to_create}' by pusher_worker={worker_id}")
-                                    if target_existing_albums is not None and aid:
-                                        target_existing_albums.append({"id": aid, "albumName": target_album_name_to_create})
+                                        if not exists:
+                                            aid = target_client.create_album(album_name=target_album_name_to_create, log_level=logging.ERROR)
+                                    if not exists:
+                                        LOGGER.info(f"Album Created   : '{target_album_name_to_create}' by pusher_worker={worker_id}")
+                                        if target_existing_albums is not None and aid:
+                                            target_existing_albums.append({"id": aid, "albumName": target_album_name_to_create})
                                     if target_album_name_to_create != album_name and aid:
                                         created_albums[target_album_name_to_create] = aid
                                 created_albums[album_name] = aid

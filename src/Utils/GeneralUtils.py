@@ -1181,6 +1181,16 @@ def album_name_preference_key(name):
     )
 
 
+def prefer_canonical_album_names_enabled(args=None):
+    params = args if isinstance(args, dict) else ARGS
+    return bool((params or {}).get("prefer-canonical-album-names", False))
+
+
+def consolidate_similar_albums_enabled(args=None):
+    params = args if isinstance(args, dict) else ARGS
+    return bool((params or {}).get("consolidate-similar-albums", False))
+
+
 def build_reusable_album_group(album_name, albums, allow_similar=False, exact_case_sensitive=False):
     """
     Returns a reusable-album plan with preferred keeper naming information.

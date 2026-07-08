@@ -414,15 +414,21 @@ def parse_arguments():
                              "Works with '--rename-albums' and '--remove-albums'.\n"
                              "Example: --client=immich --rename-albums \"--\" \"-\" --preview-album-actions")
 
-    PARSER.add_argument("-reuseSimAlb", "--reuse-similar-existing-albums", action="store_true", default=False,
-                        help="When uploading albums to a cloud service or running Automatic Migration, reuse a similar existing album instead of creating a new one.\n"
-                             "By default only exact album-name matches are reused.\n"
-                             "This option also treats harmless differences such as underscores vs spaces and trailing duplicate-like numeric suffixes as equivalent\n"
-                             "(for example 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', 'New_Album 1').\n"
+    PARSER.add_argument("-prefCanAlb", "--prefer-canonical-album-names", action="store_true", default=False,
+                        help="When uploading albums to a cloud service or running Automatic Migration, normalize new destination album names to the preferred clean keeper form.\n"
+                             "By default, a new destination album keeps the original source name.\n"
+                             "With this flag enabled, harmless variants such as underscores vs spaces and trailing duplicate-like numeric suffixes are normalized\n"
+                             "when a new destination album has to be created (for example 'Huelva_1' -> 'Huelva', 'New_Album 1' -> 'New Album').\n"
+                             "This flag does not consolidate or remove existing similar albums by itself.\n"
+                             "Example: --client=immich --upload-albums ./My_Albums_Folder --prefer-canonical-album-names")
+
+    PARSER.add_argument("-consSimAlb", "--consolidate-similar-albums", action="store_true", default=False,
+                        help="When uploading albums to a cloud service or running Automatic Migration, reuse and consolidate similar existing destination albums instead of only exact matches.\n"
+                             "Equivalent names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', and 'New_Album 1' are treated as the same album family.\n"
                              "On supported cloud targets, similar album families are consolidated into the preferred clean keeper name and their assets are merged into it.\n"
                              "When the destination service supports album deletion (Immich, Synology, NextCloud), redundant variants are removed afterwards. "
                              "Google Photos keeps the redundant variants because the public API cannot delete albums.\n"
-                             "Example: --client=immich --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums")
+                             "Example: --client=immich --upload-albums ./My_Albums_Folder --consolidate-similar-albums")
 
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! Remove ALL albums.\n"

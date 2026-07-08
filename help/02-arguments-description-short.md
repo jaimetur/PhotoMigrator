@@ -183,7 +183,8 @@ Following arguments allow you to interact with Google Photos, Synology, Immich, 
 | `-uAlb`,<br>`--upload-albums`                        | Upload all subfolders as albums                                                                                                       |
 | `-dAlb`,<br>`--download-albums`                      | Download specific albums                                                                                                              |
 | `-uAll`,<br>`--upload-all`                           | Upload all assets and albums from input folder                                                                                        |
-| `-reuseSimAlb`,<br>`--reuse-similar-existing-albums` | Reuse equivalent album families and normalize new destination album names during cloud uploads and Automatic Migration; supported cloud targets also consolidate redundant variants |
+| `-prefCanAlb`,<br>`--prefer-canonical-album-names` | Normalize new destination album names during cloud uploads and Automatic Migration |
+| `-consSimAlb`,<br>`--consolidate-similar-albums` | Reuse and consolidate equivalent album families during cloud uploads and Automatic Migration |
 | `-dAll`,<br>`--download-all`                         | Download all assets and albums                                                                                                        |
 | `-renAlb`,<br>`--rename-albums`                      | Rename albums using text, wildcard, or regex                                                                                          |
 | `-rAlb`,<br>`--remove-albums`                        | Delete albums using text, wildcard, or regex                                                                                          |

@@ -29,7 +29,11 @@ By default, (if your terminal size has enough width and height) a Live Dashboard
 
 Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **`--parallel-migration=false`**, so first, all the assets will be pulled from `<SOURCE>` and when finish, they will be pushed into `<TARGET>`, but take into account that in this case, you will need enough disk space to store all your assets pulled from `<SOURCE>` service.
 
-By default, destination albums are only reused when the existing target album name matches exactly. If you include **`--reuse-similar-existing-albums`**, PhotoMigrator will also treat equivalent album families as reusable even when they differ only by harmless formatting or duplicate-like suffixes.
+By default, destination albums are only reused when the existing target album name matches exactly, and newly created albums keep the original source name.
+
+If you include **`--prefer-canonical-album-names`**, PhotoMigrator normalizes newly created destination album names to the preferred clean keeper form even when the target does not already contain a similar album.
+
+If you include **`--consolidate-similar-albums`**, PhotoMigrator also treats equivalent album families as reusable even when they differ only by harmless formatting or duplicate-like suffixes.
 
 Examples that are treated as the same family:
 - `Album`, `Album_1`, `Album (2)`, `Album_5`
@@ -37,10 +41,16 @@ Examples that are treated as the same family:
 
 Behavior on cloud targets:
 - PhotoMigrator prefers the clean keeper name without a numeric suffix and with spaces instead of underscores.
-- Even when the target does not already contain a similar album, new destination albums are created directly with that preferred clean keeper name (for example `Huelva_1` becomes `Huelva`, and `New_Album 1` becomes `New Album`).
+- Even when the target does not already contain a similar album, new destination albums are created directly with that preferred clean keeper name (for example `Album_1` becomes `Album`, and `New_Album 1` becomes `New Album`).
 - If needed, it creates that preferred keeper and merges the assets from the redundant variants into it.
 - `Immich`, `Synology`, and `NextCloud` then remove the redundant albums after the consolidation is confirmed by the target.
 - `Google Photos` also consolidates into the preferred keeper, but the redundant albums remain because the public Library API does not support deleting albums.
+
+Practical scenarios:
+- No flags: if the source album is `Album_1` and the target only has `Album`, PhotoMigrator still creates `Album_1`.
+- Only `--prefer-canonical-album-names`: if the source album is `Album_1` and the target has no matching exact `Album_1`, PhotoMigrator normalizes the destination to `Album`. If `Album` already exists exactly, it reuses that `Album`.
+- Only `--consolidate-similar-albums`: if the target already contains `Album`, `Album_1`, and `Album (2)`, PhotoMigrator consolidates that family into the preferred keeper `Album`. If the target contains none of them, a source `Album_1` is kept as `Album_1`.
+- Both flags together: new albums are normalized to the preferred keeper form and any existing similar family is also consolidated into that same keeper.
 
 Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. The available filters are: 
    - **by Type:**
@@ -175,12 +185,12 @@ In this example, the Tool will first detect that `/homes/iCloudExport` is a raw 
 
 - **Example 6**:
 ```
-./PhotoMigrator.bin --source=/homes/MyTakeout --target=synology-1 --reuse-similar-existing-albums
+./PhotoMigrator.bin --source=/homes/MyTakeout --target=synology-1 --prefer-canonical-album-names --consolidate-similar-albums
 ```
 
-If the target already contains albums such as `Huelva_1`, `Huelva (2)`, and `Huelva_5`, and the source migration wants to create/use `Huelva`, PhotoMigrator will treat them as the same album family. It will prefer the clean keeper name `Huelva`, merge the assets from the numbered variants into that keeper, and continue assigning the incoming source assets to `Huelva`. On `Immich`, `Synology`, and `NextCloud`, the redundant variants are removed after the consolidation is confirmed. On `Google Photos`, the redundant variants remain because the public API cannot delete albums.
+If the target already contains albums such as `Album_1`, `Album (2)`, and `Album_5`, and the source migration wants to create/use `Album`, PhotoMigrator will treat them as the same album family. It will prefer the clean keeper name `Album`, merge the assets from the numbered variants into that keeper, and continue assigning the incoming source assets to `Album`. On `Immich`, `Synology`, and `NextCloud`, the redundant variants are removed after the consolidation is confirmed. On `Google Photos`, the redundant variants remain because the public API cannot delete albums.
 
-If the target does not yet contain any `Huelva*` variant and the source migration wants to create/use `Huelva_1`, the same flag still normalizes the destination name and creates `Huelva` directly instead of preserving the duplicate-like suffix.
+If the target does not yet contain any `Album*` variant and the source migration wants to create/use `Album_1`, the same flag still normalizes the destination name and creates `Album` directly instead of preserving the duplicate-like suffix.
 
 ---
 ## ⚙️ Config.ini
