@@ -1242,6 +1242,27 @@
         el.textContent = value == null ? fallback : String(value);
     }
 
+    function isMeaningfulDashboardValue(value) {
+        if (value == null) return false;
+        if (typeof value === "number") return Number.isFinite(value);
+        if (typeof value === "string") return value.trim() !== "";
+        return true;
+    }
+
+    function coerceBooleanLike(value) {
+        if (typeof value === "boolean") return value;
+        const normalized = String(value ?? "").trim().toLowerCase();
+        return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
+    }
+
+    function mergeDashboardStats(primaryStats = {}, fallbackStats = {}) {
+        const merged = {...(fallbackStats || {})};
+        Object.entries(primaryStats || {}).forEach(([key, value]) => {
+            if (isMeaningfulDashboardValue(value)) merged[key] = value;
+        });
+        return merged;
+    }
+
     function resolveTotal(primaryTotal, completed, failed = 0) {
         if (Number.isFinite(primaryTotal) && primaryTotal > 0) return primaryTotal;
         const estimate = Number(completed || 0) + Number(failed || 0);
@@ -1422,9 +1443,11 @@
         }
 
         panel.classList.remove("hidden");
-        const source = currentRunPayload?.values?.source || stateValues.source || "-";
-        const target = currentRunPayload?.values?.target || stateValues.target || "-";
-        const stats = extractDashboardStats(webDashboardState.rawOutput);
+        const dashboardContext = {...(jobData.dashboard_context || {})};
+        const source = currentRunPayload?.values?.source || dashboardContext.source || stateValues.source || "-";
+        const target = currentRunPayload?.values?.target || dashboardContext.target || stateValues.target || "-";
+        const parsedStats = extractDashboardStats(webDashboardState.rawOutput);
+        const stats = mergeDashboardStats(jobData.dashboard_snapshot || {}, parsedStats);
 
         const startedAt = jobData.started_at || currentJobStartedAt;
         if (jobData.started_at) currentJobStartedAt = jobData.started_at;
@@ -1459,9 +1482,10 @@
         setText("dash-elapsed-time", elapsed, "00:00:00");
 
         const modeFromState = currentRunPayload?.values?.["parallel-migration"];
-        const stateSaysParallel = typeof modeFromState === "boolean" ? modeFromState : String(modeFromState || "").toLowerCase() === "true";
+        const stateSaysParallel = coerceBooleanLike(modeFromState);
+        const contextSaysParallel = coerceBooleanLike(dashboardContext.parallel_migration);
         const logSaysParallel = String(stats.migrationMode || "").toLowerCase() === "parallel";
-        const isParallel = stateSaysParallel || logSaysParallel;
+        const isParallel = stateSaysParallel || contextSaysParallel || logSaysParallel;
         const queueValue = Number(stats.assetsInQueue || 0);
         setProgressRow("bar-info-queue", "bar-info-queue-count", queueValue, 100);
         if (!isParallel) {

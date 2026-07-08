@@ -404,6 +404,7 @@ class JobData:
         process: subprocess.Popen[str],
         tab: str | None = None,
         owner_user_id: int | None = None,
+        dashboard_context: Dict[str, Any] | None = None,
     ) -> None:
         self.command = command
         self.command_string = subprocess.list2cmdline(command)
@@ -426,6 +427,11 @@ class JobData:
         self.return_code: int | None = None
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.finished_at: str | None = None
+        self.dashboard_context: Dict[str, Any] = dict(dashboard_context or {})
+        self.dashboard_snapshot: Dict[str, Any] = {}
+        self.dashboard_snapshot_dirty = False
+        self.dashboard_snapshot_updated_at: str | None = None
+        self.dashboard_snapshot_last_refresh_monotonic = 0.0
 
 
 @dataclass
@@ -2081,6 +2087,11 @@ def _append_job_output(job: JobData, text: str) -> None:
         if progress_key:
             job.progress_lines[progress_key] = entry
 
+    if job.tab == "automatic_migration":
+        job.dashboard_snapshot_dirty = True
+        if completed:
+            _refresh_job_dashboard_snapshot(job, force=False)
+
     while len(job.output) > MAX_JOB_OUTPUT_LINES:
         removed = job.output.popleft()
         job.output_chars -= len(removed.text)
@@ -2128,6 +2139,220 @@ def _read_job_output_for_api(job: JobData) -> str:
         f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines).\n"
     )
     return notice + base
+
+
+def _parse_last_matching_number(lines: List[str], pattern: re.Pattern[str]) -> int | None:
+    for line in reversed(lines):
+        match = pattern.search(line)
+        if match:
+            try:
+                return int(str(match.group(1)).replace(",", ""))
+            except Exception:
+                continue
+    return None
+
+
+def _parse_first_matching_number(lines: List[str], pattern: re.Pattern[str]) -> int | None:
+    for line in lines:
+        match = pattern.search(line)
+        if match:
+            try:
+                return int(str(match.group(1)).replace(",", ""))
+            except Exception:
+                continue
+    return None
+
+
+def _parse_last_matching_text(lines: List[str], pattern: re.Pattern[str]) -> str | None:
+    for line in reversed(lines):
+        match = pattern.search(line)
+        if match and match.group(1):
+            return str(match.group(1)).strip()
+    return None
+
+
+def _count_regex_matches(text: str, pattern: re.Pattern[str]) -> int:
+    return len(pattern.findall(text or ""))
+
+
+def _extract_dashboard_stats_from_output(raw_text: str) -> Dict[str, Any]:
+    output = str(raw_text or "")
+    lines = output.splitlines()
+
+    stats: Dict[str, Any] = {
+        "migrationMode": _parse_last_matching_text(lines, re.compile(r"migration mode\s*:\s*(parallel|sequential)", re.IGNORECASE)),
+        "sourceClientName": _parse_last_matching_text(lines, re.compile(r"source client\s*:\s*(.+)$", re.IGNORECASE)),
+        "targetClientName": _parse_last_matching_text(lines, re.compile(r"target client\s*:\s*(.+)$", re.IGNORECASE)),
+        "totalAssets": None,
+        "totalPhotos": None,
+        "totalVideos": None,
+        "totalAlbums": None,
+        "totalMetadata": None,
+        "totalSidecar": None,
+        "totalInvalid": None,
+        "blockedAlbums": None,
+        "blockedAssets": None,
+        "assetsInQueue": None,
+        "pulledAssets": _parse_last_matching_number(lines, re.compile(r"pulled assets\s*:\s*(\d+)", re.IGNORECASE)),
+        "pulledPhotos": _parse_last_matching_number(lines, re.compile(r"pulled assets\s*:.*photos:\s*(\d+)", re.IGNORECASE)),
+        "pulledVideos": _parse_last_matching_number(lines, re.compile(r"pulled assets\s*:.*videos:\s*(\d+)", re.IGNORECASE)),
+        "pulledAlbums": _parse_last_matching_number(lines, re.compile(r"pulled albums\s*:\s*(\d+)", re.IGNORECASE)),
+        "pullFailedAssets": _parse_last_matching_number(lines, re.compile(r"pull failed assets\s*:\s*(\d+)", re.IGNORECASE)),
+        "pullFailedPhotos": _parse_last_matching_number(lines, re.compile(r"pull failed photos\s*:\s*(\d+)", re.IGNORECASE)),
+        "pullFailedVideos": _parse_last_matching_number(lines, re.compile(r"pull failed videos\s*:\s*(\d+)", re.IGNORECASE)),
+        "pullFailedAlbums": _parse_last_matching_number(lines, re.compile(r"pull failed albums\s*:\s*(\d+)", re.IGNORECASE)),
+        "pushedAssets": _parse_last_matching_number(lines, re.compile(r"pushed assets\s*:\s*(\d+)", re.IGNORECASE)),
+        "pushedPhotos": _parse_last_matching_number(lines, re.compile(r"pushed assets\s*:.*photos:\s*(\d+)", re.IGNORECASE)),
+        "pushedVideos": _parse_last_matching_number(lines, re.compile(r"pushed assets\s*:.*videos:\s*(\d+)", re.IGNORECASE)),
+        "pushedAlbums": _parse_last_matching_number(lines, re.compile(r"pushed albums\s*:\s*(\d+)", re.IGNORECASE)),
+        "pushDuplicates": _parse_last_matching_number(lines, re.compile(r"push duplicates.*:\s*(\d+)", re.IGNORECASE)),
+        "pushFailedAssets": _parse_last_matching_number(lines, re.compile(r"push failed assets\s*:\s*(\d+)", re.IGNORECASE)),
+        "pushFailedPhotos": _parse_last_matching_number(lines, re.compile(r"push failed photos\s*:\s*(\d+)", re.IGNORECASE)),
+        "pushFailedVideos": _parse_last_matching_number(lines, re.compile(r"push failed videos\s*:\s*(\d+)", re.IGNORECASE)),
+        "pushFailedAlbums": _parse_last_matching_number(lines, re.compile(r"push failed albums\s*:\s*(\d+)", re.IGNORECASE)),
+    }
+
+    first_patterns = {
+        "totalAssets": [
+            re.compile(r"total assets\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_assets\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+        "totalPhotos": [
+            re.compile(r"total photos\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_photos\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+        "totalVideos": [
+            re.compile(r"total videos\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_videos\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+        "totalAlbums": [
+            re.compile(r"total albums\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_albums\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+        "totalMetadata": [
+            re.compile(r"total metadata\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_metadata\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+        "totalSidecar": [
+            re.compile(r"total sidecar\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_sidecar\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+        "totalInvalid": [
+            re.compile(r"invalid files\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_invalid\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+    }
+    for key, patterns in first_patterns.items():
+        for pattern in patterns:
+            value = _parse_first_matching_number(lines, pattern)
+            if value is not None:
+                stats[key] = value
+                break
+
+    any_patterns = {
+        "blockedAlbums": [
+            re.compile(r"blocked albums\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_albums_blocked\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+        "blockedAssets": [
+            re.compile(r"blocked assets\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"total_assets_blocked\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+        "assetsInQueue": [
+            re.compile(r"assets in queue\s*:\s*(\d+)", re.IGNORECASE),
+            re.compile(r"assets_in_queue\s*:\s*(\d+)", re.IGNORECASE),
+        ],
+    }
+    for key, patterns in any_patterns.items():
+        for pattern in patterns:
+            value = _parse_last_matching_number(lines, pattern)
+            if value is not None:
+                stats[key] = value
+                break
+
+    if stats["pulledAssets"] is None:
+        stats["pulledAssets"] = _count_regex_matches(output, re.compile(r"asset pulled\s*:", re.IGNORECASE))
+    if stats["pulledAlbums"] is None:
+        stats["pulledAlbums"] = _count_regex_matches(output, re.compile(r"album pulled\s*:", re.IGNORECASE))
+    if stats["pullFailedAssets"] is None:
+        stats["pullFailedAssets"] = _count_regex_matches(output, re.compile(r"asset pull fail\s*:|asset pull error\s*:", re.IGNORECASE))
+    if stats["pullFailedAlbums"] is None:
+        stats["pullFailedAlbums"] = _count_regex_matches(output, re.compile(r"error retrieving all assets from album", re.IGNORECASE))
+    if stats["pushedAssets"] is None:
+        stats["pushedAssets"] = _count_regex_matches(output, re.compile(r"asset pushed\s*:", re.IGNORECASE))
+    if stats["pushedAlbums"] is None:
+        stats["pushedAlbums"] = _count_regex_matches(output, re.compile(r"album pushed\s*:", re.IGNORECASE))
+    if stats["pushFailedAssets"] is None:
+        stats["pushFailedAssets"] = _count_regex_matches(output, re.compile(r"asset push fail\s*:", re.IGNORECASE))
+    if stats["pushFailedAlbums"] is None:
+        stats["pushFailedAlbums"] = _count_regex_matches(output, re.compile(r"album push fail\s*:", re.IGNORECASE))
+    if stats["pushDuplicates"] is None:
+        stats["pushDuplicates"] = _count_regex_matches(output, re.compile(r"asset duplicated\s*:", re.IGNORECASE))
+
+    if stats["blockedAlbums"] is None:
+        blocked_album_events = _count_regex_matches(output, re.compile(r"cannot be pulled because is a blocked shared album", re.IGNORECASE))
+        if blocked_album_events > 0:
+            stats["blockedAlbums"] = blocked_album_events
+
+    if stats["totalAlbums"] is None:
+        stats["totalAlbums"] = _parse_first_matching_number(lines, re.compile(r"(\d+)\s+albums found on", re.IGNORECASE))
+
+    inferred_total_assets = max(
+        int(stats["totalAssets"] or 0),
+        int(stats["pulledAssets"] or 0) + int(stats["pullFailedAssets"] or 0),
+        int(stats["pushedAssets"] or 0) + int(stats["pushFailedAssets"] or 0) + int(stats["pushDuplicates"] or 0),
+    )
+    if stats["totalAssets"] is None and inferred_total_assets > 0:
+        stats["totalAssets"] = inferred_total_assets
+
+    inferred_queue = max(
+        0,
+        int(stats["pulledAssets"] or 0)
+        - int(stats["pushedAssets"] or 0)
+        - int(stats["pushFailedAssets"] or 0)
+        - int(stats["pushDuplicates"] or 0),
+    )
+    if (
+        int(stats["pulledAssets"] or 0) > 0
+        or int(stats["pushedAssets"] or 0) > 0
+        or int(stats["pushFailedAssets"] or 0) > 0
+        or int(stats["pushDuplicates"] or 0) > 0
+    ):
+        stats["assetsInQueue"] = inferred_queue
+    elif stats["assetsInQueue"] is None:
+        stats["assetsInQueue"] = inferred_queue
+
+    if stats["totalPhotos"] is None and stats["pulledPhotos"] is not None and stats["pullFailedPhotos"] is not None:
+        stats["totalPhotos"] = int(stats["pulledPhotos"]) + int(stats["pullFailedPhotos"])
+    if stats["totalVideos"] is None and stats["pulledVideos"] is not None and stats["pullFailedVideos"] is not None:
+        stats["totalVideos"] = int(stats["pulledVideos"]) + int(stats["pullFailedVideos"])
+
+    return stats
+
+
+def _merge_dashboard_snapshot(previous: Dict[str, Any], current: Dict[str, Any]) -> Dict[str, Any]:
+    merged = dict(previous or {})
+    for key, value in current.items():
+        if value is None:
+            continue
+        merged[key] = value
+    return merged
+
+
+def _refresh_job_dashboard_snapshot(job: JobData, force: bool = False) -> None:
+    if job.tab != "automatic_migration":
+        return
+    if not force and not job.dashboard_snapshot_dirty:
+        return
+    now = time.monotonic()
+    if not force and (now - job.dashboard_snapshot_last_refresh_monotonic) < 0.5:
+        return
+    current_output = _read_job_output_for_api(job)
+    current_stats = _extract_dashboard_stats_from_output(current_output)
+    job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, current_stats)
+    job.dashboard_snapshot_dirty = False
+    job.dashboard_snapshot_last_refresh_monotonic = now
+    job.dashboard_snapshot_updated_at = datetime.now(timezone.utc).isoformat()
 
 
 PARSER_SCHEMA: Dict[str, Any] = {}
@@ -2764,6 +2989,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
                     job.awaiting_confirmation = False
         rc = process.wait()
         with JOBS_LOCK:
+            _refresh_job_dashboard_snapshot(job, force=True)
             job.return_code = rc
             if job.stop_requested:
                 _emit_stop_notice()
@@ -2777,6 +3003,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
             _close_job_output_file(job)
     except Exception as exc:
         with JOBS_LOCK:
+            _refresh_job_dashboard_snapshot(job, force=True)
             if job.stop_requested:
                 _emit_stop_notice()
                 job.return_code = process.returncode if process.returncode is not None else -1
@@ -3478,7 +3705,17 @@ def run_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_require
     )
 
     with JOBS_LOCK:
-        JOBS[job_id] = JobData(command=command, process=process, tab=payload.tab, owner_user_id=int(current_user["id"]))
+        JOBS[job_id] = JobData(
+            command=command,
+            process=process,
+            tab=payload.tab,
+            owner_user_id=int(current_user["id"]),
+            dashboard_context={
+                "source": normalized_values.get("source"),
+                "target": normalized_values.get("target"),
+                "parallel_migration": normalized_values.get("parallel-migration"),
+            },
+        )
         JOBS[job_id].command_string = display_command
 
     thread = threading.Thread(target=_run_job, args=(job_id, process), daemon=True)
@@ -3515,6 +3752,7 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
         job = JOBS[job_id]
         if int(job.owner_user_id or -1) != int(current_user["id"]):
             raise HTTPException(status_code=404, detail="Job not found")
+        _refresh_job_dashboard_snapshot(job, force=True)
         output = _read_job_output_for_api(job)
         can_send_input = bool(
             job.status == "running"
@@ -3534,6 +3772,9 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
             "can_send_input": can_send_input,
             "can_stop": can_stop,
             "awaiting_confirmation": bool(can_send_input and job.awaiting_confirmation),
+            "dashboard_context": dict(job.dashboard_context or {}),
+            "dashboard_snapshot": dict(job.dashboard_snapshot or {}),
+            "dashboard_snapshot_updated_at": job.dashboard_snapshot_updated_at,
             "output": output,
         }
 

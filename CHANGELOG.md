@@ -39,6 +39,7 @@
   - Fixed `Google Takeout` video metadata repair helpers so they now tolerate test/runtime environments where `dateutil.parser.parse()` is stubbed or returns a plain string. The metadata-date normalizer now falls back to `datetime.fromisoformat()` for ISO timestamps instead of crashing with `AttributeError: 'str' object has no attribute 'tzinfo'`.
   - Fixed `Google Takeout` output-folder naming when the processing input already points to a generated `..._unzipped_<TIMESTAMP>` folder, so PhotoMigrator now collapses that staging suffix before creating the processed folder and produces `Takeout_processed_<TIMESTAMP>` instead of `Takeout_unzipped_<TIMESTAMP>_processed_<TIMESTAMP>`.
   - Fixed Web Interface command generation for `Rename Albums` so replacement values that start with `-` or `--` are now kept as a single comma-separated `--rename-albums` argument in both the command preview and the executed job, matching the parser behavior already used by the shared CLI/TUI/GUI command builder.
+  - Fixed the Web Interface `Automatic Migration` Live Dashboard so totals and progress bars now survive page refreshes and reconnections from another device. The backend now persists a structured per-job dashboard snapshot while the migration is running, and the frontend rehydrates counters and progress from that snapshot instead of re-inferring them only from the compact rolling log buffer, which previously lost the original fixed totals and could make bars jump to `100%` mid-run after refresh.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
