@@ -1,4 +1,5 @@
 import functools
+import heapq
 import logging
 import os
 import re
@@ -23,7 +24,7 @@ from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
-from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate
+from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
 terminal_width = shutil.get_terminal_size().columns
@@ -297,6 +298,8 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             'total_push_failed_videos': 0,
             'total_push_failed_albums': 0,
             'total_push_duplicates_assets': 0,
+            'total_push_retry_scheduled_assets': 0,
+            'total_push_retry_recovered_assets': 0,
         }
 
         # Input INFO
@@ -312,6 +315,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             "total_sidecar": 0,
             "total_invalid": 0,
             "assets_in_queue": 0,
+            "delayed_assets_pending": 0,
             "elapsed_time": 0,
             "start_time": start_time
         }
@@ -658,16 +662,31 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     # Protector para que no se pisen las actualizaciones de métricas
     metrics_lock = threading.Lock()
+    retry_delay_seconds = max(60, int(ARGS.get("push-failed-asset-retry-delay-seconds", 180) or 180))
+    max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 3) or 3))
+    retry_backoff_factor = max(1, int(ARGS.get("push-failed-asset-retry-backoff-factor", 1) or 1))
+    retry_heap = []
+    retry_condition = threading.Condition()
+    retry_sequence = {"value": 0}
+    retry_scheduler_stop = threading.Event()
+
+    def _refresh_queue_depth():
+        with metrics_lock:
+            delayed_assets = int(SHARED_DATA.info.get('delayed_assets_pending', 0) or 0)
+            try:
+                queue_size = push_queue.qsize()
+            except NameError:
+                queue_size = 0
+            SHARED_DATA.info['assets_in_queue'] = queue_size + delayed_assets
+
     class MonitoredQueue(Queue):
         def put(self, item, *args, **kwargs):
             super().put(item, *args, **kwargs)
-            with metrics_lock:
-                SHARED_DATA.info['assets_in_queue'] = self.qsize()
+            _refresh_queue_depth()
 
         def get(self, *args, **kwargs):
             item = super().get(*args, **kwargs)
-            with metrics_lock:
-                SHARED_DATA.info['assets_in_queue'] = self.qsize()
+            _refresh_queue_depth()
             return item
 
     # -------------------------------------------------------------------
@@ -676,6 +695,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # Creamos un diccionario created_albums (protegido por candado para evitar condiciones de carrera entre workers) para registrar los albums que ya han sido creados y de este modo evitar que un album se cree 2 o más veces por varios workers en paralelo.
     album_creation_lock = threading.Lock()
     created_albums = {}
+    consolidated_album_groups = set()
     processed_albums = set()
     processed_albums_lock = threading.Lock()
     immich_uploaded_records = []
@@ -690,6 +710,203 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.warning(f"Could not preload existing target albums for album reuse checks. {error}")
             target_existing_albums = []
 
+    def _get_target_album_assets(target_client, album_id, album_name=None, log_level=logging.ERROR):
+        if isinstance(target_client, ClassSynologyPhotos):
+            return target_client.get_all_assets_from_album(album_id, album_name, log_level=log_level) or []
+        return target_client.get_all_assets_from_album(album_id, log_level=log_level) or []
+
+    def _get_target_album_asset_ids(target_client, album_id, album_name=None, log_level=logging.ERROR):
+        assets = _get_target_album_assets(target_client, album_id, album_name=album_name, log_level=log_level)
+        return [str(asset.get("id", "")).strip() for asset in assets if str(asset.get("id", "")).strip()]
+
+    def _remove_target_existing_album(existing_albums, album_id):
+        if existing_albums is None:
+            return
+        album_id = str(album_id or "").strip()
+        if not album_id:
+            return
+        existing_albums[:] = [
+            album for album in existing_albums
+            if str((album or {}).get("id", "")).strip() != album_id
+        ]
+
+    def _upsert_target_existing_album(existing_albums, album_id, album_name):
+        if existing_albums is None or not album_id:
+            return
+        _remove_target_existing_album(existing_albums, album_id)
+        existing_albums.append({"id": album_id, "albumName": album_name})
+
+    def _consolidate_album_group_for_reuse(album_name, worker_id=1, log_level=logging.ERROR):
+        if not reuse_similar_existing_albums or not isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+            matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
+                album_name=album_name,
+                albums=target_existing_albums,
+                allow_similar=reuse_similar_existing_albums,
+                exact_case_sensitive=target_exact_album_match_case_sensitive,
+            )
+            return matched_album, match_kind, ambiguous_matches
+
+        plan = build_reusable_album_group(
+            album_name=album_name,
+            albums=target_existing_albums,
+            allow_similar=True,
+            exact_case_sensitive=target_exact_album_match_case_sensitive,
+        )
+        group_key = str(plan.get("similarity_key") or "").strip()
+        keeper_album = plan.get("keeper_album")
+        preferred_album_name = str(plan.get("preferred_album_name") or album_name).strip() or album_name
+
+        if group_key and group_key not in consolidated_album_groups:
+            keeper_id = str((keeper_album or {}).get("id", "")).strip() if keeper_album else ""
+            keeper_name = str((keeper_album or {}).get("albumName", "")).strip() if keeper_album else ""
+
+            if not keeper_id or str(keeper_name).casefold() != preferred_album_name.casefold():
+                keeper_id = target_client.create_album(album_name=preferred_album_name, log_level=log_level)
+                if keeper_id:
+                    keeper_name = preferred_album_name
+                    keeper_album = {"id": keeper_id, "albumName": keeper_name}
+                    LOGGER.info(f"Album Created   : '{keeper_name}' by pusher_worker={worker_id}")
+                    _upsert_target_existing_album(target_existing_albums, keeper_id, keeper_name)
+
+            if keeper_id:
+                keeper_asset_ids = None
+                all_redundant = list(plan.get("similar_albums") or [])
+                for redundant_album in all_redundant:
+                    redundant_id = str((redundant_album or {}).get("id", "")).strip()
+                    redundant_name = str((redundant_album or {}).get("albumName", "")).strip()
+                    if not redundant_id or redundant_id == keeper_id:
+                        continue
+
+                    duplicate_asset_ids = _get_target_album_asset_ids(
+                        target_client=target_client,
+                        album_id=redundant_id,
+                        album_name=redundant_name,
+                        log_level=log_level,
+                    )
+                    should_remove_redundant = False
+                    if duplicate_asset_ids:
+                        added_count = target_client.add_assets_to_album(
+                            album_id=keeper_id,
+                            asset_ids=duplicate_asset_ids,
+                            album_name=keeper_name,
+                            log_level=log_level,
+                        )
+                        if isinstance(added_count, int) and added_count > 0:
+                            should_remove_redundant = True
+                        else:
+                            if keeper_asset_ids is None:
+                                keeper_asset_ids = set(_get_target_album_asset_ids(
+                                    target_client=target_client,
+                                    album_id=keeper_id,
+                                    album_name=keeper_name,
+                                    log_level=log_level,
+                                ))
+                            if set(duplicate_asset_ids).issubset(keeper_asset_ids):
+                                should_remove_redundant = True
+                    else:
+                        should_remove_redundant = True
+
+                    if should_remove_redundant and target_client.remove_album(redundant_id, redundant_name, log_level=log_level):
+                        LOGGER.info(
+                            f"Album Consolidated: moved reusable/similar album '{redundant_name}' into '{keeper_name}' "
+                            f"and removed the redundant album."
+                        )
+                        _remove_target_existing_album(target_existing_albums, redundant_id)
+
+                consolidated_album_groups.add(group_key)
+                created_albums[preferred_album_name] = keeper_id
+                for similar_album in plan.get("similar_albums") or []:
+                    similar_name = str((similar_album or {}).get("albumName", "")).strip()
+                    if similar_name:
+                        created_albums[similar_name] = keeper_id
+                created_albums[album_name] = keeper_id
+                return keeper_album, plan.get("match_kind") or "similar", []
+
+        matched_album = plan.get("matched_album")
+        if keeper_album and str((keeper_album or {}).get("id", "")).strip():
+            matched_album = keeper_album
+        return matched_album, plan.get("match_kind"), []
+
+    def _record_final_push_failure(asset_type, count_push_stats):
+        if count_push_stats:
+            SHARED_DATA.counters['total_push_failed_assets'] += 1
+            if asset_type.lower() in video_labels:
+                SHARED_DATA.counters['total_push_failed_videos'] += 1
+            else:
+                SHARED_DATA.counters['total_push_failed_photos'] += 1
+
+    def _compute_retry_delay_seconds(retry_attempt):
+        exponent = max(0, int(retry_attempt) - 1)
+        return int(retry_delay_seconds * (retry_backoff_factor ** exponent))
+
+    def _schedule_asset_retry(asset, reason, resolved_target_asset_id=None, skip_target_push=False):
+        if max_push_retries <= 0:
+            return False
+
+        current_attempt = int(asset.get('retry_attempt', 0) or 0)
+        next_attempt = current_attempt + 1
+        if next_attempt > max_push_retries:
+            return False
+
+        retry_asset = dict(asset)
+        retry_asset['retry_attempt'] = next_attempt
+        if resolved_target_asset_id:
+            retry_asset['resolved_target_asset_id'] = resolved_target_asset_id
+            retry_asset['skip_target_push'] = bool(skip_target_push)
+        else:
+            retry_asset.pop('resolved_target_asset_id', None)
+            retry_asset.pop('skip_target_push', None)
+
+        delay_seconds = _compute_retry_delay_seconds(next_attempt)
+        ready_at = time.time() + delay_seconds
+
+        with retry_condition:
+            retry_sequence['value'] += 1
+            heapq.heappush(retry_heap, (ready_at, retry_sequence['value'], retry_asset))
+            SHARED_DATA.info['delayed_assets_pending'] = len(retry_heap)
+            retry_condition.notify_all()
+        _refresh_queue_depth()
+
+        SHARED_DATA.counters['total_push_retry_scheduled_assets'] += 1
+        LOGGER.warning(
+            f"Asset Retry Delayed: '{os.path.basename(asset.get('asset_file_path', ''))}' "
+            f"attempt {next_attempt}/{max_push_retries} scheduled in {delay_seconds}s. Reason: {reason}"
+        )
+        return True
+
+    def retry_scheduler_worker(log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):
+            while True:
+                with retry_condition:
+                    while not retry_heap and not retry_scheduler_stop.is_set():
+                        retry_condition.wait(timeout=1.0)
+                    if retry_scheduler_stop.is_set() and not retry_heap:
+                        break
+                    if not retry_heap:
+                        continue
+                    ready_at, _, retry_asset = retry_heap[0]
+                    now = time.time()
+                    if ready_at > now:
+                        retry_condition.wait(timeout=min(1.0, ready_at - now))
+                        continue
+                    heapq.heappop(retry_heap)
+                    SHARED_DATA.info['delayed_assets_pending'] = len(retry_heap)
+                _refresh_queue_depth()
+                push_queue.put(retry_asset)
+                LOGGER.info(
+                    f"Asset Retry Enqueued: '{os.path.basename(retry_asset.get('asset_file_path', ''))}' "
+                    f"attempt {retry_asset.get('retry_attempt', 0)}/{max_push_retries}"
+                )
+
+    def _wait_until_push_pipeline_drains():
+        while True:
+            push_queue.join()
+            with retry_condition:
+                retries_pending = len(retry_heap)
+            if retries_pending == 0 and push_queue.qsize() == 0:
+                break
+            time.sleep(0.25)
+
     # ----------------------------------------------------------------------------------------
     # function to ensure that the puller put only 1 asset with the same filepath to the queue
     # ----------------------------------------------------------------------------------------
@@ -700,7 +917,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         """
         with file_paths_lock:
             asset_file_path = item_dict['asset_file_path']
-            SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+            _refresh_queue_depth()
 
             if asset_file_path in added_file_paths:
                 # El item ya fue añadido anteriormente
@@ -1079,10 +1296,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 )
                 for worker_id in range(num_push_threads)
             ]
+            retry_thread = threading.Thread(
+                target=retry_scheduler_worker,
+                kwargs={"log_level": logging.INFO},
+                daemon=True,
+            )
 
             # 1) Arrancar pullers
             for t in pull_threads:
                 t.start()
+            retry_thread.start()
 
             # 2) Si modo paralelo, arranca ya los pushers
             if parallel:
@@ -1099,7 +1322,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     t.start()
 
             # 5) Esperar a que la cola se vacíe (assets reales y todos los re‑enqueues)
-            push_queue.join()
+            _wait_until_push_pipeline_drains()
+
+            retry_scheduler_stop.set()
+            with retry_condition:
+                retry_condition.notify_all()
+            retry_thread.join()
 
             # 6) Inyectar un None por cada pusher para que lean la señal de fin
             for _ in range(num_push_threads):
@@ -1151,6 +1379,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Push Duplicates (skipped)   : {SHARED_DATA.counters['total_push_duplicates_assets']}")
             LOGGER.info(f"Pull Failed Assets          : {SHARED_DATA.counters['total_pull_failed_assets']}")
             LOGGER.info(f"Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
+            LOGGER.info(f"Push Retry Scheduled        : {SHARED_DATA.counters['total_push_retry_scheduled_assets']}")
+            LOGGER.info(f"Push Retry Recovered        : {SHARED_DATA.counters['total_push_retry_recovered_assets']}")
             LOGGER.info(f"")
             LOGGER.info(f"Migration Job completed in  : {migration_formatted_duration}")
             LOGGER.info(f"Total Elapsed Time          : {total_formatted_duration}")
@@ -1473,20 +1703,18 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         with set_log_level(LOGGER, log_level):
             move_assets = ARGS.get('move-assets', None)
             while True:
+                asset = None
                 try:
                     # Extraemos el siguiente asset de la cola
                     # time.sleep(0.7)  # Esto es por si queremos ralentizar el worker de subidas
                     asset = push_queue.get()
-                    # Actualizamos inmediatamente el tamaño tras el get
-                    # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
 
                     if asset is None:
                         # Señal de fin: marcamos la tarea y salimos
-                        push_queue.task_done()
                         break
 
                     # Obtenemos las propiedades del asset extraído de la cola.
-                    asset_id = asset['asset_id']
+                    source_asset_id = asset['asset_id']
                     asset_file_path = asset['asset_file_path']
                     asset_datetime = asset['asset_datetime']
                     asset_type = asset['asset_type']
@@ -1494,106 +1722,92 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     album_is_shared = asset.get('album_is_shared', False)
                     count_push_stats = asset.get('count_push_stats', True)
                     live_photo_video_path = asset.get('live_photo_video_path', None)
+                    retry_attempt = int(asset.get('retry_attempt', 0) or 0)
+                    skip_target_push = bool(asset.get('skip_target_push')) and bool(asset.get('resolved_target_asset_id'))
+                    asset_id = asset.get('resolved_target_asset_id')
                     asset_pushed = False
                     treat_as_consumed = False
+                    album_association_confirmed = not bool(album_name)
+                    scheduled_retry = False
 
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
                     try:
-                        # SUBIR el asset
-                        if isinstance(target_client, ClassImmichPhotos) and live_photo_video_path:
-                            asset_id, isDuplicated = target_client.push_live_photo(photo_file_path=asset_file_path, live_photo_video_path=live_photo_video_path, log_level=logging.ERROR)
-                        else:
-                            asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
-
-                        # Actualizamos Contadores de subidas
-                        if asset_id:
-                            asset_pushed = True
+                        isDuplicated = False
+                        # SUBIR el asset salvo que ya tengamos que reintentar solo la asociación al álbum.
+                        if skip_target_push and asset_id:
                             treat_as_consumed = True
-                            if isDuplicated:
-                                LOGGER.info(f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
-                                if count_push_stats:
-                                    SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                            else:
-                                if count_push_stats:
-                                    SHARED_DATA.counters['total_pushed_assets'] += 1
-                                    if asset_type.lower() in video_labels:
-                                        SHARED_DATA.counters['total_pushed_videos'] += 1
-                                    else:
-                                        SHARED_DATA.counters['total_pushed_photos'] += 1
-                                LOGGER.info(f"Asset Pushed    : '{os.path.basename(asset_file_path)}'")
-                                if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
-                                    try:
-                                        file_size = os.path.getsize(asset_file_path) if os.path.exists(asset_file_path) else 0
-                                    except Exception:
-                                        file_size = 0
-                                    rec = target_client._build_burst_record(
-                                        asset_id=asset_id,
-                                        file_path=asset_file_path,
-                                        capture_epoch=parse_capture_epoch(asset_datetime),
-                                        file_size=file_size
-                                    )
-                                    with immich_uploaded_records_lock:
-                                        immich_uploaded_records.append(rec)
                         else:
-                            # Si entramos aqui es porque asset_id no existe, probablemente se haya producido una excepción en push_asset, y el LOGGER se haya quedado con el nivel ERROR
-                            # Restauramos el LOGGER al nivel que tenía antes de llamar a push_asset
-                            # LOGGER.setLevel(orig_level)
-                            set_log_level(LOGGER, orig_level)
-                            if isDuplicated:
-                                LOGGER.info(f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
-                                treat_as_consumed = True
-                                if count_push_stats:
-                                    SHARED_DATA.counters['total_push_duplicates_assets'] += 1
+                            if isinstance(target_client, ClassImmichPhotos) and live_photo_video_path:
+                                asset_id, isDuplicated = target_client.push_live_photo(photo_file_path=asset_file_path, live_photo_video_path=live_photo_video_path, log_level=logging.ERROR)
                             else:
-                                if album_name:
-                                    LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                                asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
+
+                            # Actualizamos Contadores de subidas
+                            if asset_id:
+                                asset_pushed = True
+                                treat_as_consumed = True
+                                if isDuplicated:
+                                    LOGGER.info(f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
+                                    if count_push_stats:
+                                        SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                                 else:
-                                    LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
-                                if count_push_stats:
-                                    SHARED_DATA.counters['total_push_failed_assets'] += 1
-                                    if asset_type.lower() in video_labels:
-                                        SHARED_DATA.counters['total_push_failed_videos'] += 1
-                                    else:
-                                        SHARED_DATA.counters['total_push_failed_photos'] += 1
+                                    if count_push_stats:
+                                        SHARED_DATA.counters['total_pushed_assets'] += 1
+                                        if asset_type.lower() in video_labels:
+                                            SHARED_DATA.counters['total_pushed_videos'] += 1
+                                        else:
+                                            SHARED_DATA.counters['total_pushed_photos'] += 1
+                                    LOGGER.info(f"Asset Pushed    : '{os.path.basename(asset_file_path)}'")
+                                    if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
+                                        try:
+                                            file_size = os.path.getsize(asset_file_path) if os.path.exists(asset_file_path) else 0
+                                        except Exception:
+                                            file_size = 0
+                                        rec = target_client._build_burst_record(
+                                            asset_id=asset_id,
+                                            file_path=asset_file_path,
+                                            capture_epoch=parse_capture_epoch(asset_datetime),
+                                            file_size=file_size
+                                        )
+                                        with immich_uploaded_records_lock:
+                                            immich_uploaded_records.append(rec)
+                            else:
+                                # Si entramos aqui es porque asset_id no existe, probablemente se haya producido una excepción en push_asset, y el LOGGER se haya quedado con el nivel ERROR
+                                set_log_level(LOGGER, orig_level)
+                                if isDuplicated:
+                                    LOGGER.info(f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
+                                    treat_as_consumed = True
+                                    if count_push_stats:
+                                        SHARED_DATA.counters['total_push_duplicates_assets'] += 1
+                                else:
+                                    scheduled_retry = _schedule_asset_retry(
+                                        asset=asset,
+                                        reason="upload did not return a reusable target asset id",
+                                    )
+                                    if not scheduled_retry:
+                                        if album_name:
+                                            LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                                        else:
+                                            LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                                        _record_final_push_failure(asset_type=asset_type, count_push_stats=count_push_stats)
 
-                        # Borrar asset de 'source' client si hemos pasado el argumento '-move, --move-assets'
-                        if move_assets and asset.get('asset_id') and asset['asset_id'] not in removed_source_asset_ids and treat_as_consumed and asset_id:
-                            _remove_source_asset_after_move(
-                                source_client=source_client,
-                                asset_id=asset['asset_id'],
-                                log_level=log_level,
-                            )
-                            removed_source_asset_ids.add(asset['asset_id'])
-
-                        # Borrar asset de la carpeta Automatic_Migration_Push_Failed tras subir
-                        if asset_pushed or treat_as_consumed:
-                            safe_remove_local_file(asset_file_path)
-                            if live_photo_video_path:
-                                safe_remove_local_file(live_photo_video_path)
                     except Exception as e:
                         # 1) Restaura el nivel a INFO
                         LOGGER.setLevel(logging.INFO)
 
-                        # 2) Loguea el fallo
-                        if album_name:
-                            LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
-                        else:
-                            LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
-                        LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
-
-                        # 3) Actualiza contadores
-                        if count_push_stats:
-                            SHARED_DATA.counters['total_push_failed_assets'] += 1
-                            if asset_type.lower() in video_labels:
-                                SHARED_DATA.counters['total_push_failed_videos'] += 1
+                        scheduled_retry = _schedule_asset_retry(
+                            asset=asset,
+                            reason=f"upload exception: {str(e)}",
+                        )
+                        if not scheduled_retry:
+                            if album_name:
+                                LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
                             else:
-                                SHARED_DATA.counters['total_push_failed_photos'] += 1
-
-                        # 4) Marca la tarea como completada y pasa al siguiente asset
-                        push_queue.task_done()
-                        # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
-                        continue
+                                LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                            LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
+                            _record_final_push_failure(asset_type=asset_type, count_push_stats=count_push_stats)
+                            continue
 
                     finally:
                         # Pase lo que pase (return o excepción dentro de push_asset),
@@ -1602,7 +1816,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                     # Si existe album_name y tenemos un asset_id reutilizable en destino,
                     # lo asociamos al álbum incluso si la subida fue detectada como duplicada.
-                    if album_name and asset_id:
+                    if not scheduled_retry and album_name and asset_id:
                         # 1) Asegurarnos de que el álbum existe (sólo un hilo lo crea)
                         with album_creation_lock:
                             if album_name not in created_albums:
@@ -1613,11 +1827,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         log_level=logging.ERROR,
                                     )
                                 elif target_existing_albums is not None:
-                                    matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
+                                    matched_album, match_kind, ambiguous_matches = _consolidate_album_group_for_reuse(
                                         album_name=album_name,
-                                        albums=target_existing_albums,
-                                        allow_similar=reuse_similar_existing_albums,
-                                        exact_case_sensitive=target_exact_album_match_case_sensitive,
+                                        worker_id=worker_id,
+                                        log_level=logging.ERROR,
                                     )
                                     if ambiguous_matches:
                                         candidate_names = ", ".join([f"'{item.get('albumName', '')}'" for item in ambiguous_matches[:3]])
@@ -1651,53 +1864,85 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     if target_existing_albums is not None and aid:
                                         target_existing_albums.append({"id": aid, "albumName": album_name})
                                 created_albums[album_name] = aid
-                        # 2) Recuperar album_id cached que ya debe existir (añadido por este worker o cualquier otro worker previamente)
                         album_id_dest = created_albums.get(album_name)
                         try:
-                            # 3) Añadir el asset al álbum existente
                             added_to_album = target_client.add_assets_to_album(
                                 album_id=album_id_dest,
                                 asset_ids=asset_id,
                                 album_name=album_name,
                                 log_level=logging.ERROR,
                             )
-                            if isinstance(added_to_album, int) and added_to_album < 1:
+                            if isinstance(added_to_album, int) and added_to_album >= 1:
+                                album_association_confirmed = True
+                            else:
                                 LOGGER.warning(
                                     f"Album association was not confirmed by target for asset '{os.path.basename(asset_file_path)}' "
                                     f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
                                 )
+                                if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                                    scheduled_retry = _schedule_asset_retry(
+                                        asset=asset,
+                                        reason=f"album association to '{album_name}' was not confirmed",
+                                        resolved_target_asset_id=asset_id,
+                                        skip_target_push=True,
+                                    )
                         except Exception as e:
-                            LOGGER.error(f"Album Push Fail : '{album_name}'")
-                            LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
-                            # 4) Actualizar contador de fallos de álbum
-                            SHARED_DATA.counters['total_push_failed_albums'] += 1
+                            scheduled_retry = _schedule_asset_retry(
+                                asset=asset,
+                                reason=f"album association exception for '{album_name}': {str(e)}",
+                                resolved_target_asset_id=asset_id,
+                                skip_target_push=True,
+                            )
+                            if not scheduled_retry:
+                                LOGGER.error(f"Album Push Fail : '{album_name}'")
+                                LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
+                                SHARED_DATA.counters['total_push_failed_albums'] += 1
 
-                        # Verificar si la carpeta local del álbum ya quedó drenada.
-                        album_folder_path = os.path.join(temp_folder, album_name)
-                        _mark_album_pushed_if_ready(
-                            album_name=album_name,
-                            album_folder_path=album_folder_path,
-                            processed_albums=processed_albums,
-                            processed_albums_lock=processed_albums_lock,
-                            counters=SHARED_DATA.counters,
-                            logger=LOGGER,
+                        if album_association_confirmed:
+                            album_folder_path = os.path.join(temp_folder, album_name)
+                            _mark_album_pushed_if_ready(
+                                album_name=album_name,
+                                album_folder_path=album_folder_path,
+                                processed_albums=processed_albums,
+                                processed_albums_lock=processed_albums_lock,
+                                counters=SHARED_DATA.counters,
+                                logger=LOGGER,
+                            )
+
+                    if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and treat_as_consumed and asset_id and album_association_confirmed:
+                        _remove_source_asset_after_move(
+                            source_client=source_client,
+                            asset_id=source_asset_id,
+                            log_level=log_level,
                         )
+                        removed_source_asset_ids.add(source_asset_id)
 
-                    # Finalmente, marco la tarea como procesada
-                    push_queue.task_done()
-                    # SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+                    if not scheduled_retry and (asset_pushed or treat_as_consumed) and album_association_confirmed:
+                        safe_remove_local_file(asset_file_path)
+                        if live_photo_video_path:
+                            safe_remove_local_file(live_photo_video_path)
+                        if retry_attempt > 0:
+                            SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
 
                 except Exception as e:
-                    if album_name:
-                        LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
-                    else:
-                        LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
-                    LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
-                    SHARED_DATA.counters['total_push_failed_assets'] += 1
-                    if asset_type.lower() in video_labels:
-                        SHARED_DATA.counters['total_push_failed_videos'] += 1
-                    else:
-                        SHARED_DATA.counters['total_push_failed_photos'] += 1
+                    asset_file_path = asset.get('asset_file_path') if isinstance(asset, dict) else ""
+                    album_name = asset.get('album_name') if isinstance(asset, dict) else None
+                    asset_type = asset.get('asset_type', 'photo') if isinstance(asset, dict) else 'photo'
+                    count_push_stats = asset.get('count_push_stats', True) if isinstance(asset, dict) else True
+                    scheduled_retry = _schedule_asset_retry(
+                        asset=asset if isinstance(asset, dict) else {},
+                        reason=f"unexpected pusher exception: {str(e)}",
+                    ) if isinstance(asset, dict) else False
+                    if not scheduled_retry:
+                        if album_name:
+                            LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                        else:
+                            LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                        LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
+                        _record_final_push_failure(asset_type=asset_type, count_push_stats=count_push_stats)
+                finally:
+                    if asset is not None:
+                        push_queue.task_done()
 
             LOGGER.info(f"Pusher {worker_id} - Task Finished!")
 

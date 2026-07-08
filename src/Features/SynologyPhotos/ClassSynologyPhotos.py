@@ -5,6 +5,7 @@ import json
 import logging
 import mimetypes
 import os
+import re
 import shutil
 import sys
 import threading
@@ -1302,7 +1303,7 @@ class ClassSynologyPhotos:
                         LOGGER.warning(f"Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
                     else:
                         LOGGER.warning(f"Cannot add assets to album ID: '{album_id}' due to API call error. Skipped!")
-                    return -1
+                    return 0
                 if album_name:
                     LOGGER.info(f"{total_added} Assets successfully added to album: '{album_name}'.")
                 else:
@@ -1311,6 +1312,7 @@ class ClassSynologyPhotos:
 
             except Exception as e:
                 LOGGER.warning(f"Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")
+                return 0
             
 
     # TODO: Complete this method
@@ -1462,7 +1464,9 @@ class ClassSynologyPhotos:
             if cached_asset_id:
                 return cached_asset_id
 
-            target_name = os.path.basename(file_path).casefold()
+            target_name = os.path.basename(file_path)
+            target_name_casefold = target_name.casefold()
+            target_name_normalized = self._normalize_duplicate_lookup_name(target_name)
             try:
                 stat = os.stat(file_path)
                 target_time = int(stat.st_mtime)
@@ -1474,8 +1478,12 @@ class ClassSynologyPhotos:
             best_asset_id = None
             best_score = None
             for item in self._get_all_assets_unfiltered(log_level=log_level):
-                candidate_name = str(item.get("filename") or item.get("name") or "").casefold()
-                if candidate_name != target_name:
+                candidate_name = str(item.get("filename") or item.get("name") or "")
+                candidate_name_casefold = candidate_name.casefold()
+                candidate_name_normalized = self._normalize_duplicate_lookup_name(candidate_name)
+                exact_name_match = candidate_name_casefold == target_name_casefold
+                normalized_name_match = candidate_name_normalized == target_name_normalized
+                if not exact_name_match and not normalized_name_match:
                     continue
                 candidate_id = str(item.get("id", "")).strip()
                 if not candidate_id:
@@ -1492,16 +1500,29 @@ class ClassSynologyPhotos:
                     candidate_size = None
                 time_delta = abs(candidate_time - target_time) if candidate_time is not None and target_time is not None else float("inf")
                 size_delta = abs(candidate_size - target_size) if candidate_size is not None and target_size is not None else float("inf")
-                score = (time_delta, size_delta)
+                score = (
+                    0 if exact_name_match else 1,
+                    0 if normalized_name_match else 1,
+                    time_delta,
+                    size_delta,
+                    len(candidate_name),
+                )
                 if best_score is None or score < best_score:
                     best_score = score
                     best_asset_id = candidate_id
-                    if time_delta <= 1 and (size_delta == 0 or size_delta == float("inf")):
+                    if exact_name_match and time_delta <= 1 and (size_delta == 0 or size_delta == float("inf")):
                         break
 
             if best_asset_id:
                 self._remember_uploaded_asset_id(file_path, best_asset_id)
             return best_asset_id
+
+    @staticmethod
+    def _normalize_duplicate_lookup_name(filename):
+        name = os.path.basename(str(filename or ""))
+        stem, ext = os.path.splitext(name)
+        stem = re.sub(r"\(\d+\)$", "", stem)
+        return f"{stem.casefold()}{ext.casefold()}"
             
 
     def push_asset(self, file_path, log_level=None):

@@ -1109,17 +1109,107 @@ def normalize_album_name_for_matching(name):
     return text
 
 
-def find_reusable_album_candidate(album_name, albums, allow_similar=False, exact_case_sensitive=False):
+def strip_album_numeric_disambiguator(name):
     """
-    Resolve an existing album candidate from a list of album dicts.
+    Remove a trailing duplicate-style numeric suffix while trying to preserve
+    meaningful year/date endings.
 
-    Returns:
-        tuple: (matched_album_or_none, match_kind, ambiguous_candidates)
-            match_kind is one of: "exact", "similar", None
+    Examples stripped:
+      - "Album (1)" -> "Album"
+      - "Album_3"   -> "Album"
+      - "Album-12"  -> "Album"
+      - "Album7"    -> "Album"
+
+    Examples preserved:
+      - "Trip 2024"
+      - "2015-10-17 - Boda"
+    """
+    text = str(name or "").strip()
+    if not text:
+        return ""
+
+    match = re.match(r"^(.*?)(?:\s*\((\d+)\)|([_\-]+)(\d+)|(\s+)(\d+)|(\d+))\s*$", text)
+    if not match:
+        return text
+
+    base = str(match.group(1) or "").rstrip(" _-")
+    paren_digits = match.group(2)
+    separator_digits = match.group(4)
+    spaced_digits = match.group(6)
+    attached_digits = match.group(7)
+    digits = paren_digits or separator_digits or spaced_digits or attached_digits or ""
+    if not digits:
+        return text
+
+    # Preserve common year-like endings to avoid collapsing legitimate albums
+    # such as "Trip 2024" into "Trip" when the year is part of the title.
+    if len(digits) == 4 and 1900 <= int(digits) <= 2100:
+        return text
+
+    # A bare "... 12" suffix is only treated as a duplicate marker when the
+    # remaining base still contains non-digit content.
+    if spaced_digits and base and not re.search(r"[A-Za-zÀ-ÿ]", base):
+        return text
+
+    return base or text
+
+
+def canonicalize_album_name_for_reuse(name):
+    text = strip_album_numeric_disambiguator(name)
+    text = re.sub(r"_+", " ", str(text or ""))
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def album_name_reuse_key(name):
+    return normalize_album_name_for_matching(canonicalize_album_name_for_reuse(name))
+
+
+def album_name_preference_key(name):
+    raw = str(name or "").strip()
+    canonical = canonicalize_album_name_for_reuse(raw)
+    stripped = strip_album_numeric_disambiguator(raw)
+    has_numeric_suffix = canonicalize_album_name_for_reuse(raw) != re.sub(r"\s+", " ", raw.replace("_", " ")).strip()
+    underscore_count = raw.count("_")
+    punctuation_penalty = len(re.findall(r"[()]", raw))
+    return (
+        1 if has_numeric_suffix else 0,
+        underscore_count,
+        punctuation_penalty,
+        len(canonical or raw),
+        normalize_album_name_for_matching(canonical or raw),
+    )
+
+
+def build_reusable_album_group(album_name, albums, allow_similar=False, exact_case_sensitive=False):
+    """
+    Returns a reusable-album plan with preferred keeper naming information.
+
+    Result keys:
+      - matched_album
+      - keeper_album
+      - match_kind
+      - ambiguous_matches
+      - similar_albums
+      - redundant_albums
+      - preferred_album_name
+      - similarity_key
+      - should_create_preferred_album
     """
     target_name = str(album_name or "").strip()
+    empty_result = {
+        "matched_album": None,
+        "keeper_album": None,
+        "match_kind": None,
+        "ambiguous_matches": [],
+        "similar_albums": [],
+        "redundant_albums": [],
+        "preferred_album_name": target_name,
+        "similarity_key": album_name_reuse_key(target_name),
+        "should_create_preferred_album": False,
+    }
     if not target_name:
-        return None, None, []
+        return empty_result
 
     exact_matches = []
     target_casefold = target_name.casefold()
@@ -1133,29 +1223,83 @@ def find_reusable_album_candidate(album_name, albums, allow_similar=False, exact
         else:
             if candidate_name.casefold() == target_casefold:
                 exact_matches.append(album)
-    if exact_matches:
-        return exact_matches[0], "exact", []
-
-    if not allow_similar:
-        return None, None, []
-
-    target_normalized = normalize_album_name_for_matching(target_name)
-    if not target_normalized:
-        return None, None, []
 
     similar_matches = []
-    for album in albums or []:
-        candidate_name = str((album or {}).get("albumName", "")).strip()
-        if not candidate_name:
-            continue
-        if normalize_album_name_for_matching(candidate_name) == target_normalized:
-            similar_matches.append(album)
+    similarity_key = album_name_reuse_key(target_name)
+    if allow_similar and similarity_key:
+        for album in albums or []:
+            candidate_name = str((album or {}).get("albumName", "")).strip()
+            if not candidate_name:
+                continue
+            if album_name_reuse_key(candidate_name) == similarity_key:
+                similar_matches.append(album)
 
-    if len(similar_matches) == 1:
-        return similar_matches[0], "similar", []
-    if len(similar_matches) > 1:
-        return None, None, similar_matches
-    return None, None, []
+    group_albums = exact_matches or similar_matches
+    if not exact_matches and not allow_similar:
+        return empty_result
+    if not group_albums:
+        return empty_result
+
+    name_candidates = [target_name] + [str((album or {}).get("albumName", "")).strip() for album in group_albums]
+    name_candidates = [name for name in name_candidates if name]
+    preferred_album_name = min(name_candidates, key=album_name_preference_key) if name_candidates else target_name
+
+    keeper_album = None
+    keeper_sort_key = None
+    for album in group_albums:
+        candidate_name = str((album or {}).get("albumName", "")).strip()
+        candidate_key = (
+            0 if candidate_name.casefold() == preferred_album_name.casefold() else 1,
+            album_name_preference_key(candidate_name),
+        )
+        if keeper_sort_key is None or candidate_key < keeper_sort_key:
+            keeper_sort_key = candidate_key
+            keeper_album = album
+
+    should_create_preferred_album = True
+    if keeper_album:
+        keeper_name = str((keeper_album or {}).get("albumName", "")).strip()
+        should_create_preferred_album = keeper_name.casefold() != preferred_album_name.casefold()
+
+    redundant_albums = []
+    if keeper_album and similar_matches:
+        keeper_id = str((keeper_album or {}).get("id", "")).strip()
+        redundant_albums = [
+            album for album in similar_matches
+            if str((album or {}).get("id", "")).strip() != keeper_id
+        ]
+
+    match_kind = "exact" if exact_matches else ("similar" if similar_matches else None)
+    result = dict(empty_result)
+    result.update({
+        "matched_album": exact_matches[0] if exact_matches else (keeper_album if similar_matches else None),
+        "keeper_album": keeper_album,
+        "match_kind": match_kind,
+        "ambiguous_matches": [] if len(similar_matches) <= 1 else list(similar_matches),
+        "similar_albums": list(similar_matches),
+        "redundant_albums": redundant_albums,
+        "preferred_album_name": preferred_album_name,
+        "similarity_key": similarity_key,
+        "should_create_preferred_album": should_create_preferred_album,
+    })
+    return result
+
+
+def find_reusable_album_candidate(album_name, albums, allow_similar=False, exact_case_sensitive=False):
+    """
+    Resolve an existing album candidate from a list of album dicts.
+
+    Returns:
+        tuple: (matched_album_or_none, match_kind, ambiguous_candidates)
+            match_kind is one of: "exact", "similar", None
+    """
+    plan = build_reusable_album_group(
+        album_name=album_name,
+        albums=albums,
+        allow_similar=allow_similar,
+        exact_case_sensitive=exact_case_sensitive,
+    )
+    return plan.get("matched_album"), plan.get("match_kind"), plan.get("ambiguous_matches", [])
 
 
 def has_any_filter():
