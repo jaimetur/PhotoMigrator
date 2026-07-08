@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import hashlib
+import json
 import logging
 import os
 import re
@@ -7,6 +8,7 @@ import shutil
 import time
 import unicodedata
 from datetime import datetime
+from html import unescape
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
@@ -222,6 +224,332 @@ class ClassLocalFolder:
         self.all_assets_filtered = None
         self.assets_without_albums_filtered = None
         self.albums_assets_filtered = None
+
+    @staticmethod
+    def _normalize_manifest_asset_name(filename):
+        name = os.path.basename(str(filename or ""))
+        stem, ext = os.path.splitext(name)
+        stem = re.sub(r"\(\d+\)$", "", stem)
+        return f"{stem.casefold()}{ext.casefold()}"
+
+    @staticmethod
+    def _manifest_album_key(album_name, occurrence_index=0):
+        if occurrence_index <= 0:
+            return str(album_name)
+        return f"{album_name}_{occurrence_index}"
+
+    def _get_archive_browser_path(self):
+        return self.base_folder / "archive_browser.html"
+
+    def _get_album_manifest_path(self):
+        return self.base_folder / "automatic_migration_album_manifest.json"
+
+    def _load_album_membership_manifest(self, log_level=None):
+        if hasattr(self, "_album_membership_manifest"):
+            return self._album_membership_manifest
+
+        manifest = {}
+        manifest_path = self._get_album_manifest_path()
+        archive_browser_path = self._get_archive_browser_path()
+
+        try:
+            if manifest_path.exists() and manifest_path.is_file():
+                data = json.loads(manifest_path.read_text(encoding="utf-8", errors="replace"))
+                manifest = dict(data.get("albums") or data)
+            elif archive_browser_path.exists() and archive_browser_path.is_file():
+                html_text = archive_browser_path.read_text(encoding="utf-8", errors="replace")
+                manifest = self._parse_archive_browser_manifest(html_text)
+        except Exception as error:
+            LOGGER.warning(f"Unable to load album membership manifest from '{self.base_folder}': {error}")
+            manifest = {}
+
+        self._album_membership_manifest = manifest
+        return manifest
+
+    @classmethod
+    def _parse_archive_browser_manifest(cls, html_text):
+        text = str(html_text or "")
+        title_re = re.compile(r'<div class="extracted-folder-name">\s*([^<]+?)\s*</div>', re.IGNORECASE)
+        file_re = re.compile(r'<div class="extracted-file-name">\s*([^<]+?)\s*</div>', re.IGNORECASE)
+
+        matches = list(title_re.finditer(text))
+        manifest = {}
+        occurrences = {}
+        for idx, match in enumerate(matches):
+            album_name = unescape(str(match.group(1) or "")).strip()
+            if not album_name:
+                continue
+            start = match.end()
+            end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
+            block = text[start:end]
+            files = []
+            seen_files = set()
+            for file_match in file_re.finditer(block):
+                filename = unescape(str(file_match.group(1) or "")).strip()
+                if not filename or filename == album_name:
+                    continue
+                if filename in seen_files:
+                    continue
+                seen_files.add(filename)
+                files.append(filename)
+
+            occurrence_index = occurrences.get(album_name, 0)
+            manifest_key = cls._manifest_album_key(album_name, occurrence_index)
+            manifest[manifest_key] = files
+            occurrences[album_name] = occurrence_index + 1
+
+        return manifest
+
+    def _build_manifest_candidate_index(self):
+        if hasattr(self, "_manifest_candidate_index") and self._manifest_candidate_index is not None:
+            return self._manifest_candidate_index
+
+        self._ensure_analyzer(log_level=logging.WARNING)
+        exact = {}
+        normalized = {}
+        for path_str in getattr(self.analyzer, "filtered_file_list", []) or []:
+            path_obj = Path(path_str)
+            if not (path_obj.is_file() or path_obj.is_symlink()):
+                continue
+            exact.setdefault(path_obj.name.casefold(), []).append(path_str)
+            normalized.setdefault(self._normalize_manifest_asset_name(path_obj.name), []).append(path_str)
+
+        self._manifest_candidate_index = {
+            "exact": exact,
+            "normalized": normalized,
+        }
+        return self._manifest_candidate_index
+
+    def _iter_non_album_roots(self):
+        roots = []
+        if self.no_albums_folder.exists() and self.no_albums_folder.is_dir():
+            roots.append(self.no_albums_folder.resolve())
+        partner_shared_no_albums = self._get_partner_shared_no_albums_folder()
+        if partner_shared_no_albums.exists() and partner_shared_no_albums.is_dir():
+            roots.append(partner_shared_no_albums.resolve())
+        return roots
+
+    def _select_manifest_backed_asset_path(self, expected_filename, sel_ext_local=None):
+        candidate_index = self._build_manifest_candidate_index()
+        expected_casefold = str(expected_filename or "").casefold()
+        expected_normalized = self._normalize_manifest_asset_name(expected_filename)
+        candidate_paths = list(candidate_index["exact"].get(expected_casefold, []))
+        if not candidate_paths:
+            candidate_paths = list(candidate_index["normalized"].get(expected_normalized, []))
+        if not candidate_paths:
+            return None
+
+        non_album_roots = self._iter_non_album_roots()
+
+        def is_allowed_extension(path_obj):
+            if not sel_ext_local:
+                return True
+            if sel_ext_local == "unsupported":
+                return path_obj.suffix.lower() not in self.ALLOWED_EXTENSIONS
+            return path_obj.suffix.lower() in sel_ext_local
+
+        def score(path_str):
+            path_obj = Path(path_str)
+            exact_name_penalty = 0 if path_obj.name.casefold() == expected_casefold else 1
+            non_album_penalty = 1
+            resolved_parent = path_obj.parent.resolve()
+            for root in non_album_roots:
+                try:
+                    resolved_parent.relative_to(root)
+                    non_album_penalty = 0
+                    break
+                except ValueError:
+                    continue
+            numbered_match = re.search(r"\((\d+)\)(?=\.[^.]+$)", path_obj.name)
+            numbered_penalty = int(numbered_match.group(1)) if numbered_match else 0
+            return (non_album_penalty, exact_name_penalty, numbered_penalty, len(path_obj.name))
+
+        filtered_candidates = []
+        for path_str in candidate_paths:
+            path_obj = Path(path_str)
+            if not path_obj.exists():
+                continue
+            if not is_allowed_extension(path_obj):
+                continue
+            filtered_candidates.append(path_str)
+
+        if not filtered_candidates:
+            return None
+
+        filtered_candidates.sort(key=score)
+        return Path(filtered_candidates[0])
+
+    @staticmethod
+    def _is_media_request(asset_type):
+        return str(asset_type or "all").lower() in {"all", "photo", "photos", "image", "images", "video", "videos", "media"}
+
+    def _supplement_album_assets_from_manifest(self, album_name, sel_ext_local, requested_type, current_assets, log_level=None):
+        if not album_name or not self._uses_managed_layout() or not self._is_media_request(requested_type):
+            return current_assets
+
+        manifest = self._load_album_membership_manifest(log_level=log_level)
+        expected_files = manifest.get(str(album_name), [])
+        if not expected_files:
+            return current_assets
+
+        existing_names = {str(item.get("filename", "")).casefold() for item in current_assets}
+        existing_paths = {str(item.get("filepath", "")) for item in current_assets}
+        supplemented = 0
+
+        for expected_filename in expected_files:
+            filename = str(expected_filename or "").strip()
+            if not filename or filename.casefold() in existing_names:
+                continue
+            candidate_path = self._select_manifest_backed_asset_path(filename, sel_ext_local=sel_ext_local)
+            if candidate_path is None:
+                continue
+            if str(candidate_path) in existing_paths:
+                continue
+            try:
+                mtime = candidate_path.stat().st_mtime
+            except (OSError, IOError) as error:
+                LOGGER.warning(f"Unable to read mtime from manifest-backed asset {candidate_path}: {error}")
+                continue
+
+            current_assets.append({
+                "id": str(candidate_path),
+                "time": mtime,
+                "filename": filename,
+                "filepath": str(candidate_path),
+                "type": self._determine_file_type(candidate_path),
+            })
+            existing_names.add(filename.casefold())
+            existing_paths.add(str(candidate_path))
+            supplemented += 1
+
+        if supplemented > 0:
+            LOGGER.info(f"Supplemented {supplemented} album asset(s) for '{album_name}' using archive_browser manifest fallback.")
+        return current_assets
+
+    def _refresh_analyzer_from_disk(self, step_name="", log_level=None):
+        self._ensure_analyzer(log_level=log_level)
+        self.analyzer._build_file_list_from_disk(step_name=step_name, log_level=log_level)
+        self.analyzer._apply_filters(step_name=step_name, log_level=log_level)
+        self.analyzer._compute_folder_sizes(step_name=step_name, log_level=log_level)
+        self._invalidate_asset_caches()
+        if hasattr(self, "_manifest_candidate_index"):
+            self._manifest_candidate_index = None
+
+    def _is_cleanup_auxiliary_file(self, file_path):
+        path_obj = Path(file_path)
+        if not path_obj.exists() or not path_obj.is_file():
+            return False
+
+        lower_name = path_obj.name.casefold()
+        lower_suffix = path_obj.suffix.lower()
+        if lower_suffix in self.ALLOWED_METADATA_EXTENSIONS or lower_suffix in self.ALLOWED_SIDECAR_EXTENSIONS:
+            return True
+        if lower_name in {
+            "archive_browser.html",
+            "automatic_migration_album_manifest.json",
+            "automatic_migration_dates_metadata.json",
+            "remember-list.json",
+            "shared_album_comments.json",
+            "user-generated-memory-titles.json",
+        }:
+            return True
+        return False
+
+    def remove_metadata_only_folders(self, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            if not self.base_folder.exists():
+                return {"folders_removed": 0, "files_removed": 0}
+
+            files_removed = 0
+            folders_removed = 0
+
+            for root, dirs, files in os.walk(self.base_folder, topdown=False):
+                root_path = Path(root)
+                removable_files = []
+                blocked = False
+
+                for file_name in files:
+                    file_path = root_path / file_name
+                    if self._is_cleanup_auxiliary_file(file_path):
+                        removable_files.append(file_path)
+                    else:
+                        blocked = True
+                        break
+
+                if blocked:
+                    continue
+
+                for file_path in removable_files:
+                    try:
+                        file_path.unlink()
+                        files_removed += 1
+                    except Exception as error:
+                        LOGGER.warning(f"Failed to remove metadata-only file '{file_path}': {error}")
+                        blocked = True
+                        break
+
+                if blocked:
+                    continue
+
+                if any(Path(root_path / directory).exists() for directory in dirs):
+                    continue
+
+                if root_path == self.base_folder:
+                    continue
+
+                try:
+                    root_path.rmdir()
+                    folders_removed += 1
+                except Exception:
+                    continue
+
+            if files_removed or folders_removed:
+                self._refresh_analyzer_from_disk(step_name="remove_metadata_only_folders: ", log_level=log_level)
+
+            LOGGER.info(f"Removed {files_removed} metadata/auxiliary file(s) and {folders_removed} metadata-only folder(s).")
+            return {"folders_removed": folders_removed, "files_removed": files_removed}
+
+    def cleanup_after_move_assets(self, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            summary = {
+                "metadata_files_removed": 0,
+                "metadata_folders_removed": 0,
+                "empty_folders_removed": 0,
+                "empty_albums_removed": 0,
+                "root_removed": False,
+            }
+
+            self._refresh_analyzer_from_disk(step_name="cleanup_after_move_assets: ", log_level=log_level)
+
+            metadata_cleanup = self.remove_metadata_only_folders(log_level=log_level)
+            summary["metadata_files_removed"] = int(metadata_cleanup.get("files_removed", 0))
+            summary["metadata_folders_removed"] = int(metadata_cleanup.get("folders_removed", 0))
+
+            empty_albums_before = len([p for p in self.albums_folder.iterdir() if p.is_dir() and not any(p.iterdir())]) if self.albums_folder.exists() else 0
+            if empty_albums_before > 0:
+                self.remove_empty_albums(log_level=log_level)
+            summary["empty_albums_removed"] = empty_albums_before
+
+            empty_folders_removed = self.remove_empty_folders(log_level=log_level)
+            summary["empty_folders_removed"] = int(empty_folders_removed or 0)
+
+            root_children = list(self.base_folder.iterdir()) if self.base_folder.exists() else []
+            if self.base_folder.exists() and not root_children:
+                try:
+                    self.base_folder.rmdir()
+                    summary["root_removed"] = True
+                except Exception as error:
+                    LOGGER.warning(f"Unable to remove empty source root '{self.base_folder}': {error}")
+
+            LOGGER.info(
+                "Source cleanup summary: "
+                f"metadata_files_removed={summary['metadata_files_removed']}, "
+                f"metadata_folders_removed={summary['metadata_folders_removed']}, "
+                f"empty_albums_removed={summary['empty_albums_removed']}, "
+                f"empty_folders_removed={summary['empty_folders_removed']}, "
+                f"root_removed={summary['root_removed']}"
+            )
+            return summary
 
 
     ###########################################################################
@@ -992,6 +1320,14 @@ class ClassLocalFolder:
                     "filepath": str(filepath),
                     "type": self._determine_file_type(filepath),
                 })
+
+            assets = self._supplement_album_assets_from_manifest(
+                album_name=album_name or album_path.name,
+                sel_ext_local=sel_ext_local,
+                requested_type=type,
+                current_assets=assets,
+                log_level=log_level,
+            )
 
             LOGGER.debug(f"{len(assets)} assets in album '{album_id}'.")
             return assets

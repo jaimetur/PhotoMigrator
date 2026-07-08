@@ -79,6 +79,60 @@ def _normalize_folder_name(value):
     return re.sub(r"\s+", " ", str(value or "").strip()).casefold()
 
 
+def preserve_archive_browser_artifacts(output_folder, step_name="", log_level=None):
+    with set_log_level(LOGGER, log_level):
+        try:
+            output_root = Path(output_folder).resolve()
+        except Exception:
+            return False
+
+        if not output_root.exists() or not output_root.is_dir():
+            return False
+
+        try:
+            archive_candidates = list(output_root.rglob("archive_browser.html"))
+        except Exception as error:
+            LOGGER.warning(f"{step_name}Unable to search archive_browser.html inside '{output_root}': {error}")
+            return False
+
+        if not archive_candidates:
+            return False
+
+        source_path = None
+        for candidate in archive_candidates:
+            if candidate.resolve() == (output_root / "archive_browser.html").resolve():
+                source_path = candidate
+                break
+        if source_path is None:
+            source_path = archive_candidates[0]
+
+        destination_html = output_root / "archive_browser.html"
+        destination_manifest = output_root / "automatic_migration_album_manifest.json"
+
+        try:
+            if source_path.resolve() != destination_html.resolve():
+                shutil.copy2(source_path, destination_html)
+                LOGGER.info(f"{step_name}Copied archive_browser.html to processed output root.")
+        except Exception as error:
+            LOGGER.warning(f"{step_name}Unable to copy archive_browser.html into '{output_root}': {error}")
+            return False
+
+        try:
+            html_text = destination_html.read_text(encoding="utf-8", errors="replace")
+            albums_manifest = ClassLocalFolder._parse_archive_browser_manifest(html_text)
+            payload = {
+                "source_file": destination_html.name,
+                "generated_at": datetime.now().isoformat(),
+                "albums": albums_manifest,
+            }
+            destination_manifest.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            LOGGER.info(f"{step_name}Generated compact album manifest for Automatic Migration from archive_browser.html.")
+            return True
+        except Exception as error:
+            LOGGER.warning(f"{step_name}Unable to generate album manifest from archive_browser.html: {error}")
+            return False
+
+
 def _looks_like_google_photos_container(folder_name):
     return _normalize_folder_name(folder_name) in GOOGLE_PHOTOS_CONTAINER_NAMES
 
@@ -2641,6 +2695,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             no_albums_path = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
             if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path) and all_photos_path != no_albums_path:
                 os.rename(all_photos_path, no_albums_path)
+
+            preserve_archive_browser_artifacts(output_folder=output_folder, step_name=step_name, log_level=log_level)
 
             # Check the result of GPTH process
             if ok == 0:

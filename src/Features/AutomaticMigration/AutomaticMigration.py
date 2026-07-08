@@ -208,6 +208,16 @@ def _remove_source_asset_after_move(source_client, asset_id, log_level=logging.I
     return source_client.remove_assets(asset_ids=asset_id, log_level=log_level)
 
 
+def _cleanup_local_source_after_move(source_client, log_level=logging.INFO):
+    if not isinstance(source_client, ClassLocalFolder):
+        return {}
+    try:
+        return source_client.cleanup_after_move_assets(log_level=log_level)
+    except Exception as error:
+        LOGGER.warning(f"Unable to cleanup local source after move-assets migration: {error}")
+        return {}
+
+
 def _mark_album_pushed_if_ready(album_name, album_folder_path, processed_albums, processed_albums_lock, counters, logger):
     """
     Count an album as pushed once its temp folder is no longer active and can be removed.
@@ -1108,6 +1118,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 except Exception as e:
                     LOGGER.warning(f"Unable to auto-stack bursts in Immich after migration: {e}")
 
+            if move_assets and isinstance(source_client, ClassLocalFolder):
+                _cleanup_local_source_after_move(source_client=source_client, log_level=logging.INFO)
+
             # Finalmente, borrar carpetas vacías que queden en temp_folder
             remove_empty_dirs(temp_folder)
             cleanup_temp_folder_markers(temp_folder)
@@ -1285,7 +1298,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                                 unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                                 if not unique:
-                                    LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}' from Album '{album_name}. Skipped")
+                                    LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
                                     SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                                     # Solo borramos si ya no está en la cola (ignorando mayúsculas)
                                     if not is_asset_in_queue(push_queue, pulled_file_path) and os.path.exists(pulled_file_path):
@@ -1545,7 +1558,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         SHARED_DATA.counters['total_push_failed_photos'] += 1
 
                         # Borrar asset de 'source' client si hemos pasado el argumento '-move, --move-assets'
-                        if move_assets and asset.get('asset_id') and asset['asset_id'] not in removed_source_asset_ids:
+                        if move_assets and asset.get('asset_id') and asset['asset_id'] not in removed_source_asset_ids and treat_as_consumed and asset_id:
                             _remove_source_asset_after_move(
                                 source_client=source_client,
                                 asset_id=asset['asset_id'],
@@ -1642,7 +1655,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         album_id_dest = created_albums.get(album_name)
                         try:
                             # 3) Añadir el asset al álbum existente
-                            target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.ERROR)
+                            added_to_album = target_client.add_assets_to_album(
+                                album_id=album_id_dest,
+                                asset_ids=asset_id,
+                                album_name=album_name,
+                                log_level=logging.ERROR,
+                            )
+                            if isinstance(added_to_album, int) and added_to_album < 1:
+                                LOGGER.warning(
+                                    f"Album association was not confirmed by target for asset '{os.path.basename(asset_file_path)}' "
+                                    f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
+                                )
                         except Exception as e:
                             LOGGER.error(f"Album Push Fail : '{album_name}'")
                             LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
