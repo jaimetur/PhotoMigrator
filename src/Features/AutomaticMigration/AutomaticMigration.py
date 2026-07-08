@@ -9,7 +9,7 @@ import threading
 import time
 import traceback
 import unicodedata
-from collections import deque
+from collections import Counter, deque
 from datetime import datetime, timedelta
 from pathlib import Path
 from queue import Queue, Empty
@@ -783,6 +783,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         album_name=redundant_name,
                         log_level=log_level,
                     )
+                    total_redundant_assets = len(duplicate_asset_ids)
+                    reassigned_count = 0
                     should_remove_redundant = False
                     if duplicate_asset_ids:
                         added_count = target_client.add_assets_to_album(
@@ -791,28 +793,74 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             album_name=keeper_name,
                             log_level=log_level,
                         )
-                        if isinstance(added_count, int) and added_count > 0:
-                            should_remove_redundant = True
+                        if isinstance(target_client, ClassNextCloudPhotos):
+                            keeper_assets = _get_target_album_assets(
+                                target_client=target_client,
+                                album_id=keeper_id,
+                                album_name=keeper_name,
+                                log_level=log_level,
+                            )
+                            redundant_assets = _get_target_album_assets(
+                                target_client=target_client,
+                                album_id=redundant_id,
+                                album_name=redundant_name,
+                                log_level=log_level,
+                            )
+                            keeper_name_counts = Counter(
+                                str(asset.get("filename", "")).strip()
+                                for asset in keeper_assets
+                                if str(asset.get("filename", "")).strip()
+                            )
+                            redundant_name_counts = Counter(
+                                str(asset.get("filename", "")).strip()
+                                for asset in redundant_assets
+                                if str(asset.get("filename", "")).strip()
+                            )
+                            reassigned_count = sum(
+                                min(count, keeper_name_counts.get(filename, 0))
+                                for filename, count in redundant_name_counts.items()
+                            )
                         else:
-                            if not isinstance(target_client, ClassNextCloudPhotos):
-                                if keeper_asset_ids is None:
-                                    keeper_asset_ids = set(_get_target_album_asset_ids(
-                                        target_client=target_client,
-                                        album_id=keeper_id,
-                                        album_name=keeper_name,
-                                        log_level=log_level,
-                                    ))
-                                if set(duplicate_asset_ids).issubset(keeper_asset_ids):
-                                    should_remove_redundant = True
+                            if keeper_asset_ids is None:
+                                keeper_asset_ids = set(_get_target_album_asset_ids(
+                                    target_client=target_client,
+                                    album_id=keeper_id,
+                                    album_name=keeper_name,
+                                    log_level=log_level,
+                                ))
+                            reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
+                        LOGGER.info(
+                            f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Requested={total_redundant_assets}, Confirmed={reassigned_count}, "
+                            f"AddedNow={added_count if isinstance(added_count, int) else 0}."
+                        )
+                        should_remove_redundant = reassigned_count == total_redundant_assets
                     else:
+                        LOGGER.info(
+                            f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Requested=0, Confirmed=0, AddedNow=0."
+                        )
                         should_remove_redundant = True
 
-                    if should_remove_redundant and target_client.remove_album(redundant_id, redundant_name, log_level=log_level):
-                        LOGGER.info(
-                            f"Album Consolidated: moved reusable/similar album '{redundant_name}' into '{keeper_name}' "
-                            f"and removed the redundant album."
+                    if should_remove_redundant:
+                        if target_client.remove_album(redundant_id, redundant_name, log_level=log_level):
+                            LOGGER.info(
+                                f"Album Consolidated: moved reusable/similar album '{redundant_name}' into '{keeper_name}' "
+                                f"and removed the redundant album after consolidating {reassigned_count}/{total_redundant_assets} assets."
+                            )
+                            _remove_target_existing_album(target_existing_albums, redundant_id)
+                        elif isinstance(target_client, ClassGooglePhotos):
+                            LOGGER.info(
+                                f"Album Consolidated: moved reusable/similar album '{redundant_name}' into '{keeper_name}'. "
+                                f"All {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album, "
+                                f"but the redundant album was kept because Google Photos does not support album deletion."
+                            )
+                    else:
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
+                            f"The redundant album was kept."
                         )
-                        _remove_target_existing_album(target_existing_albums, redundant_id)
 
                 consolidated_album_groups.add(group_key)
                 created_albums[preferred_album_name] = keeper_id

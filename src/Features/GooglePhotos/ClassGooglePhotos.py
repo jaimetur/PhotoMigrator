@@ -628,29 +628,50 @@ class ClassGooglePhotos:
                     continue
                 duplicate_assets = self.get_all_assets_from_album(redundant_id, redundant_name, log_level=log_level) or []
                 duplicate_asset_ids = [str(asset.get("id", "")).strip() for asset in duplicate_assets if str(asset.get("id", "")).strip()]
+                total_redundant_assets = len(duplicate_asset_ids)
+                reassigned_count = 0
                 should_remove_redundant = False
                 if duplicate_asset_ids:
                     added_count = self.add_assets_to_album(keeper_id, duplicate_asset_ids, keeper_name, log_level=log_level)
-                    if isinstance(added_count, int) and added_count > 0:
-                        should_remove_redundant = True
-                    else:
-                        if keeper_asset_ids is None:
-                            keeper_assets = self.get_all_assets_from_album(keeper_id, keeper_name, log_level=log_level) or []
-                            keeper_asset_ids = {str(asset.get("id", "")).strip() for asset in keeper_assets if str(asset.get("id", "")).strip()}
-                        if set(duplicate_asset_ids).issubset(keeper_asset_ids):
-                            should_remove_redundant = True
+                    if keeper_asset_ids is None:
+                        keeper_assets = self.get_all_assets_from_album(keeper_id, keeper_name, log_level=log_level) or []
+                        keeper_asset_ids = {str(asset.get("id", "")).strip() for asset in keeper_assets if str(asset.get("id", "")).strip()}
+                    reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
+                    LOGGER.info(
+                        f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
+                        f"Requested={total_redundant_assets}, Confirmed={reassigned_count}, "
+                        f"AddedNow={added_count if isinstance(added_count, int) else 0}."
+                    )
+                    should_remove_redundant = reassigned_count == total_redundant_assets
                 else:
+                    LOGGER.info(
+                        f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
+                        f"Requested=0, Confirmed=0, AddedNow=0."
+                    )
                     should_remove_redundant = True
 
-                if should_remove_redundant and self.remove_album(redundant_id, redundant_name, log_level=log_level):
-                    LOGGER.info(
-                        f"Album Consolidated: '{redundant_name}' -> '{keeper_name}'. "
-                        f"Redundant album removed after consolidating similar albums."
+                if should_remove_redundant:
+                    if self.remove_album(redundant_id, redundant_name, log_level=log_level):
+                        LOGGER.info(
+                            f"Album Consolidated: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Redundant album removed after consolidating {reassigned_count}/{total_redundant_assets} assets."
+                        )
+                        existing_albums[:] = [
+                            album for album in existing_albums
+                            if str((album or {}).get("id", "")).strip() != redundant_id
+                        ]
+                    else:
+                        LOGGER.info(
+                            f"Album Consolidated: '{redundant_name}' -> '{keeper_name}'. "
+                            f"All {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album, "
+                            f"but the redundant album was kept because Google Photos does not support album deletion."
+                        )
+                else:
+                    LOGGER.warning(
+                        f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
+                        f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
+                        f"The redundant album was kept."
                     )
-                    existing_albums[:] = [
-                        album for album in existing_albums
-                        if str((album or {}).get("id", "")).strip() != redundant_id
-                    ]
 
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
