@@ -93,13 +93,16 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will create one Album per each Subfolder found in `<ALBUMS_FOLDER>` that contains at least one file supported by Immich Photos and with the same Album name as Album folder.
-  - By default only exact existing album names are reused. Add `--reuse-similar-existing-albums` to also reuse conservatively normalized equivalent album names.
+  - By default only exact existing album names are reused.
+  - Add `--reuse-similar-existing-albums` to also treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
+  - On Immich, this flag prefers the clean keeper name without a numeric suffix and with spaces instead of underscores. If needed, PhotoMigrator creates that preferred keeper, merges the assets from the redundant variants into it, and then removes the redundant albums after the consolidation is confirmed.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin --client=immich --upload-albums ./My_Albums_Folder
   ./PhotoMigrator.bin --client=immich --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums
   ```
   With this example, the Tool will connect to your Immich Photos account and process the folder `./My_Albums_Folder` and per each subfolder found on it that contains at least one file supported by Immich Photos, will create a new Album in Immich Photos with the same name of the Album Folder
+  If the target already contains `Huelva_1`, `Huelva (2)`, and `Huelva_5`, uploading `Huelva` with `--reuse-similar-existing-albums` consolidates all those variants into the preferred keeper `Huelva`.
     
 
 ## Download Albums from Immich Photos:
@@ -140,10 +143,12 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - If you want to create Albums for some specific subfolders you have two options:
     1. Move all the Albums subfolders into a `<INPUT_FOLDER>/<ALBUMS_FOLDER>` where , in this way the Tool will consider all the subfolders inside as an Album, and will create an Album in Immich Photos with the same name as the subfolder, associating all the assets inside to it.
     2. Use the complementary argument _**`-AlbFolder, --albums-folders <ALBUMS_FOLDER>`**_, in this way the Tool will create Albums also for each subfolder found in `<ALBUMS_FOLDER>` (apart from those found inside `<INPUT_FOLDER>/<ALBUMS_FOLDER>`)
-  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to reuse conservatively normalized equivalent existing albums.
+  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
+  - On Immich, this flag also consolidates redundant variants into the preferred clean keeper and removes the old variants after the merge is confirmed.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin --client=immich --upload-all ./MyLibrary
+  ./PhotoMigrator.bin --client=immich --upload-all ./MyLibrary --reuse-similar-existing-albums
   ```
   With this example, the Tool will connect to your Immich Photos account and process the folder ./MyLibrary and will upload all supported assets found on it, creating a new Album per each subfolder found within `./MyLibrary/<ALBUMS_FOLDER>` folder.
 

@@ -77,16 +77,22 @@ def set_help_texts():
     HELP_TEXTS["upload-albums"] = textwrap.dedent(f"""
             ATTENTION!!!: This process will upload the assets found inside each subfolder of '<ALBUMS_FOLDER>' and will create or reuse one destination album per subfolder.
             By default, only existing albums whose name matches exactly are reused.
-            If you include '--reuse-similar-existing-albums', the Tool will also try to reuse a conservatively normalized equivalent album name
-            (for example different date separators, repeated dashes, or extra spaces) instead of creating a duplicate album.
+            If you include '--reuse-similar-existing-albums', the Tool will also treat equivalent names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album',
+            or 'New_Album 1' as the same reusable album family.
+            On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it.
+            If the destination service supports album deletion (Immich, Synology, NextCloud), the redundant albums are removed afterwards.
+            On Google Photos, the redundant albums remain because the public API does not allow deleting albums.
             """)
 
     HELP_TEXTS["upload-all"] = textwrap.dedent(f"""
             ATTENTION!!!: This process will upload all supported assets found in '<INPUT_FOLDER>'.
             Assets inside the '<ALBUMS_FOLDER>' tree (and any extra folders provided via '--albums-folders') will be grouped into albums.
             By default, only existing albums whose name matches exactly are reused.
-            If you include '--reuse-similar-existing-albums', the Tool will also try to reuse a conservatively normalized equivalent album name
-            (for example different date separators, repeated dashes, or extra spaces) instead of creating a duplicate album.
+            If you include '--reuse-similar-existing-albums', the Tool will also treat equivalent names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album',
+            or 'New_Album 1' as the same reusable album family.
+            On supported cloud targets, the preferred clean keeper name is used and the assets from redundant variants are merged into it.
+            If the destination service supports album deletion (Immich, Synology, NextCloud), the redundant albums are removed afterwards.
+            On Google Photos, the redundant albums remain because the public API does not allow deleting albums.
             """)
 
     HELP_TEXTS["remove-orphan-assets"] = textwrap.dedent(f"""

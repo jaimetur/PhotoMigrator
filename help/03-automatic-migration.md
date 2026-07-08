@@ -29,7 +29,17 @@ By default, (if your terminal size has enough width and height) a Live Dashboard
 
 Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **`--parallel-migration=false`**, so first, all the assets will be pulled from `<SOURCE>` and when finish, they will be pushed into `<TARGET>`, but take into account that in this case, you will need enough disk space to store all your assets pulled from `<SOURCE>` service.
 
-By default, destination albums are only reused when the existing target album name matches exactly. If you include **`--reuse-similar-existing-albums`**, PhotoMigrator will also try to reuse a conservatively normalized equivalent album name on the target (for example different date separators, repeated dashes, or extra spaces) instead of creating a duplicate album. If several existing target albums normalize to the same value, PhotoMigrator will not guess and will create a new album instead.
+By default, destination albums are only reused when the existing target album name matches exactly. If you include **`--reuse-similar-existing-albums`**, PhotoMigrator will also treat equivalent album families as reusable even when they differ only by harmless formatting or duplicate-like suffixes.
+
+Examples that are treated as the same family:
+- `Album`, `Album_1`, `Album (2)`, `Album_5`
+- `New_Album`, `New Album`, `New_Album 1`
+
+Behavior on cloud targets:
+- PhotoMigrator prefers the clean keeper name without a numeric suffix and with spaces instead of underscores.
+- If needed, it creates that preferred keeper and merges the assets from the redundant variants into it.
+- `Immich`, `Synology`, and `NextCloud` then remove the redundant albums after the consolidation is confirmed by the target.
+- `Google Photos` also consolidates into the preferred keeper, but the redundant albums remain because the public Library API does not support deleting albums.
 
 Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. The available filters are: 
    - **by Type:**
@@ -155,11 +165,19 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 
 - **Example 5**:
-```
+``` 
 ./PhotoMigrator.bin --source=/homes/iCloudExport --target=immich-1 --icloud-include-memories
 ```
 
 In this example, the Tool will first detect that `/homes/iCloudExport` is a raw Apple iCloud Takeout export, preprocess it automatically, and then migrate the resulting `ALL_PHOTOS`, `Albums`, and `Memories` collections into your Immich Photos account 1. When iCloud preprocessing is triggered automatically from `Automatic Migration`, `Memories` are enabled by default even if the CLI call did not explicitly pass `--icloud-include-memories`. If the local source contains ZIP files, the Tool unpacks them first and only then decides whether the extracted folder is a Google Takeout, an iCloud Takeout, or a normal local folder.
+
+
+- **Example 6**:
+```
+./PhotoMigrator.bin --source=/homes/MyTakeout --target=synology-1 --reuse-similar-existing-albums
+```
+
+If the target already contains albums such as `Huelva_1`, `Huelva (2)`, and `Huelva_5`, and the source migration wants to create/use `Huelva`, PhotoMigrator will treat them as the same album family. It will prefer the clean keeper name `Huelva`, merge the assets from the numbered variants into that keeper, and continue assigning the incoming source assets to `Huelva`. On `Immich`, `Synology`, and `NextCloud`, the redundant variants are removed after the consolidation is confirmed. On `Google Photos`, the redundant variants remain because the public API cannot delete albums.
 
 ---
 ## ⚙️ Config.ini

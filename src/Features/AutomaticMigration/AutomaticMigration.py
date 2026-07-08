@@ -737,7 +737,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         existing_albums.append({"id": album_id, "albumName": album_name})
 
     def _consolidate_album_group_for_reuse(album_name, worker_id=1, log_level=logging.ERROR):
-        if not reuse_similar_existing_albums or not isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+        if not reuse_similar_existing_albums or not isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
             matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
                 album_name=album_name,
                 albums=target_existing_albums,
@@ -794,15 +794,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if isinstance(added_count, int) and added_count > 0:
                             should_remove_redundant = True
                         else:
-                            if keeper_asset_ids is None:
-                                keeper_asset_ids = set(_get_target_album_asset_ids(
-                                    target_client=target_client,
-                                    album_id=keeper_id,
-                                    album_name=keeper_name,
-                                    log_level=log_level,
-                                ))
-                            if set(duplicate_asset_ids).issubset(keeper_asset_ids):
-                                should_remove_redundant = True
+                            if not isinstance(target_client, ClassNextCloudPhotos):
+                                if keeper_asset_ids is None:
+                                    keeper_asset_ids = set(_get_target_album_asset_ids(
+                                        target_client=target_client,
+                                        album_id=keeper_id,
+                                        album_name=keeper_name,
+                                        log_level=log_level,
+                                    ))
+                                if set(duplicate_asset_ids).issubset(keeper_asset_ids):
+                                    should_remove_redundant = True
                     else:
                         should_remove_redundant = True
 
@@ -1853,7 +1854,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                                 if not exists:
                                     target_album_name_to_create = album_name
-                                    if reuse_similar_existing_albums and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                                    if reuse_similar_existing_albums and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
                                         create_plan = build_reusable_album_group(
                                             album_name=album_name,
                                             albums=[],

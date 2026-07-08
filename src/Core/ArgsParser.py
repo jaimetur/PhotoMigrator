@@ -417,7 +417,11 @@ def parse_arguments():
     PARSER.add_argument("-reuseSimAlb", "--reuse-similar-existing-albums", action="store_true", default=False,
                         help="When uploading albums to a cloud service or running Automatic Migration, reuse a similar existing album instead of creating a new one.\n"
                              "By default only exact album-name matches are reused.\n"
-                             "This option enables conservative normalized matching for harmless differences such as date separators, repeated dashes, or extra spaces.\n"
+                             "This option also treats harmless differences such as underscores vs spaces and trailing duplicate-like numeric suffixes as equivalent\n"
+                             "(for example 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', 'New_Album 1').\n"
+                             "On supported cloud targets, similar album families are consolidated into the preferred clean keeper name and their assets are merged into it.\n"
+                             "When the destination service supports album deletion (Immich, Synology, NextCloud), redundant variants are removed afterwards. "
+                             "Google Photos keeps the redundant variants because the public API cannot delete albums.\n"
                              "Example: --client=immich --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums")
 
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",

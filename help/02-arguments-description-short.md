@@ -178,23 +178,23 @@ If more than one optional arguments are detected, only the first one will be exe
 
 Following arguments allow you to interact with Google Photos, Synology, Immich, and NextCloud.
 
-| Argument                                    | Description                                    |
-|---------------------------------------------|------------------------------------------------|
-| `-uAlb`,<br>`--upload-albums`               | Upload all subfolders as albums                |
-| `-dAlb`,<br>`--download-albums`             | Download specific albums                       |
-| `-uAll`,<br>`--upload-all`                  | Upload all assets and albums from input folder |
-| `-reuseSimAlb`,<br>`--reuse-similar-existing-albums` | Reuse similar existing albums during cloud uploads and Automatic Migration |
-| `-dAll`,<br>`--download-all`                | Download all assets and albums                 |
-| `-renAlb`,<br>`--rename-albums`             | Rename albums using text, wildcard, or regex   |
-| `-rAlb`,<br>`--remove-albums`               | Delete albums using text, wildcard, or regex   |
-| `-prevAlbAct`,<br>`--preview-album-actions` | Preview rename/remove matches and confirm      |
-| `-rEmpAlb`,<br>`--remove-empty-albums`      | Delete empty albums                            |
-| `-rDupAlb`,<br>`--remove-duplicates-albums` | Delete duplicate albums                        |
-| `-mDupAlb`,<br>`--merge-duplicates-albums`  | Merge duplicate albums                         |
-| `-rAll`,<br>`--remove-all-assets`           | Delete all assets and albums (DANGER!)         |
-| `-rAllAlb`,<br>`--remove-all-albums`        | Delete all albums (assets optional)            |
-| `-rOrphan`,<br>`--remove-orphan-assets`     | Delete orphan assets                           |
-| `-OTP`,<br>`--one-time-password`            | Use 2FA login with OTP token                   |
+| Argument                                             | Description                                                                                                                           |
+|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `-uAlb`,<br>`--upload-albums`                        | Upload all subfolders as albums                                                                                                       |
+| `-dAlb`,<br>`--download-albums`                      | Download specific albums                                                                                                              |
+| `-uAll`,<br>`--upload-all`                           | Upload all assets and albums from input folder                                                                                        |
+| `-reuseSimAlb`,<br>`--reuse-similar-existing-albums` | Reuse equivalent album families during cloud uploads and Automatic Migration; supported cloud targets also consolidate redundant variants |
+| `-dAll`,<br>`--download-all`                         | Download all assets and albums                                                                                                        |
+| `-renAlb`,<br>`--rename-albums`                      | Rename albums using text, wildcard, or regex                                                                                          |
+| `-rAlb`,<br>`--remove-albums`                        | Delete albums using text, wildcard, or regex                                                                                          |
+| `-prevAlbAct`,<br>`--preview-album-actions`          | Preview rename/remove matches and confirm                                                                                             |
+| `-rEmpAlb`,<br>`--remove-empty-albums`               | Delete empty albums                                                                                                                   |
+| `-rDupAlb`,<br>`--remove-duplicates-albums`          | Delete duplicate albums                                                                                                               |
+| `-mDupAlb`,<br>`--merge-duplicates-albums`           | Merge duplicate albums                                                                                                                |
+| `-rAll`,<br>`--remove-all-assets`                    | Delete all assets and albums (DANGER!)                                                                                                |
+| `-rAllAlb`,<br>`--remove-all-albums`                 | Delete all albums (assets optional)                                                                                                   |
+| `-rOrphan`,<br>`--remove-orphan-assets`              | Delete orphan assets                                                                                                                  |
+| `-OTP`,<br>`--one-time-password`                     | Use 2FA login with OTP token                                                                                                          |
 
 
 #### 🧪 Examples:

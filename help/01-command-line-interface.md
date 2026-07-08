@@ -98,7 +98,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
 
-PhotoMigrator v4.4.0 - 2026-07-06
+PhotoMigrator v4.4.0 - 2026-07-08
 
           Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
           such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -348,8 +348,10 @@ If more than one optional arguments are detected, only the first one will be exe
 -uAlb        ; --upload-albums <ALBUMS_FOLDER>
                Upload albums from <ALBUMS_FOLDER>. One album per subfolder.
                You must provide the photo client using '--client'.
-               Use '--reuse-similar-existing-albums' if you also want to reuse conservatively similar
-               existing album names instead of only exact matches.
+               Use '--reuse-similar-existing-albums' if you also want to treat equivalent names such as
+               'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', or 'New_Album 1' as the same family.
+               On supported cloud targets, the preferred clean keeper name is used and redundant variants are consolidated into it.
+               Immich, Synology, and NextCloud remove the redundant albums afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-albums ./My_Albums_Folder
 -dAlb        ; --download-albums <ALBUMS_NAME>
                Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder).
@@ -364,11 +366,16 @@ If more than one optional arguments are detected, only the first one will be exe
                - A new Album will be created per subfolder found in 'Albums' subfolder.
                - If '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, it will create albums for those
                folders too.
-               - Use '--reuse-similar-existing-albums' to reuse safely normalized equivalent album names.
+               - Use '--reuse-similar-existing-albums' to reuse equivalent album families instead of only exact names.
+               - On supported cloud targets, that flag also consolidates redundant variants into the preferred clean keeper.
+               - Immich, Synology, and NextCloud remove the redundant albums afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-all ./MyLibrary
 -reuseSimAlb ; --reuse-similar-existing-albums
                Reuse similar existing destination album names during cloud Upload Albums / Upload All
                and Automatic Migration. Disabled by default: only exact album-name matches are reused.
+               Equivalent examples: 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', 'New_Album 1'.
+               Supported cloud targets also merge redundant variants into the preferred clean keeper.
+               Immich, Synology, and NextCloud remove them afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-albums ./Albums --reuse-similar-existing-albums
 -dAll        ; --download-all <OUTPUT_FOLDER>
                Download all albums and all non-album assets into <OUTPUT_FOLDER>.

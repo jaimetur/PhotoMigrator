@@ -127,12 +127,16 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 - **Explanation:**
   - The Tool creates one Google Photos album per subfolder in `<ALBUMS_FOLDER>`.
   - Supported assets in each subfolder are uploaded and associated to that album.
-  - By default only exact existing album names are reused. Add `--reuse-similar-existing-albums` to also reuse conservatively normalized equivalent album names.
+  - By default only exact existing album names are reused.
+  - Add `--reuse-similar-existing-albums` to also treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
+  - With this flag enabled, PhotoMigrator prefers the clean keeper name, merges the assets from numbered/underscored variants into that keeper, and reuses it for the incoming upload.
+  - Google Photos redundant variants are not deleted afterwards because the public Library API does not support album deletion.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=google-photos --upload-albums ./My_Albums_Folder
   ./PhotoMigrator.bin --client=google-photos --upload-albums ./My_Albums_Folder --reuse-similar-existing-albums
   ```
+  Example: if `New_Album`, `New Album`, and `New_Album 1` exist, PhotoMigrator prefers `New Album` as the keeper, merges the assets it can into that keeper, and uploads the incoming album there. The redundant variants remain because Google Photos does not allow album deletion via the public API.
 
 
 ## Download Albums:
@@ -163,10 +167,13 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - Uploads all supported assets from `<INPUT_FOLDER>`.
   - If `<INPUT_FOLDER>/Albums` exists, each subfolder is treated as an album.
   - Assets outside `Albums` are uploaded as no-album assets.
-  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to reuse conservatively normalized equivalent existing albums.
+  - Add `--reuse-similar-existing-albums` if you want album uploads inside this flow to treat equivalent names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` as the same reusable album family.
+  - With this flag enabled, PhotoMigrator prefers the clean keeper name and merges the assets from redundant variants into that keeper before continuing with the incoming upload.
+  - Redundant Google Photos albums are not deleted afterwards because the public Library API does not support album deletion.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=google-photos --upload-all ./MyLibrary
+  ./PhotoMigrator.bin --client=google-photos --upload-all ./MyLibrary --reuse-similar-existing-albums
   ```
 
 

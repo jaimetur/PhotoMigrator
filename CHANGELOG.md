@@ -5,7 +5,7 @@
 ---
 
 ## Release: v4.4.0
-### Release Date: 2026-07-06
+### Release Date: 2026-07-08
   
 #### 🚨 Breaking Changes:
 
@@ -25,7 +25,7 @@
   - Added delayed automatic requeues for transient `Automatic Migration` push failures so assets that fail while the target server is temporarily unreachable are retried a few minutes later, multiple times, before being counted as final push failures.
   - Tightened `Automatic Migration --move-assets true` source deletion semantics so local source assets are now removed only after the destination upload was actually resolved to a reusable target asset id, avoiding premature source deletion when a duplicate or failed upload did not leave a usable destination reference.
   - Added a final local-source cleanup pass for `Automatic Migration --move-assets true` that removes metadata-only leftovers, deletes empty album/source folders, and drops the source root itself when it becomes fully empty after a successful move-based migration.
-  - Expanded `--reuse-similar-existing-albums` for `Immich`, `Synology`, and `Automatic Migration` so album groups such as `Album`, `Album_1`, `Album (2)`, `Album_5`, `New_Album`, and `New Album` are now treated as the same reusable album family. When this flag is enabled PhotoMigrator now prefers the clean keeper name without a numeric suffix and with spaces instead of underscores, merges the assets from the discarded variants into that preferred keeper, and then removes the redundant albums after the consolidation is confirmed.
+  - Expanded `--reuse-similar-existing-albums` for `Immich`, `Synology`, `Google Photos`, `NextCloud`, and `Automatic Migration` so album groups such as `Album`, `Album_1`, `Album (2)`, `Album_5`, `New_Album`, and `New Album` are now treated as the same reusable album family. When this flag is enabled PhotoMigrator now prefers the clean keeper name without a numeric suffix and with spaces instead of underscores, merges the assets from the discarded variants into that preferred keeper, and then removes the redundant albums when the target service supports album deletion. On `Google Photos`, redundant variants are kept because the public API cannot delete albums.
   - Updated GPTH to v6.1.6 which includes several New Features and Bug Fixes.
 
 #### 🚀 GPTH Enhancements:

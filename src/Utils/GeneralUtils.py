@@ -1299,7 +1299,10 @@ def find_reusable_album_candidate(album_name, albums, allow_similar=False, exact
         allow_similar=allow_similar,
         exact_case_sensitive=exact_case_sensitive,
     )
-    return plan.get("matched_album"), plan.get("match_kind"), plan.get("ambiguous_matches", [])
+    ambiguous_matches = plan.get("ambiguous_matches", [])
+    if ambiguous_matches:
+        return None, None, ambiguous_matches
+    return plan.get("matched_album"), plan.get("match_kind"), []
 
 
 def has_any_filter():
