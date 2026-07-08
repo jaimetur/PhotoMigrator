@@ -6,7 +6,9 @@ import tempfile
 import zipfile
 from pathlib import Path
 import unicodedata
+import logging
 
+import Core.GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_ALBUMS
 from Utils.GeneralUtils import tqdm
@@ -500,6 +502,8 @@ def unzip_flatten(zipfile_path, dest_folder):
 
 def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level=None):
     """ Unzips all ZIP files from a folder into another (per-entry sanitized to avoid _ADMIN_*_WhiteSpaceConflict). """
+    logger = GV.LOGGER or LOGGER or logging.getLogger(__name__)
+
     # ------------------------------- minimal helpers (inline) -------------------------------
     def sanitize_component(name, is_dir):
         # Normalize to NFC, strip trailing spaces/dots, replace control/SMB-illegal chars, avoid empty
@@ -536,9 +540,9 @@ def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level
         return parent / candidate
     # ---------------------------------------------------------------------------------------
 
-    with set_log_level(LOGGER, log_level):
+    with set_log_level(logger, log_level):
         if not os.path.exists(input_folder):
-            LOGGER.warning(f"{step_name}ZIP folder '{input_folder}' does not exist.")
+            logger.warning(f"{step_name}ZIP folder '{input_folder}' does not exist.")
             return
         os.makedirs(unzip_folder, exist_ok=True)
 
@@ -549,7 +553,7 @@ def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level
             zip_path = os.path.join(input_folder, zip_file)
             try:
                 with zipfile.ZipFile(zip_path, 'r', allowZip64=True) as zip_ref:
-                    LOGGER.info(f"{step_name}Unzipping: {zip_file}")
+                    logger.info(f"{step_name}Unzipping: {zip_file}")
                     for info in zip_ref.infolist():
                         # Split path into components and sanitize each one independently
                         raw_parts = Path(info.filename).parts
@@ -578,9 +582,9 @@ def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level
                         with zip_ref.open(info, 'r') as src, open(dst_path, 'wb') as out:
                             shutil.copyfileobj(src, out, length=1024 * 1024)
 
-                LOGGER.debug(f"{step_name}Done: {zip_file}")
+                logger.debug(f"{step_name}Done: {zip_file}")
 
             except zipfile.BadZipFile:
-                LOGGER.warning(f"{step_name}Could not unzip file (BadZipFile): {zip_file}")
+                logger.warning(f"{step_name}Could not unzip file (BadZipFile): {zip_file}")
             except Exception as e:
-                LOGGER.warning(f"{step_name}Unzip error for {zip_file}: {e}")
+                logger.warning(f"{step_name}Unzip error for {zip_file}: {e}")
