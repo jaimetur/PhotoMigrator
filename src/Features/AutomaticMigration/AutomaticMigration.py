@@ -1852,17 +1852,28 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 else:
                                     exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                                 if not exists:
+                                    target_album_name_to_create = album_name
+                                    if reuse_similar_existing_albums and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                                        create_plan = build_reusable_album_group(
+                                            album_name=album_name,
+                                            albums=[],
+                                            allow_similar=True,
+                                            exact_case_sensitive=target_exact_album_match_case_sensitive,
+                                        )
+                                        target_album_name_to_create = str(create_plan.get("preferred_album_name") or album_name).strip() or album_name
                                     if isinstance(target_client, ClassLocalFolder):
                                         aid = target_client.create_album(
-                                            album_name=album_name,
+                                            album_name=target_album_name_to_create,
                                             shared=album_is_shared,
                                             log_level=logging.ERROR,
                                         )
                                     else:
-                                        aid = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
-                                    LOGGER.info(f"Album Created   : '{album_name}' by pusher_worker={worker_id}")
+                                        aid = target_client.create_album(album_name=target_album_name_to_create, log_level=logging.ERROR)
+                                    LOGGER.info(f"Album Created   : '{target_album_name_to_create}' by pusher_worker={worker_id}")
                                     if target_existing_albums is not None and aid:
-                                        target_existing_albums.append({"id": aid, "albumName": album_name})
+                                        target_existing_albums.append({"id": aid, "albumName": target_album_name_to_create})
+                                    if target_album_name_to_create != album_name and aid:
+                                        created_albums[target_album_name_to_create] = aid
                                 created_albums[album_name] = aid
                         album_id_dest = created_albums.get(album_name)
                         try:

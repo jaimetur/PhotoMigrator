@@ -22,7 +22,7 @@ from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
-from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate
+from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group
 
 """
 ----------------------
@@ -1313,6 +1313,75 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.warning(f"Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")
                 return 0
+
+    @staticmethod
+    def _upsert_existing_album(existing_albums, album_id, album_name):
+        if existing_albums is None or not album_id:
+            return
+        album_id = str(album_id).strip()
+        existing_albums[:] = [
+            album for album in existing_albums
+            if str((album or {}).get("id", "")).strip() != album_id
+        ]
+        existing_albums.append({"id": album_id, "albumName": album_name})
+
+    def consolidate_reusable_album_group(self, album_name, existing_albums=None, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            existing_albums = existing_albums if existing_albums is not None else (self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or [])
+            plan = build_reusable_album_group(
+                album_name=album_name,
+                albums=existing_albums,
+                allow_similar=True,
+                exact_case_sensitive=True,
+            )
+            preferred_album_name = str(plan.get("preferred_album_name") or album_name).strip() or album_name
+            keeper_album = plan.get("keeper_album")
+            keeper_id = str((keeper_album or {}).get("id", "")).strip() if keeper_album else ""
+            keeper_name = str((keeper_album or {}).get("albumName", "")).strip() if keeper_album else ""
+
+            if not keeper_id or keeper_name.casefold() != preferred_album_name.casefold():
+                keeper_id = self.create_album(preferred_album_name, log_level=log_level)
+                if not keeper_id:
+                    return None, plan
+                keeper_name = preferred_album_name
+                keeper_album = {"id": keeper_id, "albumName": keeper_name}
+                self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
+
+            keeper_asset_ids = None
+            for redundant_album in plan.get("similar_albums") or []:
+                redundant_id = str((redundant_album or {}).get("id", "")).strip()
+                redundant_name = str((redundant_album or {}).get("albumName", "")).strip()
+                if not redundant_id or redundant_id == keeper_id:
+                    continue
+                duplicate_assets = self.get_all_assets_from_album(redundant_id, redundant_name, log_level=log_level) or []
+                duplicate_asset_ids = [str(asset.get("id", "")).strip() for asset in duplicate_assets if str(asset.get("id", "")).strip()]
+                should_remove_redundant = False
+                if duplicate_asset_ids:
+                    added_count = self.add_assets_to_album(keeper_id, duplicate_asset_ids, keeper_name, log_level=log_level)
+                    if isinstance(added_count, int) and added_count > 0:
+                        should_remove_redundant = True
+                    else:
+                        if keeper_asset_ids is None:
+                            keeper_assets = self.get_all_assets_from_album(keeper_id, keeper_name, log_level=log_level) or []
+                            keeper_asset_ids = {str(asset.get("id", "")).strip() for asset in keeper_assets if str(asset.get("id", "")).strip()}
+                        if set(duplicate_asset_ids).issubset(keeper_asset_ids):
+                            should_remove_redundant = True
+                else:
+                    should_remove_redundant = True
+
+                if should_remove_redundant and self.remove_album(redundant_id, redundant_name, log_level=log_level):
+                    LOGGER.info(
+                        f"Album Consolidated: '{redundant_name}' -> '{keeper_name}'. "
+                        f"Redundant album removed after consolidating similar albums."
+                    )
+                    existing_albums[:] = [
+                        album for album in existing_albums
+                        if str((album or {}).get("id", "")).strip() != redundant_id
+                    ]
+
+            self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
+            return {"id": keeper_id, "albumName": keeper_name}, plan
             
 
     # TODO: Complete this method
@@ -2235,26 +2304,29 @@ class ClassSynologyPhotos:
                                     album_assets_ids.append(asset_id)
 
                         if album_assets_ids:
-                            matched_album, match_kind, ambiguous_matches = find_reusable_album_candidate(
-                                album_name=album_name,
-                                albums=existing_albums,
-                                allow_similar=reuse_similar_existing_albums,
-                                exact_case_sensitive=True,
-                            )
-                            if ambiguous_matches:
-                                candidate_names = ", ".join([f"'{item.get('albumName', '')}'" for item in ambiguous_matches[:3]])
-                                LOGGER.warning(
-                                    f"Found multiple similar existing Synology albums for '{album_name}' "
-                                    f"({candidate_names}). Creating a new album to avoid ambiguous reuse."
+                            matched_album = None
+                            if reuse_similar_existing_albums:
+                                matched_album, reuse_plan = self.consolidate_reusable_album_group(
+                                    album_name=album_name,
+                                    existing_albums=existing_albums,
+                                    log_level=log_level,
+                                )
+                                matched_name = (matched_album or {}).get("albumName", album_name) if matched_album else album_name
+                                preferred_name = str(reuse_plan.get("preferred_album_name") or album_name)
+                                if matched_album and matched_name != album_name:
+                                    LOGGER.info(
+                                        f"Reusing consolidated Synology album '{matched_name}' "
+                                        f"for source album '{album_name}'. Preferred keeper name: '{preferred_name}'."
+                                    )
+                            else:
+                                matched_album, _, _ = find_reusable_album_candidate(
+                                    album_name=album_name,
+                                    albums=existing_albums,
+                                    allow_similar=False,
+                                    exact_case_sensitive=True,
                                 )
                             if matched_album:
                                 album_id = matched_album.get("id")
-                                matched_name = matched_album.get("albumName", album_name)
-                                if match_kind == "similar" and matched_name != album_name:
-                                    LOGGER.info(
-                                        f"Reusing similar existing Synology album '{matched_name}' "
-                                        f"for source album '{album_name}'."
-                                    )
                             else:
                                 album_id = self.create_album(album_name, log_level=log_level)
                                 if album_id:
