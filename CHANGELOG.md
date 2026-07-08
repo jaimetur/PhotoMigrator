@@ -57,7 +57,6 @@
   - Fixed early-import logger binding bugs in `FileUtils`, `ConfigReader`, and `FileStatistics` so helper paths that can be imported before the global logger is initialized now resolve the active logger dynamically at runtime instead of crashing later with `'NoneType' object has no attribute info/warning/error'`. This fixes the pre-detection ZIP unpack step used by `Automatic Migration` local-folder sources and hardens similar startup-time execution paths that rely on configuration loading or file-statistics helpers.
   - Hardened similar-album consolidation across `Automatic Migration`, `Immich`, `Synology`, `Google Photos`, and `NextCloud` so the log now reports how many assets were requested and confirmed during album reassignment, and redundant albums are no longer deleted when the reassignment is only partial.
   - Fixed `Automatic Migration` and Synology shared-album handling so collaborative Synology Photos albums are no longer treated as normal albums just because the initial list response omitted `passphrase`. PhotoMigrator now resolves shared-album access details before listing album assets, which avoids `Failed to list photos in the album ...` errors and preserves album membership for items contributed by multiple Synology users during migrations to targets such as `Immich`. (Issue #1159).
-  - Fixed run-docker-dev.sh.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
