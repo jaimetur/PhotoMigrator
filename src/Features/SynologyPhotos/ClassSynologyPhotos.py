@@ -122,6 +122,102 @@ class ClassSynologyPhotos:
 
         self.CLIENT_NAME = f'Synology Photos ({self.CLIENT_ID})'
 
+    @staticmethod
+    def _extract_album_permissions(album):
+        return album.get('additional', {}).get('sharing_info', {}).get('permission', []) or []
+
+    @classmethod
+    def is_shared_album(cls, album):
+        if not isinstance(album, dict):
+            return False
+        passphrase = str(album.get('passphrase') or "").strip()
+        if passphrase:
+            return True
+        sharing_info = album.get('additional', {}).get('sharing_info', {}) or {}
+        if sharing_info:
+            return True
+        category = str(album.get('category') or album.get('album_type') or album.get('type') or "").strip().lower()
+        if "share" in category:
+            return True
+        permissions = cls._extract_album_permissions(album)
+        return bool(permissions)
+
+    def _extract_passphrase_from_album_payload(self, payload):
+        candidates = []
+        if isinstance(payload, dict):
+            candidates.extend([
+                payload,
+                payload.get("data"),
+                (payload.get("data") or {}).get("album") if isinstance(payload.get("data"), dict) else None,
+                (payload.get("data") or {}).get("list") if isinstance(payload.get("data"), dict) else None,
+            ])
+        for candidate in candidates:
+            if isinstance(candidate, list):
+                for item in candidate:
+                    if isinstance(item, dict):
+                        value = str(item.get("passphrase") or "").strip()
+                        if value:
+                            return value
+                        value = str(((item.get("sharing_info") or {}).get("passphrase")) or "").strip()
+                        if value:
+                            return value
+                        value = str((((item.get("additional") or {}).get("sharing_info") or {}).get("passphrase")) or "").strip()
+                        if value:
+                            return value
+            elif isinstance(candidate, dict):
+                value = str(candidate.get("passphrase") or "").strip()
+                if value:
+                    return value
+                value = str(((candidate.get("sharing_info") or {}).get("passphrase")) or "").strip()
+                if value:
+                    return value
+                value = str((((candidate.get("additional") or {}).get("sharing_info") or {}).get("passphrase")) or "").strip()
+                if value:
+                    return value
+        return ""
+
+    def ensure_shared_album_access(self, album, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            if not isinstance(album, dict):
+                return album
+            if not self.is_shared_album(album):
+                return album
+            if str(album.get("passphrase") or "").strip():
+                return album
+
+            album_id = str(album.get("id") or "").strip()
+            if not album_id:
+                return album
+
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                params = {
+                    "api": "SYNO.Foto.Browse.Album",
+                    "method": "get",
+                    "version": "4",
+                    "id": album_id,
+                    "additional": '["sharing_info", "thumbnail"]',
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response.raise_for_status()
+                data = response.json()
+                if not data.get("success"):
+                    LOGGER.debug(f"Could not resolve shared album passphrase for album ID={album_id}: {data}")
+                    return album
+
+                resolved_passphrase = self._extract_passphrase_from_album_payload(data)
+                if resolved_passphrase:
+                    album["passphrase"] = resolved_passphrase
+                    LOGGER.debug(f"Resolved shared album passphrase for album ID={album_id}.")
+            except Exception as error:
+                LOGGER.debug(f"Could not resolve shared album access details for album ID={album_id}: {error}")
+            return album
+
 
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
@@ -552,10 +648,19 @@ class ClassSynologyPhotos:
                 for album in album_list:
                     if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
                         album["albumName"] = album.pop("name")
+                    album = self.ensure_shared_album_access(album, log_level=log_level)
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     if filter_assets and has_any_filter():
-                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        if self.is_shared_album(album):
+                            album_assets = self.get_all_assets_from_album_shared(
+                                album_id,
+                                album_name,
+                                album_passphrase=album.get("passphrase"),
+                                log_level=log_level,
+                            )
+                        else:
+                            album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                         if len(album_assets) > 0:
                             albums_filtered.append(album)
                     else:
@@ -1242,9 +1347,18 @@ class ClassSynologyPhotos:
                     self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
                     return []
                 for album in all_albums:
+                    album = self.ensure_shared_album_access(album, log_level=log_level)
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
-                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                    if self.is_shared_album(album):
+                        album_assets = self.get_all_assets_from_album_shared(
+                            album_id,
+                            album_name,
+                            album_passphrase=album.get("passphrase"),
+                            log_level=log_level,
+                        )
+                    else:
+                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     combined_assets.extend(album_assets)
                 self.albums_assets_filtered = combined_assets # Cache albums_assets for future use
                 return combined_assets

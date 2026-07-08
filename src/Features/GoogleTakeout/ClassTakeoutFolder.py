@@ -14,7 +14,7 @@ import zipfile
 import unicodedata
 from collections import deque
 from contextlib import suppress
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from os.path import dirname, basename
 from pathlib import Path
 
@@ -107,7 +107,7 @@ def _extract_orphan_album_json_descriptor(json_path):
     year = None
     try:
         if timestamp_raw not in (None, ""):
-            asset_dt = datetime.utcfromtimestamp(int(str(timestamp_raw)))
+            asset_dt = datetime.fromtimestamp(int(str(timestamp_raw)), timezone.utc)
             year = asset_dt.year
     except Exception:
         asset_dt = None

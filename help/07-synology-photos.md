@@ -118,6 +118,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   - To download ALL Albums use `ALL` as `<ALBUMS_NAME>`.
   - To download all albums mathing any pattern you can use patterns in `<ALBUMS_NAME>`, i.e: `--download-albums 'dron*'` to download all albums starting with the word 'dron' followed by other(s) words.
   - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: `--download-albums 'album1', 'album2', 'album3'`.
+  - For shared/collaborative Synology albums, PhotoMigrator now resolves the shared-album access details before listing album contents. This avoids cases where only the current user's contributed items were visible or where the tool logged `Failed to list photos in the album ...` for albums shared across multiple Synology users.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin `--client=synology --download-albums "Album 1", "Album 2", "Album 3"`
@@ -164,6 +165,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   - The Tool will connect to Synology Photos and will download all the Album and Assets without Albums into the folder `<OUTPUT_FOLDER>`.
   - All Albums will be downloaded within a subfolder of `<OUTPUT_FOLDER>/Albums` with the same name of the Album and all files will be flattened into it.
   - Assets with no Albums associated will be downloaded within a subfolder called `<OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>` and will have a `year/month` structure inside.
+  - Shared/collaborative albums are now handled more robustly as well: when Synology omits the shared `passphrase` from the album list response, PhotoMigrator performs an extra album-details lookup so it can still enumerate and migrate the full album membership instead of silently falling back to only the current user's visible items.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin --client=synology --download-all ./MyLibrary

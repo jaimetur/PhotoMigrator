@@ -5,6 +5,7 @@ import types
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+import logging
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -208,6 +209,51 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
         self.assertEqual(asset_id, "cached-asset-id")
         self.assertTrue(is_duplicated)
+
+    def test_is_shared_album_detects_sharing_info_without_passphrase(self):
+        album = {
+            "id": "shared-1",
+            "albumName": "Album Shared",
+            "additional": {
+                "sharing_info": {
+                    "permission": [{"role": "editor"}]
+                }
+            },
+        }
+
+        self.assertTrue(ClassSynologyPhotos.is_shared_album(album))
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_ensure_shared_album_access_populates_missing_passphrase_from_album_get(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.SESSION = MagicMock()
+        manager.login = lambda log_level=None: True
+
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "success": True,
+            "data": {
+                "album": {
+                    "id": "shared-1",
+                    "passphrase": "shared-passphrase",
+                    "sharing_info": {"permission": [{"role": "editor"}]},
+                }
+            },
+        }
+        manager.SESSION.get.return_value = response
+
+        album = {
+            "id": "shared-1",
+            "albumName": "Album Shared",
+            "additional": {"sharing_info": {"permission": [{"role": "editor"}]}},
+        }
+
+        enriched = manager.ensure_shared_album_access(album, log_level=logging.INFO)
+
+        self.assertEqual(enriched.get("passphrase"), "shared-passphrase")
 
 
 if __name__ == "__main__":

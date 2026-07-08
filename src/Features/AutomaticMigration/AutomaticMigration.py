@@ -1252,6 +1252,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             LOGGER.info(f"{len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")
             for album in all_albums:
+                if isinstance(source_client, ClassSynologyPhotos):
+                    album = source_client.ensure_shared_album_access(album, log_level=logging.ERROR)
                 album_id = album['id']
                 album_name = album['albumName']
                 album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
@@ -1464,6 +1466,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             pulled_assets = 0
             for album in albums:
+                if isinstance(source_client, ClassSynologyPhotos):
+                    album = source_client.ensure_shared_album_access(album, log_level=logging.ERROR)
                 album_assets = []
                 album_id = album['id']
                 album_name = album['albumName']
@@ -1473,7 +1477,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
                 else:
                     album_shared_role = ""
-                is_shared = album_passphrase is not None and album_passphrase != ""  # Si tiene passphrase, es compartido
+                if isinstance(source_client, ClassSynologyPhotos):
+                    is_shared = source_client.is_shared_album(album)
+                else:
+                    is_shared = album_passphrase is not None and album_passphrase != ""  # Si tiene passphrase, es compartido
 
                 # Descargar todos los assets de este álbum
                 try:
