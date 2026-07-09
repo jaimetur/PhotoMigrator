@@ -53,29 +53,29 @@ This option downloads a small ZIP package that includes:
 
 Direct download:
 
-- [`PhotoMigrator_v4.4.0_docker.zip`](https://github.com/jaimetur/PhotoMigrator/releases/download/v4.4.0/PhotoMigrator_v4.4.0_docker.zip)
+- [`PhotoMigrator_v4.4.1_docker.zip`](https://github.com/jaimetur/PhotoMigrator/releases/download/v4.4.1/PhotoMigrator_v4.4.1_docker.zip)
 
 - **Linux/macOS**
   ```bash
-  curl -L -o PhotoMigrator_v4.4.0_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v4.4.0/PhotoMigrator_v4.4.0_docker.zip
+  curl -L -o PhotoMigrator_v4.4.1_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v4.4.1/PhotoMigrator_v4.4.1_docker.zip
   ```
 
 - **Windows (PowerShell)**
   ```bash
-  curl.exe -L -o PhotoMigrator_v4.4.0_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v4.4.0/PhotoMigrator_v4.4.0_docker.zip
+  curl.exe -L -o PhotoMigrator_v4.4.1_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v4.4.1/PhotoMigrator_v4.4.1_docker.zip
   ```
 
 ### 1.2. Unzip the package
 
 - **Linux/macOS**
   ```bash
-  7z x PhotoMigrator_v4.4.0_docker.zip
+  7z x PhotoMigrator_v4.4.1_docker.zip
   cd PhotoMigrator/docker-cli
   ```
 
 - **Windows (PowerShell)**
   ```bash
-  powershell -Command "Expand-Archive -Path PhotoMigrator_v4.4.0_docker.zip -DestinationPath ./"
+  powershell -Command "Expand-Archive -Path PhotoMigrator_v4.4.1_docker.zip -DestinationPath ./"
   cd PhotoMigrator\docker-cli
   ```
 
@@ -169,7 +169,7 @@ Examples:
 
 - Specific version
   ```bash
-  docker pull jaimetur/photomigrator-linux:4.4.0
+  docker pull jaimetur/photomigrator-linux:4.4.1
   ```
 
 ### 2.2. Download `Config.ini`

@@ -4,6 +4,24 @@
 
 ---
 
+## Release: v4.4.1
+### Release Date: 2026-07-09
+  
+#### 🚨 Breaking Changes:
+
+#### 🌟 New Features:
+
+#### 🚀 Enhancements:
+
+#### 🚀 GPTH Enhancements:
+
+#### 🐛 Bug fixes:
+
+#### 📚 Documentation:
+  - Updated documentation with all changes.
+
+---
+
 ## Release: v4.4.0
 ### Release Date: 2026-07-08
   
