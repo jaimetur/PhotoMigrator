@@ -136,7 +136,7 @@ Below you can see the different steps of this feature:
 > Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]              :  Skipped  
 > 
 > STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:36:42  
-> Step 2.1  : 🪛 [PRE-PROCESS]-[Clean Takeout Folder]      :  0:00:02  
+> Step 2.1  : 🪛 [PRE-PROCESS]-[Sanitize Takeout Folder]   :  0:00:02  
 > Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]      :  0:04:34  
 > Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]         :  0:32:05  
 > 

@@ -846,6 +846,39 @@ def should_auto_force_gpth_fix(takeout_detection_info=None):
     return str(detection_info.get("mode") or "").strip().lower() == "album-only"
 
 
+def should_recover_orphan_album_assets(takeout_detection_info=None):
+    detection_info = takeout_detection_info or {}
+    return bool(detection_info.get("has_year_folders"))
+
+
+def remap_takeout_detection_info_root(takeout_detection_info=None, source_root=None, target_root=None):
+    """
+    Remap path-like entries from a previously detected Takeout root into a new root.
+    """
+    details = dict(takeout_detection_info or {})
+    source_text = str(source_root or "").strip()
+    target_text = str(target_root or "").strip()
+    if not source_text or not target_text:
+        return details
+
+    try:
+        source_path = Path(source_text).resolve()
+        target_path = Path(target_text).resolve()
+    except Exception:
+        return details
+
+    for key in ("matched_path", "container_path"):
+        raw_value = str(details.get(key) or "").strip()
+        if not raw_value:
+            continue
+        try:
+            relative_path = Path(raw_value).resolve().relative_to(source_path)
+        except Exception:
+            continue
+        details[key] = str((target_path / relative_path).resolve())
+    return details
+
+
 def prepare_gpth_fix_working_input(input_folder, takeout_detection_info=None, keep_takeout_folder=False, filedates_json=None, timestamp=None, input_is_disposable=False, step_name="", log_level=None):
     """
     Prepare the working root for GPTH fix mode.
@@ -885,13 +918,11 @@ def prepare_gpth_fix_working_input(input_folder, takeout_detection_info=None, ke
                 step_name=step_name,
                 log_level=log_level,
             )
-            original_container_path = str(effective_detection_info.get("container_path") or "").strip()
-            if original_container_path:
-                try:
-                    rel_container = Path(original_container_path).resolve().relative_to(source_root)
-                    effective_detection_info["container_path"] = str((Path(working_input_root) / rel_container).resolve())
-                except Exception:
-                    pass
+            effective_detection_info = remap_takeout_detection_info_root(
+                takeout_detection_info=effective_detection_info,
+                source_root=str(source_root),
+                target_root=working_input_root,
+            )
         elif keep_takeout_folder and input_is_disposable:
             LOGGER.info(
                 f"{step_name}Skipping extra GPTH fix clone because the current working input is already disposable "
@@ -1349,8 +1380,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     tmp_folder = clone_folder_fast (input_folder=self.input_folder, cloned_folder=cloned_folder, step_name=step_name, log_level=log_level)
                     if tmp_folder != self.input_folder:
                         ARGS['google-takeout'] = tmp_folder
-                        self.unzipped_folder = tmp_folder
+                        self.input_folder = Path(tmp_folder)
+                        self.unzipped_folder = Path(tmp_folder)
                         self.backup_takeout_folder = input_folder
+                        self.takeout_detection_info = remap_takeout_detection_info_root(
+                            takeout_detection_info=self.takeout_detection_info,
+                            source_root=input_folder,
+                            target_root=tmp_folder,
+                        )
                         LOGGER.info(f"{step_name}Takeout folder cloned successfully and will be used as working folder for next steps. ")
                         LOGGER.info(f"{step_name}Your original Takeout files have been safely preserved in the folder: '{self.backup_takeout_folder}' ")
                     sub_step_end_time = datetime.now()
@@ -1713,23 +1750,27 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{self.step}.{self.substep}. RECOVERING ORPHAN ALBUM ASSETS FROM SOURCE JSON SIDECARS...")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
-            recovery_summary = recover_orphan_album_assets_from_json_sidecars(
-                input_folder=input_folder,
-                output_folder=output_folder,
-                albums_folder=albums_folder,
-                no_symbolic_albums=self.ARGS['google-no-symbolic-albums'],
-                albums_structure=self.ARGS['google-albums-folders-structure'],
-                step_name=step_name,
-                log_level=LOG_LEVEL,
-            )
-            self.result['orphan_album_json_detected'] = recovery_summary['orphan_json_detected']
-            self.result['orphan_album_assets_recovered'] = recovery_summary['recovered_assets']
-            self.result['orphan_album_assets_unresolved'] = recovery_summary['unresolved_assets']
-            self.result['orphan_album_recovery_albums_touched'] = recovery_summary['albums_touched']
-            sub_step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-            LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            if should_recover_orphan_album_assets(self.takeout_detection_info):
+                recovery_summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_folder,
+                    output_folder=output_folder,
+                    albums_folder=albums_folder,
+                    no_symbolic_albums=self.ARGS['google-no-symbolic-albums'],
+                    albums_structure=self.ARGS['google-albums-folders-structure'],
+                    step_name=step_name,
+                    log_level=LOG_LEVEL,
+                )
+                self.result['orphan_album_json_detected'] = recovery_summary['orphan_json_detected']
+                self.result['orphan_album_assets_recovered'] = recovery_summary['recovered_assets']
+                self.result['orphan_album_assets_unresolved'] = recovery_summary['unresolved_assets']
+                self.result['orphan_album_recovery_albums_touched'] = recovery_summary['albums_touched']
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            else:
+                formatted_duration = "Skipped"
+                LOGGER.info(f"{step_name}Step Skipped: orphan album JSON recovery only applies to Takeouts with year folders.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
             # Finally show TOTAL DURATION OF PROCESSING PHASE

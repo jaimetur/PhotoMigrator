@@ -34,9 +34,11 @@ try:
         inspect_takeout_structure,
         prepare_gpth_fix_working_input,
         recover_orphan_album_assets_from_json_sidecars,
+        remap_takeout_detection_info_root,
         relocate_gpth_fix_outputs,
         select_gpth_fix_target_folder,
         should_auto_force_gpth_fix,
+        should_recover_orphan_album_assets,
     )
     TAKEOUT_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -141,6 +143,11 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         self.assertFalse(should_auto_force_gpth_fix({"mode": "standard"}))
         self.assertFalse(should_auto_force_gpth_fix({}))
 
+    def test_should_recover_orphan_album_assets_only_when_year_folders_exist(self):
+        self.assertTrue(should_recover_orphan_album_assets({"has_year_folders": True, "mode": "standard"}))
+        self.assertFalse(should_recover_orphan_album_assets({"has_year_folders": False, "mode": "album-only"}))
+        self.assertFalse(should_recover_orphan_album_assets({}))
+
     def test_prepare_gpth_fix_working_input_clones_and_remaps_when_keep_takeout_is_enabled(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -195,10 +202,29 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
                     log_level=logging.INFO,
                 )
 
-            self.assertEqual(Path(working_root), unzipped_root.resolve())
-            self.assertEqual(Path(fix_target), photos_root.resolve())
+            self.assertEqual(Path(working_root).resolve(), unzipped_root.resolve())
+            self.assertEqual(Path(fix_target).resolve(), photos_root.resolve())
             self.assertEqual(remapped_json, str(filedates_json))
             self.assertIsNone(cloned_from)
+
+    def test_remap_takeout_detection_info_root_updates_container_and_match_paths(self):
+        source_root = Path("/tmp/Takeout")
+        target_root = Path("/tmp/Takeout_tmp_20260709")
+        original = {
+            "mode": "album-only",
+            "matched_path": str(source_root / "Google Photos" / "Album 1"),
+            "container_path": str(source_root / "Google Photos"),
+        }
+
+        remapped = remap_takeout_detection_info_root(
+            takeout_detection_info=original,
+            source_root=str(source_root),
+            target_root=str(target_root),
+        )
+
+        self.assertEqual(remapped["mode"], "album-only")
+        self.assertEqual(Path(remapped["matched_path"]).resolve(), (target_root / "Google Photos" / "Album 1").resolve())
+        self.assertEqual(Path(remapped["container_path"]).resolve(), (target_root / "Google Photos").resolve())
 
     def test_run_command_compacts_repeated_createfile_failed_warnings(self):
         class FakeProcess:
