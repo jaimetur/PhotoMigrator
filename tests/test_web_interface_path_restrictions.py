@@ -390,28 +390,6 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("--no-log-file", enabled_args)
         self.assertNotIn("--no-log-file", disabled_args)
 
-    def test_state_value_normalization_converts_string_booleans_for_checkbox_fields(self):
-        normalized = self.web_app._normalize_state_values_for_schema(
-            {
-                "google-keep-takeout-folder": "true",
-                "google-remove-duplicates-files": "false",
-                "google-rename-albums-folders": "1",
-                "google-skip-extras-files": "0",
-                "no-log-file": "yes",
-                "google-takeout": "/tmp/Takeout",
-            }
-        )
-
-        self.assertIs(normalized["google-keep-takeout-folder"], True)
-        self.assertIs(normalized["google-remove-duplicates-files"], False)
-        self.assertIs(normalized["google-rename-albums-folders"], True)
-        self.assertIs(normalized["google-skip-extras-files"], False)
-        self.assertIs(normalized["no-log-file"], True)
-        self.assertEqual(normalized["google-takeout"], "/tmp/Takeout")
-
-    def test_web_build_id_is_generated(self):
-        self.assertTrue(str(self.web_app.WEB_BUILD_ID).strip())
-
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")

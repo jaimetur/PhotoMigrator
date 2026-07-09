@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhotoMigrator Web Interface</title>
-    <link rel="icon" href="/assets/ico/PhotoMigrator.ico?v={{ tool_version }}" sizes="any">
-    <link rel="stylesheet" href="/static/style.css?v={{ tool_version }}">
+    <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <main class="page">
@@ -13,7 +13,7 @@
         <div class="hero__content">
             <div class="hero__heading">
                 <h1 class="hero__title">PhotoMigrator</h1>
-                <div class="hero__badge">{{ tool_version }} ({{ tool_date }}) | Web {{ web_build_id }}</div>
+                <div class="hero__badge">{{ tool_version }} ({{ tool_date }})</div>
             </div>
             <h2 class="hero__subtitle">Web Interface for CLI Execution</h2>
             <p>Migrate your photos between different cloud services. Process your Google Photos Takeout to fix metadata. Manage your photo library.</p>
@@ -39,7 +39,7 @@
                 </button>
             </div>
         </div>
-        <img class="hero__logo" src="/assets/logos/logo_17_1024x1024.png?v={{ tool_version }}" alt="PhotoMigrator logo">
+        <img class="hero__logo" src="/assets/logos/logo_17_1024x1024.png" alt="PhotoMigrator logo">
     </header>
 
     <section class="panel" data-panel-id="general-panel">
@@ -1857,18 +1857,6 @@
         return schema?.fields_by_dest?.[dest] || getAllFields().find((f) => f.dest === dest);
     }
 
-    function normalizeStateValuesForSchema(rawValues) {
-        const normalized = {...(rawValues || {})};
-        Object.keys(normalized).forEach((dest) => {
-            const field = getFieldByDest(dest);
-            if (!field) return;
-            if (field.kind === "flag" || field.kind === "bool") {
-                normalized[dest] = uiBooleanValue(normalized[dest]);
-            }
-        });
-        return normalized;
-    }
-
     function normalizeFieldForContext(field, tabKey) {
         if (!field) return field;
         if ((tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos") && field.dest === "account-id") {
@@ -2974,44 +2962,8 @@
         return values;
     }
 
-    function syncVisibleControlsToState() {
-        const elements = Array.from(document.querySelectorAll(
-            "#general-core-panel [data-dest], " +
-            "#module-form:not(.hidden) [data-dest], #cloud-action-panel:not(.hidden) [data-dest], " +
-            "#standalone-action-panel:not(.hidden) [data-dest], #migration-panel:not(.hidden) [data-dest]"
-        ));
-        const grouped = new Map();
-
-        elements.forEach((el) => {
-            const dest = String(el?.dataset?.dest || "").trim();
-            if (!dest) return;
-            if (!grouped.has(dest)) grouped.set(dest, []);
-            grouped.get(dest).push(el);
-        });
-
-        grouped.forEach((controls, dest) => {
-            const checkboxControls = controls.filter((el) => el.type === "checkbox");
-            if (checkboxControls.length) {
-                const checked = checkboxControls.some((el) => Boolean(el.checked));
-                stateValues[dest] = stateValueFromUiCheckbox(dest, checked);
-                return;
-            }
-
-            let chosenValue = "";
-            controls.forEach((el) => {
-                const val = String(el?.value ?? "");
-                if (val !== "") chosenValue = val;
-            });
-            if (chosenValue === "" && controls.length) {
-                chosenValue = String(controls[controls.length - 1]?.value ?? "");
-            }
-            stateValues[dest] = chosenValue;
-        });
-    }
-
     function buildRunPayload() {
-        syncVisibleControlsToState();
-        const values = {...stateValues};
+        const values = collectValues();
         let selectedActionDest = null;
         if (activeModuleTab === "google_photos" || activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos" || activeModuleTab === "nextcloud_photos") {
             const selected = (schema.tabs[activeModuleTab] || []).find((f) => f.dest === cloudActionDest);
@@ -5225,7 +5177,6 @@
         await loadConfig(); // Keep editor synced with active Config.ini by default
         const response = await apiFetch("/api/schema");
         schema = await response.json();
-        stateValues = normalizeStateValuesForSchema(stateValues);
         renderAll();
         await tryResumeActiveJob();
     }

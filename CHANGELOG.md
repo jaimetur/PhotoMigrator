@@ -23,8 +23,6 @@
   - When `--google-keep-takeout-folder` is active, PhotoMigrator now creates a temporary working copy only if the current `--fix` input still points to the original Takeout tree.
   - If the source Takeout came from ZIP files and PhotoMigrator is already working on the intermediate unzipped staging folder, no extra clone is created because the original ZIP Takeout is already preserved.
   - The automatic `album-only` detection flow still forces `GPTH --fix` when no year folders exist but localized `Google Photos` plus album JSON sidecars and `archive_browser.html` are present.
-  - Normalized Web Interface checkbox state booleans when loading and saving user state. This avoids persisted string values such as `"false"` being interpreted as checked flags in the UI.
-  - Added a visible Web build id in the Web Interface header. This makes it possible to confirm exactly which frontend build is being served by the published image.
   - Fixed the Web Interface `Command Preview` for `Google Takeout` processing flags `--google-remove-duplicates-files`, `--google-rename-albums-folders`, `--google-skip-extras-files`, `--google-keep-takeout-folder`, and the general flag `--no-log-file`. The backend preview path sanitizer was incorrectly treating those boolean flags as filesystem paths because of their names, so toggling them changed the checkbox state and preview request payload but did not update the rendered command.
 
 #### 📚 Documentation:
