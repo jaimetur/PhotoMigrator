@@ -32,7 +32,11 @@ try:
         _is_takeout_year_folder,
         contains_takeout_structure,
         inspect_takeout_structure,
+        prepare_gpth_fix_working_input,
         recover_orphan_album_assets_from_json_sidecars,
+        relocate_gpth_fix_outputs,
+        select_gpth_fix_target_folder,
+        should_auto_force_gpth_fix,
     )
     TAKEOUT_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -120,6 +124,81 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         output_folder = takeout_module.ClassTakeoutFolder.get_output_folder(takeout)
 
         self.assertEqual(output_folder, Path("/tmp/Takeout_processed_20260707-012602"))
+
+    def test_select_gpth_fix_target_folder_uses_detected_google_photos_container(self):
+        selected = select_gpth_fix_target_folder(
+            input_folder="/tmp/Takeout",
+            takeout_detection_info={
+                "mode": "album-only",
+                "container_path": "/tmp/Takeout/Google Photos",
+            },
+        )
+
+        self.assertEqual(selected, str(Path("/tmp/Takeout/Google Photos")))
+
+    def test_should_auto_force_gpth_fix_only_for_album_only_layout(self):
+        self.assertTrue(should_auto_force_gpth_fix({"mode": "album-only"}))
+        self.assertFalse(should_auto_force_gpth_fix({"mode": "standard"}))
+        self.assertFalse(should_auto_force_gpth_fix({}))
+
+    def test_prepare_gpth_fix_working_input_clones_and_remaps_when_keep_takeout_is_enabled(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source_root = root / "Takeout"
+            photos_root = source_root / "Google Photos"
+            album_dir = photos_root / "Album 1"
+            album_dir.mkdir(parents=True)
+            (album_dir / "photo.jpg").write_bytes(b"x")
+            filedates_json = root / "dates.json"
+            source_file = album_dir / "photo.jpg"
+            filedates_json.write_text(
+                json.dumps({source_file.resolve().as_posix(): {"OldestDate": "2024-01-01T00:00:00"}}),
+                encoding="utf-8",
+            )
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                working_root, fix_target, remapped_json, cloned_from = prepare_gpth_fix_working_input(
+                    input_folder=str(source_root),
+                    takeout_detection_info={"container_path": str(photos_root)},
+                    keep_takeout_folder=True,
+                    filedates_json=str(filedates_json),
+                    timestamp="20260709-120000",
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertNotEqual(Path(working_root), source_root)
+            self.assertEqual(cloned_from, str(source_root.resolve()))
+            self.assertEqual(Path(fix_target), Path(working_root) / "Google Photos")
+            self.assertNotEqual(remapped_json, str(filedates_json))
+            remapped_payload = json.loads(Path(remapped_json).read_text(encoding="utf-8"))
+            self.assertIn(str((Path(working_root) / "Google Photos" / "Album 1" / "photo.jpg").resolve()), remapped_payload)
+
+    def test_prepare_gpth_fix_working_input_does_not_clone_disposable_unzipped_input(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            unzipped_root = root / "Takeout_unzipped_20260709-120000"
+            photos_root = unzipped_root / "Google Photos"
+            (photos_root / "Album 1").mkdir(parents=True)
+            filedates_json = root / "dates.json"
+            filedates_json.write_text(json.dumps({}), encoding="utf-8")
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                working_root, fix_target, remapped_json, cloned_from = prepare_gpth_fix_working_input(
+                    input_folder=str(unzipped_root),
+                    takeout_detection_info={"container_path": str(photos_root)},
+                    keep_takeout_folder=True,
+                    filedates_json=str(filedates_json),
+                    timestamp="20260709-120000",
+                    input_is_disposable=True,
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertEqual(Path(working_root), unzipped_root.resolve())
+            self.assertEqual(Path(fix_target), photos_root.resolve())
+            self.assertEqual(remapped_json, str(filedates_json))
+            self.assertIsNone(cloned_from)
 
     def test_run_command_compacts_repeated_createfile_failed_warnings(self):
         class FakeProcess:
@@ -473,6 +552,80 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         self.assertIn("--albums", command)
         self.assertIn("shortcut", command)
         self.assertIn("--hardlink", command)
+
+    def test_relocate_gpth_fix_outputs_moves_generated_artifacts_to_output_folder(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            fix_root = root / "Google Photos"
+            output_root = root / "Processed"
+            (fix_root / "ALL_PHOTOS" / "2002").mkdir(parents=True)
+            (fix_root / "ALL_PHOTOS" / "2002" / "a.jpg").write_bytes(b"a")
+            (fix_root / "Albums" / "Trip").mkdir(parents=True)
+            (fix_root / "Albums" / "Trip" / "b.jpg").write_bytes(b"b")
+            (fix_root / "Special_Folders" / "Locked").mkdir(parents=True)
+            (fix_root / "Special_Folders" / "Locked" / "c.jpg").write_bytes(b"c")
+            (fix_root.parent / "archive_browser.html").write_text("<html></html>", encoding="utf-8")
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                ok = relocate_gpth_fix_outputs(
+                    fix_root=str(fix_root),
+                    output_folder=str(output_root),
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertTrue(ok)
+            self.assertTrue((output_root / "ALL_PHOTOS" / "2002" / "a.jpg").is_file())
+            self.assertTrue((output_root / "Albums" / "Trip" / "b.jpg").is_file())
+            self.assertTrue((output_root / "Special_Folders" / "Locked" / "c.jpg").is_file())
+            self.assertTrue((output_root / "archive_browser.html").is_file())
+            self.assertFalse((fix_root / "ALL_PHOTOS").exists())
+            self.assertFalse((fix_root / "Albums").exists())
+
+    def test_fix_metadata_with_gpth_tool_uses_fix_mode_without_input_output_arguments(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            fix_root = root / "Google Photos"
+            output_folder = root / "Processed"
+            gpth_path = root / "gpth"
+            fix_root.mkdir()
+            output_folder.mkdir()
+            gpth_path.write_text("", encoding="utf-8")
+            (fix_root / "ALL_PHOTOS").mkdir()
+            (fix_root / "Albums").mkdir()
+
+            fake_logger = MagicMock()
+            fake_logger.handlers = []
+
+            with (
+                patch.object(takeout_module, "LOGGER", fake_logger),
+                patch.object(takeout_module, "ARGS", {"log-level": "info", "gpth-no-log": False}),
+                patch.object(takeout_module, "get_os", return_value="linux"),
+                patch.object(takeout_module, "get_arch", return_value="x64"),
+                patch.object(takeout_module, "get_gpth_tool_path", return_value=str(gpth_path)),
+                patch.object(takeout_module, "ensure_executable"),
+                patch.object(takeout_module, "print_arguments_pretty"),
+                patch.object(takeout_module, "run_command", return_value=0) as mock_run_command,
+            ):
+                ok = takeout_module.fix_metadata_with_gpth_tool(
+                    input_folder=str(fix_root),
+                    output_folder=str(output_folder),
+                    capture_output=True,
+                    capture_errors=True,
+                    print_messages=False,
+                    no_symbolic_albums=False,
+                    ignore_takeout_structure=True,
+                    step_name="STEP : ",
+                )
+
+        self.assertTrue(ok)
+        command = mock_run_command.call_args.args[0]
+        self.assertIn("--fix", command)
+        self.assertIn(str(fix_root), command)
+        self.assertNotIn("--input", command)
+        self.assertNotIn("--output", command)
+        self.assertTrue((output_folder / "ALL_PHOTOS").is_dir())
+        self.assertTrue((output_folder / "Albums").is_dir())
 
     def test_repair_conflicting_video_xmp_dates_rewrites_conflicting_video_tags(self):
         with tempfile.TemporaryDirectory() as temp_dir:
