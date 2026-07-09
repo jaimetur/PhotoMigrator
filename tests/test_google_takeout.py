@@ -618,14 +618,14 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
                     step_name="STEP : ",
                 )
 
-        self.assertTrue(ok)
-        command = mock_run_command.call_args.args[0]
-        self.assertIn("--fix", command)
-        self.assertIn(str(fix_root), command)
-        self.assertNotIn("--input", command)
-        self.assertNotIn("--output", command)
-        self.assertTrue((output_folder / "ALL_PHOTOS").is_dir())
-        self.assertTrue((output_folder / "Albums").is_dir())
+            self.assertTrue(ok)
+            command = mock_run_command.call_args.args[0]
+            self.assertIn("--fix", command)
+            self.assertIn(str(fix_root), command)
+            self.assertNotIn("--input", command)
+            self.assertNotIn("--output", command)
+            self.assertTrue((output_folder / "ALL_PHOTOS").is_dir())
+            self.assertTrue((output_folder / "Albums").is_dir())
 
     def test_repair_conflicting_video_xmp_dates_rewrites_conflicting_video_tags(self):
         with tempfile.TemporaryDirectory() as temp_dir:

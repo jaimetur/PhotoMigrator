@@ -94,6 +94,13 @@ from Core.ConfigReader import get_env_override_source  # noqa: E402
 from Core.GlobalVariables import TOOL_DATE, TOOL_NAME, TOOL_VERSION, TAKEOUT_SPECIAL_FOLDER_NAMES  # noqa: E402
 
 
+def _html_no_store_response(response: Response) -> Response:
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 BOOL_VALUE_DESTS = {
     "move-assets",
     "dashboard",
@@ -3087,7 +3094,7 @@ def login_page(request: Request, session_token: str | None = Cookie(default=None
         return RedirectResponse(url="/", status_code=302)
     show_default_admin_hint = _is_login_hint_account_available(username="admin", password="admin123")
     show_demo_hint = _is_login_hint_account_available(username="demo", password="demo", required_role="demo")
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "login.html",
         {
             "request": request,
@@ -3097,6 +3104,7 @@ def login_page(request: Request, session_token: str | None = Cookie(default=None
             "show_demo_hint": show_demo_hint,
         },
     )
+    return _html_no_store_response(response)
 
 
 @app.post("/api/auth/login")
@@ -3168,7 +3176,7 @@ def home(request: Request, session_token: str | None = Cookie(default=None, alia
     current_user = _user_from_session_token(session_token)
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "index.html",
         {
             "request": request,
@@ -3181,11 +3189,12 @@ def home(request: Request, session_token: str | None = Cookie(default=None, alia
             "is_admin": str(current_user.get("role") or "").strip().lower() == "admin",
         },
     )
+    return _html_no_store_response(response)
 
 
 @app.get("/admin", response_class=HTMLResponse)
 def admin_panel(request: Request, current_user: Dict[str, Any] = Depends(_require_admin)) -> HTMLResponse:
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "admin.html",
         {
             "request": request,
@@ -3194,6 +3203,7 @@ def admin_panel(request: Request, current_user: Dict[str, Any] = Depends(_requir
             "username": str(current_user.get("username") or ""),
         },
     )
+    return _html_no_store_response(response)
 
 
 @app.get("/docs/view/{doc_name}", response_class=HTMLResponse)
