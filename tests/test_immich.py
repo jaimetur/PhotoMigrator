@@ -220,6 +220,41 @@ class TestImmichPhotosUnit(unittest.TestCase):
 
         self.assertEqual(albums, [])
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.put")
+    def test_add_assets_to_album_treats_duplicate_failures_as_already_associated(self, mock_put, mock_logger):
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [
+            {"id": "asset-1", "success": False, "error": "duplicate"},
+        ]
+        mock_put.return_value = response
+
+        added = self.manager.add_assets_to_album("album-1", "asset-1", album_name="Album")
+
+        self.assertEqual(added, 1)
+        mock_logger.warning.assert_not_called()
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.put")
+    def test_add_assets_to_album_warns_only_for_non_duplicate_failures(self, mock_put, mock_logger):
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [
+            {"id": "asset-1", "success": True},
+            {"id": "asset-2", "success": False, "error": "duplicate"},
+            {"id": "asset-3", "success": False, "error": "permission denied"},
+        ]
+        mock_put.return_value = response
+
+        added = self.manager.add_assets_to_album("album-1", ["asset-1", "asset-2", "asset-3"], album_name="Album")
+
+        self.assertEqual(added, 2)
+        mock_logger.warning.assert_called_once()
+        warning_message = mock_logger.warning.call_args.args[0]
+        self.assertIn("confirmed 2/3", warning_message)
+        self.assertIn("permission denied", warning_message)
+
 
 if __name__ == "__main__":
     unittest.main()

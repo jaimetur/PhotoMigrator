@@ -12,8 +12,11 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
+  - Updated GPTH to v6.1.8 which includes an important Bug Fix.
 
 #### 🚀 GPTH Enhancements:
+🐛 Bug Fixes
+  - Fixed Alnum's orphan assets association: When any album folder only contains .json metadata file but not the corresponding asset, now GPTH try to find the original asset into the ALL_PHOTOS/year folder. This issue happens because when one asset belongs to different albums, Google Takeout just copy the original asset into the Year folder and in every album it only put the associated .json metadata file. 
 
 #### 🐛 Bug fixes:
   - Fixed the Synology shared-album follow-up regression from issue `#1159`. Shared albums matched by filters now use the correct shared-album listing flow instead of the normal album endpoint.
@@ -28,6 +31,7 @@
   - Restricted `Google Takeout` orphan album JSON recovery to Takeouts that actually contain year folders. Album-only Takeouts without `Photos from YYYY` / localized year folders no longer run the orphan-asset recovery step, because that recovery path depends on assets being materialized under the processed year-based library.
   - Preserved GPTH log files generated during `Google Takeout` `GPTH --fix` runs whenever GPTH writes into a working root that is later relocated into the final processed output folder. When PhotoMigrator moves `ALL_PHOTOS`, `Albums`, and the other fix-mode artifacts into the final output, it now also relocates the GPTH log, regardless of whether GPTH had been working on the original Takeout root or on a temporary cloned root.
   - Fixed the Web Interface log panel handling for GPTH progress bars. When a progress update reaches the frontend without a real newline before the next `INFO` / `WARNING` / `ERROR` / `[web-interface]` prefix, the renderer now inserts the missing break before collapsing and painting the log lines, and while that progress bar is still below `100%` it is kept as the last visible line so no later log entries are shown underneath it prematurely.
+  - Reduced false `Automatic Migration` album-association warnings on `Immich`. When Immich reports `duplicate` while adding an asset to an album, PhotoMigrator now treats that response as “already associated” instead of warning and scheduling an unnecessary retry.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

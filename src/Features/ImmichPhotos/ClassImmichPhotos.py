@@ -1166,13 +1166,28 @@ class ClassImmichPhotos:
                 resp.raise_for_status()
                 data = resp.json()
                 total_added = sum(1 for item in data if item.get("success"))
-                if total_added < len(asset_ids):
-                    failures = [item for item in data if not item.get("success")]
+                duplicate_like_failures = []
+                real_failures = []
+                for item in data:
+                    if item.get("success"):
+                        continue
+                    error_text = " ".join([
+                        str(item.get("error") or ""),
+                        str(item.get("message") or ""),
+                        str(item.get("reason") or ""),
+                    ]).strip().lower()
+                    if "duplicate" in error_text or "already" in error_text:
+                        duplicate_like_failures.append(item)
+                    else:
+                        real_failures.append(item)
+
+                confirmed_count = total_added + len(duplicate_like_failures)
+                if real_failures:
                     LOGGER.warning(
-                        f"Immich album association added {total_added}/{len(asset_ids)} asset(s) "
-                        f"to album '{album_name or album_id}'. Failed items: {failures[:3]}"
+                        f"Immich album association confirmed {confirmed_count}/{len(asset_ids)} asset(s) "
+                        f"for album '{album_name or album_id}'. Failed items: {real_failures[:3]}"
                     )
-                return total_added
+                return confirmed_count
             except Exception as e:
                 if album_name:
                     LOGGER.error(f"Error while adding assets to album '{album_name}' with ID={album_id}: {e}")
