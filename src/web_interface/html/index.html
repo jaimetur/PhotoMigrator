@@ -947,6 +947,7 @@
         const hasTrailingNewline = source.endsWith("\n");
         const result = [];
         const keyToIndex = new Map();
+        let activeProgressIndex = null;
 
         // Preserve decorative separators used by logger summaries, e.g.:
         // "INFO     =================================================="
@@ -962,6 +963,32 @@
         const customPartialRegex = /^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$/;
         const tqdmPartialRegex = /(\d{1,3}%\|[^|]*)/;
         const stepPrefixRegex = /^(.*?\[\s*step\s+\d+\/\d+\][^:]*:)/i;
+        const parseProgressState = (cleanLine) => {
+            const customNumbers = cleanLine.match(/(\d+)\/(\d+)\s+(\d+(?:\.\d+)?)%\s*$/);
+            if (customNumbers) {
+                const current = Number(customNumbers[1]);
+                const total = Number(customNumbers[2]);
+                const percent = Number(customNumbers[3]);
+                const complete = Number.isFinite(percent) && Number.isFinite(current) && Number.isFinite(total)
+                    ? percent >= 100 || current >= total
+                    : false;
+                return {complete};
+            }
+            const tqdmNumbers = cleanLine.match(/(\d{1,3})%\|[^|]*\|\s*(\d+)\/(\d+)/);
+            if (tqdmNumbers) {
+                const percent = Number(tqdmNumbers[1]);
+                const current = Number(tqdmNumbers[2]);
+                const total = Number(tqdmNumbers[3]);
+                const complete = Number.isFinite(percent) && Number.isFinite(current) && Number.isFinite(total)
+                    ? percent >= 100 || current >= total
+                    : false;
+                return {complete};
+            }
+            if (/\[\s*step\s+\d+\/\d+\]/i.test(cleanLine)) {
+                return {complete: false};
+            }
+            return null;
+        };
 
         for (let i = 0; i < lines.length; i += 1) {
             const line = lines[i];
@@ -1031,18 +1058,31 @@
                 continue;
             }
 
+            const progressState = parseProgressState(clean);
             if (keyToIndex.has(progressKey)) {
                 // Keep the latest full update and ignore partial trailing fragments.
                 if (!(isLastPartialLine && partialProgress)) {
-                    result[keyToIndex.get(progressKey)] = line;
+                    const existingIndex = keyToIndex.get(progressKey);
+                    result[existingIndex] = line;
+                    if (progressState && !progressState.complete) {
+                        activeProgressIndex = existingIndex;
+                    } else if (activeProgressIndex === existingIndex) {
+                        activeProgressIndex = null;
+                    }
                 }
             } else {
-                keyToIndex.set(progressKey, result.length);
+                const nextIndex = result.length;
+                keyToIndex.set(progressKey, nextIndex);
                 result.push(line);
+                if (progressState && !progressState.complete) {
+                    activeProgressIndex = nextIndex;
+                } else if (activeProgressIndex === nextIndex) {
+                    activeProgressIndex = null;
+                }
             }
         }
 
-        return result.join("\n");
+        return (activeProgressIndex !== null ? result.slice(0, activeProgressIndex + 1) : result).join("\n");
     }
 
     function classifyLogLine(line, options = {}) {
