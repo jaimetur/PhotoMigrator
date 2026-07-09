@@ -16,6 +16,7 @@
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
+  - Fixed the Synology shared-album follow-up regression introduced during the issue `#1159` fix. Shared albums matched by filters now use the correct shared-album listing flow instead of the normal album endpoint, which avoids repeated `Failed to list photos in the album ...` errors, and shared-album access resolution is now cached so the initial `Automatic Migration` analysis no longer performs redundant per-album API lookups that could severely degrade performance on reruns.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

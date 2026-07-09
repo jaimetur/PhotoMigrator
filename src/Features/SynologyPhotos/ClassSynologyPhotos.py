@@ -103,6 +103,7 @@ class ClassSynologyPhotos:
         self.all_assets_filtered = None
         self.assets_without_albums_filtered = None
         self.albums_assets_filtered = None
+        self.shared_album_access_cache = {}
 
         # Get the values from the arguments (if exists)
         self.type = ARGS.get('filter-by-type', None)
@@ -188,6 +189,10 @@ class ClassSynologyPhotos:
             album_id = str(album.get("id") or "").strip()
             if not album_id:
                 return album
+            cached_album = self.shared_album_access_cache.get(album_id)
+            if isinstance(cached_album, dict):
+                album.update(cached_album)
+                return album
 
             try:
                 self.login(log_level=log_level)
@@ -216,6 +221,7 @@ class ClassSynologyPhotos:
                     LOGGER.debug(f"Resolved shared album passphrase for album ID={album_id}.")
             except Exception as error:
                 LOGGER.debug(f"Could not resolve shared album access details for album ID={album_id}: {error}")
+            self.shared_album_access_cache[album_id] = dict(album)
             return album
 
 
@@ -648,7 +654,6 @@ class ClassSynologyPhotos:
                 for album in album_list:
                     if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
                         album["albumName"] = album.pop("name")
-                    album = self.ensure_shared_album_access(album, log_level=log_level)
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     if filter_assets and has_any_filter():
@@ -728,10 +733,19 @@ class ClassSynologyPhotos:
             for album in album_list:
                 if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
                     album["albumName"] = album.pop("name")
+                album = self.ensure_shared_album_access(album, log_level=log_level)
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")
                 if filter_assets and has_any_filter():
-                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                    if self.is_shared_album(album):
+                        album_assets = self.get_all_assets_from_album_shared(
+                            album_id,
+                            album_name,
+                            album_passphrase=album.get("passphrase"),
+                            log_level=log_level,
+                        )
+                    else:
+                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     if len(album_assets) > 0:
                         albums_filtered.append(album)
                 else:
@@ -1341,7 +1355,7 @@ class ClassSynologyPhotos:
                 if self.SYNO_TOKEN_HEADER:
                     headers.update(self.SYNO_TOKEN_HEADER)
 
-                all_albums = self.get_albums_including_shared_with_user(filter_assets=True, log_level=log_level)
+                all_albums = self.get_albums_including_shared_with_user(filter_assets=False, log_level=log_level)
                 combined_assets = []
                 if not all_albums:
                     self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
@@ -3507,4 +3521,3 @@ if __name__ == "__main__":
 
     # logout()
     syno.logout()
-
