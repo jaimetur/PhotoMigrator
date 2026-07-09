@@ -232,6 +232,9 @@ cython_debug/
 .DS_Store
 .idea/.DS_Store
 
+# Extracted ExifTool dir
 /exif_tool/exiftool
 /exif_tool/lib/
+
+# Config dir
 /config
