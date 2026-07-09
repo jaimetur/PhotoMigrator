@@ -1684,6 +1684,16 @@
         if (input.value !== desired) input.value = desired;
     }
 
+    function updateStateValueForElement(el) {
+        if (!el || !el.dataset || !el.dataset.dest) return;
+        if (el.type === "checkbox") stateValues[el.dataset.dest] = stateValueFromUiCheckbox(el.dataset.dest, el.checked);
+        else stateValues[el.dataset.dest] = el.value;
+        if (el.dataset.dest === "output-folder" || el.dataset.dest === "organize-output-folder-suffix") {
+            normalizeOrganizeLocalFolderUiState();
+            syncOrganizeSuffixInput();
+        }
+    }
+
     function createArgumentRow(field, isRequired = false) {
         const row = document.createElement("div");
         row.className = "arg-row";
@@ -1710,6 +1720,18 @@
             check.dataset.dest = field.dest;
             const persisted = stateValues[field.dest];
             check.checked = uiCheckboxValueForDest(field.dest, persisted);
+            const syncFlagState = () => {
+                updateStateValueForElement(check);
+                queueSaveState();
+                queueCommandPreview();
+            };
+            const syncFlagStateDeferred = () => {
+                setTimeout(syncFlagState, 0);
+            };
+            check.addEventListener("input", syncFlagState);
+            check.addEventListener("change", syncFlagState);
+            check.addEventListener("click", syncFlagStateDeferred);
+            checkWrap.addEventListener("click", syncFlagStateDeferred);
             checkWrap.appendChild(check);
             const txt = document.createElement("span");
             if (field.dest === "no-request-user-confirmation") {
@@ -3178,12 +3200,7 @@
         document.querySelectorAll("[data-dest]").forEach((el) => {
             if (el.dataset.boundState === "1") return;
             const updateState = () => {
-                if (el.type === "checkbox") stateValues[el.dataset.dest] = stateValueFromUiCheckbox(el.dataset.dest, el.checked);
-                else stateValues[el.dataset.dest] = el.value;
-                if (el.dataset.dest === "output-folder" || el.dataset.dest === "organize-output-folder-suffix") {
-                    normalizeOrganizeLocalFolderUiState();
-                    syncOrganizeSuffixInput();
-                }
+                updateStateValueForElement(el);
                 queueSaveState();
                 queueCommandPreview();
             };

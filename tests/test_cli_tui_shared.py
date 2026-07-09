@@ -187,6 +187,15 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertNotIn("--google-rename-albums-folders", disabled_args)
         self.assertNotIn("--google-skip-extras-files", disabled_args)
 
+    def test_build_cli_args_appends_no_log_file_flag_only_when_enabled(self):
+        schema = build_parser_schema()
+
+        enabled_args = build_cli_args(schema, "google_takeout", {"google-takeout": "/tmp/Takeout", "no-log-file": True})
+        disabled_args = build_cli_args(schema, "google_takeout", {"google-takeout": "/tmp/Takeout", "no-log-file": False})
+
+        self.assertIn("--no-log-file", enabled_args)
+        self.assertNotIn("--no-log-file", disabled_args)
+
     def test_build_automatic_migration_filter_fields_create_am_overrides(self):
         schema = build_parser_schema()
 

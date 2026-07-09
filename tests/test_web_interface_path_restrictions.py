@@ -346,6 +346,21 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertNotIn("--google-rename-albums-folders", disabled_args)
         self.assertNotIn("--google-skip-extras-files", disabled_args)
 
+    def test_no_log_file_flag_is_only_emitted_when_enabled(self):
+        enabled_args = self.web_app._build_cli_args(
+            "google_takeout",
+            {"google-takeout": "/tmp/Takeout", "no-log-file": True},
+            None,
+        )
+        disabled_args = self.web_app._build_cli_args(
+            "google_takeout",
+            {"google-takeout": "/tmp/Takeout", "no-log-file": False},
+            None,
+        )
+
+        self.assertIn("--no-log-file", enabled_args)
+        self.assertNotIn("--no-log-file", disabled_args)
+
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")
