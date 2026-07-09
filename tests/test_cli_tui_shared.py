@@ -156,6 +156,37 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--google-keep-takeout-folder", enabled_args)
         self.assertNotIn("--google-keep-takeout-folder", disabled_args)
 
+    def test_build_cli_args_appends_google_takeout_processing_flags_only_when_enabled(self):
+        schema = build_parser_schema()
+
+        enabled_args = build_cli_args(
+            schema,
+            "google_takeout",
+            {
+                "google-takeout": "/tmp/Takeout",
+                "google-remove-duplicates-files": True,
+                "google-rename-albums-folders": True,
+                "google-skip-extras-files": True,
+            },
+        )
+        disabled_args = build_cli_args(
+            schema,
+            "google_takeout",
+            {
+                "google-takeout": "/tmp/Takeout",
+                "google-remove-duplicates-files": False,
+                "google-rename-albums-folders": False,
+                "google-skip-extras-files": False,
+            },
+        )
+
+        self.assertIn("--google-remove-duplicates-files", enabled_args)
+        self.assertIn("--google-rename-albums-folders", enabled_args)
+        self.assertIn("--google-skip-extras-files", enabled_args)
+        self.assertNotIn("--google-remove-duplicates-files", disabled_args)
+        self.assertNotIn("--google-rename-albums-folders", disabled_args)
+        self.assertNotIn("--google-skip-extras-files", disabled_args)
+
     def test_build_automatic_migration_filter_fields_create_am_overrides(self):
         schema = build_parser_schema()
 

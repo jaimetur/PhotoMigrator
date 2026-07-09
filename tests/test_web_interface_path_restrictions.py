@@ -317,6 +317,35 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("--google-keep-takeout-folder", enabled_args)
         self.assertNotIn("--google-keep-takeout-folder", disabled_args)
 
+    def test_google_takeout_processing_flags_are_only_emitted_when_enabled(self):
+        enabled_args = self.web_app._build_cli_args(
+            "google_takeout",
+            {
+                "google-takeout": "/tmp/Takeout",
+                "google-remove-duplicates-files": True,
+                "google-rename-albums-folders": True,
+                "google-skip-extras-files": True,
+            },
+            None,
+        )
+        disabled_args = self.web_app._build_cli_args(
+            "google_takeout",
+            {
+                "google-takeout": "/tmp/Takeout",
+                "google-remove-duplicates-files": False,
+                "google-rename-albums-folders": False,
+                "google-skip-extras-files": False,
+            },
+            None,
+        )
+
+        self.assertIn("--google-remove-duplicates-files", enabled_args)
+        self.assertIn("--google-rename-albums-folders", enabled_args)
+        self.assertIn("--google-skip-extras-files", enabled_args)
+        self.assertNotIn("--google-remove-duplicates-files", disabled_args)
+        self.assertNotIn("--google-rename-albums-folders", disabled_args)
+        self.assertNotIn("--google-skip-extras-files", disabled_args)
+
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")
