@@ -931,37 +931,18 @@
         return String(text || "").replace(/\x1B\[[0-9;]*[A-Za-z]/g, "");
     }
 
-    function collapseProgressLines(text) {
-        const lines = String(text || "").split("\n");
-        const result = [];
-        const keyToIndex = new Map();
-
-        // Example target:
-        // INFO ... [Step 2/8] Indexing : ███.... 1500/13479 11.1%
-        const progressRegex = /^(.*?:)\s*[█.]+\s+\d+\/\d+\s+\d+(?:\.\d+)?%\s*$/;
-
-        for (const line of lines) {
-            const clean = stripAnsi(line).replace(/\r/g, "").trimEnd();
-            const match = clean.match(progressRegex);
-            if (!match) {
-                result.push(line);
-                continue;
-            }
-
-            const key = match[1].toLowerCase();
-            if (keyToIndex.has(key)) {
-                result[keyToIndex.get(key)] = line;
-            } else {
-                keyToIndex.set(key, result.length);
-                result.push(line);
-            }
-        }
-        return result.join("\n");
+    function normalizeEmbeddedProgressLineBreaks(text) {
+        const source = stripAnsi(String(text || ""));
+        const nextLinePrefix = String.raw`(?=(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:|\[web-interface\])`;
+        return source
+            .replace(new RegExp(String.raw`(\d{1,3}%\|[^\n\r]*?\|\s*\d+\/\d+[^\n\r]*?(?:\[[^\n\r]*?\])?)\s*${nextLinePrefix}`, "g"), "$1\n")
+            .replace(new RegExp(String.raw`((?:.*?:)?\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+\/\d+\s+\d+(?:\.\d+)?%)\s*${nextLinePrefix}`, "g"), "$1\n")
+            .replace(new RegExp(String.raw`(\d+\/\d+\s+\d+(?:\.\d+)?%)\s*${nextLinePrefix}`, "g"), "$1\n");
     }
 
     // Override to support both custom bars and tqdm-like progress updates.
     function collapseProgressLines(text) {
-        const source = String(text || "");
+        const source = normalizeEmbeddedProgressLineBreaks(text);
         const lines = source.split("\n");
         const hasTrailingNewline = source.endsWith("\n");
         const result = [];
