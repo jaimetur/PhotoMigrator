@@ -238,6 +238,35 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("google-takeout", scope)
         self.assertNotIn("google-output-folder-suffix", scope)
 
+    def test_boolean_flags_with_path_like_names_are_not_treated_as_paths(self):
+        takeout_subfolder = self.allowed_roots[0] / "TakeoutInput"
+        takeout_subfolder.mkdir(parents=True, exist_ok=True)
+        values = {
+            "google-takeout": str(takeout_subfolder),
+            "google-remove-duplicates-files": True,
+            "google-rename-albums-folders": True,
+            "google-skip-extras-files": True,
+            "google-keep-takeout-folder": True,
+            "no-log-file": True,
+        }
+
+        scope = self.web_app._path_validation_scope_for_payload("google_takeout", None, values)
+
+        self.assertIn("google-takeout", scope)
+        self.assertNotIn("google-remove-duplicates-files", scope)
+        self.assertNotIn("google-rename-albums-folders", scope)
+        self.assertNotIn("google-skip-extras-files", scope)
+        self.assertNotIn("google-keep-takeout-folder", scope)
+        self.assertNotIn("no-log-file", scope)
+
+        sanitized = self.web_app._sanitize_payload_paths_for_user(values, self.current_user, path_scope=scope)
+
+        self.assertIs(sanitized["google-remove-duplicates-files"], True)
+        self.assertIs(sanitized["google-rename-albums-folders"], True)
+        self.assertIs(sanitized["google-skip-extras-files"], True)
+        self.assertIs(sanitized["google-keep-takeout-folder"], True)
+        self.assertIs(sanitized["no-log-file"], True)
+
     def test_web_parser_schema_exposes_auxiliary_organize_fields_by_dest(self):
         fields_by_dest = self.web_app.PARSER_SCHEMA.get("fields_by_dest", {})
 

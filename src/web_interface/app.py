@@ -2462,7 +2462,9 @@ def _field_kind(action: argparse.Action, dest: str) -> str:
     return "text"
 
 
-def _path_hint(dest: str, metavar: Any) -> str:
+def _path_hint(dest: str, metavar: Any, kind: str | None = None) -> str:
+    if str(kind or "").strip().lower() in {"flag", "bool"}:
+        return ""
     name = dest.lower()
     if name in {"exclude-folders", "exclude-files"} or name.endswith("-suffix"):
         return ""
@@ -2530,6 +2532,7 @@ def _load_parser_schema() -> Dict[str, Any]:
         long_options = [opt for opt in action.option_strings if opt.startswith("--")]
         long_option = long_options[0] if long_options else action.option_strings[-1]
         dest = action.dest.replace("_", "-")
+        kind = _field_kind(action, dest)
         field = {
             "dest": dest,
             "long_option": long_option,
@@ -2539,8 +2542,8 @@ def _load_parser_schema() -> Dict[str, Any]:
             "choices": list(action.choices) if action.choices else [],
             "nargs": action.nargs,
             "tab": _tab_for_dest(dest),
-            "kind": _field_kind(action, dest),
-            "path_hint": _path_hint(dest, getattr(action, "metavar", None)),
+            "kind": kind,
+            "path_hint": _path_hint(dest, getattr(action, "metavar", None), kind=kind),
         }
         if dest == "google-takeout" and WEB_DEFAULT_GOOGLE_TAKEOUT_PATH:
             field["default"] = WEB_DEFAULT_GOOGLE_TAKEOUT_PATH
@@ -2839,7 +2842,11 @@ def _path_validation_scope_for_payload(
     scoped: set[str] = set()
     for dest in allowed_dests:
         field = PARSER_FIELDS_BY_DEST.get(dest)
-        if field and field.get("path_hint") == "path":
+        if not field:
+            continue
+        if field.get("kind") in {"flag", "bool"}:
+            continue
+        if field.get("path_hint") == "path":
             scoped.add(dest)
     return scoped
 
