@@ -12,11 +12,12 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
-  - Updated GPTH to v6.1.8 which includes an important Bug Fix.
+  - Updated GPTH to v6.1.9 which includes an important Bug Fix.
 
 #### 🚀 GPTH Enhancements:
 ##### 🐛 GPTH Bug Fixes
   - Fixed Alnum's orphan assets association: When any album folder only contains .json metadata file but not the corresponding asset, now GPTH try to find the original asset into the ALL_PHOTOS/year folder. This issue happens because when one asset belongs to different albums, Google Takeout just copy the original asset into the Year folder and in every album it only put the associated .json metadata file. 
+  - **Numbered orphan album sidecars now resolve to the correct duplicate** — When two same-named photos were in one album, Takeout numbers only the sidecar *filenames* (`pic.jpg.supplemental-metadata(1).json`) while the JSON `title` field keeps the plain original name for every copy. The issue #133 orphan-recovery lookup checked `title` first, so a "(1)" sidecar attached its album membership to the plain `pic.jpg` in the year folder instead of the `pic(1).jpg` it actually references. The lookup now derives the numbered name from the full-length `title` (which, unlike the sidecar filename, survives Takeout's 51-character truncation) and tries it before the plain name. Because the "(N)" numbering is per-directory — an album's `pic(1).jpg` and a year folder's `pic(1).jpg` can be different photos — a numbered match is only accepted when its year folder agrees with the sidecar's `photoTakenTime`; otherwise the lookup falls through to the plain name, and when the numbered twin exists nowhere the membership still falls back to the plain copy rather than being lost. Follow-up to issue #133.
 
 #### 🐛 Bug fixes:
   - Fixed the Synology shared-album follow-up regression from issue `#1159`. Shared albums matched by filters now use the correct shared-album listing flow instead of the normal album endpoint.
