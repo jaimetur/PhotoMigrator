@@ -857,6 +857,7 @@ def prepare_gpth_fix_working_input(input_folder, takeout_detection_info=None, ke
         working_input_root = os.path.abspath(input_folder)
         remapped_json = filedates_json
         cloned_from = None
+        effective_detection_info = dict(takeout_detection_info or {})
 
         if keep_takeout_folder and not input_is_disposable:
             source_root = Path(working_input_root).resolve()
@@ -884,6 +885,13 @@ def prepare_gpth_fix_working_input(input_folder, takeout_detection_info=None, ke
                 step_name=step_name,
                 log_level=log_level,
             )
+            original_container_path = str(effective_detection_info.get("container_path") or "").strip()
+            if original_container_path:
+                try:
+                    rel_container = Path(original_container_path).resolve().relative_to(source_root)
+                    effective_detection_info["container_path"] = str((Path(working_input_root) / rel_container).resolve())
+                except Exception:
+                    pass
         elif keep_takeout_folder and input_is_disposable:
             LOGGER.info(
                 f"{step_name}Skipping extra GPTH fix clone because the current working input is already disposable "
@@ -892,7 +900,7 @@ def prepare_gpth_fix_working_input(input_folder, takeout_detection_info=None, ke
 
         fix_target_folder = select_gpth_fix_target_folder(
             input_folder=working_input_root,
-            takeout_detection_info=takeout_detection_info,
+            takeout_detection_info=effective_detection_info,
         )
         return working_input_root, fix_target_folder, remapped_json, cloned_from
 

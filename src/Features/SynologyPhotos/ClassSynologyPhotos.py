@@ -189,7 +189,11 @@ class ClassSynologyPhotos:
             album_id = str(album.get("id") or "").strip()
             if not album_id:
                 return album
-            cached_album = self.shared_album_access_cache.get(album_id)
+            shared_album_access_cache = getattr(self, "shared_album_access_cache", None)
+            if shared_album_access_cache is None:
+                shared_album_access_cache = {}
+                self.shared_album_access_cache = shared_album_access_cache
+            cached_album = shared_album_access_cache.get(album_id)
             if isinstance(cached_album, dict):
                 album.update(cached_album)
                 return album
@@ -221,7 +225,7 @@ class ClassSynologyPhotos:
                     LOGGER.debug(f"Resolved shared album passphrase for album ID={album_id}.")
             except Exception as error:
                 LOGGER.debug(f"Could not resolve shared album access details for album ID={album_id}: {error}")
-            self.shared_album_access_cache[album_id] = dict(album)
+            shared_album_access_cache[album_id] = dict(album)
             return album
 
 

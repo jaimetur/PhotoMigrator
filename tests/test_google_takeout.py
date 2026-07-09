@@ -169,7 +169,7 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
 
             self.assertNotEqual(Path(working_root), source_root)
             self.assertEqual(cloned_from, str(source_root.resolve()))
-            self.assertEqual(Path(fix_target), Path(working_root) / "Google Photos")
+            self.assertEqual(Path(fix_target).resolve(), (Path(working_root) / "Google Photos").resolve())
             self.assertNotEqual(remapped_json, str(filedates_json))
             remapped_payload = json.loads(Path(remapped_json).read_text(encoding="utf-8"))
             self.assertIn(str((Path(working_root) / "Google Photos" / "Album 1" / "photo.jpg").resolve()), remapped_payload)

@@ -2952,8 +2952,44 @@
         return values;
     }
 
+    function syncVisibleControlsToState() {
+        const elements = Array.from(document.querySelectorAll(
+            "#general-core-panel [data-dest], " +
+            "#module-form:not(.hidden) [data-dest], #cloud-action-panel:not(.hidden) [data-dest], " +
+            "#standalone-action-panel:not(.hidden) [data-dest], #migration-panel:not(.hidden) [data-dest]"
+        ));
+        const grouped = new Map();
+
+        elements.forEach((el) => {
+            const dest = String(el?.dataset?.dest || "").trim();
+            if (!dest) return;
+            if (!grouped.has(dest)) grouped.set(dest, []);
+            grouped.get(dest).push(el);
+        });
+
+        grouped.forEach((controls, dest) => {
+            const checkboxControls = controls.filter((el) => el.type === "checkbox");
+            if (checkboxControls.length) {
+                const checked = checkboxControls.some((el) => Boolean(el.checked));
+                stateValues[dest] = stateValueFromUiCheckbox(dest, checked);
+                return;
+            }
+
+            let chosenValue = "";
+            controls.forEach((el) => {
+                const val = String(el?.value ?? "");
+                if (val !== "") chosenValue = val;
+            });
+            if (chosenValue === "" && controls.length) {
+                chosenValue = String(controls[controls.length - 1]?.value ?? "");
+            }
+            stateValues[dest] = chosenValue;
+        });
+    }
+
     function buildRunPayload() {
-        const values = {...stateValues, ...collectValues()};
+        syncVisibleControlsToState();
+        const values = {...stateValues};
         let selectedActionDest = null;
         if (activeModuleTab === "google_photos" || activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos" || activeModuleTab === "nextcloud_photos") {
             const selected = (schema.tabs[activeModuleTab] || []).find((f) => f.dest === cloudActionDest);
