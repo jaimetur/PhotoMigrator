@@ -996,6 +996,20 @@ def relocate_gpth_fix_outputs(fix_root, output_folder, step_name="", log_level=N
                 shutil.move(str(source_path), str(destination_path))
             moved_any = True
 
+        for source_path in sorted(fix_root.iterdir(), key=lambda p: p.name.casefold()):
+            if not source_path.is_file():
+                continue
+            lower_name = source_path.name.casefold()
+            lower_suffix = source_path.suffix.casefold()
+            if "gpth" not in lower_name or lower_suffix not in {".log", ".txt"}:
+                continue
+            destination_path = output_root / source_path.name
+            if destination_path.exists() or destination_path.is_symlink():
+                destination_path = output_root / f"{source_path.stem}_relocated{source_path.suffix}"
+            LOGGER.info(f"{step_name}Relocating GPTH log '{source_path}' -> '{destination_path}'")
+            shutil.move(str(source_path), str(destination_path))
+            moved_any = True
+
         for archive_candidate in (fix_root / "archive_browser.html", fix_root.parent / "archive_browser.html"):
             if not archive_candidate.exists():
                 continue

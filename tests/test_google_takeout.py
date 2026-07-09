@@ -608,6 +608,28 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertFalse((fix_root / "ALL_PHOTOS").exists())
             self.assertFalse((fix_root / "Albums").exists())
 
+    def test_relocate_gpth_fix_outputs_preserves_gpth_log_from_temporary_fix_root(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            fix_root = root / "Google Photos"
+            output_root = root / "Processed"
+            (fix_root / "ALL_PHOTOS").mkdir(parents=True)
+            (fix_root / "Albums").mkdir(parents=True)
+            (fix_root / "gpth.log").write_text("gpth log", encoding="utf-8")
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                ok = relocate_gpth_fix_outputs(
+                    fix_root=str(fix_root),
+                    output_folder=str(output_root),
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertTrue(ok)
+            self.assertTrue((output_root / "gpth.log").is_file())
+            self.assertEqual((output_root / "gpth.log").read_text(encoding="utf-8"), "gpth log")
+            self.assertFalse((fix_root / "gpth.log").exists())
+
     def test_fix_metadata_with_gpth_tool_uses_fix_mode_without_input_output_arguments(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
