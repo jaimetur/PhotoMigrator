@@ -962,7 +962,7 @@
         const tqdmMarkerRegex = /(\d{1,3}%\|[^|]*\|\s*\d+\/\d+)/;
         const customPartialRegex = /^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$/;
         const tqdmPartialRegex = /(\d{1,3}%\|[^|]*)/;
-        const stepPrefixRegex = /^(.*?\[\s*step\s+\d+\/\d+\][^:]*:)/i;
+        const stepPrefixRegex = /^(.*?\[\s*step\s+\d+\/\d+\][^:]*:)\s*$/i;
         const parseProgressState = (cleanLine) => {
             const customNumbers = cleanLine.match(/(\d+)\/(\d+)\s+(\d+(?:\.\d+)?)%\s*$/);
             if (customNumbers) {
@@ -983,9 +983,6 @@
                     ? percent >= 100 || current >= total
                     : false;
                 return {complete};
-            }
-            if (/\[\s*step\s+\d+\/\d+\]/i.test(cleanLine)) {
-                return {complete: false};
             }
             return null;
         };

@@ -3,6 +3,7 @@ import sys
 import tempfile
 import types
 import unittest
+import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 import logging
@@ -225,6 +226,40 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
         self.assertEqual(added, 1)
         mock_logger.warning.assert_not_called()
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_add_assets_to_album_serializes_item_as_json_array(self, _mock_logger):
+        manager = self._prepare_push_manager()
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"success": True}
+        manager.SESSION.get.return_value = response
+
+        added = manager.add_assets_to_album("album-1", ["123", "456"], album_name="Album")
+
+        self.assertEqual(added, 2)
+        params = manager.SESSION.get.call_args.kwargs["params"]
+        self.assertEqual(json.loads(params["item"]), [123, 456])
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_add_assets_to_album_splits_large_requests_into_chunks(self, _mock_logger):
+        manager = self._prepare_push_manager()
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"success": True}
+        manager.SESSION.get.return_value = response
+
+        asset_ids = [str(i) for i in range(1, 1003)]
+        added = manager.add_assets_to_album("album-1", asset_ids, album_name="Album")
+
+        self.assertEqual(added, 1002)
+        self.assertEqual(manager.SESSION.get.call_count, 3)
+        first_params = manager.SESSION.get.call_args_list[0].kwargs["params"]
+        second_params = manager.SESSION.get.call_args_list[1].kwargs["params"]
+        third_params = manager.SESSION.get.call_args_list[2].kwargs["params"]
+        self.assertEqual(len(json.loads(first_params["item"])), 500)
+        self.assertEqual(len(json.loads(second_params["item"])), 500)
+        self.assertEqual(len(json.loads(third_params["item"])), 2)
 
     def test_is_shared_album_detects_sharing_info_without_passphrase(self):
         album = {

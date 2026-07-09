@@ -1418,36 +1418,47 @@ class ClassSynologyPhotos:
                     else:
                         LOGGER.warning(f"No assets found to add to Album ID: '{album_id}'. Skipped!")
                     return -1
+                confirmed_total = 0
+                chunk_size = 500
+                for start in range(0, len(asset_ids), chunk_size):
+                    raw_chunk = asset_ids[start:start + chunk_size]
+                    chunk = []
+                    for asset_id in raw_chunk:
+                        value = str(asset_id).strip()
+                        if not value:
+                            continue
+                        chunk.append(int(value) if value.isdigit() else value)
+                    if not chunk:
+                        continue
 
-                params = {
-                    "api": "SYNO.Foto.Browse.NormalAlbum",
-                    "method": "add_item",
-                    "version": "1",
-                    "id": album_id,
-                    "item": f"{asset_ids}"
-                }
-                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                resp.raise_for_status()
-                data = resp.json()
+                    params = {
+                        "api": "SYNO.Foto.Browse.NormalAlbum",
+                        "method": "add_item",
+                        "version": "1",
+                        "id": album_id,
+                        "item": json.dumps(chunk, separators=(",", ":")),
+                    }
+                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
 
-                if not data["success"]:
-                    response_text = json.dumps(data, ensure_ascii=False).lower()
-                    if "duplicate" in response_text or "already" in response_text:
+                    if not data["success"]:
+                        response_text = json.dumps(data, ensure_ascii=False).lower()
+                        if "duplicate" in response_text or "already" in response_text:
+                            confirmed_total += len(chunk)
+                            continue
                         if album_name:
-                            LOGGER.info(f"{total_added} Assets already associated with album: '{album_name}'.")
+                            LOGGER.warning(f"Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
                         else:
-                            LOGGER.info(f"{total_added} Assets already associated with album ID: '{album_id}'.")
-                        return total_added
-                    if album_name:
-                        LOGGER.warning(f"Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
-                    else:
-                        LOGGER.warning(f"Cannot add assets to album ID: '{album_id}' due to API call error. Skipped!")
-                    return 0
+                            LOGGER.warning(f"Cannot add assets to album ID: '{album_id}' due to API call error. Skipped!")
+                        return confirmed_total
+                    confirmed_total += len(chunk)
+
                 if album_name:
-                    LOGGER.info(f"{total_added} Assets successfully added to album: '{album_name}'.")
+                    LOGGER.info(f"{confirmed_total} Assets successfully added to album: '{album_name}'.")
                 else:
-                    LOGGER.info(f"{total_added} Assets successfully added to album ID: '{album_id}'.")
-                return total_added
+                    LOGGER.info(f"{confirmed_total} Assets successfully added to album ID: '{album_id}'.")
+                return confirmed_total
 
             except Exception as e:
                 LOGGER.warning(f"Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")

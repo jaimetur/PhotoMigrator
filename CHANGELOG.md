@@ -15,7 +15,7 @@
   - Updated GPTH to v6.1.8 which includes an important Bug Fix.
 
 #### 🚀 GPTH Enhancements:
-🐛 Bug Fixes
+##### 🐛 GPTH Bug Fixes
   - Fixed Alnum's orphan assets association: When any album folder only contains .json metadata file but not the corresponding asset, now GPTH try to find the original asset into the ALL_PHOTOS/year folder. This issue happens because when one asset belongs to different albums, Google Takeout just copy the original asset into the Year folder and in every album it only put the associated .json metadata file. 
 
 #### 🐛 Bug fixes:
@@ -33,6 +33,7 @@
   - Fixed the Web Interface log panel handling for GPTH progress bars. When a progress update reaches the frontend without a real newline before the next `INFO` / `WARNING` / `ERROR` / `[web-interface]` prefix, the renderer now inserts the missing break before collapsing and painting the log lines, and while that progress bar is still below `100%` it is kept as the last visible line so no later log entries are shown underneath it prematurely.
   - Fixed the Web Interface log panel so disabling `Auto Scroll` no longer freezes live log updates. The panel now keeps repainting incoming output while only suppressing the automatic jump to the bottom.
   - Reduced false `Automatic Migration` album-association warnings on `Immich` and `Synology`. When those targets report that an asset is already present in the destination album (`duplicate` / `already`), PhotoMigrator now treats that response as “already associated” instead of warning and scheduling an unnecessary retry.
+  - Fixed `Synology` album reassignment during similar-album consolidation and canonical-name reuse. PhotoMigrator now sends `SYNO.Foto.Browse.NormalAlbum add_item` the album item list as real JSON and splits large reassignment batches into smaller requests, instead of passing a Python-style list string in one large query. This restores reassignment of assets from redundant albums such as `_`/`-` name variants into the chosen keeper album.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
@@ -69,11 +70,11 @@
   - Expanded Google Takeout structure detection so PhotoMigrator now also recognizes album-only exports that do not contain `Photos from YYYY` year folders, as long as it finds a localized `Google Photos`/`Google Fotos` container, album-side `.json` metadata, and `archive_browser.html` next to that container. When this album-only layout is detected, PhotoMigrator now runs GPTH automatically in `--fix` mode instead of requiring the user to force `--google-ignore-check-structure` manually.
 
 #### 🚀 GPTH Enhancements:
-✨ New Features
+✨ GPTH New Features
   - New --no-resume flag — GPTH automatically resumes a previous run when the output folder contains a progress.json. Pass --no-resume to discard that saved progress and always start fresh (--resume remains the default). When resume is disabled, the step-resume state is wiped at pipeline start so later runs cannot pick up a half-stale mixture of old and new step records.
   - Interactive mode now asks before resuming a previous run — When the selected output folder contains saved progress from an earlier run, interactive mode shows which steps were already completed and asks whether to resume or start fresh, instead of resuming silently. Part of the fix for issue #131.
 
-🐛 Bug Fixes
+🐛 GPTH Bug Fixes
   - Reusing folders from a previous run no longer aborts interactive mode — Selecting an extraction folder that still contained data from an earlier run made GPTH exit with a fatal error right after the disk-space notice, before any of the processing questions were asked. Interactive mode now validates the extraction folder the same way CLI mode does: a completed previous extraction of the same ZIP set is reused (extraction is skipped entirely), and any unsafe state (leftover data, a different ZIP set, an interrupted extraction) is explained with a prompt to select a different folder. Interactive runs also record the extraction sentinel in progress.json now, so future runs can safely detect and reuse the extracted data. This resolves issue #131.
   - Stale resume state is detected and discarded — If a previous run's progress.json marked processing as completed but the recorded output files no longer exist (e.g. the output folder was emptied between runs), GPTH used to "resume" by skipping every step and reporting success within seconds while doing nothing. The saved state is now validated against the files on disk at pipeline start and discarded with a clear warning when it is stale, so the run processes everything fresh. This resolves issue #131.
   - --fix mode no longer exits with ERROR_CODE_13 — In fix mode the output directory is the input directory, so the non-empty-output safety check always triggered and refused to run. The check is now skipped when output equals input. This resolves issue #128.
@@ -115,8 +116,6 @@
   - `iCloud Takeout` now exports an `Unresolved_Assets.csv` report into the processed output folder whenever any `Album` or `Memory` collection is only partially resolved or ends up empty. The CSV lists the collection type, collection name, collection status, unresolved asset name, source CSV, and per-collection resolved/unresolved counts so support and end users can identify exactly which members were missing from the final rebuild.
   - `iCloud Takeout` now also exports a `No_Date_Assets.csv` report into the processed output folder whenever any staged media asset cannot be assigned a usable CSV date and is therefore moved under `ALL_PHOTOS/Unknown Date/...`. The CSV lists each affected asset together with the reason (`No CSV Match` or `Ambiguous Match`) and its source/output paths for easier audit and follow-up.
 
-#### 🚀 GPTH Enhancements:
-
 #### 🐛 Bug fixes:
   - Fixed the Web Interface form for the standalone `Organize Local Folder By Date` feature so its action-scoped optional arguments now render correctly (`Output Folder`, `Output Folder Suffix`, `Folder Structure`, and `Move Original Files`) instead of only showing the generic output folder field. The browser-side form builder now resolves those auxiliary arguments from the full parser `fields_by_dest` schema instead of only from the visible tab lists. The interactive UI schema now defaults `Output Folder Suffix` to `processed`, while the generated folder name still keeps the final underscore separator and becomes `<INPUT_FOLDER>_processed_<TIMESTAMP>` when no explicit output folder is provided, and automatically clears that suffix again when an explicit `Output Folder` is selected.
   - Fixed the local TUI and desktop GUI forms for the standalone `Organize Local Folder By Date` feature so `Output Folder Suffix` now shows the effective `processed` default whenever `Output Folder` is empty, even if an older persisted UI state had previously stored that suffix as blank, and automatically clears the suffix when an explicit output folder is set.
@@ -134,14 +133,6 @@
 
 ## Release: v4.3.2
 ### Release Date: 2026-06-25
-  
-#### 🚨 Breaking Changes:
-
-#### 🌟 New Features:
-
-#### 🚀 Enhancements:
-
-#### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
   - Finished hardening Windows non-UTF console output for Google Takeout so GPTH progress lines are no longer written through a raw `print()` path that can still crash GUI/desktop runs with `UnicodeEncodeError` inside `colorama` when the progress text includes emoji or other characters outside `cp1252`. (Issue #1141).
@@ -159,10 +150,6 @@
 ## Release: v4.3.1
 ### Release Date: 2026-06-18
   
-#### 🚨 Breaking Changes:
-
-#### 🌟 New Features:
-
 #### 🚀 Enhancements:
   - Optimized `iCloud Takeout` date writing by switching from one `ExifTool` process per asset to a persistent shared `ExifTool` session reused across the whole run, which should significantly reduce the runtime of the `Write Dates` step on large exports. (Issue #1133).
   - Extended `iCloud Takeout` date application so it now also updates filesystem timestamps for processed assets: file modified dates are refreshed for all supported platforms, and file creation dates are also updated where the platform provides support (`Windows` directly, `macOS` when `SetFile` is available, plus `ExifTool` file-date tags on supported systems). (Issue #1133).
@@ -176,8 +163,6 @@
   - Local-folder and processed-takeout sources now treat a top-level `Memories` folder the same way as `Albums`, so each memory collection is migrated to the target as an album-like collection.
   - Hardened raw iCloud Takeout auto-detection for local folders and ZIP containers so it now also inspects iCloud CSV metadata headers, not just known file names, which keeps detection working even when users rename the extracted folder tree or the CSV filenames.
   - Changed `Automatic Migration` local-folder classification so ZIP-based sources are now unpacked first and only then classified as Google Takeout, iCloud Takeout, or normal local folders. This avoids relying on ZIP-content inspection during the initial source-type detection pass for large exports.
-
-#### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
   - Hardened `iCloud Takeout` date parsing so Apple `Photo Details.csv` timestamps are now parsed with strict known formats before any heuristic fallback, preventing explicit years like `2023` from being silently replaced by the current year during EXIF and filesystem date writes. Added regression coverage for the reported `December 27,2023 3:42 AM GMT` case. (Issue #1133).
@@ -227,8 +212,6 @@
   - Updated the desktop GUI so `Automatic Migration` runs launched with `Live Dashboard` in an external terminal now report their exit code back into the GUI `Execution Log`, restore the GUI window to the foreground when the dashboard finishes, and raise the main `tkinter` window to the foreground on startup.
   - Increased the vertical spacing between `Feature Selector` buttons in the desktop GUI so the different feature entries are visually separated more clearly.
 
-#### 🚀 GPTH Enhancements:
-
 #### 🐛 Bug fixes:
   - Fixed the CLI TUI `Features Config` view so config sections no longer rebuild in a visible loop, theme selection behaves more predictably, and `Config.ini` fields can be edited and saved correctly from the terminal interface.
   - Fixed multiple CLI TUI rendering issues affecting panel titles, scroll behavior, main-panel layout balancing, sidebar feature scrolling, and terminal form presentation across `Feature`, `General Arguments`, `Features Config`, and `App Settings`.
@@ -266,9 +249,7 @@
 
 ## Release: v4.2.0
 ### Release Date: 2026-06-16
-  
-#### 🚨 Breaking Changes:
-  
+
 #### 🌟 New Features:
   - Added a new `iCloud Takeout` feature across CLI and Web Interface to process Apple iCloud Photos exports without GPTH, recovering dates from `Photo Details.csv`, assigning those dates to the exported media files, rebuilding `Albums` from Apple CSV manifests, and optionally reconstructing `Memories` collections. The Web Interface now includes a dedicated `iCloud Takeout` tab placed after `Google Takeout` and before `Google Photos`.
 
@@ -284,8 +265,6 @@
   - Reduced the `Features Config` account selector combobox to a much narrower width while preserving right-edge alignment with the account fields below it.
   - Added pastel color grouping to the Web Interface `Feature Selector` tabs: green for `Automatic Migration`, yellow for both `Takeout` tabs, blue for cloud-service tabs, purple for `Other Features`, and red for `Upload to Server`.
   - Updated the `Feature Selector` cloud-service tabs (`Google Photos`, `Synology Photos`, `Immich Photos`, `NextCloud Photos`) from blue pastel to brown pastel to better differentiate them from the other tab groups.
-
-#### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
   - Fixed `contains_zip_files()` so it no longer crashes in unit-test or lightweight execution contexts where the global `LOGGER` has not been initialized yet.
@@ -305,9 +284,7 @@
 
 ## Release: v4.1.0
 ### Release Date: 2026-06-01
-  
-#### 🚨 Breaking Changes:
-  
+   
 #### 🌟 New Features:
   - Added configurable exclusion patterns for local-folder based processing and migrations through `--exclude-folders` and `--exclude-files`, and exposed them in the web interface filters. (Issue #1095).
   - Added environment-variable overrides for cloud-service configuration keys loaded from `Config.ini`, including support for `*_FILE` secrets files, plus a new `PHOTOMIGRATOR_DEFAULT_GOOGLE_TAKEOUT_PATH` web default to pre-populate the Google Takeout source path in the job form. (Issue #1093).
@@ -374,9 +351,7 @@
 
 ## Release: v4.0.0
 ### Release Date: 2026-03-28
-  
-#### 🚨 Breaking Changes:
-  
+   
 #### 🌟 New Features:
   - Added full NextCloud Photos integration (WebDAV-based) across CLI, execution modes, automatic migration, and web interface (Issue: #567).
   - Added a dedicated `NextCloud Photos` tab in the web interface, placed between `Immich Photos` and `Other Features` (Issue: #567).
@@ -528,9 +503,7 @@
 
 ## Release: v3.8.0
 ### Release Date: 2026-03-17
-  
-#### 🚨 Breaking Changes:
-  
+   
 #### 🌟 New Features:
   - New Web Interface to configure and execute the different features & modules directly.
   - Added themes support to Web Interface.
@@ -581,30 +554,16 @@
 ## Release: v3.7.1
 ### Release Date: 2026-03-16
   
-#### 🚨 Breaking Changes:
-  
-#### 🌟 New Features:
-    
-#### 🚀 Enhancements:
-  
 #### 🐛 Bug fixes:
   - Fixed stream Immich multipart upload to avoid OOM.
-
-#### 📚 Documentation: 
 
 ---
 
 ## Release: v3.7.0
 ### Release Date: 2026-01-09
-  
-#### 🚨 Breaking Changes:
-  
-#### 🌟 New Features:
     
 #### 🚀 Enhancements:
   - Most of the Code Translated into English.
-  
-#### 🐛 Bug fixes:
 
 #### 📚 Documentation: 
   - Most of the Comments Translated into English.
@@ -656,10 +615,6 @@
 
 ## Release: v3.6.1
 ### Release Date: 2025-09-09
-
-#### 🚨 Breaking Changes:
-  
-#### 🌟 New Features:
     
 #### 🚀 Enhancements:
   - Now `Logs`, `Extracted_dates_metadata.json` and `Duplcicates.csv` files are saved at Output folder by default when `Google Takeout Processing` feature is detected.
