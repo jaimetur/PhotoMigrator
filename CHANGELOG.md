@@ -36,6 +36,7 @@
   - Fixed `Synology` album reassignment during similar-album consolidation and canonical-name reuse. PhotoMigrator now sends `SYNO.Foto.Browse.NormalAlbum add_item` the album item list as real JSON and splits large reassignment batches into smaller requests, instead of passing a Python-style list string in one large query. This restores reassignment of assets from redundant albums such as `_`/`-` name variants into the chosen keeper album.
 
 #### 📚 Documentation:
+  - Corrected the `Google Takeout` documentation so orphan album JSON recovery is documented in its real position as `Step 4.3` (right after `Copy/Move files to Output folder`) instead of under the later post-process section. The example step timeline was updated accordingly.
   - Updated documentation with all changes.
 
 ---
