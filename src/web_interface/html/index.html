@@ -2920,7 +2920,7 @@
             const key = el.dataset.dest;
             const prev = values[key];
             if (el.type === "checkbox") {
-                values[key] = stateValueFromUiCheckbox(key, Boolean(prev) || el.checked);
+                values[key] = stateValueFromUiCheckbox(key, el.checked);
             } else {
                 const val = el.value;
                 if (prev === undefined || prev === "" || prev === null) values[key] = val;

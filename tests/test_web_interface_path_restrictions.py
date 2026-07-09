@@ -297,6 +297,26 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("--icloud-prefer-native-exif-writer", enabled_args)
         self.assertNotIn("--icloud-prefer-native-exif-writer", disabled_args)
 
+    def test_google_keep_takeout_folder_flag_is_optional_and_only_emitted_when_enabled(self):
+        field = self.web_app.PARSER_FIELDS_BY_DEST["google-keep-takeout-folder"]
+
+        self.assertFalse(bool(field["default"]))
+        self.assertEqual(field["long_option"], "--google-keep-takeout-folder")
+
+        enabled_args = self.web_app._build_cli_args(
+            "google_takeout",
+            {"google-takeout": "/tmp/Takeout", "google-keep-takeout-folder": True},
+            None,
+        )
+        disabled_args = self.web_app._build_cli_args(
+            "google_takeout",
+            {"google-takeout": "/tmp/Takeout", "google-keep-takeout-folder": False},
+            None,
+        )
+
+        self.assertIn("--google-keep-takeout-folder", enabled_args)
+        self.assertNotIn("--google-keep-takeout-folder", disabled_args)
+
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")

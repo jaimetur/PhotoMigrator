@@ -139,6 +139,23 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--icloud-prefer-native-exif-writer", enabled_args)
         self.assertNotIn("--icloud-prefer-native-exif-writer", disabled_args)
 
+    def test_build_cli_args_appends_google_keep_takeout_flag_only_when_enabled(self):
+        schema = build_parser_schema()
+
+        enabled_args = build_cli_args(
+            schema,
+            "google_takeout",
+            {"google-takeout": "/tmp/Takeout", "google-keep-takeout-folder": True},
+        )
+        disabled_args = build_cli_args(
+            schema,
+            "google_takeout",
+            {"google-takeout": "/tmp/Takeout", "google-keep-takeout-folder": False},
+        )
+
+        self.assertIn("--google-keep-takeout-folder", enabled_args)
+        self.assertNotIn("--google-keep-takeout-folder", disabled_args)
+
     def test_build_automatic_migration_filter_fields_create_am_overrides(self):
         schema = build_parser_schema()
 
