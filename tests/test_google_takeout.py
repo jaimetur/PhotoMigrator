@@ -27,6 +27,7 @@ import Utils.StandaloneUtils as standalone_utils
 try:
     import Features.GoogleTakeout.ClassTakeoutFolder as takeout_module
     from Features.GoogleTakeout.ClassTakeoutFolder import (
+        _extract_orphan_album_json_descriptor,
         _find_forbidden_special_folder_in_path,
         _is_takeout_year_folder,
         contains_takeout_structure,
@@ -373,6 +374,66 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertEqual(summary["recovered_assets"], 1)
             self.assertTrue(recovered_entry.is_file())
             self.assertFalse(recovered_entry.is_symlink())
+
+    def test_extract_orphan_album_json_descriptor_ignores_album_metadata_json(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            json_path = Path(temp_dir) / "metadatos.json"
+            json_path.write_text(
+                json.dumps(
+                    {
+                        "title": "2002 - Casa de Quini (Alicante)",
+                        "description": "",
+                        "access": "protected",
+                        "date": {
+                            "timestamp": "1024570187",
+                            "formatted": "20 jun 2002, 10:49:47 UTC",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            descriptor = _extract_orphan_album_json_descriptor(json_path)
+
+        self.assertIsNone(descriptor)
+
+    def test_recover_orphan_album_assets_from_json_sidecars_prefers_nearest_year_fallback(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_root = root / "Takeout"
+            album_dir = input_root / "Google Photos" / "Album_1"
+            album_dir.mkdir(parents=True)
+            (album_dir / "mi cocina.JPG.json").write_text(
+                json.dumps({"title": "mi cocina.JPG", "photoTakenTime": {"timestamp": "1009843200"}}),
+                encoding="utf-8",
+            )
+
+            output_root = root / "Processed"
+            farther_asset = output_root / "ALL_PHOTOS" / "1999" / "mi cocina.JPG"
+            nearer_asset = output_root / "ALL_PHOTOS" / "2000" / "mi cocina.JPG"
+            farther_asset.parent.mkdir(parents=True, exist_ok=True)
+            nearer_asset.parent.mkdir(parents=True, exist_ok=True)
+            farther_asset.write_bytes(b"farther-year")
+            nearer_asset.write_bytes(b"nearer-year")
+
+            albums_root = output_root / "Albums"
+            albums_root.mkdir(parents=True)
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_root,
+                    output_folder=output_root,
+                    albums_folder=albums_root,
+                    no_symbolic_albums=True,
+                    albums_structure="flatten",
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            recovered_entry = albums_root / "Album_1" / "mi cocina.JPG"
+            self.assertEqual(summary["recovered_assets"], 1)
+            self.assertTrue(recovered_entry.is_file())
+            self.assertEqual(recovered_entry.read_bytes(), b"nearer-year")
 
     def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
         with tempfile.TemporaryDirectory() as temp_dir:
