@@ -16,9 +16,24 @@
 #### 🚀 GPTH Enhancements:
 
 #### 🐛 Bug fixes:
-  - Fixed the Synology shared-album follow-up regression introduced during the issue `#1159` fix. Shared albums matched by filters now use the correct shared-album listing flow instead of the normal album endpoint, which avoids repeated `Failed to list photos in the album ...` errors, and shared-album access resolution is now cached so the initial `Automatic Migration` analysis no longer performs redundant per-album API lookups that could severely degrade performance on reruns.
-  - Fixed `Google Takeout` `GPTH --fix` execution so PhotoMigrator now passes GPTH the direct parent folder of the album/asset subfolders instead of mixing `--fix` with `--input/--output`, relocates the generated `ALL_PHOTOS`, `Albums`, and `Special Folders` / `Special_Folders` trees into the configured PhotoMigrator output folder afterward, and when `--google-keep-takeout-folder` is active only clones a temporary working copy if the current `--fix` input still points to the original Takeout tree. If the source came from ZIP files and PhotoMigrator is already working on the intermediate unzipped staging folder, no extra clone is created because the original ZIP Takeout is already preserved. The automatic `album-only` detection flow still forces `--fix` when no year folders exist but localized `Google Photos` plus album JSON sidecars and `archive_browser.html` are present.
-  - Fixed Web Interface `Command Preview` so checkbox flags update reliably.
+  - Fixed the Synology shared-album follow-up regression from issue `#1159`.
+    Shared albums matched by filters now use the correct shared-album listing flow instead of the normal album endpoint.
+  - Shared-album access resolution is now cached during `Automatic Migration`.
+    This avoids redundant per-album API lookups on reruns and prevents the initial analysis step from slowing down badly.
+  - Fixed `Google Takeout` `GPTH --fix` execution so PhotoMigrator now passes GPTH the direct parent folder
+    of the album and asset subfolders, instead of mixing `--fix` with `--input/--output`.
+  - After `GPTH --fix`, PhotoMigrator now relocates the generated `ALL_PHOTOS`, `Albums`,
+    and `Special Folders` / `Special_Folders` trees into the configured output folder.
+  - When `--google-keep-takeout-folder` is active, PhotoMigrator now creates a temporary working copy
+    only if the current `--fix` input still points to the original Takeout tree.
+  - If the source Takeout came from ZIP files and PhotoMigrator is already working on the intermediate
+    unzipped staging folder, no extra clone is created because the original ZIP Takeout is already preserved.
+  - The automatic `album-only` detection flow still forces `GPTH --fix` when no year folders exist
+    but localized `Google Photos` plus album JSON sidecars and `archive_browser.html` are present.
+  - Normalized Web Interface checkbox state booleans when loading and saving user state.
+    This avoids persisted string values such as `"false"` being interpreted as checked flags in the UI.
+  - Added a visible Web build id in the Web Interface header.
+    This makes it possible to confirm exactly which frontend build is being served by the published image.
   - Disabled HTML caching.
 
 #### 📚 Documentation:

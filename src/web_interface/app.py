@@ -101,6 +101,21 @@ def _html_no_store_response(response: Response) -> Response:
     return response
 
 
+def _compute_web_build_id() -> str:
+    digest = hashlib.sha256()
+    digest.update(str(TOOL_VERSION).encode("utf-8"))
+    for path in (
+        SRC_ROOT / "web_interface" / "app.py",
+        SRC_ROOT / "web_interface" / "html" / "index.html",
+        SRC_ROOT / "web_interface" / "static" / "style.css",
+    ):
+        try:
+            digest.update(path.read_bytes())
+        except Exception:
+            digest.update(str(path).encode("utf-8"))
+    return digest.hexdigest()[:10]
+
+
 BOOL_VALUE_DESTS = {
     "move-assets",
     "dashboard",
@@ -1618,6 +1633,22 @@ def _apply_state_defaults(values: Dict[str, Any]) -> Dict[str, Any]:
     return normalized
 
 
+def _normalize_state_values_for_schema(values: Dict[str, Any]) -> Dict[str, Any]:
+    normalized: Dict[str, Any] = {}
+    for key, value in dict(values or {}).items():
+        dest = str(key or "").strip()
+        field = PARSER_FIELDS_BY_DEST.get(dest)
+        if not field:
+            normalized[dest] = value
+            continue
+        kind = str(field.get("kind") or "").strip().lower()
+        if kind in {"flag", "bool"}:
+            normalized[dest] = _bool_from_value(value)
+            continue
+        normalized[dest] = value
+    return normalized
+
+
 def _build_config_form_response(current_user: Dict[str, Any], merged: Dict[str, Dict[str, str]] | None = None) -> Dict[str, Any]:
     effective = merged if merged is not None else _merge_values_with_schema(_get_user_config_values(current_user), CONFIG_FORM_SCHEMA)
     sections: List[Dict[str, Any]] = []
@@ -2373,11 +2404,13 @@ JOBS_LOCK = threading.Lock()
 BACKUP_LOCK = threading.Lock()
 BACKUP_THREAD: threading.Thread | None = None
 BACKUP_THREAD_STOP = threading.Event()
+WEB_BUILD_ID = _compute_web_build_id()
 
 
 def _initialize_web_app_state() -> None:
-    global PARSER_SCHEMA, CONFIG_TEMPLATE_CONTENT, CONFIG_FORM_SCHEMA
+    global PARSER_SCHEMA, CONFIG_TEMPLATE_CONTENT, CONFIG_FORM_SCHEMA, WEB_BUILD_ID
     PARSER_SCHEMA = _load_parser_schema()
+    WEB_BUILD_ID = _compute_web_build_id()
     CONFIG_TEMPLATE_CONTENT = _load_default_config_template()
     CONFIG_FORM_SCHEMA = _extend_form_schema_with_web_interface_theme(
         _parse_template_to_form_schema(CONFIG_TEMPLATE_CONTENT)
@@ -3100,6 +3133,7 @@ def login_page(request: Request, session_token: str | None = Cookie(default=None
             "request": request,
             "tool_name": TOOL_NAME,
             "tool_version": TOOL_VERSION,
+            "web_build_id": WEB_BUILD_ID,
             "show_default_admin_hint": show_default_admin_hint,
             "show_demo_hint": show_demo_hint,
         },
@@ -3183,6 +3217,7 @@ def home(request: Request, session_token: str | None = Cookie(default=None, alia
             "tool_name": TOOL_NAME,
             "tool_version": TOOL_VERSION,
             "tool_date": TOOL_DATE,
+            "web_build_id": WEB_BUILD_ID,
             "takeout_special_folders": list(TAKEOUT_SPECIAL_FOLDER_NAMES),
             "username": str(current_user.get("username") or ""),
             "role": str(current_user.get("role") or "user"),
@@ -3200,6 +3235,7 @@ def admin_panel(request: Request, current_user: Dict[str, Any] = Depends(_requir
             "request": request,
             "tool_name": TOOL_NAME,
             "tool_version": TOOL_VERSION,
+            "web_build_id": WEB_BUILD_ID,
             "username": str(current_user.get("username") or ""),
         },
     )
@@ -3395,13 +3431,17 @@ def export_config_to_storage(
 def get_state(current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
     fresh_user = _fetch_user_by_id(int(current_user["id"])) or current_user
     payload = _read_user_state_payload(fresh_user)
-    values = _apply_state_defaults(payload.get("values", {}))
+    values = _apply_state_defaults(_normalize_state_values_for_schema(payload.get("values", {})))
     return {"path": f"db://users/{current_user['id']}/state.json", "values": values, "ui_state": payload["ui_state"]}
 
 
 @app.post("/api/state")
 def save_state(payload: StateUpdateRequest, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
-    _save_user_state_payload(current_user, payload.values or {}, payload.ui_state or {})
+    _save_user_state_payload(
+        current_user,
+        _normalize_state_values_for_schema(payload.values or {}),
+        payload.ui_state or {},
+    )
     return {"saved": True, "path": f"db://users/{current_user['id']}/state.json"}
 
 

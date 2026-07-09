@@ -13,7 +13,7 @@
         <div class="hero__content">
             <div class="hero__heading">
                 <h1 class="hero__title">PhotoMigrator</h1>
-                <div class="hero__badge">{{ tool_version }} ({{ tool_date }})</div>
+                <div class="hero__badge">{{ tool_version }} ({{ tool_date }}) | Web {{ web_build_id }}</div>
             </div>
             <h2 class="hero__subtitle">Web Interface for CLI Execution</h2>
             <p>Migrate your photos between different cloud services. Process your Google Photos Takeout to fix metadata. Manage your photo library.</p>
@@ -465,13 +465,23 @@
         "process-duplicates": "Process Duplicates"
     };
 
+    function uiBooleanValue(value) {
+        if (typeof value === "boolean") return value;
+        if (typeof value === "string") {
+            const normalized = value.trim().toLowerCase();
+            return ["true", "1", "yes", "y", "on"].includes(normalized);
+        }
+        if (typeof value === "number") return value !== 0;
+        return Boolean(value);
+    }
+
     function uiCheckboxValueForDest(dest, persisted) {
         // Invert only in web UI: checked means "Request confirmation" (default unchecked).
         if (dest === "no-request-user-confirmation") {
             if (persisted === undefined) return false;
-            return !Boolean(persisted);
+            return !uiBooleanValue(persisted);
         }
-        return persisted === undefined ? false : Boolean(persisted);
+        return persisted === undefined ? false : uiBooleanValue(persisted);
     }
 
     function stateValueFromUiCheckbox(dest, checked) {
@@ -618,7 +628,7 @@
             const clientLabel = payload.tab === "synology_photos"
                 ? "Synology Photos"
                 : (payload.tab === "immich_photos" ? "Immich Photos" : (payload.tab === "nextcloud_photos" ? "NextCloud Photos" : "Google Photos"));
-            const removeAlbumAssets = Boolean(payload?.values?.["remove-albums-assets"]);
+            const removeAlbumAssets = uiBooleanValue(payload?.values?.["remove-albums-assets"]);
             let message = "";
             if (action === "rename-albums") {
                 message = `This module will rename albums in ${clientLabel} whose names match your pattern, using the replacement pattern.`;
@@ -658,7 +668,7 @@
                 danger: true
             };
         }
-        if (payload.tab === "standalone_features" && action === "organize-local-folder-by-date" && Boolean(payload?.values?.["move-original-files"])) {
+        if (payload.tab === "standalone_features" && action === "organize-local-folder-by-date" && uiBooleanValue(payload?.values?.["move-original-files"])) {
             return {
                 title: "Dangerous Module",
                 message: "This module will move the original local folder into the processed output before reorganizing it by date. The source folder path will no longer exist after the move. Do you want to continue?",
@@ -1847,6 +1857,18 @@
         return schema?.fields_by_dest?.[dest] || getAllFields().find((f) => f.dest === dest);
     }
 
+    function normalizeStateValuesForSchema(rawValues) {
+        const normalized = {...(rawValues || {})};
+        Object.keys(normalized).forEach((dest) => {
+            const field = getFieldByDest(dest);
+            if (!field) return;
+            if (field.kind === "flag" || field.kind === "bool") {
+                normalized[dest] = uiBooleanValue(normalized[dest]);
+            }
+        });
+        return normalized;
+    }
+
     function normalizeFieldForContext(field, tabKey) {
         if (!field) return field;
         if ((tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos") && field.dest === "account-id") {
@@ -3026,7 +3048,7 @@
         const field = getFieldByDest(dest);
         const raw = values ? values[dest] : undefined;
         if (!field) return String(raw || "").trim() !== "";
-        if (field.kind === "flag") return Boolean(raw);
+        if (field.kind === "flag") return uiBooleanValue(raw);
         if (field.kind === "list") {
             if (Array.isArray(raw)) return raw.some((v) => String(v || "").trim() !== "");
             const text = String(raw || "").replaceAll(",", "\n");
@@ -5203,6 +5225,7 @@
         await loadConfig(); // Keep editor synced with active Config.ini by default
         const response = await apiFetch("/api/schema");
         schema = await response.json();
+        stateValues = normalizeStateValuesForSchema(stateValues);
         renderAll();
         await tryResumeActiveJob();
     }
