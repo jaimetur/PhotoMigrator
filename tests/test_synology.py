@@ -210,6 +210,22 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertEqual(asset_id, "cached-asset-id")
         self.assertTrue(is_duplicated)
 
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_add_assets_to_album_treats_duplicate_failure_as_already_associated(self, mock_logger):
+        manager = self._prepare_push_manager()
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "success": False,
+            "error": {"code": 123, "message": "Asset already exists in album"},
+        }
+        manager.SESSION.get.return_value = response
+
+        added = manager.add_assets_to_album("album-1", "asset-1", album_name="Album")
+
+        self.assertEqual(added, 1)
+        mock_logger.warning.assert_not_called()
+
     def test_is_shared_album_detects_sharing_info_without_passphrase(self):
         album = {
             "id": "shared-1",

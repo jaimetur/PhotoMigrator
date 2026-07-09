@@ -1137,14 +1137,6 @@
         lastRawOutput = rawText || "";
         const force = Boolean(options && options.force);
         const autoScrollEnabled = uiState.auto_scroll !== false;
-        const hasRenderedContent = Boolean(outputEl && outputEl.textContent && outputEl.textContent.length > 0);
-
-        // True freeze mode: keep the visible log static while autoscroll is OFF.
-        // This avoids line shifting and keeps text selection stable for analysis.
-        // But allow the first paint after reload/resume so the panel is never blank.
-        if (!autoScrollEnabled && !force && hasRenderedContent) {
-            return;
-        }
 
         displayedRawOutput = collapseProgressLines(lastRawOutput);
         const rawLines = (displayedRawOutput || "").split("\n");

@@ -1431,6 +1431,13 @@ class ClassSynologyPhotos:
                 data = resp.json()
 
                 if not data["success"]:
+                    response_text = json.dumps(data, ensure_ascii=False).lower()
+                    if "duplicate" in response_text or "already" in response_text:
+                        if album_name:
+                            LOGGER.info(f"{total_added} Assets already associated with album: '{album_name}'.")
+                        else:
+                            LOGGER.info(f"{total_added} Assets already associated with album ID: '{album_id}'.")
+                        return total_added
                     if album_name:
                         LOGGER.warning(f"Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
                     else:
