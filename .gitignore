@@ -4,6 +4,20 @@
 # Pycharm Folder
 #.idea/
 
+# Environments
+.env/
+.venv/
+.venv_mac/
+.venv_macmini/
+.venv_macbook/
+.venv_windows
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+!docker-web/.env
+
 # FreeFileSync files
 /*.ffs_db
 /*.ffs_lock
@@ -180,19 +194,6 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
-
-# Environments
-.env
-!docker-web/.env
-.venv
-.venv_macmini
-.venv_macbook
-.venv_windows
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject
