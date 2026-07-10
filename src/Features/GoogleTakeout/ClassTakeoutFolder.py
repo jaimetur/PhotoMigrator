@@ -785,8 +785,17 @@ def repair_conflicting_video_xmp_dates(folder_analyzer=None, step_name="", log_l
         repaired_count = 0
         failed_count = 0
         process = None
+        use_stay_open = True
         try:
             process = _start_exiftool_stay_open(exif_tool_path)
+        except (OSError, ValueError) as e:
+            use_stay_open = False
+            LOGGER.warning(
+                f"{step_name}Could not start persistent ExifTool session "
+                f"('{e}'). Falling back to per-file execution."
+            )
+
+        try:
             with tqdm(
                 total=total_conflicts,
                 smoothing=0.1,
@@ -794,28 +803,40 @@ def repair_conflicting_video_xmp_dates(folder_analyzer=None, step_name="", log_l
                 unit=" files",
             ) as pbar:
                 for execute_id, job in enumerate(repair_jobs, start=1):
-                    try:
-                        output_lines = _execute_exiftool_stay_open(
-                            process,
-                            _build_video_metadata_repair_args(job["path"], job["desired_dt"]),
-                            execute_id,
-                        )
-                    except Exception as e:
-                        failed_count += 1
-                        LOGGER.warning(f"{step_name}Failed to normalize video metadata for '{job['path']}': {e}")
-                        pbar.update(1)
-                        continue
-
-                    details = " | ".join(line.strip() for line in output_lines if line.strip())
-                    error_detected = any("error" in line.lower() for line in output_lines)
-                    if error_detected:
-                        failed_count += 1
-                        LOGGER.warning(
-                            f"{step_name}Failed to normalize video metadata for '{job['path']}': "
-                            f"{details[:400] or 'ExifTool reported an error.'}"
-                        )
-                        pbar.update(1)
-                        continue
+                    if use_stay_open:
+                        try:
+                            output_lines = _execute_exiftool_stay_open(
+                                process,
+                                _build_video_metadata_repair_args(job["path"], job["desired_dt"]),
+                                execute_id,
+                            )
+                            details = " | ".join(line.strip() for line in output_lines if line.strip())
+                            error_detected = any("error" in line.lower() for line in output_lines)
+                            if error_detected:
+                                failed_count += 1
+                                LOGGER.warning(
+                                    f"{step_name}Failed to normalize video metadata for '{job['path']}': "
+                                    f"{details[:400] or 'ExifTool reported an error.'}"
+                                )
+                                pbar.update(1)
+                                continue
+                        except Exception as e:
+                            failed_count += 1
+                            LOGGER.warning(f"{step_name}Failed to normalize video metadata for '{job['path']}': {e}")
+                            pbar.update(1)
+                            continue
+                    else:
+                        command = [exif_tool_path, *_build_video_metadata_repair_args(job["path"], job["desired_dt"])]
+                        result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+                        if result.returncode != 0:
+                            failed_count += 1
+                            details = (result.stderr or result.stdout or "").strip()
+                            LOGGER.warning(
+                                f"{step_name}Failed to normalize video metadata for '{job['path']}': "
+                                f"{details[:400] or f'ExifTool exit code {result.returncode}'}"
+                            )
+                            pbar.update(1)
+                            continue
 
                     _update_video_entry_after_metadata_repair(job["entry"], job["desired_dt"], job["desired_source"])
                     repaired_count += 1
