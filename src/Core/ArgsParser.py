@@ -287,16 +287,16 @@ def parse_arguments():
 
     PARSER.add_argument("-gSkipPost", "--google-skip-postprocess", action="store_true",
                         help="Skip post-process Google Takeout which includes:\n"
-                             "  1) Copy/Move files to output folder\n"
-                             "  2) Sync MP4 files associated to Live pictures with associated HEIC/JPG\n"
+                             "  1) Sync MP4 files associated to Live pictures with associated HEIC/JPG\n"
+                             "  2) Repair conflicting Video XMP dates\n"
                              "  3) Separate Albums folders vs original assets\n"
-                             "  4) Auto rename album folders based on content dates\n"
-                             "  5) Calculate statistics and compare with original Takeout\n"
-                             "  6) Organize assets by year/month\n"
-                             "  7) Detect and remove duplicates\n"
+                             "  4) Organize assets by year/month\n"
+                             "  5) Auto rename album folders based on content dates\n"
+                             "  6) Detect and remove duplicates\n"
+                             "  7) Count albums\n"
                              "  8) Remove empty folders\n"
-                             "  9) Count albums\n"
-                             " 10) Clean final media library\n"
+                             "  9) Clean final media library\n"
+                             " 10) Show files without dates\n"
                              "Not recommended to skip.")
 
     PARSER.add_argument("-gKeepTakeout", "--google-keep-takeout-folder", action="store_true",

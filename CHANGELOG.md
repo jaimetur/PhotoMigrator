@@ -41,6 +41,7 @@
 
 #### 📚 Documentation:
   - Corrected the `Google Takeout` documentation so orphan album JSON recovery is documented in its real position as `Step 4.3` (right after `Copy/Move files to Output folder`) instead of under the later post-process section. The example step timeline was updated accordingly.
+  - Corrected the `Google Takeout` step numbering to match the current code and logs: `Step 6.2` is now documented as `Repair Video XMP Dates`, `Step 6.3` as `Albums Moving`, the later post-process steps were renumbered through `6.8`, and the obsolete `Step 7.3` final-statistics entry was removed from the pipeline description.
   - Updated documentation with all changes.
 
 ---

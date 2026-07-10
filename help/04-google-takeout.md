@@ -86,16 +86,17 @@ Below you can see the different steps of this feature:
 #### 6. ✅ Post Process steps
 `(default=enabled. Can be disabled using flag '-gSkipPost; --google-skip-postprocess')`
   - 6.1. 🕒 Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
-  - 6.2. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
-  - 6.3. 📁 Organize your assets in a year/month structure for a better organization. 
+  - 6.2. 🎞️ Repair conflicting Video XMP dates left by GPTH so the final metadata matches the intended capture date.
+  - 6.3. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
+  - 6.4. 📁 Organize your assets in a year/month structure for a better organization. 
     - Can be customized using the flags: `-gafs, --google-albums-folders-structure` and `-gnas, --google-no-albums-folders-structure`  
     - `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
-  - 6.4. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates.</span>  
+  - 6.5. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates.</span>  
          `(default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders')`
-  - 6.5. 👥 <span style="color:grey">Detect and remove duplicates.</span>  
+  - 6.6. 👥 <span style="color:grey">Detect and remove duplicates.</span>  
          `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`
-  - 6.6. 🔢 Count Albums.
-  - 6.7. 🧹 Remove empty folders. 
+  - 6.7. 🔢 Count Albums.
+  - 6.8. 🧹 Remove empty folders. 
 
 > [!IMPORTANT]
 > Google Photos Takeout sometimes exports album folders that contain only metadata sidecars such as `photo.jpg.json`, while the real media file is exported only once inside a year folder like `Photos from 2002`. GPTH usually rebuilds those album memberships, but when any of them is missed, PhotoMigrator now performs an additional post-GPTH repair pass. It scans the original album-side JSON files, extracts fields such as `title` and `photoTakenTime.timestamp`, searches the processed `ALL_PHOTOS` tree for the real asset, and recreates the missing album entry automatically.
@@ -112,14 +113,13 @@ Below you can see the different steps of this feature:
 #### 7. ✅ Final steps
   - 7.1. 🧹 Clean Final Media Library.
   - 7.2. ❔ Show Files Without Dates.
-  - 7.3. 🔢 Show and Compare Initial / Final statistics.
 
 > [!NOTE]
 > Step 4.2 is disabled by default, but It is automatically enabled if detect that Step 4.1 has been skipped.
 > 
-> Step 6.4 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
+> Step 6.5 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
 >
-> Step 6.5 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
+> Step 6.6 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
 >
 > Step 4.3 is enabled by default and is especially important for Takeouts where some album folders contain only `.json` sidecars and no physical media files.
 
@@ -151,12 +151,13 @@ Below you can see the different steps of this feature:
 > 
 > STEP 6    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  0:14:47  
 > Step 6.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:12  
-> Step 6.2  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:01:34  
-> Step 6.3  : 📁 [POST-PROCESS]-[Create year/month struct] :  0:12:15  
-> Step 6.4  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:41  
-> Step 6.5  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped  
-> Step 6.6  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:03  
-> Step 6.7  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:02  
+> Step 6.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]   :  Skipped 
+> Step 6.3  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:01:34  
+> Step 6.4  : 📁 [POST-PROCESS]-[Create year/month struct] :  0:12:15  
+> Step 6.5  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:41  
+> Step 6.6  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped  
+> Step 6.7  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:03  
+> Step 6.8  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:02  
 > 
 > STEP 7    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]            :  0:07:49  
 > Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]            :  0:07:47  
