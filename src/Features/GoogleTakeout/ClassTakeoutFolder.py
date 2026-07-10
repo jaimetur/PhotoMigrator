@@ -679,6 +679,58 @@ def _update_video_entry_after_metadata_repair(entry, dt_value, source_tag):
         entry[tag_name] = iso_value
 
 
+def _start_exiftool_stay_open(exif_tool_path):
+    return subprocess.Popen(
+        [exif_tool_path, "-stay_open", "True", "-@", "-"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+    )
+
+
+def _execute_exiftool_stay_open(process, args, execute_id):
+    if process.poll() is not None:
+        raise RuntimeError("ExifTool stay_open process is no longer running.")
+    if process.stdin is None or process.stdout is None:
+        raise RuntimeError("ExifTool stay_open pipes are not available.")
+
+    ready_token = f"{{ready{execute_id}}}"
+    payload = "\n".join([*args, f"-execute{execute_id}"]) + "\n"
+    process.stdin.write(payload)
+    process.stdin.flush()
+
+    output_lines = []
+    while True:
+        line = process.stdout.readline()
+        if line == "":
+            if process.poll() is not None:
+                raise RuntimeError("ExifTool stay_open process terminated before signaling completion.")
+            continue
+        if line.strip() == ready_token:
+            break
+        output_lines.append(line.rstrip("\r\n"))
+
+    return output_lines
+
+
+def _stop_exiftool_stay_open(process):
+    if process is None:
+        return
+    try:
+        if process.poll() is None and process.stdin is not None:
+            process.stdin.write("-stay_open\nFalse\n")
+            process.stdin.flush()
+            process.stdin.close()
+        process.wait(timeout=10)
+    except Exception:
+        process.kill()
+        process.wait(timeout=5)
+
+
 def repair_conflicting_video_xmp_dates(folder_analyzer=None, step_name="", log_level=None):
     """
     Normalize processed video metadata when GPTH leaves conflicting XMP dates
@@ -696,7 +748,7 @@ def repair_conflicting_video_xmp_dates(folder_analyzer=None, step_name="", log_l
             return 0
         ensure_executable(exif_tool_path)
 
-        repaired_count = 0
+        repair_jobs = []
         skipped_missing_files = 0
         for file_path, entry in extracted_dates.items():
             needs_fix, desired_dt, desired_source, conflicting_tags = _video_entry_needs_metadata_repair(file_path, entry)
@@ -708,26 +760,78 @@ def repair_conflicting_video_xmp_dates(folder_analyzer=None, step_name="", log_l
                 skipped_missing_files += 1
                 continue
 
-            command = [exif_tool_path, *_build_video_metadata_repair_args(resolved_path, desired_dt)]
-            result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
-            if result.returncode != 0:
-                details = (result.stderr or result.stdout or "").strip()
-                LOGGER.warning(
-                    f"{step_name}Failed to normalize video metadata for '{resolved_path}': "
-                    f"{details[:400] or f'ExifTool exit code {result.returncode}'}"
-                )
-                continue
-
-            _update_video_entry_after_metadata_repair(entry, desired_dt, desired_source)
-            repaired_count += 1
-            LOGGER.debug(
-                f"{step_name}Normalized conflicting video XMP dates for '{resolved_path}' "
-                f"(tags: {', '.join(conflicting_tags)})."
+            repair_jobs.append(
+                {
+                    "path": resolved_path,
+                    "entry": entry,
+                    "desired_dt": desired_dt,
+                    "desired_source": desired_source,
+                    "conflicting_tags": conflicting_tags,
+                }
             )
 
-        LOGGER.info(f"{step_name}Processed video metadata normalized for {repaired_count} files.")
+        total_conflicts = len(repair_jobs)
+        if not total_conflicts:
+            LOGGER.info(f"{step_name}No conflicting video XMP dates detected. Skipping processed video metadata repair.")
+            if skipped_missing_files:
+                LOGGER.warning(f"{step_name}Skipped {skipped_missing_files} conflicting video files that no longer exist before metadata repair.")
+            return 0
+
+        LOGGER.info(
+            f"{step_name}Detected {total_conflicts} video files with conflicting XMP dates. "
+            f"Starting normalization with persistent ExifTool session..."
+        )
+
+        repaired_count = 0
+        failed_count = 0
+        process = None
+        try:
+            process = _start_exiftool_stay_open(exif_tool_path)
+            with tqdm(
+                total=total_conflicts,
+                smoothing=0.1,
+                desc=f"{MSG_TAGS['INFO']}{step_name}Normalizing conflicting video XMP dates",
+                unit=" files",
+            ) as pbar:
+                for execute_id, job in enumerate(repair_jobs, start=1):
+                    try:
+                        output_lines = _execute_exiftool_stay_open(
+                            process,
+                            _build_video_metadata_repair_args(job["path"], job["desired_dt"]),
+                            execute_id,
+                        )
+                    except Exception as e:
+                        failed_count += 1
+                        LOGGER.warning(f"{step_name}Failed to normalize video metadata for '{job['path']}': {e}")
+                        pbar.update(1)
+                        continue
+
+                    details = " | ".join(line.strip() for line in output_lines if line.strip())
+                    error_detected = any("error" in line.lower() for line in output_lines)
+                    if error_detected:
+                        failed_count += 1
+                        LOGGER.warning(
+                            f"{step_name}Failed to normalize video metadata for '{job['path']}': "
+                            f"{details[:400] or 'ExifTool reported an error.'}"
+                        )
+                        pbar.update(1)
+                        continue
+
+                    _update_video_entry_after_metadata_repair(job["entry"], job["desired_dt"], job["desired_source"])
+                    repaired_count += 1
+                    LOGGER.debug(
+                        f"{step_name}Normalized conflicting video XMP dates for '{job['path']}' "
+                        f"(tags: {', '.join(job['conflicting_tags'])})."
+                    )
+                    pbar.update(1)
+        finally:
+            _stop_exiftool_stay_open(process)
+
+        LOGGER.info(f"{step_name}Processed video metadata normalized for {repaired_count} of {total_conflicts} conflicting files.")
+        if failed_count:
+            LOGGER.warning(f"{step_name}Failed to normalize metadata for {failed_count} conflicting video files.")
         if skipped_missing_files:
-            LOGGER.warning(f"{step_name}Skipped {skipped_missing_files} video files that no longer exist during metadata repair.")
+            LOGGER.warning(f"{step_name}Skipped {skipped_missing_files} conflicting video files that no longer exist before metadata repair.")
         return repaired_count
 
 

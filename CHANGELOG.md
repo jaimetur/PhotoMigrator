@@ -12,6 +12,7 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
+  - Improved `Google Takeout` post-process video XMP date normalization. The repair step now reports the total number of conflicting videos before starting, shows a live progress bar during the normalization, and reuses a persistent `ExifTool` session to reduce per-file process startup overhead.
   - Updated GPTH to v6.1.9 which includes an important Bug Fix.
 
 #### 🚀 GPTH Enhancements:
