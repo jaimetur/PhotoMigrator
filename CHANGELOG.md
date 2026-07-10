@@ -10,7 +10,7 @@
 #### 🚨 Breaking Changes:
 
 #### 🌟 New Features:
-  - Added a local Web Interface launcher script at `src/web_interface/Run_Web_Interface.py` so the FastAPI web UI can be started directly from source in IDEs such as PyCharm without Docker-specific setup. The launcher auto-creates its local workspace under `.web-dev` and injects development-safe defaults only when those environment variables are not already defined.
+  - Added a local Web Interface launcher script at `src/PhotoMigrator_Web.py` so the FastAPI web UI can be started directly from source in IDEs such as PyCharm without Docker-specific setup. The launcher auto-creates its local workspace under `.web-dev` and injects development-safe defaults only when those environment variables are not already defined.
 
 #### 🚀 Enhancements:
   - Improved `Google Takeout` post-process video XMP date normalization. The repair step now reports the total number of conflicting videos before starting, shows a live progress bar during the normalization, and reuses a persistent `ExifTool` session to reduce per-file process startup overhead.
