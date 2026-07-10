@@ -9,6 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv_macmini" />
       <excludeFolder url="file://$MODULE_DIR$/.github_ignore" />
       <excludeFolder url="file://$MODULE_DIR$/.venv_windows" />
+      <excludeFolder url="file://$MODULE_DIR$/.web-dev" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (PhotoMigrator)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -239,3 +239,4 @@ cython_debug/
 
 # Config dir
 /config
+/.web-dev/
