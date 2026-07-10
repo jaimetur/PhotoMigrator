@@ -372,11 +372,13 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                     album_stat["unresolved"] += 1
 
         for album_name, album_stat in per_album_stats.items():
-            if album_stat["recovered"] or album_stat["unresolved"] or album_stat["already_present"]:
+            if album_stat["recovered"] or album_stat["unresolved"]:
                 summary["albums_touched"] += 1
+                total_assets = album_stat["already_present"] + album_stat["recovered"]
                 LOGGER.info(
                     f"{step_name}Album JSON Recovery: '{album_name}' already had {album_stat['already_present']} assets, "
-                    f"recovered {album_stat['recovered']} assets, and left {album_stat['unresolved']} unresolved."
+                    f"recovered {album_stat['recovered']} assets, and left {album_stat['unresolved']} unresolved. "
+                    f"Total assets: {total_assets}"
                 )
 
         LOGGER.info(
