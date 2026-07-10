@@ -64,6 +64,10 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
         offending = _find_forbidden_special_folder_in_path("/tmp/Export/Trash/Takeout")
         self.assertEqual(offending, "Trash")
 
+    def test_find_forbidden_special_folder_in_path_detects_localized_special_components(self):
+        offending = _find_forbidden_special_folder_in_path("/tmp/Export/Carpeta privada/Takeout")
+        self.assertEqual(offending, "Carpeta privada")
+
     def test_contains_takeout_structure_detects_nested_localized_year_folder(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -607,6 +611,60 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertTrue((output_root / "archive_browser.html").is_file())
             self.assertFalse((fix_root / "ALL_PHOTOS").exists())
             self.assertFalse((fix_root / "Albums").exists())
+
+    def test_relocate_gpth_fix_outputs_reclassifies_localized_special_folders_left_in_albums(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            fix_root = root / "Google Photos"
+            output_root = root / "Processed"
+            (fix_root / "Albums" / "Archivo").mkdir(parents=True)
+            (fix_root / "Albums" / "Archivo" / "a.jpg").write_bytes(b"a")
+            (fix_root / "Albums" / "Papelera").mkdir(parents=True)
+            (fix_root / "Albums" / "Papelera" / "b.jpg").write_bytes(b"b")
+            (fix_root / "Albums" / "Carpeta privada").mkdir(parents=True)
+            (fix_root / "Albums" / "Carpeta privada" / "c.jpg").write_bytes(b"c")
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                ok = relocate_gpth_fix_outputs(
+                    fix_root=str(fix_root),
+                    output_folder=str(output_root),
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertTrue(ok)
+            self.assertTrue((output_root / "Special Folders" / "Archivo" / "a.jpg").is_file())
+            self.assertTrue((output_root / "Special Folders" / "Papelera" / "b.jpg").is_file())
+            self.assertTrue((output_root / "Special Folders" / "Carpeta privada" / "c.jpg").is_file())
+            self.assertFalse((output_root / "Albums" / "Archivo").exists())
+            self.assertFalse((output_root / "Albums" / "Papelera").exists())
+            self.assertFalse((output_root / "Albums" / "Carpeta privada").exists())
+
+    def test_relocate_gpth_fix_outputs_reclassifies_special_folders_even_when_output_matches_fix_root(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "Albums" / "Archive").mkdir(parents=True)
+            (root / "Albums" / "Archive" / "a.jpg").write_bytes(b"a")
+            (root / "Albums" / "Trash").mkdir(parents=True)
+            (root / "Albums" / "Trash" / "b.jpg").write_bytes(b"b")
+            (root / "Albums" / "Locked Folder").mkdir(parents=True)
+            (root / "Albums" / "Locked Folder" / "c.jpg").write_bytes(b"c")
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                ok = relocate_gpth_fix_outputs(
+                    fix_root=str(root),
+                    output_folder=str(root),
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertTrue(ok)
+            self.assertTrue((root / "Special Folders" / "Archive" / "a.jpg").is_file())
+            self.assertTrue((root / "Special Folders" / "Trash" / "b.jpg").is_file())
+            self.assertTrue((root / "Special Folders" / "Locked Folder" / "c.jpg").is_file())
+            self.assertFalse((root / "Albums" / "Archive").exists())
+            self.assertFalse((root / "Albums" / "Trash").exists())
+            self.assertFalse((root / "Albums" / "Locked Folder").exists())
 
     def test_relocate_gpth_fix_outputs_preserves_gpth_log_from_temporary_fix_root(self):
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -60,7 +60,78 @@ VIDEO_METADATA_REPAIR_SOURCE_PREFIXES = ("QuickTime:", "Track:", "Media:")
 VIDEO_METADATA_REPAIR_EXTENSIONS = {".mp4", ".mov", ".m4v", ".3gp", ".3g2"}
 
 def _normalize_special_folder_token(value):
-    return re.sub(r"[\s_-]+", "", str(value or "").strip().lower())
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = text.casefold().strip()
+    return re.sub(r"[\s_-]+", "", text)
+
+
+TAKEOUT_SPECIAL_FOLDER_ALIASES = {
+    "archive": {
+        "archive",
+        "archivo",
+        "arquivo",
+        "archives",
+        "archiv",
+        "archivio",
+        "archief",
+        "archiwum",
+        "архив",
+        "归档",
+        "已归档",
+        "アーカイブ",
+        "보관처리됨",
+    },
+    "trash": {
+        "trash",
+        "bin",
+        "recycle bin",
+        "papelera",
+        "papelera de reciclaje",
+        "lixeira",
+        "lixo",
+        "corbeille",
+        "papierkorb",
+        "cestino",
+        "cestino eliminati",
+        "prullenbak",
+        "kosz",
+        "kosz na smieci",
+        "korzina",
+        "корзина",
+        "垃圾桶",
+        "回收站",
+        "ゴミ箱",
+        "휴지통",
+    },
+    "locked": {
+        "locked folder",
+        "carpeta privada",
+        "carpeta bloqueada",
+        "pasta trancada",
+        "dossier verrouille",
+        "dossier verrouillé",
+        "gesperrter ordner",
+        "cartella bloccata",
+        "vergrendelde map",
+        "folder zablokowany",
+        "заблокированная папка",
+        "锁定文件夹",
+        "私密文件夹",
+        "已上锁的文件夹",
+        "ロックされたフォルダ",
+        "잠긴 폴더",
+    },
+}
+TAKEOUT_SPECIAL_FOLDER_ALIAS_LOOKUP = {
+    _normalize_special_folder_token(alias): category
+    for category, aliases in TAKEOUT_SPECIAL_FOLDER_ALIASES.items()
+    for alias in aliases
+}
+
+
+def _classify_takeout_special_folder(folder_name):
+    return TAKEOUT_SPECIAL_FOLDER_ALIAS_LOOKUP.get(_normalize_special_folder_token(folder_name))
 
 
 def _find_forbidden_special_folder_in_path(path_value):
@@ -68,12 +139,88 @@ def _find_forbidden_special_folder_in_path(path_value):
     Returns the offending path component if any folder in path_value matches one
     of the special Google folders (Archive/Trash/Locked folder), else None.
     """
-    blocked = {_normalize_special_folder_token(item) for item in TAKEOUT_SPECIAL_FOLDER_NAMES}
     parts = [part for part in re.split(r"[\\/]+", str(path_value or "")) if part and part not in (".", "..")]
     for part in parts:
-        if _normalize_special_folder_token(part) in blocked:
+        if _classify_takeout_special_folder(part):
             return part
     return None
+
+
+def _get_takeout_special_folders_root(base_root):
+    base_root = Path(base_root)
+    special_root = base_root / "Special Folders"
+    if special_root.exists() or not (base_root / "Special_Folders").exists():
+        return special_root
+    return base_root / "Special_Folders"
+
+
+def _relocate_misclassified_special_folders(base_root, step_name="", log_level=None):
+    with set_log_level(LOGGER, log_level):
+        base_root = Path(base_root).resolve()
+        candidate_roots = [
+            base_root / FOLDERNAME_ALBUMS,
+            base_root / f"{FOLDERNAME_ALBUMS}-shared",
+            base_root,
+        ]
+        special_root = _get_takeout_special_folders_root(base_root)
+        moved_any = False
+
+        for candidate_root in candidate_roots:
+            if not candidate_root.exists() or not candidate_root.is_dir():
+                continue
+            if candidate_root.resolve() == special_root.resolve():
+                continue
+
+            for child in sorted(candidate_root.iterdir(), key=lambda p: p.name.casefold()):
+                if not child.is_dir():
+                    continue
+                if child.name in {
+                    FOLDERNAME_NO_ALBUMS,
+                    FOLDERNAME_ALBUMS,
+                    f"{FOLDERNAME_ALBUMS}-shared",
+                    "Special Folders",
+                    "Special_Folders",
+                    "PARTNER_SHARED",
+                }:
+                    continue
+                if candidate_root == base_root and child.name.casefold() in {
+                    "albums",
+                    "albums-shared",
+                    "all_photos",
+                    "partner_shared",
+                    "memories",
+                }:
+                    continue
+
+                category = _classify_takeout_special_folder(child.name)
+                if not category:
+                    continue
+
+                destination_path = special_root / child.name
+                special_root.mkdir(parents=True, exist_ok=True)
+                LOGGER.info(
+                    f"{step_name}Relocating misclassified special folder '{child}' -> '{destination_path}' "
+                    f"(detected as {category})."
+                )
+                if destination_path.exists():
+                    ok = copy_move_folder(
+                        str(child),
+                        str(destination_path),
+                        move=True,
+                        step_name=step_name,
+                        log_level=log_level,
+                    )
+                    if not ok:
+                        LOGGER.error(f"{step_name}Failed to merge special folder '{child}' into '{destination_path}'")
+                        return False
+                    remove_empty_dirs(input_folder=str(child), log_level=log_level)
+                    with suppress(Exception):
+                        child.rmdir()
+                else:
+                    shutil.move(str(child), str(destination_path))
+                moved_any = True
+
+        return moved_any
 
 def _normalize_folder_name(value):
     return re.sub(r"\s+", " ", str(value or "").strip()).casefold()
@@ -1074,6 +1221,7 @@ def relocate_gpth_fix_outputs(fix_root, output_folder, step_name="", log_level=N
 
         if fix_root == output_root:
             LOGGER.info(f"{step_name}GPTH fix output root already matches PhotoMigrator output folder. No relocation needed.")
+            _relocate_misclassified_special_folders(base_root=output_root, step_name=step_name, log_level=log_level)
             preserve_archive_browser_artifacts(output_folder=str(output_root), step_name=step_name, log_level=log_level)
             return True
 
@@ -1145,6 +1293,7 @@ def relocate_gpth_fix_outputs(fix_root, output_folder, step_name="", log_level=N
                 shutil.copy2(archive_candidate, destination_html)
             break
 
+        _relocate_misclassified_special_folders(base_root=output_root, step_name=step_name, log_level=log_level)
         preserve_archive_browser_artifacts(output_folder=str(output_root), step_name=step_name, log_level=log_level)
 
         if not moved_any:
