@@ -885,6 +885,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             else:
                 SHARED_DATA.counters['total_push_failed_photos'] += 1
 
+    NO_RETRY_LARGE_ASSET_BYTES = 50 * 1024 * 1024
+
     def _compute_retry_delay_seconds(retry_attempt):
         exponent = max(0, int(retry_attempt) - 1)
         return int(retry_delay_seconds * (retry_backoff_factor ** exponent))
@@ -892,6 +894,20 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     def _schedule_asset_retry(asset, reason, resolved_target_asset_id=None, skip_target_push=False):
         if max_push_retries <= 0:
             return False
+
+        asset_file_path = str((asset or {}).get('asset_file_path', '') or '').strip()
+        if asset_file_path:
+            try:
+                asset_size = os.path.getsize(asset_file_path) if os.path.exists(asset_file_path) else 0
+            except Exception:
+                asset_size = 0
+            if asset_size > NO_RETRY_LARGE_ASSET_BYTES:
+                LOGGER.warning(
+                    f"Asset Retry Skipped: '{os.path.basename(asset_file_path)}' exceeds "
+                    f"{NO_RETRY_LARGE_ASSET_BYTES // (1024 * 1024)} MB ({asset_size / (1024 * 1024):.1f} MB). "
+                    f"Reason: {reason}"
+                )
+                return False
 
         current_attempt = int(asset.get('retry_attempt', 0) or 0)
         next_attempt = current_attempt + 1
