@@ -698,6 +698,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     consolidated_album_groups = set()
     processed_albums = set()
     processed_albums_lock = threading.Lock()
+    target_album_asset_ids_cache = {}
+    target_album_asset_ids_lock = threading.Lock()
     immich_uploaded_records = []
     immich_uploaded_records_lock = threading.Lock()
     prefer_canonical_album_names = prefer_canonical_album_names_enabled(ARGS)
@@ -719,6 +721,43 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     def _get_target_album_asset_ids(target_client, album_id, album_name=None, log_level=logging.ERROR):
         assets = _get_target_album_assets(target_client, album_id, album_name=album_name, log_level=log_level)
         return [str(asset.get("id", "")).strip() for asset in assets if str(asset.get("id", "")).strip()]
+
+    def _set_cached_target_album_asset_ids(album_id, asset_ids):
+        album_id = str(album_id or "").strip()
+        if not album_id:
+            return
+        normalized = {
+            str(asset_id).strip()
+            for asset_id in (asset_ids or [])
+            if str(asset_id).strip()
+        }
+        with target_album_asset_ids_lock:
+            target_album_asset_ids_cache[album_id] = normalized
+
+    def _get_cached_target_album_asset_ids(album_id, album_name=None, log_level=logging.ERROR):
+        album_id = str(album_id or "").strip()
+        if not album_id:
+            return set()
+        with target_album_asset_ids_lock:
+            cached = target_album_asset_ids_cache.get(album_id)
+            if cached is not None:
+                return cached
+        asset_ids = set(_get_target_album_asset_ids(
+            target_client=target_client,
+            album_id=album_id,
+            album_name=album_name,
+            log_level=log_level,
+        ))
+        with target_album_asset_ids_lock:
+            return target_album_asset_ids_cache.setdefault(album_id, asset_ids)
+
+    def _mark_target_album_asset_present(album_id, asset_id):
+        album_id = str(album_id or "").strip()
+        asset_id = str(asset_id or "").strip()
+        if not album_id or not asset_id:
+            return
+        with target_album_asset_ids_lock:
+            target_album_asset_ids_cache.setdefault(album_id, set()).add(asset_id)
 
     def _remove_target_existing_album(existing_albums, album_id):
         if existing_albums is None:
@@ -794,6 +833,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             album_name=keeper_name,
                             log_level=log_level,
                         )
+                        if isinstance(added_count, int) and added_count >= 1:
+                            _set_cached_target_album_asset_ids(
+                                keeper_id,
+                                _get_cached_target_album_asset_ids(
+                                    keeper_id,
+                                    album_name=keeper_name,
+                                    log_level=log_level,
+                                ).union(set(duplicate_asset_ids))
+                            )
                         if isinstance(target_client, ClassNextCloudPhotos):
                             keeper_assets = _get_target_album_assets(
                                 target_client=target_client,
@@ -865,6 +913,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                 consolidated_album_groups.add(group_key)
                 created_albums[preferred_album_name] = keeper_id
+                if keeper_id and keeper_asset_ids is not None:
+                    _set_cached_target_album_asset_ids(keeper_id, keeper_asset_ids)
                 for similar_album in plan.get("similar_albums") or []:
                     similar_name = str((similar_album or {}).get("albumName", "")).strip()
                     if similar_name:
@@ -1891,8 +1941,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     # lo asociamos al álbum incluso si la subida fue detectada como duplicada.
                     if not scheduled_retry and album_name and asset_id:
                         # 1) Asegurarnos de que el álbum existe (sólo un hilo lo crea)
+                        album_name_to_query = album_name
                         with album_creation_lock:
                             if album_name not in created_albums:
+                                target_album_name_to_create = album_name
                                 if isinstance(target_client, ClassLocalFolder):
                                     exists, aid = target_client.album_exists(
                                         album_name=album_name,
@@ -1915,6 +1967,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         aid = matched_album.get("id")
                                         exists = bool(aid)
                                         matched_name = matched_album.get("albumName", album_name)
+                                        album_name_to_query = matched_name or album_name
                                         if match_kind == "similar" and matched_name != album_name:
                                             LOGGER.info(
                                                 f"Reusing similar existing target album '{matched_name}' "
@@ -1925,7 +1978,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 else:
                                     exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                                 if not exists:
-                                    target_album_name_to_create = album_name
                                     if prefer_canonical_album_names and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
                                         target_album_name_to_create = str(canonicalize_album_name_for_reuse(album_name) or album_name).strip() or album_name
                                         if target_album_name_to_create.casefold() != album_name.casefold():
@@ -1939,6 +1991,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                                 aid = canonical_match.get("id")
                                                 exists = bool(aid)
                                                 matched_name = canonical_match.get("albumName", target_album_name_to_create)
+                                                album_name_to_query = matched_name or target_album_name_to_create
                                                 if exists:
                                                     LOGGER.info(
                                                         f"Reusing canonical target album '{matched_name}' "
@@ -1963,31 +2016,44 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         LOGGER.info(f"Album Created   : '{target_album_name_to_create}' by pusher_worker={worker_id}")
                                         if target_existing_albums is not None and aid:
                                             target_existing_albums.append({"id": aid, "albumName": target_album_name_to_create})
+                                        _set_cached_target_album_asset_ids(aid, set())
                                     if target_album_name_to_create != album_name and aid:
                                         created_albums[target_album_name_to_create] = aid
+                                    album_name_to_query = target_album_name_to_create
                                 created_albums[album_name] = aid
                         album_id_dest = created_albums.get(album_name)
+                        if not album_name_to_query and album_id_dest:
+                            album_name_to_query = album_name
                         try:
-                            added_to_album = target_client.add_assets_to_album(
+                            target_album_asset_ids = _get_cached_target_album_asset_ids(
                                 album_id=album_id_dest,
-                                asset_ids=asset_id,
-                                album_name=album_name,
+                                album_name=album_name_to_query,
                                 log_level=logging.ERROR,
                             )
-                            if isinstance(added_to_album, int) and added_to_album >= 1:
+                            if str(asset_id).strip() in target_album_asset_ids:
                                 album_association_confirmed = True
                             else:
-                                LOGGER.warning(
-                                    f"Album association was not confirmed by target for asset '{os.path.basename(asset_file_path)}' "
-                                    f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
+                                added_to_album = target_client.add_assets_to_album(
+                                    album_id=album_id_dest,
+                                    asset_ids=asset_id,
+                                    album_name=album_name,
+                                    log_level=logging.ERROR,
                                 )
-                                if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
-                                    scheduled_retry = _schedule_asset_retry(
-                                        asset=asset,
-                                        reason=f"album association to '{album_name}' was not confirmed",
-                                        resolved_target_asset_id=asset_id,
-                                        skip_target_push=True,
+                                if isinstance(added_to_album, int) and added_to_album >= 1:
+                                    _mark_target_album_asset_present(album_id_dest, asset_id)
+                                    album_association_confirmed = True
+                                else:
+                                    LOGGER.warning(
+                                        f"Album association was not confirmed by target for asset '{os.path.basename(asset_file_path)}' "
+                                        f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
                                     )
+                                    if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                                        scheduled_retry = _schedule_asset_retry(
+                                            asset=asset,
+                                            reason=f"album association to '{album_name}' was not confirmed",
+                                            resolved_target_asset_id=asset_id,
+                                            skip_target_push=True,
+                                        )
                         except Exception as e:
                             scheduled_retry = _schedule_asset_retry(
                                 asset=asset,
