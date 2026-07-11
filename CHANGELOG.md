@@ -41,6 +41,7 @@
   - Reduced `Google Takeout` orphan album recovery log noise. Per-album `Album JSON Recovery` lines are now only emitted when an album actually recovers assets or leaves unresolved entries, and the message now includes the final album asset total after recovery.
   - `Automatic Migration` no longer schedules delayed push retries for large staged assets above `50 MB`. When one of those uploads fails, the asset now remains in `Automatic_Migration_Push_Failed_<TIMESTAMP>` without being re-enqueued, reducing repeated disk I/O on large video failures.
   - `Google Takeout` post-processing now defensively reclassifies localized special folders left behind by GPTH under `Albums` or the processed root, moving recognized `Archive`, `Trash`, and `Locked Folder` variants (for example `Archivo`, `Papelera`, and `Carpeta privada`) into `Special Folders` before the final processed output is published.
+  - Fixed `Automatic Migration` album push progress accounting so `Album Pushed` is emitted during the migration as soon as the last staged asset of an album has been processed and removed from the temp folder, restoring correct live dashboard progress in the web UI.
 
 #### 📚 Documentation:
   - Corrected the `Google Takeout` documentation so orphan album JSON recovery is documented in its real position as `Step 4.3` (right after `Copy/Move files to Output folder`) instead of under the later post-process section. The example step timeline was updated accordingly.

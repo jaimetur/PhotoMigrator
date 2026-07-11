@@ -1688,14 +1688,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 # Incrementamos contador de álbumes descargados
                 SHARED_DATA.counters['total_pulled_albums'] += 1
                 LOGGER.info(f"Album Pulled    : '{album_name}'")
-                _mark_album_pushed_if_ready(
-                    album_name=album_name,
-                    album_folder_path=album_folder,
-                    processed_albums=processed_albums,
-                    processed_albums_lock=processed_albums_lock,
-                    counters=SHARED_DATA.counters,
-                    logger=LOGGER,
-                )
 
             # 1.2) Descarga de assets sin álbum
             assets_no_album = []
@@ -2066,17 +2058,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
                                 SHARED_DATA.counters['total_push_failed_albums'] += 1
 
-                        if album_association_confirmed:
-                            album_folder_path = os.path.join(temp_folder, album_name)
-                            _mark_album_pushed_if_ready(
-                                album_name=album_name,
-                                album_folder_path=album_folder_path,
-                                processed_albums=processed_albums,
-                                processed_albums_lock=processed_albums_lock,
-                                counters=SHARED_DATA.counters,
-                                logger=LOGGER,
-                            )
-
                     if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and treat_as_consumed and asset_id and album_association_confirmed:
                         _remove_source_asset_after_move(
                             source_client=source_client,
@@ -2091,6 +2072,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             safe_remove_local_file(live_photo_video_path)
                         if retry_attempt > 0:
                             SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
+                        if album_name:
+                            album_folder_path = os.path.join(temp_folder, album_name)
+                            _mark_album_pushed_if_ready(
+                                album_name=album_name,
+                                album_folder_path=album_folder_path,
+                                processed_albums=processed_albums,
+                                processed_albums_lock=processed_albums_lock,
+                                counters=SHARED_DATA.counters,
+                                logger=LOGGER,
+                            )
 
                 except Exception as e:
                     asset_file_path = asset.get('asset_file_path') if isinstance(asset, dict) else ""
