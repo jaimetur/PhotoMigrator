@@ -6,6 +6,7 @@ From version 4.0.0 onwards, the Tool can connect to Google Photos using the offi
 1. Upload Album(s) (from folder)
 2. Upload ALL (from folder)
 3. Automatic Migration target endpoint integration
+4. Consolidate Albums Names (cloud-only consolidation of equivalent album families)
 
 ### Features affected by Google's Library API changes (April 1, 2025):
 1. Download Album(s) (into folder) for a user's full library

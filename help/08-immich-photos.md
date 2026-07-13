@@ -15,6 +15,7 @@ From version 3.0.0 onwards, the Tool can connect to your Immich Photos account w
 10. Remove Duplicates Albums
 11. Merge Duplicates Albums
 12. Remove Orphans Assets
+13. Consolidate Albums Names
 
 You can apply different filters on all above features to filter assets from Immich Photos.  
 

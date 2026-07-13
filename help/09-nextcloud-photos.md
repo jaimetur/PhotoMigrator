@@ -14,6 +14,7 @@ From version 4.0.0 onwards, the Tool can connect to your NextCloud account using
 9. Remove Empty Albums
 10. Remove Duplicates Albums (currently no-op)
 11. Merge Duplicates Albums (currently no-op)
+12. Consolidate Albums Names
 
 You can apply filters in NextCloud modules.
 

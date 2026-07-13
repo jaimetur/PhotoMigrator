@@ -14,6 +14,7 @@ From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login 
 9. Remove Empty Albums
 10. Remove Duplicates Albums
 11. Merge Duplicates Albums
+12. Consolidate Albums Names
 
 You can apply different filters on all above features to filter assets from Synology Photos.  
 

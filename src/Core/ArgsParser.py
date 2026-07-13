@@ -430,16 +430,6 @@ def parse_arguments():
                              "Google Photos keeps the redundant variants because the public API cannot delete albums.\n"
                              "Example: --client=immich --upload-albums ./My_Albums_Folder --consolidate-similar-albums")
 
-    PARSER.add_argument("-consAlbNames", "--consolidate-albums-names", action="store_true", default=False,
-                        help="Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets.\n"
-                             "Requires '--client'.\n"
-                             "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album').\n"
-                             "On supported cloud targets, redundant variants are merged into the preferred keeper album. "
-                             "When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. "
-                             "Google Photos keeps the redundant variants because the public API cannot delete albums.\n"
-                             "Use '--preview-album-actions' to preview and confirm the detected album families before applying changes.\n"
-                             "Example: --client=immich --consolidate-albums-names --preview-album-actions")
-
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! Remove ALL albums.\n"
                              "Requires '--client'.\n"
@@ -470,6 +460,16 @@ def parse_arguments():
                         help="Remove orphan assets.\n"
                              "Requires '--client'. IMPORTANT: requires a valid ADMIN_API_KEY in Config.ini.\n"
                              "Example: --client=immich --remove-orphan-assets")
+
+    PARSER.add_argument("-consAlbNames", "--consolidate-albums-names", action="store_true", default=False,
+                        help="Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets.\n"
+                             "Requires '--client'.\n"
+                             "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album').\n"
+                             "On supported cloud targets, redundant variants are merged into the preferred keeper album. "
+                             "When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. "
+                             "Google Photos keeps the redundant variants because the public API cannot delete albums.\n"
+                             "Use '--preview-album-actions' to preview and confirm the detected album families before applying changes.\n"
+                             "Example: --client=immich --consolidate-albums-names --preview-album-actions")
 
     PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="",
                         help="Allow login into Synology Photos using 2FA with an OTP token.\n"

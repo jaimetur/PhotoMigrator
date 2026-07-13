@@ -184,7 +184,6 @@ CLOUD_DESTS = {
     "upload-all",
     "download-all",
     "rename-albums",
-    "consolidate-albums-names",
     "remove-albums",
     "remove-all-albums",
     "remove-all-assets",
@@ -192,6 +191,7 @@ CLOUD_DESTS = {
     "remove-duplicates-albums",
     "merge-duplicates-albums",
     "remove-orphan-assets",
+    "consolidate-albums-names",
     "one-time-password",
 }
 CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
@@ -202,13 +202,13 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "upload-all",
         "download-all",
         "rename-albums",
-        "consolidate-albums-names",
         "remove-albums",
         "remove-all-albums",
         "remove-all-assets",
         "remove-empty-albums",
         "remove-duplicates-albums",
         "merge-duplicates-albums",
+        "consolidate-albums-names",
     },
     "immich_photos": {
         "upload-albums",
@@ -216,7 +216,6 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "upload-all",
         "download-all",
         "rename-albums",
-        "consolidate-albums-names",
         "remove-albums",
         "remove-all-albums",
         "remove-all-assets",
@@ -224,6 +223,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "remove-duplicates-albums",
         "merge-duplicates-albums",
         "remove-orphan-assets",
+        "consolidate-albums-names",
     },
     "nextcloud_photos": {
         "upload-albums",
@@ -231,13 +231,13 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "upload-all",
         "download-all",
         "rename-albums",
-        "consolidate-albums-names",
         "remove-albums",
         "remove-all-albums",
         "remove-all-assets",
         "remove-empty-albums",
         "remove-duplicates-albums",
         "merge-duplicates-albums",
+        "consolidate-albums-names",
     },
 }
 STANDALONE_DESTS = {
