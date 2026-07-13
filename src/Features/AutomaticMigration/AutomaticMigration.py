@@ -64,11 +64,45 @@ def _debug_perf_log(logger, label, started_at, **fields):
     logger.debug(f"[PERF] {label}: {elapsed_ms:.2f} ms{suffix}")
 
 
+def _debug_perf_log_elapsed(logger, label, elapsed_ms, **fields):
+    if not logger.isEnabledFor(logging.DEBUG):
+        return
+    payload = [f"{key}={value}" for key, value in fields.items() if value is not None]
+    suffix = f" | {' '.join(payload)}" if payload else ""
+    logger.debug(f"[PERF] {label}: {float(elapsed_ms):.2f} ms{suffix}")
+
+
 def _parse_int(value, default=0):
     try:
         return int(str(value or "").replace(",", "").strip())
     except (TypeError, ValueError):
         return default
+
+
+def _format_hms_from_seconds(total_seconds):
+    safe_seconds = max(0, int(round(float(total_seconds or 0))))
+    return str(timedelta(seconds=safe_seconds))
+
+
+def _compute_dashboard_estimated_time(elapsed_seconds, total_assets, processed_assets, pending_assets=None):
+    total_assets = max(0, _parse_int(total_assets, 0))
+    processed_assets = max(0, _parse_int(processed_assets, 0))
+    if pending_assets is None:
+        pending_assets = max(0, total_assets - processed_assets)
+    else:
+        pending_assets = max(0, _parse_int(pending_assets, 0))
+
+    if total_assets <= 0:
+        return "-"
+    if pending_assets <= 0:
+        return "00:00:00"
+    if processed_assets <= 0:
+        return "Estimating..."
+
+    safe_elapsed_seconds = max(0.0, float(elapsed_seconds or 0.0))
+    avg_seconds_per_asset = safe_elapsed_seconds / float(processed_assets)
+    estimated_remaining_seconds = avg_seconds_per_asset * float(pending_assets)
+    return _format_hms_from_seconds(estimated_remaining_seconds)
 
 
 def _strip_bg_level_prefix(text):
@@ -329,6 +363,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             "assets_in_queue": 0,
             "delayed_assets_pending": 0,
             "elapsed_time": 0,
+            "estimated_time": "-",
             "start_time": start_time
         }
 
@@ -1693,7 +1728,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                 _debug_perf_log(
                     LOGGER,
-                    "automatic_migration.push.asset",
+                    "automatic_migration.asset.pipeline",
                     asset_started_at,
                     worker=item.get("worker_id"),
                     album=album_name or "-",
@@ -2725,6 +2760,20 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             else:
                                 asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
                             push_elapsed_ms = (time.perf_counter() - push_started_at) * 1000.0
+                            queue_wait_ms = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0) if isinstance(enqueued_at_monotonic, (int, float)) else None
+                            _debug_perf_log_elapsed(
+                                LOGGER,
+                                "automatic_migration.asset.upload",
+                                push_elapsed_ms,
+                                worker=worker_id,
+                                album=album_name or "-",
+                                asset=os.path.basename(asset_file_path),
+                                source_asset_id=source_asset_id,
+                                queue_wait_ms=f"{queue_wait_ms:.2f}" if queue_wait_ms is not None else None,
+                                duplicated=isDuplicated,
+                                asset_pushed=bool(asset_id),
+                                skip_target_push=skip_target_push,
+                            )
 
                             # Actualizamos Contadores de subidas
                             if asset_id:
@@ -2828,7 +2877,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             queue_wait_ms = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0)
                         _debug_perf_log(
                             LOGGER,
-                            "automatic_migration.push.asset",
+                            "automatic_migration.asset.pipeline",
                             asset_started_at,
                             worker=worker_id,
                             album=album_name or "-",
@@ -2872,7 +2921,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         queue_wait_ms = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0)
                     _debug_perf_log(
                         LOGGER,
-                        "automatic_migration.push.asset",
+                        "automatic_migration.asset.pipeline",
                         asset_started_at,
                         worker=worker_id,
                         album=album_name or "-",
@@ -3179,6 +3228,24 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     - int(SHARED_DATA.counters.get('total_push_duplicates_assets', 0) or 0)
                 )
                 current_queue_size = max(raw_queue_size, inferred_queue_size)
+                total_assets = int(SHARED_DATA.info.get('total_assets', 0) or 0)
+                processed_assets = min(
+                    total_assets,
+                    max(
+                        0,
+                        int(SHARED_DATA.counters.get('total_pushed_assets', 0) or 0)
+                        + int(SHARED_DATA.counters.get('total_push_failed_assets', 0) or 0)
+                        + int(SHARED_DATA.counters.get('total_push_duplicates_assets', 0) or 0)
+                    )
+                )
+                pending_assets = max(0, total_assets - processed_assets)
+                elapsed_seconds = max(0.0, (datetime.now() - step_start_time).total_seconds())
+                SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time(
+                    elapsed_seconds=elapsed_seconds,
+                    total_assets=total_assets,
+                    processed_assets=processed_assets,
+                    pending_assets=pending_assets,
+                )
                 # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
                 filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
                 empty_blocks = BAR_WIDTH - filled_blocks
@@ -3206,6 +3273,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("🔍 Invalid Files", SHARED_DATA.info.get('total_invalid', 0)),
                     ("📊 Assets in Queue", f"{queue_bar}"),
                     ("🕒 Elapsed Time", SHARED_DATA.info.get('elapsed_time', 0)),
+                    ("⏳ Estimated Time", SHARED_DATA.info.get('estimated_time', "-")),
                 ]
 
                 # 🔹 Crear la tabla
@@ -3513,7 +3581,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             def _build_info_signature():
                 keys = (
                     "total_assets", "total_photos", "total_videos", "total_albums", "total_albums_blocked",
-                    "total_metadata", "total_sidecar", "total_invalid", "assets_in_queue",
+                    "total_metadata", "total_sidecar", "total_invalid", "assets_in_queue", "estimated_time",
                 )
                 return tuple(SHARED_DATA.info.get(k) for k in keys)
 

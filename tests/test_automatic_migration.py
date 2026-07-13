@@ -83,6 +83,26 @@ import Features.AutomaticMigration.AutomaticMigration as automatic_module
 
 
 class TestAutomaticMigrationHelpers(unittest.TestCase):
+    def test_compute_dashboard_estimated_time_returns_estimate_from_processed_and_pending_assets(self):
+        estimated = automatic_module._compute_dashboard_estimated_time(
+            elapsed_seconds=120,
+            total_assets=100,
+            processed_assets=20,
+            pending_assets=80,
+        )
+
+        self.assertEqual(estimated, "0:08:00")
+
+    def test_compute_dashboard_estimated_time_handles_zero_processed_assets(self):
+        estimated = automatic_module._compute_dashboard_estimated_time(
+            elapsed_seconds=120,
+            total_assets=100,
+            processed_assets=0,
+            pending_assets=100,
+        )
+
+        self.assertEqual(estimated, "Estimating...")
+
     def test_pull_has_content_handles_common_types(self):
         self.assertTrue(automatic_module._pull_has_content(True))
         self.assertTrue(automatic_module._pull_has_content(2))

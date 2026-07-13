@@ -147,6 +147,7 @@
                         <div class="stat-row"><span class="stat-label">🔒 Blocked Assets</span><span id="dash-blocked-assets" class="stat-value">-</span></div>
                         <div class="bar-row"><span>📊 Assets in Queue</span><div class="progress-track"><div id="bar-info-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-queue-count">0/100 (0.0%)</span></span></div>
                         <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
+                        <div class="stat-row"><span class="stat-label">⏳ Estimated Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
                     </div>
                     <div class="stats-card">
                         <h4 id="dash-pull-title" class="stats-card__title">⬇️ Pull Panel</h4>
@@ -1272,6 +1273,28 @@
         return `${h}:${m}:${s}`;
     }
 
+    function computeEstimatedRemainingDuration({elapsedMs = 0, totalAssets = 0, pushedAssets = 0, pushFailedAssets = 0, pushDuplicates = 0}) {
+        const total = Math.max(0, Number(totalAssets || 0));
+        if (!Number.isFinite(total) || total <= 0) return "-";
+
+        const processed = Math.min(
+            total,
+            Math.max(
+                0,
+                Number(pushedAssets || 0) + Number(pushFailedAssets || 0) + Number(pushDuplicates || 0)
+            )
+        );
+        const pending = Math.max(0, total - processed);
+        if (pending <= 0) return "00:00:00";
+        if (processed <= 0) return "Estimating...";
+
+        const safeElapsedMs = Math.max(0, Number(elapsedMs || 0));
+        if (!Number.isFinite(safeElapsedMs) || safeElapsedMs <= 0) return "Estimating...";
+
+        const avgMsPerAsset = safeElapsedMs / processed;
+        return formatDuration(avgMsPerAsset * pending);
+    }
+
     function parseNumberFromLine(text, regex) {
         if (!text) return null;
         const lines = text.split("\n");
@@ -1533,7 +1556,15 @@
         const startedAt = jobData.started_at || currentJobStartedAt;
         if (jobData.started_at) currentJobStartedAt = jobData.started_at;
         const startedMs = startedAt ? Date.parse(startedAt) : Date.now();
-        const elapsed = Number.isFinite(startedMs) ? formatDuration(Date.now() - startedMs) : "00:00:00";
+        const elapsedMs = Number.isFinite(startedMs) ? Math.max(0, Date.now() - startedMs) : 0;
+        const elapsed = Number.isFinite(startedMs) ? formatDuration(elapsedMs) : "00:00:00";
+        const estimated = computeEstimatedRemainingDuration({
+            elapsedMs,
+            totalAssets: stats.totalAssets,
+            pushedAssets: stats.pushedAssets,
+            pushFailedAssets: stats.pushFailedAssets,
+            pushDuplicates: stats.pushDuplicates,
+        });
         const now = new Date();
         const updated = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
 
@@ -1561,6 +1592,7 @@
         setText("dash-blocked-albums", stats.blockedAlbums);
         setText("dash-blocked-assets", stats.blockedAssets);
         setText("dash-elapsed-time", elapsed, "00:00:00");
+        setText("dash-estimated-time", estimated, "-");
 
         const modeFromState = currentRunPayload?.values?.["parallel-migration"];
         const stateSaysParallel = coerceBooleanLike(modeFromState);
