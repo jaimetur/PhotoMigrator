@@ -1247,10 +1247,28 @@ class ClassImmichPhotos:
                     keeper_assets = self.get_all_assets_from_album(keeper_id, log_level=log_level) or []
                     keeper_asset_ids = {str(asset.get("id", "")).strip() for asset in keeper_assets if str(asset.get("id", "")).strip()}
                     reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
+                    missing_asset_ids = [asset_id for asset_id in duplicate_asset_ids if asset_id not in keeper_asset_ids]
+                    if missing_asset_ids:
+                        time.sleep(1.0)
+                        keeper_assets = self.get_all_assets_from_album(keeper_id, log_level=log_level) or []
+                        keeper_asset_ids = {str(asset.get("id", "")).strip() for asset in keeper_assets if str(asset.get("id", "")).strip()}
+                        reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
+                        missing_asset_ids = [asset_id for asset_id in duplicate_asset_ids if asset_id not in keeper_asset_ids]
+                    if missing_asset_ids:
+                        retry_added_count = self.add_assets_to_album(keeper_id, missing_asset_ids, keeper_name, log_level=log_level)
+                        time.sleep(1.0)
+                        keeper_assets = self.get_all_assets_from_album(keeper_id, log_level=log_level) or []
+                        keeper_asset_ids = {str(asset.get("id", "")).strip() for asset in keeper_assets if str(asset.get("id", "")).strip()}
+                        reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
+                        missing_asset_ids = [asset_id for asset_id in duplicate_asset_ids if asset_id not in keeper_asset_ids]
+                    else:
+                        retry_added_count = 0
                     LOGGER.info(
                         f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
                         f"Requested={total_redundant_assets}, Confirmed={reassigned_count}, "
-                        f"AddedNow={added_count if isinstance(added_count, int) else 0}."
+                        f"AddedNow={added_count if isinstance(added_count, int) else 0}, "
+                        f"RetriedMissing={retry_added_count if isinstance(retry_added_count, int) else 0}, "
+                        f"MissingAfterRetry={len(missing_asset_ids)}."
                     )
                     should_remove_redundant = reassigned_count == total_redundant_assets
                 else:

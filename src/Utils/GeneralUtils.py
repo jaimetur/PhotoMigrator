@@ -671,6 +671,7 @@ def confirm_continue(log_level=None, force_prompt=False):
         while True:
             try:
                 response = input("Do you want to continue? (yes/no): ").strip().lower()
+                print("")
             except EOFError:
                 GV.LOGGER.warning(
                     "No input received (EOF). Use '--no-request-user-confirmation' "
@@ -1376,30 +1377,37 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
     progress_iterable = tqdm(eligible_albums, desc=progress_desc, unit=progress_unit) if progress_desc else eligible_albums
     for album in progress_iterable:
         album_name = str((album or {}).get("albumName", "")).strip()
-        similarity_key = album_name_reuse_key(album_name) or album_name.casefold()
-        if similarity_key in seen_similarity_keys:
-            continue
-        seen_similarity_keys.add(similarity_key)
+        try:
+            similarity_key = album_name_reuse_key(album_name) or album_name.casefold()
+            if similarity_key in seen_similarity_keys:
+                continue
+            seen_similarity_keys.add(similarity_key)
 
-        exact_key = album_name if exact_case_sensitive else album_name.casefold()
-        plan = _build_reusable_album_group_from_matches(
-            target_name=album_name,
-            exact_matches=list(exact_groups.get(exact_key) or []),
-            similar_matches=list(similarity_groups.get(similarity_key) or []),
-            allow_similar=True,
-        )
-        redundant_albums = list(plan.get("redundant_albums") or [])
-        if not redundant_albums:
-            continue
-        consolidation_groups.append({
-            "seed_album_name": album_name,
-            "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
-            "keeper_album": plan.get("keeper_album") or {},
-            "should_create_preferred_album": bool(plan.get("should_create_preferred_album")),
-            "redundant_albums": redundant_albums,
-            "similar_albums": list(plan.get("similar_albums") or []),
-            "similarity_key": similarity_key,
-        })
+            exact_key = album_name if exact_case_sensitive else album_name.casefold()
+            plan = _build_reusable_album_group_from_matches(
+                target_name=album_name,
+                exact_matches=list(exact_groups.get(exact_key) or []),
+                similar_matches=list(similarity_groups.get(similarity_key) or []),
+                allow_similar=True,
+            )
+            redundant_albums = list(plan.get("redundant_albums") or [])
+            if not redundant_albums:
+                continue
+            consolidation_groups.append({
+                "seed_album_name": album_name,
+                "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
+                "keeper_album": plan.get("keeper_album") or {},
+                "should_create_preferred_album": bool(plan.get("should_create_preferred_album")),
+                "redundant_albums": redundant_albums,
+                "similar_albums": list(plan.get("similar_albums") or []),
+                "similarity_key": similarity_key,
+            })
+        except Exception as exc:
+            if GV.LOGGER:
+                GV.LOGGER.exception(
+                    f"Album family scan failed for album '{album_name or '<empty>'}'. Error: {exc}"
+                )
+            raise
 
     return consolidation_groups
 
