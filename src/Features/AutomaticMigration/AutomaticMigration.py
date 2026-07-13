@@ -1409,7 +1409,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             num_push_threads = max(1, int(cpu_total_threads * 2))
             LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
 
-            pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
+            pull_threads = [
+                threading.Thread(
+                    target=puller_worker,
+                    kwargs={"parallel": parallel, "log_level": log_level},
+                    daemon=True,
+                )
+                for _ in range(num_pull_threads)
+            ]
             push_threads = [
                 threading.Thread(
                     target=pusher_worker,
@@ -1417,6 +1424,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         "processed_albums": processed_albums,
                         "processed_albums_lock": processed_albums_lock,
                         "worker_id": worker_id + 1,
+                        "log_level": log_level,
                     },
                     daemon=True,
                 )
@@ -1424,7 +1432,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             ]
             retry_thread = threading.Thread(
                 target=retry_scheduler_worker,
-                kwargs={"log_level": logging.INFO},
+                kwargs={"log_level": log_level},
                 daemon=True,
             )
 
