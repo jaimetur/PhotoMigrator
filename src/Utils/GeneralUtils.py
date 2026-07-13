@@ -1119,15 +1119,34 @@ def strip_album_numeric_disambiguator(name):
       - "Album_3"   -> "Album"
       - "Album-12"  -> "Album"
       - "Album7"    -> "Album"
+      - "Paris - Día 3" -> "Paris"
+      - "Paris_Dia_2"   -> "Paris"
+      - "Viaje Parte 1" -> "Viaje"
+      - "Evento Sesión 4" -> "Evento"
 
     Examples preserved:
-      - "Paris - Día 3"
       - "Trip 2024"
       - "2015-10-17 - Boda"
     """
     text = str(name or "").strip()
     if not text:
         return ""
+
+    semantic_series_match = re.match(
+        r"^(.*?)(?:[\s_\-]+)?"
+        r"(?:"
+        r"day|jour|giorno|tag|dia|d[ií]a|"
+        r"part|parte|teil|parte|"
+        r"session|sesion|sesi[oó]n|sessione|sessao|sess[aã]o|sitzung"
+        r")"
+        r"(?:[\s_\-]+)(\d+)\s*$",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if semantic_series_match:
+        base = str(semantic_series_match.group(1) or "").rstrip(" _-")
+        if base:
+            return base
 
     match = re.match(r"^(.*?)(?:\s*\((\d+)\)|([_\-]+)(\d+)|(\d+))\s*$", text)
     if not match:
