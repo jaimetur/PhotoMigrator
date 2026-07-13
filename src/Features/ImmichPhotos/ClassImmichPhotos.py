@@ -1566,7 +1566,7 @@ class ClassImmichPhotos:
         return f"{stem.casefold()}{ext.casefold()}"
 
 
-    def push_asset(self, file_path, log_level=None):
+    def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         """
         Uploads a local file (photo/video) to Immich Photos via /api/assets.
 
@@ -1670,6 +1670,12 @@ class ClassImmichPhotos:
                 status = str(new_asset.get("status") or "").lower()
                 is_duplicated = (status == 'duplicate')
                 if is_duplicated and not asset_id:
+                    if not resolve_duplicate_id:
+                        LOGGER.debug(
+                            f"Immich duplicate response without asset id for '{os.path.basename(file_path)}'. "
+                            f"Deferring existing asset resolution."
+                        )
+                        return None, True
                     resolved_asset_id = self._resolve_existing_asset_id(file_path, log_level=log_level)
                     if resolved_asset_id:
                         LOGGER.debug(
@@ -1748,7 +1754,7 @@ class ClassImmichPhotos:
                 LOGGER.warning(f"Unable to link live photo assets (photo={photo_asset_id}, video={video_asset_id}): {e}")
                 return False
 
-    def push_live_photo(self, photo_file_path, live_photo_video_path=None, log_level=None):
+    def push_live_photo(self, photo_file_path, live_photo_video_path=None, log_level=None, resolve_duplicate_id=True):
         """
         Uploads Live Photo components (video + photo) and links them in Immich.
         """
@@ -1756,10 +1762,10 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             companion_video = live_photo_video_path or self._find_live_photo_video_companion(photo_file_path)
             if not companion_video or not os.path.isfile(companion_video):
-                return self.push_asset(photo_file_path, log_level=log_level)
+                return self.push_asset(photo_file_path, log_level=log_level, resolve_duplicate_id=resolve_duplicate_id)
 
-            video_asset_id, video_is_dup = self.push_asset(companion_video, log_level=log_level)
-            photo_asset_id, photo_is_dup = self.push_asset(photo_file_path, log_level=log_level)
+            video_asset_id, video_is_dup = self.push_asset(companion_video, log_level=log_level, resolve_duplicate_id=resolve_duplicate_id)
+            photo_asset_id, photo_is_dup = self.push_asset(photo_file_path, log_level=log_level, resolve_duplicate_id=resolve_duplicate_id)
 
             # Linking duplicated assets is unreliable and can produce 404s depending on Immich duplicate policy.
             if photo_asset_id and video_asset_id and not photo_is_dup and not video_is_dup:

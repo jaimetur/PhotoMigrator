@@ -391,7 +391,7 @@ class ClassGooglePhotos:
             self._remember_uploaded_media_item_id(file_path, best_media_id)
         return best_media_id
 
-    def _batch_create_media_item(self, upload_token: str, file_name: str, album_id: str = "", file_path: str = "") -> Tuple[Optional[str], bool]:
+    def _batch_create_media_item(self, upload_token: str, file_name: str, album_id: str = "", file_path: str = "", resolve_duplicate_id: bool = True) -> Tuple[Optional[str], bool]:
         payload = {
             "newMediaItems": [
                 {
@@ -418,6 +418,8 @@ class ClassGooglePhotos:
             lower = message.lower()
             is_dup = "already exists" in lower or "duplicate" in lower
             if is_dup:
+                if not resolve_duplicate_id:
+                    return None, True
                 existing_media_id = self._resolve_existing_media_item_id(file_path=file_path, file_name=file_name) if file_path else None
                 if existing_media_id:
                     return existing_media_id, True
@@ -735,7 +737,7 @@ class ClassGooglePhotos:
         with set_log_level(LOGGER, log_level):
             return 0
 
-    def push_asset(self, file_path, log_level=None):
+    def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         with set_log_level(LOGGER, log_level):
             if not os.path.isfile(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}")
@@ -745,6 +747,7 @@ class ClassGooglePhotos:
                 file_name=os.path.basename(file_path),
                 album_id="",
                 file_path=file_path,
+                resolve_duplicate_id=resolve_duplicate_id,
             )
 
     def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_GooglePhotos", album_passphrase=None, log_level=None):

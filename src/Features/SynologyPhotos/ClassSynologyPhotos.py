@@ -1806,7 +1806,7 @@ class ClassSynologyPhotos:
         return f"{stem.casefold()}{ext.casefold()}"
             
 
-    def push_asset(self, file_path, log_level=None):
+    def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         """
         Uploads a local file (photo/video) to Synology Photos.
 
@@ -1870,6 +1870,12 @@ class ClassSynologyPhotos:
                         asset_id = data["data"].get("id")
                         is_duplicated = data["data"].get("action") == "ignore"
                         if is_duplicated and not asset_id:
+                            if not resolve_duplicate_id:
+                                LOGGER.debug(
+                                    f"Synology duplicate response without asset id for '{os.path.basename(file_path)}'. "
+                                    f"Deferring existing asset resolution."
+                                )
+                                return None, True
                             resolved_asset_id = self._resolve_existing_asset_id(file_path, log_level=log_level)
                             if resolved_asset_id:
                                 LOGGER.debug(
