@@ -1271,13 +1271,19 @@ def build_reusable_album_group(album_name, albums, allow_similar=False, exact_ca
     if not group_albums:
         return empty_result
 
-    name_candidates = [target_name] + [str((album or {}).get("albumName", "")).strip() for album in group_albums]
+    # When similar-album consolidation is enabled, choose the preferred keeper
+    # name from the whole reusable family, not only from the exact seed match.
+    # Otherwise a seed such as "Album(1)" would incorrectly keep the suffixed
+    # name even if a clean "Album" already exists in the same family.
+    preferred_group_albums = similar_matches if (allow_similar and similar_matches) else group_albums
+
+    name_candidates = [target_name] + [str((album or {}).get("albumName", "")).strip() for album in preferred_group_albums]
     name_candidates = [name for name in name_candidates if name]
     preferred_album_name = min(name_candidates, key=album_name_preference_key) if name_candidates else target_name
 
     keeper_album = None
     keeper_sort_key = None
-    for album in group_albums:
+    for album in preferred_group_albums:
         candidate_name = str((album or {}).get("albumName", "")).strip()
         candidate_key = (
             0 if candidate_name.casefold() == preferred_album_name.casefold() else 1,
