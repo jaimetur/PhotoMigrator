@@ -1737,7 +1737,17 @@ class PhotoMigratorTkGUI:
         current_value = str(value or "")
         selected_label = reverse.get(current_value, values[0] if values else "")
         var = self.tk.StringVar(value=selected_label)
-        combo = self.ttk.Combobox(row, textvariable=var, values=values, state="readonly", style="PM.TCombobox")
+        combo_width = max(24, min(max((len(item) for item in values), default=24) + 2, 48))
+        combo_height = min(max(len(values), 1), 25)
+        combo = self.ttk.Combobox(
+            row,
+            textvariable=var,
+            values=values,
+            state="readonly",
+            style="PM.TCombobox",
+            width=combo_width,
+            height=combo_height,
+        )
         combo.pack(side="left", fill="x", expand=True, padx=(0, 8))
         self._bind_help(combo, help_text)
         self._bind_context_menu(combo)

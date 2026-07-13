@@ -253,24 +253,6 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   ```
 
 
-## Consolidate Albums Names from NextCloud Photos:
-- **From:** v4.4.1
-- **Usage:**
-  - `./PhotoMigrator.bin --client=nextcloud --consolidate-albums-names --preview-album-actions`
-- **Pre-Requisites:**
-  - Configure `Config.ini` with valid NextCloud credentials.
-- **Explanation:**
-  - The Tool connects to NextCloud Photos and scans the albums that already exist in the cloud looking for equivalent album-name families.
-  - It uses the same family-detection logic as `--consolidate-similar-albums`, so names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` are treated as the same family.
-  - Assets from redundant variants are reassigned directly in NextCloud Photos to the preferred keeper album without uploading any new asset.
-  - Once the reassignment is confirmed, the redundant album variants are removed.
-  - If `--preview-album-actions` is set, the detected album families are listed and the tool asks for confirmation before applying the changes.
-- **Example of use:**
-  ```bash
-  ./PhotoMigrator.bin --client=nextcloud --consolidate-albums-names --preview-album-actions
-  ```
-
-
 ## Remove Empty Albums from NextCloud Photos:
 - **From:** v4.0.0
 - **Usage:**
@@ -317,6 +299,24 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 
 > [!WARNING]
 > This operation is currently a no-op in NextCloud integration.
+
+
+## Consolidate Albums Names from NextCloud Photos:
+- **From:** v4.5.0
+- **Usage:**
+  - `./PhotoMigrator.bin --client=nextcloud --consolidate-albums-names --preview-album-actions`
+- **Pre-Requisites:**
+  - Configure `Config.ini` with valid NextCloud credentials.
+- **Explanation:**
+  - The Tool connects to NextCloud Photos and scans the albums that already exist in the cloud looking for equivalent album-name families.
+  - It uses the same family-detection logic as `--consolidate-similar-albums`, so names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` are treated as the same family.
+  - Assets from redundant variants are reassigned directly in NextCloud Photos to the preferred keeper album without uploading any new asset.
+  - Once the reassignment is confirmed, the redundant album variants are removed.
+  - If `--preview-album-actions` is set, the detected album families are listed and the tool asks for confirmation before applying the changes.
+- **Example of use:**
+  ```bash
+  ./PhotoMigrator.bin --client=nextcloud --consolidate-albums-names --preview-album-actions
+  ```
 
 ---
 ## ⚙️ Config.ini

@@ -270,24 +270,6 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > Currently a no-op for Google Photos integration.
 
 
-## Consolidate Albums Names from Google Photos:
-- **From:** v4.4.1
-- **Usage:**
-  - `./PhotoMigrator.bin --client=google-photos --consolidate-albums-names --preview-album-actions`
-- **Pre-Requisites:**
-  - Configure OAuth credentials in `Config.ini`.
-- **Explanation:**
-  - The Tool connects to Google Photos and looks for equivalent album-name families that already exist in the cloud.
-  - It uses the same album-family logic as `--consolidate-similar-albums`, so names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` are treated as the same family.
-  - Assets from redundant variants are associated to the preferred keeper album directly in Google Photos without uploading new assets.
-  - Google Photos does not support deleting albums through the public API, so the redundant album containers remain after the consolidation.
-  - If `--preview-album-actions` is set, the detected album families are listed and the tool asks for confirmation before applying the changes.
-- **Example of use:**
-  ```bash
-  ./PhotoMigrator.bin --client=google-photos --consolidate-albums-names --preview-album-actions
-  ```
-
-
 ## Remove Empty Albums:
 - **From:** v4.0.0
 - **Usage:**
@@ -337,6 +319,24 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 > [!WARNING]
 > Currently a no-op for Google Photos integration.
+
+
+## Consolidate Albums Names from Google Photos:
+- **From:** v4.5.0
+- **Usage:**
+  - `./PhotoMigrator.bin --client=google-photos --consolidate-albums-names --preview-album-actions`
+- **Pre-Requisites:**
+  - Configure OAuth credentials in `Config.ini`.
+- **Explanation:**
+  - The Tool connects to Google Photos and looks for equivalent album-name families that already exist in the cloud.
+  - It uses the same album-family logic as `--consolidate-similar-albums`, so names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` are treated as the same family.
+  - Assets from redundant variants are associated to the preferred keeper album directly in Google Photos without uploading new assets.
+  - Google Photos does not support deleting albums through the public API, so the redundant album containers remain after the consolidation.
+  - If `--preview-album-actions` is set, the detected album families are listed and the tool asks for confirmation before applying the changes.
+- **Example of use:**
+  ```bash
+  ./PhotoMigrator.bin --client=google-photos --consolidate-albums-names --preview-album-actions
+  ```
 
 ---
 ## ⚙️ Config.ini
