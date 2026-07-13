@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import hashlib
 import hmac
 import json
+import logging
 import os
 import re
 import secrets
@@ -92,6 +93,17 @@ if str(SRC_ROOT) not in sys.path:
 from Core.ArgsParser import parse_arguments  # noqa: E402
 from Core.ConfigReader import get_env_override_source  # noqa: E402
 from Core.GlobalVariables import TOOL_DATE, TOOL_NAME, TOOL_VERSION, TAKEOUT_SPECIAL_FOLDER_NAMES  # noqa: E402
+
+WEB_LOGGER = logging.getLogger("PhotoMigrator.web_interface")
+
+
+def _debug_perf_log(label: str, started_at: float, **fields: Any) -> None:
+    if not WEB_LOGGER.isEnabledFor(logging.DEBUG):
+        return
+    elapsed_ms = (time.perf_counter() - float(started_at)) * 1000.0
+    payload = " ".join(f"{key}={value}" for key, value in fields.items() if value is not None)
+    suffix = f" | {payload}" if payload else ""
+    WEB_LOGGER.debug(f"[PERF] {label}: {elapsed_ms:.2f} ms{suffix}")
 
 
 def _html_no_store_response(response: Response) -> Response:
@@ -2049,6 +2061,7 @@ def _extract_progress_key(line: str) -> str | None:
 def _append_job_output(job: JobData, text: str) -> None:
     if not text:
         return
+    perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     if job.output_fp is not None:
         try:
             job.output_fp.write(text)
@@ -2107,6 +2120,17 @@ def _append_job_output(job: JobData, text: str) -> None:
         job.dropped_output_lines += 1
         if removed.progress_key and job.progress_lines.get(removed.progress_key) is removed:
             del job.progress_lines[removed.progress_key]
+    if perf_started_at is not None:
+        _debug_perf_log(
+            "web.append_job_output",
+            perf_started_at,
+            tab=job.tab,
+            appended_chars=len(text),
+            completed_lines=len(completed),
+            buffered_lines=len(job.output),
+            partial_chars=len(job.partial_line or ""),
+            dropped_lines=job.dropped_output_lines,
+        )
 
 
 def _append_job_summary(job: JobData, status: str, return_code: int | None) -> None:
@@ -2135,19 +2159,39 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
 
 
 def _read_job_output_for_api(job: JobData) -> str:
+    perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     # Always serve compact in-memory output so progress refreshes don't consume history.
     base = "".join(entry.text for entry in job.output)
     if job.partial_line:
         base += job.partial_line
 
     if job.dropped_output_lines <= 0:
+        if perf_started_at is not None:
+            _debug_perf_log(
+                "web.read_job_output_for_api",
+                perf_started_at,
+                tab=job.tab,
+                buffered_lines=len(job.output),
+                output_chars=len(base),
+                dropped_lines=job.dropped_output_lines,
+            )
         return base
 
     notice = (
         f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
         f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines).\n"
     )
-    return notice + base
+    output = notice + base
+    if perf_started_at is not None:
+        _debug_perf_log(
+            "web.read_job_output_for_api",
+            perf_started_at,
+            tab=job.tab,
+            buffered_lines=len(job.output),
+            output_chars=len(output),
+            dropped_lines=job.dropped_output_lines,
+        )
+    return output
 
 
 def _parse_last_matching_number(lines: List[str], pattern: re.Pattern[str]) -> int | None:
@@ -2185,6 +2229,7 @@ def _count_regex_matches(text: str, pattern: re.Pattern[str]) -> int:
 
 
 def _extract_dashboard_stats_from_output(raw_text: str) -> Dict[str, Any]:
+    perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     output = str(raw_text or "")
     lines = output.splitlines()
 
@@ -2336,6 +2381,16 @@ def _extract_dashboard_stats_from_output(raw_text: str) -> Dict[str, Any]:
     if stats["totalVideos"] is None and stats["pulledVideos"] is not None and stats["pullFailedVideos"] is not None:
         stats["totalVideos"] = int(stats["pulledVideos"]) + int(stats["pullFailedVideos"])
 
+    if perf_started_at is not None:
+        _debug_perf_log(
+            "web.extract_dashboard_stats_from_output",
+            perf_started_at,
+            lines=len(lines),
+            chars=len(output),
+            pulled_assets=stats.get("pulledAssets"),
+            pushed_assets=stats.get("pushedAssets"),
+            pushed_albums=stats.get("pushedAlbums"),
+        )
     return stats
 
 
@@ -2349,6 +2404,7 @@ def _merge_dashboard_snapshot(previous: Dict[str, Any], current: Dict[str, Any])
 
 
 def _refresh_job_dashboard_snapshot(job: JobData, force: bool = False) -> None:
+    perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     if job.tab != "automatic_migration":
         return
     if not force and not job.dashboard_snapshot_dirty:
@@ -2362,6 +2418,14 @@ def _refresh_job_dashboard_snapshot(job: JobData, force: bool = False) -> None:
     job.dashboard_snapshot_dirty = False
     job.dashboard_snapshot_last_refresh_monotonic = now
     job.dashboard_snapshot_updated_at = datetime.now(timezone.utc).isoformat()
+    if perf_started_at is not None:
+        _debug_perf_log(
+            "web.refresh_job_dashboard_snapshot",
+            perf_started_at,
+            force=force,
+            output_chars=len(current_output),
+            snapshot_keys=len(job.dashboard_snapshot),
+        )
 
 
 PARSER_SCHEMA: Dict[str, Any] = {}
@@ -3765,6 +3829,7 @@ def get_active_job(current_user: Dict[str, Any] = Depends(_require_user)) -> Dic
 
 @app.get("/api/jobs/{job_id}")
 def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
+    perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     with JOBS_LOCK:
         if job_id not in JOBS:
             raise HTTPException(status_code=404, detail="Job not found")
@@ -3780,7 +3845,7 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
             and not job.process.stdin.closed
         )
         can_stop = bool(job.status in {"running", "stopping"} and job.process is not None)
-        return {
+        response_payload = {
             "job_id": job_id,
             "tab": job.tab,
             "status": job.status,
@@ -3796,6 +3861,17 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
             "dashboard_snapshot_updated_at": job.dashboard_snapshot_updated_at,
             "output": output,
         }
+        if perf_started_at is not None:
+            _debug_perf_log(
+                "web.api.get_job",
+                perf_started_at,
+                job_id=job_id,
+                status=job.status,
+                tab=job.tab,
+                output_chars=len(output),
+                snapshot_keys=len(job.dashboard_snapshot or {}),
+            )
+        return response_payload
 
 
 class JobInputRequest(BaseModel):

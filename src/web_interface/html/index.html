@@ -1082,6 +1082,25 @@
         return (activeProgressIndex !== null ? result.slice(0, activeProgressIndex + 1) : result).join("\n");
     }
 
+    function isWebPerfDebugEnabled() {
+        try {
+            const params = new URLSearchParams(window.location.search || "");
+            if (params.get("debug_web_perf") === "1") return true;
+            return window.localStorage?.getItem("photomigrator_web_perf_debug") === "1";
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function debugWebPerf(label, payload = {}) {
+        if (!isWebPerfDebugEnabled()) return;
+        try {
+            console.debug(`[web-perf] ${label}`, payload);
+        } catch (_) {
+            // Ignore console logging failures.
+        }
+    }
+
     function classifyLogLine(line, options = {}) {
         const automaticMigrationMode = Boolean(options && options.automaticMigrationMode);
         const cleaned = stripAnsi(line).replace(/\r/g, "");
@@ -1130,12 +1149,15 @@
     }
 
     function renderOutputWithLevels(rawText, options = {}) {
+        const perfStarted = performance.now();
         const outputEl = document.getElementById("output");
         lastRawOutput = rawText || "";
         const force = Boolean(options && options.force);
         const autoScrollEnabled = uiState.auto_scroll !== false;
 
+        const collapseStarted = performance.now();
         displayedRawOutput = collapseProgressLines(lastRawOutput);
+        const collapseElapsedMs = performance.now() - collapseStarted;
         const rawLines = (displayedRawOutput || "").split("\n");
         const isProgressLikeLine = (value) => {
             const clean = stripAnsi(String(value || "")).replace(/\r/g, "").trimEnd();
@@ -1201,10 +1223,21 @@
                 ? `<span class="log-line ${cls}">${safe}</span>`
                 : `<span class="log-line">${safe}</span>`;
         }).join("");
+        const htmlBuiltAt = performance.now();
         outputEl.innerHTML = html;
         if (autoScrollEnabled || force) {
             outputEl.scrollTop = outputEl.scrollHeight;
         }
+        debugWebPerf("renderOutputWithLevels", {
+            rawChars: String(lastRawOutput || "").length,
+            collapsedChars: String(displayedRawOutput || "").length,
+            rawLines: rawLines.length,
+            visibleLines: lines.length,
+            collapseMs: Number(collapseElapsedMs.toFixed(2)),
+            htmlBuildMs: Number((htmlBuiltAt - collapseStarted - collapseElapsedMs).toFixed(2)),
+            domPaintMs: Number((performance.now() - htmlBuiltAt).toFixed(2)),
+            totalMs: Number((performance.now() - perfStarted).toFixed(2))
+        });
     }
 
     function formatDuration(ms) {
@@ -1451,6 +1484,7 @@
     }
 
     function renderWebDashboard(rawOutput, status, jobData = {}) {
+        const perfStarted = performance.now();
         webDashboardState = {
             rawOutput: String(rawOutput || ""),
             status: String(status || "idle"),
@@ -1467,8 +1501,10 @@
         const dashboardContext = {...(jobData.dashboard_context || {})};
         const source = currentRunPayload?.values?.source || dashboardContext.source || stateValues.source || "-";
         const target = currentRunPayload?.values?.target || dashboardContext.target || stateValues.target || "-";
+        const extractStarted = performance.now();
         const parsedStats = extractDashboardStats(webDashboardState.rawOutput);
         const stats = mergeDashboardStats(jobData.dashboard_snapshot || {}, parsedStats);
+        const extractElapsedMs = performance.now() - extractStarted;
 
         const startedAt = jobData.started_at || currentJobStartedAt;
         if (jobData.started_at) currentJobStartedAt = jobData.started_at;
@@ -1543,6 +1579,14 @@
         setProgressRow("bar-pushed-photos", "bar-pushed-photos-count", stats.pushedPhotos, totalPhotosForPush);
         setProgressRow("bar-pushed-videos", "bar-pushed-videos-count", stats.pushedVideos, totalVideosForPush);
         setProgressRow("bar-pushed-albums", "bar-pushed-albums-count", stats.pushedAlbums, totalAlbumsForPush);
+        debugWebPerf("renderWebDashboard", {
+            rawChars: String(webDashboardState.rawOutput || "").length,
+            extractStatsMs: Number(extractElapsedMs.toFixed(2)),
+            totalMs: Number((performance.now() - perfStarted).toFixed(2)),
+            pulledAssets: stats.pulledAssets,
+            pushedAssets: stats.pushedAssets,
+            pushedAlbums: stats.pushedAlbums
+        });
     }
 
     async function copyLogToClipboard() {
@@ -3264,7 +3308,10 @@
 
     async function refreshJob() {
         if (!currentJob) return;
+        const perfStarted = performance.now();
+        const fetchStarted = performance.now();
         const response = await fetch(`/api/jobs/${currentJob}`);
+        const fetchElapsedMs = performance.now() - fetchStarted;
         if (response.status === 404) {
             currentJob = null;
             currentJobStartedAt = null;
@@ -3279,18 +3326,37 @@
             }
             return;
         }
+        const jsonStarted = performance.now();
         const data = await response.json();
+        const jsonElapsedMs = performance.now() - jsonStarted;
         setStatus(`Status: ${data.status}`, false);
         updateRunStopButtons(data.status || "idle");
+        const renderOutputStarted = performance.now();
         renderOutputWithLevels(data.output || "");
+        const renderOutputElapsedMs = performance.now() - renderOutputStarted;
+        let dashboardElapsedMs = 0;
         if (currentJobIsAutomatic) {
+            const dashboardStarted = performance.now();
             renderWebDashboard(data.output || "", data.status || "idle", data);
+            dashboardElapsedMs = performance.now() - dashboardStarted;
         } else if (activeModuleTab === "automatic_migration") {
+            const dashboardStarted = performance.now();
             renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
+            dashboardElapsedMs = performance.now() - dashboardStarted;
         }
         const controls = document.getElementById("job-input-controls");
         const awaitingConfirmation = Boolean(data.awaiting_confirmation);
         controls.classList.toggle("hidden", !awaitingConfirmation);
+        debugWebPerf("refreshJob", {
+            jobId: currentJob,
+            status: data.status,
+            fetchMs: Number(fetchElapsedMs.toFixed(2)),
+            jsonMs: Number(jsonElapsedMs.toFixed(2)),
+            renderOutputMs: Number(renderOutputElapsedMs.toFixed(2)),
+            renderDashboardMs: Number(dashboardElapsedMs.toFixed(2)),
+            totalMs: Number((performance.now() - perfStarted).toFixed(2)),
+            outputChars: String(data.output || "").length
+        });
         if (data.status !== "running" && data.status !== "stopping") {
             setActiveJobInUiState(null);
             clearInterval(pollTimer);

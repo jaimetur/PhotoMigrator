@@ -55,6 +55,15 @@ class SharedData:
         self.logs_queue = logs_queue
 
 
+def _debug_perf_log(logger, label, started_at, **fields):
+    if not logger.isEnabledFor(logging.DEBUG):
+        return
+    elapsed_ms = (time.perf_counter() - float(started_at)) * 1000.0
+    payload = [f"{key}={value}" for key, value in fields.items() if value is not None]
+    suffix = f" | {' '.join(payload)}" if payload else ""
+    logger.debug(f"[PERF] {label}: {elapsed_ms:.2f} ms{suffix}")
+
+
 def _parse_int(value, default=0):
     try:
         return int(str(value or "").replace(",", "").strip())
@@ -1572,6 +1581,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     lock_album_folder.write("Pulling Album")
                 try:
                     for asset in album_assets:
+                        asset_perf_started = time.perf_counter()
                         asset_id = asset['id']
                         asset_type = asset['type']
                         asset_datetime = asset.get('asset_datetime') or asset.get('time')
@@ -1591,6 +1601,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             lock.write("Pulling Asset")
                         # Descargar el asset (tolerante por-asset para no abortar todo el álbum).
                         skipped_not_found = False
+                        pull_started_at = time.perf_counter()
                         try:
                             pulled_assets = source_client.pull_asset(
                                 asset_id=asset_id,
@@ -1622,6 +1633,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             pulled_file_paths = collect_pulled_asset_paths(album_folder, asset_filename)
                             if not pulled_file_paths:
                                 pulled_file_paths = [local_file_path]
+                            collect_finished_at = time.perf_counter()
 
                             immich_live_companion = find_immich_live_video_companion(local_file_path, pulled_file_paths)
                             for idx, pulled_file_path in enumerate(pulled_file_paths):
@@ -1645,6 +1657,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     'album_name': album_name,
                                     'album_is_shared': is_shared,
                                     'count_push_stats': count_push_stats,
+                                    'enqueued_at_monotonic': time.perf_counter(),
                                 }
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                     asset_dict['live_photo_video_path'] = immich_live_companion
@@ -1661,6 +1674,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         companion_lock = companion_to_cleanup + ".lock"
                                         if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
                                             safe_remove_local_file(companion_to_cleanup)
+                            _debug_perf_log(
+                                LOGGER,
+                                "automatic_migration.pull.album_asset",
+                                asset_perf_started,
+                                worker="puller",
+                                album=album_name,
+                                asset=os.path.basename(local_file_path),
+                                asset_id=asset_id,
+                                pulled_variants=len(pulled_file_paths),
+                                pull_ms=f"{(collect_finished_at - pull_started_at) * 1000.0:.2f}",
+                            )
                         else:
                             if skipped_not_found:
                                 SHARED_DATA.counters['total_pull_failed_assets'] += 1
@@ -1705,6 +1729,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             try:
                 pulled_assets = 0
                 for asset in assets_no_album:
+                    asset_perf_started = time.perf_counter()
                     asset_id = asset['id']
                     asset_type = asset['type']
                     asset_datetime = asset.get('asset_datetime') or asset.get('time')
@@ -1725,6 +1750,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         with open(lock_file, 'w') as lock:
                             lock.write("Pulling")
                         # Descargar directamente en temp_folder
+                        pull_started_at = time.perf_counter()
                         pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.ERROR)
                     except Exception as e:
                         if _is_nextcloud_photo_not_found_error(e):
@@ -1748,6 +1774,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         pulled_file_paths = collect_pulled_asset_paths(temp_folder, asset_filename)
                         if not pulled_file_paths:
                             pulled_file_paths = [local_file_path]
+                        collect_finished_at = time.perf_counter()
 
                         immich_live_companion = find_immich_live_video_companion(local_file_path, pulled_file_paths)
                         for idx, pulled_file_path in enumerate(pulled_file_paths):
@@ -1771,6 +1798,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 'asset_type': normalized_asset_type,
                                 'album_name': None,
                                 'count_push_stats': count_push_stats,
+                                'enqueued_at_monotonic': time.perf_counter(),
                             }
                             if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                 asset_dict['live_photo_video_path'] = immich_live_companion
@@ -1786,6 +1814,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     companion_lock = companion_to_cleanup + ".lock"
                                     if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
                                         safe_remove_local_file(companion_to_cleanup)
+                        _debug_perf_log(
+                            LOGGER,
+                            "automatic_migration.pull.no_album_asset",
+                            asset_perf_started,
+                            worker="puller",
+                            album="-",
+                            asset=os.path.basename(local_file_path),
+                            asset_id=asset_id,
+                            pulled_variants=len(pulled_file_paths),
+                            pull_ms=f"{(collect_finished_at - pull_started_at) * 1000.0:.2f}",
+                        )
                     else:
                         LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
@@ -1838,12 +1877,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     count_push_stats = asset.get('count_push_stats', True)
                     live_photo_video_path = asset.get('live_photo_video_path', None)
                     retry_attempt = int(asset.get('retry_attempt', 0) or 0)
+                    enqueued_at_monotonic = asset.get('enqueued_at_monotonic')
                     skip_target_push = bool(asset.get('skip_target_push')) and bool(asset.get('resolved_target_asset_id'))
                     asset_id = asset.get('resolved_target_asset_id')
                     asset_pushed = False
                     treat_as_consumed = False
                     album_association_confirmed = not bool(album_name)
                     scheduled_retry = False
+                    asset_started_at = time.perf_counter()
+                    push_elapsed_ms = None
+                    album_assoc_elapsed_ms = None
+                    cleanup_elapsed_ms = None
 
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
@@ -1853,10 +1897,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if skip_target_push and asset_id:
                             treat_as_consumed = True
                         else:
+                            push_started_at = time.perf_counter()
                             if isinstance(target_client, ClassImmichPhotos) and live_photo_video_path:
                                 asset_id, isDuplicated = target_client.push_live_photo(photo_file_path=asset_file_path, live_photo_video_path=live_photo_video_path, log_level=logging.ERROR)
                             else:
                                 asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
+                            push_elapsed_ms = (time.perf_counter() - push_started_at) * 1000.0
 
                             # Actualizamos Contadores de subidas
                             if asset_id:
@@ -1932,6 +1978,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     # Si existe album_name y tenemos un asset_id reutilizable en destino,
                     # lo asociamos al álbum incluso si la subida fue detectada como duplicada.
                     if not scheduled_retry and album_name and asset_id:
+                        album_assoc_started_at = time.perf_counter()
                         # 1) Asegurarnos de que el álbum existe (sólo un hilo lo crea)
                         album_name_to_query = album_name
                         with album_creation_lock:
@@ -2057,6 +2104,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 LOGGER.error(f"Album Push Fail : '{album_name}'")
                                 LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
                                 SHARED_DATA.counters['total_push_failed_albums'] += 1
+                        album_assoc_elapsed_ms = (time.perf_counter() - album_assoc_started_at) * 1000.0
 
                     if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and treat_as_consumed and asset_id and album_association_confirmed:
                         _remove_source_asset_after_move(
@@ -2067,6 +2115,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         removed_source_asset_ids.add(source_asset_id)
 
                     if not scheduled_retry and (asset_pushed or treat_as_consumed) and album_association_confirmed:
+                        cleanup_started_at = time.perf_counter()
                         safe_remove_local_file(asset_file_path)
                         if live_photo_video_path:
                             safe_remove_local_file(live_photo_video_path)
@@ -2082,6 +2131,29 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 counters=SHARED_DATA.counters,
                                 logger=LOGGER,
                             )
+                        cleanup_elapsed_ms = (time.perf_counter() - cleanup_started_at) * 1000.0
+
+                    queue_wait_ms = None
+                    if isinstance(enqueued_at_monotonic, (int, float)):
+                        queue_wait_ms = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0)
+                    _debug_perf_log(
+                        LOGGER,
+                        "automatic_migration.push.asset",
+                        asset_started_at,
+                        worker=worker_id,
+                        album=album_name or "-",
+                        asset=os.path.basename(asset_file_path),
+                        source_asset_id=source_asset_id,
+                        queue_wait_ms=f"{queue_wait_ms:.2f}" if queue_wait_ms is not None else None,
+                        push_ms=f"{push_elapsed_ms:.2f}" if push_elapsed_ms is not None else None,
+                        album_assoc_ms=f"{album_assoc_elapsed_ms:.2f}" if album_assoc_elapsed_ms is not None else None,
+                        cleanup_ms=f"{cleanup_elapsed_ms:.2f}" if cleanup_elapsed_ms is not None else None,
+                        duplicated=isDuplicated,
+                        asset_pushed=asset_pushed,
+                        consumed=treat_as_consumed,
+                        album_association_confirmed=album_association_confirmed,
+                        scheduled_retry=scheduled_retry,
+                    )
 
                 except Exception as e:
                     asset_file_path = asset.get('asset_file_path') if isinstance(asset, dict) else ""

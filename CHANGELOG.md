@@ -16,6 +16,7 @@
   - Improved `Google Takeout` post-process video XMP date normalization. The repair step now reports the total number of conflicting videos before starting, shows a live progress bar during the normalization, and reuses a persistent `ExifTool` session to reduce per-file process startup overhead.
   - Updated GPTH to v6.1.9 which includes an important Bug Fix.
   - Optimized `Automatic Migration` album association for duplicate-resolved uploads. Destination album membership is now cached per resolved target album so assets that already belong to the final destination album are no longer re-added repeatedly, which significantly reduces redundant `add to album` calls on `Immich`/`Synology` when migrating processed `Google Takeout` or other album-heavy sources with many duplicates.
+  - Added targeted `DEBUG` performance traces for `Automatic Migration` local-folder pipelines and the Web Interface live log/dashboard path. Debug logs now include per-asset pull/push/album-association timing plus backend dashboard snapshot/output processing timings, and the browser can emit optional `console.debug` render timings when `debug_web_perf=1` or `localStorage.photomigrator_web_perf_debug = \"1\"` is enabled.
 
 #### 🚀 GPTH Enhancements:
 ##### 🐛 GPTH Bug Fixes
