@@ -1278,6 +1278,12 @@ def build_reusable_album_group(album_name, albums, allow_similar=False, exact_ca
     preferred_group_albums = similar_matches if (allow_similar and similar_matches) else group_albums
 
     name_candidates = [target_name] + [str((album or {}).get("albumName", "")).strip() for album in preferred_group_albums]
+    if allow_similar and prefer_canonical_album_names_enabled():
+        name_candidates.extend(
+            canonicalize_album_name_for_reuse(name)
+            for name in list(name_candidates)
+            if str(name or "").strip()
+        )
     name_candidates = [name for name in name_candidates if name]
     preferred_album_name = min(name_candidates, key=album_name_preference_key) if name_candidates else target_name
 

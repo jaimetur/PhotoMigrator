@@ -1315,6 +1315,7 @@ class ClassImmichPhotos:
                     "seed_album_name": album_name,
                     "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
                     "keeper_album": plan.get("keeper_album") or {},
+                    "should_create_preferred_album": bool(plan.get("should_create_preferred_album")),
                     "redundant_albums": redundant_albums,
                     "similar_albums": list(plan.get("similar_albums") or []),
                 })
@@ -1326,7 +1327,11 @@ class ClassImmichPhotos:
             if request_user_confirmation:
                 LOGGER.info("Album families to be consolidated:")
                 for group in consolidation_groups:
-                    keeper_name = str((group.get("keeper_album") or {}).get("albumName", "")).strip() or group["preferred_album_name"]
+                    keeper_name = (
+                        group["preferred_album_name"]
+                        if group.get("should_create_preferred_album")
+                        else (str((group.get("keeper_album") or {}).get("albumName", "")).strip() or group["preferred_album_name"])
+                    )
                     group_album_names = [
                         str((album or {}).get("albumName", "")).strip()
                         for album in (group.get("similar_albums") or [])
