@@ -98,7 +98,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
 
-PhotoMigrator v4.4.1 - 2026-07-09
+PhotoMigrator v4.5.0 - 2026-07-13
 
           Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
           such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -386,6 +386,12 @@ If more than one optional arguments are detected, only the first one will be exe
                Supported cloud targets also merge redundant variants into the preferred clean keeper.
                Immich, Synology, and NextCloud remove them afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-albums ./Albums --consolidate-similar-albums
+-consAlbNames ; --consolidate-albums-names
+               Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets.
+               Uses the same family-detection logic as --consolidate-similar-albums.
+               Immich, Synology, and NextCloud remove redundant album variants afterwards. Google Photos keeps them because its public API cannot delete albums.
+               Use '--preview-album-actions' to list the detected album families and ask for confirmation before consolidating.
+               Example: --client=immich --consolidate-albums-names --preview-album-actions
 -dAll        ; --download-all <OUTPUT_FOLDER>
                Download all albums and all non-album assets into <OUTPUT_FOLDER>.
                You must provide the photo client using '--client'.

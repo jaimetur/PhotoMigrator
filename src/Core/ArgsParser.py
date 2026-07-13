@@ -430,6 +430,16 @@ def parse_arguments():
                              "Google Photos keeps the redundant variants because the public API cannot delete albums.\n"
                              "Example: --client=immich --upload-albums ./My_Albums_Folder --consolidate-similar-albums")
 
+    PARSER.add_argument("-consAlbNames", "--consolidate-albums-names", action="store_true", default=False,
+                        help="Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets.\n"
+                             "Requires '--client'.\n"
+                             "Uses the same album-family logic as '--consolidate-similar-albums' (for example 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album').\n"
+                             "On supported cloud targets, redundant variants are merged into the preferred keeper album. "
+                             "When the API supports album deletion (Immich, Synology, NextCloud), redundant albums are removed afterwards. "
+                             "Google Photos keeps the redundant variants because the public API cannot delete albums.\n"
+                             "Use '--preview-album-actions' to preview and confirm the detected album families before applying changes.\n"
+                             "Example: --client=immich --consolidate-albums-names --preview-album-actions")
+
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! Remove ALL albums.\n"
                              "Requires '--client'.\n"
@@ -591,6 +601,7 @@ def validate_client_arg(ARGS, PARSER):
         'download-all',
         'rename-albums',
         'remove-albums',
+        'consolidate-albums-names',
         'remove-duplicates-albums',
         'merge-duplicates-albums',
         'remove-all-assets',
@@ -819,12 +830,13 @@ def checkArgs(ARGS, PARSER):
         )
         exit(1)
 
-    if ARGS['preview-album-actions'] and not (ARGS['rename-albums'] or ARGS['remove-albums']):
+    if ARGS['preview-album-actions'] and not (ARGS['rename-albums'] or ARGS['remove-albums'] or ARGS['consolidate-albums-names']):
         PARSER.error(
             f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
             f"--preview-album-actions is a modifier flag. It must be used together with one of:\n"
             f"--rename-albums\n"
             f"--remove-albums\n"
+            f"--consolidate-albums-names\n"
             f"{Style.RESET_ALL}"
         )
         exit(1)

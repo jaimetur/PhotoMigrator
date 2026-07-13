@@ -4,6 +4,28 @@
 
 ---
 
+## Release: v4.5.0
+### Release Date: 2026-07-13
+  
+#### 🚨 Breaking Changes:
+
+#### 🌟 New Features:
+  - Added a new cloud-only `Consolidate Albums Names` feature for `Google Photos`, `Synology Photos`, `Immich Photos`, and `NextCloud Photos`, available from CLI, Web Interface, TUI, and desktop GUI. This action reuses the same equivalent-album-family detection logic as `--consolidate-similar-albums` but operates entirely in the destination cloud without uploading new assets. On targets that support album deletion (`Immich`, `Synology`, `NextCloud`), redundant albums are removed after confirmed reassignment; on `Google Photos`, redundant variants are kept because the public API cannot delete albums.
+
+#### 🚀 Enhancements:
+  - Added targeted `DEBUG` performance traces for `Automatic Migration` local-folder pipelines and the Web Interface live log/dashboard path. Debug logs now include per-asset pull/push/album-association timing plus backend dashboard snapshot/output processing timings, and the browser can emit optional `console.debug` render timings when `debug_web_perf=1` or `localStorage.photomigrator_web_perf_debug = \"1\"` is enabled.
+  - Restricted live `cProfile` dumps during `Automatic Migration` to `VERBOSE` mode only, and preserved the effective runtime log level inside the migration pipeline so `DEBUG` diagnostics such as `[PERF]` pull/push traces remain visible when `--log-level debug` is used.
+  - Refined reusable/similar album consolidation so semantic split suffixes such as `Día 1`, `Day 2`, `Jour 3`, `Parte 4`, `Part 5`, `Session 6`, and their common variants in major languages (with or without spaces, dashes, or underscores before the suffix) are normalized back to the shared base album name during similar-album grouping, while post-reassignment confirmation now refreshes keeper-album membership each time before deciding whether a redundant album can be removed.
+  - Hardened `Automatic Migration` album-association confirmation for targets such as `Immich` and `Synology`. After associating a batch, PhotoMigrator now re-reads the destination album membership and, when needed, performs a short delayed second refresh before warning and scheduling a delayed retry, avoiding false negatives when the target actually associated the asset but exposes the new membership with a small delay.
+  - Reworked `Automatic Migration` album association to use a dedicated post-upload batching stage instead of associating each asset to its album immediately inside every push worker. Upload workers now hand off album-bound assets to a separate album-association queue, which batches `add assets to album` calls per destination album, confirms membership once per batch, and only then performs cleanup / move-after-push / album completion bookkeeping. This preserves the same final album semantics while sharply reducing contention and repeated per-asset association calls across `Immich`, `Synology`, `NextCloud`, and the rest of the supported automatic-migration targets.
+
+#### 🐛 Bug fixes:
+
+#### 📚 Documentation:
+  - Updated documentation with all changes.
+
+---
+
 ## Release: v4.4.1
 ### Release Date: 2026-07-09
   
@@ -16,10 +38,6 @@
   - Improved `Google Takeout` post-process video XMP date normalization. The repair step now reports the total number of conflicting videos before starting, shows a live progress bar during the normalization, and reuses a persistent `ExifTool` session to reduce per-file process startup overhead.
   - Updated GPTH to v6.1.9 which includes an important Bug Fix.
   - Optimized `Automatic Migration` album association for duplicate-resolved uploads. Destination album membership is now cached per resolved target album so assets that already belong to the final destination album are no longer re-added repeatedly, which significantly reduces redundant `add to album` calls on `Immich`/`Synology` when migrating processed `Google Takeout` or other album-heavy sources with many duplicates.
-  - Added targeted `DEBUG` performance traces for `Automatic Migration` local-folder pipelines and the Web Interface live log/dashboard path. Debug logs now include per-asset pull/push/album-association timing plus backend dashboard snapshot/output processing timings, and the browser can emit optional `console.debug` render timings when `debug_web_perf=1` or `localStorage.photomigrator_web_perf_debug = \"1\"` is enabled.
-  - Restricted live `cProfile` dumps during `Automatic Migration` to `VERBOSE` mode only, and preserved the effective runtime log level inside the migration pipeline so `DEBUG` diagnostics such as `[PERF]` pull/push traces remain visible when `--log-level debug` is used.
-  - Refined reusable/similar album consolidation so semantic split suffixes such as `Día 1`, `Day 2`, `Jour 3`, `Parte 4`, `Part 5`, `Session 6`, and their common variants in major languages (with or without spaces, dashes, or underscores before the suffix) are normalized back to the shared base album name during similar-album grouping, while post-reassignment confirmation now refreshes keeper-album membership each time before deciding whether a redundant album can be removed.
-  - Hardened `Automatic Migration` album-association confirmation for targets such as `Immich` and `Synology`. When an `add assets to album` call returns an unconfirmed/zero-added result, PhotoMigrator now re-reads the destination album membership before warning and scheduling a delayed retry, avoiding false retries when the target actually associated the asset but reported the operation ambiguously.
 
 #### 🚀 GPTH Enhancements:
 ##### 🐛 GPTH Bug Fixes

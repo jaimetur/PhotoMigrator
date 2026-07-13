@@ -117,6 +117,9 @@ def detect_and_run_execution_mode():
     elif ARGS['rename-albums']:
         EXECUTION_MODE = 'rename-albums'
         mode_cloud_rename_albums(client=ARGS['client'])
+    elif ARGS.get('consolidate-albums-names'):
+        EXECUTION_MODE = 'consolidate-albums-names'
+        mode_cloud_consolidate_albums_names(client=ARGS['client'])
     elif ARGS['remove-empty-albums']:
         EXECUTION_MODE = 'remove-empty-albums'
         mode_cloud_remove_empty_albums(client=ARGS['client'])
@@ -1194,6 +1197,56 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         LOGGER.info(f"==================================================")
         LOGGER.info(f"Total Assets removed                    : {assets_removed}")
         LOGGER.info(f"Total Albums removed                    : {albums_removed}")
+        LOGGER.info(f"")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info(f"==================================================")
+        LOGGER.info(f"")
+
+
+def mode_cloud_consolidate_albums_names(client=None, user_confirmation=True, log_level=None):
+    """
+    Consolidate equivalent existing cloud album-name families without uploading new assets.
+
+    This mode reuses the same similar-album family logic used by cloud uploads when
+    '--consolidate-similar-albums' is enabled, but operates directly on the existing
+    albums already present in the selected cloud service.
+    """
+    client = capitalize_first_letter(client)
+    preview_album_actions = bool(ARGS.get('preview-album-actions', False))
+    LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
+    LOGGER.info(f"Flag detected  : '-consAlbNames, --consolidate-albums-names'.")
+    LOGGER.info('-' * terminal_width)
+    LOGGER.warning(HELP_TEXTS["consolidate-albums-names"])
+    LOGGER.info('-' * (terminal_width-10))
+    LOGGER.info(f"Preview album actions                  : {preview_album_actions}")
+
+    cloud_client_obj = _build_cloud_client_obj(client)
+
+    with set_log_level(LOGGER, log_level):
+        LOGGER.info(f"{client} Photos: 'Consolidate Albums Names' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"")
+        LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
+        cloud_client_obj.login(log_level=logging.WARNING)
+        families_consolidated, redundant_albums_detected = cloud_client_obj.consolidate_albums_names(
+            request_user_confirmation=preview_album_actions,
+            log_level=logging.WARNING,
+        )
+        LOGGER.info(f"")
+        LOGGER.info(f"Logged out from {client} Photos.")
+        cloud_client_obj.logout(log_level=logging.WARNING)
+
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
+        LOGGER.info(f"")
+        LOGGER.info(f"==================================================")
+        LOGGER.info(f"         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info(f"==================================================")
+        LOGGER.info(f"")
+        LOGGER.info(f"==================================================")
+        LOGGER.info(f"                  FINAL SUMMARY:                  ")
+        LOGGER.info(f"==================================================")
+        LOGGER.info(f"Total album families consolidated       : {families_consolidated}")
+        LOGGER.info(f"Total redundant albums detected         : {redundant_albums_detected}")
         LOGGER.info(f"")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info(f"==================================================")

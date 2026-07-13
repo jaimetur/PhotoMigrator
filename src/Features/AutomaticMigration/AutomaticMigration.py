@@ -674,6 +674,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     retry_delay_seconds = max(60, int(ARGS.get("push-failed-asset-retry-delay-seconds", 180) or 180))
     max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 3) or 3))
     retry_backoff_factor = max(1, int(ARGS.get("push-failed-asset-retry-backoff-factor", 1) or 1))
+    album_assoc_batch_size = max(10, int(ARGS.get("album-association-batch-size", 100) or 100))
+    album_assoc_flush_interval_seconds = max(0.1, float(ARGS.get("album-association-flush-interval-seconds", 0.75) or 0.75))
     retry_heap = []
     retry_condition = threading.Condition()
     retry_sequence = {"value": 0}
@@ -686,7 +688,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 queue_size = push_queue.qsize()
             except NameError:
                 queue_size = 0
-            SHARED_DATA.info['assets_in_queue'] = queue_size + delayed_assets
+            try:
+                album_assoc_queue_size = album_assoc_queue.qsize()
+            except NameError:
+                album_assoc_queue_size = 0
+            SHARED_DATA.info['assets_in_queue'] = queue_size + album_assoc_queue_size + delayed_assets
 
     class MonitoredQueue(Queue):
         def put(self, item, *args, **kwargs):
@@ -768,6 +774,37 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         with target_album_asset_ids_lock:
             target_album_asset_ids_cache.setdefault(album_id, set()).add(asset_id)
 
+    def _mark_target_album_assets_present(album_id, asset_ids):
+        album_id = str(album_id or "").strip()
+        if not album_id:
+            return
+        normalized_ids = {
+            str(asset_id).strip()
+            for asset_id in (asset_ids or [])
+            if str(asset_id).strip()
+        }
+        if not normalized_ids:
+            return
+        with target_album_asset_ids_lock:
+            target_album_asset_ids_cache.setdefault(album_id, set()).update(normalized_ids)
+
+    def _refresh_target_album_asset_ids(album_id, album_name=None, log_level=logging.ERROR):
+        album_id = str(album_id or "").strip()
+        if not album_id:
+            return set()
+        refreshed_asset_ids = {
+            str(asset_id).strip()
+            for asset_id in _get_target_album_asset_ids(
+                target_client=target_client,
+                album_id=album_id,
+                album_name=album_name,
+                log_level=log_level,
+            )
+            if str(asset_id).strip()
+        }
+        _set_cached_target_album_asset_ids(album_id, refreshed_asset_ids)
+        return refreshed_asset_ids
+
     def _remove_target_existing_album(existing_albums, album_id):
         if existing_albums is None:
             return
@@ -778,6 +815,138 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             album for album in existing_albums
             if str((album or {}).get("id", "")).strip() != album_id
         ]
+
+    def _ensure_target_album_ready(album_name, worker_id=1, album_is_shared=False, log_level=logging.ERROR):
+        album_name_to_query = album_name
+        with album_creation_lock:
+            if album_name not in created_albums:
+                target_album_name_to_create = album_name
+                if isinstance(target_client, ClassLocalFolder):
+                    exists, aid = target_client.album_exists(
+                        album_name=album_name,
+                        shared=album_is_shared,
+                        log_level=log_level,
+                    )
+                elif target_existing_albums is not None:
+                    matched_album, match_kind, ambiguous_matches = _consolidate_album_group_for_reuse(
+                        album_name=album_name,
+                        worker_id=worker_id,
+                        log_level=log_level,
+                    )
+                    if ambiguous_matches:
+                        candidate_names = ", ".join([f"'{item.get('albumName', '')}'" for item in ambiguous_matches[:3]])
+                        LOGGER.warning(
+                            f"Found multiple similar existing target albums for '{album_name}' "
+                            f"({candidate_names}). Creating a new target album to avoid ambiguous reuse."
+                        )
+                    if matched_album:
+                        aid = matched_album.get("id")
+                        exists = bool(aid)
+                        matched_name = matched_album.get("albumName", album_name)
+                        album_name_to_query = matched_name or album_name
+                        if match_kind == "similar" and matched_name != album_name:
+                            LOGGER.info(
+                                f"Reusing similar existing target album '{matched_name}' "
+                                f"for source album '{album_name}'."
+                            )
+                    else:
+                        exists, aid = False, None
+                else:
+                    exists, aid = target_client.album_exists(album_name=album_name, log_level=log_level)
+                if not exists:
+                    if prefer_canonical_album_names and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
+                        target_album_name_to_create = str(canonicalize_album_name_for_reuse(album_name) or album_name).strip() or album_name
+                        if target_album_name_to_create.casefold() != album_name.casefold():
+                            canonical_match, _, _ = find_reusable_album_candidate(
+                                album_name=target_album_name_to_create,
+                                albums=target_existing_albums,
+                                allow_similar=False,
+                                exact_case_sensitive=target_exact_album_match_case_sensitive,
+                            )
+                            if canonical_match:
+                                aid = canonical_match.get("id")
+                                exists = bool(aid)
+                                matched_name = canonical_match.get("albumName", target_album_name_to_create)
+                                album_name_to_query = matched_name or target_album_name_to_create
+                                if exists:
+                                    LOGGER.info(
+                                        f"Reusing canonical target album '{matched_name}' "
+                                        f"for source album '{album_name}'."
+                                    )
+                            else:
+                                LOGGER.info(
+                                    f"Normalizing source album name '{album_name}' to preferred keeper name "
+                                    f"'{target_album_name_to_create}' before creating the destination album."
+                                )
+                    if isinstance(target_client, ClassLocalFolder):
+                        if not exists:
+                            aid = target_client.create_album(
+                                album_name=target_album_name_to_create,
+                                shared=album_is_shared,
+                                log_level=log_level,
+                            )
+                    else:
+                        if not exists:
+                            aid = target_client.create_album(album_name=target_album_name_to_create, log_level=log_level)
+                    if not exists:
+                        LOGGER.info(f"Album Created   : '{target_album_name_to_create}' by worker={worker_id}")
+                        if target_existing_albums is not None and aid:
+                            target_existing_albums.append({"id": aid, "albumName": target_album_name_to_create})
+                        _set_cached_target_album_asset_ids(aid, set())
+                    if target_album_name_to_create != album_name and aid:
+                        created_albums[target_album_name_to_create] = aid
+                    album_name_to_query = target_album_name_to_create
+                created_albums[album_name] = aid
+        album_id_dest = created_albums.get(album_name)
+        if not album_name_to_query and album_id_dest:
+            album_name_to_query = album_name
+        return album_id_dest, album_name_to_query
+
+    def _cleanup_local_artifacts(asset_file_path, live_photo_video_path=None):
+        safe_remove_local_file(asset_file_path)
+        if live_photo_video_path:
+            safe_remove_local_file(live_photo_video_path)
+
+    def _finalize_asset_success(
+        source_asset_id,
+        asset_file_path,
+        live_photo_video_path,
+        album_name,
+        asset_id,
+        retry_attempt,
+        asset_type,
+        count_push_stats,
+        move_assets,
+        removed_source_asset_ids,
+        processed_albums,
+        processed_albums_lock,
+        logger,
+        cleanup_delay_seconds=0.0,
+    ):
+        cleanup_started_at = time.perf_counter()
+        if cleanup_delay_seconds > 0:
+            time.sleep(cleanup_delay_seconds)
+        if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and asset_id:
+            _remove_source_asset_after_move(
+                source_client=source_client,
+                asset_id=source_asset_id,
+                log_level=log_level,
+            )
+            removed_source_asset_ids.add(source_asset_id)
+        _cleanup_local_artifacts(asset_file_path, live_photo_video_path)
+        if retry_attempt > 0:
+            SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
+        if album_name:
+            album_folder_path = os.path.join(temp_folder, album_name)
+            _mark_album_pushed_if_ready(
+                album_name=album_name,
+                album_folder_path=album_folder_path,
+                processed_albums=processed_albums,
+                processed_albums_lock=processed_albums_lock,
+                counters=SHARED_DATA.counters,
+                logger=logger,
+            )
+        return (time.perf_counter() - cleanup_started_at) * 1000.0
 
     def _upsert_target_existing_album(existing_albums, album_id, album_name):
         if existing_albums is None or not album_id:
@@ -1022,12 +1191,242 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     f"attempt {retry_asset.get('retry_attempt', 0)}/{max_push_retries}"
                 )
 
+    def _flush_album_association_batch(
+        album_name,
+        batch_items,
+        worker_id=1,
+        removed_source_asset_ids=None,
+        processed_albums=None,
+        processed_albums_lock=None,
+        log_level=logging.INFO,
+    ):
+        if not batch_items:
+            return
+        removed_source_asset_ids = removed_source_asset_ids if removed_source_asset_ids is not None else set()
+        processed_albums = processed_albums if processed_albums is not None else set()
+        processed_albums_lock = processed_albums_lock if processed_albums_lock is not None else threading.Lock()
+
+        album_is_shared = any(bool(item.get("album_is_shared")) for item in batch_items)
+        album_assoc_started_at = time.perf_counter()
+        album_id_dest = None
+        album_name_to_query = album_name
+        try:
+            album_id_dest, album_name_to_query = _ensure_target_album_ready(
+                album_name=album_name,
+                worker_id=worker_id,
+                album_is_shared=album_is_shared,
+                log_level=logging.ERROR,
+            )
+
+            normalized_items = []
+            for item in batch_items:
+                target_asset_id = str(item.get("resolved_target_asset_id") or "").strip()
+                if not target_asset_id:
+                    continue
+                normalized_items.append((item, target_asset_id))
+
+            if not normalized_items:
+                return
+
+            target_album_asset_ids = _get_cached_target_album_asset_ids(
+                album_id=album_id_dest,
+                album_name=album_name_to_query,
+                log_level=logging.ERROR,
+            )
+
+            already_present_ids = {
+                asset_id for _, asset_id in normalized_items
+                if asset_id in target_album_asset_ids
+            }
+            ids_to_add = []
+            ids_seen = set()
+            for _, asset_id in normalized_items:
+                if asset_id in already_present_ids or asset_id in ids_seen:
+                    continue
+                ids_seen.add(asset_id)
+                ids_to_add.append(asset_id)
+
+            if ids_to_add:
+                target_client.add_assets_to_album(
+                    album_id=album_id_dest,
+                    asset_ids=ids_to_add,
+                    album_name=album_name,
+                    log_level=logging.ERROR,
+                )
+                target_album_asset_ids = _refresh_target_album_asset_ids(
+                    album_id=album_id_dest,
+                    album_name=album_name_to_query,
+                    log_level=logging.ERROR,
+                )
+
+                # Some targets acknowledge album association before album membership is
+                # immediately visible in a subsequent listing. Re-read once after a short
+                # delay to avoid false warnings/retries for assets that are already there.
+                missing_after_first_refresh = [
+                    asset_id for _, asset_id in normalized_items
+                    if asset_id not in target_album_asset_ids
+                ]
+                if missing_after_first_refresh and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                    time.sleep(0.75)
+                    refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
+                        album_id=album_id_dest,
+                        album_name=album_name_to_query,
+                        log_level=logging.ERROR,
+                    )
+                    if len(refreshed_target_album_asset_ids) >= len(target_album_asset_ids):
+                        target_album_asset_ids = refreshed_target_album_asset_ids
+
+            album_assoc_elapsed_ms = (time.perf_counter() - album_assoc_started_at) * 1000.0
+            for item, target_asset_id in normalized_items:
+                asset_started_at = item.get("asset_started_at_perf") or time.perf_counter()
+                push_elapsed_ms = item.get("push_elapsed_ms")
+                queue_wait_ms = item.get("queue_wait_ms")
+                assoc_queue_wait_ms = None
+                assoc_enqueued_at = item.get("album_assoc_enqueued_at_monotonic")
+                if isinstance(assoc_enqueued_at, (int, float)):
+                    assoc_queue_wait_ms = max(0.0, (album_assoc_started_at - float(assoc_enqueued_at)) * 1000.0)
+                asset_confirmed = target_asset_id in target_album_asset_ids
+                cleanup_elapsed_ms = None
+                scheduled_retry = False
+
+                if asset_confirmed:
+                    _mark_target_album_asset_present(album_id_dest, target_asset_id)
+                    cleanup_elapsed_ms = _finalize_asset_success(
+                        source_asset_id=item.get("asset_id"),
+                        asset_file_path=item.get("asset_file_path"),
+                        live_photo_video_path=item.get("live_photo_video_path"),
+                        album_name=album_name,
+                        asset_id=target_asset_id,
+                        retry_attempt=int(item.get("retry_attempt", 0) or 0),
+                        asset_type=item.get("asset_type", "photo"),
+                        count_push_stats=item.get("count_push_stats", True),
+                        move_assets=ARGS.get('move-assets', None),
+                        removed_source_asset_ids=removed_source_asset_ids,
+                        processed_albums=processed_albums,
+                        processed_albums_lock=processed_albums_lock,
+                        logger=LOGGER,
+                    )
+                else:
+                    LOGGER.warning(
+                        f"Album association was not confirmed by target for asset '{os.path.basename(item.get('asset_file_path', ''))}' "
+                        f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
+                    )
+                    if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                        scheduled_retry = _schedule_asset_retry(
+                            asset=item,
+                            reason=f"album association to '{album_name}' was not confirmed",
+                            resolved_target_asset_id=target_asset_id,
+                            skip_target_push=True,
+                        )
+
+                _debug_perf_log(
+                    LOGGER,
+                    "automatic_migration.push.asset",
+                    asset_started_at,
+                    worker=item.get("worker_id"),
+                    album=album_name or "-",
+                    asset=os.path.basename(item.get("asset_file_path", "")),
+                    source_asset_id=item.get("asset_id"),
+                    queue_wait_ms=f"{queue_wait_ms:.2f}" if isinstance(queue_wait_ms, (int, float)) else None,
+                    album_queue_wait_ms=f"{assoc_queue_wait_ms:.2f}" if isinstance(assoc_queue_wait_ms, (int, float)) else None,
+                    push_ms=f"{push_elapsed_ms:.2f}" if isinstance(push_elapsed_ms, (int, float)) else None,
+                    album_assoc_ms=f"{album_assoc_elapsed_ms:.2f}",
+                    cleanup_ms=f"{cleanup_elapsed_ms:.2f}" if isinstance(cleanup_elapsed_ms, (int, float)) else None,
+                    duplicated=item.get("isDuplicated", False),
+                    asset_pushed=item.get("asset_pushed", False),
+                    consumed=item.get("treat_as_consumed", False),
+                    album_association_confirmed=asset_confirmed,
+                    scheduled_retry=scheduled_retry,
+                    batch_size=len(normalized_items),
+                )
+        except Exception as e:
+            for item in batch_items:
+                target_asset_id = item.get("resolved_target_asset_id")
+                scheduled_retry = _schedule_asset_retry(
+                    asset=item,
+                    reason=f"album association exception for '{album_name}': {str(e)}",
+                    resolved_target_asset_id=target_asset_id,
+                    skip_target_push=True,
+                )
+                if not scheduled_retry:
+                    LOGGER.error(f"Album Push Fail : '{album_name}'")
+                    LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
+                    SHARED_DATA.counters['total_push_failed_albums'] += 1
+
+    def album_association_worker(processed_albums=None, processed_albums_lock=None, worker_id=1, log_level=logging.INFO):
+        if processed_albums is None:
+            processed_albums = set()
+        if processed_albums_lock is None:
+            processed_albums_lock = threading.Lock()
+        removed_source_asset_ids = set()
+        pending_by_album = {}
+        pending_order = []
+        stop_requested = False
+
+        def flush_ready(force=False):
+            nonlocal pending_order
+            now = time.perf_counter()
+            remaining_order = []
+            for album_key in pending_order:
+                state = pending_by_album.get(album_key)
+                if not state:
+                    continue
+                should_flush = force or len(state["items"]) >= album_assoc_batch_size or (now - state["first_enqueued_at"]) >= album_assoc_flush_interval_seconds
+                if should_flush:
+                    batch_items = state["items"]
+                    pending_by_album.pop(album_key, None)
+                    _flush_album_association_batch(
+                        album_name=album_key,
+                        batch_items=batch_items,
+                        worker_id=worker_id,
+                        removed_source_asset_ids=removed_source_asset_ids,
+                        processed_albums=processed_albums,
+                        processed_albums_lock=processed_albums_lock,
+                        log_level=log_level,
+                    )
+                    for _ in batch_items:
+                        album_assoc_queue.task_done()
+                else:
+                    remaining_order.append(album_key)
+            pending_order = remaining_order
+
+        with set_log_level(LOGGER, log_level):
+            while True:
+                try:
+                    item = album_assoc_queue.get(timeout=album_assoc_flush_interval_seconds)
+                except Empty:
+                    flush_ready(force=False)
+                    if stop_requested and not pending_by_album:
+                        break
+                    continue
+
+                if item is None:
+                    album_assoc_queue.task_done()
+                    stop_requested = True
+                    flush_ready(force=True)
+                    if not pending_by_album:
+                        break
+                    continue
+
+                album_key = item.get("album_name") or ""
+                state = pending_by_album.get(album_key)
+                if state is None:
+                    state = {"items": [], "first_enqueued_at": time.perf_counter()}
+                    pending_by_album[album_key] = state
+                    pending_order.append(album_key)
+                state["items"].append(item)
+                flush_ready(force=False)
+
+            flush_ready(force=True)
+            LOGGER.info(f"Album Association Worker {worker_id} - Task Finished!")
+
     def _wait_until_push_pipeline_drains():
         while True:
             push_queue.join()
+            album_assoc_queue.join()
             with retry_condition:
                 retries_pending = len(retry_heap)
-            if retries_pending == 0 and push_queue.qsize() == 0:
+            if retries_pending == 0 and push_queue.qsize() == 0 and album_assoc_queue.qsize() == 0:
                 break
             time.sleep(0.25)
 
@@ -1408,6 +1807,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Launching {num_pull_threads} Pull worker in parallel...")
             num_push_threads = max(1, int(cpu_total_threads * 2))
             LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
+            num_album_assoc_threads = 1
+            LOGGER.info(f"Launching {num_album_assoc_threads} Album Association worker in parallel...")
 
             pull_threads = [
                 threading.Thread(
@@ -1430,6 +1831,19 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 )
                 for worker_id in range(num_push_threads)
             ]
+            album_assoc_threads = [
+                threading.Thread(
+                    target=album_association_worker,
+                    kwargs={
+                        "processed_albums": processed_albums,
+                        "processed_albums_lock": processed_albums_lock,
+                        "worker_id": worker_id + 1,
+                        "log_level": log_level,
+                    },
+                    daemon=True,
+                )
+                for worker_id in range(num_album_assoc_threads)
+            ]
             retry_thread = threading.Thread(
                 target=retry_scheduler_worker,
                 kwargs={"log_level": log_level},
@@ -1440,6 +1854,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             for t in pull_threads:
                 t.start()
             retry_thread.start()
+            for t in album_assoc_threads:
+                t.start()
 
             # 2) Si modo paralelo, arranca ya los pushers
             if parallel:
@@ -1469,6 +1885,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             # 7) Esperar a que los pushers consuman su None y terminen
             for t in push_threads:
+                t.join()
+
+            for _ in range(num_album_assoc_threads):
+                album_assoc_queue.put(None)
+
+            for t in album_assoc_threads:
                 t.join()
 
             # En este punto todos los pulls y pushs están listas y la cola está vacía.
@@ -1982,178 +2404,38 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # aquí restauramos siempre el nivel original
                         LOGGER.setLevel(orig_level)
 
-                    # Si existe album_name y tenemos un asset_id reutilizable en destino,
-                    # lo asociamos al álbum incluso si la subida fue detectada como duplicada.
                     if not scheduled_retry and album_name and asset_id:
-                        album_assoc_started_at = time.perf_counter()
-                        # 1) Asegurarnos de que el álbum existe (sólo un hilo lo crea)
-                        album_name_to_query = album_name
-                        with album_creation_lock:
-                            if album_name not in created_albums:
-                                target_album_name_to_create = album_name
-                                if isinstance(target_client, ClassLocalFolder):
-                                    exists, aid = target_client.album_exists(
-                                        album_name=album_name,
-                                        shared=album_is_shared,
-                                        log_level=logging.ERROR,
-                                    )
-                                elif target_existing_albums is not None:
-                                    matched_album, match_kind, ambiguous_matches = _consolidate_album_group_for_reuse(
-                                        album_name=album_name,
-                                        worker_id=worker_id,
-                                        log_level=logging.ERROR,
-                                    )
-                                    if ambiguous_matches:
-                                        candidate_names = ", ".join([f"'{item.get('albumName', '')}'" for item in ambiguous_matches[:3]])
-                                        LOGGER.warning(
-                                            f"Found multiple similar existing target albums for '{album_name}' "
-                                            f"({candidate_names}). Creating a new target album to avoid ambiguous reuse."
-                                        )
-                                    if matched_album:
-                                        aid = matched_album.get("id")
-                                        exists = bool(aid)
-                                        matched_name = matched_album.get("albumName", album_name)
-                                        album_name_to_query = matched_name or album_name
-                                        if match_kind == "similar" and matched_name != album_name:
-                                            LOGGER.info(
-                                                f"Reusing similar existing target album '{matched_name}' "
-                                                f"for source album '{album_name}'."
-                                            )
-                                    else:
-                                        exists, aid = False, None
-                                else:
-                                    exists, aid = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
-                                if not exists:
-                                    if prefer_canonical_album_names and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
-                                        target_album_name_to_create = str(canonicalize_album_name_for_reuse(album_name) or album_name).strip() or album_name
-                                        if target_album_name_to_create.casefold() != album_name.casefold():
-                                            canonical_match, _, _ = find_reusable_album_candidate(
-                                                album_name=target_album_name_to_create,
-                                                albums=target_existing_albums,
-                                                allow_similar=False,
-                                                exact_case_sensitive=target_exact_album_match_case_sensitive,
-                                            )
-                                            if canonical_match:
-                                                aid = canonical_match.get("id")
-                                                exists = bool(aid)
-                                                matched_name = canonical_match.get("albumName", target_album_name_to_create)
-                                                album_name_to_query = matched_name or target_album_name_to_create
-                                                if exists:
-                                                    LOGGER.info(
-                                                        f"Reusing canonical target album '{matched_name}' "
-                                                        f"for source album '{album_name}'."
-                                                    )
-                                            else:
-                                                LOGGER.info(
-                                                    f"Normalizing source album name '{album_name}' to preferred keeper name "
-                                                    f"'{target_album_name_to_create}' before creating the destination album."
-                                                )
-                                    if isinstance(target_client, ClassLocalFolder):
-                                        if not exists:
-                                            aid = target_client.create_album(
-                                                album_name=target_album_name_to_create,
-                                                shared=album_is_shared,
-                                                log_level=logging.ERROR,
-                                            )
-                                    else:
-                                        if not exists:
-                                            aid = target_client.create_album(album_name=target_album_name_to_create, log_level=logging.ERROR)
-                                    if not exists:
-                                        LOGGER.info(f"Album Created   : '{target_album_name_to_create}' by pusher_worker={worker_id}")
-                                        if target_existing_albums is not None and aid:
-                                            target_existing_albums.append({"id": aid, "albumName": target_album_name_to_create})
-                                        _set_cached_target_album_asset_ids(aid, set())
-                                    if target_album_name_to_create != album_name and aid:
-                                        created_albums[target_album_name_to_create] = aid
-                                    album_name_to_query = target_album_name_to_create
-                                created_albums[album_name] = aid
-                        album_id_dest = created_albums.get(album_name)
-                        if not album_name_to_query and album_id_dest:
-                            album_name_to_query = album_name
-                        try:
-                            target_album_asset_ids = _get_cached_target_album_asset_ids(
-                                album_id=album_id_dest,
-                                album_name=album_name_to_query,
-                                log_level=logging.ERROR,
-                            )
-                            if str(asset_id).strip() in target_album_asset_ids:
-                                album_association_confirmed = True
-                            else:
-                                added_to_album = target_client.add_assets_to_album(
-                                    album_id=album_id_dest,
-                                    asset_ids=asset_id,
-                                    album_name=album_name,
-                                    log_level=logging.ERROR,
-                                )
-                                if isinstance(added_to_album, int) and added_to_album >= 1:
-                                    _mark_target_album_asset_present(album_id_dest, asset_id)
-                                    album_association_confirmed = True
-                                else:
-                                    refreshed_target_album_asset_ids = _get_target_album_asset_ids(
-                                        target_client=target_client,
-                                        album_id=album_id_dest,
-                                        album_name=album_name_to_query,
-                                        log_level=logging.ERROR,
-                                    )
-                                    refreshed_target_album_asset_ids = {
-                                        str(candidate_id).strip()
-                                        for candidate_id in refreshed_target_album_asset_ids
-                                        if str(candidate_id).strip()
-                                    }
-                                    _set_cached_target_album_asset_ids(album_id_dest, refreshed_target_album_asset_ids)
-                                    if str(asset_id).strip() in refreshed_target_album_asset_ids:
-                                        album_association_confirmed = True
-                                    else:
-                                        LOGGER.warning(
-                                            f"Album association was not confirmed by target for asset '{os.path.basename(asset_file_path)}' "
-                                            f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
-                                        )
-                                        if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
-                                            scheduled_retry = _schedule_asset_retry(
-                                                asset=asset,
-                                                reason=f"album association to '{album_name}' was not confirmed",
-                                                resolved_target_asset_id=asset_id,
-                                                skip_target_push=True,
-                                            )
-                        except Exception as e:
-                            scheduled_retry = _schedule_asset_retry(
-                                asset=asset,
-                                reason=f"album association exception for '{album_name}': {str(e)}",
-                                resolved_target_asset_id=asset_id,
-                                skip_target_push=True,
-                            )
-                            if not scheduled_retry:
-                                LOGGER.error(f"Album Push Fail : '{album_name}'")
-                                LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
-                                SHARED_DATA.counters['total_push_failed_albums'] += 1
-                        album_assoc_elapsed_ms = (time.perf_counter() - album_assoc_started_at) * 1000.0
+                        asset['resolved_target_asset_id'] = asset_id
+                        asset['asset_started_at_perf'] = asset_started_at
+                        asset['push_elapsed_ms'] = push_elapsed_ms
+                        asset['queue_wait_ms'] = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0) if isinstance(enqueued_at_monotonic, (int, float)) else None
+                        asset['album_assoc_enqueued_at_monotonic'] = time.perf_counter()
+                        asset['asset_pushed'] = asset_pushed
+                        asset['treat_as_consumed'] = treat_as_consumed
+                        asset['isDuplicated'] = isDuplicated
+                        asset['worker_id'] = worker_id
+                        album_assoc_queue.put(asset)
+                        continue
 
-                    if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and treat_as_consumed and asset_id and album_association_confirmed:
-                        _remove_source_asset_after_move(
-                            source_client=source_client,
-                            asset_id=source_asset_id,
-                            log_level=log_level,
+                    if not scheduled_retry and (asset_pushed or treat_as_consumed):
+                        cleanup_delay_seconds = 1.0 if skip_target_push and not album_name else 0.0
+                        cleanup_elapsed_ms = _finalize_asset_success(
+                            source_asset_id=source_asset_id,
+                            asset_file_path=asset_file_path,
+                            live_photo_video_path=live_photo_video_path,
+                            album_name=album_name,
+                            asset_id=asset_id,
+                            retry_attempt=retry_attempt,
+                            asset_type=asset_type,
+                            count_push_stats=count_push_stats,
+                            move_assets=move_assets,
+                            removed_source_asset_ids=removed_source_asset_ids,
+                            processed_albums=processed_albums,
+                            processed_albums_lock=processed_albums_lock,
+                            logger=LOGGER,
+                            cleanup_delay_seconds=cleanup_delay_seconds,
                         )
-                        removed_source_asset_ids.add(source_asset_id)
-
-                    if not scheduled_retry and (asset_pushed or treat_as_consumed) and album_association_confirmed:
-                        cleanup_started_at = time.perf_counter()
-                        safe_remove_local_file(asset_file_path)
-                        if live_photo_video_path:
-                            safe_remove_local_file(live_photo_video_path)
-                        if retry_attempt > 0:
-                            SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
-                        if album_name:
-                            album_folder_path = os.path.join(temp_folder, album_name)
-                            _mark_album_pushed_if_ready(
-                                album_name=album_name,
-                                album_folder_path=album_folder_path,
-                                processed_albums=processed_albums,
-                                processed_albums_lock=processed_albums_lock,
-                                counters=SHARED_DATA.counters,
-                                logger=LOGGER,
-                            )
-                        cleanup_elapsed_ms = (time.perf_counter() - cleanup_started_at) * 1000.0
+                        album_association_confirmed = True
 
                     queue_wait_ms = None
                     if isinstance(enqueued_at_monotonic, (int, float)):
@@ -2209,6 +2491,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # Preparar la cola que compartiremos entre descargas y subidas
     # push_queue = Queue()
     push_queue = MonitoredQueue()
+    album_assoc_queue = MonitoredQueue()
 
     # Set global para almacenar paths ya añadidos
     added_file_paths = set()

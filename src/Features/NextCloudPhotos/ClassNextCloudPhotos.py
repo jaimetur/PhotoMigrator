@@ -1000,6 +1000,79 @@ class ClassNextCloudPhotos:
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
 
+    def consolidate_albums_names(self, request_user_confirmation=True, log_level=logging.WARNING):
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
+            if not albums:
+                LOGGER.info("No albums found.")
+                return 0, 0
+
+            consolidation_groups = []
+            seen_similarity_keys = set()
+            for album in tqdm(albums, desc=f"{MSG_TAGS['INFO']}Scanning albums families to consolidate", unit="albums"):
+                album_name = str((album or {}).get("albumName", "")).strip()
+                if not album_name:
+                    continue
+                plan = build_reusable_album_group(
+                    album_name=album_name,
+                    albums=albums,
+                    allow_similar=True,
+                    exact_case_sensitive=False,
+                )
+                similarity_key = str(plan.get("similarity_key") or "").strip() or album_name.casefold()
+                if similarity_key in seen_similarity_keys:
+                    continue
+                seen_similarity_keys.add(similarity_key)
+                redundant_albums = list(plan.get("redundant_albums") or [])
+                if not redundant_albums:
+                    continue
+                consolidation_groups.append({
+                    "seed_album_name": album_name,
+                    "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
+                    "keeper_album": plan.get("keeper_album") or {},
+                    "redundant_albums": redundant_albums,
+                    "similar_albums": list(plan.get("similar_albums") or []),
+                })
+
+            if not consolidation_groups:
+                LOGGER.info("No equivalent album families found to consolidate.")
+                return 0, 0
+
+            if request_user_confirmation:
+                LOGGER.info("Album families to be consolidated:")
+                for group in consolidation_groups:
+                    keeper_name = str((group.get("keeper_album") or {}).get("albumName", "")).strip() or group["preferred_album_name"]
+                    group_album_names = [
+                        str((album or {}).get("albumName", "")).strip()
+                        for album in (group.get("similar_albums") or [])
+                        if str((album or {}).get("albumName", "")).strip()
+                    ]
+                    print(f"  Keeper: '{keeper_name}' | Preferred name: '{group['preferred_album_name']}'")
+                    for candidate_name in group_album_names:
+                        print(f"    - '{candidate_name}'")
+                if not confirm_continue(force_prompt=True):
+                    LOGGER.info("Exiting program.")
+                    return 0, 0
+
+            families_consolidated = 0
+            redundant_albums_detected = 0
+            for group in consolidation_groups:
+                keeper_album, _ = self.consolidate_reusable_album_group(
+                    album_name=group["seed_album_name"],
+                    existing_albums=albums,
+                    log_level=log_level,
+                )
+                if keeper_album:
+                    families_consolidated += 1
+                    redundant_albums_detected += len(group.get("redundant_albums") or [])
+
+            LOGGER.info(
+                f"Consolidated {families_consolidated} album family(ies). "
+                f"Detected {redundant_albums_detected} redundant album variant(s)."
+            )
+            return families_consolidated, redundant_albums_detected
+
     def get_duplicates_assets(self, log_level=None):
         with set_log_level(LOGGER, log_level):
             return []

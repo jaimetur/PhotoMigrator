@@ -261,6 +261,25 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   ./PhotoMigrator.bin --client=immich --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
   ```
   With these examples, the Tool can replace literal text such as double dashes, use simple wildcards to target leading or inner matches, or apply a regular-expression replacement such as turning "2023-08-15 - Vacation photos" into "DATE - Vacation photos".
+
+
+## Consolidate Albums Names from Immich Photos:
+- **From:** v4.4.1
+- **Usage:**
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`--consolidate-albums-names`**_
+- **Pre-Requisites:**
+  - Configure properly the file `Config.ini` to include your Immich account credentials and url.
+- **Explanation:**
+  - The Tool will connect automatically to your Immich Photos account and will scan the albums that already exist in the cloud looking for equivalent album-name families.
+  - It uses the same family-detection logic as _**`--consolidate-similar-albums`**_, so names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` are treated as the same family.
+  - Assets from redundant variants are reassigned directly in Immich Photos to the preferred keeper album without uploading any new asset.
+  - Once the reassignment is confirmed, the redundant album variants are removed.
+  - If you also include _**`--preview-album-actions`**_ then the detected album families will be listed and the tool will ask for confirmation before consolidating them.
+- **Example of use:**
+  ```
+  ./PhotoMigrator.bin --client=immich --consolidate-albums-names --preview-album-actions
+  ```
   
 
 ## Remove Empty Albums from Immich Photos:

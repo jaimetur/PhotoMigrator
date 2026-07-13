@@ -59,6 +59,7 @@ FEATURE_LABELS = {
     "upload-all": "Upload All",
     "download-all": "Download All",
     "rename-albums": "Rename Albums",
+    "consolidate-albums-names": "Consolidate Albums Names",
     "remove-albums": "Remove Albums",
     "remove-all-albums": "Remove All Albums",
     "remove-all-assets": "Remove All Assets",
@@ -183,6 +184,7 @@ CLOUD_DESTS = {
     "upload-all",
     "download-all",
     "rename-albums",
+    "consolidate-albums-names",
     "remove-albums",
     "remove-all-albums",
     "remove-all-assets",
@@ -193,13 +195,14 @@ CLOUD_DESTS = {
     "one-time-password",
 }
 CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
-    "google_photos": {"upload-albums", "download-albums", "upload-all", "download-all"},
+    "google_photos": {"upload-albums", "download-albums", "upload-all", "download-all", "consolidate-albums-names"},
     "synology_photos": {
         "upload-albums",
         "download-albums",
         "upload-all",
         "download-all",
         "rename-albums",
+        "consolidate-albums-names",
         "remove-albums",
         "remove-all-albums",
         "remove-all-assets",
@@ -213,6 +216,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "upload-all",
         "download-all",
         "rename-albums",
+        "consolidate-albums-names",
         "remove-albums",
         "remove-all-albums",
         "remove-all-assets",
@@ -227,6 +231,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "upload-all",
         "download-all",
         "rename-albums",
+        "consolidate-albums-names",
         "remove-albums",
         "remove-all-albums",
         "remove-all-assets",
@@ -284,12 +289,14 @@ MODULE_ACTION_ARGUMENTS = {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [{"dest": "preview-album-actions", "required": False}],
     },
     "synology_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
@@ -299,6 +306,7 @@ MODULE_ACTION_ARGUMENTS = {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
@@ -308,6 +316,7 @@ MODULE_ACTION_ARGUMENTS = {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},

@@ -451,6 +451,7 @@
         "upload-all": "Upload All",
         "download-all": "Download All",
         "rename-albums": "Rename Albums",
+        "consolidate-albums-names": "Consolidate Albums Names",
         "remove-albums": "Remove Albums",
         "remove-all-albums": "Remove All Albums",
         "remove-all-assets": "Remove All Assets",
@@ -503,6 +504,7 @@
             "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -511,6 +513,7 @@
             "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -519,6 +522,7 @@
             "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -527,6 +531,7 @@
             "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -543,13 +548,14 @@
     };
 
     const CLOUD_ACTIONS_AVAILABLE = {
-        google_photos: ["upload-albums", "download-albums", "upload-all", "download-all"],
+        google_photos: ["upload-albums", "download-albums", "upload-all", "download-all", "consolidate-albums-names"],
         synology_photos: [
             "upload-albums",
             "download-albums",
             "upload-all",
             "download-all",
             "rename-albums",
+            "consolidate-albums-names",
             "remove-albums",
             "remove-all-albums",
             "remove-all-assets",
@@ -557,12 +563,28 @@
             "remove-duplicates-albums",
             "merge-duplicates-albums"
         ],
+        immich_photos: [
+            "upload-albums",
+            "download-albums",
+            "upload-all",
+            "download-all",
+            "rename-albums",
+            "consolidate-albums-names",
+            "remove-albums",
+            "remove-all-albums",
+            "remove-all-assets",
+            "remove-empty-albums",
+            "remove-duplicates-albums",
+            "merge-duplicates-albums",
+            "remove-orphan-assets"
+        ],
         nextcloud_photos: [
             "upload-albums",
             "download-albums",
             "upload-all",
             "download-all",
             "rename-albums",
+            "consolidate-albums-names",
             "remove-albums",
             "remove-all-albums",
             "remove-all-assets",
@@ -632,6 +654,8 @@
             let message = "";
             if (action === "rename-albums") {
                 message = `This module will rename albums in ${clientLabel} whose names match your pattern, using the replacement pattern.`;
+            } else if (action === "consolidate-albums-names") {
+                message = `This module will consolidate equivalent album-name families already existing in ${clientLabel} without uploading new assets.`;
             } else if (action === "remove-albums") {
                 message = removeAlbumAssets
                     ? `This module will delete albums in ${clientLabel} whose names match your pattern, and it will also delete all assets inside those albums.`

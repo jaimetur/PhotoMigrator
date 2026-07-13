@@ -122,6 +122,15 @@ def set_help_texts():
             Use '--preview-album-actions' if you want to preview the affected albums and request confirmation before applying the action.
             """)
 
+    HELP_TEXTS["consolidate-albums-names"] = textwrap.dedent(f"""
+            CAUTION!!! The Tool will scan your existing cloud albums and consolidate equivalent album-name families directly in the cloud without uploading new assets.
+            It uses the same family-detection rules as '--consolidate-similar-albums', so names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', or 'New_Album 1'
+            are treated as the same album family.
+            On services that support album deletion (Immich, Synology, NextCloud), the redundant albums are removed after their assets are reassigned to the preferred keeper album.
+            On Google Photos, the redundant variants remain because the public API does not allow deleting albums.
+            Use '--preview-album-actions' if you want to preview the detected album families and request confirmation before applying the action.
+            """)
+
     ############################
     # OTHER STANDALONE FEATURES:
     ############################
