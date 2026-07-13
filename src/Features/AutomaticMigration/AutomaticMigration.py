@@ -12,7 +12,7 @@ import unicodedata
 from collections import Counter, deque
 from datetime import datetime, timedelta
 from pathlib import Path
-from queue import Queue, Empty
+from queue import Queue, Empty, PriorityQueue
 from typing import Union, cast
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
@@ -287,6 +287,31 @@ def _mark_album_pushed_if_ready(album_name, album_folder_path, processed_albums,
         counters['total_pushed_albums'] += 1
         logger.info(f"Album Pushed    : '{album_name}'")
         return True
+
+
+def _album_finalize_wait_reason(album_folder_path, pending_duplicate_keys=None):
+    pending_duplicate_keys = pending_duplicate_keys or set()
+    if not album_folder_path or not os.path.isdir(album_folder_path):
+        return "album folder missing"
+
+    active_file = os.path.join(album_folder_path, ".active")
+    if os.path.exists(active_file):
+        return "album still active"
+
+    remaining_files = []
+    for entry in os.listdir(album_folder_path):
+        if entry == ".active" or entry.endswith(".lock"):
+            continue
+        file_path = os.path.join(album_folder_path, entry)
+        if os.path.isfile(file_path) and path_key(file_path) not in pending_duplicate_keys:
+            remaining_files.append(file_path)
+    if remaining_files:
+        return f"{len(remaining_files)} pending file(s)"
+
+    if pending_duplicate_keys:
+        return f"{len(pending_duplicate_keys)} pending duplicate resolution item(s)"
+
+    return "album folder not removable yet"
 
 
 def restore_log_info_on_exception(func):
@@ -717,13 +742,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         len(album_assoc_retry_delays_seconds),
         max(0, int(ARGS.get("album-association-retries", 0) or 0)),
     )
-    default_album_assoc_batch_size = 25 if isinstance(target_client, ClassImmichPhotos) else 100
+    default_album_assoc_batch_size = 10 if isinstance(target_client, ClassImmichPhotos) else 100
     album_assoc_batch_size = max(5, int(ARGS.get("album-association-batch-size", default_album_assoc_batch_size) or default_album_assoc_batch_size))
     album_assoc_flush_interval_seconds = max(0.1, float(ARGS.get("album-association-flush-interval-seconds", 0.75) or 0.75))
     defer_album_association_until_album_end = bool(ARGS.get("defer-album-association-until-album-end", True))
+    push_queue_priority_enabled = bool(ARGS.get("push-queue-priority-enabled", True))
     retry_heap = []
     retry_condition = threading.Condition()
     retry_sequence = {"value": 0}
+    push_queue_sequence = {"value": 0}
     retry_scheduler_stop = threading.Event()
     retries_enabled = max_push_retries > 0 or max_album_assoc_retries > 0
 
@@ -765,6 +792,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     album_assoc_locks_lock = threading.Lock()
     pending_duplicate_resolution_by_album = {}
     pending_duplicate_resolution_lock = threading.Lock()
+    album_finalize_wait_log_by_album = {}
+    album_finalize_wait_log_lock = threading.Lock()
     album_finalize_locks = {}
     album_finalize_locks_lock = threading.Lock()
     immich_uploaded_records = []
@@ -1318,6 +1347,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         album_folder_path = os.path.join(temp_folder, album_name)
         finalize_lock = _get_album_finalize_lock(album_name)
 
+        def _log_finalize_wait(reason):
+            if not reason:
+                return
+            now = time.perf_counter()
+            with album_finalize_wait_log_lock:
+                last_logged_at = float(album_finalize_wait_log_by_album.get(album_name, 0.0) or 0.0)
+                if now - last_logged_at < 10.0:
+                    return
+                album_finalize_wait_log_by_album[album_name] = now
+            logger.info(f"Album Finalize Waiting: '{album_name}' - {reason}")
+
         with finalize_lock:
             with processed_albums_lock:
                 if album_name in processed_albums:
@@ -1328,6 +1368,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             active_file = os.path.join(album_folder_path, ".active")
             if os.path.exists(active_file):
+                _log_finalize_wait("album still active")
                 return False
 
             remaining_files = _list_album_remaining_files(album_folder_path)
@@ -1338,6 +1379,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 if path_key(file_path) not in pending_duplicate_keys
             ]
             if non_pending_files:
+                _log_finalize_wait(f"{len(non_pending_files)} pending file(s)")
                 return False
 
             if pending_duplicate_items:
@@ -1405,9 +1447,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         )
                     if unresolved_items:
                         _set_pending_duplicate_resolution_items(album_name, unresolved_items)
+                        _log_finalize_wait(f"{len(unresolved_items)} pending duplicate resolution item(s)")
                         return False
 
             if _list_album_remaining_files(album_folder_path):
+                _log_finalize_wait(
+                    _album_finalize_wait_reason(
+                        album_folder_path=album_folder_path,
+                        pending_duplicate_keys=_get_pending_duplicate_file_keys(album_name),
+                    )
+                )
                 return False
 
             _apply_final_album_naming(
@@ -1544,7 +1593,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     heapq.heappop(retry_heap)
                     SHARED_DATA.info['delayed_assets_pending'] = len(retry_heap)
                 _refresh_queue_depth()
-                push_queue.put(retry_asset)
+                _push_queue_put(retry_asset)
                 retry_kind = str(retry_asset.get('retry_kind') or 'push').strip().lower()
                 if retry_kind == 'album_assoc':
                     LOGGER.info(
@@ -1595,11 +1644,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 return
             album_lock = _get_album_association_lock(album_id_dest or album_name_to_query or album_name)
             with album_lock:
-                target_album_asset_ids = _get_cached_target_album_asset_ids(
-                    album_id=album_id_dest,
-                    album_name=album_name_to_query,
-                    log_level=logging.ERROR,
-                )
+                if isinstance(target_client, ClassImmichPhotos):
+                    with target_album_asset_ids_lock:
+                        target_album_asset_ids = set(target_album_asset_ids_cache.get(str(album_id_dest or "").strip(), set()))
+                else:
+                    target_album_asset_ids = _get_cached_target_album_asset_ids(
+                        album_id=album_id_dest,
+                        album_name=album_name_to_query,
+                        log_level=logging.ERROR,
+                    )
 
                 already_present_ids = {
                     asset_id for _, asset_id in normalized_items
@@ -1885,6 +1938,26 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 break
             time.sleep(0.25)
 
+    def _get_push_queue_priority(item):
+        if not push_queue_priority_enabled:
+            return 0
+        if item is None:
+            return 99
+        asset_type = str((item or {}).get("asset_type", "") or "").strip().lower()
+        if asset_type in video_labels:
+            return 10
+        return 0
+
+    def _push_queue_put(item):
+        with retry_condition:
+            push_queue_sequence["value"] += 1
+            sequence = push_queue_sequence["value"]
+        push_queue.put((_get_push_queue_priority(item), sequence, item))
+
+    def _push_queue_get():
+        _, _, item = push_queue.get()
+        return item
+
     # ----------------------------------------------------------------------------------------
     # function to ensure that the puller put only 1 asset with the same filepath to the queue
     # ----------------------------------------------------------------------------------------
@@ -1915,14 +1988,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     pass
 
             # Añadir a la cola y al registro global
-            push_queue.put(item_dict)
+            _push_queue_put(item_dict)
             added_file_paths.add(asset_file_path)
             return True
 
     def is_asset_in_queue(queue, path):
         """Comprueba si el path está presente en la cola (sin distinguir mayúsculas/minúsculas)."""
         with queue.mutex:
-            return any(item['asset_file_path'].lower() == path.lower() for item in list(queue.queue))
+            for queued in list(queue.queue):
+                queued_item = queued[2] if isinstance(queued, tuple) and len(queued) == 3 else queued
+                if not isinstance(queued_item, dict):
+                    continue
+                queued_path = str(queued_item.get('asset_file_path', '')).lower()
+                if queued_path == path.lower():
+                    return True
+            return False
 
     def infer_asset_type_from_path(file_path, fallback_type):
         """Infers media type from extension; falls back to source type when unknown."""
@@ -2346,7 +2426,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             # 6) Inyectar un None por cada pusher para que lean la señal de fin
             for _ in range(num_push_threads):
-                push_queue.put(None)
+                _push_queue_put(None)
 
             # 7) Esperar a que los pushers consuman su None y terminen
             for t in push_threads:
@@ -2764,7 +2844,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 try:
                     # Extraemos el siguiente asset de la cola
                     # time.sleep(0.7)  # Esto es por si queremos ralentizar el worker de subidas
-                    asset = push_queue.get()
+                    asset = _push_queue_get()
 
                     if asset is None:
                         # Señal de fin: marcamos la tarea y salimos
@@ -3027,7 +3107,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     # Preparar la cola que compartiremos entre descargas y subidas
     # push_queue = Queue()
-    push_queue = MonitoredQueue()
+    class MonitoredPriorityQueue(PriorityQueue):
+        def put(self, item, *args, **kwargs):
+            super().put(item, *args, **kwargs)
+            _refresh_queue_depth()
+
+        def get(self, *args, **kwargs):
+            item = super().get(*args, **kwargs)
+            _refresh_queue_depth()
+            return item
+
+    push_queue = MonitoredPriorityQueue() if push_queue_priority_enabled else MonitoredQueue()
     album_assoc_queue = MonitoredQueue()
 
     # Set global para almacenar paths ya añadidos
