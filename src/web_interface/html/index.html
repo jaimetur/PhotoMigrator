@@ -1273,17 +1273,11 @@
         return `${h}:${m}:${s}`;
     }
 
-    function computeEstimatedRemainingDuration({elapsedMs = 0, totalAssets = 0, pushedAssets = 0, pushFailedAssets = 0, pushDuplicates = 0}) {
+    function computeEstimatedRemainingDuration({elapsedMs = 0, totalAssets = 0, pulledAssets = 0}) {
         const total = Math.max(0, Number(totalAssets || 0));
         if (!Number.isFinite(total) || total <= 0) return "-";
 
-        const processed = Math.min(
-            total,
-            Math.max(
-                0,
-                Number(pushedAssets || 0) + Number(pushFailedAssets || 0) + Number(pushDuplicates || 0)
-            )
-        );
+        const processed = Math.min(total, Math.max(0, Number(pulledAssets || 0)));
         const pending = Math.max(0, total - processed);
         if (pending <= 0) return "00:00:00";
         if (processed <= 0) return "Estimating...";
@@ -1356,10 +1350,48 @@
         return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
     }
 
+    const DASHBOARD_MONOTONIC_KEYS = new Set([
+        "totalAssets",
+        "totalPhotos",
+        "totalVideos",
+        "totalAlbums",
+        "totalMetadata",
+        "totalSidecar",
+        "totalInvalid",
+        "blockedAlbums",
+        "blockedAssets",
+        "pulledAssets",
+        "pulledPhotos",
+        "pulledVideos",
+        "pulledAlbums",
+        "pullFailedAssets",
+        "pullFailedPhotos",
+        "pullFailedVideos",
+        "pullFailedAlbums",
+        "pushedAssets",
+        "pushedPhotos",
+        "pushedVideos",
+        "pushedAlbums",
+        "pushDuplicates",
+        "pushFailedAssets",
+        "pushFailedPhotos",
+        "pushFailedVideos",
+        "pushFailedAlbums",
+    ]);
+
     function mergeDashboardStats(primaryStats = {}, fallbackStats = {}) {
         const merged = {...(fallbackStats || {})};
         Object.entries(primaryStats || {}).forEach(([key, value]) => {
-            if (isMeaningfulDashboardValue(value)) merged[key] = value;
+            if (!isMeaningfulDashboardValue(value)) return;
+            if (
+                DASHBOARD_MONOTONIC_KEYS.has(key)
+                && Number.isFinite(Number(merged[key]))
+                && Number.isFinite(Number(value))
+            ) {
+                merged[key] = Math.max(Number(merged[key]), Number(value));
+                return;
+            }
+            merged[key] = value;
         });
         return merged;
     }
@@ -1561,9 +1593,7 @@
         const estimated = computeEstimatedRemainingDuration({
             elapsedMs,
             totalAssets: stats.totalAssets,
-            pushedAssets: stats.pushedAssets,
-            pushFailedAssets: stats.pushFailedAssets,
-            pushDuplicates: stats.pushDuplicates,
+            pulledAssets: stats.pulledAssets,
         });
         const now = new Date();
         const updated = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;

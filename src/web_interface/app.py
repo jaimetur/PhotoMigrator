@@ -2416,11 +2416,46 @@ def _extract_dashboard_stats_from_output(raw_text: str) -> Dict[str, Any]:
     return stats
 
 
+_DASHBOARD_MONOTONIC_KEYS = {
+    "totalAssets",
+    "totalPhotos",
+    "totalVideos",
+    "totalAlbums",
+    "totalMetadata",
+    "totalSidecar",
+    "totalInvalid",
+    "blockedAlbums",
+    "blockedAssets",
+    "pulledAssets",
+    "pulledPhotos",
+    "pulledVideos",
+    "pulledAlbums",
+    "pullFailedAssets",
+    "pullFailedPhotos",
+    "pullFailedVideos",
+    "pullFailedAlbums",
+    "pushedAssets",
+    "pushedPhotos",
+    "pushedVideos",
+    "pushedAlbums",
+    "pushDuplicates",
+    "pushFailedAssets",
+    "pushFailedPhotos",
+    "pushFailedVideos",
+    "pushFailedAlbums",
+}
+
+
 def _merge_dashboard_snapshot(previous: Dict[str, Any], current: Dict[str, Any]) -> Dict[str, Any]:
     merged = dict(previous or {})
     for key, value in current.items():
         if value is None:
             continue
+        if key in _DASHBOARD_MONOTONIC_KEYS:
+            prev_value = merged.get(key)
+            if isinstance(prev_value, (int, float)) and isinstance(value, (int, float)):
+                merged[key] = max(prev_value, value)
+                continue
         merged[key] = value
     return merged
 

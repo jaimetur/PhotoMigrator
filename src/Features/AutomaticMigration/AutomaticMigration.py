@@ -84,14 +84,13 @@ def _format_hms_from_seconds(total_seconds):
     return str(timedelta(seconds=safe_seconds))
 
 
-def _compute_dashboard_estimated_time(elapsed_seconds, total_assets, processed_assets, pending_assets=None):
+def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending_assets, total_assets=None):
     total_assets = max(0, _parse_int(total_assets, 0))
     processed_assets = max(0, _parse_int(processed_assets, 0))
-    if pending_assets is None:
-        pending_assets = max(0, total_assets - processed_assets)
-    else:
-        pending_assets = max(0, _parse_int(pending_assets, 0))
+    pending_assets = max(0, _parse_int(pending_assets, 0))
 
+    if total_assets <= 0 and (processed_assets > 0 or pending_assets > 0):
+        total_assets = processed_assets + pending_assets
     if total_assets <= 0:
         return "-"
     if pending_assets <= 0:
@@ -712,7 +711,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     retry_delay_seconds = max(60, int(ARGS.get("push-failed-asset-retry-delay-seconds", 180) or 180))
     max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 3) or 3))
     retry_backoff_factor = max(1, int(ARGS.get("push-failed-asset-retry-backoff-factor", 1) or 1))
-    album_assoc_retry_delays_seconds = [2, 10, 30]
+    # Album-association retries are short verification retries, not real upload retries.
+    # Keep them noticeably shorter than push-failure retries so duplicate-heavy albums
+    # do not sit around for tens of seconds waiting for confirmation rechecks.
+    album_assoc_retry_delays_seconds = [2, 5, 10]
     max_album_assoc_retries = len(album_assoc_retry_delays_seconds)
     default_album_assoc_batch_size = 25 if isinstance(target_client, ClassImmichPhotos) else 100
     album_assoc_batch_size = max(5, int(ARGS.get("album-association-batch-size", default_album_assoc_batch_size) or default_album_assoc_batch_size))
@@ -3231,20 +3233,15 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 total_assets = int(SHARED_DATA.info.get('total_assets', 0) or 0)
                 processed_assets = min(
                     total_assets,
-                    max(
-                        0,
-                        int(SHARED_DATA.counters.get('total_pushed_assets', 0) or 0)
-                        + int(SHARED_DATA.counters.get('total_push_failed_assets', 0) or 0)
-                        + int(SHARED_DATA.counters.get('total_push_duplicates_assets', 0) or 0)
-                    )
+                    max(0, int(SHARED_DATA.counters.get('total_pulled_assets', 0) or 0))
                 )
                 pending_assets = max(0, total_assets - processed_assets)
                 elapsed_seconds = max(0.0, (datetime.now() - step_start_time).total_seconds())
                 SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time(
                     elapsed_seconds=elapsed_seconds,
-                    total_assets=total_assets,
                     processed_assets=processed_assets,
                     pending_assets=pending_assets,
+                    total_assets=total_assets,
                 )
                 # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
                 filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
