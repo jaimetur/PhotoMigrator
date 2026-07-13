@@ -1341,7 +1341,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     asset_id for _, asset_id in normalized_items
                     if asset_id not in target_album_asset_ids
                 ]
-                if missing_asset_ids:
+
+                retried_missing_count = 0
+                if missing_asset_ids and not isinstance(target_client, ClassImmichPhotos):
                     refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
                         album_id=album_id_dest,
                         album_name=album_name_to_query,
@@ -1354,7 +1356,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if asset_id not in target_album_asset_ids
                     ]
 
-                if missing_asset_ids and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                if missing_asset_ids and isinstance(target_client, ClassSynologyPhotos):
                     time.sleep(0.75)
                     refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
                         album_id=album_id_dest,
@@ -1367,35 +1369,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         asset_id for _, asset_id in normalized_items
                         if asset_id not in target_album_asset_ids
                     ]
-
-                retried_missing_count = 0
-                if missing_asset_ids and isinstance(target_client, ClassImmichPhotos):
-                    retry_result = target_client.add_assets_to_album(
-                        album_id=album_id_dest,
-                        asset_ids=missing_asset_ids,
-                        album_name=album_name,
-                        log_level=logging.ERROR,
-                        return_details=True,
-                    )
-                    if isinstance(retry_result, dict):
-                        retry_confirmed_ids = {
-                            str(asset_id).strip()
-                            for asset_id in retry_result.get("confirmed_asset_ids", set())
-                            if str(asset_id).strip()
-                        }
-                        retried_missing_count = len(retry_confirmed_ids)
-                        if retry_confirmed_ids:
-                            _mark_target_album_assets_present(album_id_dest, retry_confirmed_ids)
-                            target_album_asset_ids = set(target_album_asset_ids).union(retry_confirmed_ids)
-                    if retried_missing_count or missing_asset_ids:
-                        time.sleep(1.0)
-                        refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
-                            album_id=album_id_dest,
-                            album_name=album_name_to_query,
-                            log_level=logging.ERROR,
-                        )
-                        if len(refreshed_target_album_asset_ids) >= len(target_album_asset_ids):
-                            target_album_asset_ids = refreshed_target_album_asset_ids
 
                 confirmed_ids = {
                     asset_id for _, asset_id in normalized_items
