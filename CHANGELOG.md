@@ -17,6 +17,7 @@
   - Updated GPTH to v6.1.9 which includes an important Bug Fix.
   - Optimized `Automatic Migration` album association for duplicate-resolved uploads. Destination album membership is now cached per resolved target album so assets that already belong to the final destination album are no longer re-added repeatedly, which significantly reduces redundant `add to album` calls on `Immich`/`Synology` when migrating processed `Google Takeout` or other album-heavy sources with many duplicates.
   - Added targeted `DEBUG` performance traces for `Automatic Migration` local-folder pipelines and the Web Interface live log/dashboard path. Debug logs now include per-asset pull/push/album-association timing plus backend dashboard snapshot/output processing timings, and the browser can emit optional `console.debug` render timings when `debug_web_perf=1` or `localStorage.photomigrator_web_perf_debug = \"1\"` is enabled.
+  - Restricted live `cProfile` dumps during `Automatic Migration` to `VERBOSE` mode only, and preserved the effective runtime log level inside the migration pipeline so `DEBUG` diagnostics such as `[PERF]` pull/push traces remain visible when `--log-level debug` is used.
 
 #### 🚀 GPTH Enhancements:
 ##### 🐛 GPTH Bug Fixes

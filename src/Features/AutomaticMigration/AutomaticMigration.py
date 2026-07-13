@@ -615,7 +615,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
             # ---------------------------------------------------------------------------------------------------------
             try:
-                parallel_automatic_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
+                parallel_automatic_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=log_level)
             except Exception:
                 # 1) Mostrar el stack trace completo en stderr (o stdout)
                 traceback.print_exc()

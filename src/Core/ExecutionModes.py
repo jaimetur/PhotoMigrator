@@ -76,7 +76,7 @@ def detect_and_run_execution_mode():
     if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
 
-        if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
+        if LOG_LEVEL == VERBOSE_LEVEL_NUM:
             step_name = ''
             # Configure and start the profiler right before the call you want to measure
             LOGGER.debug(f"{step_name}Profiling Function mode_AUTOMATIC_MIGRATION")
