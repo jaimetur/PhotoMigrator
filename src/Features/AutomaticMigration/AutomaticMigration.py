@@ -709,20 +709,23 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # Protector para que no se pisen las actualizaciones de métricas
     metrics_lock = threading.Lock()
     retry_delay_seconds = max(60, int(ARGS.get("push-failed-asset-retry-delay-seconds", 180) or 180))
-    max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 3) or 3))
+    # Keep failed uploads in the temp folder by default instead of re-enqueueing them.
+    max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 0) or 0))
     retry_backoff_factor = max(1, int(ARGS.get("push-failed-asset-retry-backoff-factor", 1) or 1))
-    # Album-association retries are short verification retries, not real upload retries.
-    # Keep them noticeably shorter than push-failure retries so duplicate-heavy albums
-    # do not sit around for tens of seconds waiting for confirmation rechecks.
     album_assoc_retry_delays_seconds = [2, 5, 10]
-    max_album_assoc_retries = len(album_assoc_retry_delays_seconds)
+    max_album_assoc_retries = min(
+        len(album_assoc_retry_delays_seconds),
+        max(0, int(ARGS.get("album-association-retries", 0) or 0)),
+    )
     default_album_assoc_batch_size = 25 if isinstance(target_client, ClassImmichPhotos) else 100
     album_assoc_batch_size = max(5, int(ARGS.get("album-association-batch-size", default_album_assoc_batch_size) or default_album_assoc_batch_size))
     album_assoc_flush_interval_seconds = max(0.1, float(ARGS.get("album-association-flush-interval-seconds", 0.75) or 0.75))
+    defer_album_association_until_album_end = bool(ARGS.get("defer-album-association-until-album-end", True))
     retry_heap = []
     retry_condition = threading.Condition()
     retry_sequence = {"value": 0}
     retry_scheduler_stop = threading.Event()
+    retries_enabled = max_push_retries > 0 or max_album_assoc_retries > 0
 
     def _refresh_queue_depth():
         with metrics_lock:
@@ -1769,6 +1772,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         removed_source_asset_ids = set()
         pending_by_album = {}
         pending_order = []
+        completed_album_keys = set()
         stop_requested = False
 
         def flush_ready(force=False):
@@ -1779,23 +1783,46 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 state = pending_by_album.get(album_key)
                 if not state:
                     continue
-                should_flush = force or len(state["items"]) >= album_assoc_batch_size or (now - state["first_enqueued_at"]) >= album_assoc_flush_interval_seconds
-                if should_flush:
-                    batch_items = state["items"]
+                if defer_album_association_until_album_end:
+                    album_is_complete = bool(state.get("album_complete")) or album_key in completed_album_keys
+                    if force:
+                        album_is_complete = True
+                    if not album_is_complete:
+                        remaining_order.append(album_key)
+                        continue
+                    while state["items"]:
+                        batch_items = state["items"][:album_assoc_batch_size]
+                        state["items"] = state["items"][album_assoc_batch_size:]
+                        _flush_album_association_batch(
+                            album_name=album_key,
+                            batch_items=batch_items,
+                            worker_id=worker_id,
+                            removed_source_asset_ids=removed_source_asset_ids,
+                            processed_albums=processed_albums,
+                            processed_albums_lock=processed_albums_lock,
+                            log_level=log_level,
+                        )
+                        for _ in batch_items:
+                            album_assoc_queue.task_done()
                     pending_by_album.pop(album_key, None)
-                    _flush_album_association_batch(
-                        album_name=album_key,
-                        batch_items=batch_items,
-                        worker_id=worker_id,
-                        removed_source_asset_ids=removed_source_asset_ids,
-                        processed_albums=processed_albums,
-                        processed_albums_lock=processed_albums_lock,
-                        log_level=log_level,
-                    )
-                    for _ in batch_items:
-                        album_assoc_queue.task_done()
                 else:
-                    remaining_order.append(album_key)
+                    should_flush = force or len(state["items"]) >= album_assoc_batch_size or (now - state["first_enqueued_at"]) >= album_assoc_flush_interval_seconds
+                    if should_flush:
+                        batch_items = state["items"]
+                        pending_by_album.pop(album_key, None)
+                        _flush_album_association_batch(
+                            album_name=album_key,
+                            batch_items=batch_items,
+                            worker_id=worker_id,
+                            removed_source_asset_ids=removed_source_asset_ids,
+                            processed_albums=processed_albums,
+                            processed_albums_lock=processed_albums_lock,
+                            log_level=log_level,
+                        )
+                        for _ in batch_items:
+                            album_assoc_queue.task_done()
+                    else:
+                        remaining_order.append(album_key)
             pending_order = remaining_order
 
         with set_log_level(LOGGER, log_level):
@@ -1816,10 +1843,30 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         break
                     continue
 
+                if item.get("_album_done"):
+                    album_key = item.get("album_name") or ""
+                    completed_album_keys.add(album_key)
+                    state = pending_by_album.get(album_key)
+                    if state is None:
+                        state = {"items": [], "first_enqueued_at": time.perf_counter(), "album_complete": True}
+                        pending_by_album[album_key] = state
+                        pending_order.append(album_key)
+                    else:
+                        state["album_complete"] = True
+                    album_assoc_queue.task_done()
+                    flush_ready(force=False)
+                    if stop_requested and not pending_by_album:
+                        break
+                    continue
+
                 album_key = item.get("album_name") or ""
                 state = pending_by_album.get(album_key)
                 if state is None:
-                    state = {"items": [], "first_enqueued_at": time.perf_counter()}
+                    state = {
+                        "items": [],
+                        "first_enqueued_at": time.perf_counter(),
+                        "album_complete": album_key in completed_album_keys,
+                    }
                     pending_by_album[album_key] = state
                     pending_order.append(album_key)
                 state["items"].append(item)
@@ -2258,16 +2305,19 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 )
                 for worker_id in range(num_album_assoc_threads)
             ]
-            retry_thread = threading.Thread(
-                target=retry_scheduler_worker,
-                kwargs={"log_level": log_level},
-                daemon=True,
-            )
+            retry_thread = None
+            if retries_enabled:
+                retry_thread = threading.Thread(
+                    target=retry_scheduler_worker,
+                    kwargs={"log_level": log_level},
+                    daemon=True,
+                )
 
             # 1) Arrancar pullers
             for t in pull_threads:
                 t.start()
-            retry_thread.start()
+            if retry_thread is not None:
+                retry_thread.start()
             for t in album_assoc_threads:
                 t.start()
 
@@ -2288,10 +2338,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # 5) Esperar a que la cola se vacíe (assets reales y todos los re‑enqueues)
             _wait_until_push_pipeline_drains()
 
-            retry_scheduler_stop.set()
-            with retry_condition:
-                retry_condition.notify_all()
-            retry_thread.join()
+            if retry_thread is not None:
+                retry_scheduler_stop.set()
+                with retry_condition:
+                    retry_condition.notify_all()
+                retry_thread.join()
 
             # 6) Inyectar un None por cada pusher para que lean la señal de fin
             for _ in range(num_push_threads):
@@ -2558,6 +2609,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                 # Incrementamos contador de álbumes descargados
                 SHARED_DATA.counters['total_pulled_albums'] += 1
+                if defer_album_association_until_album_end:
+                    album_assoc_queue.put({
+                        "album_name": album_name,
+                        "_album_done": True,
+                    })
                 LOGGER.info(f"Album Pulled    : '{album_name}'")
 
             # 1.2) Descarga de assets sin álbum

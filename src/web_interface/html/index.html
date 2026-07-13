@@ -131,6 +131,7 @@
                 </div>
                 <div class="web-dashboard__meta">
                     <span id="web-dashboard-elapsed">Elapsed: 00:00:00</span>
+                    <span id="web-dashboard-estimated">Estimated: -</span>
                     <span id="web-dashboard-updated">Updated: -</span>
                 </div>
                 <div class="stats-columns">
@@ -1611,6 +1612,7 @@
         chip.dataset.state = normalizedStatus;
 
         document.getElementById("web-dashboard-elapsed").textContent = `Elapsed: ${elapsed}`;
+        document.getElementById("web-dashboard-estimated").textContent = `Estimated: ${estimated}`;
         document.getElementById("web-dashboard-updated").textContent = `Updated: ${updated}`;
         setText("dash-total-assets", stats.totalAssets);
         setText("dash-total-photos", stats.totalPhotos);
