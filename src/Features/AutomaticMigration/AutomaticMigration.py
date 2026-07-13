@@ -1461,15 +1461,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         finalize_lock = _get_album_finalize_lock(album_name)
 
         def _log_finalize_wait(reason):
-            if not reason:
-                return
-            now = time.perf_counter()
-            with album_finalize_wait_log_lock:
-                last_logged_at = float(album_finalize_wait_log_by_album.get(album_name, 0.0) or 0.0)
-                if now - last_logged_at < 10.0:
-                    return
-                album_finalize_wait_log_by_album[album_name] = now
-            logger.info(f"Album Finalize Waiting: '{album_name}' - {reason}")
+            return
 
         with finalize_lock:
             with processed_albums_lock:
