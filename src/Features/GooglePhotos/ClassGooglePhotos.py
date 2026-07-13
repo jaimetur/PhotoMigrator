@@ -20,7 +20,7 @@ from Core.GlobalVariables import (
     VIDEO_EXT,
 )
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
-from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled
+from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
 
 
 class ClassGooglePhotos:
@@ -685,33 +685,12 @@ class ClassGooglePhotos:
                 LOGGER.info("No albums found.")
                 return 0, 0
 
-            consolidation_groups = []
-            seen_similarity_keys = set()
-            for album in tqdm(albums, desc=f"{MSG_TAGS['INFO']}Scanning albums families to consolidate", unit="albums"):
-                album_name = str((album or {}).get("albumName", "")).strip()
-                if not album_name:
-                    continue
-                plan = build_reusable_album_group(
-                    album_name=album_name,
-                    albums=albums,
-                    allow_similar=True,
-                    exact_case_sensitive=False,
-                )
-                similarity_key = str(plan.get("similarity_key") or "").strip() or album_name.casefold()
-                if similarity_key in seen_similarity_keys:
-                    continue
-                seen_similarity_keys.add(similarity_key)
-                redundant_albums = list(plan.get("redundant_albums") or [])
-                if not redundant_albums:
-                    continue
-                consolidation_groups.append({
-                    "seed_album_name": album_name,
-                    "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
-                    "keeper_album": plan.get("keeper_album") or {},
-                    "should_create_preferred_album": bool(plan.get("should_create_preferred_album")),
-                    "redundant_albums": redundant_albums,
-                    "similar_albums": list(plan.get("similar_albums") or []),
-                })
+            consolidation_groups = scan_album_consolidation_groups(
+                albums=albums,
+                exact_case_sensitive=False,
+                progress_desc=f"{MSG_TAGS['INFO']}Scanning albums families to consolidate",
+                progress_unit="albums",
+            )
 
             if not consolidation_groups:
                 LOGGER.info("No equivalent album families found to consolidate.")
@@ -719,20 +698,7 @@ class ClassGooglePhotos:
 
             if request_user_confirmation:
                 LOGGER.info("Album families to be consolidated:")
-                for group in consolidation_groups:
-                    keeper_name = (
-                        group["preferred_album_name"]
-                        if group.get("should_create_preferred_album")
-                        else (str((group.get("keeper_album") or {}).get("albumName", "")).strip() or group["preferred_album_name"])
-                    )
-                    group_album_names = [
-                        str((album or {}).get("albumName", "")).strip()
-                        for album in (group.get("similar_albums") or [])
-                        if str((album or {}).get("albumName", "")).strip()
-                    ]
-                    print(f"  Keeper: '{keeper_name}' | Preferred name: '{group['preferred_album_name']}'")
-                    for candidate_name in group_album_names:
-                        print(f"    - '{candidate_name}'")
+                print_album_consolidation_preview(consolidation_groups)
                 if not confirm_continue(force_prompt=True):
                     LOGGER.info("Exiting program.")
                     return 0, 0

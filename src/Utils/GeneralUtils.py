@@ -22,6 +22,7 @@ from tqdm import tqdm as original_tqdm
 import Core.GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import VIDEO_EXT, PHOTO_EXT, MSG_TAGS, VERBOSE_LEVEL_NUM
+from Utils.DateUtils import is_date_outside_range
 
 TQDM_DASHBOARD_PREFIX = "__TQDM__ "
 TQDM_DASHBOARD_META_PREFIX = "__TQDM_META__ "
@@ -1205,22 +1206,9 @@ def consolidate_similar_albums_enabled(args=None):
     return bool((params or {}).get("consolidate-similar-albums", False))
 
 
-def build_reusable_album_group(album_name, albums, allow_similar=False, exact_case_sensitive=False):
-    """
-    Returns a reusable-album plan with preferred keeper naming information.
-
-    Result keys:
-      - matched_album
-      - keeper_album
-      - match_kind
-      - ambiguous_matches
-      - similar_albums
-      - redundant_albums
-      - preferred_album_name
-      - similarity_key
-      - should_create_preferred_album
-    """
-    target_name = str(album_name or "").strip()
+def _build_reusable_album_group_from_matches(target_name, exact_matches, similar_matches, allow_similar=False):
+    target_name = str(target_name or "").strip()
+    similarity_key = album_name_reuse_key(target_name)
     preferred_target_name = target_name
     if allow_similar and target_name:
         normalized_target_name = canonicalize_album_name_for_reuse(target_name)
@@ -1241,29 +1229,6 @@ def build_reusable_album_group(album_name, albums, allow_similar=False, exact_ca
     }
     if not target_name:
         return empty_result
-
-    exact_matches = []
-    target_casefold = target_name.casefold()
-    for album in albums or []:
-        candidate_name = str((album or {}).get("albumName", "")).strip()
-        if not candidate_name:
-            continue
-        if exact_case_sensitive:
-            if candidate_name == target_name:
-                exact_matches.append(album)
-        else:
-            if candidate_name.casefold() == target_casefold:
-                exact_matches.append(album)
-
-    similar_matches = []
-    similarity_key = album_name_reuse_key(target_name)
-    if allow_similar and similarity_key:
-        for album in albums or []:
-            candidate_name = str((album or {}).get("albumName", "")).strip()
-            if not candidate_name:
-                continue
-            if album_name_reuse_key(candidate_name) == similarity_key:
-                similar_matches.append(album)
 
     group_albums = exact_matches or similar_matches
     if not exact_matches and not allow_similar:
@@ -1326,6 +1291,137 @@ def build_reusable_album_group(album_name, albums, allow_similar=False, exact_ca
         "should_create_preferred_album": should_create_preferred_album,
     })
     return result
+
+
+def build_reusable_album_group(album_name, albums, allow_similar=False, exact_case_sensitive=False):
+    """
+    Returns a reusable-album plan with preferred keeper naming information.
+
+    Result keys:
+      - matched_album
+      - keeper_album
+      - match_kind
+      - ambiguous_matches
+      - similar_albums
+      - redundant_albums
+      - preferred_album_name
+      - similarity_key
+      - should_create_preferred_album
+    """
+    target_name = str(album_name or "").strip()
+    if not target_name:
+        return _build_reusable_album_group_from_matches(
+            target_name="",
+            exact_matches=[],
+            similar_matches=[],
+            allow_similar=allow_similar,
+        )
+
+    exact_matches = []
+    target_casefold = target_name.casefold()
+    for album in albums or []:
+        candidate_name = str((album or {}).get("albumName", "")).strip()
+        if not candidate_name:
+            continue
+        if exact_case_sensitive:
+            if candidate_name == target_name:
+                exact_matches.append(album)
+        else:
+            if candidate_name.casefold() == target_casefold:
+                exact_matches.append(album)
+
+    similar_matches = []
+    similarity_key = album_name_reuse_key(target_name)
+    if allow_similar and similarity_key:
+        for album in albums or []:
+            candidate_name = str((album or {}).get("albumName", "")).strip()
+            if not candidate_name:
+                continue
+            if album_name_reuse_key(candidate_name) == similarity_key:
+                similar_matches.append(album)
+    return _build_reusable_album_group_from_matches(
+        target_name=target_name,
+        exact_matches=exact_matches,
+        similar_matches=similar_matches,
+        allow_similar=allow_similar,
+    )
+
+
+def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_getter=None, progress_desc=None, progress_unit="albums"):
+    """
+    Build consolidation groups for cloud album-name consolidation in one pass.
+
+    This avoids recalculating the full reusable-group plan for every album,
+    which otherwise turns the scan into an O(n^2) operation.
+    """
+    eligible_albums = []
+    similarity_groups = {}
+    exact_groups = {}
+
+    for album in albums or []:
+        if callable(date_getter) and is_date_outside_range(date_getter(album)):
+            continue
+        album_name = str((album or {}).get("albumName", "")).strip()
+        if not album_name:
+            continue
+        eligible_albums.append(album)
+        similarity_key = album_name_reuse_key(album_name) or album_name.casefold()
+        similarity_groups.setdefault(similarity_key, []).append(album)
+        exact_key = album_name if exact_case_sensitive else album_name.casefold()
+        exact_groups.setdefault(exact_key, []).append(album)
+
+    consolidation_groups = []
+    seen_similarity_keys = set()
+
+    progress_iterable = tqdm(eligible_albums, desc=progress_desc, unit=progress_unit) if progress_desc else eligible_albums
+    for album in progress_iterable:
+        album_name = str((album or {}).get("albumName", "")).strip()
+        similarity_key = album_name_reuse_key(album_name) or album_name.casefold()
+        if similarity_key in seen_similarity_keys:
+            continue
+        seen_similarity_keys.add(similarity_key)
+
+        exact_key = album_name if exact_case_sensitive else album_name.casefold()
+        plan = _build_reusable_album_group_from_matches(
+            target_name=album_name,
+            exact_matches=list(exact_groups.get(exact_key) or []),
+            similar_matches=list(similarity_groups.get(similarity_key) or []),
+            allow_similar=True,
+        )
+        redundant_albums = list(plan.get("redundant_albums") or [])
+        if not redundant_albums:
+            continue
+        consolidation_groups.append({
+            "seed_album_name": album_name,
+            "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
+            "keeper_album": plan.get("keeper_album") or {},
+            "should_create_preferred_album": bool(plan.get("should_create_preferred_album")),
+            "redundant_albums": redundant_albums,
+            "similar_albums": list(plan.get("similar_albums") or []),
+            "similarity_key": similarity_key,
+        })
+
+    return consolidation_groups
+
+
+def print_album_consolidation_preview(consolidation_groups):
+    for group in consolidation_groups or []:
+        keeper_name = (
+            group.get("preferred_album_name")
+            if group.get("should_create_preferred_album")
+            else (
+                str((group.get("keeper_album") or {}).get("albumName", "")).strip()
+                or str(group.get("preferred_album_name") or "").strip()
+            )
+        )
+        group_album_names = [
+            str((album or {}).get("albumName", "")).strip()
+            for album in (group.get("similar_albums") or [])
+            if str((album or {}).get("albumName", "")).strip()
+        ]
+        print(f"  Keeper: '{keeper_name}' | Preferred name: '{group.get('preferred_album_name')}'")
+        for candidate_name in group_album_names:
+            print(f"    - '{candidate_name}'")
 
 
 def find_reusable_album_candidate(album_name, albums, allow_similar=False, exact_case_sensitive=False):

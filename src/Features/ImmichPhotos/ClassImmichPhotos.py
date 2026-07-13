@@ -24,7 +24,7 @@ from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
-from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled
+from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
 from Utils.StandaloneUtils import change_working_dir
 
 """
@@ -1289,36 +1289,13 @@ class ClassImmichPhotos:
                 LOGGER.info("No albums found.")
                 return 0, 0
 
-            consolidation_groups = []
-            seen_similarity_keys = set()
-            for album in tqdm(albums, desc=f"{MSG_TAGS['INFO']}Scanning albums families to consolidate", unit="albums"):
-                album_date = album.get("createdAt")
-                if is_date_outside_range(album_date):
-                    continue
-                album_name = str((album or {}).get("albumName", "")).strip()
-                if not album_name:
-                    continue
-                plan = build_reusable_album_group(
-                    album_name=album_name,
-                    albums=albums,
-                    allow_similar=True,
-                    exact_case_sensitive=True,
-                )
-                similarity_key = str(plan.get("similarity_key") or "").strip() or album_name.casefold()
-                if similarity_key in seen_similarity_keys:
-                    continue
-                seen_similarity_keys.add(similarity_key)
-                redundant_albums = list(plan.get("redundant_albums") or [])
-                if not redundant_albums:
-                    continue
-                consolidation_groups.append({
-                    "seed_album_name": album_name,
-                    "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
-                    "keeper_album": plan.get("keeper_album") or {},
-                    "should_create_preferred_album": bool(plan.get("should_create_preferred_album")),
-                    "redundant_albums": redundant_albums,
-                    "similar_albums": list(plan.get("similar_albums") or []),
-                })
+            consolidation_groups = scan_album_consolidation_groups(
+                albums=albums,
+                exact_case_sensitive=True,
+                date_getter=lambda album: (album or {}).get("createdAt"),
+                progress_desc=f"{MSG_TAGS['INFO']}Scanning albums families to consolidate",
+                progress_unit="albums",
+            )
 
             if not consolidation_groups:
                 LOGGER.info("No equivalent album families found to consolidate.")
@@ -1326,20 +1303,7 @@ class ClassImmichPhotos:
 
             if request_user_confirmation:
                 LOGGER.info("Album families to be consolidated:")
-                for group in consolidation_groups:
-                    keeper_name = (
-                        group["preferred_album_name"]
-                        if group.get("should_create_preferred_album")
-                        else (str((group.get("keeper_album") or {}).get("albumName", "")).strip() or group["preferred_album_name"])
-                    )
-                    group_album_names = [
-                        str((album or {}).get("albumName", "")).strip()
-                        for album in (group.get("similar_albums") or [])
-                        if str((album or {}).get("albumName", "")).strip()
-                    ]
-                    print(f"  Keeper: '{keeper_name}' | Preferred name: '{group['preferred_album_name']}'")
-                    for candidate_name in group_album_names:
-                        print(f"    - '{candidate_name}'")
+                print_album_consolidation_preview(consolidation_groups)
                 if not confirm_continue(force_prompt=True):
                     LOGGER.info("Exiting program.")
                     return 0, 0
