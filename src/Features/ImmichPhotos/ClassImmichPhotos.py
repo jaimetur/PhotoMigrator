@@ -1141,7 +1141,7 @@ class ClassImmichPhotos:
             return combined_assets
 
 
-    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None):
+    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None, return_details=False):
         """
         Adds photos (asset_ids) to an album.
 
@@ -1152,11 +1152,20 @@ class ClassImmichPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
-            int: Number of assets added to the album
+            int | dict: Number of assets confirmed in the album, or a details dict when
+                        `return_details=True`.
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             if not asset_ids:
+                if return_details:
+                    return {
+                        "requested_count": 0,
+                        "confirmed_count": 0,
+                        "confirmed_asset_ids": set(),
+                        "failed_asset_ids": set(),
+                        "real_failures": [],
+                    }
                 return 0
             asset_ids = convert_to_list(asset_ids)
             url = f"{self.IMMICH_URL}/api/albums/{album_id}/assets"
@@ -1166,10 +1175,22 @@ class ClassImmichPhotos:
                 resp.raise_for_status()
                 data = resp.json()
                 total_added = sum(1 for item in data if item.get("success"))
+                confirmed_asset_ids = set()
+                failed_asset_ids = set()
                 duplicate_like_failures = []
                 real_failures = []
-                for item in data:
+                for index, item in enumerate(data):
+                    item_asset_id = str(
+                        item.get("id")
+                        or item.get("assetId")
+                        or item.get("asset_id")
+                        or ""
+                    ).strip()
+                    if not item_asset_id and index < len(asset_ids):
+                        item_asset_id = str(asset_ids[index]).strip()
                     if item.get("success"):
+                        if item_asset_id:
+                            confirmed_asset_ids.add(item_asset_id)
                         continue
                     error_text = " ".join([
                         str(item.get("error") or ""),
@@ -1177,8 +1198,12 @@ class ClassImmichPhotos:
                         str(item.get("reason") or ""),
                     ]).strip().lower()
                     if "duplicate" in error_text or "already" in error_text:
+                        if item_asset_id:
+                            confirmed_asset_ids.add(item_asset_id)
                         duplicate_like_failures.append(item)
                     else:
+                        if item_asset_id:
+                            failed_asset_ids.add(item_asset_id)
                         real_failures.append(item)
 
                 confirmed_count = total_added + len(duplicate_like_failures)
@@ -1187,12 +1212,28 @@ class ClassImmichPhotos:
                         f"Immich album association confirmed {confirmed_count}/{len(asset_ids)} asset(s) "
                         f"for album '{album_name or album_id}'. Failed items: {real_failures[:3]}"
                     )
+                if return_details:
+                    return {
+                        "requested_count": len(asset_ids),
+                        "confirmed_count": confirmed_count,
+                        "confirmed_asset_ids": confirmed_asset_ids,
+                        "failed_asset_ids": failed_asset_ids,
+                        "real_failures": real_failures,
+                    }
                 return confirmed_count
             except Exception as e:
                 if album_name:
                     LOGGER.error(f"Error while adding assets to album '{album_name}' with ID={album_id}: {e}")
                 else:
                     LOGGER.error(f"Error while adding assets to album with ID={album_id}: {e}")
+                if return_details:
+                    return {
+                        "requested_count": len(asset_ids),
+                        "confirmed_count": 0,
+                        "confirmed_asset_ids": set(),
+                        "failed_asset_ids": {str(asset_id).strip() for asset_id in asset_ids if str(asset_id).strip()},
+                        "real_failures": [str(e)],
+                    }
                 return 0
 
     @staticmethod

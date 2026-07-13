@@ -309,6 +309,9 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             'total_push_duplicates_assets': 0,
             'total_push_retry_scheduled_assets': 0,
             'total_push_retry_recovered_assets': 0,
+            'total_album_assoc_retry_scheduled_assets': 0,
+            'total_album_assoc_retry_recovered_assets': 0,
+            'total_album_assoc_unconfirmed_assets': 0,
         }
 
         # Input INFO
@@ -674,7 +677,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     retry_delay_seconds = max(60, int(ARGS.get("push-failed-asset-retry-delay-seconds", 180) or 180))
     max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 3) or 3))
     retry_backoff_factor = max(1, int(ARGS.get("push-failed-asset-retry-backoff-factor", 1) or 1))
-    album_assoc_batch_size = max(10, int(ARGS.get("album-association-batch-size", 100) or 100))
+    album_assoc_retry_delays_seconds = [2, 10, 30]
+    max_album_assoc_retries = len(album_assoc_retry_delays_seconds)
+    default_album_assoc_batch_size = 25 if isinstance(target_client, ClassImmichPhotos) else 100
+    album_assoc_batch_size = max(5, int(ARGS.get("album-association-batch-size", default_album_assoc_batch_size) or default_album_assoc_batch_size))
     album_assoc_flush_interval_seconds = max(0.1, float(ARGS.get("album-association-flush-interval-seconds", 0.75) or 0.75))
     retry_heap = []
     retry_condition = threading.Condition()
@@ -715,6 +721,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     processed_albums_lock = threading.Lock()
     target_album_asset_ids_cache = {}
     target_album_asset_ids_lock = threading.Lock()
+    album_assoc_locks = {}
+    album_assoc_locks_lock = threading.Lock()
     immich_uploaded_records = []
     immich_uploaded_records_lock = threading.Lock()
     prefer_canonical_album_names = prefer_canonical_album_names_enabled(ARGS)
@@ -804,6 +812,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         }
         _set_cached_target_album_asset_ids(album_id, refreshed_asset_ids)
         return refreshed_asset_ids
+
+    def _get_album_association_lock(album_key):
+        album_key = str(album_key or "").strip() or "__default__"
+        with album_assoc_locks_lock:
+            lock = album_assoc_locks.get(album_key)
+            if lock is None:
+                lock = threading.Lock()
+                album_assoc_locks[album_key] = lock
+            return lock
 
     def _remove_target_existing_album(existing_albums, album_id):
         if existing_albums is None:
@@ -914,6 +931,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         album_name,
         asset_id,
         retry_attempt,
+        association_retry_attempt,
         asset_type,
         count_push_stats,
         move_assets,
@@ -936,6 +954,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         _cleanup_local_artifacts(asset_file_path, live_photo_video_path)
         if retry_attempt > 0:
             SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
+        if association_retry_attempt > 0:
+            SHARED_DATA.counters['total_album_assoc_retry_recovered_assets'] += 1
         if album_name:
             album_folder_path = os.path.join(temp_folder, album_name)
             _mark_album_pushed_if_ready(
@@ -1114,7 +1134,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     NO_RETRY_LARGE_ASSET_BYTES = 50 * 1024 * 1024
 
-    def _compute_retry_delay_seconds(retry_attempt):
+    def _compute_push_retry_delay_seconds(retry_attempt):
         exponent = max(0, int(retry_attempt) - 1)
         return int(retry_delay_seconds * (retry_backoff_factor ** exponent))
 
@@ -1150,7 +1170,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             retry_asset.pop('resolved_target_asset_id', None)
             retry_asset.pop('skip_target_push', None)
 
-        delay_seconds = _compute_retry_delay_seconds(next_attempt)
+        delay_seconds = _compute_push_retry_delay_seconds(next_attempt)
         ready_at = time.time() + delay_seconds
 
         with retry_condition:
@@ -1164,6 +1184,44 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.warning(
             f"Asset Retry Delayed: '{os.path.basename(asset.get('asset_file_path', ''))}' "
             f"attempt {next_attempt}/{max_push_retries} scheduled in {delay_seconds}s. Reason: {reason}"
+        )
+        return True
+
+    def _schedule_album_association_retry(asset, reason, resolved_target_asset_id):
+        if not resolved_target_asset_id or max_album_assoc_retries <= 0:
+            return False
+
+        current_attempt = int((asset or {}).get('album_assoc_retry_attempt', 0) or 0)
+        next_attempt = current_attempt + 1
+        if next_attempt > max_album_assoc_retries:
+            SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
+            LOGGER.error(
+                f"Album Association Unconfirmed: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
+                f"exhausted {max_album_assoc_retries} verification attempt(s). Reason: {reason}"
+            )
+            return False
+
+        retry_asset = dict(asset or {})
+        retry_asset['resolved_target_asset_id'] = resolved_target_asset_id
+        retry_asset['skip_target_push'] = True
+        retry_asset['album_assoc_retry_attempt'] = next_attempt
+        retry_asset['retry_kind'] = 'album_assoc'
+        retry_asset.pop('retry_attempt', None)
+
+        delay_seconds = album_assoc_retry_delays_seconds[next_attempt - 1]
+        ready_at = time.time() + delay_seconds
+
+        with retry_condition:
+            retry_sequence['value'] += 1
+            heapq.heappush(retry_heap, (ready_at, retry_sequence['value'], retry_asset))
+            SHARED_DATA.info['delayed_assets_pending'] = len(retry_heap)
+            retry_condition.notify_all()
+        _refresh_queue_depth()
+
+        SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += 1
+        LOGGER.warning(
+            f"Album Association Retry Delayed: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
+            f"attempt {next_attempt}/{max_album_assoc_retries} scheduled in {delay_seconds}s. Reason: {reason}"
         )
         return True
 
@@ -1186,10 +1244,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     SHARED_DATA.info['delayed_assets_pending'] = len(retry_heap)
                 _refresh_queue_depth()
                 push_queue.put(retry_asset)
-                LOGGER.info(
-                    f"Asset Retry Enqueued: '{os.path.basename(retry_asset.get('asset_file_path', ''))}' "
-                    f"attempt {retry_asset.get('retry_attempt', 0)}/{max_push_retries}"
-                )
+                retry_kind = str(retry_asset.get('retry_kind') or 'push').strip().lower()
+                if retry_kind == 'album_assoc':
+                    LOGGER.info(
+                        f"Album Association Retry Enqueued: '{os.path.basename(retry_asset.get('asset_file_path', ''))}' "
+                        f"attempt {retry_asset.get('album_assoc_retry_attempt', 0)}/{max_album_assoc_retries}"
+                    )
+                else:
+                    LOGGER.info(
+                        f"Asset Retry Enqueued: '{os.path.basename(retry_asset.get('asset_file_path', ''))}' "
+                        f"attempt {retry_asset.get('retry_attempt', 0)}/{max_push_retries}"
+                    )
 
     def _flush_album_association_batch(
         album_name,
@@ -1227,46 +1292,69 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             if not normalized_items:
                 return
-
-            target_album_asset_ids = _get_cached_target_album_asset_ids(
-                album_id=album_id_dest,
-                album_name=album_name_to_query,
-                log_level=logging.ERROR,
-            )
-
-            already_present_ids = {
-                asset_id for _, asset_id in normalized_items
-                if asset_id in target_album_asset_ids
-            }
-            ids_to_add = []
-            ids_seen = set()
-            for _, asset_id in normalized_items:
-                if asset_id in already_present_ids or asset_id in ids_seen:
-                    continue
-                ids_seen.add(asset_id)
-                ids_to_add.append(asset_id)
-
-            if ids_to_add:
-                target_client.add_assets_to_album(
-                    album_id=album_id_dest,
-                    asset_ids=ids_to_add,
-                    album_name=album_name,
-                    log_level=logging.ERROR,
-                )
-                target_album_asset_ids = _refresh_target_album_asset_ids(
+            album_lock = _get_album_association_lock(album_id_dest or album_name_to_query or album_name)
+            with album_lock:
+                target_album_asset_ids = _get_cached_target_album_asset_ids(
                     album_id=album_id_dest,
                     album_name=album_name_to_query,
                     log_level=logging.ERROR,
                 )
 
-                # Some targets acknowledge album association before album membership is
-                # immediately visible in a subsequent listing. Re-read once after a short
-                # delay to avoid false warnings/retries for assets that are already there.
-                missing_after_first_refresh = [
+                already_present_ids = {
+                    asset_id for _, asset_id in normalized_items
+                    if asset_id in target_album_asset_ids
+                }
+                ids_to_add = []
+                ids_seen = set()
+                for _, asset_id in normalized_items:
+                    if asset_id in already_present_ids or asset_id in ids_seen:
+                        continue
+                    ids_seen.add(asset_id)
+                    ids_to_add.append(asset_id)
+
+                api_confirmed_ids = set(already_present_ids)
+                if ids_to_add:
+                    add_result = target_client.add_assets_to_album(
+                        album_id=album_id_dest,
+                        asset_ids=ids_to_add,
+                        album_name=album_name,
+                        log_level=logging.ERROR,
+                        return_details=isinstance(target_client, ClassImmichPhotos),
+                    ) if isinstance(target_client, ClassImmichPhotos) else target_client.add_assets_to_album(
+                        album_id=album_id_dest,
+                        asset_ids=ids_to_add,
+                        album_name=album_name,
+                        log_level=logging.ERROR,
+                    )
+                    if isinstance(add_result, dict):
+                        api_confirmed_ids.update({
+                            str(asset_id).strip()
+                            for asset_id in add_result.get("confirmed_asset_ids", set())
+                            if str(asset_id).strip()
+                        })
+
+                if api_confirmed_ids:
+                    _mark_target_album_assets_present(album_id_dest, api_confirmed_ids)
+                    target_album_asset_ids = set(target_album_asset_ids).union(api_confirmed_ids)
+
+                missing_asset_ids = [
                     asset_id for _, asset_id in normalized_items
                     if asset_id not in target_album_asset_ids
                 ]
-                if missing_after_first_refresh and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                if missing_asset_ids:
+                    refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
+                        album_id=album_id_dest,
+                        album_name=album_name_to_query,
+                        log_level=logging.ERROR,
+                    )
+                    if len(refreshed_target_album_asset_ids) >= len(target_album_asset_ids):
+                        target_album_asset_ids = refreshed_target_album_asset_ids
+                    missing_asset_ids = [
+                        asset_id for _, asset_id in normalized_items
+                        if asset_id not in target_album_asset_ids
+                    ]
+
+                if missing_asset_ids and isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
                     time.sleep(0.75)
                     refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
                         album_id=album_id_dest,
@@ -1275,6 +1363,55 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     )
                     if len(refreshed_target_album_asset_ids) >= len(target_album_asset_ids):
                         target_album_asset_ids = refreshed_target_album_asset_ids
+                    missing_asset_ids = [
+                        asset_id for _, asset_id in normalized_items
+                        if asset_id not in target_album_asset_ids
+                    ]
+
+                retried_missing_count = 0
+                if missing_asset_ids and isinstance(target_client, ClassImmichPhotos):
+                    retry_result = target_client.add_assets_to_album(
+                        album_id=album_id_dest,
+                        asset_ids=missing_asset_ids,
+                        album_name=album_name,
+                        log_level=logging.ERROR,
+                        return_details=True,
+                    )
+                    if isinstance(retry_result, dict):
+                        retry_confirmed_ids = {
+                            str(asset_id).strip()
+                            for asset_id in retry_result.get("confirmed_asset_ids", set())
+                            if str(asset_id).strip()
+                        }
+                        retried_missing_count = len(retry_confirmed_ids)
+                        if retry_confirmed_ids:
+                            _mark_target_album_assets_present(album_id_dest, retry_confirmed_ids)
+                            target_album_asset_ids = set(target_album_asset_ids).union(retry_confirmed_ids)
+                    if retried_missing_count or missing_asset_ids:
+                        time.sleep(1.0)
+                        refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
+                            album_id=album_id_dest,
+                            album_name=album_name_to_query,
+                            log_level=logging.ERROR,
+                        )
+                        if len(refreshed_target_album_asset_ids) >= len(target_album_asset_ids):
+                            target_album_asset_ids = refreshed_target_album_asset_ids
+
+                confirmed_ids = {
+                    asset_id for _, asset_id in normalized_items
+                    if asset_id in target_album_asset_ids
+                }
+                final_missing_ids = [
+                    asset_id for _, asset_id in normalized_items
+                    if asset_id not in confirmed_ids
+                ]
+                LOGGER.debug(
+                    f"Album Association Batch: album='{album_name}' worker={worker_id} "
+                    f"requested={len(normalized_items)} already_present={len(already_present_ids)} "
+                    f"add_requested={len(ids_to_add)} api_confirmed={len(api_confirmed_ids)} "
+                    f"retried_missing={retried_missing_count} confirmed={len(confirmed_ids)} "
+                    f"missing={len(final_missing_ids)}"
+                )
 
             album_assoc_elapsed_ms = (time.perf_counter() - album_assoc_started_at) * 1000.0
             for item, target_asset_id in normalized_items:
@@ -1298,6 +1435,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         album_name=album_name,
                         asset_id=target_asset_id,
                         retry_attempt=int(item.get("retry_attempt", 0) or 0),
+                        association_retry_attempt=int(item.get("album_assoc_retry_attempt", 0) or 0),
                         asset_type=item.get("asset_type", "photo"),
                         count_push_stats=item.get("count_push_stats", True),
                         move_assets=ARGS.get('move-assets', None),
@@ -1312,11 +1450,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
                     )
                     if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
-                        scheduled_retry = _schedule_asset_retry(
+                        scheduled_retry = _schedule_album_association_retry(
                             asset=item,
                             reason=f"album association to '{album_name}' was not confirmed",
                             resolved_target_asset_id=target_asset_id,
-                            skip_target_push=True,
                         )
 
                 _debug_perf_log(
@@ -1342,11 +1479,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         except Exception as e:
             for item in batch_items:
                 target_asset_id = item.get("resolved_target_asset_id")
-                scheduled_retry = _schedule_asset_retry(
+                scheduled_retry = _schedule_album_association_retry(
                     asset=item,
                     reason=f"album association exception for '{album_name}': {str(e)}",
                     resolved_target_asset_id=target_asset_id,
-                    skip_target_push=True,
                 )
                 if not scheduled_retry:
                     LOGGER.error(f"Album Push Fail : '{album_name}'")
@@ -1807,7 +1943,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Launching {num_pull_threads} Pull worker in parallel...")
             num_push_threads = max(1, int(cpu_total_threads * 2))
             LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
-            num_album_assoc_threads = 1
+            configured_album_assoc_threads = int(ARGS.get("album-association-workers", 0) or 0)
+            if configured_album_assoc_threads > 0:
+                num_album_assoc_threads = configured_album_assoc_threads
+            elif isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos, ClassNextCloudPhotos)):
+                num_album_assoc_threads = min(max(2, int(cpu_total_threads or 1)), 4)
+            else:
+                num_album_assoc_threads = 1
             LOGGER.info(f"Launching {num_album_assoc_threads} Album Association worker in parallel...")
 
             pull_threads = [
@@ -1920,6 +2062,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             total_failed_assets = (
                 SHARED_DATA.counters['total_pull_failed_assets']
                 + SHARED_DATA.counters['total_push_failed_assets']
+                + SHARED_DATA.counters['total_album_assoc_unconfirmed_assets']
             )
             if total_failed_assets > 0:
                 LOGGER.warning(f"{MSG_TAGS['WARNING']}Migration finished with partial failures.")
@@ -1937,6 +2080,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
             LOGGER.info(f"Push Retry Scheduled        : {SHARED_DATA.counters['total_push_retry_scheduled_assets']}")
             LOGGER.info(f"Push Retry Recovered        : {SHARED_DATA.counters['total_push_retry_recovered_assets']}")
+            LOGGER.info(f"Album Assoc Retry Scheduled : {SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets']}")
+            LOGGER.info(f"Album Assoc Retry Recovered : {SHARED_DATA.counters['total_album_assoc_retry_recovered_assets']}")
+            LOGGER.info(f"Album Assoc Unconfirmed     : {SHARED_DATA.counters['total_album_assoc_unconfirmed_assets']}")
             LOGGER.info(f"")
             LOGGER.info(f"Migration Job completed in  : {migration_formatted_duration}")
             LOGGER.info(f"Total Elapsed Time          : {total_formatted_duration}")
@@ -2306,6 +2452,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     count_push_stats = asset.get('count_push_stats', True)
                     live_photo_video_path = asset.get('live_photo_video_path', None)
                     retry_attempt = int(asset.get('retry_attempt', 0) or 0)
+                    association_retry_attempt = int(asset.get('album_assoc_retry_attempt', 0) or 0)
                     enqueued_at_monotonic = asset.get('enqueued_at_monotonic')
                     skip_target_push = bool(asset.get('skip_target_push')) and bool(asset.get('resolved_target_asset_id'))
                     asset_id = asset.get('resolved_target_asset_id')
@@ -2414,6 +2561,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         asset['treat_as_consumed'] = treat_as_consumed
                         asset['isDuplicated'] = isDuplicated
                         asset['worker_id'] = worker_id
+                        asset['retry_kind'] = 'album_assoc' if association_retry_attempt > 0 else 'push'
                         album_assoc_queue.put(asset)
                         continue
 
@@ -2426,6 +2574,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             album_name=album_name,
                             asset_id=asset_id,
                             retry_attempt=retry_attempt,
+                            association_retry_attempt=association_retry_attempt,
                             asset_type=asset_type,
                             count_push_stats=count_push_stats,
                             move_assets=move_assets,

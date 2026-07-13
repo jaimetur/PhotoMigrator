@@ -19,8 +19,11 @@
   - Reworked `Consolidate Albums Names` family discovery into a shared cloud utility used by `Google Photos`, `Synology Photos`, `Immich Photos`, and `NextCloud Photos`. The scan now groups albums by reusable-name family in a single pass instead of rebuilding the full family plan for every album, which reduces duplicate work on large libraries and keeps the preview/keeper-selection logic consistent across all cloud targets.
   - Hardened `Automatic Migration` album-association confirmation for targets such as `Immich` and `Synology`. After associating a batch, PhotoMigrator now re-reads the destination album membership and, when needed, performs a short delayed second refresh before warning and scheduling a delayed retry, avoiding false negatives when the target actually associated the asset but exposes the new membership with a small delay.
   - Reworked `Automatic Migration` album association to use a dedicated post-upload batching stage instead of associating each asset to its album immediately inside every push worker. Upload workers now hand off album-bound assets to a separate album-association queue, which batches `add assets to album` calls per destination album, confirms membership once per batch, and only then performs cleanup / move-after-push / album completion bookkeeping. This preserves the same final album semantics while sharply reducing contention and repeated per-asset association calls across `Immich`, `Synology`, `NextCloud`, and the rest of the supported automatic-migration targets.
+  - Added automatic multi-worker album association with per-destination-album locking for the new `Automatic Migration` album-association stage, together with target-specific auto-tuned batching/flush behavior.
+  - Reduced the default `Immich` album-association batch size and now use API-confirmed per-asset add-to-album results before forcing a full destination album re-list, which lowers queue stalls and avoids unnecessary full membership refreshes on large duplicate-heavy migrations.
 
 #### 🐛 Bug fixes:
+  - Split `Automatic Migration` retries into two separate behaviors: real upload failures still use the normal delayed push-retry pipeline, while unconfirmed album associations now use short verification retries without being counted as upload retry attempts. This avoids misleading `attempt 1/3` push retries for duplicate-resolved assets whose upload already succeeded but whose album membership was not yet confirmed by the target.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
@@ -1751,5 +1754,3 @@
 ### Release Date: 2024-11
 
   - Preliminary not published Script in bash.
-
----
