@@ -879,13 +879,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 for filename, count in redundant_name_counts.items()
                             )
                         else:
-                            if keeper_asset_ids is None:
-                                keeper_asset_ids = set(_get_target_album_asset_ids(
-                                    target_client=target_client,
-                                    album_id=keeper_id,
-                                    album_name=keeper_name,
-                                    log_level=log_level,
-                                ))
+                            keeper_asset_ids = set(_get_target_album_asset_ids(
+                                target_client=target_client,
+                                album_id=keeper_id,
+                                album_name=keeper_name,
+                                log_level=log_level,
+                            ))
                             reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
                         LOGGER.info(
                             f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
@@ -2082,17 +2081,32 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     _mark_target_album_asset_present(album_id_dest, asset_id)
                                     album_association_confirmed = True
                                 else:
-                                    LOGGER.warning(
-                                        f"Album association was not confirmed by target for asset '{os.path.basename(asset_file_path)}' "
-                                        f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
+                                    refreshed_target_album_asset_ids = _get_target_album_asset_ids(
+                                        target_client=target_client,
+                                        album_id=album_id_dest,
+                                        album_name=album_name_to_query,
+                                        log_level=logging.ERROR,
                                     )
-                                    if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
-                                        scheduled_retry = _schedule_asset_retry(
-                                            asset=asset,
-                                            reason=f"album association to '{album_name}' was not confirmed",
-                                            resolved_target_asset_id=asset_id,
-                                            skip_target_push=True,
+                                    refreshed_target_album_asset_ids = {
+                                        str(candidate_id).strip()
+                                        for candidate_id in refreshed_target_album_asset_ids
+                                        if str(candidate_id).strip()
+                                    }
+                                    _set_cached_target_album_asset_ids(album_id_dest, refreshed_target_album_asset_ids)
+                                    if str(asset_id).strip() in refreshed_target_album_asset_ids:
+                                        album_association_confirmed = True
+                                    else:
+                                        LOGGER.warning(
+                                            f"Album association was not confirmed by target for asset '{os.path.basename(asset_file_path)}' "
+                                            f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
                                         )
+                                        if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
+                                            scheduled_retry = _schedule_asset_retry(
+                                                asset=asset,
+                                                reason=f"album association to '{album_name}' was not confirmed",
+                                                resolved_target_asset_id=asset_id,
+                                                skip_target_push=True,
+                                            )
                         except Exception as e:
                             scheduled_retry = _schedule_asset_retry(
                                 asset=asset,

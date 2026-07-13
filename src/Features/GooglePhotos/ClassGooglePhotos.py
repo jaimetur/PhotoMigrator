@@ -635,9 +635,8 @@ class ClassGooglePhotos:
                 should_remove_redundant = False
                 if duplicate_asset_ids:
                     added_count = self.add_assets_to_album(keeper_id, duplicate_asset_ids, keeper_name, log_level=log_level)
-                    if keeper_asset_ids is None:
-                        keeper_assets = self.get_all_assets_from_album(keeper_id, keeper_name, log_level=log_level) or []
-                        keeper_asset_ids = {str(asset.get("id", "")).strip() for asset in keeper_assets if str(asset.get("id", "")).strip()}
+                    keeper_assets = self.get_all_assets_from_album(keeper_id, keeper_name, log_level=log_level) or []
+                    keeper_asset_ids = {str(asset.get("id", "")).strip() for asset in keeper_assets if str(asset.get("id", "")).strip()}
                     reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
                     LOGGER.info(
                         f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
@@ -990,4 +989,3 @@ class ClassGooglePhotos:
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"{MSG_TAGS['WARNING']}Google Photos API does not support deleting albums via public Library API. No action applied.")
             return 0, 0
-

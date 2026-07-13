@@ -1121,6 +1121,7 @@ def strip_album_numeric_disambiguator(name):
       - "Album7"    -> "Album"
 
     Examples preserved:
+      - "Paris - Día 3"
       - "Trip 2024"
       - "2015-10-17 - Boda"
     """
@@ -1128,27 +1129,21 @@ def strip_album_numeric_disambiguator(name):
     if not text:
         return ""
 
-    match = re.match(r"^(.*?)(?:\s*\((\d+)\)|([_\-]+)(\d+)|(\s+)(\d+)|(\d+))\s*$", text)
+    match = re.match(r"^(.*?)(?:\s*\((\d+)\)|([_\-]+)(\d+)|(\d+))\s*$", text)
     if not match:
         return text
 
     base = str(match.group(1) or "").rstrip(" _-")
     paren_digits = match.group(2)
     separator_digits = match.group(4)
-    spaced_digits = match.group(6)
-    attached_digits = match.group(7)
-    digits = paren_digits or separator_digits or spaced_digits or attached_digits or ""
+    attached_digits = match.group(5)
+    digits = paren_digits or separator_digits or attached_digits or ""
     if not digits:
         return text
 
     # Preserve common year-like endings to avoid collapsing legitimate albums
     # such as "Trip 2024" into "Trip" when the year is part of the title.
     if len(digits) == 4 and 1900 <= int(digits) <= 2100:
-        return text
-
-    # A bare "... 12" suffix is only treated as a duplicate marker when the
-    # remaining base still contains non-digit content.
-    if spaced_digits and base and not re.search(r"[A-Za-zÀ-ÿ]", base):
         return text
 
     return base or text
