@@ -2012,6 +2012,7 @@ def _env_int(name: str, default: int) -> int:
 
 WEB_JOB_LOG_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_JOB_LOG_DIR", "/tmp/photomigrator-web-jobs"))
 MAX_JOB_OUTPUT_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES", 100_000)
+MAX_JOB_OUTPUT_API_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_API_LINES", 100)
 TAIL_CONFIRM_CHARS = 4_000
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
 PROGRESS_CUSTOM_FULL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%\s*$")
@@ -2183,10 +2184,11 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
 
 def _read_job_output_for_api(job: JobData) -> str:
     perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
-    # Always serve compact in-memory output so progress refreshes don't consume history.
-    base = "".join(entry.text for entry in job.output)
-    if job.partial_line:
-        base += job.partial_line
+    # Serve only a compact recent tail to keep polling latency bounded.
+    recent_lines = _read_job_output_lines_for_api(job)
+    base = "\n".join(recent_lines)
+    if base and not base.endswith("\n"):
+        base += "\n"
 
     if job.dropped_output_lines <= 0:
         if perf_started_at is not None:
@@ -2218,13 +2220,17 @@ def _read_job_output_for_api(job: JobData) -> str:
 
 
 def _read_job_output_lines_for_api(job: JobData) -> List[str]:
-    lines = [entry.text.rstrip("\n") for entry in job.output]
+    if MAX_JOB_OUTPUT_API_LINES > 0:
+        selected_entries = list(job.output)[-MAX_JOB_OUTPUT_API_LINES:]
+    else:
+        selected_entries = list(job.output)
+    lines = [entry.text.rstrip("\n") for entry in selected_entries]
     if job.partial_line:
         lines.append(job.partial_line)
     if job.dropped_output_lines > 0:
         notice = (
             f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
-            f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines)."
+            f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines, API window {MAX_JOB_OUTPUT_API_LINES} lines)."
         )
         return [notice, *lines]
     return lines

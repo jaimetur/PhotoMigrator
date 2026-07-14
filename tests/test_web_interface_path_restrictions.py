@@ -292,6 +292,20 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("3 lines were dropped", lines[0])
         self.assertEqual(lines[1:], ["INFO: kept"])
 
+    def test_read_job_output_lines_for_api_limits_window_to_recent_100_lines(self):
+        job = type("JobStub", (), {})()
+        job.output = deque(
+            [self.web_app.OutputLine(text=f"INFO: line {idx}\n") for idx in range(150)]
+        )
+        job.partial_line = ""
+        job.dropped_output_lines = 0
+
+        lines = self.web_app._read_job_output_lines_for_api(job)
+
+        self.assertEqual(len(lines), 100)
+        self.assertEqual(lines[0], "INFO: line 50")
+        self.assertEqual(lines[-1], "INFO: line 149")
+
     def test_web_parser_schema_exposes_auxiliary_organize_fields_by_dest(self):
         fields_by_dest = self.web_app.PARSER_SCHEMA.get("fields_by_dest", {})
 

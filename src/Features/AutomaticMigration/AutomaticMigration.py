@@ -2112,9 +2112,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         """
         with file_paths_lock:
             asset_file_path = item_dict['asset_file_path']
+            asset_file_key = _normalized_asset_path_key(asset_file_path)
             _refresh_queue_depth()
 
-            if asset_file_path in added_file_paths:
+            if asset_file_key in added_file_paths:
                 # El item ya fue añadido anteriormente
                 return False
 
@@ -2133,7 +2134,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             # Añadir a la cola y al registro global
             _push_queue_put(item_dict)
-            added_file_paths.add(asset_file_path)
+            added_file_paths.add(asset_file_key)
             return True
 
     def is_asset_in_queue(queue, path):
@@ -2161,6 +2162,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             in_flight_lock=in_flight_asset_paths_lock,
             path=path,
         )
+
+    def _remember_added_asset_path(path):
+        normalized = _normalized_asset_path_key(path)
+        if not normalized:
+            return
+        with file_paths_lock:
+            added_file_paths.add(normalized)
 
     def infer_asset_type_from_path(file_path, fallback_type):
         """Infers media type from extension; falls back to source type when unknown."""
@@ -2789,6 +2797,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     asset_dict['live_photo_video_path'] = immich_live_companion
                                 # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                                 unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
+                                if unique and asset_dict.get('live_photo_video_path'):
+                                    _remember_added_asset_path(asset_dict.get('live_photo_video_path'))
                                 if not unique:
                                     LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
                                     SHARED_DATA.counters['total_push_duplicates_assets'] += 1
@@ -2934,6 +2944,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                 asset_dict['live_photo_video_path'] = immich_live_companion
                             unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
+                            if unique and asset_dict.get('live_photo_video_path'):
+                                _remember_added_asset_path(asset_dict.get('live_photo_video_path'))
                             if not unique:
                                 LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}'. Skipped")
                                 SHARED_DATA.counters['total_push_duplicates_assets'] += 1

@@ -624,13 +624,45 @@
     let lastRawOutput = "";
     let lastOutputLines = [];
     let displayedRawOutput = "";
+    const OUTPUT_CLIENT_BUFFER_LINES = 5000;
     let currentRunPayload = null;
     let currentJobStartedAt = null;
     let currentJobIsAutomatic = false;
     let webDashboardState = {rawOutput: "", status: "idle", jobData: {}};
     let outputVirtualLastRangeKey = "";
     let outputVirtualLineHeight = 0;
-    const OUTPUT_VIRTUAL_BUFFER_LINES = 1000;
+    const OUTPUT_VIRTUAL_BUFFER_LINES = 50;
+
+    function resetOutputHistory() {
+        lastRawOutput = "";
+        lastOutputLines = [];
+        displayedRawOutput = "";
+        outputVirtualLastRangeKey = "";
+    }
+
+    function mergeOutputLineWindow(existingLines, incomingLines) {
+        const existing = Array.isArray(existingLines) ? existingLines : [];
+        const incoming = Array.isArray(incomingLines) ? incomingLines : [];
+        if (!incoming.length) return existing.slice();
+        if (!existing.length) return incoming.slice(-OUTPUT_CLIENT_BUFFER_LINES);
+
+        const maxOverlap = Math.min(existing.length, incoming.length, 200);
+        for (let overlap = maxOverlap; overlap >= 1; overlap -= 1) {
+            let matches = true;
+            for (let i = 0; i < overlap; i += 1) {
+                if (existing[existing.length - overlap + i] !== incoming[i]) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) {
+                const merged = existing.concat(incoming.slice(overlap));
+                return merged.slice(-OUTPUT_CLIENT_BUFFER_LINES);
+            }
+        }
+
+        return incoming.slice(-OUTPUT_CLIENT_BUFFER_LINES);
+    }
 
     function uiOptionName(field) {
         if (!field) return "";
@@ -1226,13 +1258,16 @@
     function renderOutputWithLevels(rawText, options = {}) {
         const perfStarted = performance.now();
         const outputEl = document.getElementById("output");
-        lastRawOutput = rawText || "";
         const autoScrollEnabled = uiState.auto_scroll !== false;
-        const providedLines = Array.isArray(options.outputLines) && options.outputLines.length
+        const incomingLines = Array.isArray(options.outputLines) && options.outputLines.length
             ? options.outputLines
-            : (lastRawOutput ? collapseProgressLines(lastRawOutput).split("\n") : []);
+            : (rawText ? collapseProgressLines(String(rawText)).split("\n") : []);
+        const providedLines = options.replaceBuffer
+            ? incomingLines.slice(-OUTPUT_CLIENT_BUFFER_LINES)
+            : mergeOutputLineWindow(lastOutputLines, incomingLines);
         lastOutputLines = providedLines;
         displayedRawOutput = providedLines.join("\n");
+        lastRawOutput = displayedRawOutput;
         const htmlBuiltAt = performance.now();
         const previousScrollTop = outputEl.scrollTop;
         const html = buildVirtualizedLogHtml(providedLines, outputEl, {...options, bypassCache: !options.fromScroll});
@@ -3423,12 +3458,12 @@
         setStatus(`Status: ${data.status}`, false);
         updateRunStopButtons(data.status || "idle");
         const renderOutputStarted = performance.now();
-        renderOutputWithLevels(data.output || "", {outputLines: data.output_lines || []});
+        renderOutputWithLevels("", {outputLines: data.output_lines || []});
         const renderOutputElapsedMs = performance.now() - renderOutputStarted;
         let dashboardElapsedMs = 0;
         if (currentJobIsAutomatic) {
             const dashboardStarted = performance.now();
-            renderWebDashboard(data.output || "", data.status || "idle", data);
+            renderWebDashboard(displayedRawOutput, data.status || "idle", data);
             dashboardElapsedMs = performance.now() - dashboardStarted;
         } else if (activeModuleTab === "automatic_migration") {
             const dashboardStarted = performance.now();
@@ -3446,7 +3481,7 @@
             renderOutputMs: Number(renderOutputElapsedMs.toFixed(2)),
             renderDashboardMs: Number(dashboardElapsedMs.toFixed(2)),
             totalMs: Number((performance.now() - perfStarted).toFixed(2)),
-            outputChars: String(data.output || "").length
+            outputChars: String(displayedRawOutput || "").length
         });
         if (data.status !== "running" && data.status !== "stopping") {
             setActiveJobInUiState(null);
@@ -3517,8 +3552,7 @@
         await saveStateNow();
         setCommandPreviewText(data.command);
         document.getElementById("output").innerHTML = "";
-        lastOutputLines = [];
-        outputVirtualLastRangeKey = "";
+        resetOutputHistory();
         if (currentJobIsAutomatic) {
             renderWebDashboard("", "running", {});
         } else if (activeModuleTab === "automatic_migration") {
