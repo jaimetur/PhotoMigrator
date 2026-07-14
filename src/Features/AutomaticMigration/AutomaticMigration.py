@@ -341,7 +341,7 @@ def _album_finalize_wait_reason(album_folder_path, pending_duplicate_keys=None):
         if os.path.isfile(file_path) and path_key(file_path) not in pending_duplicate_keys:
             remaining_files.append(file_path)
     if remaining_files:
-        return f"{len(remaining_files)} pending file(s)"
+        return f"{len(remaining_files)} pending file(s) in queue"
 
     if pending_duplicate_keys:
         return f"{len(pending_duplicate_keys)} pending duplicate resolution item(s)"
@@ -1485,7 +1485,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             pending_count += 1
 
         if pending_count > 0:
-            return f" (Album: '{album_name}' - {pending_count} pending file(s))"
+            return f" (Album: '{album_name}' - {pending_count} pending file(s) in queue)"
         return f" (Album: '{album_name}')"
 
     def _maybe_finalize_album(album_name, removed_source_asset_ids=None, processed_albums=None, processed_albums_lock=None, worker_id=1, logger=LOGGER, log_level=logging.ERROR):
@@ -1521,7 +1521,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 if path_key(file_path) not in pending_duplicate_keys
             ]
             if non_pending_files:
-                _log_finalize_wait(f"{len(non_pending_files)} pending file(s)")
+                _log_finalize_wait(f"{len(non_pending_files)} pending file(s) in queue")
                 return False
 
             if pending_duplicate_items:
