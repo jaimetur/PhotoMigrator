@@ -1155,6 +1155,10 @@ textarea.field__input {
     margin-top: 0;
 }
 
+.module-actions--output {
+    margin-top: 12px;
+}
+
 .upload-action-btn {
     min-width: 190px;
 }

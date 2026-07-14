@@ -77,7 +77,7 @@
 
     <section class="panel" data-panel-id="feature-panel">
         <div class="panel-head">
-            <h2>Features Selector</h2>
+            <h2 id="feature-panel-title">Feature Selector: Automatic Migration</h2>
             <button type="button" class="collapse-btn" data-collapse-target="feature-panel" aria-label="Collapse panel">
                 <span class="collapse-btn__icon">▲</span>
             </button>
@@ -178,6 +178,10 @@
             <div class="terminal-shell">
                 <pre id="output" class="terminal"></pre>
                 <div id="output-resize-handle" class="terminal-resize-handle" title="Drag from bottom edge or bottom corners to resize the log panel"></div>
+            </div>
+            <div class="module-actions module-actions--output">
+                <button id="run-btn-output" type="button" class="run-btn">Run module</button>
+                <button id="stop-btn-output" type="button" class="run-btn run-btn--danger" disabled>Stop module</button>
             </div>
             <div id="job-input-controls" class="job-input-controls hidden">
                 <span class="job-input-label">Send confirmation:</span>
@@ -3076,6 +3080,7 @@
             clearValidationErrorStatus();
             renderAll();
         });
+        updateFeaturePanelTitle();
         renderGeneralTabs();
 
         renderBulkArgumentPanel("general-core-panel", schema.general_tabs.general || []);
@@ -3407,17 +3412,41 @@
     }
 
     function updateRunStopButtons(status = "idle") {
-        const runBtn = document.getElementById("run-btn");
-        const stopBtn = document.getElementById("stop-btn");
+        const runButtons = [
+            document.getElementById("run-btn"),
+            document.getElementById("run-btn-output")
+        ].filter(Boolean);
+        const stopButtons = [
+            document.getElementById("stop-btn"),
+            document.getElementById("stop-btn-output")
+        ].filter(Boolean);
         const runningLike = status === "running" || status === "stopping";
-        runBtn.disabled = runningLike;
-        stopBtn.disabled = !runningLike;
+        runButtons.forEach((btn) => {
+            btn.disabled = runningLike;
+        });
+        stopButtons.forEach((btn) => {
+            btn.disabled = !runningLike;
+        });
     }
 
     function clearValidationErrorStatus() {
         const statusEl = document.getElementById("status");
         if (!statusEl.classList.contains("status--error")) return;
         setStatus("Status: idle", false);
+    }
+
+    function getActiveModuleDisplayName() {
+        if (activeModuleTab === "icloud_takeout") return "iCloud Takeout";
+        const raw = MODULE_TAB_NAMES[activeModuleTab] || String(activeModuleTab || "");
+        return raw
+            .toLowerCase()
+            .replace(/\b\w/g, (match) => match.toUpperCase());
+    }
+
+    function updateFeaturePanelTitle() {
+        const titleEl = document.getElementById("feature-panel-title");
+        if (!titleEl) return;
+        titleEl.textContent = `Feature Selector: ${getActiveModuleDisplayName()}`;
     }
 
     function setActiveJobInUiState(jobId, tab = null) {
@@ -5164,6 +5193,8 @@
         });
         document.getElementById("run-btn").addEventListener("click", runCommand);
         document.getElementById("stop-btn").addEventListener("click", stopCommand);
+        document.getElementById("run-btn-output").addEventListener("click", runCommand);
+        document.getElementById("stop-btn-output").addEventListener("click", stopCommand);
         document.getElementById("copy-log-btn").addEventListener("click", copyLogToClipboard);
         document.getElementById("import-config-btn").addEventListener("click", importConfigFromFile);
         document.getElementById("config-import-input").addEventListener("change", onConfigImportPicked);
