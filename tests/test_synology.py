@@ -261,7 +261,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertEqual(len(json.loads(second_params["item"])), 500)
         self.assertEqual(len(json.loads(third_params["item"])), 2)
 
-    def test_is_shared_album_detects_sharing_info_without_passphrase(self):
+    def test_is_shared_album_ignores_owned_album_with_sharing_info(self):
         album = {
             "id": "shared-1",
             "albumName": "Album Shared",
@@ -272,7 +272,45 @@ class TestSynologyPhotosUnit(unittest.TestCase):
             },
         }
 
+        self.assertFalse(ClassSynologyPhotos.is_shared_album(album))
+
+    def test_is_shared_album_detects_shared_with_me_scope(self):
+        album = {
+            "id": "shared-1",
+            "albumName": "Album Shared",
+            "category": "normal_share_with_me",
+            "additional": {
+                "sharing_info": {
+                    "permission": [{"role": "editor"}]
+                }
+            },
+        }
+
         self.assertTrue(ClassSynologyPhotos.is_shared_album(album))
+
+    def test_is_blocked_shared_album_only_applies_to_shared_with_me_view_role(self):
+        owned_album = {
+            "id": "owned-1",
+            "albumName": "Owned Album",
+            "additional": {
+                "sharing_info": {
+                    "permission": [{"role": "view"}]
+                }
+            },
+        }
+        shared_with_me_album = {
+            "id": "shared-1",
+            "albumName": "Shared Album",
+            "category": "normal_share_with_me",
+            "additional": {
+                "sharing_info": {
+                    "permission": [{"role": "view"}]
+                }
+            },
+        }
+
+        self.assertFalse(ClassSynologyPhotos.is_blocked_shared_album(owned_album))
+        self.assertTrue(ClassSynologyPhotos.is_blocked_shared_album(shared_with_me_album))
 
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
     def test_ensure_shared_album_access_populates_missing_passphrase_from_album_get(self, _mock_logger):
@@ -299,6 +337,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         album = {
             "id": "shared-1",
             "albumName": "Album Shared",
+            "category": "normal_share_with_me",
             "additional": {"sharing_info": {"permission": [{"role": "editor"}]}},
         }
 
@@ -337,6 +376,45 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         params = manager.SESSION.get.call_args.kwargs["params"]
         self.assertEqual(params["album_id"], "album-shared-1")
         self.assertEqual(params["passphrase"], "shared-passphrase")
+
+    def test_get_albums_including_shared_with_user_prefers_owned_album_scope(self):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.get_albums_owned_by_user = MagicMock(return_value=[
+            {
+                "id": "album-1",
+                "albumName": "Summer",
+                "additional": {"sharing_info": {"permission": [{"role": "view"}]}},
+                "_synology_album_scope": "owned",
+            }
+        ])
+        manager._list_shared_with_me_albums = MagicMock(return_value=[
+            {
+                "id": "album-1",
+                "albumName": "Summer",
+                "category": "normal_share_with_me",
+                "_synology_album_scope": "shared_with_me",
+            },
+            {
+                "id": "album-2",
+                "albumName": "Shared Only",
+                "category": "normal_share_with_me",
+                "_synology_album_scope": "shared_with_me",
+            },
+        ])
+        manager.ensure_shared_album_access = lambda album, log_level=None: album
+        manager.get_all_assets_from_album = MagicMock(return_value=[{"id": "asset-owned"}])
+        manager.get_all_assets_from_album_shared = MagicMock(return_value=[{"id": "asset-shared"}])
+
+        with patch("Features.SynologyPhotos.ClassSynologyPhotos.has_any_filter", return_value=True):
+            albums = manager.get_albums_including_shared_with_user(filter_assets=True, log_level=logging.INFO)
+
+        self.assertEqual([album["id"] for album in albums], ["album-1", "album-2"])
+        self.assertEqual(manager.get_all_assets_from_album.call_count, 1)
+        self.assertEqual(manager.get_all_assets_from_album_shared.call_count, 1)
+        owned_call = manager.get_all_assets_from_album.call_args
+        self.assertEqual(owned_call.args[0], "album-1")
+        shared_call = manager.get_all_assets_from_album_shared.call_args
+        self.assertEqual(shared_call.args[0], "album-2")
 
 
 if __name__ == "__main__":

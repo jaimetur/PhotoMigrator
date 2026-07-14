@@ -127,21 +127,62 @@ class ClassSynologyPhotos:
     def _extract_album_permissions(album):
         return album.get('additional', {}).get('sharing_info', {}).get('permission', []) or []
 
+    @staticmethod
+    def _normalize_album_category(album):
+        if not isinstance(album, dict):
+            return ""
+        return str(album.get('category') or album.get('album_type') or album.get('type') or "").strip().lower()
+
+    @classmethod
+    def is_shared_with_me_album(cls, album):
+        if not isinstance(album, dict):
+            return False
+        explicit_scope = str(album.get("_synology_album_scope") or "").strip().lower()
+        if explicit_scope == "shared_with_me":
+            return True
+        category = cls._normalize_album_category(album)
+        return "share_with_me" in category
+
+    @classmethod
+    def is_album_owned_by_user(cls, album):
+        return not cls.is_shared_with_me_album(album)
+
     @classmethod
     def is_shared_album(cls, album):
         if not isinstance(album, dict):
             return False
-        passphrase = str(album.get('passphrase') or "").strip()
-        if passphrase:
+        if cls.is_shared_with_me_album(album):
             return True
-        sharing_info = album.get('additional', {}).get('sharing_info', {}) or {}
-        if sharing_info:
-            return True
-        category = str(album.get('category') or album.get('album_type') or album.get('type') or "").strip().lower()
-        if "share" in category:
-            return True
+        explicit_scope = str(album.get("_synology_album_scope") or "").strip().lower()
+        if explicit_scope == "owned":
+            return False
+        category = cls._normalize_album_category(album)
+        if category and "share" in category and "share_with_me" not in category:
+            return False
+        return False
+
+    @classmethod
+    def is_blocked_shared_album(cls, album):
+        if not cls.is_shared_album(album):
+            return False
         permissions = cls._extract_album_permissions(album)
-        return bool(permissions)
+        if not permissions:
+            return False
+        role = str((permissions[0] or {}).get("role") or "").strip().lower()
+        return role == "view"
+
+    @classmethod
+    def normalize_album_payload(cls, album, scope=None):
+        if not isinstance(album, dict):
+            return album
+        normalized_album = dict(album)
+        if "name" in normalized_album and "albumName" not in normalized_album:
+            normalized_album["albumName"] = normalized_album.pop("name")
+        if scope:
+            normalized_album["_synology_album_scope"] = scope
+        elif "_synology_album_scope" not in normalized_album:
+            normalized_album["_synology_album_scope"] = "shared_with_me" if cls.is_shared_with_me_album(normalized_album) else "owned"
+        return normalized_album
 
     def _extract_passphrase_from_album_payload(self, payload):
         candidates = []
@@ -227,6 +268,48 @@ class ClassSynologyPhotos:
                 LOGGER.debug(f"Could not resolve shared album access details for album ID={album_id}: {error}")
             shared_album_access_cache[album_id] = dict(album)
             return album
+
+    def _list_shared_with_me_albums(self, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                offset = 0
+                limit = 5000
+                album_list = []
+                while True:
+                    params = {
+                        'api': 'SYNO.Foto.Browse.Album',
+                        'version': '4',
+                        'method': 'list',
+                        'category': 'normal_share_with_me',
+                        'sort_by': 'start_time',
+                        'sort_direction': 'desc',
+                        'additional': '["sharing_info", "thumbnail"]',
+                        "offset": offset,
+                        "limit": limit
+                    }
+
+                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    data = response.json()
+                    if not data.get("success"):
+                        LOGGER.error(f"Failed to list shared albums with current user: {data}")
+                        return None
+                    album_list.extend([
+                        self.normalize_album_payload(album, scope="shared_with_me")
+                        for album in data["data"]["list"]
+                    ])
+                    if len(data["data"]["list"]) < limit:
+                        break
+                    offset += limit
+                return album_list
+            except Exception as e:
+                LOGGER.error(f"Exception while listing shared albums with current user. {e}")
+                return None
 
 
     ###########################################################################
@@ -656,8 +739,7 @@ class ClassSynologyPhotos:
 
                 albums_filtered = []
                 for album in album_list:
-                    if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
-                        album["albumName"] = album.pop("name")
+                    album = self.normalize_album_payload(album, scope="owned")
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     if filter_assets and has_any_filter():
@@ -697,46 +779,27 @@ class ClassSynologyPhotos:
             :param filter_assets:
         """
         with set_log_level(LOGGER, log_level):
-            try:
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
+            owned_albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
+            shared_with_me_albums = self._list_shared_with_me_albums(log_level=log_level) or []
 
-                offset = 0
-                limit = 5000
-                album_list = []
-                while True:
-                    params = {
-                        'api': 'SYNO.Foto.Browse.Album',
-                        'version': '4',
-                        'method': 'list',
-                        'category': 'normal_share_with_me',
-                        'sort_by': 'start_time',
-                        'sort_direction': 'desc',
-                        'additional': '["sharing_info", "thumbnail"]',
-                        "offset": offset,
-                        "limit": limit
-                    }
+            deduped_albums = {}
+            ordered_ids = []
+            for album in owned_albums + shared_with_me_albums:
+                album = self.normalize_album_payload(album)
+                album_id = str(album.get("id") or "").strip()
+                if not album_id:
+                    continue
+                existing = deduped_albums.get(album_id)
+                if existing is None:
+                    deduped_albums[album_id] = album
+                    ordered_ids.append(album_id)
+                    continue
+                if self.is_album_owned_by_user(album) and not self.is_album_owned_by_user(existing):
+                    deduped_albums[album_id] = album
 
-                    r = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                    data = r.json()
-                    if not data.get("success"):
-                        LOGGER.error(f"Failed to list own albums:", data)
-                        return None
-                    album_list.extend(data["data"]["list"])
-                    if len(data["data"]["list"]) < limit:
-                        break
-                    offset += limit
-            except Exception as e:
-                LOGGER.error(f"Exception while listing own albums. {e}")
-                return None
-            
             albums_filtered = []
-            for album in album_list:
-                if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
-                    album["albumName"] = album.pop("name")
+            for album_id in ordered_ids:
+                album = deduped_albums[album_id]
                 album = self.ensure_shared_album_access(album, log_level=log_level)
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")

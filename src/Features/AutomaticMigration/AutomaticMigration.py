@@ -2372,12 +2372,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_id = album['id']
                 album_name = album['albumName']
                 album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
-                permissions = album.get('additional', {}).get('sharing_info', {}).get('permission', [])  # Obtiene el valor si existe, si no, devuelve None
-                if permissions:
-                    album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
-                else:
-                    album_shared_role = ""  # O cualquier valor por defecto que desees
-                if album_shared_role.lower() == 'view':
+                if source_client.is_blocked_shared_album(album):
                     LOGGER.info(f"Album '{album_name}' cannot be pulled because is a blocked shared album. Skipped!")
                     total_albums_blocked_count += 1
                     total_assets_blocked_count += album.get('item_count')
@@ -2632,11 +2627,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_id = album['id']
                 album_name = album['albumName']
                 album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
-                permissions = album.get('additional', {}).get('sharing_info', {}).get('permission', [])  # Obtiene el valor si existe, si no, devuelve None
-                if permissions:
-                    album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
-                else:
-                    album_shared_role = ""
                 if isinstance(source_client, ClassSynologyPhotos):
                     is_shared = source_client.is_shared_album(album)
                 else:
@@ -2647,7 +2637,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     if not is_shared:
                         album_assets = source_client.get_all_assets_from_album(album_id=album_id, album_name=album_name, log_level=logging.ERROR)
                     else:
-                        if album_shared_role.lower() != 'view':
+                        if not source_client.is_blocked_shared_album(album):
                             album_assets = source_client.get_all_assets_from_album_shared(album_id=album_id, album_name=album_name, album_passphrase=album_passphrase, log_level=logging.ERROR)
                     if not album_assets:
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
