@@ -261,6 +261,12 @@ def _cleanup_local_source_after_move(source_client, log_level=logging.INFO):
         return {}
 
 
+def _is_blocked_synology_shared_album(source_client, album) -> bool:
+    if not isinstance(source_client, ClassSynologyPhotos):
+        return False
+    return bool(source_client.is_blocked_shared_album(album))
+
+
 def _mark_album_pushed_if_ready(album_name, album_folder_path, processed_albums, processed_albums_lock, counters, logger):
     """
     Count an album as pushed once its temp folder is no longer active and can be removed.
@@ -2372,7 +2378,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_id = album['id']
                 album_name = album['albumName']
                 album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
-                if source_client.is_blocked_shared_album(album):
+                if _is_blocked_synology_shared_album(source_client, album):
                     LOGGER.info(f"Album '{album_name}' cannot be pulled because is a blocked shared album. Skipped!")
                     total_albums_blocked_count += 1
                     total_assets_blocked_count += album.get('item_count')
@@ -2637,7 +2643,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     if not is_shared:
                         album_assets = source_client.get_all_assets_from_album(album_id=album_id, album_name=album_name, log_level=logging.ERROR)
                     else:
-                        if not source_client.is_blocked_shared_album(album):
+                        if not _is_blocked_synology_shared_album(source_client, album):
                             album_assets = source_client.get_all_assets_from_album_shared(album_id=album_id, album_name=album_name, album_passphrase=album_passphrase, log_level=logging.ERROR)
                     if not album_assets:
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums

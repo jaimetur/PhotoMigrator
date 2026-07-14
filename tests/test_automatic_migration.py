@@ -148,6 +148,24 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(removed, 1)
         remote_client.remove_assets.assert_called_once_with(asset_ids="abc123", log_level=logging.ERROR)
 
+    def test_is_blocked_synology_shared_album_returns_false_for_non_synology_sources(self):
+        local_client = object.__new__(automatic_module.ClassLocalFolder)
+        album = {"id": "album-1", "albumName": "Album"}
+
+        blocked = automatic_module._is_blocked_synology_shared_album(local_client, album)
+
+        self.assertFalse(blocked)
+
+    def test_is_blocked_synology_shared_album_delegates_for_synology_sources(self):
+        synology_client = object.__new__(automatic_module.ClassSynologyPhotos)
+        synology_client.is_blocked_shared_album = unittest.mock.Mock(return_value=True)
+        album = {"id": "album-1", "albumName": "Album"}
+
+        blocked = automatic_module._is_blocked_synology_shared_album(synology_client, album)
+
+        self.assertTrue(blocked)
+        synology_client.is_blocked_shared_album.assert_called_once_with(album)
+
     def test_mark_album_pushed_if_ready_counts_album_once_when_folder_is_drained(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             album_folder = Path(tmpdir) / "Album A"
