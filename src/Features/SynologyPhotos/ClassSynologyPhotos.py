@@ -98,6 +98,7 @@ class ClassSynologyPhotos:
 
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
+        self.CURRENT_OWNER_USER_ID = None
 
         # Create cache lists for future use
         self.all_assets_filtered = None
@@ -133,6 +134,33 @@ class ClassSynologyPhotos:
             return ""
         return str(album.get('category') or album.get('album_type') or album.get('type') or "").strip().lower()
 
+    @staticmethod
+    def _normalize_user_id(value):
+        text = str(value or "").strip()
+        return text or None
+
+    @classmethod
+    def _extract_album_owner_user_id(cls, album):
+        if not isinstance(album, dict):
+            return None
+        candidates = [
+            album.get("owner_user_id"),
+            (album.get("additional") or {}).get("owner_user_id"),
+            (album.get("additional") or {}).get("sharing_info", {}).get("owner_user_id"),
+        ]
+        for candidate in candidates:
+            normalized = cls._normalize_user_id(candidate)
+            if normalized is not None:
+                return normalized
+        return None
+
+    @classmethod
+    def _extract_album_primary_permission_role(cls, album):
+        permissions = cls._extract_album_permissions(album)
+        if not permissions:
+            return ""
+        return str((permissions[0] or {}).get("role") or "").strip().lower()
+
     @classmethod
     def is_shared_with_me_album(cls, album):
         if not isinstance(album, dict):
@@ -140,26 +168,27 @@ class ClassSynologyPhotos:
         explicit_scope = str(album.get("_synology_album_scope") or "").strip().lower()
         if explicit_scope == "shared_with_me":
             return True
+        if explicit_scope in {"owned", "owned_personal", "owned_shared_space"}:
+            return False
         category = cls._normalize_album_category(album)
         return "share_with_me" in category
 
     @classmethod
     def is_album_owned_by_user(cls, album):
+        if not isinstance(album, dict):
+            return False
+        explicit_scope = str(album.get("_synology_album_scope") or "").strip().lower()
+        if explicit_scope in {"owned", "owned_personal", "owned_shared_space"}:
+            return True
+        if explicit_scope == "shared_with_me":
+            return False
         return not cls.is_shared_with_me_album(album)
 
     @classmethod
     def is_shared_album(cls, album):
         if not isinstance(album, dict):
             return False
-        if cls.is_shared_with_me_album(album):
-            return True
-        explicit_scope = str(album.get("_synology_album_scope") or "").strip().lower()
-        if explicit_scope == "owned":
-            return False
-        category = cls._normalize_album_category(album)
-        if category and "share" in category and "share_with_me" not in category:
-            return False
-        return False
+        return cls.is_shared_with_me_album(album)
 
     @classmethod
     def is_blocked_shared_album(cls, album):
@@ -178,10 +207,72 @@ class ClassSynologyPhotos:
         normalized_album = dict(album)
         if "name" in normalized_album and "albumName" not in normalized_album:
             normalized_album["albumName"] = normalized_album.pop("name")
+        owner_user_id = cls._extract_album_owner_user_id(normalized_album)
+        if owner_user_id is not None:
+            normalized_album["_synology_owner_user_id"] = owner_user_id
         if scope:
             normalized_album["_synology_album_scope"] = scope
         elif "_synology_album_scope" not in normalized_album:
             normalized_album["_synology_album_scope"] = "shared_with_me" if cls.is_shared_with_me_album(normalized_album) else "owned"
+        return normalized_album
+
+    def _remember_current_owner_user_id(self, album):
+        owner_user_id = self._extract_album_owner_user_id(album)
+        if owner_user_id and self.is_album_owned_by_user(album) and not getattr(self, "CURRENT_OWNER_USER_ID", None):
+            self.CURRENT_OWNER_USER_ID = owner_user_id
+
+    def _infer_album_scope(self, album, fallback_scope=None):
+        """
+        Infer the Synology album scope as precisely as possible.
+
+        Synology "Shared Space" albums can appear under the
+        `normal_share_with_me` namespace even when they are still owned by the
+        current user. Issue #1173 showed that those albums must be handled with
+        the normal album/item APIs (`album_id` context) instead of the
+        passphrase-based "shared with me" flow.
+
+        Scope meanings:
+          - owned_personal: regular owned album in Personal Space
+          - owned_shared_space: album owned by current user but exposed through
+            Synology's Shared Space namespace
+          - shared_with_me: album owned by another user and shared to us
+        """
+        normalized_album = self.normalize_album_payload(album)
+        category = self._normalize_album_category(normalized_album)
+        owner_user_id = self._extract_album_owner_user_id(normalized_album)
+        current_owner_user_id = self._normalize_user_id(getattr(self, "CURRENT_OWNER_USER_ID", None))
+        permission_role = self._extract_album_primary_permission_role(normalized_album)
+
+        if owner_user_id and current_owner_user_id and owner_user_id == current_owner_user_id:
+            return "owned_shared_space" if "share_with_me" in category else "owned_personal"
+
+        if fallback_scope in {"owned", "owned_personal"}:
+            return "owned_personal"
+        if fallback_scope == "owned_shared_space":
+            return "owned_shared_space"
+
+        # When we do not yet know the numeric owner ID of the current account,
+        # use the observed Shared Space heuristic from issue #1173: albums
+        # surfaced in `normal_share_with_me` but with "full" permissions behave
+        # like owned albums and must use `album_id`-context list/download calls.
+        if fallback_scope == "shared_with_me" and permission_role == "full":
+            return "owned_shared_space"
+
+        if fallback_scope == "shared_with_me":
+            return "shared_with_me"
+
+        if "share_with_me" in category:
+            return "shared_with_me"
+        return "owned_personal"
+
+    def _hydrate_album_payload(self, album, fallback_scope=None):
+        normalized_album = self.normalize_album_payload(album)
+        scope = self._infer_album_scope(normalized_album, fallback_scope=fallback_scope)
+        normalized_album["_synology_album_scope"] = scope
+        owner_user_id = self._extract_album_owner_user_id(normalized_album)
+        if owner_user_id is not None:
+            normalized_album["_synology_owner_user_id"] = owner_user_id
+        self._remember_current_owner_user_id(normalized_album)
         return normalized_album
 
     def _extract_passphrase_from_album_payload(self, payload):
@@ -222,7 +313,8 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             if not isinstance(album, dict):
                 return album
-            if not self.is_shared_album(album):
+            album = self._hydrate_album_payload(album)
+            if not self.is_shared_with_me_album(album):
                 return album
             if str(album.get("passphrase") or "").strip():
                 return album
@@ -259,6 +351,17 @@ class ClassSynologyPhotos:
                 if not data.get("success"):
                     LOGGER.debug(f"Could not resolve shared album passphrase for album ID={album_id}: {data}")
                     return album
+
+                payload_data = data.get("data") or {}
+                candidate_album = None
+                if isinstance(payload_data, dict):
+                    if isinstance(payload_data.get("album"), dict):
+                        candidate_album = payload_data.get("album")
+                    elif isinstance(payload_data.get("list"), list) and payload_data.get("list"):
+                        candidate_album = payload_data.get("list")[0]
+                if isinstance(candidate_album, dict):
+                    album.update(candidate_album)
+                    album = self._hydrate_album_payload(album, fallback_scope="shared_with_me")
 
                 resolved_passphrase = self._extract_passphrase_from_album_payload(data)
                 if resolved_passphrase:
@@ -300,7 +403,7 @@ class ClassSynologyPhotos:
                         LOGGER.error(f"Failed to list shared albums with current user: {data}")
                         return None
                     album_list.extend([
-                        self.normalize_album_payload(album, scope="shared_with_me")
+                        self._hydrate_album_payload(album, fallback_scope="shared_with_me")
                         for album in data["data"]["list"]
                     ])
                     if len(data["data"]["list"]) < limit:
@@ -739,19 +842,27 @@ class ClassSynologyPhotos:
 
                 albums_filtered = []
                 for album in album_list:
-                    album = self.normalize_album_payload(album, scope="owned")
+                    album = self._hydrate_album_payload(album, fallback_scope="owned_personal")
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     if filter_assets and has_any_filter():
-                        if self.is_shared_album(album):
+                        if self.is_shared_with_me_album(album):
                             album_assets = self.get_all_assets_from_album_shared(
                                 album_id,
                                 album_name,
                                 album_passphrase=album.get("passphrase"),
+                                album_scope=album.get("_synology_album_scope"),
+                                album_expected_count=album.get("item_count"),
                                 log_level=log_level,
                             )
                         else:
-                            album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                            album_assets = self.get_all_assets_from_album(
+                                album_id,
+                                album_name,
+                                album_scope=album.get("_synology_album_scope"),
+                                album_expected_count=album.get("item_count"),
+                                log_level=log_level,
+                            )
                         if len(album_assets) > 0:
                             albums_filtered.append(album)
                     else:
@@ -785,7 +896,7 @@ class ClassSynologyPhotos:
             deduped_albums = {}
             ordered_ids = []
             for album in owned_albums + shared_with_me_albums:
-                album = self.normalize_album_payload(album)
+                album = self._hydrate_album_payload(album)
                 album_id = str(album.get("id") or "").strip()
                 if not album_id:
                     continue
@@ -801,18 +912,27 @@ class ClassSynologyPhotos:
             for album_id in ordered_ids:
                 album = deduped_albums[album_id]
                 album = self.ensure_shared_album_access(album, log_level=log_level)
+                album = self._hydrate_album_payload(album)
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")
                 if filter_assets and has_any_filter():
-                    if self.is_shared_album(album):
+                    if self.is_shared_with_me_album(album):
                         album_assets = self.get_all_assets_from_album_shared(
                             album_id,
                             album_name,
                             album_passphrase=album.get("passphrase"),
+                            album_scope=album.get("_synology_album_scope"),
+                            album_expected_count=album.get("item_count"),
                             log_level=log_level,
                         )
                     else:
-                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        album_assets = self.get_all_assets_from_album(
+                            album_id,
+                            album_name,
+                            album_scope=album.get("_synology_album_scope"),
+                            album_expected_count=album.get("item_count"),
+                            log_level=log_level,
+                        )
                     if len(album_assets) > 0:
                         albums_filtered.append(album)
                 else:
@@ -1240,7 +1360,129 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"Exception while getting all Assets from Synology Photos. {e}")
             
 
-    def get_all_assets_from_album(self, album_id, album_name=None, log_level=None):
+    def _iter_album_item_request_variants(self, album_id, album_scope="owned_personal", album_passphrase=None):
+        """
+        Yield request variants for album item listing.
+
+        Synology's browser and API behavior is not uniform across namespaces:
+          - Personal-space owned albums have historically worked with
+            `SYNO.Foto.Browse.Item` version 4.
+          - Issue #1173 showed that Shared Space albums exposed under the
+            `normal_share_with_me` namespace are still listed by the browser
+            with `version=7`, `album_id=<id>` and *without* passphrase.
+          - True "shared with me" albums may still require the passphrase-based
+            flow, so we keep that as a fallback instead of replacing it.
+        """
+        common_v4 = '["thumbnail","resolution","orientation","video_convert","video_meta","address"]'
+        common_v7 = '["thumbnail","resolution","orientation","video_convert","video_meta","provider_user_id"]'
+        variants = []
+
+        if album_scope in {"owned_shared_space", "shared_with_me"}:
+            variants.append({
+                "api": "SYNO.Foto.Browse.Item",
+                "version": "7",
+                "method": "list",
+                "album_id": album_id,
+                "sort_by": "takentime",
+                "sort_direction": "asc",
+                "additional": common_v7,
+            })
+
+        variants.append({
+            "api": "SYNO.Foto.Browse.Item",
+            "version": "4",
+            "method": "list",
+            "album_id": album_id,
+            "additional": common_v4,
+        })
+
+        if album_scope == "shared_with_me" and album_passphrase:
+            variants.append({
+                "api": "SYNO.Foto.Browse.Item",
+                "version": "4",
+                "method": "list",
+                "album_id": album_id,
+                "passphrase": album_passphrase,
+                "additional": common_v4,
+            })
+            variants.append({
+                "api": "SYNO.Foto.Browse.Item",
+                "version": "7",
+                "method": "list",
+                "album_id": album_id,
+                "passphrase": album_passphrase,
+                "sort_by": "takentime",
+                "sort_direction": "asc",
+                "additional": common_v7,
+            })
+
+        seen = set()
+        for variant in variants:
+            key = json.dumps(variant, sort_keys=True)
+            if key in seen:
+                continue
+            seen.add(key)
+            yield variant
+
+    def _get_album_assets_via_variants(self, album_id, album_name=None, album_passphrase=None, album_scope="owned_personal", album_expected_count=None, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            failure_messages = []
+            variants = list(self._iter_album_item_request_variants(album_id=album_id, album_scope=album_scope, album_passphrase=album_passphrase))
+            for index, base_params in enumerate(variants):
+                offset = 0
+                limit = 5000
+                album_assets = []
+                while True:
+                    params = dict(base_params)
+                    params["offset"] = offset
+                    params["limit"] = limit
+                    try:
+                        resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                        data = resp.json()
+                        if not data.get("success"):
+                            failure_messages.append(f"variant={params.get('version')}/{params.get('method')} response={data}")
+                            album_assets = None
+                            break
+                        page = list((data.get("data") or {}).get("list") or [])
+                        if page:
+                            album_assets.extend(page)
+                        if len(page) < limit:
+                            break
+                        offset += limit
+                    except Exception as e:
+                        failure_messages.append(f"variant={params.get('version')}/{params.get('method')} error={e}")
+                        album_assets = None
+                        break
+
+                if album_assets is None:
+                    continue
+                if album_assets:
+                    return self.filter_assets(assets=album_assets, log_level=log_level)
+
+                # An empty success response can be valid for empty albums. However,
+                # for Shared Space / shared-with-me albums we only trust the empty
+                # result immediately when Synology itself reported no items.
+                expected_count = int(album_expected_count or 0)
+                if expected_count <= 0:
+                    return []
+                if index == len(variants) - 1:
+                    return []
+
+            if album_name:
+                LOGGER.error(f"Failed to list photos in the album '{album_name}'")
+            else:
+                LOGGER.error(f"Failed to list photos in the album ID={album_id}")
+            if failure_messages:
+                LOGGER.debug("Album list variants tried: " + " | ".join(failure_messages))
+            return []
+
+    def get_all_assets_from_album(self, album_id, album_name=None, album_scope="owned_personal", album_expected_count=None, log_level=None):
         """
         Get assets in a specific album.
 
@@ -1254,60 +1496,18 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                # base_params settings
-                base_params = {
-                    'api': 'SYNO.Foto.Browse.Item',
-                    'version': '4',
-                    'method': 'list',
-                    'album_id': album_id,
-                    # 'version': '2',
-                    # 'method': 'list_with_filter',
-                    # 'album_id': f"[{album_id}]",
-                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
-                }
-
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
-
-                offset = 0
-                limit = 5000
-                album_assets = []
-                while True:
-                    params = base_params.copy()  # Hacemos una copia para no modificar el original
-                    params['offset'] = offset
-                    params['limit'] = limit
-                    try:
-                        resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                        data = resp.json()
-                        if not data.get("success"):
-                            if album_name:
-                                LOGGER.error(f"Failed to list photos in the album '{album_name}'")
-                            else:
-                                LOGGER.error(f"Failed to list photos in the album ID={album_id}")
-                            return []
-                        if len(data["data"]["list"])>0:
-                            album_assets.extend(data["data"]["list"])
-
-                        if len(data["data"]["list"]) < limit:
-                            break
-                        offset += limit
-                    except Exception as e:
-                        if album_name:
-                            LOGGER.error(f"Exception while listing photos in the album '{album_name}' {e}")
-                        else:
-                            LOGGER.error(f"Exception while listing photos in the album ID={album_id} {e}")
-                        return []
-
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                return filtered_album_assets
+                return self._get_album_assets_via_variants(
+                    album_id=album_id,
+                    album_name=album_name,
+                    album_scope=album_scope,
+                    album_expected_count=album_expected_count,
+                    log_level=log_level,
+                )
             except Exception as e:
                 LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
 
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=None):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, album_scope="shared_with_me", album_expected_count=None, log_level=None):
         """
         Get assets in a specific shared album.
 
@@ -1322,56 +1522,14 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                # base_params settings
-                base_params = {
-                    'api': 'SYNO.Foto.Browse.Item',
-                    'version': '4',
-                    'method': 'list',
-                    'album_id': album_id,
-                    'passphrase': album_passphrase,
-                    # 'version': '2',
-                    # 'method': 'list_with_filter',
-                    # 'passphrase': album_passphrase,
-                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
-                }
-
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
-
-                offset = 0
-                limit = 5000
-                album_assets = []
-                while True:
-                    params = base_params.copy()  # Hacemos una copia para no modificar el original
-                    params['offset'] = offset
-                    params['limit'] = limit
-                    try:
-                        resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                        data = resp.json()
-                        if not data.get("success"):
-                            if album_name:
-                                LOGGER.error(f"Failed to list photos in the album '{album_name}'")
-                            else:
-                                LOGGER.error(f"Failed to list photos in the album ID={album_id}")
-                            return []
-                        if len(data["data"]["list"]) > 0:
-                            album_assets.extend(data["data"]["list"])
-
-                        if len(data["data"]["list"]) < limit:
-                            break
-                        offset += limit
-                    except Exception as e:
-                        if album_name:
-                            LOGGER.error(f"Exception while listing photos in the album '{album_name}' {e}")
-                        else:
-                            LOGGER.error(f"Exception while listing photos in the album ID={album_id} {e}")
-                        return []
-
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                return filtered_album_assets
+                return self._get_album_assets_via_variants(
+                    album_id=album_id,
+                    album_name=album_name,
+                    album_passphrase=album_passphrase,
+                    album_scope=album_scope,
+                    album_expected_count=album_expected_count,
+                    log_level=log_level,
+                )
             except Exception as e:
                 LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
 
@@ -1430,17 +1588,26 @@ class ClassSynologyPhotos:
                     return []
                 for album in all_albums:
                     album = self.ensure_shared_album_access(album, log_level=log_level)
+                    album = self._hydrate_album_payload(album)
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
-                    if self.is_shared_album(album):
+                    if self.is_shared_with_me_album(album):
                         album_assets = self.get_all_assets_from_album_shared(
                             album_id,
                             album_name,
                             album_passphrase=album.get("passphrase"),
+                            album_scope=album.get("_synology_album_scope"),
+                            album_expected_count=album.get("item_count"),
                             log_level=log_level,
                         )
                     else:
-                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        album_assets = self.get_all_assets_from_album(
+                            album_id,
+                            album_name,
+                            album_scope=album.get("_synology_album_scope"),
+                            album_expected_count=album.get("item_count"),
+                            log_level=log_level,
+                        )
                     combined_assets.extend(album_assets)
                 self.albums_assets_filtered = combined_assets # Cache albums_assets for future use
                 return combined_assets
@@ -1965,7 +2132,7 @@ class ClassSynologyPhotos:
                 return None, None
             
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, log_level=None):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, album_id=None, album_scope=None, log_level=None):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
@@ -1979,6 +2146,11 @@ class ClassSynologyPhotos:
             asset_filename (str): Name of the file to save.
             asset_time (int or str): UNIX epoch or ISO string time of the asset.
             album_passphrase (str): Passphrase for shared albums.
+            album_id (str): Album context ID when the asset is being downloaded
+                from a specific album.
+            album_scope (str): Normalized album scope. For Shared Space albums
+                discovered in issue #1173 we must include `album_id` even when
+                the album is owned by the current user and no passphrase is used.
             download_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
 
@@ -2016,11 +2188,24 @@ class ClassSynologyPhotos:
                     'download_type': 'source',
                     "item_id": f"[{asset_id}]",
                 }
-                # If is a shared album, we append the passphrase to params
-                if album_passphrase:
-                    params['passphrase'] = f'"{album_passphrase}"'
+                if album_id is not None:
+                    params["album_id"] = str(album_id)
 
-                resp = self.SESSION.get(url, params=params, headers=headers, verify=False, stream=True)
+                request_variants = [dict(params)]
+                if album_passphrase:
+                    request_with_passphrase = dict(params)
+                    request_with_passphrase['passphrase'] = f'"{album_passphrase}"'
+                    request_variants.append(request_with_passphrase)
+
+                # Synology's browser download flow for Shared Space albums uses
+                # `album_id` without passphrase. True shared-with-me albums may
+                # still require passphrase, so we try the browser-like context
+                # first and only then fall back to the passphrase variant.
+                resp = None
+                for request_params in request_variants:
+                    resp = self.SESSION.get(url, params=request_params, headers=headers, verify=False, stream=True)
+                    if resp.status_code == 200:
+                        break
                 if resp.status_code != 200:
                     LOGGER.error(f"")
                     LOGGER.error(f"Failed to download asset '{asset_filename}' with ID [{asset_id}]. Status code: {resp.status_code}")
@@ -2863,20 +3048,30 @@ class ClassSynologyPhotos:
 
                 for album in tqdm(albums_to_download, desc=f"{MSG_TAGS['INFO']}Downloading Albums", unit=" albums"):
                     album = self.ensure_shared_album_access(album, log_level=log_level)
+                    album = self._hydrate_album_payload(album)
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     album_passphrase = album.get("passphrase")
-                    is_shared = self.is_shared_album(album)
+                    album_scope = album.get("_synology_album_scope")
+                    is_shared = self.is_shared_with_me_album(album)
                     LOGGER.info(f"Processing album: '{album_name}' (ID: {album_id})")
                     if is_shared:
                         album_assets = self.get_all_assets_from_album_shared(
                             album_id,
                             album_name,
                             album_passphrase=album_passphrase,
+                            album_scope=album_scope,
+                            album_expected_count=album.get("item_count"),
                             log_level=log_level,
                         )
                     else:
-                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        album_assets = self.get_all_assets_from_album(
+                            album_id,
+                            album_name,
+                            album_scope=album_scope,
+                            album_expected_count=album.get("item_count"),
+                            log_level=log_level,
+                        )
                     LOGGER.info(f"Number of album_assets in the album '{album_name}': {len(album_assets)}")
                     if not album_assets:
                         LOGGER.warning(f"No album_assets to download in the album '{album_name}'.")
@@ -2900,6 +3095,8 @@ class ClassSynologyPhotos:
                             asset_time=asset_time,
                             download_folder=album_folder_path,
                             album_passphrase=album_passphrase if is_shared else None,
+                            album_id=album_id,
+                            album_scope=album_scope,
                             log_level=logging.INFO,
                         )
 
