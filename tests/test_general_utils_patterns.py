@@ -32,6 +32,7 @@ try:
         match_pattern,
         replace_pattern,
         confirm_continue,
+        has_any_filter,
         normalize_album_name_for_matching,
         find_reusable_album_candidate,
         build_reusable_album_group,
@@ -135,6 +136,13 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
             patch("builtins.input", return_value="yes"),
         ):
             self.assertTrue(confirm_continue(force_prompt=True))
+
+    def test_has_any_filter_treats_filter_by_type_all_as_no_filter(self):
+        with patch.object(GV, "ARGS", {"filter-by-type": "all"}):
+            self.assertFalse(has_any_filter())
+
+        with patch.object(GV, "ARGS", {"filter-by-type": "photos"}):
+            self.assertTrue(has_any_filter())
 
 
 if __name__ == "__main__":

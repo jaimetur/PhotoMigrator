@@ -1264,6 +1264,7 @@ class ClassSynologyPhotos:
                     'api': 'SYNO.Foto.Browse.Item',
                     'version': '4',
                     'method': 'list',
+                    'album_id': album_id,
                     'passphrase': album_passphrase,
                     # 'version': '2',
                     # 'method': 'list_with_filter',
@@ -2798,10 +2799,21 @@ class ClassSynologyPhotos:
                 albums_downloaded = len(albums_to_download)
 
                 for album in tqdm(albums_to_download, desc=f"{MSG_TAGS['INFO']}Downloading Albums", unit=" albums"):
+                    album = self.ensure_shared_album_access(album, log_level=log_level)
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
+                    album_passphrase = album.get("passphrase")
+                    is_shared = self.is_shared_album(album)
                     LOGGER.info(f"Processing album: '{album_name}' (ID: {album_id})")
-                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                    if is_shared:
+                        album_assets = self.get_all_assets_from_album_shared(
+                            album_id,
+                            album_name,
+                            album_passphrase=album_passphrase,
+                            log_level=log_level,
+                        )
+                    else:
+                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     LOGGER.info(f"Number of album_assets in the album '{album_name}': {len(album_assets)}")
                     if not album_assets:
                         LOGGER.warning(f"No album_assets to download in the album '{album_name}'.")
@@ -2819,7 +2831,14 @@ class ClassSynologyPhotos:
                         asset_time = asset.get('time')
                         asset_filename = asset.get('filename')
                         # Download
-                        assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=album_folder_path, log_level=logging.INFO)
+                        assets_downloaded += self.pull_asset(
+                            asset_id=asset_id,
+                            asset_filename=asset_filename,
+                            asset_time=asset_time,
+                            download_folder=album_folder_path,
+                            album_passphrase=album_passphrase if is_shared else None,
+                            log_level=logging.INFO,
+                        )
 
                 LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{output_folder}'")
                 # self.logout(log_level=log_level)

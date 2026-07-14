@@ -1456,7 +1456,10 @@ def has_any_filter():
     """
     Returns True if any filtering argument is enabled in GV.ARGS.
     """
-    return GV.ARGS.get('filter-by-type', None) or GV.ARGS.get('filter-from-date', None) or GV.ARGS.get('filter-to-date', None) or GV.ARGS.get('filter-by-country', None) or GV.ARGS.get('filter-by-city', None) or GV.ARGS.get('filter-by-person', None)
+    filter_by_type = GV.ARGS.get('filter-by-type', None)
+    if isinstance(filter_by_type, str) and filter_by_type.strip().lower() == "all":
+        filter_by_type = None
+    return filter_by_type or GV.ARGS.get('filter-from-date', None) or GV.ARGS.get('filter-to-date', None) or GV.ARGS.get('filter-by-country', None) or GV.ARGS.get('filter-by-city', None) or GV.ARGS.get('filter-by-person', None)
 
 
 def get_filters():

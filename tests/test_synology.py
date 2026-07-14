@@ -306,6 +306,38 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
         self.assertEqual(enriched.get("passphrase"), "shared-passphrase")
 
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_get_all_assets_from_album_shared_scopes_listing_by_album_id(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.SESSION = MagicMock()
+        manager.login = lambda log_level=None: True
+        manager.filter_assets = lambda assets, log_level=None: assets
+
+        response = MagicMock()
+        response.json.return_value = {
+            "success": True,
+            "data": {
+                "list": [
+                    {"id": "asset-1", "filename": "shared-1.jpg", "type": "PHOTO"},
+                ]
+            },
+        }
+        manager.SESSION.get.return_value = response
+
+        assets = manager.get_all_assets_from_album_shared(
+            album_id="album-shared-1",
+            album_name="Shared Album",
+            album_passphrase="shared-passphrase",
+            log_level=logging.INFO,
+        )
+
+        self.assertEqual([asset["id"] for asset in assets], ["asset-1"])
+        params = manager.SESSION.get.call_args.kwargs["params"]
+        self.assertEqual(params["album_id"], "album-shared-1")
+        self.assertEqual(params["passphrase"], "shared-passphrase")
+
 
 if __name__ == "__main__":
     unittest.main()
