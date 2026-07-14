@@ -2187,6 +2187,10 @@ def _parse_dashboard_snapshot_event(raw_line: str) -> Dict[str, Any] | None:
     return decoded if isinstance(decoded, dict) else None
 
 
+def _is_internal_dashboard_snapshot_line(raw_line: str) -> bool:
+    return str(raw_line or "").startswith(WEB_DASHBOARD_SNAPSHOT_PREFIX)
+
+
 def _get_job_output_tail(job: JobData, max_chars: int) -> str:
     if max_chars <= 0 or not job.output:
         return ""
@@ -2248,7 +2252,7 @@ def _read_job_output_lines_for_api(job: JobData) -> List[str]:
     else:
         selected_entries = list(job.output)
     lines = [entry.text.rstrip("\n") for entry in selected_entries]
-    if job.partial_line:
+    if job.partial_line and not _is_internal_dashboard_snapshot_line(job.partial_line):
         lines.append(job.partial_line)
     if job.dropped_output_lines > 0:
         notice = (

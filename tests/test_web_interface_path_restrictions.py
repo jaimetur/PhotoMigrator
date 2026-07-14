@@ -481,6 +481,20 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("Asset Pulled", output)
         self.assertNotIn(self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX, output)
 
+    def test_dashboard_snapshot_partial_line_is_hidden_from_visible_output(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            job.partial_line = f"{self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX}{{\"pulledAssets\":321"
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(lines, [])
+
 
 if __name__ == "__main__":
     unittest.main()
