@@ -2025,6 +2025,11 @@ body.is-resizing-log {
     overflow-wrap: normal;
 }
 
+.log-spacer {
+    display: block;
+    pointer-events: none;
+}
+
 .log-verbose {
     color: #69e0ff;
 }

@@ -4,6 +4,7 @@ import os
 import sys
 import tempfile
 import unittest
+from collections import deque
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -266,6 +267,30 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIs(sanitized["google-skip-extras-files"], True)
         self.assertIs(sanitized["google-keep-takeout-folder"], True)
         self.assertIs(sanitized["no-log-file"], True)
+
+    def test_read_job_output_lines_for_api_preserves_compact_lines_and_partial(self):
+        job = type("JobStub", (), {})()
+        job.output = deque([
+            self.web_app.OutputLine(text="INFO: line 1\n"),
+            self.web_app.OutputLine(text="INFO: line 2\n"),
+        ])
+        job.partial_line = "INFO: partial"
+        job.dropped_output_lines = 0
+
+        lines = self.web_app._read_job_output_lines_for_api(job)
+
+        self.assertEqual(lines, ["INFO: line 1", "INFO: line 2", "INFO: partial"])
+
+    def test_read_job_output_lines_for_api_prepends_drop_notice_when_needed(self):
+        job = type("JobStub", (), {})()
+        job.output = deque([self.web_app.OutputLine(text="INFO: kept\n")])
+        job.partial_line = ""
+        job.dropped_output_lines = 3
+
+        lines = self.web_app._read_job_output_lines_for_api(job)
+
+        self.assertIn("3 lines were dropped", lines[0])
+        self.assertEqual(lines[1:], ["INFO: kept"])
 
     def test_web_parser_schema_exposes_auxiliary_organize_fields_by_dest(self):
         fields_by_dest = self.web_app.PARSER_SCHEMA.get("fields_by_dest", {})

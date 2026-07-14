@@ -2217,6 +2217,19 @@ def _read_job_output_for_api(job: JobData) -> str:
     return output
 
 
+def _read_job_output_lines_for_api(job: JobData) -> List[str]:
+    lines = [entry.text.rstrip("\n") for entry in job.output]
+    if job.partial_line:
+        lines.append(job.partial_line)
+    if job.dropped_output_lines > 0:
+        notice = (
+            f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
+            f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines)."
+        )
+        return [notice, *lines]
+    return lines
+
+
 def _parse_last_matching_number(lines: List[str], pattern: re.Pattern[str]) -> int | None:
     for line in reversed(lines):
         match = pattern.search(line)
@@ -3918,6 +3931,7 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
             "dashboard_snapshot": dict(job.dashboard_snapshot or {}),
             "dashboard_snapshot_updated_at": job.dashboard_snapshot_updated_at,
             "output": output,
+            "output_lines": _read_job_output_lines_for_api(job),
         }
         if perf_started_at is not None:
             _debug_perf_log(
