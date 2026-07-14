@@ -29,6 +29,7 @@ from UI.ui_shared import (
     build_argument_specs,
     build_full_command,
     build_parser_schema,
+    automatic_migration_needs_otp,
     command_preview_string,
     command_to_string,
     compose_migration_endpoint,
@@ -1362,7 +1363,10 @@ class PhotoMigratorTkGUI:
     def build_module_only_fields(self, parent: Any, tab_key: str, fields: List[Dict[str, Any]]) -> None:
         if tab_key == "automatic_migration":
             regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
-            toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
+            toggle_fields = [
+                field for field in fields
+                if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") != "one-time-password"
+            ]
             migration_filter_fields = build_automatic_migration_filter_fields(self.schema)
             if regular_fields:
                 self._section_label(parent, "Module Fields", accent=True)
@@ -1374,6 +1378,9 @@ class PhotoMigratorTkGUI:
             if toggle_fields:
                 self._section_label(parent, "Flags", accent=True)
                 self.build_flags_grid(parent, toggle_fields, tab_key)
+                otp_field = get_field_by_dest(self.schema, "one-time-password")
+                if otp_field and automatic_migration_needs_otp(self.state_values, self.migration_endpoints_state):
+                    self.build_field_widgets(parent, otp_field, required=False, context=tab_key)
             if migration_filter_fields:
                 self._section_label(parent, "Migration Filters", accent=True)
                 self._empty_label(parent, "If empty, value from General Arguments will be used.").pack(anchor="w", padx=8, pady=(0, 4))
@@ -1483,6 +1490,7 @@ class PhotoMigratorTkGUI:
             self._clear_combobox_selection(type_combo)
             render_secondary()
             sync_endpoint_state()
+            self.rebuild_content()
 
         type_combo.bind("<<ComboboxSelected>>", on_kind_change)
         render_secondary()

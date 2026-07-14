@@ -149,6 +149,7 @@ AUTOMATION_DESTS = {
     "parallel-migration",
     "prefer-canonical-album-names",
     "consolidate-similar-albums",
+    "one-time-password",
 }
 GOOGLE_DESTS = {
     "google-takeout",
@@ -766,6 +767,16 @@ def compose_migration_endpoint(state: Dict[str, Any] | None) -> str:
     if kind == "google":
         return f"google-photos-{account}"
     return path
+
+
+def automatic_migration_needs_otp(values: Dict[str, Any] | None = None, endpoints_state: Dict[str, Dict[str, Any]] | None = None) -> bool:
+    for dest in ("source", "target"):
+        persisted = dict((endpoints_state or {}).get(dest) or {})
+        parsed = parse_migration_endpoint((values or {}).get(dest, ""), "synology" if dest == "source" else "immich")
+        kind = str(persisted.get("kind") or parsed.get("kind") or "").strip().lower()
+        if kind == "synology":
+            return True
+    return False
 
 
 def parse_find_duplicates_value(raw_value: Any) -> Dict[str, Any]:

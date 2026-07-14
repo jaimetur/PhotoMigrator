@@ -129,6 +129,7 @@ AUTOMATION_DESTS = {
     "parallel-migration",
     "prefer-canonical-album-names",
     "consolidate-similar-albums",
+    "one-time-password",
 }
 
 GOOGLE_DESTS = {

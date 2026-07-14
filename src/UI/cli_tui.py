@@ -24,6 +24,7 @@ from UI.ui_shared import (
     build_ui_subprocess_env,
     build_argument_specs,
     build_full_command,
+    automatic_migration_needs_otp,
     command_preview_string,
     build_parser_schema,
     command_to_string,
@@ -2312,7 +2313,10 @@ if TEXTUAL_AVAILABLE:
             widgets = []
             if tab_key == "automatic_migration":
                 regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
-                toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
+                toggle_fields = [
+                    field for field in fields
+                    if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") != "one-time-password"
+                ]
                 migration_filter_fields = build_automatic_migration_filter_fields(self.schema)
 
                 if regular_fields:
@@ -2326,6 +2330,9 @@ if TEXTUAL_AVAILABLE:
                 if toggle_fields:
                     widgets.append(Static("Flags", classes="section-title feature-section-title feature-section-title--spaced"))
                     widgets.append(self.build_flags_columns(toggle_fields, tab_key))
+                    otp_field = get_field_by_dest(self.schema, "one-time-password")
+                    if otp_field and automatic_migration_needs_otp(self.state_values, self.migration_endpoints_state):
+                        widgets.extend(self.build_field_widgets(otp_field, context=tab_key))
 
                 if migration_filter_fields:
                     widgets.append(Static("Migration Filters", classes="section-title feature-section-title feature-section-title--spaced"))

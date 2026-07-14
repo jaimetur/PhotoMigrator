@@ -22,6 +22,7 @@ try:
         build_windows_external_terminal_script,
         command_preview_string,
         command_to_string,
+        automatic_migration_needs_otp,
         compose_migration_endpoint,
         compose_find_duplicates_value,
         compose_rename_albums_value,
@@ -71,6 +72,7 @@ class TestCliTuiShared(unittest.TestCase):
 
         self.assertIn("prefer-canonical-album-names", automatic_dests)
         self.assertIn("consolidate-similar-albums", automatic_dests)
+        self.assertIn("one-time-password", automatic_dests)
 
     def test_build_parser_schema_standalone_actions_exclude_auxiliary_organize_fields(self):
         schema = build_parser_schema()
@@ -293,6 +295,25 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--target", args)
         self.assertIn("--prefer-canonical-album-names", args)
         self.assertIn("--consolidate-similar-albums", args)
+
+    def test_build_cli_args_includes_otp_flag_for_automatic_migration(self):
+        schema = build_parser_schema()
+        values = {
+            "source": "synology-photos-1",
+            "target": "immich-photos-2",
+            "one-time-password": True,
+        }
+
+        args = build_cli_args(schema, "automatic_migration", values)
+
+        self.assertIn("--source", args)
+        self.assertIn("--target", args)
+        self.assertIn("--one-time-password", args)
+
+    def test_automatic_migration_needs_otp_when_source_or_target_is_synology(self):
+        self.assertTrue(automatic_migration_needs_otp({"source": "synology-photos-1", "target": "immich-photos-2"}))
+        self.assertTrue(automatic_migration_needs_otp({"source": "/tmp/library", "target": "synology-photos-2"}))
+        self.assertFalse(automatic_migration_needs_otp({"source": "immich-photos-1", "target": "google-photos-2"}))
 
     def test_build_cli_args_composes_find_duplicates_value(self):
         schema = build_parser_schema()

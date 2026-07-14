@@ -2789,6 +2789,8 @@
         wrap.className = "migration-layout";
         const left = document.createElement("div");
         left.className = "migration-main";
+        const otpField = byDest["one-time-password"];
+        let otpRow = null;
 
         const parseMigrationEndpoint = (rawValue, fallbackKind) => {
             const text = String(rawValue || "").trim();
@@ -2814,6 +2816,15 @@
             if (state.kind === "nextcloud") return `nextcloud-photos-${state.account || "1"}`;
             if (state.kind === "google") return `google-photos-${state.account || "1"}`;
             return "";
+        };
+
+        const automaticMigrationNeedsOtp = () => (
+            ["source", "target"].some((dest) => migrationEndpointsState[dest]?.kind === "synology")
+        );
+
+        const updateAutomaticMigrationOtpVisibility = () => {
+            if (!otpRow) return;
+            otpRow.classList.toggle("hidden", !automaticMigrationNeedsOtp());
         };
 
         const createMigrationEndpointRow = (dest, required = false) => {
@@ -2866,6 +2877,7 @@
                     queueSaveState();
                     queueCommandPreview();
                 }
+                updateAutomaticMigrationOtpVisibility();
             };
 
             const renderSecondary = () => {
@@ -2939,6 +2951,11 @@
             if (!byDest[dest]) return;
             flagsCard.appendChild(createArgumentRow(byDest[dest]));
         });
+        if (otpField) {
+            otpRow = createArgumentRow(otpField);
+            flagsCard.appendChild(otpRow);
+            updateAutomaticMigrationOtpVisibility();
+        }
 
         left.appendChild(flagsCard);
 
@@ -2996,6 +3013,7 @@
             byDest["parallel-migration"],
             byDest["prefer-canonical-album-names"],
             byDest["consolidate-similar-albums"],
+            automaticMigrationNeedsOtp() ? otpField : null,
             getFieldByDest("filter-by-type"),
             getFieldByDest("filter-from-date"),
             getFieldByDest("filter-to-date"),
