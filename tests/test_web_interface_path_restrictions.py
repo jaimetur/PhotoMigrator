@@ -480,6 +480,9 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(job.dashboard_snapshot_updated_at, "2026-07-14T18:00:00Z")
         self.assertIn("Asset Pulled", output)
         self.assertNotIn(self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX, output)
+        persisted = Path(job.output_file).read_text(encoding="utf-8")
+        self.assertIn("Asset Pulled", persisted)
+        self.assertNotIn(self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX, persisted)
 
     def test_dashboard_snapshot_partial_line_is_hidden_from_visible_output(self):
         fake_process = Mock()

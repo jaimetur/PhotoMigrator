@@ -2088,12 +2088,6 @@ def _append_job_output(job: JobData, text: str) -> None:
     if not text:
         return
     perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
-    if job.output_fp is not None:
-        try:
-            job.output_fp.write(text)
-            job.output_fp.flush()
-        except Exception:
-            pass
     job.total_output_chars += len(text)
 
     # Keep last completed logical lines in memory (line-based, not char-based).
@@ -2119,6 +2113,7 @@ def _append_job_output(job: JobData, text: str) -> None:
             current += ch
     job.partial_line = current
 
+    persisted_chunks: List[str] = []
     for line in completed:
         line_with_nl = f"{line}\n"
         snapshot_event = _parse_dashboard_snapshot_event(line_with_nl)
@@ -2128,6 +2123,7 @@ def _append_job_output(job: JobData, text: str) -> None:
             job.dashboard_snapshot_dirty = False
             job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
             continue
+        persisted_chunks.append(line_with_nl)
         progress_key = _extract_progress_key(line_with_nl)
         if progress_key and progress_key in job.progress_lines:
             prev_entry = job.progress_lines[progress_key]
@@ -2141,6 +2137,13 @@ def _append_job_output(job: JobData, text: str) -> None:
         job.output_chars += len(line_with_nl)
         if progress_key:
             job.progress_lines[progress_key] = entry
+
+    if persisted_chunks and job.output_fp is not None:
+        try:
+            job.output_fp.write("".join(persisted_chunks))
+            job.output_fp.flush()
+        except Exception:
+            pass
 
     if job.tab == "automatic_migration":
         job.dashboard_snapshot_dirty = True
