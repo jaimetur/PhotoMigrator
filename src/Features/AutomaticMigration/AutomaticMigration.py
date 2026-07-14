@@ -267,6 +267,35 @@ def _is_blocked_synology_shared_album(source_client, album) -> bool:
     return bool(source_client.is_blocked_shared_album(album))
 
 
+def _normalized_asset_path_key(path: str) -> str:
+    return os.path.normpath(str(path or "")).replace("\\", "/").lower()
+
+
+def _queue_contains_asset_path(queue, path: str) -> bool:
+    wanted_key = _normalized_asset_path_key(path)
+    if not wanted_key:
+        return False
+    with queue.mutex:
+        for queued in list(queue.queue):
+            queued_item = queued[2] if isinstance(queued, tuple) and len(queued) == 3 else queued
+            if not isinstance(queued_item, dict):
+                continue
+            queued_key = _normalized_asset_path_key(queued_item.get("asset_file_path", ""))
+            if queued_key == wanted_key:
+                return True
+        return False
+
+
+def _asset_path_is_reserved(queue, in_flight_paths, in_flight_lock, path: str) -> bool:
+    wanted_key = _normalized_asset_path_key(path)
+    if not wanted_key:
+        return False
+    if _queue_contains_asset_path(queue, path):
+        return True
+    with in_flight_lock:
+        return wanted_key in in_flight_paths
+
+
 def _mark_album_pushed_if_ready(album_name, album_folder_path, processed_albums, processed_albums_lock, counters, logger):
     """
     Count an album as pushed once its temp folder is no longer active and can be removed.
@@ -804,6 +833,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     album_finalize_locks_lock = threading.Lock()
     immich_uploaded_records = []
     immich_uploaded_records_lock = threading.Lock()
+    in_flight_asset_paths = set()
+    in_flight_asset_paths_lock = threading.Lock()
     prefer_canonical_album_names = prefer_canonical_album_names_enabled(ARGS)
     consolidate_similar_albums = consolidate_similar_albums_enabled(ARGS)
     target_exact_album_match_case_sensitive = isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos))
@@ -2107,15 +2138,29 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     def is_asset_in_queue(queue, path):
         """Comprueba si el path está presente en la cola (sin distinguir mayúsculas/minúsculas)."""
-        with queue.mutex:
-            for queued in list(queue.queue):
-                queued_item = queued[2] if isinstance(queued, tuple) and len(queued) == 3 else queued
-                if not isinstance(queued_item, dict):
-                    continue
-                queued_path = str(queued_item.get('asset_file_path', '')).lower()
-                if queued_path == path.lower():
-                    return True
-            return False
+        return _queue_contains_asset_path(queue, path)
+
+    def _mark_asset_path_in_flight(path):
+        normalized = _normalized_asset_path_key(path)
+        if not normalized:
+            return
+        with in_flight_asset_paths_lock:
+            in_flight_asset_paths.add(normalized)
+
+    def _unmark_asset_path_in_flight(path):
+        normalized = _normalized_asset_path_key(path)
+        if not normalized:
+            return
+        with in_flight_asset_paths_lock:
+            in_flight_asset_paths.discard(normalized)
+
+    def is_asset_reserved(path):
+        return _asset_path_is_reserved(
+            queue=push_queue,
+            in_flight_paths=in_flight_asset_paths,
+            in_flight_lock=in_flight_asset_paths_lock,
+            path=path,
+        )
 
     def infer_asset_type_from_path(file_path, fallback_type):
         """Infers media type from extension; falls back to source type when unknown."""
@@ -2747,13 +2792,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if not unique:
                                     LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
                                     SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                                    # Solo borramos si ya no está en la cola (ignorando mayúsculas)
-                                    if not is_asset_in_queue(push_queue, pulled_file_path) and os.path.exists(pulled_file_path):
+                                    # Solo borramos si el fichero ya no está reservado por la cola ni por un pusher en curso.
+                                    if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
                                         safe_remove_local_file(pulled_file_path)
                                     companion_to_cleanup = asset_dict.get('live_photo_video_path')
                                     if companion_to_cleanup and os.path.exists(companion_to_cleanup):
                                         companion_lock = companion_to_cleanup + ".lock"
-                                        if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
+                                        if (not is_asset_reserved(companion_to_cleanup)) and (not os.path.exists(companion_lock)):
                                             safe_remove_local_file(companion_to_cleanup)
                             _debug_perf_log(
                                 LOGGER,
@@ -2892,13 +2937,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             if not unique:
                                 LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}'. Skipped")
                                 SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                                # Solo borramos si ya no está en la cola (ignorando mayúsculas)
-                                if not is_asset_in_queue(push_queue, pulled_file_path) and os.path.exists(pulled_file_path):
+                                # Solo borramos si el fichero ya no está reservado por la cola ni por un pusher en curso.
+                                if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
                                     safe_remove_local_file(pulled_file_path)
                                 companion_to_cleanup = asset_dict.get('live_photo_video_path')
                                 if companion_to_cleanup and os.path.exists(companion_to_cleanup):
                                     companion_lock = companion_to_cleanup + ".lock"
-                                    if (not is_asset_in_queue(push_queue, companion_to_cleanup)) and (not os.path.exists(companion_lock)):
+                                    if (not is_asset_reserved(companion_to_cleanup)) and (not os.path.exists(companion_lock)):
                                         safe_remove_local_file(companion_to_cleanup)
                         _debug_perf_log(
                             LOGGER,
@@ -2975,6 +3020,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     push_elapsed_ms = None
                     album_assoc_elapsed_ms = None
                     cleanup_elapsed_ms = None
+                    _mark_asset_path_in_flight(asset_file_path)
+                    if live_photo_video_path:
+                        _mark_asset_path_in_flight(live_photo_video_path)
 
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
@@ -3205,6 +3253,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
                         _record_final_push_failure(asset_type=asset_type, count_push_stats=count_push_stats)
                 finally:
+                    if asset is not None and isinstance(asset, dict):
+                        _unmark_asset_path_in_flight(asset.get('asset_file_path'))
+                        _unmark_asset_path_in_flight(asset.get('live_photo_video_path'))
                     if asset is not None:
                         push_queue.task_done()
 

@@ -5,6 +5,7 @@ import threading
 import types
 import unittest
 from pathlib import Path
+from queue import PriorityQueue
 from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -165,6 +166,34 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
 
         self.assertTrue(blocked)
         synology_client.is_blocked_shared_album.assert_called_once_with(album)
+
+    def test_asset_path_is_reserved_detects_in_flight_paths(self):
+        queue = PriorityQueue()
+        in_flight = {automatic_module._normalized_asset_path_key("/tmp/Album/IMG_2088.MP4")}
+        lock = threading.Lock()
+
+        reserved = automatic_module._asset_path_is_reserved(
+            queue=queue,
+            in_flight_paths=in_flight,
+            in_flight_lock=lock,
+            path="/tmp/Album/IMG_2088.MP4",
+        )
+
+        self.assertTrue(reserved)
+
+    def test_asset_path_is_reserved_detects_paths_still_in_queue(self):
+        queue = PriorityQueue()
+        queue.put((0, 1, {"asset_file_path": "/tmp/Album/IMG_2088.MP4"}))
+        lock = threading.Lock()
+
+        reserved = automatic_module._asset_path_is_reserved(
+            queue=queue,
+            in_flight_paths=set(),
+            in_flight_lock=lock,
+            path="/tmp/Album/IMG_2088.MP4",
+        )
+
+        self.assertTrue(reserved)
 
     def test_mark_album_pushed_if_ready_counts_album_once_when_folder_is_drained(self):
         with tempfile.TemporaryDirectory() as tmpdir:
