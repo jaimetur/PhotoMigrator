@@ -84,6 +84,54 @@ import Features.AutomaticMigration.AutomaticMigration as automatic_module
 
 
 class TestAutomaticMigrationHelpers(unittest.TestCase):
+    def test_build_web_dashboard_snapshot_uses_structured_counters(self):
+        shared_data = automatic_module.SharedData(
+            info={
+                "source_client_name": "Local Folder",
+                "target_client_name": "Immich Photos",
+                "total_assets": 500,
+                "total_photos": 420,
+                "total_videos": 80,
+                "total_albums": 12,
+                "total_metadata": 30,
+                "total_sidecar": 10,
+                "total_invalid": 2,
+                "total_albums_blocked": 1,
+                "assets_in_queue": 7,
+            },
+            counters={
+                "total_assets_blocked": 9,
+                "total_pulled_assets": 240,
+                "total_pulled_photos": 200,
+                "total_pulled_videos": 40,
+                "total_pulled_albums": 11,
+                "total_pull_failed_assets": 3,
+                "total_pull_failed_photos": 2,
+                "total_pull_failed_videos": 1,
+                "total_pull_failed_albums": 0,
+                "total_pushed_assets": 210,
+                "total_pushed_photos": 180,
+                "total_pushed_videos": 30,
+                "total_pushed_albums": 9,
+                "total_push_duplicates_assets": 5,
+                "total_push_failed_assets": 4,
+                "total_push_failed_photos": 3,
+                "total_push_failed_videos": 1,
+                "total_push_failed_albums": 0,
+            },
+            logs_queue=None,
+        )
+
+        snapshot = automatic_module._build_web_dashboard_snapshot(shared_data, parallel=True)
+
+        self.assertEqual(snapshot["migrationMode"], "parallel")
+        self.assertEqual(snapshot["sourceClientName"], "Local Folder")
+        self.assertEqual(snapshot["targetClientName"], "Immich Photos")
+        self.assertEqual(snapshot["pulledAssets"], 240)
+        self.assertEqual(snapshot["pushedAssets"], 210)
+        self.assertEqual(snapshot["assetsInQueue"], 21)
+        self.assertEqual(snapshot["blockedAssets"], 9)
+
     def test_compute_dashboard_estimated_time_returns_estimate_from_processed_and_pending_assets(self):
         estimated = automatic_module._compute_dashboard_estimated_time(
             elapsed_seconds=120,

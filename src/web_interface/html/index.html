@@ -1606,7 +1606,8 @@
         const source = currentRunPayload?.values?.source || dashboardContext.source || stateValues.source || "-";
         const target = currentRunPayload?.values?.target || dashboardContext.target || stateValues.target || "-";
         const extractStarted = performance.now();
-        const parsedStats = extractDashboardStats(webDashboardState.rawOutput);
+        const hasStructuredSnapshot = Object.keys(jobData.dashboard_snapshot || {}).length > 0;
+        const parsedStats = hasStructuredSnapshot ? {} : extractDashboardStats(webDashboardState.rawOutput);
         const stats = mergeDashboardStats(jobData.dashboard_snapshot || {}, parsedStats);
         const extractElapsedMs = performance.now() - extractStarted;
 

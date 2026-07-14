@@ -451,6 +451,36 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("1289 files", output)
         self.assertNotIn("1262 files", output)
 
+    def test_dashboard_snapshot_events_update_job_snapshot_without_polluting_visible_output(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        snapshot_payload = {
+            "pulledAssets": 321,
+            "pushedAssets": 123,
+            "assetsInQueue": 17,
+            "updatedAt": "2026-07-14T18:00:00Z",
+        }
+        try:
+            self.web_app._append_job_output(
+                job,
+                f"{self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX}{self.web_app.json.dumps(snapshot_payload)}\n",
+            )
+            self.web_app._append_job_output(job, "INFO    : Asset Pulled    : 'IMG_0001.jpg'\n")
+            output = self.web_app._read_job_output_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertTrue(job.dashboard_snapshot_from_events)
+        self.assertEqual(job.dashboard_snapshot["pulledAssets"], 321)
+        self.assertEqual(job.dashboard_snapshot["pushedAssets"], 123)
+        self.assertEqual(job.dashboard_snapshot["assetsInQueue"], 17)
+        self.assertEqual(job.dashboard_snapshot_updated_at, "2026-07-14T18:00:00Z")
+        self.assertIn("Asset Pulled", output)
+        self.assertNotIn(self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX, output)
+
 
 if __name__ == "__main__":
     unittest.main()

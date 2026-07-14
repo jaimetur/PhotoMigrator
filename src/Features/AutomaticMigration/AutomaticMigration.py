@@ -1,5 +1,6 @@
 import functools
 import heapq
+import json
 import logging
 import os
 import re
@@ -10,7 +11,7 @@ import time
 import traceback
 import unicodedata
 from collections import Counter, deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from queue import Queue, Empty, PriorityQueue
 from typing import Union, cast
@@ -46,6 +47,7 @@ BG_LEVEL_PREFIX_RE = re.compile(
     r"^(?:\[\s*(?:VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*\]|(?:VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL))\s*:?\s*",
     flags=re.IGNORECASE,
 )
+WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
 
 
 class SharedData:
@@ -53,6 +55,56 @@ class SharedData:
         self.info = info
         self.counters = counters
         self.logs_queue = logs_queue
+
+
+def _build_web_dashboard_snapshot(shared_data, parallel=None):
+    info = dict(getattr(shared_data, "info", {}) or {})
+    counters = dict(getattr(shared_data, "counters", {}) or {})
+    inferred_queue = max(
+        0,
+        int(counters.get("total_pulled_assets", 0) or 0)
+        - int(counters.get("total_pushed_assets", 0) or 0)
+        - int(counters.get("total_push_failed_assets", 0) or 0)
+        - int(counters.get("total_push_duplicates_assets", 0) or 0),
+    )
+    queue_value = max(
+        int(info.get("assets_in_queue", 0) or 0),
+        inferred_queue,
+    )
+    snapshot = {
+        "migrationMode": "parallel" if bool(parallel) else "sequential",
+        "sourceClientName": info.get("source_client_name"),
+        "targetClientName": info.get("target_client_name"),
+        "totalAssets": int(info.get("total_assets", 0) or 0),
+        "totalPhotos": int(info.get("total_photos", 0) or 0),
+        "totalVideos": int(info.get("total_videos", 0) or 0),
+        "totalAlbums": int(info.get("total_albums", 0) or 0),
+        "totalMetadata": int(info.get("total_metadata", 0) or 0),
+        "totalSidecar": int(info.get("total_sidecar", 0) or 0),
+        "totalInvalid": int(info.get("total_invalid", 0) or 0),
+        "blockedAlbums": int(info.get("total_albums_blocked", 0) or 0),
+        "blockedAssets": int(counters.get("total_assets_blocked", 0) or 0),
+        "assetsInQueue": queue_value,
+        "pulledAssets": int(counters.get("total_pulled_assets", 0) or 0),
+        "pulledPhotos": int(counters.get("total_pulled_photos", 0) or 0),
+        "pulledVideos": int(counters.get("total_pulled_videos", 0) or 0),
+        "pulledAlbums": int(counters.get("total_pulled_albums", 0) or 0),
+        "pullFailedAssets": int(counters.get("total_pull_failed_assets", 0) or 0),
+        "pullFailedPhotos": int(counters.get("total_pull_failed_photos", 0) or 0),
+        "pullFailedVideos": int(counters.get("total_pull_failed_videos", 0) or 0),
+        "pullFailedAlbums": int(counters.get("total_pull_failed_albums", 0) or 0),
+        "pushedAssets": int(counters.get("total_pushed_assets", 0) or 0),
+        "pushedPhotos": int(counters.get("total_pushed_photos", 0) or 0),
+        "pushedVideos": int(counters.get("total_pushed_videos", 0) or 0),
+        "pushedAlbums": int(counters.get("total_pushed_albums", 0) or 0),
+        "pushDuplicates": int(counters.get("total_push_duplicates_assets", 0) or 0),
+        "pushFailedAssets": int(counters.get("total_push_failed_assets", 0) or 0),
+        "pushFailedPhotos": int(counters.get("total_push_failed_photos", 0) or 0),
+        "pushFailedVideos": int(counters.get("total_push_failed_videos", 0) or 0),
+        "pushFailedAlbums": int(counters.get("total_push_failed_albums", 0) or 0),
+        "updatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+    return snapshot
 
 
 def _debug_perf_log(logger, label, started_at, **fields):
@@ -626,6 +678,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             migration_finished = threading.Event()
             web_mode = os.environ.get("PHOTOMIGRATOR_WEB_MODE") == "1"
             embedded_ui_mode = os.environ.get("PHOTOMIGRATOR_EMBEDDED_UI") == "1"
+            web_dashboard_snapshot_thread = None
             if show_dashboard and embedded_ui_mode:
                 LOGGER.info("Embedded GUI/TUI execution detected. Rich Live Dashboard is disabled in embedded panels because it is full-screen terminal output and degrades rendering/performance there.")
             effective_dashboard = bool(show_dashboard and not web_mode and not embedded_ui_mode)
@@ -649,6 +702,28 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
                 # Pequeña espera para garantizar que el show_dashboard ha arrancado antes de la migración
                 time.sleep(2)
+
+            if web_mode:
+                def _web_dashboard_snapshot_worker():
+                    last_payload = ""
+                    while not migration_finished.wait(0.25):
+                        snapshot = _build_web_dashboard_snapshot(SHARED_DATA, parallel=parallel)
+                        payload = json.dumps(snapshot, separators=(",", ":"), sort_keys=True)
+                        if payload == last_payload:
+                            continue
+                        print(f"{WEB_DASHBOARD_SNAPSHOT_PREFIX}{payload}", flush=True)
+                        last_payload = payload
+                    final_snapshot = _build_web_dashboard_snapshot(SHARED_DATA, parallel=parallel)
+                    final_payload = json.dumps(final_snapshot, separators=(",", ":"), sort_keys=True)
+                    if final_payload != last_payload:
+                        print(f"{WEB_DASHBOARD_SNAPSHOT_PREFIX}{final_payload}", flush=True)
+
+                web_dashboard_snapshot_thread = threading.Thread(
+                    target=_web_dashboard_snapshot_worker,
+                    name="web-dashboard-snapshot",
+                    daemon=True,
+                )
+                web_dashboard_snapshot_thread.start()
 
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
@@ -732,6 +807,8 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # ---------------------------------------------------------------------------------------------------------
             if effective_dashboard:
                 dashboard_thread.join()
+            if web_dashboard_snapshot_thread is not None:
+                web_dashboard_snapshot_thread.join(timeout=1.0)
 
 
 #########################################

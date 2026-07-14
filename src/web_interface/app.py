@@ -473,6 +473,7 @@ class JobData:
         self.finished_at: str | None = None
         self.dashboard_context: Dict[str, Any] = dict(dashboard_context or {})
         self.dashboard_snapshot: Dict[str, Any] = {}
+        self.dashboard_snapshot_from_events = False
         self.dashboard_snapshot_dirty = False
         self.dashboard_snapshot_updated_at: str | None = None
         self.dashboard_snapshot_last_refresh_monotonic = 0.0
@@ -2013,6 +2014,7 @@ def _env_int(name: str, default: int) -> int:
 WEB_JOB_LOG_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_JOB_LOG_DIR", "/tmp/photomigrator-web-jobs"))
 MAX_JOB_OUTPUT_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES", 100_000)
 MAX_JOB_OUTPUT_API_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_API_LINES", 100)
+WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
 TAIL_CONFIRM_CHARS = 4_000
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
 PROGRESS_CUSTOM_FULL_RE = re.compile(r"^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%\s*$")
@@ -2119,6 +2121,13 @@ def _append_job_output(job: JobData, text: str) -> None:
 
     for line in completed:
         line_with_nl = f"{line}\n"
+        snapshot_event = _parse_dashboard_snapshot_event(line_with_nl)
+        if snapshot_event is not None:
+            job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
+            job.dashboard_snapshot_from_events = True
+            job.dashboard_snapshot_dirty = False
+            job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
+            continue
         progress_key = _extract_progress_key(line_with_nl)
         if progress_key and progress_key in job.progress_lines:
             prev_entry = job.progress_lines[progress_key]
@@ -2162,6 +2171,20 @@ def _append_job_summary(job: JobData, status: str, return_code: int | None) -> N
     code_text = "unknown" if return_code is None else str(return_code)
     summary = f"[web-interface] Job finished with status '{status}' and exit code {code_text} at {finished_local}.\n"
     _append_job_output(job, summary)
+
+
+def _parse_dashboard_snapshot_event(raw_line: str) -> Dict[str, Any] | None:
+    line = str(raw_line or "").strip()
+    if not line.startswith(WEB_DASHBOARD_SNAPSHOT_PREFIX):
+        return None
+    payload = line[len(WEB_DASHBOARD_SNAPSHOT_PREFIX):].strip()
+    if not payload:
+        return None
+    try:
+        decoded = json.loads(payload)
+    except Exception:
+        return None
+    return decoded if isinstance(decoded, dict) else None
 
 
 def _get_job_output_tail(job: JobData, max_chars: int) -> str:
@@ -2483,6 +2506,16 @@ def _merge_dashboard_snapshot(previous: Dict[str, Any], current: Dict[str, Any])
 def _refresh_job_dashboard_snapshot(job: JobData, force: bool = False) -> None:
     perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     if job.tab != "automatic_migration":
+        return
+    if job.dashboard_snapshot_from_events:
+        if perf_started_at is not None:
+            _debug_perf_log(
+                "web.refresh_job_dashboard_snapshot",
+                perf_started_at,
+                force=force,
+                skipped="event_snapshot",
+                snapshot_keys=len(job.dashboard_snapshot),
+            )
         return
     if not force and not job.dashboard_snapshot_dirty:
         return
