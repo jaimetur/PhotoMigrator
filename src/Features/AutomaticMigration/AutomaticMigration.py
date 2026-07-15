@@ -102,6 +102,12 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "pushFailedPhotos": int(counters.get("total_push_failed_photos", 0) or 0),
         "pushFailedVideos": int(counters.get("total_push_failed_videos", 0) or 0),
         "pushFailedAlbums": int(counters.get("total_push_failed_albums", 0) or 0),
+        "consolidatedAlbums": int(counters.get("total_consolidated_albums", 0) or 0),
+        "canonicalizedAlbums": int(counters.get("total_canonicalized_albums", 0) or 0),
+        "targetEmptyAlbumsRemoved": int(counters.get("total_target_empty_albums_removed", 0) or 0),
+        "albumAssocRetryScheduled": int(counters.get("total_album_assoc_retry_scheduled_assets", 0) or 0),
+        "albumAssocRetryRecovered": int(counters.get("total_album_assoc_retry_recovered_assets", 0) or 0),
+        "albumAssocUnconfirmed": int(counters.get("total_album_assoc_unconfirmed_assets", 0) or 0),
         "updatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
     return snapshot
@@ -134,6 +140,32 @@ def _parse_int(value, default=0):
 def _format_hms_from_seconds(total_seconds):
     safe_seconds = max(0, int(round(float(total_seconds or 0))))
     return str(timedelta(seconds=safe_seconds))
+
+
+def _record_unique_counter(counter_map, counter_name, seen_set, unique_key):
+    key = str(unique_key or "").strip()
+    if not key:
+        return False
+    if key in seen_set:
+        return False
+    seen_set.add(key)
+    counter_map[counter_name] = int(counter_map.get(counter_name, 0) or 0) + 1
+    return True
+
+
+def _remove_target_empty_albums_if_supported(target_client, log_level=None):
+    remove_fn = getattr(target_client, "remove_empty_albums", None)
+    if not callable(remove_fn):
+        return 0
+    try:
+        removed = remove_fn(log_level=log_level)
+    except Exception as error:
+        LOGGER.warning(f"Target empty-album cleanup failed: {error}")
+        return 0
+    try:
+        return max(0, int(removed or 0))
+    except (TypeError, ValueError):
+        return 0
 
 
 def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending_assets, total_assets=None):
@@ -464,6 +496,9 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             'total_album_assoc_retry_scheduled_assets': 0,
             'total_album_assoc_retry_recovered_assets': 0,
             'total_album_assoc_unconfirmed_assets': 0,
+            'total_consolidated_albums': 0,
+            'total_canonicalized_albums': 0,
+            'total_target_empty_albums_removed': 0,
         }
 
         # Input INFO
@@ -903,6 +938,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     album_creation_lock = threading.Lock()
     created_albums = {}
     consolidated_album_groups = set()
+    consolidated_album_ids = set()
+    canonicalized_album_keys = set()
     processed_albums = set()
     processed_albums_lock = threading.Lock()
     target_album_asset_ids_cache = {}
@@ -1240,12 +1277,24 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                     if should_remove_redundant:
                         if target_client.remove_album(redundant_id, redundant_name, log_level=log_level):
+                            _record_unique_counter(
+                                SHARED_DATA.counters,
+                                'total_consolidated_albums',
+                                consolidated_album_ids,
+                                redundant_id,
+                            )
                             LOGGER.info(
                                 f"Album Consolidated: moved reusable/similar album '{redundant_name}' into '{keeper_name}' "
                                 f"and removed the redundant album after consolidating {reassigned_count}/{total_redundant_assets} assets."
                             )
                             _remove_target_existing_album(target_existing_albums, redundant_id)
                         elif isinstance(target_client, ClassGooglePhotos):
+                            _record_unique_counter(
+                                SHARED_DATA.counters,
+                                'total_consolidated_albums',
+                                consolidated_album_ids,
+                                redundant_id or redundant_name,
+                            )
                             LOGGER.info(
                                 f"Album Consolidated: moved reusable/similar album '{redundant_name}' into '{keeper_name}'. "
                                 f"All {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album, "
@@ -1552,6 +1601,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             )
 
         if isinstance(target_client, ClassGooglePhotos):
+            _record_unique_counter(
+                SHARED_DATA.counters,
+                'total_canonicalized_albums',
+                canonicalized_album_keys,
+                source_album_id or album_name,
+            )
             LOGGER.info(
                 f"Album Canonicalization: copied assets from '{album_name}' into canonical album "
                 f"'{preferred_album_name}'. The original album is kept because Google Photos cannot delete albums."
@@ -1559,6 +1614,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         else:
             removed = target_client.remove_album(source_album_id, album_name, log_level=log_level)
             if removed:
+                _record_unique_counter(
+                    SHARED_DATA.counters,
+                    'total_canonicalized_albums',
+                    canonicalized_album_keys,
+                    source_album_id or album_name,
+                )
                 LOGGER.info(
                     f"Album Canonicalization: moved assets from '{album_name}' into canonical album "
                     f"'{preferred_album_name}' and removed the original album."
@@ -2689,6 +2750,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # Finalmente, borrar carpetas vacías que queden en temp_folder
             remove_empty_dirs(temp_folder)
             cleanup_temp_folder_markers(temp_folder)
+            target_empty_albums_removed = _remove_target_empty_albums_if_supported(
+                target_client=target_client,
+                log_level=logging.WARNING,
+            )
+            SHARED_DATA.counters['total_target_empty_albums_removed'] = int(target_empty_albums_removed or 0)
 
             end_time = datetime.now()
             migration_formatted_duration = str(timedelta(seconds=round((end_time - migration_start_time).total_seconds())))
@@ -2722,6 +2788,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Album Assoc Retry Scheduled : {SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets']}")
             LOGGER.info(f"Album Assoc Retry Recovered : {SHARED_DATA.counters['total_album_assoc_retry_recovered_assets']}")
             LOGGER.info(f"Album Assoc Unconfirmed     : {SHARED_DATA.counters['total_album_assoc_unconfirmed_assets']}")
+            if consolidate_similar_albums:
+                LOGGER.info(f"Consolidated Albums        : {SHARED_DATA.counters['total_consolidated_albums']}")
+            if prefer_canonical_album_names and not consolidate_similar_albums:
+                LOGGER.info(f"Canonicalized Albums       : {SHARED_DATA.counters['total_canonicalized_albums']}")
+            if SHARED_DATA.counters['total_target_empty_albums_removed'] > 0:
+                LOGGER.info(f"Target Empty Albums Removed: {SHARED_DATA.counters['total_target_empty_albums_removed']}")
             LOGGER.info(f"")
             LOGGER.info(f"Migration Job completed in  : {migration_formatted_duration}")
             LOGGER.info(f"Total Elapsed Time          : {total_formatted_duration}")

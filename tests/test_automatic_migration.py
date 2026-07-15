@@ -118,6 +118,12 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 "total_push_failed_photos": 3,
                 "total_push_failed_videos": 1,
                 "total_push_failed_albums": 0,
+                "total_consolidated_albums": 6,
+                "total_canonicalized_albums": 4,
+                "total_target_empty_albums_removed": 2,
+                "total_album_assoc_retry_scheduled_assets": 7,
+                "total_album_assoc_retry_recovered_assets": 5,
+                "total_album_assoc_unconfirmed_assets": 1,
             },
             logs_queue=None,
         )
@@ -131,6 +137,12 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["pushedAssets"], 210)
         self.assertEqual(snapshot["assetsInQueue"], 21)
         self.assertEqual(snapshot["blockedAssets"], 9)
+        self.assertEqual(snapshot["consolidatedAlbums"], 6)
+        self.assertEqual(snapshot["canonicalizedAlbums"], 4)
+        self.assertEqual(snapshot["targetEmptyAlbumsRemoved"], 2)
+        self.assertEqual(snapshot["albumAssocRetryScheduled"], 7)
+        self.assertEqual(snapshot["albumAssocRetryRecovered"], 5)
+        self.assertEqual(snapshot["albumAssocUnconfirmed"], 1)
 
     def test_compute_dashboard_estimated_time_returns_estimate_from_processed_and_pending_assets(self):
         estimated = automatic_module._compute_dashboard_estimated_time(
@@ -165,6 +177,35 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         error = RuntimeError("Photo not found for user: abc")
         self.assertTrue(automatic_module._is_nextcloud_photo_not_found_error(error))
         self.assertFalse(automatic_module._is_nextcloud_photo_not_found_error(RuntimeError("other error")))
+
+    def test_record_unique_counter_counts_each_key_once(self):
+        counters = {}
+        seen = set()
+
+        first = automatic_module._record_unique_counter(counters, "total_consolidated_albums", seen, "album-1")
+        second = automatic_module._record_unique_counter(counters, "total_consolidated_albums", seen, "album-1")
+        third = automatic_module._record_unique_counter(counters, "total_consolidated_albums", seen, "album-2")
+
+        self.assertTrue(first)
+        self.assertFalse(second)
+        self.assertTrue(third)
+        self.assertEqual(counters["total_consolidated_albums"], 2)
+
+    def test_remove_target_empty_albums_if_supported_returns_removed_count(self):
+        target = unittest.mock.Mock()
+        target.remove_empty_albums.return_value = 3
+
+        removed = automatic_module._remove_target_empty_albums_if_supported(target, log_level=logging.INFO)
+
+        self.assertEqual(removed, 3)
+        target.remove_empty_albums.assert_called_once_with(log_level=logging.INFO)
+
+    def test_remove_target_empty_albums_if_supported_ignores_unsupported_targets(self):
+        target = unittest.mock.Mock(spec=[])
+
+        removed = automatic_module._remove_target_empty_albums_if_supported(target, log_level=logging.INFO)
+
+        self.assertEqual(removed, 0)
 
     def test_remove_source_asset_after_move_uses_quiet_local_delete_path(self):
         local_client = object.__new__(automatic_module.ClassLocalFolder)
