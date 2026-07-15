@@ -5019,6 +5019,12 @@
                 uiState.auto_scroll = false;
                 autoScrollCheck.checked = false;
                 queueSaveState();
+            } else if (uiState.auto_scroll === false && nearBottom) {
+                uiState.auto_scroll = true;
+                autoScrollCheck.checked = true;
+                queueSaveState();
+                renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, force: true});
+                return;
             }
             renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, fromScroll: true});
         });
