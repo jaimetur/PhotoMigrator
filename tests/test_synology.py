@@ -334,6 +334,25 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertFalse(ClassSynologyPhotos.is_shared_album(hydrated))
         self.assertTrue(ClassSynologyPhotos.is_album_owned_by_user(hydrated))
 
+    def test_hydrate_album_payload_reclassifies_shared_space_album_with_top_level_sharing_info(self):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.CURRENT_OWNER_USER_ID = None
+        album = {
+            "id": "43",
+            "albumName": "Album Shared Space",
+            "category": "normal_share_with_me",
+            "owner_user_id": 1,
+            "sharing_info": {
+                "permission": [{"role": "full"}]
+            },
+        }
+
+        hydrated = manager._hydrate_album_payload(album, fallback_scope="shared_with_me")
+
+        self.assertEqual(hydrated["_synology_album_scope"], "owned_shared_space")
+        self.assertFalse(ClassSynologyPhotos.is_shared_album(hydrated))
+        self.assertEqual(manager.CURRENT_OWNER_USER_ID, "1")
+
     def test_hydrate_album_payload_learns_current_owner_from_full_shared_space_album(self):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
         manager.CURRENT_OWNER_USER_ID = None

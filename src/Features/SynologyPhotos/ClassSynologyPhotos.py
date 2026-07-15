@@ -127,7 +127,18 @@ class ClassSynologyPhotos:
 
     @staticmethod
     def _extract_album_permissions(album):
-        return album.get('additional', {}).get('sharing_info', {}).get('permission', []) or []
+        if not isinstance(album, dict):
+            return []
+        candidates = [
+            album.get("permission"),
+            (album.get("sharing_info") or {}).get("permission"),
+            (album.get("additional") or {}).get("permission"),
+            ((album.get("additional") or {}).get("sharing_info") or {}).get("permission"),
+        ]
+        for candidate in candidates:
+            if isinstance(candidate, list) and candidate:
+                return candidate
+        return []
 
     @staticmethod
     def _normalize_album_category(album):
@@ -145,9 +156,15 @@ class ClassSynologyPhotos:
         if not isinstance(album, dict):
             return None
         candidates = [
+            album.get("_synology_owner_user_id"),
             album.get("owner_user_id"),
+            album.get("user_id"),
+            (album.get("sharing_info") or {}).get("owner_user_id"),
+            (album.get("sharing_info") or {}).get("user_id"),
             (album.get("additional") or {}).get("owner_user_id"),
+            (album.get("additional") or {}).get("user_id"),
             (album.get("additional") or {}).get("sharing_info", {}).get("owner_user_id"),
+            (album.get("additional") or {}).get("sharing_info", {}).get("user_id"),
         ]
         for candidate in candidates:
             normalized = cls._normalize_user_id(candidate)

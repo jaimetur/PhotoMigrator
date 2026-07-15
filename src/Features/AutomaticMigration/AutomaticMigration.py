@@ -25,7 +25,7 @@ from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
-from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled
+from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, has_any_filter
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
 terminal_width = shutil.get_terminal_size().columns
@@ -2468,10 +2468,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # Check if '-move, --move-assets' have been passed as argument
             move_assets = ARGS.get('move-assets', False)
 
-            # Check if there is some filter applied
-            with_filters = False
-            if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
-                with_filters = True
+            # Treat `--filter-by-type all` as "no filter" just like the shared
+            # filter helpers do elsewhere, otherwise Synology Shared Space runs
+            # are forced through the filtered album-validation path.
+            with_filters = bool(has_any_filter())
 
             # Get the values from the arguments (if exists)
             type = ARGS.get('filter-by-type', None)
@@ -2810,10 +2810,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         # thread_id = threading.get_ident()
         # LOGGER = GV_LOGGER.getChild(f"puller-{thread_id}")
 
-        # Check if there is some filter applied
-        with_filters = False
-        if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
-            with_filters = True
+        with_filters = bool(has_any_filter())
 
         with set_log_level(LOGGER, log_level):
 
