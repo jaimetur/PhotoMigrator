@@ -1288,48 +1288,6 @@
         return formatDuration(avgMsPerAsset * pending);
     }
 
-    function parseNumberFromLine(text, regex) {
-        if (!text) return null;
-        const lines = text.split("\n");
-        for (let i = lines.length - 1; i >= 0; i -= 1) {
-            const m = lines[i].match(regex);
-            if (m && m[1] !== undefined) {
-                const value = Number(String(m[1]).replace(/,/g, ""));
-                if (Number.isFinite(value)) return value;
-            }
-        }
-        return null;
-    }
-
-    function parseFirstNumberFromLine(text, regex) {
-        if (!text) return null;
-        const lines = text.split("\n");
-        for (let i = 0; i < lines.length; i += 1) {
-            const m = lines[i].match(regex);
-            if (m && m[1] !== undefined) {
-                const value = Number(String(m[1]).replace(/,/g, ""));
-                if (Number.isFinite(value)) return value;
-            }
-        }
-        return null;
-    }
-
-    function parseLastTextFromLine(text, regex) {
-        if (!text) return null;
-        const lines = text.split("\n");
-        for (let i = lines.length - 1; i >= 0; i -= 1) {
-            const m = lines[i].match(regex);
-            if (m && m[1]) return String(m[1]).trim();
-        }
-        return null;
-    }
-
-    function countMatches(text, regex) {
-        if (!text) return 0;
-        const matches = text.match(regex);
-        return matches ? matches.length : 0;
-    }
-
     function setText(id, value, fallback = "-") {
         const el = document.getElementById(id);
         if (!el) return;
@@ -1347,52 +1305,6 @@
         if (typeof value === "boolean") return value;
         const normalized = String(value ?? "").trim().toLowerCase();
         return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
-    }
-
-    const DASHBOARD_MONOTONIC_KEYS = new Set([
-        "totalAssets",
-        "totalPhotos",
-        "totalVideos",
-        "totalAlbums",
-        "totalMetadata",
-        "totalSidecar",
-        "totalInvalid",
-        "blockedAlbums",
-        "blockedAssets",
-        "pulledAssets",
-        "pulledPhotos",
-        "pulledVideos",
-        "pulledAlbums",
-        "pullFailedAssets",
-        "pullFailedPhotos",
-        "pullFailedVideos",
-        "pullFailedAlbums",
-        "pushedAssets",
-        "pushedPhotos",
-        "pushedVideos",
-        "pushedAlbums",
-        "pushDuplicates",
-        "pushFailedAssets",
-        "pushFailedPhotos",
-        "pushFailedVideos",
-        "pushFailedAlbums",
-    ]);
-
-    function mergeDashboardStats(primaryStats = {}, fallbackStats = {}) {
-        const merged = {...(fallbackStats || {})};
-        Object.entries(primaryStats || {}).forEach(([key, value]) => {
-            if (!isMeaningfulDashboardValue(value)) return;
-            if (
-                DASHBOARD_MONOTONIC_KEYS.has(key)
-                && Number.isFinite(Number(merged[key]))
-                && Number.isFinite(Number(value))
-            ) {
-                merged[key] = Math.max(Number(merged[key]), Number(value));
-                return;
-            }
-            merged[key] = value;
-        });
-        return merged;
     }
 
     function resolveTotal(primaryTotal, completed, failed = 0) {
@@ -1417,150 +1329,6 @@
         countText.textContent = `${done}/${total} (${Math.round(pct)}%)`;
     }
 
-    function extractDashboardStats(rawText) {
-        const output = String(rawText || "");
-        const parseAny = (...patterns) => {
-            for (const re of patterns) {
-                const value = parseNumberFromLine(output, re);
-                if (value != null) return value;
-            }
-            return null;
-        };
-        const parseAnyFirst = (...patterns) => {
-            for (const re of patterns) {
-                const value = parseFirstNumberFromLine(output, re);
-                if (value != null) return value;
-            }
-            return null;
-        };
-        const stats = {
-            migrationMode: parseLastTextFromLine(output, /migration mode\s*:\s*(parallel|sequential)/i),
-            sourceClientName: parseLastTextFromLine(output, /source client\s*:\s*(.+)$/i),
-            targetClientName: parseLastTextFromLine(output, /target client\s*:\s*(.+)$/i),
-            totalAssets: parseAnyFirst(/total assets\s*:\s*(\d+)/i, /total_assets\s*:\s*(\d+)/i),
-            totalPhotos: parseAnyFirst(/total photos\s*:\s*(\d+)/i, /total_photos\s*:\s*(\d+)/i),
-            totalVideos: parseAnyFirst(/total videos\s*:\s*(\d+)/i, /total_videos\s*:\s*(\d+)/i),
-            totalAlbums: parseAnyFirst(/total albums\s*:\s*(\d+)/i, /total_albums\s*:\s*(\d+)/i),
-            totalMetadata: parseAnyFirst(/total metadata\s*:\s*(\d+)/i, /total_metadata\s*:\s*(\d+)/i),
-            totalSidecar: parseAnyFirst(/total sidecar\s*:\s*(\d+)/i, /total_sidecar\s*:\s*(\d+)/i),
-            totalInvalid: parseAnyFirst(/invalid files\s*:\s*(\d+)/i, /total_invalid\s*:\s*(\d+)/i),
-            blockedAlbums: parseAny(/blocked albums\s*:\s*(\d+)/i, /total_albums_blocked\s*:\s*(\d+)/i),
-            blockedAssets: parseAny(/blocked assets\s*:\s*(\d+)/i, /total_assets_blocked\s*:\s*(\d+)/i),
-            assetsInQueue: parseAny(/assets in queue\s*:\s*(\d+)/i, /assets_in_queue\s*:\s*(\d+)/i),
-
-            pulledAssets: parseNumberFromLine(output, /pulled assets\s*:\s*(\d+)/i),
-            pulledPhotos: parseNumberFromLine(output, /pulled assets\s*:.*photos:\s*(\d+)/i),
-            pulledVideos: parseNumberFromLine(output, /pulled assets\s*:.*videos:\s*(\d+)/i),
-            pulledAlbums: parseNumberFromLine(output, /pulled albums\s*:\s*(\d+)/i),
-            pullFailedAssets: parseNumberFromLine(output, /pull failed assets\s*:\s*(\d+)/i),
-            pullFailedPhotos: parseNumberFromLine(output, /pull failed photos\s*:\s*(\d+)/i),
-            pullFailedVideos: parseNumberFromLine(output, /pull failed videos\s*:\s*(\d+)/i),
-            pullFailedAlbums: parseNumberFromLine(output, /pull failed albums\s*:\s*(\d+)/i),
-
-            pushedAssets: parseNumberFromLine(output, /pushed assets\s*:\s*(\d+)/i),
-            pushedPhotos: parseNumberFromLine(output, /pushed assets\s*:.*photos:\s*(\d+)/i),
-            pushedVideos: parseNumberFromLine(output, /pushed assets\s*:.*videos:\s*(\d+)/i),
-            pushedAlbums: parseNumberFromLine(output, /pushed albums\s*:\s*(\d+)/i),
-            pushDuplicates: parseNumberFromLine(output, /push duplicates.*:\s*(\d+)/i),
-            pushFailedAssets: parseNumberFromLine(output, /push failed assets\s*:\s*(\d+)/i),
-            pushFailedPhotos: parseNumberFromLine(output, /push failed photos\s*:\s*(\d+)/i),
-            pushFailedVideos: parseNumberFromLine(output, /push failed videos\s*:\s*(\d+)/i),
-            pushFailedAlbums: parseNumberFromLine(output, /push failed albums\s*:\s*(\d+)/i),
-        };
-
-        if (stats.pulledAssets == null) stats.pulledAssets = countMatches(output, /asset pulled\s*:/gi);
-        if (stats.pulledAlbums == null) stats.pulledAlbums = countMatches(output, /album pulled\s*:/gi);
-        if (stats.pullFailedAssets == null) stats.pullFailedAssets = countMatches(output, /asset pull fail\s*:|asset pull error\s*:/gi);
-        if (stats.pullFailedAlbums == null) stats.pullFailedAlbums = countMatches(output, /error retrieving all assets from album/gi);
-
-        if (stats.pushedAssets == null) stats.pushedAssets = countMatches(output, /asset pushed\s*:/gi);
-        if (stats.pushedAlbums == null) stats.pushedAlbums = countMatches(output, /album pushed\s*:/gi);
-        if (stats.pushFailedAssets == null) stats.pushFailedAssets = countMatches(output, /asset push fail\s*:/gi);
-        if (stats.pushFailedAlbums == null) stats.pushFailedAlbums = countMatches(output, /album push fail\s*:/gi);
-        if (stats.pushDuplicates == null) stats.pushDuplicates = countMatches(output, /asset duplicated\s*:/gi);
-
-        if (stats.blockedAlbums == null) {
-            const blockedAlbumsByEvents = countMatches(output, /cannot be pulled because is a blocked shared album/gi);
-            if (blockedAlbumsByEvents > 0) stats.blockedAlbums = blockedAlbumsByEvents;
-        }
-        if (stats.totalAlbums == null) stats.totalAlbums = parseFirstNumberFromLine(output, /(\d+)\s+albums found on/i);
-
-        const inferredTotalAssets = Math.max(
-            Number(stats.totalAssets || 0),
-            Number(stats.pulledAssets || 0) + Number(stats.pullFailedAssets || 0),
-            Number(stats.pushedAssets || 0) + Number(stats.pushFailedAssets || 0) + Number(stats.pushDuplicates || 0)
-        );
-        if (stats.totalAssets == null && inferredTotalAssets > 0) stats.totalAssets = inferredTotalAssets;
-
-        const inferredQueue = Math.max(
-            0,
-            Number(stats.pulledAssets || 0)
-            - Number(stats.pushedAssets || 0)
-            - Number(stats.pushFailedAssets || 0)
-            - Number(stats.pushDuplicates || 0)
-        );
-        // In web mode we don't have SHARED_DATA in-memory; this inference tracks queue evolution in live logs.
-        // Prefer inferred value when there is activity; otherwise keep parsed value (often initial 0 from Input Info dump).
-        if (
-            Number(stats.pulledAssets || 0) > 0
-            || Number(stats.pushedAssets || 0) > 0
-            || Number(stats.pushFailedAssets || 0) > 0
-            || Number(stats.pushDuplicates || 0) > 0
-        ) {
-            stats.assetsInQueue = inferredQueue;
-        } else if (stats.assetsInQueue == null) {
-            stats.assetsInQueue = inferredQueue;
-        }
-
-        if (stats.totalPhotos == null && stats.pulledPhotos != null && stats.pullFailedPhotos != null) {
-            stats.totalPhotos = Number(stats.pulledPhotos) + Number(stats.pullFailedPhotos);
-        }
-        if (stats.totalVideos == null && stats.pulledVideos != null && stats.pullFailedVideos != null) {
-            stats.totalVideos = Number(stats.pulledVideos) + Number(stats.pullFailedVideos);
-        }
-
-        // During live execution, logs usually provide per-asset pulls but not photo/video split
-        // until the final summary. Estimate split proportionally so bars move in real time.
-        if (
-            stats.pulledPhotos == null
-            && stats.pulledVideos == null
-            && Number(stats.pulledAssets || 0) > 0
-            && Number(stats.totalAssets || 0) > 0
-            && Number(stats.totalPhotos || 0) >= 0
-            && Number(stats.totalVideos || 0) >= 0
-        ) {
-            const pulledAssets = Number(stats.pulledAssets || 0);
-            const totalAssets = Number(stats.totalAssets || 0);
-            const totalPhotos = Number(stats.totalPhotos || 0);
-            const totalVideos = Number(stats.totalVideos || 0);
-            const photoRatio = totalAssets > 0 ? (totalPhotos / totalAssets) : 0;
-            const estPhotos = Math.min(totalPhotos, Math.max(0, Math.round(pulledAssets * photoRatio)));
-            const estVideos = Math.min(totalVideos, Math.max(0, pulledAssets - estPhotos));
-            stats.pulledPhotos = estPhotos;
-            stats.pulledVideos = estVideos;
-        }
-
-        if (
-            stats.pushedPhotos == null
-            && stats.pushedVideos == null
-            && Number(stats.pushedAssets || 0) > 0
-            && Number(stats.totalAssets || 0) > 0
-            && Number(stats.totalPhotos || 0) >= 0
-            && Number(stats.totalVideos || 0) >= 0
-        ) {
-            const pushedAssets = Number(stats.pushedAssets || 0);
-            const totalAssets = Number(stats.totalAssets || 0);
-            const totalPhotos = Number(stats.totalPhotos || 0);
-            const totalVideos = Number(stats.totalVideos || 0);
-            const photoRatio = totalAssets > 0 ? (totalPhotos / totalAssets) : 0;
-            const estPhotos = Math.min(totalPhotos, Math.max(0, Math.round(pushedAssets * photoRatio)));
-            const estVideos = Math.min(totalVideos, Math.max(0, pushedAssets - estPhotos));
-            stats.pushedPhotos = estPhotos;
-            stats.pushedVideos = estVideos;
-        }
-        return stats;
-    }
-
     function renderWebDashboard(rawOutput, status, jobData = {}) {
         const perfStarted = performance.now();
         webDashboardState = {
@@ -1580,9 +1348,7 @@
         const source = currentRunPayload?.values?.source || dashboardContext.source || stateValues.source || "-";
         const target = currentRunPayload?.values?.target || dashboardContext.target || stateValues.target || "-";
         const extractStarted = performance.now();
-        const hasStructuredSnapshot = Object.keys(jobData.dashboard_snapshot || {}).length > 0;
-        const parsedStats = hasStructuredSnapshot ? {} : extractDashboardStats(webDashboardState.rawOutput);
-        const stats = mergeDashboardStats(jobData.dashboard_snapshot || {}, parsedStats);
+        const stats = {...(jobData.dashboard_snapshot || {})};
         const extractElapsedMs = performance.now() - extractStarted;
 
         const startedAt = jobData.started_at || currentJobStartedAt;

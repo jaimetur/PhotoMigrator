@@ -624,6 +624,41 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(lines, ["INFO    : Asset Pulled    : 'IMG_0001.jpg'"])
         self.assertEqual(job.dashboard_snapshot["pulledAssets"], 1)
 
+    def test_orphan_info_prefix_is_reattached_to_following_progress_line(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(job, "INFO    : \nDownloading Albums:  37%|███▋      | 94/254 [00:26<00:33,  4.84 albums/s]\n")
+            lines = self.web_app._read_job_output_lines_for_api(job)
+            persisted = Path(job.output_file).read_text(encoding="utf-8")
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            ["INFO    : Downloading Albums:  37%|███▋      | 94/254 [00:26<00:33,  4.84 albums/s]"],
+        )
+        self.assertIn("INFO    : Downloading Albums:", persisted)
+
+    def test_orphan_info_prefix_is_dropped_when_no_progress_line_follows(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(job, "INFO    : \nWARNING : Real warning message\n")
+            lines = self.web_app._read_job_output_lines_for_api(job)
+            persisted = Path(job.output_file).read_text(encoding="utf-8")
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(lines, ["WARNING : Real warning message"])
+        self.assertEqual(persisted, "WARNING : Real warning message\n")
+
 
 if __name__ == "__main__":
     unittest.main()

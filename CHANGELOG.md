@@ -50,6 +50,7 @@
   - Fixed `Synology Photos` owner-id learning for `Shared Space` albums so `normal_share_with_me` albums can still be reclassified as owned even when no personal albums were seen first. (Issue #1173).
   - Fixed Synology album asset listing fallbacks so `Automatic Migration` and `Download Albums` keep trying alternate item-list variants when album counts are missing instead of treating the first empty success response as a truly empty album. (Issue #1173).
   - Fixed the Web Interface log stream so inline `__PHOTOMIGRATOR_DASHBOARD__` snapshots no longer leak into progress lines, create blank lines, or leave stray `INFO :` fragments in `Execution Output`.
+  - Fixed the Web Interface log stream so orphan `INFO` / `WARNING` / `ERROR` prefixes are only dropped when they are truly standalone; progress lines now keep their original log-level prefix at the start of the same visible line.
   - Fixed local-source cleanup so folders containing only excluded Synology artifacts such as `@eaDir`, `@Recycle`, `.DS_Store`, or thumbnail files are now treated as empty and can be removed both during album completion and in the final cleanup pass.
 
 #### 📚 Documentation:

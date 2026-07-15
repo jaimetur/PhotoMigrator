@@ -464,6 +464,7 @@ class JobData:
         self.dropped_output_lines = 0
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.pending_cr = False            # track split CRLF across chunk boundaries
+        self.pending_level_prefix = ""     # orphan log-level prefix waiting for a progress/continuation line
         self.progress_lines: Dict[str, "OutputLine"] = {}
         self.total_output_chars = 0        # full execution chars
         self.output_file = _create_job_output_file()
@@ -474,7 +475,6 @@ class JobData:
         self.dashboard_context: Dict[str, Any] = dict(dashboard_context or {})
         self.dashboard_snapshot: Dict[str, Any] = {}
         self.dashboard_snapshot_from_events = False
-        self.dashboard_snapshot_dirty = False
         self.dashboard_snapshot_updated_at: str | None = None
         self.dashboard_snapshot_last_refresh_monotonic = 0.0
 
@@ -2050,6 +2050,36 @@ def _strip_ansi(text: str) -> str:
     return ANSI_ESCAPE_RE.sub("", str(text or ""))
 
 
+def _extract_orphan_log_level_prefix(raw_line: str) -> str | None:
+    line = str(raw_line or "").rstrip("\n")
+    match = re.fullmatch(r"((?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?)\s*", line)
+    if not match:
+        return None
+    return str(match.group(1) or "").rstrip() or None
+
+
+def _line_can_inherit_log_level_prefix(raw_line: str) -> bool:
+    clean = _strip_ansi(raw_line).replace("\r", "").rstrip("\n")
+    if not clean.strip():
+        return False
+    if re.match(r"^(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?", clean.lstrip()):
+        return False
+    if _extract_progress_key(clean):
+        return True
+    return bool(
+        PROGRESS_SEPARATOR_RE.match(clean.strip())
+        or re.search(r"\d{1,3}%\|", clean)
+        or re.search(r"\[\s*step\s+\d+\/\d+\]", clean, flags=re.IGNORECASE)
+    )
+
+
+def _prepend_log_level_prefix(prefix: str, raw_line: str) -> str:
+    line = str(raw_line or "")
+    suffix = line.rstrip("\n")
+    separator = "" if not suffix or suffix[:1].isspace() else " "
+    return f"{prefix.rstrip()}{separator}{suffix}\n"
+
+
 def _extract_progress_key(line: str) -> str | None:
     clean = _strip_ansi(line).replace("\r", "").strip()
     if not clean:
@@ -2121,8 +2151,14 @@ def _append_job_output(job: JobData, text: str) -> None:
         for snapshot_event in snapshot_events:
             job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
             job.dashboard_snapshot_from_events = True
-            job.dashboard_snapshot_dirty = False
             job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
+        orphan_level_prefix = _extract_orphan_log_level_prefix(line_with_nl)
+        if orphan_level_prefix is not None:
+            job.pending_level_prefix = orphan_level_prefix
+            continue
+        if job.pending_level_prefix and _line_can_inherit_log_level_prefix(line_with_nl):
+            line_with_nl = _prepend_log_level_prefix(job.pending_level_prefix, line_with_nl)
+        job.pending_level_prefix = ""
         if not _should_persist_visible_output_line(line_with_nl):
             continue
         persisted_chunks.append(line_with_nl)
@@ -2146,11 +2182,6 @@ def _append_job_output(job: JobData, text: str) -> None:
             job.output_fp.flush()
         except Exception:
             pass
-
-    if job.tab == "automatic_migration":
-        job.dashboard_snapshot_dirty = True
-        if completed:
-            _refresh_job_dashboard_snapshot(job, force=False)
 
     while len(job.output) > MAX_JOB_OUTPUT_LINES:
         removed = job.output.popleft()
@@ -2253,6 +2284,14 @@ def _sanitize_partial_output_line(raw_line: str) -> str:
     return line
 
 
+def _resolve_visible_partial_output_line(job: JobData) -> str:
+    partial = _sanitize_partial_output_line(job.partial_line or "")
+    pending_prefix = str(getattr(job, "pending_level_prefix", "") or "")
+    if pending_prefix and _line_can_inherit_log_level_prefix(partial):
+        return _prepend_log_level_prefix(pending_prefix, partial).rstrip("\n")
+    return partial
+
+
 def _should_persist_visible_output_line(raw_line: str) -> bool:
     line = str(raw_line or "")
     visible = line.rstrip("\n").strip()
@@ -2268,7 +2307,7 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
         return ""
     total = 0
     chunks: List[str] = []
-    partial = _sanitize_partial_output_line(job.partial_line or "")
+    partial = _resolve_visible_partial_output_line(job)
     if partial:
         chunks.append(partial)
         total += len(partial)
@@ -2327,7 +2366,7 @@ def _read_job_output_lines_for_api(job: JobData) -> List[str]:
     # UI can safely consume the full visible log buffer again without merging
     # paginated batches or reconstructing history windows client-side.
     lines = [entry.text.rstrip("\n") for entry in list(job.output)]
-    partial = _sanitize_partial_output_line(job.partial_line or "")
+    partial = _resolve_visible_partial_output_line(job)
     if partial.strip():
         lines.append(partial)
     if job.dropped_output_lines > 0:
@@ -2412,206 +2451,6 @@ def _read_job_output_history_page(job: JobData, before_offset: int | None = None
     }
 
 
-def _parse_last_matching_number(lines: List[str], pattern: re.Pattern[str]) -> int | None:
-    for line in reversed(lines):
-        match = pattern.search(line)
-        if match:
-            try:
-                return int(str(match.group(1)).replace(",", ""))
-            except Exception:
-                continue
-    return None
-
-
-def _parse_first_matching_number(lines: List[str], pattern: re.Pattern[str]) -> int | None:
-    for line in lines:
-        match = pattern.search(line)
-        if match:
-            try:
-                return int(str(match.group(1)).replace(",", ""))
-            except Exception:
-                continue
-    return None
-
-
-def _parse_last_matching_text(lines: List[str], pattern: re.Pattern[str]) -> str | None:
-    for line in reversed(lines):
-        match = pattern.search(line)
-        if match and match.group(1):
-            return str(match.group(1)).strip()
-    return None
-
-
-def _count_regex_matches(text: str, pattern: re.Pattern[str]) -> int:
-    return len(pattern.findall(text or ""))
-
-
-def _extract_dashboard_stats_from_output(raw_text: str) -> Dict[str, Any]:
-    perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
-    output = str(raw_text or "")
-    lines = output.splitlines()
-
-    stats: Dict[str, Any] = {
-        "migrationMode": _parse_last_matching_text(lines, re.compile(r"migration mode\s*:\s*(parallel|sequential)", re.IGNORECASE)),
-        "sourceClientName": _parse_last_matching_text(lines, re.compile(r"source client\s*:\s*(.+)$", re.IGNORECASE)),
-        "targetClientName": _parse_last_matching_text(lines, re.compile(r"target client\s*:\s*(.+)$", re.IGNORECASE)),
-        "totalAssets": None,
-        "totalPhotos": None,
-        "totalVideos": None,
-        "totalAlbums": None,
-        "totalMetadata": None,
-        "totalSidecar": None,
-        "totalInvalid": None,
-        "blockedAlbums": None,
-        "blockedAssets": None,
-        "assetsInQueue": None,
-        "pulledAssets": _parse_last_matching_number(lines, re.compile(r"pulled assets\s*:\s*(\d+)", re.IGNORECASE)),
-        "pulledPhotos": _parse_last_matching_number(lines, re.compile(r"pulled assets\s*:.*photos:\s*(\d+)", re.IGNORECASE)),
-        "pulledVideos": _parse_last_matching_number(lines, re.compile(r"pulled assets\s*:.*videos:\s*(\d+)", re.IGNORECASE)),
-        "pulledAlbums": _parse_last_matching_number(lines, re.compile(r"pulled albums\s*:\s*(\d+)", re.IGNORECASE)),
-        "pullFailedAssets": _parse_last_matching_number(lines, re.compile(r"pull failed assets\s*:\s*(\d+)", re.IGNORECASE)),
-        "pullFailedPhotos": _parse_last_matching_number(lines, re.compile(r"pull failed photos\s*:\s*(\d+)", re.IGNORECASE)),
-        "pullFailedVideos": _parse_last_matching_number(lines, re.compile(r"pull failed videos\s*:\s*(\d+)", re.IGNORECASE)),
-        "pullFailedAlbums": _parse_last_matching_number(lines, re.compile(r"pull failed albums\s*:\s*(\d+)", re.IGNORECASE)),
-        "pushedAssets": _parse_last_matching_number(lines, re.compile(r"pushed assets\s*:\s*(\d+)", re.IGNORECASE)),
-        "pushedPhotos": _parse_last_matching_number(lines, re.compile(r"pushed assets\s*:.*photos:\s*(\d+)", re.IGNORECASE)),
-        "pushedVideos": _parse_last_matching_number(lines, re.compile(r"pushed assets\s*:.*videos:\s*(\d+)", re.IGNORECASE)),
-        "pushedAlbums": _parse_last_matching_number(lines, re.compile(r"pushed albums\s*:\s*(\d+)", re.IGNORECASE)),
-        "pushDuplicates": _parse_last_matching_number(lines, re.compile(r"push duplicates.*:\s*(\d+)", re.IGNORECASE)),
-        "pushFailedAssets": _parse_last_matching_number(lines, re.compile(r"push failed assets\s*:\s*(\d+)", re.IGNORECASE)),
-        "pushFailedPhotos": _parse_last_matching_number(lines, re.compile(r"push failed photos\s*:\s*(\d+)", re.IGNORECASE)),
-        "pushFailedVideos": _parse_last_matching_number(lines, re.compile(r"push failed videos\s*:\s*(\d+)", re.IGNORECASE)),
-        "pushFailedAlbums": _parse_last_matching_number(lines, re.compile(r"push failed albums\s*:\s*(\d+)", re.IGNORECASE)),
-    }
-
-    first_patterns = {
-        "totalAssets": [
-            re.compile(r"total assets\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_assets\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-        "totalPhotos": [
-            re.compile(r"total photos\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_photos\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-        "totalVideos": [
-            re.compile(r"total videos\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_videos\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-        "totalAlbums": [
-            re.compile(r"total albums\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_albums\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-        "totalMetadata": [
-            re.compile(r"total metadata\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_metadata\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-        "totalSidecar": [
-            re.compile(r"total sidecar\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_sidecar\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-        "totalInvalid": [
-            re.compile(r"invalid files\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_invalid\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-    }
-    for key, patterns in first_patterns.items():
-        for pattern in patterns:
-            value = _parse_first_matching_number(lines, pattern)
-            if value is not None:
-                stats[key] = value
-                break
-
-    any_patterns = {
-        "blockedAlbums": [
-            re.compile(r"blocked albums\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_albums_blocked\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-        "blockedAssets": [
-            re.compile(r"blocked assets\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"total_assets_blocked\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-        "assetsInQueue": [
-            re.compile(r"assets in queue\s*:\s*(\d+)", re.IGNORECASE),
-            re.compile(r"assets_in_queue\s*:\s*(\d+)", re.IGNORECASE),
-        ],
-    }
-    for key, patterns in any_patterns.items():
-        for pattern in patterns:
-            value = _parse_last_matching_number(lines, pattern)
-            if value is not None:
-                stats[key] = value
-                break
-
-    if stats["pulledAssets"] is None:
-        stats["pulledAssets"] = _count_regex_matches(output, re.compile(r"asset pulled\s*:", re.IGNORECASE))
-    if stats["pulledAlbums"] is None:
-        stats["pulledAlbums"] = _count_regex_matches(output, re.compile(r"album pulled\s*:", re.IGNORECASE))
-    if stats["pullFailedAssets"] is None:
-        stats["pullFailedAssets"] = _count_regex_matches(output, re.compile(r"asset pull fail\s*:|asset pull error\s*:", re.IGNORECASE))
-    if stats["pullFailedAlbums"] is None:
-        stats["pullFailedAlbums"] = _count_regex_matches(output, re.compile(r"error retrieving all assets from album", re.IGNORECASE))
-    if stats["pushedAssets"] is None:
-        stats["pushedAssets"] = _count_regex_matches(output, re.compile(r"asset pushed\s*:", re.IGNORECASE))
-    if stats["pushedAlbums"] is None:
-        stats["pushedAlbums"] = _count_regex_matches(output, re.compile(r"album pushed\s*:", re.IGNORECASE))
-    if stats["pushFailedAssets"] is None:
-        stats["pushFailedAssets"] = _count_regex_matches(output, re.compile(r"asset push fail\s*:", re.IGNORECASE))
-    if stats["pushFailedAlbums"] is None:
-        stats["pushFailedAlbums"] = _count_regex_matches(output, re.compile(r"album push fail\s*:", re.IGNORECASE))
-    if stats["pushDuplicates"] is None:
-        stats["pushDuplicates"] = _count_regex_matches(output, re.compile(r"asset duplicated\s*:", re.IGNORECASE))
-
-    if stats["blockedAlbums"] is None:
-        blocked_album_events = _count_regex_matches(output, re.compile(r"cannot be pulled because is a blocked shared album", re.IGNORECASE))
-        if blocked_album_events > 0:
-            stats["blockedAlbums"] = blocked_album_events
-
-    if stats["totalAlbums"] is None:
-        stats["totalAlbums"] = _parse_first_matching_number(lines, re.compile(r"(\d+)\s+albums found on", re.IGNORECASE))
-
-    inferred_total_assets = max(
-        int(stats["totalAssets"] or 0),
-        int(stats["pulledAssets"] or 0) + int(stats["pullFailedAssets"] or 0),
-        int(stats["pushedAssets"] or 0) + int(stats["pushFailedAssets"] or 0) + int(stats["pushDuplicates"] or 0),
-    )
-    if stats["totalAssets"] is None and inferred_total_assets > 0:
-        stats["totalAssets"] = inferred_total_assets
-
-    inferred_queue = max(
-        0,
-        int(stats["pulledAssets"] or 0)
-        - int(stats["pushedAssets"] or 0)
-        - int(stats["pushFailedAssets"] or 0)
-        - int(stats["pushDuplicates"] or 0),
-    )
-    if (
-        int(stats["pulledAssets"] or 0) > 0
-        or int(stats["pushedAssets"] or 0) > 0
-        or int(stats["pushFailedAssets"] or 0) > 0
-        or int(stats["pushDuplicates"] or 0) > 0
-    ):
-        stats["assetsInQueue"] = inferred_queue
-    elif stats["assetsInQueue"] is None:
-        stats["assetsInQueue"] = inferred_queue
-
-    if stats["totalPhotos"] is None and stats["pulledPhotos"] is not None and stats["pullFailedPhotos"] is not None:
-        stats["totalPhotos"] = int(stats["pulledPhotos"]) + int(stats["pullFailedPhotos"])
-    if stats["totalVideos"] is None and stats["pulledVideos"] is not None and stats["pullFailedVideos"] is not None:
-        stats["totalVideos"] = int(stats["pulledVideos"]) + int(stats["pullFailedVideos"])
-
-    if perf_started_at is not None:
-        _debug_perf_log(
-            "web.extract_dashboard_stats_from_output",
-            perf_started_at,
-            lines=len(lines),
-            chars=len(output),
-            pulled_assets=stats.get("pulledAssets"),
-            pushed_assets=stats.get("pushedAssets"),
-            pushed_albums=stats.get("pushedAlbums"),
-        )
-    return stats
-
-
 _DASHBOARD_MONOTONIC_KEYS = {
     "totalAssets",
     "totalPhotos",
@@ -2654,41 +2493,6 @@ def _merge_dashboard_snapshot(previous: Dict[str, Any], current: Dict[str, Any])
                 continue
         merged[key] = value
     return merged
-
-
-def _refresh_job_dashboard_snapshot(job: JobData, force: bool = False) -> None:
-    perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
-    if job.tab != "automatic_migration":
-        return
-    if job.dashboard_snapshot_from_events:
-        if perf_started_at is not None:
-            _debug_perf_log(
-                "web.refresh_job_dashboard_snapshot",
-                perf_started_at,
-                force=force,
-                skipped="event_snapshot",
-                snapshot_keys=len(job.dashboard_snapshot),
-            )
-        return
-    if not force and not job.dashboard_snapshot_dirty:
-        return
-    now = time.monotonic()
-    if not force and (now - job.dashboard_snapshot_last_refresh_monotonic) < 0.5:
-        return
-    current_output = _read_job_output_for_api(job)
-    current_stats = _extract_dashboard_stats_from_output(current_output)
-    job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, current_stats)
-    job.dashboard_snapshot_dirty = False
-    job.dashboard_snapshot_last_refresh_monotonic = now
-    job.dashboard_snapshot_updated_at = datetime.now(timezone.utc).isoformat()
-    if perf_started_at is not None:
-        _debug_perf_log(
-            "web.refresh_job_dashboard_snapshot",
-            perf_started_at,
-            force=force,
-            output_chars=len(current_output),
-            snapshot_keys=len(job.dashboard_snapshot),
-        )
 
 
 PARSER_SCHEMA: Dict[str, Any] = {}
@@ -3332,7 +3136,6 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
                     job.awaiting_confirmation = False
         rc = process.wait()
         with JOBS_LOCK:
-            _refresh_job_dashboard_snapshot(job, force=True)
             job.return_code = rc
             if job.stop_requested:
                 _emit_stop_notice()
@@ -3346,7 +3149,6 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
             _close_job_output_file(job)
     except Exception as exc:
         with JOBS_LOCK:
-            _refresh_job_dashboard_snapshot(job, force=True)
             if job.stop_requested:
                 _emit_stop_notice()
                 job.return_code = process.returncode if process.returncode is not None else -1
@@ -4099,7 +3901,6 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
         job = JOBS[job_id]
         if int(job.owner_user_id or -1) != int(current_user["id"]):
             raise HTTPException(status_code=404, detail="Job not found")
-        _refresh_job_dashboard_snapshot(job, force=True)
         output = _read_job_output_for_api(job)
         can_send_input = bool(
             job.status == "running"
