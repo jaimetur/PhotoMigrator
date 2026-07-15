@@ -465,6 +465,7 @@ class JobData:
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.pending_cr = False            # track split CRLF across chunk boundaries
         self.pending_level_prefix = ""     # orphan log-level prefix waiting for a progress/continuation line
+        self.pending_structured_prefix = ""  # GPTH-style outer prefix waiting for the next inner step line
         self.progress_lines: Dict[str, "OutputLine"] = {}
         self.total_output_chars = 0        # full execution chars
         self.output_file = _create_job_output_file()
@@ -2080,6 +2081,23 @@ def _prepend_log_level_prefix(prefix: str, raw_line: str) -> str:
     return f"{prefix.rstrip()}{separator}{suffix}\n"
 
 
+def _starts_with_gpth_inner_step(raw_line: str) -> bool:
+    clean = _strip_ansi(raw_line).replace("\r", "").lstrip()
+    return bool(re.match(r"^\[\s*(?:INFO|DEBUG|WARNING|ERROR|VERBOSE)\s*\]\s*\[\s*Step\s+\d+/\d+\]", clean, flags=re.IGNORECASE))
+
+
+def _extract_gpth_outer_prefix(raw_line: str) -> str | None:
+    clean = _strip_ansi(raw_line).replace("\r", "").rstrip("\n")
+    match = re.match(
+        r"^(.*:)\s*(\[\s*(?:INFO|DEBUG|WARNING|ERROR|VERBOSE)\s*\]\s*\[\s*Step\s+\d+/\d+\].*)$",
+        clean,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+    return str(match.group(1) or "").rstrip() or None
+
+
 def _split_embedded_progress_line_breaks(raw_line: str) -> List[str]:
     text = _strip_ansi(str(raw_line or "")).replace("\r", "").rstrip("\n")
     if not text:
@@ -2200,6 +2218,9 @@ def _append_job_output(job: JobData, text: str) -> None:
             if orphan_level_prefix is not None:
                 job.pending_level_prefix = orphan_level_prefix
                 continue
+            if job.pending_structured_prefix and _starts_with_gpth_inner_step(logical_line):
+                logical_line = _prepend_log_level_prefix(job.pending_structured_prefix, logical_line)
+            job.pending_structured_prefix = ""
             if job.pending_level_prefix and _line_can_inherit_log_level_prefix(logical_line):
                 logical_line = _prepend_log_level_prefix(job.pending_level_prefix, logical_line)
             job.pending_level_prefix = ""
@@ -2207,6 +2228,9 @@ def _append_job_output(job: JobData, text: str) -> None:
                 continue
             persisted_chunks.append(logical_line)
             progress_key = _extract_progress_key(logical_line)
+            gpth_outer_prefix = _extract_gpth_outer_prefix(logical_line)
+            if gpth_outer_prefix and progress_key:
+                job.pending_structured_prefix = gpth_outer_prefix
             if progress_key and progress_key in job.progress_lines:
                 prev_entry = job.progress_lines[progress_key]
                 prev_len = len(prev_entry.text)
@@ -2338,6 +2362,9 @@ def _resolve_visible_partial_output_line(job: JobData) -> str:
     pending_prefix = str(getattr(job, "pending_level_prefix", "") or "")
     if pending_prefix and _line_can_inherit_log_level_prefix(partial):
         return _prepend_log_level_prefix(pending_prefix, partial).rstrip("\n")
+    pending_structured_prefix = str(getattr(job, "pending_structured_prefix", "") or "")
+    if pending_structured_prefix and _starts_with_gpth_inner_step(partial):
+        return _prepend_log_level_prefix(pending_structured_prefix, partial).rstrip("\n")
     return partial
 
 

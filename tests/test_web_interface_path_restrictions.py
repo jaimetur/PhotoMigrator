@@ -717,13 +717,40 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             lines,
             [
                 "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : ██████████████████████████████████████████████████ 170/170 100.0%",
-                "[ INFO  ] [Step 5/8] Media with album associations: 119",
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Media with album associations: 119",
             ],
         )
 
     def test_step_information_line_is_not_treated_as_progress_key(self):
         line = "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Media with album associations: 119"
         self.assertIsNone(self.web_app._extract_progress_key(line))
+
+    def test_gpth_inner_step_line_inherits_structured_prefix_across_chunks(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : ██████████████████████████████████████████████████ 170/170 100.0%\n",
+            )
+            self.web_app._append_job_output(
+                job,
+                "[ INFO  ] [Step 5/8] Media with album associations: 119\n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            [
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : ██████████████████████████████████████████████████ 170/170 100.0%",
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Media with album associations: 119",
+            ],
+        )
 
 
 if __name__ == "__main__":
