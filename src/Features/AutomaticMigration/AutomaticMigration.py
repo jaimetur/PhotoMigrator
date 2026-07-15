@@ -912,6 +912,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     immich_uploaded_records_lock = threading.Lock()
     in_flight_asset_paths = set()
     in_flight_asset_paths_lock = threading.Lock()
+    consumed_live_companion_paths = set()
+    consumed_live_companion_paths_lock = threading.Lock()
     prefer_canonical_album_names = prefer_canonical_album_names_enabled(ARGS)
     consolidate_similar_albums = consolidate_similar_albums_enabled(ARGS)
     target_exact_album_match_case_sensitive = isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos))
@@ -1347,8 +1349,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             for asset_id in add_result.get("confirmed_asset_ids", set())
                             if str(asset_id).strip()
                         })
-                    else:
-                        confirmed_ids.update(ids_to_add)
                 else:
                     target_client.add_assets_to_album(
                         album_id=album_id_dest,
@@ -1357,6 +1357,58 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         log_level=log_level,
                     )
                     confirmed_ids.update(ids_to_add)
+
+            if isinstance(target_client, ClassImmichPhotos):
+                unresolved_ids = [
+                    asset_id for asset_id in normalized_asset_ids
+                    if asset_id not in confirmed_ids
+                ]
+                if unresolved_ids:
+                    refreshed_ids = _refresh_target_album_asset_ids(
+                        album_id=album_id_dest,
+                        album_name=album_name,
+                        log_level=log_level,
+                    )
+                    confirmed_ids.update({
+                        asset_id for asset_id in unresolved_ids
+                        if asset_id in refreshed_ids
+                    })
+                    unresolved_ids = [
+                        asset_id for asset_id in normalized_asset_ids
+                        if asset_id not in confirmed_ids
+                    ]
+                if unresolved_ids:
+                    individually_confirmed = set()
+                    for unresolved_asset_id in unresolved_ids:
+                        add_result = target_client.add_assets_to_album(
+                            album_id=album_id_dest,
+                            asset_ids=[unresolved_asset_id],
+                            album_name=album_name,
+                            log_level=log_level,
+                            return_details=True,
+                        )
+                        if isinstance(add_result, dict):
+                            individually_confirmed.update({
+                                str(asset_id).strip()
+                                for asset_id in add_result.get("confirmed_asset_ids", set())
+                                if str(asset_id).strip()
+                            })
+                    if individually_confirmed:
+                        confirmed_ids.update(individually_confirmed)
+                    unresolved_ids = [
+                        asset_id for asset_id in normalized_asset_ids
+                        if asset_id not in confirmed_ids
+                    ]
+                if unresolved_ids:
+                    refreshed_ids = _refresh_target_album_asset_ids(
+                        album_id=album_id_dest,
+                        album_name=album_name,
+                        log_level=log_level,
+                    )
+                    confirmed_ids.update({
+                        asset_id for asset_id in unresolved_ids
+                        if asset_id in refreshed_ids
+                    })
 
             if confirmed_ids:
                 _mark_target_album_assets_present(album_id_dest, confirmed_ids)
@@ -1863,103 +1915,22 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             if not normalized_items:
                 return
-            album_lock = _get_album_association_lock(album_id_dest or album_name_to_query or album_name)
-            with album_lock:
-                if isinstance(target_client, ClassImmichPhotos):
-                    with target_album_asset_ids_lock:
-                        target_album_asset_ids = set(target_album_asset_ids_cache.get(str(album_id_dest or "").strip(), set()))
-                else:
-                    target_album_asset_ids = _get_cached_target_album_asset_ids(
-                        album_id=album_id_dest,
-                        album_name=album_name_to_query,
-                        log_level=logging.ERROR,
-                    )
-
-                already_present_ids = {
-                    asset_id for _, asset_id in normalized_items
-                    if asset_id in target_album_asset_ids
-                }
-                ids_to_add = []
-                ids_seen = set()
-                for _, asset_id in normalized_items:
-                    if asset_id in already_present_ids or asset_id in ids_seen:
-                        continue
-                    ids_seen.add(asset_id)
-                    ids_to_add.append(asset_id)
-
-                api_confirmed_ids = set(already_present_ids)
-                if ids_to_add:
-                    add_result = target_client.add_assets_to_album(
-                        album_id=album_id_dest,
-                        asset_ids=ids_to_add,
-                        album_name=album_name,
-                        log_level=logging.ERROR,
-                        return_details=isinstance(target_client, ClassImmichPhotos),
-                    ) if isinstance(target_client, ClassImmichPhotos) else target_client.add_assets_to_album(
-                        album_id=album_id_dest,
-                        asset_ids=ids_to_add,
-                        album_name=album_name,
-                        log_level=logging.ERROR,
-                    )
-                    if isinstance(add_result, dict):
-                        api_confirmed_ids.update({
-                            str(asset_id).strip()
-                            for asset_id in add_result.get("confirmed_asset_ids", set())
-                            if str(asset_id).strip()
-                        })
-
-                if api_confirmed_ids:
-                    _mark_target_album_assets_present(album_id_dest, api_confirmed_ids)
-                    target_album_asset_ids = set(target_album_asset_ids).union(api_confirmed_ids)
-
-                missing_asset_ids = [
-                    asset_id for _, asset_id in normalized_items
-                    if asset_id not in target_album_asset_ids
-                ]
-
-                retried_missing_count = 0
-                if missing_asset_ids and not isinstance(target_client, ClassImmichPhotos):
-                    refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
-                        album_id=album_id_dest,
-                        album_name=album_name_to_query,
-                        log_level=logging.ERROR,
-                    )
-                    if len(refreshed_target_album_asset_ids) >= len(target_album_asset_ids):
-                        target_album_asset_ids = refreshed_target_album_asset_ids
-                    missing_asset_ids = [
-                        asset_id for _, asset_id in normalized_items
-                        if asset_id not in target_album_asset_ids
-                    ]
-
-                if missing_asset_ids and isinstance(target_client, ClassSynologyPhotos):
-                    time.sleep(0.75)
-                    refreshed_target_album_asset_ids = _refresh_target_album_asset_ids(
-                        album_id=album_id_dest,
-                        album_name=album_name_to_query,
-                        log_level=logging.ERROR,
-                    )
-                    if len(refreshed_target_album_asset_ids) >= len(target_album_asset_ids):
-                        target_album_asset_ids = refreshed_target_album_asset_ids
-                    missing_asset_ids = [
-                        asset_id for _, asset_id in normalized_items
-                        if asset_id not in target_album_asset_ids
-                    ]
-
-                confirmed_ids = {
-                    asset_id for _, asset_id in normalized_items
-                    if asset_id in target_album_asset_ids
-                }
-                final_missing_ids = [
-                    asset_id for _, asset_id in normalized_items
-                    if asset_id not in confirmed_ids
-                ]
-                LOGGER.debug(
-                    f"Album Association Batch: album='{album_name}' worker={worker_id} "
-                    f"requested={len(normalized_items)} already_present={len(already_present_ids)} "
-                    f"add_requested={len(ids_to_add)} api_confirmed={len(api_confirmed_ids)} "
-                    f"retried_missing={retried_missing_count} confirmed={len(confirmed_ids)} "
-                    f"missing={len(final_missing_ids)}"
-                )
+            requested_asset_ids = [asset_id for _, asset_id in normalized_items]
+            confirmed_ids = _add_assets_to_target_album(
+                album_id_dest=album_id_dest,
+                album_name=album_name_to_query,
+                asset_ids=requested_asset_ids,
+                log_level=logging.ERROR,
+            )
+            final_missing_ids = [
+                asset_id for _, asset_id in normalized_items
+                if asset_id not in confirmed_ids
+            ]
+            LOGGER.debug(
+                f"Album Association Batch: album='{album_name}' worker={worker_id} "
+                f"requested={len(normalized_items)} confirmed={len(confirmed_ids)} "
+                f"missing={len(final_missing_ids)}"
+            )
 
             album_assoc_elapsed_ms = (time.perf_counter() - album_assoc_started_at) * 1000.0
             for item, target_asset_id in normalized_items:
@@ -1970,7 +1941,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 assoc_enqueued_at = item.get("album_assoc_enqueued_at_monotonic")
                 if isinstance(assoc_enqueued_at, (int, float)):
                     assoc_queue_wait_ms = max(0.0, (album_assoc_started_at - float(assoc_enqueued_at)) * 1000.0)
-                asset_confirmed = target_asset_id in target_album_asset_ids
+                asset_confirmed = target_asset_id in confirmed_ids
                 cleanup_elapsed_ms = None
                 scheduled_retry = False
 
@@ -2246,6 +2217,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             return
         with file_paths_lock:
             added_file_paths.add(normalized)
+
+    def _mark_live_companion_consumed(path):
+        normalized = _normalized_asset_path_key(path)
+        if not normalized:
+            return
+        with consumed_live_companion_paths_lock:
+            consumed_live_companion_paths.add(normalized)
+        _remember_added_asset_path(path)
+
+    def _is_live_companion_consumed(path):
+        normalized = _normalized_asset_path_key(path)
+        if not normalized:
+            return False
+        with consumed_live_companion_paths_lock:
+            return normalized in consumed_live_companion_paths
 
     def infer_asset_type_from_path(file_path, fallback_type):
         """Infers media type from extension; falls back to source type when unknown."""
@@ -2868,6 +2854,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             for idx, pulled_file_path in enumerate(pulled_file_paths):
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
                                     continue
+                                if _is_live_companion_consumed(pulled_file_path):
+                                    LOGGER.info(f"Asset Live Companion Consumed: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
+                                    if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
+                                        safe_remove_local_file(pulled_file_path)
+                                    continue
                                 normalized_asset_type = infer_asset_type_from_path(pulled_file_path, asset_type)
                                 count_push_stats = (idx == 0)
                                 LOGGER.info(f"Asset Pulled    : '{os.path.basename(pulled_file_path)}'")
@@ -2893,7 +2884,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                                 unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                                 if unique and asset_dict.get('live_photo_video_path'):
-                                    _remember_added_asset_path(asset_dict.get('live_photo_video_path'))
+                                    _mark_live_companion_consumed(asset_dict.get('live_photo_video_path'))
                                 if not unique:
                                     LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
                                     SHARED_DATA.counters['total_push_duplicates_assets'] += 1
@@ -3016,6 +3007,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         for idx, pulled_file_path in enumerate(pulled_file_paths):
                             if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
                                 continue
+                            if _is_live_companion_consumed(pulled_file_path):
+                                LOGGER.info(f"Asset Live Companion Consumed: '{os.path.basename(pulled_file_path)}'. Skipped")
+                                if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
+                                    safe_remove_local_file(pulled_file_path)
+                                continue
                             normalized_asset_type = infer_asset_type_from_path(pulled_file_path, asset_type)
                             count_push_stats = (idx == 0)
                             # Actualizamos Contadores de descargas
@@ -3040,7 +3036,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 asset_dict['live_photo_video_path'] = immich_live_companion
                             unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                             if unique and asset_dict.get('live_photo_video_path'):
-                                _remember_added_asset_path(asset_dict.get('live_photo_video_path'))
+                                _mark_live_companion_consumed(asset_dict.get('live_photo_video_path'))
                             if not unique:
                                 LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}'. Skipped")
                                 SHARED_DATA.counters['total_push_duplicates_assets'] += 1
@@ -3135,6 +3131,30 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     orig_level = LOGGER.level
                     try:
                         isDuplicated = False
+                        if (not live_photo_video_path) and _is_live_companion_consumed(asset_file_path):
+                            LOGGER.info(
+                                f"Asset Live Companion Consumed: '{os.path.basename(asset_file_path)}'. Skipped"
+                                f"{_format_album_pending_context(album_name, asset_file_path)}"
+                            )
+                            treat_as_consumed = True
+                            cleanup_elapsed_ms = _finalize_asset_success(
+                                source_asset_id=source_asset_id,
+                                asset_file_path=asset_file_path,
+                                live_photo_video_path=None,
+                                album_name=album_name,
+                                asset_id=None,
+                                retry_attempt=retry_attempt,
+                                association_retry_attempt=association_retry_attempt,
+                                asset_type=asset_type,
+                                count_push_stats=False,
+                                move_assets=False,
+                                removed_source_asset_ids=removed_source_asset_ids,
+                                processed_albums=processed_albums,
+                                processed_albums_lock=processed_albums_lock,
+                                worker_id=worker_id,
+                                logger=LOGGER,
+                            )
+                            continue
                         # SUBIR el asset salvo que ya tengamos que reintentar solo la asociación al álbum.
                         if skip_target_push and asset_id:
                             treat_as_consumed = True
