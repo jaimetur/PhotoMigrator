@@ -636,6 +636,7 @@
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
     const OUTPUT_VIRTUAL_BUFFER_LINES = 50;
+    const JOB_POLL_INTERVAL_MS = 1000;
 
     function resetOutputHistory() {
         lastRawOutput = "";
@@ -1244,6 +1245,11 @@
         const perfStarted = performance.now();
         const outputEl = document.getElementById("output");
         const autoScrollEnabled = uiState.auto_scroll !== false;
+        const nearBottomBeforeRender = (
+            outputEl.scrollTop
+            + (outputEl.clientHeight || 0)
+            + Math.max(16, outputVirtualLineHeight || 20) * 2
+        ) >= (outputEl.scrollHeight || 0);
         const providedLines = Array.isArray(options.outputLines) && options.outputLines.length
             ? options.outputLines
             : (rawText ? collapseProgressLines(String(rawText)).split("\n") : []);
@@ -1261,7 +1267,7 @@
         if (html) outputEl.innerHTML = html;
         if (options.preserveScrollAnchor) {
             outputEl.scrollTop = previousScrollTop;
-        } else if (autoScrollEnabled || options.force) outputEl.scrollTop = outputEl.scrollHeight;
+        } else if (options.force || (autoScrollEnabled && nearBottomBeforeRender)) outputEl.scrollTop = outputEl.scrollHeight;
         else if (html) outputEl.scrollTop = previousScrollTop;
         debugWebPerf("renderOutputWithLevels", {
             rawChars: String(lastRawOutput || "").length,
@@ -3376,7 +3382,7 @@
         updateRunStopButtons("running");
         document.getElementById("job-input-controls").classList.add("hidden");
         if (pollTimer) clearInterval(pollTimer);
-        pollTimer = setInterval(refreshJob, 2000);
+        pollTimer = setInterval(refreshJob, JOB_POLL_INTERVAL_MS);
         await refreshJob();
     }
 
@@ -3438,7 +3444,7 @@
         setStatus("Status: reconnecting", false);
         updateRunStopButtons("running");
         if (pollTimer) clearInterval(pollTimer);
-        pollTimer = setInterval(refreshJob, 2000);
+        pollTimer = setInterval(refreshJob, JOB_POLL_INTERVAL_MS);
         try {
             await refreshJob();
         } catch (error) {
@@ -5003,6 +5009,17 @@
             }
             });
         document.getElementById("output").addEventListener("scroll", () => {
+            const outputEl = document.getElementById("output");
+            const nearBottom = (
+                outputEl.scrollTop
+                + (outputEl.clientHeight || 0)
+                + Math.max(16, outputVirtualLineHeight || 20) * 2
+            ) >= (outputEl.scrollHeight || 0);
+            if (uiState.auto_scroll !== false && !nearBottom) {
+                uiState.auto_scroll = false;
+                autoScrollCheck.checked = false;
+                queueSaveState();
+            }
             renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, fromScroll: true});
         });
         document.addEventListener("selectionchange", () => {
