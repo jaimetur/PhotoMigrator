@@ -634,6 +634,7 @@
     let webDashboardState = {rawOutput: "", status: "idle", jobData: {}};
     let outputVirtualLastRangeKey = "";
     let outputVirtualLineHeight = 0;
+    let outputRenderDeferredBySelection = false;
     const OUTPUT_VIRTUAL_BUFFER_LINES = 50;
 
     function resetOutputHistory() {
@@ -641,6 +642,7 @@
         lastOutputLines = [];
         displayedRawOutput = "";
         outputVirtualLastRangeKey = "";
+        outputRenderDeferredBySelection = false;
     }
 
     function uiOptionName(field) {
@@ -1244,6 +1246,11 @@
         lastOutputLines = providedLines.slice();
         lastRawOutput = providedLines.join("\n");
         displayedRawOutput = lastRawOutput;
+        if (shouldFreezeOutputRenderForSelection(options)) {
+            outputRenderDeferredBySelection = true;
+            return;
+        }
+        outputRenderDeferredBySelection = false;
         const htmlBuiltAt = performance.now();
         const previousScrollTop = outputEl.scrollTop;
         const html = buildVirtualizedLogHtml(providedLines, outputEl, {...options, bypassCache: !options.fromScroll});
@@ -1262,6 +1269,39 @@
             domPaintMs: Number((performance.now() - htmlBuiltAt).toFixed(2)),
             totalMs: Number((performance.now() - perfStarted).toFixed(2))
         });
+    }
+
+    function getOutputSelectionText() {
+        const outputEl = document.getElementById("output");
+        const selection = window.getSelection ? window.getSelection() : null;
+        if (!outputEl || !selection || selection.rangeCount <= 0 || selection.isCollapsed) return "";
+        const anchorNode = selection.anchorNode;
+        const focusNode = selection.focusNode;
+        const containsAnchor = anchorNode ? outputEl.contains(anchorNode) : false;
+        const containsFocus = focusNode ? outputEl.contains(focusNode) : false;
+        if (!containsAnchor && !containsFocus) return "";
+        return String(selection.toString() || "");
+    }
+
+    function shouldFreezeOutputRenderForSelection(options = {}) {
+        if (options.force) return false;
+        if (uiState.auto_scroll !== false) return false;
+        return getOutputSelectionText().length > 0;
+    }
+
+    async function copySelectedOutputText() {
+        const selectedText = getOutputSelectionText();
+        if (!selectedText) return false;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(selectedText);
+            } else {
+                document.execCommand("copy");
+            }
+            return true;
+        } catch (_) {
+            return false;
+        }
     }
 
     function formatDuration(ms) {
@@ -4962,6 +5002,20 @@
             if (uiState.auto_scroll === false) {
                 renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, fromScroll: true});
             }
+        });
+        document.addEventListener("selectionchange", () => {
+            if (!outputRenderDeferredBySelection) return;
+            if (getOutputSelectionText().length > 0) return;
+            if (uiState.auto_scroll === false) {
+                renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, force: true});
+            }
+        });
+        document.addEventListener("keydown", (event) => {
+            const isCopyShortcut = (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && String(event.key || "").toLowerCase() === "c";
+            if (!isCopyShortcut) return;
+            if (!getOutputSelectionText()) return;
+            event.preventDefault();
+            copySelectedOutputText();
         });
         document.getElementById("folder-close").addEventListener("click", closeFolderDialogs);
         document.getElementById("file-close").addEventListener("click", closeFolderDialogs);

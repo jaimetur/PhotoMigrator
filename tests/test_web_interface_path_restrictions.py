@@ -659,6 +659,45 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(lines, ["WARNING : Real warning message"])
         self.assertEqual(persisted, "WARNING : Real warning message\n")
 
+    def test_progress_line_is_split_before_following_info_prefix(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "Downloading Albums: 100%|██████████| 254/254 [00:33<00:00,  8.77 albums/s]INFO    : Grouping Albums by Name: 100%|██████████| 254/254 [00:31<00:00,  8.38 albums/s]\n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            [
+                "Downloading Albums: 100%|██████████| 254/254 [00:33<00:00,  8.77 albums/s]",
+                "INFO    : Grouping Albums by Name: 100%|██████████| 254/254 [00:31<00:00,  8.38 albums/s]",
+            ],
+        )
+
+    def test_partial_progress_replaces_previous_completed_progress_line(self):
+        job = type("JobStub", (), {})()
+        job.output = deque([
+            self.web_app.OutputLine(text="INFO    : Downloading Albums:  37%|███▋      | 94/254 [00:26<00:33,  4.84 albums/s]\n")
+        ])
+        job.partial_line = "INFO    : Downloading Albums:  38%|███▊      | 95/254 [00:27<00:33,  4.84 albums/s]"
+        job.pending_level_prefix = ""
+        job.dropped_output_lines = 0
+
+        lines = self.web_app._read_job_output_lines_for_api(job)
+
+        self.assertEqual(
+            lines,
+            ["INFO    : Downloading Albums:  38%|███▊      | 95/254 [00:27<00:33,  4.84 albums/s]"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

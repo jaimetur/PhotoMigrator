@@ -2080,6 +2080,29 @@ def _prepend_log_level_prefix(prefix: str, raw_line: str) -> str:
     return f"{prefix.rstrip()}{separator}{suffix}\n"
 
 
+def _split_embedded_progress_line_breaks(raw_line: str) -> List[str]:
+    text = _strip_ansi(str(raw_line or "")).replace("\r", "").rstrip("\n")
+    if not text:
+        return []
+    next_line_prefix = r"(?=(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:|\[web-interface\])"
+    text = re.sub(
+        rf"(\d{{1,3}}%\|[^\n\r]*?\|\s*\d+/\d+[^\n\r]*?(?:\[[^\n\r]*?\])?)\s*{next_line_prefix}",
+        r"\1\n",
+        text,
+    )
+    text = re.sub(
+        rf"((?:.*?:)?\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%)\s*{next_line_prefix}",
+        r"\1\n",
+        text,
+    )
+    text = re.sub(
+        rf"(\d+/\d+\s+\d+(?:\.\d+)?%)\s*{next_line_prefix}",
+        r"\1\n",
+        text,
+    )
+    return [f"{segment}\n" for segment in text.split("\n") if segment != ""]
+
+
 def _extract_progress_key(line: str) -> str | None:
     clean = _strip_ansi(line).replace("\r", "").strip()
     if not clean:
@@ -2152,29 +2175,31 @@ def _append_job_output(job: JobData, text: str) -> None:
             job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
             job.dashboard_snapshot_from_events = True
             job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
-        orphan_level_prefix = _extract_orphan_log_level_prefix(line_with_nl)
-        if orphan_level_prefix is not None:
-            job.pending_level_prefix = orphan_level_prefix
-            continue
-        if job.pending_level_prefix and _line_can_inherit_log_level_prefix(line_with_nl):
-            line_with_nl = _prepend_log_level_prefix(job.pending_level_prefix, line_with_nl)
-        job.pending_level_prefix = ""
-        if not _should_persist_visible_output_line(line_with_nl):
-            continue
-        persisted_chunks.append(line_with_nl)
-        progress_key = _extract_progress_key(line_with_nl)
-        if progress_key and progress_key in job.progress_lines:
-            prev_entry = job.progress_lines[progress_key]
-            prev_len = len(prev_entry.text)
-            prev_entry.text = line_with_nl
-            job.output_chars += len(line_with_nl) - prev_len
-            continue
+        logical_lines = _split_embedded_progress_line_breaks(line_with_nl) or [line_with_nl]
+        for logical_line in logical_lines:
+            orphan_level_prefix = _extract_orphan_log_level_prefix(logical_line)
+            if orphan_level_prefix is not None:
+                job.pending_level_prefix = orphan_level_prefix
+                continue
+            if job.pending_level_prefix and _line_can_inherit_log_level_prefix(logical_line):
+                logical_line = _prepend_log_level_prefix(job.pending_level_prefix, logical_line)
+            job.pending_level_prefix = ""
+            if not _should_persist_visible_output_line(logical_line):
+                continue
+            persisted_chunks.append(logical_line)
+            progress_key = _extract_progress_key(logical_line)
+            if progress_key and progress_key in job.progress_lines:
+                prev_entry = job.progress_lines[progress_key]
+                prev_len = len(prev_entry.text)
+                prev_entry.text = logical_line
+                job.output_chars += len(logical_line) - prev_len
+                continue
 
-        entry = OutputLine(text=line_with_nl, progress_key=progress_key)
-        job.output.append(entry)
-        job.output_chars += len(line_with_nl)
-        if progress_key:
-            job.progress_lines[progress_key] = entry
+            entry = OutputLine(text=logical_line, progress_key=progress_key)
+            job.output.append(entry)
+            job.output_chars += len(logical_line)
+            if progress_key:
+                job.progress_lines[progress_key] = entry
 
     if persisted_chunks and job.output_fp is not None:
         try:
@@ -2286,6 +2311,8 @@ def _sanitize_partial_output_line(raw_line: str) -> str:
 
 def _resolve_visible_partial_output_line(job: JobData) -> str:
     partial = _sanitize_partial_output_line(job.partial_line or "")
+    if _extract_orphan_log_level_prefix(partial) is not None:
+        return ""
     pending_prefix = str(getattr(job, "pending_level_prefix", "") or "")
     if pending_prefix and _line_can_inherit_log_level_prefix(partial):
         return _prepend_log_level_prefix(pending_prefix, partial).rstrip("\n")
@@ -2368,7 +2395,16 @@ def _read_job_output_lines_for_api(job: JobData) -> List[str]:
     lines = [entry.text.rstrip("\n") for entry in list(job.output)]
     partial = _resolve_visible_partial_output_line(job)
     if partial.strip():
-        lines.append(partial)
+        partial_progress_key = _extract_progress_key(partial)
+        if partial_progress_key:
+            for index in range(len(lines) - 1, -1, -1):
+                if _extract_progress_key(lines[index]) == partial_progress_key:
+                    lines[index] = partial
+                    break
+            else:
+                lines.append(partial)
+        else:
+            lines.append(partial)
     if job.dropped_output_lines > 0:
         notice = (
             f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
