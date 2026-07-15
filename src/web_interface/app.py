@@ -2014,6 +2014,7 @@ def _env_int(name: str, default: int) -> int:
 WEB_JOB_LOG_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_JOB_LOG_DIR", "/tmp/photomigrator-web-jobs"))
 MAX_JOB_OUTPUT_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES", 100_000)
 MAX_JOB_OUTPUT_API_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_API_LINES", 100)
+MAX_JOB_OUTPUT_HISTORY_API_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_HISTORY_API_LINES", 500)
 WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
 TAIL_CONFIRM_CHARS = 4_000
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
@@ -2264,6 +2265,79 @@ def _read_job_output_lines_for_api(job: JobData) -> List[str]:
         )
         return [notice, *lines]
     return lines
+
+
+def _get_job_output_file_size(job: JobData) -> int:
+    try:
+        return max(0, int(Path(job.output_file).stat().st_size))
+    except Exception:
+        return 0
+
+
+def _read_job_output_history_page(job: JobData, before_offset: int | None = None, limit: int | None = None) -> Dict[str, Any]:
+    """
+    Read older persisted log lines from the physical job log without replaying
+    the whole file on every poll.
+
+    The live `/api/jobs/{id}` endpoint keeps returning only the recent compact
+    window so polling cost stays bounded. This helper is only used on-demand
+    when the browser scrolls upward and asks for older history blocks.
+    """
+    requested_limit = int(limit or MAX_JOB_OUTPUT_HISTORY_API_LINES or 500)
+    safe_limit = max(1, min(requested_limit, MAX_JOB_OUTPUT_HISTORY_API_LINES))
+    path = Path(job.output_file)
+    if not path.exists():
+        return {"lines": [], "next_before_offset": 0, "has_more": False}
+
+    file_size = _get_job_output_file_size(job)
+    if file_size <= 0:
+        return {"lines": [], "next_before_offset": 0, "has_more": False}
+
+    target_before = file_size if before_offset is None else max(0, min(int(before_offset), file_size))
+    if target_before <= 0:
+        return {"lines": [], "next_before_offset": 0, "has_more": False}
+
+    block_size = 64 * 1024
+    read_pos = target_before
+    data = b""
+    try:
+        with path.open("rb") as fp:
+            while read_pos > 0 and data.count(b"\n") <= safe_limit:
+                chunk_size = min(block_size, read_pos)
+                read_pos -= chunk_size
+                fp.seek(read_pos)
+                data = fp.read(chunk_size) + data
+    except Exception:
+        return {"lines": [], "next_before_offset": 0, "has_more": False}
+
+    raw_segments = data.splitlines(keepends=True)
+    segment_base_offset = read_pos
+    if read_pos > 0 and raw_segments:
+        # The first segment can start in the middle of a line because we read
+        # backwards by bytes. Drop it so every returned element is a full line.
+        segment_base_offset += len(raw_segments[0])
+        raw_segments = raw_segments[1:]
+
+    if not raw_segments:
+        return {"lines": [], "next_before_offset": 0, "has_more": False}
+
+    if len(raw_segments) > safe_limit:
+        skipped = raw_segments[:-safe_limit]
+        next_before_offset = segment_base_offset + sum(len(segment) for segment in skipped)
+        selected_segments = raw_segments[-safe_limit:]
+    else:
+        next_before_offset = segment_base_offset
+        selected_segments = raw_segments
+
+    lines = [
+        segment.decode("utf-8", errors="replace").rstrip("\r\n")
+        for segment in selected_segments
+    ]
+    return {
+        "lines": lines,
+        "next_before_offset": max(0, int(next_before_offset)),
+        "has_more": bool(next_before_offset > 0),
+    }
 
 
 def _parse_last_matching_number(lines: List[str], pattern: re.Pattern[str]) -> int | None:
@@ -3978,6 +4052,8 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
             "dashboard_snapshot_updated_at": job.dashboard_snapshot_updated_at,
             "output": output,
             "output_lines": _read_job_output_lines_for_api(job),
+            "output_history_before_offset": _get_job_output_file_size(job),
+            "output_history_has_more": bool(_get_job_output_file_size(job) > 0),
         }
         if perf_started_at is not None:
             _debug_perf_log(
@@ -3990,6 +4066,26 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
                 snapshot_keys=len(job.dashboard_snapshot or {}),
             )
         return response_payload
+
+
+@app.get("/api/jobs/{job_id}/output-history")
+def get_job_output_history(
+    job_id: str,
+    before_offset: int | None = None,
+    limit: int = MAX_JOB_OUTPUT_HISTORY_API_LINES,
+    current_user: Dict[str, Any] = Depends(_require_user),
+) -> Dict[str, Any]:
+    with JOBS_LOCK:
+        if job_id not in JOBS:
+            raise HTTPException(status_code=404, detail="Job not found")
+        job = JOBS[job_id]
+        if int(job.owner_user_id or -1) != int(current_user["id"]):
+            raise HTTPException(status_code=404, detail="Job not found")
+        page = _read_job_output_history_page(job, before_offset=before_offset, limit=limit)
+        return {
+            "job_id": job_id,
+            **page,
+        }
 
 
 class JobInputRequest(BaseModel):

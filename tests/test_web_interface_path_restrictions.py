@@ -306,6 +306,42 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(lines[0], "INFO: line 50")
         self.assertEqual(lines[-1], "INFO: line 149")
 
+    def test_read_job_output_history_page_returns_last_page_and_previous_cursor(self):
+        history_path = self.base_path / "job-history.log"
+        history_path.write_text("".join(f"INFO: line {idx}\n" for idx in range(12)), encoding="utf-8")
+        job = type("JobStub", (), {})()
+        job.output_file = history_path
+
+        page = self.web_app._read_job_output_history_page(job, before_offset=history_path.stat().st_size, limit=5)
+
+        self.assertEqual(page["lines"], [f"INFO: line {idx}" for idx in range(7, 12)])
+        self.assertTrue(page["has_more"])
+        self.assertGreater(page["next_before_offset"], 0)
+
+    def test_read_job_output_history_page_uses_next_cursor_for_older_block(self):
+        history_path = self.base_path / "job-history.log"
+        history_path.write_text("".join(f"INFO: line {idx}\n" for idx in range(12)), encoding="utf-8")
+        job = type("JobStub", (), {})()
+        job.output_file = history_path
+
+        newest_page = self.web_app._read_job_output_history_page(job, before_offset=history_path.stat().st_size, limit=5)
+        older_page = self.web_app._read_job_output_history_page(job, before_offset=newest_page["next_before_offset"], limit=5)
+
+        self.assertEqual(older_page["lines"], [f"INFO: line {idx}" for idx in range(2, 7)])
+        self.assertTrue(older_page["has_more"])
+
+    def test_read_job_output_history_page_handles_start_of_file_without_more_pages(self):
+        history_path = self.base_path / "job-history.log"
+        history_path.write_text("INFO: line 0\nINFO: line 1\n", encoding="utf-8")
+        job = type("JobStub", (), {})()
+        job.output_file = history_path
+
+        page = self.web_app._read_job_output_history_page(job, before_offset=history_path.stat().st_size, limit=10)
+
+        self.assertEqual(page["lines"], ["INFO: line 0", "INFO: line 1"])
+        self.assertFalse(page["has_more"])
+        self.assertEqual(page["next_before_offset"], 0)
+
     def test_web_parser_schema_exposes_auxiliary_organize_fields_by_dest(self):
         fields_by_dest = self.web_app.PARSER_SCHEMA.get("fields_by_dest", {})
 
