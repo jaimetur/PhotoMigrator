@@ -3454,6 +3454,9 @@
         setActiveJobInUiState(currentJob, payload.tab);
         await saveStateNow();
         setCommandPreviewText(data.command);
+        uiState.auto_scroll = true;
+        const autoScrollCheck = document.getElementById("auto-scroll-check");
+        if (autoScrollCheck) autoScrollCheck.checked = true;
         document.getElementById("output").innerHTML = "";
         resetOutputHistory();
         if (currentJobIsAutomatic) {
