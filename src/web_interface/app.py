@@ -2025,7 +2025,7 @@ PROGRESS_TQDM_PARTIAL_RE = re.compile(r"(\d{1,3}%\|[^|]*)")
 PROGRESS_TQDM_INDETERMINATE_RE = re.compile(
     r"^(.*?:)\s*(\d[\d,]*)\s+\w+\s+\[\d{2}:\d{2}(?::\d{2})?,\s*[^\]]+\]\s*$"
 )
-PROGRESS_STEP_PREFIX_RE = re.compile(r"^(.*?\[\s*step\s+\d+/\d+\][^:]*:)", re.IGNORECASE)
+PROGRESS_STEP_COUNTER_RE = re.compile(r"^(.*?\[\s*step\s+\d+/\d+\][^:]*:)\s*\d+/\d+\s*$", re.IGNORECASE)
 PROGRESS_SEPARATOR_RE = re.compile(r"^[=\-_\s]{6,}$")
 
 
@@ -2085,10 +2085,17 @@ def _split_embedded_progress_line_breaks(raw_line: str) -> List[str]:
     if not text:
         return []
     next_line_prefix = r"(?=(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:|\[web-interface\])"
+    next_gpth_step_prefix = r"(?=\[\s*(?:INFO|DEBUG|WARNING|ERROR|VERBOSE)\s*\]\s*\[\s*Step\s+\d+/\d+\])"
     text = re.sub(
         rf"(\d{{1,3}}%\|[^\n\r]*?\|\s*\d+/\d+[^\n\r]*?(?:\[[^\n\r]*?\])?)\s*{next_line_prefix}",
         r"\1\n",
         text,
+    )
+    text = re.sub(
+        rf"(\d{{1,3}}%\|[^\n\r]*?\|\s*\d+/\d+[^\n\r]*?(?:\[[^\n\r]*?\])?)\s*{next_gpth_step_prefix}",
+        r"\1\n",
+        text,
+        flags=re.IGNORECASE,
     )
     text = re.sub(
         rf"((?:.*?:)?\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%)\s*{next_line_prefix}",
@@ -2096,9 +2103,21 @@ def _split_embedded_progress_line_breaks(raw_line: str) -> List[str]:
         text,
     )
     text = re.sub(
+        rf"((?:.*?:)?\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%)\s*{next_gpth_step_prefix}",
+        r"\1\n",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
         rf"(\d+/\d+\s+\d+(?:\.\d+)?%)\s*{next_line_prefix}",
         r"\1\n",
         text,
+    )
+    text = re.sub(
+        rf"((?:.*?\[\s*Step\s+\d+/\d+\][^\n\r]*?:)\s*\d+/\d+)\s*{next_gpth_step_prefix}",
+        r"\1\n",
+        text,
+        flags=re.IGNORECASE,
     )
     return [f"{segment}\n" for segment in text.split("\n") if segment != ""]
 
@@ -2131,7 +2150,7 @@ def _extract_progress_key(line: str) -> str | None:
     if m:
         return str(m.group(1) or "").strip().lower() or None
 
-    m = PROGRESS_STEP_PREFIX_RE.match(clean)
+    m = PROGRESS_STEP_COUNTER_RE.match(clean)
     if m:
         return str(m.group(1) or "").strip().lower() or None
 
@@ -2311,6 +2330,9 @@ def _sanitize_partial_output_line(raw_line: str) -> str:
 
 def _resolve_visible_partial_output_line(job: JobData) -> str:
     partial = _sanitize_partial_output_line(job.partial_line or "")
+    logical_partial_lines = _split_embedded_progress_line_breaks(partial)
+    if logical_partial_lines:
+        partial = logical_partial_lines[0].rstrip("\n")
     if _extract_orphan_log_level_prefix(partial) is not None:
         return ""
     pending_prefix = str(getattr(job, "pending_level_prefix", "") or "")

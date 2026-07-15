@@ -576,7 +576,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
 
         lines = self.web_app._read_job_output_lines_for_api(job)
 
-        self.assertEqual(lines, ["INFO    : [Pull] : ##### 5/10 50.0%\r"])
+        self.assertEqual(lines, ["INFO    : [Pull] : ##### 5/10 50.0%"])
 
     def test_dashboard_snapshot_with_trailing_info_prefix_is_fully_removed_from_visible_log(self):
         fake_process = Mock()
@@ -697,6 +697,33 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             lines,
             ["INFO    : Downloading Albums:  38%|███▊      | 95/254 [00:27<00:33,  4.84 albums/s]"],
         )
+
+    def test_gpth_progress_line_is_split_before_following_inner_info_step_line(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : ██████████████████████████████████████████████████ 170/170 100.0% [ INFO  ] [Step 5/8] Media with album associations: 119\n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            [
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : ██████████████████████████████████████████████████ 170/170 100.0%",
+                "[ INFO  ] [Step 5/8] Media with album associations: 119",
+            ],
+        )
+
+    def test_step_information_line_is_not_treated_as_progress_key(self):
+        line = "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Media with album associations: 119"
+        self.assertIsNone(self.web_app._extract_progress_key(line))
 
 
 if __name__ == "__main__":

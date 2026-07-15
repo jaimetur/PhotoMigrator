@@ -977,10 +977,14 @@
     function normalizeEmbeddedProgressLineBreaks(text) {
         const source = stripAnsi(String(text || ""));
         const nextLinePrefix = String.raw`(?=(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:|\[web-interface\])`;
+        const nextGpthStepPrefix = String.raw`(?=\[\s*(?:INFO|DEBUG|WARNING|ERROR|VERBOSE)\s*\]\s*\[\s*Step\s+\d+\/\d+\])`;
         return source
             .replace(new RegExp(String.raw`(\d{1,3}%\|[^\n\r]*?\|\s*\d+\/\d+[^\n\r]*?(?:\[[^\n\r]*?\])?)\s*${nextLinePrefix}`, "g"), "$1\n")
+            .replace(new RegExp(String.raw`(\d{1,3}%\|[^\n\r]*?\|\s*\d+\/\d+[^\n\r]*?(?:\[[^\n\r]*?\])?)\s*${nextGpthStepPrefix}`, "gi"), "$1\n")
             .replace(new RegExp(String.raw`((?:.*?:)?\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+\/\d+\s+\d+(?:\.\d+)?%)\s*${nextLinePrefix}`, "g"), "$1\n")
-            .replace(new RegExp(String.raw`(\d+\/\d+\s+\d+(?:\.\d+)?%)\s*${nextLinePrefix}`, "g"), "$1\n");
+            .replace(new RegExp(String.raw`((?:.*?:)?\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+\/\d+\s+\d+(?:\.\d+)?%)\s*${nextGpthStepPrefix}`, "gi"), "$1\n")
+            .replace(new RegExp(String.raw`(\d+\/\d+\s+\d+(?:\.\d+)?%)\s*${nextLinePrefix}`, "g"), "$1\n")
+            .replace(new RegExp(String.raw`((?:.*?\[\s*Step\s+\d+\/\d+\][^\n\r]*?:)\s*\d+\/\d+)\s*${nextGpthStepPrefix}`, "gi"), "$1\n");
     }
 
     // Override to support both custom bars and tqdm-like progress updates.
@@ -1005,7 +1009,7 @@
         const tqdmMarkerRegex = /(\d{1,3}%\|[^|]*\|\s*\d+\/\d+)/;
         const customPartialRegex = /^(.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]{8,}\s*$/;
         const tqdmPartialRegex = /(\d{1,3}%\|[^|]*)/;
-        const stepPrefixRegex = /^(.*?\[\s*step\s+\d+\/\d+\][^:]*:)\s*$/i;
+        const stepCounterRegex = /^(.*?\[\s*step\s+\d+\/\d+\][^:]*:)\s*\d+\/\d+\s*$/i;
         const parseProgressState = (cleanLine) => {
             const customNumbers = cleanLine.match(/(\d+)\/(\d+)\s+(\d+(?:\.\d+)?)%\s*$/);
             if (customNumbers) {
@@ -1059,9 +1063,9 @@
                             progressKey = clean.slice(0, tqdmPartialMatch.index).trim().toLowerCase();
                             partialProgress = true;
                         } else {
-                            const stepPrefixMatch = clean.match(stepPrefixRegex);
-                            if (stepPrefixMatch) {
-                                progressKey = String(stepPrefixMatch[1] || "").trim().toLowerCase();
+                            const stepCounterMatch = clean.match(stepCounterRegex);
+                            if (stepCounterMatch) {
+                                progressKey = String(stepCounterMatch[1] || "").trim().toLowerCase();
                                 partialProgress = true;
                             }
                         }
@@ -4999,9 +5003,7 @@
             }
             });
         document.getElementById("output").addEventListener("scroll", () => {
-            if (uiState.auto_scroll === false) {
-                renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, fromScroll: true});
-            }
+            renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, fromScroll: true});
         });
         document.addEventListener("selectionchange", () => {
             if (!outputRenderDeferredBySelection) return;

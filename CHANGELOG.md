@@ -53,6 +53,7 @@
   - Fixed the Web Interface log stream so orphan `INFO` / `WARNING` / `ERROR` prefixes are only dropped when they are truly standalone; progress lines now keep their original log-level prefix at the start of the same visible line.
   - Fixed the Web Interface `Execution Output` panel so manual text selection is preserved while `Auto Scroll` is disabled even if a live progress bar keeps updating, and added `Ctrl+C` / `Cmd+C` copying for the currently selected log text.
   - Fixed local-source cleanup so folders containing only excluded Synology artifacts such as `@eaDir`, `@Recycle`, `.DS_Store`, or thumbnail files are now treated as empty and can be removed both during album completion and in the final cleanup pass.
+  - Fixed additional Web Interface `Execution Output` log-panel parsing issues affecting GPTH and long-running progress streams. Progress lines are now split cleanly before any following log message instead of leaking the next line behind a completed bar, GPTH step-information lines are no longer misclassified as progress updates, partial progress frames no longer paint the next line prematurely, and scrolling upward while `Auto Scroll` remains enabled now re-renders the correct virtualized history window instead of trapping the user inside only the currently painted tail.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
