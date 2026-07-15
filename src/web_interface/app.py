@@ -2117,8 +2117,8 @@ def _append_job_output(job: JobData, text: str) -> None:
     persisted_chunks: List[str] = []
     for line in completed:
         line_with_nl = f"{line}\n"
-        line_with_nl, snapshot_event = _split_dashboard_snapshot_from_line(line_with_nl)
-        if snapshot_event is not None:
+        line_with_nl, snapshot_events = _strip_dashboard_snapshots_from_line(line_with_nl)
+        for snapshot_event in snapshot_events:
             job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
             job.dashboard_snapshot_from_events = True
             job.dashboard_snapshot_dirty = False
@@ -2196,27 +2196,60 @@ def _is_internal_dashboard_snapshot_line(raw_line: str) -> bool:
     return str(raw_line or "").startswith(WEB_DASHBOARD_SNAPSHOT_PREFIX)
 
 
-def _split_dashboard_snapshot_from_line(raw_line: str) -> tuple[str, Dict[str, Any] | None]:
+def _extract_dashboard_snapshot_prefix(raw_text: str) -> tuple[Dict[str, Any] | None, int]:
+    line = str(raw_text or "")
+    if not line.startswith(WEB_DASHBOARD_SNAPSHOT_PREFIX):
+        return None, 0
+    payload = line[len(WEB_DASHBOARD_SNAPSHOT_PREFIX):].lstrip()
+    if not payload:
+        return None, 0
+    try:
+        decoder = json.JSONDecoder()
+        decoded, payload_end = decoder.raw_decode(payload)
+    except Exception:
+        return None, 0
+    if not isinstance(decoded, dict):
+        return None, 0
+    consumed_prefix = len(WEB_DASHBOARD_SNAPSHOT_PREFIX) + (len(payload) - len(payload.lstrip()))
+    return decoded, consumed_prefix + payload_end
+
+
+def _strip_dashboard_snapshots_from_line(raw_line: str) -> tuple[str, List[Dict[str, Any]]]:
     line = str(raw_line or "")
-    marker_index = line.find(WEB_DASHBOARD_SNAPSHOT_PREFIX)
-    if marker_index < 0:
-        return line, None
+    snapshots: List[Dict[str, Any]] = []
+    if WEB_DASHBOARD_SNAPSHOT_PREFIX not in line:
+        return line, snapshots
 
-    visible = line[:marker_index]
-    snapshot = _parse_dashboard_snapshot_event(line[marker_index:])
-    if snapshot is None:
-        return line, None
+    visible_parts: List[str] = []
+    cursor = 0
+    while True:
+        marker_index = line.find(WEB_DASHBOARD_SNAPSHOT_PREFIX, cursor)
+        if marker_index < 0:
+            visible_parts.append(line[cursor:])
+            break
+        visible_parts.append(line[cursor:marker_index])
+        snapshot, consumed_len = _extract_dashboard_snapshot_prefix(line[marker_index:])
+        if snapshot is None or consumed_len <= 0:
+            visible_parts.append(line[marker_index:])
+            break
+        snapshots.append(snapshot)
+        cursor = marker_index + consumed_len
 
+    visible = "".join(visible_parts)
     if line.endswith("\n") and visible and not visible.endswith("\n"):
         visible = f"{visible}\n"
-    return visible, snapshot
+    return visible, snapshots
 
 
 def _sanitize_partial_output_line(raw_line: str) -> str:
-    line = str(raw_line or "")
+    original = str(raw_line or "")
+    line, _snapshots = _strip_dashboard_snapshots_from_line(original)
     marker_index = line.find(WEB_DASHBOARD_SNAPSHOT_PREFIX)
     if marker_index >= 0:
-        line = line[:marker_index]
+        return line[:marker_index]
+    marker_index = original.find(WEB_DASHBOARD_SNAPSHOT_PREFIX)
+    if marker_index >= 0:
+        return original[:marker_index]
     return line
 
 
@@ -2286,18 +2319,21 @@ def _read_job_output_for_api(job: JobData) -> str:
 
 
 def _read_job_output_lines_for_api(job: JobData) -> List[str]:
-    if MAX_JOB_OUTPUT_API_LINES > 0:
-        selected_entries = list(job.output)[-MAX_JOB_OUTPUT_API_LINES:]
-    else:
-        selected_entries = list(job.output)
-    lines = [entry.text.rstrip("\n") for entry in selected_entries]
+    # Keep the full compact in-memory log visible in the browser.
+    #
+    # Performance regressions were caused by reparsing the whole log to rebuild
+    # dashboard counters, not by simply shipping the already-compacted logical
+    # lines. The structured dashboard snapshot now owns the counters, so the web
+    # UI can safely consume the full visible log buffer again without merging
+    # paginated batches or reconstructing history windows client-side.
+    lines = [entry.text.rstrip("\n") for entry in list(job.output)]
     partial = _sanitize_partial_output_line(job.partial_line or "")
     if partial.strip():
         lines.append(partial)
     if job.dropped_output_lines > 0:
         notice = (
             f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
-            f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines, API window {MAX_JOB_OUTPUT_API_LINES} lines)."
+            f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines)."
         )
         return [notice, *lines]
     return lines

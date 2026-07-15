@@ -292,7 +292,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("3 lines were dropped", lines[0])
         self.assertEqual(lines[1:], ["INFO: kept"])
 
-    def test_read_job_output_lines_for_api_limits_window_to_recent_100_lines(self):
+    def test_read_job_output_lines_for_api_returns_full_compact_buffer(self):
         job = type("JobStub", (), {})()
         job.output = deque(
             [self.web_app.OutputLine(text=f"INFO: line {idx}\n") for idx in range(150)]
@@ -302,8 +302,8 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
 
         lines = self.web_app._read_job_output_lines_for_api(job)
 
-        self.assertEqual(len(lines), 100)
-        self.assertEqual(lines[0], "INFO: line 50")
+        self.assertEqual(len(lines), 150)
+        self.assertEqual(lines[0], "INFO: line 0")
         self.assertEqual(lines[-1], "INFO: line 149")
 
     def test_read_job_output_history_page_returns_last_page_and_previous_cursor(self):
@@ -577,6 +577,52 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         lines = self.web_app._read_job_output_lines_for_api(job)
 
         self.assertEqual(lines, ["INFO    : [Pull] : ##### 5/10 50.0%\r"])
+
+    def test_dashboard_snapshot_with_trailing_info_prefix_is_fully_removed_from_visible_log(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        snapshot_payload = {
+            "pulledAssets": 0,
+            "updatedAt": "2026-07-15T16:11:32.838768Z",
+        }
+        try:
+            self.web_app._append_job_output(
+                job,
+                f"{self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX}{self.web_app.json.dumps(snapshot_payload)}INFO    : \n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+            persisted = Path(job.output_file).read_text(encoding="utf-8")
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(lines, [])
+        self.assertEqual(persisted, "")
+        self.assertEqual(job.dashboard_snapshot["pulledAssets"], 0)
+
+    def test_dashboard_snapshot_embedded_before_info_line_keeps_only_visible_message(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        snapshot_payload = {
+            "pulledAssets": 1,
+            "updatedAt": "2026-07-15T16:11:32.838768Z",
+        }
+        try:
+            self.web_app._append_job_output(
+                job,
+                f"{self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX}{self.web_app.json.dumps(snapshot_payload)}INFO    : Asset Pulled    : 'IMG_0001.jpg'\n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(lines, ["INFO    : Asset Pulled    : 'IMG_0001.jpg'"])
+        self.assertEqual(job.dashboard_snapshot["pulledAssets"], 1)
 
 
 if __name__ == "__main__":

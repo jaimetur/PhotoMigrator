@@ -628,8 +628,6 @@
     let lastRawOutput = "";
     let lastOutputLines = [];
     let displayedRawOutput = "";
-    const OUTPUT_CLIENT_BUFFER_LINES = 5000;
-    const OUTPUT_HISTORY_PAGE_LINES = 500;
     let currentRunPayload = null;
     let currentJobStartedAt = null;
     let currentJobIsAutomatic = false;
@@ -637,69 +635,12 @@
     let outputVirtualLastRangeKey = "";
     let outputVirtualLineHeight = 0;
     const OUTPUT_VIRTUAL_BUFFER_LINES = 50;
-    let outputHistoryBeforeOffset = null;
-    let outputHistoryHasMore = false;
-    let outputHistoryLoading = false;
-    let outputHistoryInitializedForJob = null;
-    let outputHistoryExpanded = false;
 
     function resetOutputHistory() {
         lastRawOutput = "";
         lastOutputLines = [];
         displayedRawOutput = "";
         outputVirtualLastRangeKey = "";
-        outputHistoryBeforeOffset = null;
-        outputHistoryHasMore = false;
-        outputHistoryLoading = false;
-        outputHistoryInitializedForJob = null;
-        outputHistoryExpanded = false;
-    }
-
-    function mergeOutputLineWindow(existingLines, incomingLines) {
-        const existing = Array.isArray(existingLines) ? existingLines : [];
-        const incoming = Array.isArray(incomingLines) ? incomingLines : [];
-        if (!incoming.length) return existing.slice();
-        if (!existing.length) return outputHistoryExpanded ? incoming.slice() : incoming.slice(-OUTPUT_CLIENT_BUFFER_LINES);
-
-        const maxOverlap = Math.min(existing.length, incoming.length, 200);
-        for (let overlap = maxOverlap; overlap >= 1; overlap -= 1) {
-            let matches = true;
-            for (let i = 0; i < overlap; i += 1) {
-                if (existing[existing.length - overlap + i] !== incoming[i]) {
-                    matches = false;
-                    break;
-                }
-            }
-            if (matches) {
-                const merged = existing.concat(incoming.slice(overlap));
-                return outputHistoryExpanded ? merged : merged.slice(-OUTPUT_CLIENT_BUFFER_LINES);
-            }
-        }
-
-        return outputHistoryExpanded ? existing.concat(incoming) : incoming.slice(-OUTPUT_CLIENT_BUFFER_LINES);
-    }
-
-    function prependOutputLineWindow(existingLines, olderLines) {
-        const existing = Array.isArray(existingLines) ? existingLines : [];
-        const older = Array.isArray(olderLines) ? olderLines : [];
-        if (!older.length) return existing.slice();
-        if (!existing.length) return older.slice();
-
-        const maxOverlap = Math.min(existing.length, older.length, 500);
-        for (let overlap = maxOverlap; overlap >= 1; overlap -= 1) {
-            let matches = true;
-            for (let i = 0; i < overlap; i += 1) {
-                if (older[older.length - overlap + i] !== existing[i]) {
-                    matches = false;
-                    break;
-                }
-            }
-            if (matches) {
-                return older.slice(0, older.length - overlap).concat(existing);
-            }
-        }
-
-        return older.concat(existing);
     }
 
     function uiOptionName(field) {
@@ -1297,23 +1238,12 @@
         const perfStarted = performance.now();
         const outputEl = document.getElementById("output");
         const autoScrollEnabled = uiState.auto_scroll !== false;
-        const incomingLines = Array.isArray(options.outputLines) && options.outputLines.length
+        const providedLines = Array.isArray(options.outputLines) && options.outputLines.length
             ? options.outputLines
             : (rawText ? collapseProgressLines(String(rawText)).split("\n") : []);
-        let providedLines;
-        if (options.replaceBuffer) {
-            providedLines = incomingLines.slice(-OUTPUT_CLIENT_BUFFER_LINES);
-        } else if (options.prependHistory) {
-            outputHistoryExpanded = true;
-            providedLines = prependOutputLineWindow(lastOutputLines, incomingLines);
-        } else {
-            providedLines = mergeOutputLineWindow(lastOutputLines, incomingLines);
-        }
-        lastOutputLines = providedLines;
-        if (!options.prependHistory) {
-            lastRawOutput = incomingLines.join("\n");
-            displayedRawOutput = lastRawOutput;
-        }
+        lastOutputLines = providedLines.slice();
+        lastRawOutput = providedLines.join("\n");
+        displayedRawOutput = lastRawOutput;
         const htmlBuiltAt = performance.now();
         const previousScrollTop = outputEl.scrollTop;
         const html = buildVirtualizedLogHtml(providedLines, outputEl, {...options, bypassCache: !options.fromScroll});
@@ -1332,37 +1262,6 @@
             domPaintMs: Number((performance.now() - htmlBuiltAt).toFixed(2)),
             totalMs: Number((performance.now() - perfStarted).toFixed(2))
         });
-    }
-
-    async function loadOlderOutputHistory() {
-        if (!currentJob || outputHistoryLoading || !outputHistoryHasMore || outputHistoryBeforeOffset == null) return;
-        const outputEl = document.getElementById("output");
-        outputHistoryLoading = true;
-        const previousScrollHeight = outputEl.scrollHeight;
-        const previousScrollTop = outputEl.scrollTop;
-        try {
-            const response = await fetch(
-                `/api/jobs/${currentJob}/output-history?before_offset=${encodeURIComponent(String(outputHistoryBeforeOffset))}&limit=${OUTPUT_HISTORY_PAGE_LINES}`
-            );
-            if (!response.ok) return;
-            const data = await response.json();
-            const olderLines = Array.isArray(data.lines) ? data.lines : [];
-            outputHistoryBeforeOffset = Number(data.next_before_offset || 0);
-            outputHistoryHasMore = Boolean(data.has_more);
-            if (!olderLines.length) return;
-            renderOutputWithLevels("", {
-                outputLines: olderLines,
-                prependHistory: true,
-                preserveScrollAnchor: true,
-                force: true
-            });
-            const heightDelta = Math.max(0, outputEl.scrollHeight - previousScrollHeight);
-            outputEl.scrollTop = previousScrollTop + heightDelta;
-        } catch (error) {
-            console.error(error);
-        } finally {
-            outputHistoryLoading = false;
-        }
     }
 
     function formatDuration(ms) {
@@ -3560,11 +3459,6 @@
         const jsonStarted = performance.now();
         const data = await response.json();
         const jsonElapsedMs = performance.now() - jsonStarted;
-        if (outputHistoryInitializedForJob !== currentJob) {
-            outputHistoryInitializedForJob = currentJob;
-            outputHistoryBeforeOffset = Number(data.output_history_before_offset || 0);
-            outputHistoryHasMore = Boolean(data.output_history_has_more);
-        }
         setStatus(`Status: ${data.status}`, false);
         updateRunStopButtons(data.status || "idle");
         const renderOutputStarted = performance.now();
@@ -5299,10 +5193,6 @@
             }
             });
         document.getElementById("output").addEventListener("scroll", () => {
-            const outputEl = document.getElementById("output");
-            if (outputEl && outputEl.scrollTop <= Math.max(40, outputVirtualLineHeight * 2)) {
-                loadOlderOutputHistory();
-            }
             if (uiState.auto_scroll === false) {
                 renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, fromScroll: true});
             }
