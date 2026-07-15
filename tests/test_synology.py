@@ -469,6 +469,78 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertEqual(params["album_id"], "43")
         self.assertNotIn("passphrase", params)
 
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_get_all_assets_from_album_tries_next_variant_after_empty_success_when_count_unknown(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.SESSION = MagicMock()
+        manager.login = lambda log_level=None: True
+        manager.filter_assets = lambda assets, log_level=None: assets
+
+        first_response = MagicMock()
+        first_response.json.return_value = {"success": True, "data": {"list": []}}
+        second_response = MagicMock()
+        second_response.json.return_value = {
+            "success": True,
+            "data": {"list": [{"id": "asset-1", "filename": "photo.jpg", "type": "PHOTO"}]},
+        }
+        manager.SESSION.get.side_effect = [first_response, second_response]
+
+        assets = manager.get_all_assets_from_album(
+            album_id="43",
+            album_name="Shared Space Album",
+            album_scope="owned_shared_space",
+            album_expected_count=None,
+            log_level=logging.INFO,
+        )
+
+        self.assertEqual([asset["id"] for asset in assets], ["asset-1"])
+        self.assertEqual(manager.SESSION.get.call_count, 2)
+        first_params = manager.SESSION.get.call_args_list[0].kwargs["params"]
+        second_params = manager.SESSION.get.call_args_list[1].kwargs["params"]
+        self.assertEqual(first_params["version"], "7")
+        self.assertEqual(second_params["version"], "4")
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_ensure_album_runtime_details_populates_missing_item_count_from_album_get(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.SESSION = MagicMock()
+        manager.login = lambda log_level=None: True
+        manager.CURRENT_OWNER_USER_ID = "1"
+        manager.album_runtime_details_cache = {}
+        manager.get_album_assets_count = MagicMock(return_value=-1)
+
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "success": True,
+            "data": {
+                "album": {
+                    "id": "43",
+                    "item_count": 233,
+                    "owner_user_id": 1,
+                    "sharing_info": {"permission": [{"role": "full"}]},
+                }
+            },
+        }
+        manager.SESSION.get.return_value = response
+
+        album = {
+            "id": "43",
+            "albumName": "Shared Space Album",
+            "category": "normal_share_with_me",
+            "owner_user_id": 1,
+            "_synology_album_scope": "owned_shared_space",
+        }
+
+        enriched = manager._ensure_album_runtime_details(album, log_level=logging.INFO)
+
+        self.assertEqual(enriched.get("item_count"), 233)
+        manager.get_album_assets_count.assert_not_called()
+
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.update_metadata", lambda *args, **kwargs: None)
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
     def test_pull_asset_from_shared_space_album_uses_album_context_without_passphrase(self, _mock_logger):
@@ -563,6 +635,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
             },
         ])
         manager.ensure_shared_album_access = lambda album, log_level=None: album
+        manager._ensure_album_runtime_details = lambda album, log_level=None: album
         manager.get_all_assets_from_album = MagicMock(return_value=[{"id": "asset-owned"}])
         manager.get_all_assets_from_album_shared = MagicMock(return_value=[{"id": "asset-shared"}])
 

@@ -105,6 +105,7 @@ class ClassSynologyPhotos:
         self.assets_without_albums_filtered = None
         self.albums_assets_filtered = None
         self.shared_album_access_cache = {}
+        self.album_runtime_details_cache = {}
 
         # Get the values from the arguments (if exists)
         self.type = ARGS.get('filter-by-type', None)
@@ -324,6 +325,116 @@ class ClassSynologyPhotos:
                     return value
         return ""
 
+    @staticmethod
+    def _parse_album_expected_count(value):
+        if value is None:
+            return None
+        if isinstance(value, str) and not value.strip():
+            return None
+        try:
+            parsed_value = int(value)
+        except (TypeError, ValueError):
+            return None
+        return parsed_value if parsed_value >= 0 else None
+
+    def _fetch_album_details(self, album_id, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            params = {
+                "api": "SYNO.Foto.Browse.Album",
+                "method": "get",
+                "version": "4",
+                "id": album_id,
+                "additional": '["sharing_info", "thumbnail"]',
+            }
+            response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+            response.raise_for_status()
+            data = response.json()
+            if not data.get("success"):
+                return None
+
+            payload_data = data.get("data") or {}
+            if isinstance(payload_data, dict):
+                if isinstance(payload_data.get("album"), dict):
+                    return payload_data.get("album")
+                if isinstance(payload_data.get("list"), list) and payload_data.get("list"):
+                    if isinstance(payload_data["list"][0], dict):
+                        return payload_data["list"][0]
+            return None
+
+    def _ensure_album_runtime_details(self, album, log_level=None):
+        """
+        Enrich album payloads with runtime-only details required by list/download calls.
+
+        Synology's list endpoints do not always include `item_count`, and issue
+        #1173 showed that some Shared Space albums exposed through
+        `normal_share_with_me` can return an empty success response for one item
+        listing variant while another variant returns the real contents. We
+        therefore try to learn the authoritative album payload first, so both
+        Automatic Migration and the standalone Synology download flows evaluate
+        the same album metadata before trying item-list fallbacks.
+        """
+        with set_log_level(LOGGER, log_level):
+            if not isinstance(album, dict):
+                return album
+
+            album = self._hydrate_album_payload(album)
+            album_id = str(album.get("id") or "").strip()
+            if not album_id:
+                return album
+
+            album_runtime_details_cache = getattr(self, "album_runtime_details_cache", None)
+            if album_runtime_details_cache is None:
+                album_runtime_details_cache = {}
+                self.album_runtime_details_cache = album_runtime_details_cache
+
+            cached_album = album_runtime_details_cache.get(album_id)
+            if isinstance(cached_album, dict):
+                merged_album = dict(album)
+                merged_album.update(cached_album)
+                return self._hydrate_album_payload(merged_album, fallback_scope=album.get("_synology_album_scope"))
+
+            album_scope = album.get("_synology_album_scope")
+            expected_count = self._parse_album_expected_count(album.get("item_count"))
+            needs_item_count = expected_count is None
+            needs_passphrase = self.is_shared_with_me_album(album) and not str(album.get("passphrase") or "").strip()
+            if not needs_item_count and not needs_passphrase:
+                album_runtime_details_cache[album_id] = dict(album)
+                return album
+
+            enriched_album = dict(album)
+            try:
+                detailed_album = self._fetch_album_details(album_id=album_id, log_level=log_level)
+                if isinstance(detailed_album, dict):
+                    enriched_album.update(detailed_album)
+                    enriched_album = self._hydrate_album_payload(enriched_album, fallback_scope=album_scope)
+
+                resolved_passphrase = self._extract_passphrase_from_album_payload(detailed_album or {})
+                if resolved_passphrase and not str(enriched_album.get("passphrase") or "").strip():
+                    enriched_album["passphrase"] = resolved_passphrase
+
+                if self._parse_album_expected_count(enriched_album.get("item_count")) is None:
+                    counted_assets = self.get_album_assets_count(
+                        album_id=album_id,
+                        album_name=enriched_album.get("albumName", ""),
+                        album_passphrase=enriched_album.get("passphrase"),
+                        album_scope=enriched_album.get("_synology_album_scope"),
+                        log_level=log_level,
+                    )
+                    counted_assets = self._parse_album_expected_count(counted_assets)
+                    if counted_assets is not None:
+                        enriched_album["item_count"] = counted_assets
+            except Exception as error:
+                LOGGER.debug(f"Could not enrich Synology album runtime details for album ID={album_id}: {error}")
+
+            album_runtime_details_cache[album_id] = dict(enriched_album)
+            return enriched_album
+
     def ensure_shared_album_access(self, album, log_level=None):
         with set_log_level(LOGGER, log_level):
             if not isinstance(album, dict):
@@ -347,38 +458,12 @@ class ClassSynologyPhotos:
                 return album
 
             try:
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
-
-                params = {
-                    "api": "SYNO.Foto.Browse.Album",
-                    "method": "get",
-                    "version": "4",
-                    "id": album_id,
-                    "additional": '["sharing_info", "thumbnail"]',
-                }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                response.raise_for_status()
-                data = response.json()
-                if not data.get("success"):
-                    LOGGER.debug(f"Could not resolve shared album passphrase for album ID={album_id}: {data}")
-                    return album
-
-                payload_data = data.get("data") or {}
-                candidate_album = None
-                if isinstance(payload_data, dict):
-                    if isinstance(payload_data.get("album"), dict):
-                        candidate_album = payload_data.get("album")
-                    elif isinstance(payload_data.get("list"), list) and payload_data.get("list"):
-                        candidate_album = payload_data.get("list")[0]
+                candidate_album = self._fetch_album_details(album_id=album_id, log_level=log_level)
                 if isinstance(candidate_album, dict):
                     album.update(candidate_album)
                     album = self._hydrate_album_payload(album, fallback_scope="shared_with_me")
 
-                resolved_passphrase = self._extract_passphrase_from_album_payload(data)
+                resolved_passphrase = self._extract_passphrase_from_album_payload(candidate_album or {})
                 if resolved_passphrase:
                     album["passphrase"] = resolved_passphrase
                     LOGGER.debug(f"Resolved shared album passphrase for album ID={album_id}.")
@@ -858,6 +943,7 @@ class ClassSynologyPhotos:
                 albums_filtered = []
                 for album in album_list:
                     album = self._hydrate_album_payload(album, fallback_scope="owned_personal")
+                    album = self._ensure_album_runtime_details(album, log_level=log_level)
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     if filter_assets and has_any_filter():
@@ -928,6 +1014,7 @@ class ClassSynologyPhotos:
                 album = deduped_albums[album_id]
                 album = self.ensure_shared_album_access(album, log_level=log_level)
                 album = self._hydrate_album_payload(album)
+                album = self._ensure_album_runtime_details(album, log_level=log_level)
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")
                 if filter_assets and has_any_filter():
@@ -1011,7 +1098,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
             
 
-    def get_album_assets_count(self, album_id, album_name, log_level=None):
+    def get_album_assets_count(self, album_id, album_name, album_passphrase=None, album_scope="owned_personal", log_level=None):
         """
         Gets the number of assets in an album.
 
@@ -1030,20 +1117,38 @@ class ClassSynologyPhotos:
                 if self.SYNO_TOKEN_HEADER:
                     headers.update(self.SYNO_TOKEN_HEADER)
 
-                params = {
-                    "api": "SYNO.Foto.Browse.Item",
-                    "method": "count",
-                    "version": "4",
-                    "album_id": album_id,
-                }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                response.raise_for_status()
-                data = response.json()
+                failure_messages = []
+                for variant in self._iter_album_item_request_variants(
+                    album_id=album_id,
+                    album_scope=album_scope,
+                    album_passphrase=album_passphrase,
+                ):
+                    params = {
+                        "api": variant["api"],
+                        "method": "count",
+                        "version": variant["version"],
+                        "album_id": variant["album_id"],
+                    }
+                    if variant.get("passphrase"):
+                        params["passphrase"] = variant["passphrase"]
+                    try:
+                        response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                        response.raise_for_status()
+                        data = response.json()
+                        if not data.get("success"):
+                            failure_messages.append(f"variant={params.get('version')}/count response={data}")
+                            continue
+                        count = self._parse_album_expected_count((data.get("data") or {}).get("count"))
+                        if count is not None:
+                            return count
+                    except Exception as e:
+                        failure_messages.append(f"variant={params.get('version')}/count error={e}")
+                        continue
 
-                if not data["success"]:
-                    LOGGER.warning(f"Cannot count files for album: '{album_name}' due to API call error. Skipped!")
-                    return -1
-                return data["data"]["count"]
+                LOGGER.warning(f"Cannot count files for album: '{album_name}' due to API call error. Skipped!")
+                if failure_messages:
+                    LOGGER.debug("Album count variants tried: " + " | ".join(failure_messages))
+                return -1
             except Exception as e:
                 LOGGER.error(f"Exception while getting Album Assets count from Synology Photos. {e}")
 
@@ -1448,6 +1553,8 @@ class ClassSynologyPhotos:
                 headers.update(self.SYNO_TOKEN_HEADER)
 
             failure_messages = []
+            saw_successful_empty_response = False
+            expected_count = self._parse_album_expected_count(album_expected_count)
             variants = list(self._iter_album_item_request_variants(album_id=album_id, album_scope=album_scope, album_passphrase=album_passphrase))
             for index, base_params in enumerate(variants):
                 offset = 0
@@ -1480,14 +1587,25 @@ class ClassSynologyPhotos:
                 if album_assets:
                     return self.filter_assets(assets=album_assets, log_level=log_level)
 
-                # An empty success response can be valid for empty albums. However,
-                # for Shared Space / shared-with-me albums we only trust the empty
-                # result immediately when Synology itself reported no items.
-                expected_count = int(album_expected_count or 0)
-                if expected_count <= 0:
+                saw_successful_empty_response = True
+
+                # Synology may return `success=true` with an empty list for a
+                # syntactically valid variant that does not actually match the
+                # album namespace. Do not trust that first empty response unless
+                # the album is already known to be truly empty.
+                if expected_count == 0:
                     return []
                 if index == len(variants) - 1:
-                    return []
+                    break
+
+                LOGGER.debug(
+                    f"Synology album listing variant returned no items for album ID={album_id} "
+                    f"(variant {index + 1}/{len(variants)}, scope={album_scope}, expected_count={expected_count}). "
+                    "Trying the next variant."
+                )
+
+            if saw_successful_empty_response and expected_count is None:
+                return []
 
             if album_name:
                 LOGGER.error(f"Failed to list photos in the album '{album_name}'")
@@ -1604,6 +1722,7 @@ class ClassSynologyPhotos:
                 for album in all_albums:
                     album = self.ensure_shared_album_access(album, log_level=log_level)
                     album = self._hydrate_album_payload(album)
+                    album = self._ensure_album_runtime_details(album, log_level=log_level)
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
                     if self.is_shared_with_me_album(album):
@@ -3064,6 +3183,7 @@ class ClassSynologyPhotos:
                 for album in tqdm(albums_to_download, desc=f"{MSG_TAGS['INFO']}Downloading Albums", unit=" albums"):
                     album = self.ensure_shared_album_access(album, log_level=log_level)
                     album = self._hydrate_album_payload(album)
+                    album = self._ensure_album_runtime_details(album, log_level=log_level)
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     album_passphrase = album.get("passphrase")
