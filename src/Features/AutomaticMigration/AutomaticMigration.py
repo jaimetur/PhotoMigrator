@@ -429,11 +429,11 @@ def _mark_album_pushed_if_ready(
             pushed_assets = max(0, int(album_stats.get("pushed_assets", 0) or 0))
             duplicated_assets = max(0, int(album_stats.get("duplicated_assets", 0) or 0))
             failed_assets = max(0, int(album_stats.get("failed_assets", 0) or 0))
-            summary_parts = [f"Total Assets: {total_assets}"]
-            if pushed_assets > 0:
-                summary_parts.append(f"Pushed: {pushed_assets}")
-            if duplicated_assets > 0:
-                summary_parts.append(f"Duplicates: {duplicated_assets}")
+            summary_parts = [
+                f"Total Assets: {total_assets}",
+                f"Pushed: {pushed_assets}",
+                f"Duplicates: {duplicated_assets}",
+            ]
             if failed_assets > 0:
                 summary_parts.append(f"Failed: {failed_assets}")
             album_summary = f" ({' | '.join(summary_parts)})"
