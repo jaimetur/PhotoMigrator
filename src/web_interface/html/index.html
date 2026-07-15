@@ -633,16 +633,18 @@
     let currentJobIsAutomatic = false;
     let webDashboardState = {rawOutput: "", status: "idle", jobData: {}};
     let outputVirtualLastRangeKey = "";
+    let outputVirtualRenderedModel = null;
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
     const OUTPUT_VIRTUAL_BUFFER_LINES = 50;
-    const JOB_POLL_INTERVAL_MS = 100;
+    const JOB_POLL_INTERVAL_MS = 30;
 
     function resetOutputHistory() {
         lastRawOutput = "";
         lastOutputLines = [];
         displayedRawOutput = "";
         outputVirtualLastRangeKey = "";
+        outputVirtualRenderedModel = null;
         outputRenderDeferredBySelection = false;
     }
 
@@ -1207,11 +1209,17 @@
         return Math.max(16, Math.round(lineHeight || 20));
     }
 
-    function buildVirtualizedLogHtml(lines, outputEl, options = {}) {
+    function buildVirtualizedLogModel(lines, outputEl, options = {}) {
         const totalLines = Array.isArray(lines) ? lines.length : 0;
         if (!outputEl || totalLines <= 0) {
             outputVirtualLastRangeKey = "";
-            return "";
+            return {
+                totalLines: 0,
+                rangeKey: "",
+                sliceLines: [],
+                topSpacerPx: 0,
+                bottomSpacerPx: 0
+            };
         }
         outputVirtualLineHeight = getOutputVirtualLineHeight(outputEl);
         const visibleCount = Math.max(1, Math.ceil((outputEl.clientHeight || 0) / outputVirtualLineHeight));
@@ -1225,20 +1233,77 @@
         const start = Math.max(0, anchorLine - OUTPUT_VIRTUAL_BUFFER_LINES);
         const end = Math.min(totalLines, anchorLine + visibleCount + OUTPUT_VIRTUAL_BUFFER_LINES);
         const rangeKey = `${start}:${end}:${totalLines}`;
-        if (!options.bypassCache && !options.force && rangeKey === outputVirtualLastRangeKey) return "";
         outputVirtualLastRangeKey = rangeKey;
+        return {
+            totalLines,
+            rangeKey,
+            start,
+            end,
+            topSpacerPx: start * outputVirtualLineHeight,
+            bottomSpacerPx: Math.max(0, (totalLines - end) * outputVirtualLineHeight),
+            sliceLines: lines.slice(start, end)
+        };
+    }
+
+    function getRenderedLogLineDescriptor(line) {
+        const cleaned = stripAnsi(String(line || "")).replace(/\r/g, "");
         const automaticMigrationMode = Boolean(currentJobIsAutomatic);
-        const topSpacerPx = start * outputVirtualLineHeight;
-        const bottomSpacerPx = Math.max(0, (totalLines - end) * outputVirtualLineHeight);
-        const sliceHtml = lines.slice(start, end).map((line) => {
-            const cleaned = stripAnsi(String(line || "")).replace(/\r/g, "");
-            const safe = cleaned === "" ? "<br>" : escapeHtml(cleaned);
-            const cls = classifyLogLine(cleaned, {automaticMigrationMode});
-            return cls
-                ? `<span class="log-line ${cls}">${safe}</span>`
+        const cls = classifyLogLine(cleaned, {automaticMigrationMode});
+        return {
+            cleaned,
+            cls,
+            signature: `${cls}::${cleaned}`
+        };
+    }
+
+    function buildVirtualizedLogHtml(model) {
+        if (!model || !model.totalLines) return "";
+        const sliceHtml = (model.sliceLines || []).map((line) => {
+            const rendered = getRenderedLogLineDescriptor(line);
+            const safe = rendered.cleaned === "" ? "<br>" : escapeHtml(rendered.cleaned);
+            return rendered.cls
+                ? `<span class="log-line ${rendered.cls}">${safe}</span>`
                 : `<span class="log-line">${safe}</span>`;
         }).join("");
-        return `<div class="log-spacer" style="height:${topSpacerPx}px"></div>${sliceHtml}<div class="log-spacer" style="height:${bottomSpacerPx}px"></div>`;
+        return `<div class="log-spacer" style="height:${model.topSpacerPx}px"></div>${sliceHtml}<div class="log-spacer" style="height:${model.bottomSpacerPx}px"></div>`;
+    }
+
+    function patchVirtualizedLogDom(model, outputEl) {
+        if (!model || !outputEl) return false;
+        const previousModel = outputVirtualRenderedModel;
+        if (!previousModel || previousModel.rangeKey !== model.rangeKey) return false;
+        if ((previousModel.sliceLines || []).length !== (model.sliceLines || []).length) return false;
+
+        const children = outputEl.children;
+        const expectedChildren = model.sliceLines.length + 2;
+        if (children.length !== expectedChildren) return false;
+        if (!children[0]?.classList?.contains("log-spacer")) return false;
+        if (!children[children.length - 1]?.classList?.contains("log-spacer")) return false;
+
+        let domChanged = false;
+        const previousRendered = (previousModel.sliceLines || []).map(getRenderedLogLineDescriptor);
+        const nextRendered = (model.sliceLines || []).map(getRenderedLogLineDescriptor);
+
+        if (children[0].style.height !== `${model.topSpacerPx}px`) {
+            children[0].style.height = `${model.topSpacerPx}px`;
+            domChanged = true;
+        }
+        if (children[children.length - 1].style.height !== `${model.bottomSpacerPx}px`) {
+            children[children.length - 1].style.height = `${model.bottomSpacerPx}px`;
+            domChanged = true;
+        }
+
+        for (let i = 0; i < nextRendered.length; i += 1) {
+            const prev = previousRendered[i];
+            const next = nextRendered[i];
+            if (prev.signature === next.signature) continue;
+            const lineEl = children[i + 1];
+            if (!lineEl) return false;
+            lineEl.className = next.cls ? `log-line ${next.cls}` : "log-line";
+            lineEl.innerHTML = next.cleaned === "" ? "<br>" : escapeHtml(next.cleaned);
+            domChanged = true;
+        }
+        return domChanged;
     }
 
     function renderOutputWithLevels(rawText, options = {}) {
@@ -1263,12 +1328,29 @@
         outputRenderDeferredBySelection = false;
         const htmlBuiltAt = performance.now();
         const previousScrollTop = outputEl.scrollTop;
-        const html = buildVirtualizedLogHtml(providedLines, outputEl, {...options, bypassCache: !options.fromScroll});
-        if (html) outputEl.innerHTML = html;
+        const model = buildVirtualizedLogModel(providedLines, outputEl, options);
+        let didMutateDom = false;
+        if (!model.totalLines) {
+            if (outputEl.innerHTML !== "") {
+                outputEl.innerHTML = "";
+                didMutateDom = true;
+            }
+            outputVirtualRenderedModel = model;
+        } else {
+            didMutateDom = patchVirtualizedLogDom(model, outputEl);
+            if (!didMutateDom && (!outputVirtualRenderedModel || outputVirtualRenderedModel.rangeKey !== model.rangeKey || options.force || options.fromScroll)) {
+                outputEl.innerHTML = buildVirtualizedLogHtml(model);
+                didMutateDom = true;
+            }
+            outputVirtualRenderedModel = {
+                ...model,
+                sliceLines: model.sliceLines.slice()
+            };
+        }
         if (options.preserveScrollAnchor) {
             outputEl.scrollTop = previousScrollTop;
         } else if (options.force || (autoScrollEnabled && nearBottomBeforeRender)) outputEl.scrollTop = outputEl.scrollHeight;
-        else if (html) outputEl.scrollTop = previousScrollTop;
+        else if (didMutateDom) outputEl.scrollTop = previousScrollTop;
         debugWebPerf("renderOutputWithLevels", {
             rawChars: String(lastRawOutput || "").length,
             collapsedChars: String(displayedRawOutput || "").length,
@@ -1277,6 +1359,7 @@
             collapseMs: 0,
             htmlBuildMs: Number((performance.now() - htmlBuiltAt).toFixed(2)),
             domPaintMs: Number((performance.now() - htmlBuiltAt).toFixed(2)),
+            domPatched: didMutateDom,
             totalMs: Number((performance.now() - perfStarted).toFixed(2))
         });
     }

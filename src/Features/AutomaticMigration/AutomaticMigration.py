@@ -2841,23 +2841,27 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 # Descargar todos los assets de este álbum
                 try:
                     if not is_shared:
-                        album_assets = source_client.get_all_assets_from_album(
-                            album_id=album_id,
-                            album_name=album_name,
-                            album_scope=album_scope,
-                            album_expected_count=album.get("item_count"),
-                            log_level=logging.ERROR,
-                        )
+                        album_kwargs = {
+                            "album_id": album_id,
+                            "album_name": album_name,
+                            "log_level": logging.ERROR,
+                        }
+                        if isinstance(source_client, ClassSynologyPhotos):
+                            album_kwargs["album_scope"] = album_scope
+                            album_kwargs["album_expected_count"] = album.get("item_count")
+                        album_assets = source_client.get_all_assets_from_album(**album_kwargs)
                     else:
                         if not _is_blocked_synology_shared_album(source_client, album):
-                            album_assets = source_client.get_all_assets_from_album_shared(
-                                album_id=album_id,
-                                album_name=album_name,
-                                album_passphrase=album_passphrase,
-                                album_scope=album_scope,
-                                album_expected_count=album.get("item_count"),
-                                log_level=logging.ERROR,
-                            )
+                            album_shared_kwargs = {
+                                "album_id": album_id,
+                                "album_name": album_name,
+                                "album_passphrase": album_passphrase,
+                                "log_level": logging.ERROR,
+                            }
+                            if isinstance(source_client, ClassSynologyPhotos):
+                                album_shared_kwargs["album_scope"] = album_scope
+                                album_shared_kwargs["album_expected_count"] = album.get("item_count")
+                            album_assets = source_client.get_all_assets_from_album_shared(**album_shared_kwargs)
                     if not album_assets:
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
@@ -2897,16 +2901,18 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         skipped_not_found = False
                         pull_started_at = time.perf_counter()
                         try:
-                            pulled_assets = source_client.pull_asset(
-                                asset_id=asset_id,
-                                asset_filename=asset_filename,
-                                asset_time=asset_datetime,
-                                download_folder=album_folder,
-                                album_passphrase=album_passphrase if is_shared else None,
-                                album_id=album_id,
-                                album_scope=album_scope,
-                                log_level=logging.ERROR,
-                            )
+                            pull_kwargs = {
+                                "asset_id": asset_id,
+                                "asset_filename": asset_filename,
+                                "asset_time": asset_datetime,
+                                "download_folder": album_folder,
+                                "album_passphrase": album_passphrase if is_shared else None,
+                                "log_level": logging.ERROR,
+                            }
+                            if isinstance(source_client, ClassSynologyPhotos):
+                                pull_kwargs["album_id"] = album_id
+                                pull_kwargs["album_scope"] = album_scope
+                            pulled_assets = source_client.pull_asset(**pull_kwargs)
                         except Exception as e:
                             if _is_nextcloud_photo_not_found_error(e):
                                 skipped_not_found = True
