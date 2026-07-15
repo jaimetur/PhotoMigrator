@@ -42,7 +42,7 @@ Python module with example functions to interact with Synology Photos, including
      - upload_folder()
      - upload_albums()
      - pull_albums()
-     - pull_ALL()
+     - pull_all()
 """
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -1060,7 +1060,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             return albums_filtered
 
 
-    def get_album_assets_size(self, album_id, album_name, log_level=None):
+    def get_album_assets_size(self, album_id, album_name=None, type='all', album_passphrase=None, album_scope='owned_personal', log_level=None):
         """
         Gets the total size (bytes) of all assets in an album.
 
@@ -1116,7 +1116,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
             
 
-    def get_album_assets_count(self, album_id, album_name, album_passphrase=None, album_scope="owned_personal", log_level=None):
+    def get_album_assets_count(self, album_id, album_name=None, type='all', album_passphrase=None, album_scope="owned_personal", log_level=None):
         """
         Gets the number of assets in an album.
 
@@ -1171,7 +1171,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 LOGGER.error(f"Exception while getting Album Assets count from Synology Photos. {e}")
 
 
-    def album_exists(self, album_name, log_level=None):
+    def album_exists(self, album_name, shared=False, log_level=None):
         """
         Gets the number of items in an album.
 
@@ -1391,7 +1391,7 @@ class ClassSynologyPhotos(BaseMediaClient):
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_assets_by_filters(self, log_level=None):
+    def get_assets_by_filters(self, type='all', is_not_in_album=None, is_archived=None, with_deleted=None, log_level=logging.WARNING):
         """
         Lists all assets in Synology Photos.
 
@@ -1932,7 +1932,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
 
-    def consolidate_albums_names(self, request_user_confirmation=True, log_level=logging.WARNING):
+    def consolidate_album_namess(self, request_user_confirmation=True, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.warning("Searching for equivalent album-name families to consolidate. This process may take some time. Please be patient...")
@@ -3090,14 +3090,14 @@ class ClassSynologyPhotos(BaseMediaClient):
         return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
-    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=None):
+    def push_all(self, input_folder, album_folders=None, remove_duplicates=False, log_level=None):
         """
         Uploads ALL photos/videos from input_folder into Synology Photos.
         Returns details about how many albums and assets were uploaded.
 
         Args:
             input_folder (str): Input folder
-            albums_folders (str): Albums folder
+            album_folders (str): Albums folder
             remove_duplicates (bool): True to remove duplicates assets after upload all assets
             log_level (logging.LEVEL): log_level for logs and console
 
@@ -3109,21 +3109,21 @@ class ClassSynologyPhotos(BaseMediaClient):
 
                 total_duplicates_assets_removed = 0
                 input_folder = os.path.realpath(input_folder)
-                albums_folders = convert_to_list(albums_folders) if albums_folders else []
+                album_folders = convert_to_list(album_folders) if album_folders else []
 
-                albums_folder_included = any(subf.lower() == 'albums' for subf in albums_folders)
+                albums_folder_included = any(subf.lower() == 'albums' for subf in album_folders)
                 if not albums_folder_included:
-                    albums_folders.append(f'{FOLDERNAME_ALBUMS}')
+                    album_folders.append(f'{FOLDERNAME_ALBUMS}')
 
                 LOGGER.info(f"")
-                LOGGER.info(f"Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
+                LOGGER.info(f"Uploading Assets and creating Albums into synology Photos from '{album_folders}' subfolders...")
 
-                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1 = self.push_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1 = self.push_albums(input_folder=input_folder, subfolders_inclusion=album_folders, remove_duplicates=False, log_level=logging.WARNING)
 
                 LOGGER.info(f"")
-                LOGGER.info(f"Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
+                LOGGER.info(f"Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{album_folders}')...")
 
-                total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2 = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
+                total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2 = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=album_folders, log_level=logging.WARNING)
 
                 total_duplicates_assets_removed = total_duplicates_assets_removed_1 + total_duplicates_assets_removed_2
                 total_dupplicated_assets_skipped = total_dupplicated_assets_skipped_1 + total_dupplicated_assets_skipped_2
@@ -3139,12 +3139,12 @@ class ClassSynologyPhotos(BaseMediaClient):
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped
 
 
-    def pull_albums(self, albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
+    def pull_albums(self, album_names='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
         """
         Downloads photos/videos from albums by name pattern or ID. 'ALL' downloads all.
 
         Args:
-            albums_name (str or list): The name(s) of the album(s) to download. Use 'ALL' to download all albums.
+            album_names (str or list): The name(s) of the album(s) to download. Use 'ALL' to download all albums.
             output_folder (str): The output folder where the album assets will be downloaded.
             log_level (logging.LEVEL): log_level for logs and console
 
@@ -3161,8 +3161,8 @@ class ClassSynologyPhotos(BaseMediaClient):
                 output_folder = os.path.join(output_folder, f'{FOLDERNAME_ALBUMS}')
                 os.makedirs(output_folder, exist_ok=True)
 
-                if isinstance(albums_name, str):
-                    albums_name = [albums_name]
+                if isinstance(album_names, str):
+                    album_names = [album_names]
 
                 # Check if there is some filter applied
                 filters_provided = has_any_filter()
@@ -3172,13 +3172,13 @@ class ClassSynologyPhotos(BaseMediaClient):
                 if not all_albums:
                     return 0, 0
 
-                if 'ALL' in [x.strip().upper() for x in albums_name]:
+                if 'ALL' in [x.strip().upper() for x in album_names]:
                     albums_to_download = all_albums
                     LOGGER.info(f"ALL albums ({len(all_albums)}) will be downloaded...")
                 else:
                     # Flatten user-specified album patterns
                     pattern_list = []
-                    for item in albums_name:
+                    for item in album_names:
                         if isinstance(item, str):
                             pattern_list.extend([pt.strip() for pt in item.replace(',', ' ').split() if pt.strip()])
                     albums_to_download = []
@@ -3262,13 +3262,13 @@ class ClassSynologyPhotos(BaseMediaClient):
             return albums_downloaded, assets_downloaded
 
 
-    def pull_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
+    def pull_no_albums(self, output_folder='Downloads_Synology', log_level=logging.WARNING):
         """
         Downloads assets not associated to any album from Synology Photos into output_folder/<NO_ALBUMS_FOLDER>/.
         Assets are stored directly using year/month subfolders.
 
         Args:
-            no_albums_folder (str): The output folder where the album assets will be downloaded.
+            output_folder (str): The output folder where the album assets will be downloaded.
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns total_assets_downloaded or 0 if no assets are downloaded
@@ -3279,8 +3279,8 @@ class ClassSynologyPhotos(BaseMediaClient):
                 total_assets_downloaded = 0
 
                 assets_without_albums = self.get_all_assets_without_albums(log_level=logging.INFO)
-                no_albums_folder = os.path.join(no_albums_folder, FOLDERNAME_NO_ALBUMS)
-                os.makedirs(no_albums_folder, exist_ok=True)
+                output_folder = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
+                os.makedirs(output_folder, exist_ok=True)
 
                 LOGGER.info(f"Number of assets without Albums associated to download: {len(assets_without_albums)}")
                 if not assets_without_albums:
@@ -3303,13 +3303,13 @@ class ClassSynologyPhotos(BaseMediaClient):
 
                     year_str = dt_created.strftime("%Y")
                     month_str = dt_created.strftime("%m")
-                    target_folder = os.path.join(no_albums_folder, year_str, month_str)
+                    target_folder = os.path.join(output_folder, year_str, month_str)
                     os.makedirs(target_folder, exist_ok=True)
 
 
                     total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=logging.INFO)
 
-                LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
+                LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{output_folder}'")
                 # self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"Exception while downloading No-Albums assets from Synology Photos. {e}")
@@ -3317,7 +3317,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             return total_assets_downloaded
 
 
-    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_all(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads ALL photos and videos from Synology Photos into output_folder creating a Folder Structure like this:
         output_folder/
@@ -3337,8 +3337,8 @@ class ClassSynologyPhotos(BaseMediaClient):
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                total_albums_downloaded, total_assets_downloaded_within_albums = self.pull_albums(albums_name='ALL', output_folder=output_folder, log_level=logging.WARNING)
-                total_assets_downloaded_without_albums = self.pull_no_albums(no_albums_folder=output_folder, log_level=logging.WARNING)
+                total_albums_downloaded, total_assets_downloaded_within_albums = self.pull_albums(album_names='ALL', output_folder=output_folder, log_level=logging.WARNING)
+                total_assets_downloaded_without_albums = self.pull_no_albums(output_folder=output_folder, log_level=logging.WARNING)
                 total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
                 LOGGER.info(f"Download of ALL assets completed.")
                 LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
@@ -3493,16 +3493,16 @@ class ClassSynologyPhotos(BaseMediaClient):
             # self.logout(log_level=log_level)
             return total_renamed_albums
 
-    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, request_user_confirmation=True, log_level=logging.WARNING):
+    def remove_albums_by_name(self, pattern, remove_album_assets=False, request_user_confirmation=True, log_level=logging.WARNING):
         """
         Removes all albums in Synology Photos whose name matches the provided pattern.
 
-        If removeAlbumsAssets is True, it also deletes all assets inside the matching albums.
+        If remove_album_assets is True, it also deletes all assets inside the matching albums.
         If request_user_confirmation is True, displays the albums to be deleted and asks for user confirmation before proceeding.
 
         Args:
             pattern (str): The regex pattern to match album names.
-            removeAlbumsAssets (bool): Whether to delete all assets contained in the albums.
+            remove_album_assets (bool): Whether to delete all assets contained in the albums.
             request_user_confirmation (bool): Whether to ask for confirmation before deleting.
             log_level (logging.LEVEL): The log level for logging and console output.
 
@@ -3552,7 +3552,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             for album_info in albums_to_remove:
                 album_id = album_info["album_id"]
                 album_name = album_info["album_name"]
-                if removeAlbumsAssets:
+                if remove_album_assets:
                     album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                     album_assets_ids = [asset.get("id") for asset in album_assets if asset.get("id")]
                     if album_assets_ids:
@@ -3568,14 +3568,14 @@ class ClassSynologyPhotos(BaseMediaClient):
             return total_removed_albums, total_removed_assets
 
 
-    def remove_all_albums(self, removeAlbumsAssets=False, request_user_confirmation=True, log_level=logging.WARNING):
+    def remove_all_albums(self, remove_album_assets=False, request_user_confirmation=True, log_level=logging.WARNING):
         """
         Removes all albums in Synology Photos, and optionally all their associated assets.
 
         If request_user_confirmation is True, displays the albums to be deleted and asks for user confirmation before proceeding.
 
         Args:
-            removeAlbumsAssets (bool): Whether to remove all assets inside the albums.
+            remove_album_assets (bool): Whether to remove all assets inside the albums.
             request_user_confirmation (bool): Whether to ask for confirmation before deleting.
             log_level (logging.LEVEL): The log level for logging and console output.
 
@@ -3625,7 +3625,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     album_id = album_info["album_id"]
                     album_name = album_info["album_name"]
 
-                    if removeAlbumsAssets:
+                    if remove_album_assets:
                         album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                         album_assets_ids = [asset.get("id") for asset in album_assets if asset.get("id")]
                         if album_assets_ids:
@@ -3642,7 +3642,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 total_removed_albums += empty_albums_removed
 
                 LOGGER.info(f"Removed {total_removed_albums} albums.")
-                if removeAlbumsAssets:
+                if remove_album_assets:
                     LOGGER.info(f"Removed {total_removed_assets} assets associated with those albums.")
 
             except Exception as e:
@@ -3996,27 +3996,27 @@ if __name__ == "__main__":
     input_folder = r"r:\jaimetur\PhotoMigrator\Upload_folder_for_testing"                # For Windows
     syno.push_albums(input_folder)
 
-    # Example: push_ALL()
-    print("\n=== EXAMPLE: push_ALL() ===")
+    # Example: push_all()
+    print("\n=== EXAMPLE: push_all() ===")
     # input_folder = "/volume1/homes/jaimetur/PhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
     input_folder = r"r:\jaimetur\PhotoMigrator\Upload_folder_for_testing"                # For Windows
-    syno.push_ALL(input_folder)
+    syno.push_all(input_folder)
 
     # Example: pull_albums()
     print("\n=== EXAMPLE: pull_albums() ===")
     download_folder = r"r:\jaimetur\PhotoMigrator\Download_folder_for_testing"
-    total_albums, total_assets = syno.pull_albums(albums_name='ALL', output_folder=download_folder)
+    total_albums, total_assets = syno.pull_albums(album_names='ALL', output_folder=download_folder)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums}.\n")
 
     # Example: pull_no_albums()
     print("\n=== EXAMPLE: pull_no_albums() ===")
     download_folder = r"r:\jaimetur\PhotoMigrator\Download_folder_for_testing"
-    total = syno.pull_no_albums(no_albums_folder=download_folder)
+    total = syno.pull_no_albums(output_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # Example: pull_ALL
-    print("=== EXAMPLE: pull_ALL() ===")
-    total_struct = syno.pull_ALL(output_folder="Downloads_Synology")
+    # Example: pull_all
+    print("=== EXAMPLE: pull_all() ===")
+    total_struct = syno.pull_all(output_folder="Downloads_Synology")
     # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
     # Example: remove_empty_folders()

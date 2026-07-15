@@ -272,7 +272,7 @@ class TestExecutionModes(unittest.TestCase):
 
         client_mock.remove_albums_by_name.assert_called_once_with(
             pattern="*Temp*",
-            removeAlbumsAssets=True,
+            remove_album_assets=True,
             request_user_confirmation=True,
             log_level=unittest.mock.ANY,
         )

@@ -485,7 +485,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         cloud_client_obj.login(log_level=logging.WARNING)
         LOGGER.info(f"Uploading Assets in Folder    : {input_folder}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client_obj.push_ALL(input_folder=input_folder, albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client_obj.push_all(input_folder=input_folder, album_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_remove_empty_albums
@@ -591,7 +591,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
         LOGGER.info(f"Removing Duplicates Assets...")
         duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded = cloud_client_obj.pull_albums(albums_name=albums_name, output_folder=output_folder, log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded = cloud_client_obj.pull_albums(album_names=albums_name, output_folder=output_folder, log_level=logging.WARNING)
         # logout
         LOGGER.info(f"")
         LOGGER.info(f"Logged out from {client} Photos.")
@@ -665,7 +665,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
         # Execute remove_duplicates_assets
         duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = cloud_client_obj.pull_ALL(output_folder=output_folder, log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = cloud_client_obj.pull_all(output_folder=output_folder, log_level=logging.WARNING)
         # logout
         LOGGER.info(f"Logged out from {client} Photos.")
         cloud_client_obj.logout(log_level=logging.WARNING)
@@ -1176,7 +1176,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         # Call the Function
         albums_removed, assets_removed = cloud_client_obj.remove_albums_by_name(
             pattern=albums_name_pattern,
-            removeAlbumsAssets=remove_albums_assets,
+            remove_album_assets=remove_albums_assets,
             request_user_confirmation=preview_album_actions,
             log_level=logging.WARNING,
         )
@@ -1296,7 +1296,7 @@ def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=
         LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = cloud_client_obj.remove_all_albums(removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
+        albums_removed, assets_removed = cloud_client_obj.remove_all_albums(remove_album_assets=remove_albums_assets, log_level=logging.WARNING)
         # logout
         LOGGER.info(f"")
         LOGGER.info(f"Logged out from {client} Photos.")

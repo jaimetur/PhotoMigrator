@@ -66,6 +66,45 @@ class BaseMediaClient(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def get_album_assets_size(
+        self,
+        album_id,
+        album_name=None,
+        type="all",
+        album_passphrase=None,
+        album_scope=None,
+        log_level=None,
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_album_assets_count(
+        self,
+        album_id,
+        album_name=None,
+        type="all",
+        album_passphrase=None,
+        album_scope=None,
+        log_level=None,
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
+    def album_exists(self, album_name, shared=False, log_level=None):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_assets_by_filters(
+        self,
+        type="all",
+        is_not_in_album=None,
+        is_archived=None,
+        with_deleted=None,
+        log_level=logging.WARNING,
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None, return_details=False):
         raise NotImplementedError
 
@@ -85,4 +124,67 @@ class BaseMediaClient(ABC):
         album_scope=None,
         log_level=None,
     ):
+        raise NotImplementedError
+
+    @abstractmethod
+    def push_albums(
+        self,
+        input_folder,
+        subfolders_exclusion,
+        subfolders_inclusion=None,
+        remove_duplicates=True,
+        log_level=logging.WARNING,
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
+    def push_no_albums(
+        self,
+        input_folder,
+        subfolders_exclusion,
+        subfolders_inclusion=None,
+        remove_duplicates=True,
+        log_level=logging.WARNING,
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
+    def push_all(self, input_folder, album_folders=None, remove_duplicates=False, log_level=logging.WARNING):
+        raise NotImplementedError
+
+    @abstractmethod
+    def pull_albums(self, album_names="ALL", output_folder="Downloaded", log_level=logging.WARNING):
+        raise NotImplementedError
+
+    @abstractmethod
+    def pull_no_albums(self, output_folder="Downloaded", log_level=logging.WARNING):
+        raise NotImplementedError
+
+    @abstractmethod
+    def pull_all(self, output_folder="Downloaded", log_level=logging.WARNING):
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_all_albums(
+        self,
+        remove_album_assets=False,
+        request_user_confirmation=True,
+        log_level=logging.WARNING,
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_empty_albums(self, log_level=logging.WARNING):
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_duplicates_albums(self, request_user_confirmation=True, log_level=logging.WARNING):
+        raise NotImplementedError
+
+    @abstractmethod
+    def merge_duplicates_albums(self, strategy="count", request_user_confirmation=True, log_level=logging.WARNING):
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_all_assets(self, log_level=logging.WARNING):
         raise NotImplementedError

@@ -34,7 +34,7 @@ Python module with example functions to interact with Local Folder, including fo
      - upload_folder()
      - upload_albums()
      - download_albums()
-     - pull_ALL()
+     - pull_all()
 """
 
 ##############################################################################
@@ -1018,7 +1018,7 @@ class ClassLocalFolder(BaseMediaClient):
                 LOGGER.error(f"Failed to get albums (owned + shared): {e}")
                 return []
 
-    def get_album_assets_size(self, album_id, type='all', log_level=None):
+    def get_album_assets_size(self, album_id, album_name=None, type='all', album_passphrase=None, album_scope=None, log_level=None):
         """
         Total size (bytes) of assets in an album, with global and local filters.
         """
@@ -1091,7 +1091,7 @@ class ClassLocalFolder(BaseMediaClient):
             return total
 
 
-    def get_album_assets_count(self, album_id, log_level=None):
+    def get_album_assets_count(self, album_id, album_name=None, type='all', album_passphrase=None, album_scope=None, log_level=None):
         """
         Gets the number of assets in an album.
 
@@ -1127,7 +1127,7 @@ class ClassLocalFolder(BaseMediaClient):
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_assets_by_filters(self, type='all', log_level=logging.WARNING):
+    def get_assets_by_filters(self, type='all', is_not_in_album=None, is_archived=None, with_deleted=None, log_level=logging.WARNING):
         """
         Retrieves all assets from the base_folder, filtering first by global date/type
         (already applied in analyzer.filtered_file_list) and then by local type (parameter 'type').
@@ -1184,7 +1184,7 @@ class ClassLocalFolder(BaseMediaClient):
             self.all_assets_filtered = result
             return result
 
-    # def get_assets_by_filters(self, type='all', log_level=logging.WARNING):
+    # def get_assets_by_filters(self, type='all', is_not_in_album=None, is_archived=None, with_deleted=None, log_level=logging.WARNING):
     #     """
     #     Retrieves all assets from the base_folder, filtering by global date/type
     #     and by local type (parameter 'type').
@@ -2172,7 +2172,7 @@ class ClassLocalFolder(BaseMediaClient):
         pass
 
 
-    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
+    def push_all(self, input_folder, album_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         """
         Uploads all photos/videos from input_folder to local storage,
         dividing them between '<ALBUMS_FOLDER>' and '<NO_ALBUMS_FOLDER>'.
@@ -2184,7 +2184,7 @@ class ClassLocalFolder(BaseMediaClient):
         pass
 
 
-    def pull_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_albums(self, album_names='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading albums by copying album folders to output_folder/Albums.
 
@@ -2206,7 +2206,7 @@ class ClassLocalFolder(BaseMediaClient):
         pass
 
 
-    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_all(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading all albums and no-albums assets to output_folder.
 
@@ -2246,7 +2246,7 @@ class ClassLocalFolder(BaseMediaClient):
             LOGGER.info(f"Removed {removed} empty folders.")
             return removed
 
-    def remove_all_albums(self, remove_album_assets=False, log_level=None):
+    def remove_all_albums(self, remove_album_assets=False, request_user_confirmation=True, log_level=None):
         """
         Removes all album folders. Optionally removes the assets inside them.
 
@@ -2794,9 +2794,9 @@ if __name__ == "__main__":
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
 
     # 6) Example: Download everything in the structure /Albums/<albumName>/ + /<NO_ALBUMS_FOLDER>/yyyy/mm
-    print("\n=== EXAMPLE: pull_ALL() ===")
-    # total_struct = pull_ALL(output_folder="Downloads_Immich")
-    total_albums_downloaded, total_assets_downloaded = localFolder.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print("\n=== EXAMPLE: pull_all() ===")
+    # total_struct = pull_all(output_folder="Downloads_Immich")
+    total_albums_downloaded, total_assets_downloaded = localFolder.pull_all(output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
 
     # 8) Example: Remove ALL Assets

@@ -782,15 +782,15 @@ class ClassNextCloudPhotos(BaseMediaClient):
     def get_albums_including_shared_with_user(self, filter_assets=True, log_level=None):
         return self._list_download_album_directories(log_level=log_level)
 
-    def get_album_assets_size(self, album_id, type="all", log_level=None):
+    def get_album_assets_size(self, album_id, album_name=None, type="all", album_passphrase=None, album_scope=None, log_level=None):
         with set_log_level(LOGGER, log_level):
             assets = self.get_all_assets_from_album(album_id=album_id, type=type, log_level=log_level)
             return len(assets)
 
-    def get_album_assets_count(self, album_id, log_level=None):
+    def get_album_assets_count(self, album_id, album_name=None, type="all", album_passphrase=None, album_scope=None, log_level=None):
         return self.get_album_assets_size(album_id=album_id, type="all", log_level=log_level)
 
-    def album_exists(self, album_name, log_level=None):
+    def album_exists(self, album_name, shared=False, log_level=None):
         with set_log_level(LOGGER, log_level):
             albums = self._list_album_directories(log_level=log_level)
             for album in albums:
@@ -798,7 +798,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                     return True, album["id"]
             return False, None
 
-    def get_assets_by_filters(self, type="all", log_level=logging.WARNING):
+    def get_assets_by_filters(self, type="all", is_not_in_album=None, is_archived=None, with_deleted=None, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             selected = str(type or self.type or "all").lower()
             entries = list(self._iter_files_recursive(self._no_albums_root()))
@@ -1008,7 +1008,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
 
-    def consolidate_albums_names(self, request_user_confirmation=True, log_level=logging.WARNING):
+    def consolidate_album_namess(self, request_user_confirmation=True, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
@@ -1184,7 +1184,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                 return candidate
             counter += 1
 
-    def push_albums(self, input_folder, subfolders_exclusion=FOLDERNAME_NO_ALBUMS, remove_duplicates=False, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion=FOLDERNAME_NO_ALBUMS, subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             if not os.path.isdir(input_folder):
                 raise FileNotFoundError(f"Input folder does not exist: {input_folder}")
@@ -1366,7 +1366,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                 )
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, 0, total_duplicates_skipped
 
-    def push_no_albums(self, input_folder, subfolders_exclusion=f"{FOLDERNAME_ALBUMS}", remove_duplicates=False, log_level=logging.WARNING):
+    def push_no_albums(self, input_folder, subfolders_exclusion=f"{FOLDERNAME_ALBUMS}", subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             effective_folder_exclusions = merge_exclusion_patterns(
                 self.exclude_folder_patterns,
@@ -1429,15 +1429,15 @@ class ClassNextCloudPhotos(BaseMediaClient):
 
             return uploaded, duplicates
 
-    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
+    def push_all(self, input_folder, album_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            albums_folders = convert_to_list(albums_folders, log_level=log_level)
+            album_folders = convert_to_list(album_folders, log_level=log_level)
             albums_folder_included = any(
                 str(folder or "").strip().lower() == self.local_albums_root_name.lower()
-                for folder in albums_folders
+                for folder in album_folders
             )
             if not albums_folder_included:
-                albums_folders.append(self.local_albums_root_name)
+                album_folders.append(self.local_albums_root_name)
             total_albums_uploaded = 0
             total_albums_skipped = 0
             total_assets_uploaded = 0
@@ -1445,7 +1445,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
             total_assets_uploaded_without_albums = 0
             total_duplicates_assets_skipped = 0
 
-            for albums_folder in albums_folders:
+            for albums_folder in album_folders:
                 if not albums_folder:
                     continue
                 abs_folder = albums_folder if os.path.isabs(albums_folder) else os.path.join(input_folder, albums_folder)
@@ -1530,9 +1530,9 @@ class ClassNextCloudPhotos(BaseMediaClient):
             )
         return downloaded
 
-    def pull_albums(self, albums_name="ALL", output_folder="Downloads_NextCloud", log_level=logging.WARNING):
+    def pull_albums(self, album_names="ALL", output_folder="Downloads_NextCloud", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            target_names = [n.lower() for n in convert_to_list(albums_name, log_level=log_level)] if albums_name != "ALL" else ["all"]
+            target_names = [n.lower() for n in convert_to_list(album_names, log_level=log_level)] if album_names != "ALL" else ["all"]
             albums = self._list_download_album_directories(log_level=log_level)
             selected_albums = []
             for album in albums:
@@ -1616,9 +1616,9 @@ class ClassNextCloudPhotos(BaseMediaClient):
                 pass
             return downloaded
 
-    def pull_ALL(self, output_folder="Downloads_NextCloud", log_level=logging.WARNING):
+    def pull_all(self, output_folder="Downloads_NextCloud", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            albums_downloaded, assets_in_albums = self.pull_albums(albums_name="ALL", output_folder=output_folder, log_level=log_level)
+            albums_downloaded, assets_in_albums = self.pull_albums(album_names="ALL", output_folder=output_folder, log_level=log_level)
             assets_without_albums = self.pull_no_albums(output_folder=output_folder, log_level=log_level)
             total_assets = assets_in_albums + assets_without_albums
             return albums_downloaded, total_assets, assets_in_albums, assets_without_albums
@@ -1627,13 +1627,13 @@ class ClassNextCloudPhotos(BaseMediaClient):
         with set_log_level(LOGGER, log_level):
             return 0
 
-    def remove_all_albums(self, removeAlbumsAssets=False, log_level=None):
+    def remove_all_albums(self, remove_album_assets=False, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
             albums = self._list_album_directories(log_level=log_level)
             removed_albums = 0
             removed_assets = 0
             for album in albums:
-                if removeAlbumsAssets:
+                if remove_album_assets:
                     removed_assets += len(self.get_all_assets_from_album(album["id"], log_level=log_level))
                 if self._remove_remote(album["id"]):
                     removed_albums += 1
@@ -1669,7 +1669,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
             for asset in assets_in_albums + assets_no_albums:
                 if self._remove_remote(asset["id"]):
                     total_assets += 1
-            albums_removed, _ = self.remove_all_albums(removeAlbumsAssets=False, log_level=log_level)
+            albums_removed, _ = self.remove_all_albums(remove_album_assets=False, log_level=log_level)
             return total_assets, albums_removed
 
     def rename_albums(self, pattern, pattern_to_replace, request_user_confirmation=True, log_level=None):
@@ -1741,7 +1741,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                     LOGGER.warning(f"{MSG_TAGS['WARNING']}Failed to rename album '{old_name}' -> '{new_name}': {error}")
             return renamed
 
-    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, request_user_confirmation=True, log_level=None):
+    def remove_albums_by_name(self, pattern, remove_album_assets=False, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
             albums_to_remove = []
             for album in self._list_album_directories(log_level=log_level):
@@ -1764,7 +1764,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
             removed_albums = 0
             removed_assets = 0
             for album in albums_to_remove:
-                if removeAlbumsAssets:
+                if remove_album_assets:
                     removed_assets += len(self.get_all_assets_from_album(album["id"], log_level=log_level))
                 if self._remove_remote(album["id"]):
                     removed_albums += 1

@@ -44,7 +44,7 @@ Python module with example functions to interact with Immich Photos, including f
      - immich_upload_folder()
      - push_albums()
      - pull_albums()
-     - pull_ALL()
+     - pull_all()
 """
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -558,7 +558,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 return None
 
 
-    def get_album_assets_size(self, album_id, log_level=None):
+    def get_album_assets_size(self, album_id, album_name=None, type='all', album_passphrase=None, album_scope=None, log_level=None):
         """
         Gets the total size (bytes) of all assets in an album.
 
@@ -584,7 +584,7 @@ class ClassImmichPhotos(BaseMediaClient):
 
 
 
-    def get_album_assets_count(self, album_id, log_level=None):
+    def get_album_assets_count(self, album_id, album_name=None, type='all', album_passphrase=None, album_scope=None, log_level=None):
         """
         Gets the number of assets in an album.
 
@@ -604,7 +604,7 @@ class ClassImmichPhotos(BaseMediaClient):
 
 
 
-    def album_exists(self, album_name, log_level=None):
+    def album_exists(self, album_name, shared=False, log_level=None):
         """
         Gets the number of items in an album.
 
@@ -847,7 +847,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 LOGGER.error(f"Failed to retrieve assets info for '{asset_id}': {str(e)}")
                 return []
 
-    def get_assets_by_filters(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=None):
+    def get_assets_by_filters(self, type='all', is_not_in_album=None, is_archived=None, with_deleted=None, log_level=logging.WARNING):
         """
         Lists all assets in Immich Photos that match with the specified filters.
 
@@ -856,16 +856,16 @@ class ClassImmichPhotos(BaseMediaClient):
 
         Returns:
             list: A list of assets (dict) matching the specified filters in the entire library or Empty list on error.
-            :param isNotInAlbum:
-            :param isArchived:
-            :param withDeleted:
+            :param is_not_in_album:
+            :param is_archived:
+            :param with_deleted:
         """
         with set_log_level(LOGGER, log_level):
             try:
                 # Reuse global cache only for the default "global search" shape.
-                # Queries with isNotInAlbum/isArchived/withDeleted are different datasets
+                # Queries with is_not_in_album/is_archived/with_deleted are different datasets
                 # and must not poison the global cache.
-                use_global_cache = (isNotInAlbum is None and isArchived is None and withDeleted is None)
+                use_global_cache = (is_not_in_album is None and is_archived is None and with_deleted is None)
 
                 if use_global_cache and self.all_assets_filtered is not None:
                     return self.all_assets_filtered
@@ -905,12 +905,12 @@ class ClassImmichPhotos(BaseMediaClient):
                         "page": next_page,
                         "order": "desc",
                         # "withArchived": False,
-                        # "withDeleted": False,
+                        # "with_deleted": False,
                         # "country": "string",
                         # "city": "string",
                         # "type": "IMAGE",
-                        # "isNotInAlbum": False,
-                        # "isArchived": True,
+                        # "is_not_in_album": False,
+                        # "is_archived": True,
                         # "isOffline": isOffline,
                         # "isEncoded": True,
                         # "isFavorite": True,
@@ -932,9 +932,12 @@ class ClassImmichPhotos(BaseMediaClient):
                         #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                         # ],
                     }
-                    if withDeleted: payload_data["withDeleted"] = withDeleted
-                    if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
-                    if isArchived: payload_data["isArchived"] = isArchived
+                    if with_deleted:
+                        payload_data["withDeleted"] = with_deleted
+                    if is_not_in_album:
+                        payload_data["isNotInAlbum"] = is_not_in_album
+                    if is_archived:
+                        payload_data["isArchived"] = is_archived
 
                     if self.from_date: payload_data["takenAfter"] = self.from_date
                     if self.to_date: payload_data["takenBefore"] = self.to_date
@@ -1106,7 +1109,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 return self.assets_without_albums_filtered
 
             self.login(log_level=log_level)
-            assets_without_albums = self.get_assets_by_filters(isNotInAlbum=True, log_level=log_level)
+            assets_without_albums = self.get_assets_by_filters(is_not_in_album=True, log_level=log_level)
             LOGGER.info(f"Number of all_assets without Albums associated: {len(assets_without_albums)}")
             self.assets_without_albums_filtered = assets_without_albums  # Cache assets_without_albums for future use
             return assets_without_albums
@@ -1340,7 +1343,7 @@ class ClassImmichPhotos(BaseMediaClient):
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
 
-    def consolidate_albums_names(self, request_user_confirmation=True, log_level=logging.WARNING):
+    def consolidate_album_namess(self, request_user_confirmation=True, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.warning("Searching for equivalent album-name families to consolidate. This process may take some time. Please be patient...")
@@ -2321,14 +2324,14 @@ class ClassImmichPhotos(BaseMediaClient):
             return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
-    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
+    def push_all(self, input_folder, album_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         """
         Uploads ALL photos/videos from input_folder into Immich Photos.
         Returns details about how many albums and assets were uploaded.
 
         Args:
             input_folder (str): Input folder
-            albums_folders (str): Albums folder
+            album_folders (str): Albums folder
             remove_duplicates (bool): True to remove duplicates assets after upload all assets
             log_level (logging.LEVEL): log_level for logs and console
 
@@ -2339,22 +2342,22 @@ class ClassImmichPhotos(BaseMediaClient):
 
             total_duplicates_assets_removed = 0
             input_folder = os.path.realpath(input_folder)
-            albums_folders = convert_to_list(albums_folders)
+            album_folders = convert_to_list(album_folders)
 
             # Ensure 'Albums' is included
-            albums_folder_included = any((subf.lower() == 'albums') for subf in albums_folders)
+            albums_folder_included = any((subf.lower() == 'albums') for subf in album_folders)
             if not albums_folder_included:
-                albums_folders.append(f'{FOLDERNAME_ALBUMS}')
+                album_folders.append(f'{FOLDERNAME_ALBUMS}')
 
             LOGGER.info(f"")
-            LOGGER.info(f"Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
+            LOGGER.info(f"Uploading Assets and creating Albums into immich Photos from '{album_folders}' subfolders...")
 
-            total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1 = self.push_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+            total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1 = self.push_albums(input_folder=input_folder, subfolders_inclusion=album_folders, remove_duplicates=False, log_level=logging.WARNING)
 
             LOGGER.info(f"")
-            LOGGER.info(f"Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
+            LOGGER.info(f"Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{album_folders}')...")
 
-            total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2 = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+            total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2 = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=album_folders, remove_duplicates=False, log_level=logging.WARNING)
 
             total_duplicates_assets_removed = total_duplicates_assets_removed_1 + total_duplicates_assets_removed_2
             total_dupplicated_assets_skipped = total_dupplicated_assets_skipped_1 + total_dupplicated_assets_skipped_2
@@ -2369,12 +2372,12 @@ class ClassImmichPhotos(BaseMediaClient):
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped
 
 
-    def pull_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_albums(self, album_names='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads photos/videos from albums by name pattern or ID. 'ALL' downloads all.
 
         Args:
-            albums_name (str or list): The name(s) of the album(s) to download. Use 'ALL' to download all albums.
+            album_names (str or list): The name(s) of the album(s) to download. Use 'ALL' to download all albums.
             output_folder (str): The output folder where the album assets will be downloaded.
             log_level (logging.LEVEL): log_level for logs and console
 
@@ -2395,10 +2398,10 @@ class ClassImmichPhotos(BaseMediaClient):
                 # self.logout(log_level=log_level)
                 return 0, 0
 
-            if isinstance(albums_name, str):
-                albums_name = [albums_name]
+            if isinstance(album_names, str):
+                album_names = [album_names]
 
-            if 'ALL' in [x.strip().upper() for x in albums_name]:
+            if 'ALL' in [x.strip().upper() for x in album_names]:
                 albums_to_download = all_albums
                 LOGGER.info(f"ALL albums ({len(all_albums)}) will be downloaded...")
             else:
@@ -2406,7 +2409,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 for album in all_albums:
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
-                    for pattern in albums_name:
+                    for pattern in album_names:
                         if album_id == str(pattern):
                             found_albums.append(album)
                             break
@@ -2416,9 +2419,9 @@ class ClassImmichPhotos(BaseMediaClient):
 
                 if found_albums:
                     albums_to_download = found_albums
-                    LOGGER.info(f"{len(found_albums)} album(s) matched pattern(s) '{albums_name}'.")
+                    LOGGER.info(f"{len(found_albums)} album(s) matched pattern(s) '{album_names}'.")
                 else:
-                    LOGGER.warning(f"No albums found matching pattern(s) '{albums_name}'.")
+                    LOGGER.warning(f"No albums found matching pattern(s) '{album_names}'.")
                     # self.logout(log_level=log_level)
                     return 0, 0
 
@@ -2503,7 +2506,7 @@ class ClassImmichPhotos(BaseMediaClient):
             return total_assets_downloaded
 
 
-    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_all(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads ALL photos and videos from Immich Photos into output_folder creating a Folder Structure like this:
         output_folder/
@@ -2523,7 +2526,7 @@ class ClassImmichPhotos(BaseMediaClient):
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            total_albums_downloaded, total_assets_in_albums = self.pull_albums(albums_name='ALL', output_folder=output_folder, log_level=log_level)
+            total_albums_downloaded, total_assets_in_albums = self.pull_albums(album_names='ALL', output_folder=output_folder, log_level=log_level)
             total_assets_no_albums = self.pull_no_albums(output_folder=output_folder, log_level=log_level)
             total_assets = total_assets_in_albums + total_assets_no_albums
 
@@ -2645,16 +2648,16 @@ class ClassImmichPhotos(BaseMediaClient):
             # self.logout(log_level=log_level)
             return total_renamed_albums
 
-    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, request_user_confirmation=True, log_level=logging.WARNING):
+    def remove_albums_by_name(self, pattern, remove_album_assets=False, request_user_confirmation=True, log_level=logging.WARNING):
         """
         Removes all albums in Immich Photos whose name matches the provided pattern.
 
-        If removeAlbumsAssets is True, it also deletes all assets inside the matching albums.
+        If remove_album_assets is True, it also deletes all assets inside the matching albums.
         If request_user_confirmation is True, displays the albums to be deleted and asks for user confirmation before proceeding.
 
         Args:
             pattern (str): The regex pattern to match album names.
-            removeAlbumsAssets (bool): Whether to delete all assets contained in the albums.
+            remove_album_assets (bool): Whether to delete all assets contained in the albums.
             request_user_confirmation (bool): Whether to ask for confirmation before deleting.
             log_level (logging.LEVEL): The log level for logging and console output.
 
@@ -2707,7 +2710,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 album_id = album_info["album_id"]
                 album_name = album_info["album_name"]
 
-                if removeAlbumsAssets:
+                if remove_album_assets:
                     album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                     album_assets_ids = [asset.get("id") for asset in album_assets if asset.get("id")]
                     if album_assets_ids:
@@ -2723,14 +2726,14 @@ class ClassImmichPhotos(BaseMediaClient):
             # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
-    def remove_all_albums(self, removeAlbumsAssets=False, request_user_confirmation=True, log_level=logging.WARNING):
+    def remove_all_albums(self, remove_album_assets=False, request_user_confirmation=True, log_level=logging.WARNING):
         """
         Removes all albums in Immich Photos, and optionally all their associated assets.
 
         If request_user_confirmation is True, displays the albums to be deleted and asks for user confirmation before proceeding.
 
         Args:
-            removeAlbumsAssets (bool): Whether to remove all assets inside the albums.
+            remove_album_assets (bool): Whether to remove all assets inside the albums.
             request_user_confirmation (bool): Whether to ask for confirmation before deleting.
             log_level (logging.LEVEL): The log level for logging and console output.
 
@@ -2779,7 +2782,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 album_id = album_info["album_id"]
                 album_name = album_info["album_name"]
 
-                if removeAlbumsAssets:
+                if remove_album_assets:
                     album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                     album_assets_ids = [asset.get("id") for asset in album_assets if asset.get("id")]
                     if album_assets_ids:
@@ -2796,7 +2799,7 @@ class ClassImmichPhotos(BaseMediaClient):
             total_removed_albums += empty_albums_removed
 
             LOGGER.info(f"Removed {total_removed_albums} albums.")
-            if removeAlbumsAssets:
+            if remove_album_assets:
                 LOGGER.info(f"Removed {total_removed_assets} assets associated with those albums.")
 
             return total_removed_albums, total_removed_assets
@@ -3182,8 +3185,8 @@ class ClassImmichPhotos(BaseMediaClient):
 
             # Collect
             all_assets_items = self.get_assets_by_filters(log_level=log_level)
-            all_assets_items_withDeleted = self.get_assets_by_filters(withDeleted=True, log_level=log_level)
-            all_assets_items.extend(all_assets_items_withDeleted)
+            all_assets_items_with_deleted = self.get_assets_by_filters(with_deleted=True, log_level=log_level)
+            all_assets_items.extend(all_assets_items_with_deleted)
 
             total_assets_found = len(all_assets_items)
             if total_assets_found == 0:
@@ -3265,9 +3268,9 @@ if __name__ == "__main__":
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
 
     # 6) Example: Download everything in the structure /Albums/<albumName>/ + /<NO_ALBUMS_FOLDER>/yyyy/mm
-    print("\n=== EXAMPLE: pull_ALL() ===")
-    # total_struct = pull_ALL(output_folder="Downloads_Immich")
-    total_albums_downloaded, total_assets_downloaded = immich.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print("\n=== EXAMPLE: pull_all() ===")
+    # total_struct = pull_all(output_folder="Downloads_Immich")
+    total_albums_downloaded, total_assets_downloaded = immich.pull_all(output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
 
     # 7) Example: Remove Orphan Assets
@@ -3277,7 +3280,7 @@ if __name__ == "__main__":
     immich.remove_all_assets(log_level=logging.DEBUG)
 
     # 9) Example: Remove ALL Assets
-    immich.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
+    immich.remove_all_albums(remove_album_assets=True, log_level=logging.DEBUG)
 
     # 10) Local logout
     immich.logout()
