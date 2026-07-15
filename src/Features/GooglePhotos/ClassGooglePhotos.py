@@ -508,7 +508,7 @@ class ClassGooglePhotos:
                 assets.append(payload)
             return assets
 
-    def get_all_assets_from_album(self, album_id, album_name=None, type="all", log_level=logging.WARNING):
+    def get_all_assets_from_album(self, album_id, album_name=None, type="all", album_scope=None, album_expected_count=None, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             selected = str(type or self.type or "all").lower()
             assets = []
@@ -527,8 +527,15 @@ class ClassGooglePhotos:
                 assets.append(payload)
             return assets
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, type="all", album_passphrase=None, log_level=logging.WARNING):
-        return self.get_all_assets_from_album(album_id=album_id, album_name=album_name, type=type, log_level=log_level)
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, type="all", album_passphrase=None, album_scope=None, album_expected_count=None, log_level=logging.WARNING):
+        return self.get_all_assets_from_album(
+            album_id=album_id,
+            album_name=album_name,
+            type=type,
+            album_scope=album_scope,
+            album_expected_count=album_expected_count,
+            log_level=log_level,
+        )
 
     def get_all_assets_without_albums(self, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
@@ -750,7 +757,7 @@ class ClassGooglePhotos:
                 resolve_duplicate_id=resolve_duplicate_id,
             )
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_GooglePhotos", album_passphrase=None, log_level=None):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_GooglePhotos", album_passphrase=None, album_id=None, album_scope=None, log_level=None):
         with set_log_level(LOGGER, log_level):
             media_resp = self._request("GET", f"{self.API_BASE}/mediaItems/{asset_id}", expected=(200,))
             media_item = media_resp.json() or {}

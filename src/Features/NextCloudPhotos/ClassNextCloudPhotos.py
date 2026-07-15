@@ -816,7 +816,7 @@ class ClassNextCloudPhotos:
                 assets.append(payload)
             return assets
 
-    def get_all_assets_from_album(self, album_id, album_name=None, type="all", log_level=logging.WARNING):
+    def get_all_assets_from_album(self, album_id, album_name=None, type="all", album_scope=None, album_expected_count=None, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             selected = str(type or self.type or "all").lower()
             assets = []
@@ -837,8 +837,15 @@ class ClassNextCloudPhotos:
                 assets.append(payload)
             return assets
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, type="all", album_passphrase=None, log_level=logging.WARNING):
-        return self.get_all_assets_from_album(album_id=album_id, album_name=album_name, type=type, log_level=log_level)
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, type="all", album_passphrase=None, album_scope=None, album_expected_count=None, log_level=logging.WARNING):
+        return self.get_all_assets_from_album(
+            album_id=album_id,
+            album_name=album_name,
+            type=type,
+            album_scope=album_scope,
+            album_expected_count=album_expected_count,
+            log_level=log_level,
+        )
 
     def get_all_assets_without_albums(self, type="all", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
@@ -1072,7 +1079,7 @@ class ClassNextCloudPhotos:
             remote_path = self._upload_file_fast_with_session(session=session, local_path=file_path, remote_path=remote_path)
             return remote_path, False
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_NextCloud", album_passphrase=None, log_level=None):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_NextCloud", album_passphrase=None, album_id=None, album_scope=None, log_level=None):
         with set_log_level(LOGGER, log_level):
             os.makedirs(download_folder, exist_ok=True)
             output_file = os.path.join(download_folder, str(asset_filename))

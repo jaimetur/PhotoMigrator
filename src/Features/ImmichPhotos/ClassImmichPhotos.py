@@ -1004,7 +1004,7 @@ class ClassImmichPhotos:
                     break
             return album_assets
 
-    def get_all_assets_from_album(self, album_id, album_name=None, log_level=None):
+    def get_all_assets_from_album(self, album_id, album_name=None, album_scope=None, album_expected_count=None, log_level=None):
         """
         Get assets in a specific album.
 
@@ -1046,7 +1046,7 @@ class ClassImmichPhotos:
                     LOGGER.error(f"Failed to retrieve assets from album ID={album_id}: {str(e)}")
                 return []
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=None):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, album_scope=None, album_expected_count=None, log_level=None):
         """
         Get assets in a specific album.
 
@@ -1927,7 +1927,7 @@ class ClassImmichPhotos:
             return stacks_created
 
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", album_passphrase=None, log_level=None):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", album_passphrase=None, album_id=None, album_scope=None, log_level=None):
         """
         Downloads an asset (photo/video) from Immich Photos to a local folder,
         preserving the original timestamp if available.

@@ -1251,7 +1251,7 @@ class ClassLocalFolder:
     #         self.all_assets_filtered = result
     #         return result
 
-    def get_all_assets_from_album(self, album_id, album_name=None, type='all', log_level=logging.WARNING):
+    def get_all_assets_from_album(self, album_id, album_name=None, type='all', album_scope=None, album_expected_count=None, log_level=logging.WARNING):
         """
         Lists the assets within a given  album, with optional filtering by file type.
 
@@ -1409,7 +1409,7 @@ class ClassLocalFolder:
     #         LOGGER.debug(f"{len(assets)} assets in album '{album_id}'.")
     #         return assets
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, type='all', album_passphrase=None, log_level=logging.WARNING):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, type='all', album_passphrase=None, album_scope=None, album_expected_count=None, log_level=logging.WARNING):
         """
         Lists the assets within a given shared album, with optional filtering by file type.
 
@@ -2104,7 +2104,7 @@ class ClassLocalFolder:
 
             return str(dest), False
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_LocalFolder", album_passphrase=None, log_level=None):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_LocalFolder", album_passphrase=None, album_id=None, album_scope=None, log_level=None):
         """
         Downloads (copies) an asset to a specified local folder, preserving the file's timestamp.
 
