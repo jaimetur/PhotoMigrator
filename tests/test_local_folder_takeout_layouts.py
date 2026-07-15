@@ -137,6 +137,33 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         self.assertIsNone(local_folder.assets_without_albums_filtered)
         self.assertIsNone(local_folder.albums_assets_filtered)
 
+    def test_remove_empty_folders_treats_excluded_synology_artifacts_as_empty(self):
+        self.args["exclude-folders"] = ["@eaDir"]
+        self.args["exclude-files"] = [".DS_Store", "Thumbs.db"]
+        cleanup_root = self.root / "ALL_PHOTOS/2009"
+        (cleanup_root / "@eaDir").mkdir(parents=True, exist_ok=True)
+        (cleanup_root / "@eaDir" / "SYNOPHOTO_THUMB_XL.jpg").write_text("thumb", encoding="utf-8")
+        (cleanup_root / ".DS_Store").write_text("junk", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=self.root)
+
+        removed = local_folder.remove_empty_folders(log_level=logging.INFO)
+
+        self.assertGreaterEqual(removed, 1)
+        self.assertFalse(cleanup_root.exists())
+
+    def test_cleanup_after_move_assets_removes_effectively_empty_source_root(self):
+        clean_root = self.root / "CleanupRoot"
+        (clean_root / "Albums/OnlyExcluded/@eaDir").mkdir(parents=True, exist_ok=True)
+        (clean_root / "Albums/OnlyExcluded/@eaDir/thumb.jpg").write_text("thumb", encoding="utf-8")
+        (clean_root / "Albums/OnlyExcluded/.DS_Store").write_text("junk", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=clean_root)
+        summary = local_folder.cleanup_after_move_assets(log_level=logging.INFO)
+
+        self.assertTrue(summary["root_removed"])
+        self.assertFalse(clean_root.exists())
+
     def test_remove_assets_initializes_analyzer_before_refresh_when_missing(self):
         removable = self.root / "ALL_PHOTOS/2024/remove-after-init.jpg"
         removable.parent.mkdir(parents=True, exist_ok=True)

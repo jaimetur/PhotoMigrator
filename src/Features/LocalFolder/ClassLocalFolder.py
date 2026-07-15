@@ -16,7 +16,7 @@ from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm
-from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, should_exclude_path
+from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
 
 """
@@ -525,21 +525,21 @@ class ClassLocalFolder:
             summary["metadata_files_removed"] = int(metadata_cleanup.get("files_removed", 0))
             summary["metadata_folders_removed"] = int(metadata_cleanup.get("folders_removed", 0))
 
-            empty_albums_before = len([p for p in self.albums_folder.iterdir() if p.is_dir() and not any(p.iterdir())]) if self.albums_folder.exists() else 0
-            if empty_albums_before > 0:
-                self.remove_empty_albums(log_level=log_level)
-            summary["empty_albums_removed"] = empty_albums_before
+            summary["empty_albums_removed"] = int(self.remove_empty_albums(log_level=log_level) or 0)
 
             empty_folders_removed = self.remove_empty_folders(log_level=log_level)
             summary["empty_folders_removed"] = int(empty_folders_removed or 0)
 
-            root_children = list(self.base_folder.iterdir()) if self.base_folder.exists() else []
-            if self.base_folder.exists() and not root_children:
-                try:
-                    self.base_folder.rmdir()
-                    summary["root_removed"] = True
-                except Exception as error:
-                    LOGGER.warning(f"Unable to remove empty source root '{self.base_folder}': {error}")
+            if self.base_folder.exists():
+                summary["root_removed"] = bool(
+                    remove_dir_if_effectively_empty(
+                        self.base_folder,
+                        exclusion_folders=self.FOLDER_EXCLUSION_PATTERNS,
+                        exclusion_files=self.FILE_EXCLUSION_PATTERNS,
+                        preserve_root=False,
+                        log_level=log_level,
+                    )
+                )
 
             LOGGER.info(
                 "Source cleanup summary: "
@@ -2232,50 +2232,15 @@ class ClassLocalFolder:
             # Ensure analyzer is initialized
             self._ensure_analyzer(log_level=log_level)
 
-            # Build set of all folders that contain at least one file
-            occupied = set(Path(p).parent.resolve().as_posix() for p in self.analyzer.file_list)
-            removed = 0
-            prefixes = []
-
-            # Walk from deepest to root so children are removed before parents
-            for folder in sorted(self.base_folder.rglob("*"), key=lambda p: len(p.parts), reverse=True):
-                if folder.is_dir():
-                    folder_str = folder.resolve().as_posix()
-                    if folder_str not in occupied:
-                        try:
-                            folder.rmdir()
-                            removed += 1
-                            prefixes.append(folder_str)
-                            LOGGER.info(f"Removed empty folder: {folder}")
-                        except Exception as e:
-                            LOGGER.warning(f"WARN    : Could not remove folder '{folder}': {e}")
-
-            # Purge any references under removed folders from analyzer caches
+            removed = remove_effectively_empty_dirs(
+                self.base_folder,
+                exclusion_folders=self.FOLDER_EXCLUSION_PATTERNS,
+                exclusion_files=self.FILE_EXCLUSION_PATTERNS,
+                remove_root=False,
+                log_level=log_level,
+            )
             if removed > 0:
-                def keep(path):
-                    return not any(path.startswith(pref + "/") for pref in prefixes)
-
-                # file_list
-                self.analyzer.file_list = [p for p in self.analyzer.file_list if keep(p)]
-                # filtered_file_list
-                if hasattr(self.analyzer, 'filtered_file_list'):
-                    self.analyzer.filtered_file_list = [p for p in self.analyzer.filtered_file_list if keep(p)]
-                # file_sizes
-                for pref in prefixes:
-                    for p in list(self.analyzer.file_sizes):
-                        if p.startswith(pref + "/") or p == pref:
-                            del self.analyzer.file_sizes[p]
-                # folder_sizes
-                for pref in prefixes:
-                    for folder in list(self.analyzer.folder_sizes):
-                        if folder.startswith(pref + "/") or folder == pref:
-                            del self.analyzer.folder_sizes[folder]
-                # folder_assets
-                if hasattr(self.analyzer, 'folder_assets'):
-                    for pref in prefixes:
-                        for folder in list(self.analyzer.folder_assets):
-                            if folder.startswith(pref + "/") or folder == pref:
-                                del self.analyzer.folder_assets[folder]
+                self._refresh_analyzer_from_disk(step_name="remove_empty_folders: ", log_level=log_level)
 
             LOGGER.info(f"Removed {removed} empty folders.")
             return removed
@@ -2330,44 +2295,24 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             LOGGER.info("Removing empty albums.")
 
-            # 1) Detect empty albums
-            empty_albums = [p for p in self.albums_folder.iterdir() if p.is_dir() and not any(p.iterdir())]
-            prefixes = [str(p.resolve().as_posix()) for p in empty_albums]
+            removed = 0
+            for album in self.albums_folder.iterdir():
+                if not album.is_dir():
+                    continue
+                if remove_dir_if_effectively_empty(
+                    album,
+                    exclusion_folders=self.FOLDER_EXCLUSION_PATTERNS,
+                    exclusion_files=self.FILE_EXCLUSION_PATTERNS,
+                    preserve_root=False,
+                    log_level=log_level,
+                ):
+                    removed += 1
 
-            # 2) Delete them from disk
-            for album in empty_albums:
-                shutil.rmtree(album)
+            if removed > 0:
+                self._refresh_analyzer_from_disk(step_name="remove_empty_albums: ", log_level=log_level)
 
-            # 3) Purge analyzer caches _in place_ to avoid full rebuild:
-
-            # Remove any file paths under those prefixes
-            def keep_path(path):
-                return not any(path.startswith(pref + "/") for pref in prefixes)
-
-            # file_list
-            self.analyzer.file_list = [p for p in self.analyzer.file_list if keep_path(p)]
-            # filtered_file_list (if used)
-            if hasattr(self.analyzer, 'filtered_file_list'):
-                self.analyzer.filtered_file_list = [p for p in self.analyzer.filtered_file_list if keep_path(p)]
-            # file_sizes: drop entries under removed albums
-            for pref in prefixes:
-                for p in list(self.analyzer.file_sizes):
-                    if p.startswith(pref + "/"):
-                        del self.analyzer.file_sizes[p]
-            # folder_sizes: drop folders under removed albums
-            for pref in prefixes:
-                for folder in list(self.analyzer.folder_sizes):
-                    if folder.startswith(pref + "/") or folder == pref:
-                        del self.analyzer.folder_sizes[folder]
-            # folder_assets: same as folder_sizes
-            if hasattr(self.analyzer, 'folder_assets'):
-                for pref in prefixes:
-                    for folder in list(self.analyzer.folder_assets):
-                        if folder.startswith(pref + "/") or folder == pref:
-                            del self.analyzer.folder_assets[folder]
-
-            LOGGER.info(f"Removed {len(empty_albums)} empty albums.")
-            return True
+            LOGGER.info(f"Removed {removed} empty albums.")
+            return removed
 
     def remove_duplicates_albums(self, request_user_confirmation=True, log_level=logging.WARNING):
         """

@@ -323,6 +323,90 @@ def remove_empty_dirs(input_folder, log_level=None):
                     pass
 
 
+def remove_dir_if_effectively_empty(folder, exclusion_folders=None, exclusion_files=None, preserve_root=True, log_level=None):
+    """
+    Remove ``folder`` when it only contains ignorable entries.
+
+    Ignorable entries are files/folders matching the provided exclusion
+    patterns. Matching excluded artifacts are deleted first, then the folder is
+    removed if nothing meaningful remains. This is intentionally strict: any
+    non-excluded child keeps the folder alive.
+    """
+    with set_log_level(LOGGER, log_level):
+        folder_path = Path(folder)
+        if not folder_path.exists() or not folder_path.is_dir():
+            return False
+
+        if preserve_root and folder_path.parent == folder_path:
+            return False
+
+        try:
+            entries = list(folder_path.iterdir())
+        except Exception:
+            return False
+
+        blocking_entries = []
+        for entry in entries:
+            if entry.is_dir():
+                if matches_any_pattern(entry.name, exclusion_folders):
+                    try:
+                        shutil.rmtree(entry)
+                    except Exception:
+                        blocking_entries.append(entry)
+                else:
+                    blocking_entries.append(entry)
+                continue
+            if entry.is_file() or entry.is_symlink():
+                if matches_any_pattern(entry.name, exclusion_files):
+                    try:
+                        entry.unlink()
+                    except Exception:
+                        blocking_entries.append(entry)
+                else:
+                    blocking_entries.append(entry)
+                continue
+            blocking_entries.append(entry)
+
+        if blocking_entries:
+            return False
+
+        try:
+            folder_path.rmdir()
+            LOGGER.info(f"Removed empty directory {folder_path}")
+            return True
+        except OSError:
+            return False
+
+
+def remove_effectively_empty_dirs(input_folder, exclusion_folders=None, exclusion_files=None, remove_root=False, log_level=None):
+    """
+    Recursively remove folders that are empty or only contain excluded entries.
+
+    This is useful for providers such as Synology that leave housekeeping
+    folders like ``@eaDir`` behind even when the album/year folder is otherwise
+    empty.
+    """
+    with set_log_level(LOGGER, log_level):
+        root = Path(input_folder)
+        if not root.exists():
+            return 0
+
+        removed = 0
+        for path, _, _ in os.walk(root, topdown=False):
+            current = Path(path)
+            if current == root and not remove_root:
+                continue
+            if remove_dir_if_effectively_empty(
+                current,
+                exclusion_folders=exclusion_folders,
+                exclusion_files=exclusion_files,
+                preserve_root=False,
+                log_level=log_level,
+            ):
+                removed += 1
+        return removed
+
+
 def remove_folder(folder, step_name='', log_level=None):
     """
     Removes the specified `folder` and all of its contents, logging events

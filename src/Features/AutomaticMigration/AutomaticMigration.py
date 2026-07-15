@@ -24,7 +24,7 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
+from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
 from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
@@ -365,9 +365,16 @@ def _mark_album_pushed_if_ready(album_name, album_folder_path, processed_albums,
         if os.path.exists(active_file):
             return False
 
-        try:
-            os.rmdir(album_folder_path)
-        except OSError:
+        cleanup_file_patterns = merge_exclusion_patterns(
+            [".active", "*.lock"],
+            default_patterns=DEFAULT_FILE_EXCLUSION_PATTERNS,
+        )
+        if not remove_dir_if_effectively_empty(
+            album_folder_path,
+            exclusion_folders=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
+            exclusion_files=cleanup_file_patterns,
+            preserve_root=False,
+        ):
             return False
 
         processed_albums.add(album_name)
@@ -2338,12 +2345,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             for filename in files:
                 if filename == ".active" or filename.endswith(".lock"):
                     safe_remove_local_file(os.path.join(path, filename))
-            try:
-                if not os.listdir(path):
-                    os.rmdir(path)
-                    LOGGER.info(f"Removed empty directory {path}")
-            except OSError:
-                pass
+        cleanup_file_patterns = merge_exclusion_patterns(
+            [".active", "*.lock"],
+            default_patterns=DEFAULT_FILE_EXCLUSION_PATTERNS,
+        )
+        remove_effectively_empty_dirs(
+            folder,
+            exclusion_folders=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
+            exclusion_files=cleanup_file_patterns,
+            remove_root=True,
+            log_level=log_level,
+        )
 
     def find_immich_live_video_companion(photo_file_path, pulled_file_paths):
         """

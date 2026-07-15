@@ -47,6 +47,7 @@
   - Fixed Synology Photos album-context handling for `Shared Space`, true `shared with me` albums, and regular owned albums. PhotoMigrator now documents and follows the browser-observed Synology API behavior more closely: albums surfaced under `normal_share_with_me` are no longer blindly treated as passphrase-based shared albums, Shared Space albums owned by the current user prefer the browser-style `SYNO.Foto.Browse.Item` `version=7` listing flow with `album_id`, and album downloads now also include `album_id` context with passphrase fallback only for true shared-with-me cases. This resolves the remaining `#1173` gap where Shared Space albums were detected but their assets could not be listed/downloaded correctly. (Issue #1173).
   - Fixed `Synology Photos` owner-id learning for `Shared Space` albums so `normal_share_with_me` albums can still be reclassified as owned even when no personal albums were seen first. (Issue #1173).
   - Fixed the Web Interface log stream so inline `__PHOTOMIGRATOR_DASHBOARD__` snapshots no longer leak into progress lines, create blank lines, or leave stray `INFO :` fragments in `Execution Output`.
+  - Fixed local-source cleanup so folders containing only excluded Synology artifacts such as `@eaDir`, `@Recycle`, `.DS_Store`, or thumbnail files are now treated as empty and can be removed both during album completion and in the final cleanup pass.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

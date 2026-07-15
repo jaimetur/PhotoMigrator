@@ -266,6 +266,30 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(processed_albums, {"Album A"})
         logger.info.assert_called_once_with("Album Pushed    : 'Album A'")
 
+    def test_mark_album_pushed_if_ready_ignores_excluded_housekeeping_entries(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            album_folder = Path(tmpdir) / "Album A"
+            (album_folder / "@eaDir").mkdir(parents=True)
+            (album_folder / "@eaDir" / "thumb.jpg").write_text("thumb", encoding="utf-8")
+            (album_folder / ".DS_Store").write_text("junk", encoding="utf-8")
+            counters = {"total_pushed_albums": 0, "total_pulled_albums": 5}
+            processed_albums = set()
+            lock = threading.Lock()
+            logger = unittest.mock.Mock()
+
+            counted = automatic_module._mark_album_pushed_if_ready(
+                album_name="Album A",
+                album_folder_path=str(album_folder),
+                processed_albums=processed_albums,
+                processed_albums_lock=lock,
+                counters=counters,
+                logger=logger,
+            )
+
+        self.assertTrue(counted)
+        self.assertFalse(album_folder.exists())
+        self.assertEqual(counters["total_pushed_albums"], 1)
+
     def test_mark_album_pushed_if_ready_waits_until_active_marker_is_removed(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             album_folder = Path(tmpdir) / "Album B"
