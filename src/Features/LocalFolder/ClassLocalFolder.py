@@ -14,6 +14,7 @@ from pathlib import Path
 from Core.CustomLogger import set_log_level
 from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
+from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, should_exclude_path
@@ -39,7 +40,7 @@ Python module with example functions to interact with Local Folder, including fo
 ##############################################################################
 #                              START OF CLASS                                #
 ##############################################################################
-class ClassLocalFolder:
+class ClassLocalFolder(BaseMediaClient):
     def __init__(self, base_folder):
         """
         Initializes the class and sets up the base folder where albums and assets will be managed.
@@ -1790,7 +1791,7 @@ class ClassLocalFolder:
             self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
             return combined_assets
 
-    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None):
+    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None, return_details=False):
         """
         Adds (links) assets to an album using relative symbolic links.
         If symlink creation fails, copies the file instead.
@@ -2040,7 +2041,7 @@ class ClassLocalFolder:
             LOGGER.info(f"Removed {count_removed} duplicate asset(s) from local storage.")
             return count_removed
 
-    def push_asset(self, file_path, log_level=None):
+    def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         """
         Uploads (copies) a local file to the No-Albums directory following a year/month structure.
 

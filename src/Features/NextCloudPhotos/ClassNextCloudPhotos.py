@@ -29,12 +29,13 @@ from Core.GlobalVariables import (
     PHOTO_EXT,
     VIDEO_EXT,
 )
+from Features.BaseMediaClient import BaseMediaClient
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
 from Utils.DateUtils import guess_date_from_filename
 from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
 
 
-class ClassNextCloudPhotos:
+class ClassNextCloudPhotos(BaseMediaClient):
     def __init__(self, account_id: int = 1):
         self.account_id = int(account_id or 1)
         self.base_url = ""
@@ -758,7 +759,7 @@ class ClassNextCloudPhotos:
             "type": self._asset_type_from_name(name),
         }
 
-    def create_album(self, album_name: str, log_level=None):
+    def create_album(self, album_name: str, shared: bool = False, log_level=None):
         with set_log_level(LOGGER, log_level):
             target = f"{self._albums_root()}/{album_name}".replace("//", "/")
             self._ensure_dir(target)
@@ -876,7 +877,7 @@ class ClassNextCloudPhotos:
                 all_assets.extend(self.get_all_assets_from_album(album_id=album["id"], album_name=album["albumName"], log_level=log_level))
             return all_assets
 
-    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None):
+    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None, return_details=False):
         with set_log_level(LOGGER, log_level):
             if isinstance(asset_ids, str):
                 assets = [asset_ids]
@@ -1069,7 +1070,7 @@ class ClassNextCloudPhotos:
         with set_log_level(LOGGER, log_level):
             return 0
 
-    def push_asset(self, file_path, log_level=None):
+    def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         with set_log_level(LOGGER, log_level):
             if not os.path.isfile(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}")

@@ -19,11 +19,12 @@ from Core.GlobalVariables import (
     PHOTO_EXT,
     VIDEO_EXT,
 )
+from Features.BaseMediaClient import BaseMediaClient
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
 from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
 
 
-class ClassGooglePhotos:
+class ClassGooglePhotos(BaseMediaClient):
     TOKEN_URL = "https://oauth2.googleapis.com/token"
     API_BASE = "https://photoslibrary.googleapis.com/v1"
     UPLOADS_URL = f"{API_BASE}/uploads"
@@ -445,7 +446,7 @@ class ClassGooglePhotos:
             fp.write(response.content)
         return output_file
 
-    def create_album(self, album_name: str, log_level=None):
+    def create_album(self, album_name: str, shared: bool = False, log_level=None):
         with set_log_level(LOGGER, log_level):
             response = self._request("POST", f"{self.API_BASE}/albums", expected=(200,), json={"album": {"title": str(album_name)}})
             data = response.json() or {}
@@ -578,7 +579,7 @@ class ClassGooglePhotos:
                 all_assets.extend(self.get_all_assets_from_album(album_id=album["id"], album_name=album["albumName"], log_level=log_level))
             return all_assets
 
-    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None):
+    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None, return_details=False):
         with set_log_level(LOGGER, log_level):
             media_ids = [str(item).strip() for item in (asset_ids or []) if str(item).strip()]
             if not media_ids:

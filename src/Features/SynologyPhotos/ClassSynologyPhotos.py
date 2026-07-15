@@ -20,6 +20,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
+from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
 from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
@@ -49,7 +50,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ##############################################################################
 #                              START OF CLASS                                #
 ##############################################################################
-class ClassSynologyPhotos:
+class ClassSynologyPhotos(BaseMediaClient):
     """
     Encapsulates all functionality from ClassSynologyPhotos.py into a single class
     that uses a global LOGGER from GlobalVariables. It maintains original log messages
@@ -829,7 +830,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
     ###########################################################################
-    def create_album(self, album_name, log_level=None):
+    def create_album(self, album_name, shared=False, log_level=None):
         """
         Creates a new album in Synology Photos with the specified name.
 
@@ -1632,7 +1633,7 @@ class ClassSynologyPhotos:
                 LOGGER.debug("Album list variants tried: " + " | ".join(failure_messages))
             return []
 
-    def get_all_assets_from_album(self, album_id, album_name=None, album_scope="owned_personal", album_expected_count=None, log_level=None):
+    def get_all_assets_from_album(self, album_id, album_name=None, type="all", album_scope="owned_personal", album_expected_count=None, log_level=None):
         """
         Get assets in a specific album.
 
@@ -1657,7 +1658,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
 
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, album_scope="shared_with_me", album_expected_count=None, log_level=None):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, type="all", album_passphrase=None, album_scope="shared_with_me", album_expected_count=None, log_level=None):
         """
         Get assets in a specific shared album.
 
@@ -1684,7 +1685,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
 
 
-    def get_all_assets_without_albums(self, log_level=logging.WARNING):
+    def get_all_assets_without_albums(self, type="all", log_level=logging.WARNING):
         """
         Get assets not associated to any album from Synology Photos.
 
@@ -1766,7 +1767,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"Exception while getting All Albums Assets from Synology Photos. {e}")
             
 
-    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.WARNING):
+    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.WARNING, return_details=False):
         """
         Adds assets (asset_ids) to an album.
 
