@@ -2117,12 +2117,13 @@ def _append_job_output(job: JobData, text: str) -> None:
     persisted_chunks: List[str] = []
     for line in completed:
         line_with_nl = f"{line}\n"
-        snapshot_event = _parse_dashboard_snapshot_event(line_with_nl)
+        line_with_nl, snapshot_event = _split_dashboard_snapshot_from_line(line_with_nl)
         if snapshot_event is not None:
             job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
             job.dashboard_snapshot_from_events = True
             job.dashboard_snapshot_dirty = False
             job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
+        if not _should_persist_visible_output_line(line_with_nl):
             continue
         persisted_chunks.append(line_with_nl)
         progress_key = _extract_progress_key(line_with_nl)
@@ -2195,12 +2196,46 @@ def _is_internal_dashboard_snapshot_line(raw_line: str) -> bool:
     return str(raw_line or "").startswith(WEB_DASHBOARD_SNAPSHOT_PREFIX)
 
 
+def _split_dashboard_snapshot_from_line(raw_line: str) -> tuple[str, Dict[str, Any] | None]:
+    line = str(raw_line or "")
+    marker_index = line.find(WEB_DASHBOARD_SNAPSHOT_PREFIX)
+    if marker_index < 0:
+        return line, None
+
+    visible = line[:marker_index]
+    snapshot = _parse_dashboard_snapshot_event(line[marker_index:])
+    if snapshot is None:
+        return line, None
+
+    if line.endswith("\n") and visible and not visible.endswith("\n"):
+        visible = f"{visible}\n"
+    return visible, snapshot
+
+
+def _sanitize_partial_output_line(raw_line: str) -> str:
+    line = str(raw_line or "")
+    marker_index = line.find(WEB_DASHBOARD_SNAPSHOT_PREFIX)
+    if marker_index >= 0:
+        line = line[:marker_index]
+    return line
+
+
+def _should_persist_visible_output_line(raw_line: str) -> bool:
+    line = str(raw_line or "")
+    visible = line.rstrip("\n").strip()
+    if not visible:
+        return False
+    if re.fullmatch(r"(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*", visible):
+        return False
+    return True
+
+
 def _get_job_output_tail(job: JobData, max_chars: int) -> str:
     if max_chars <= 0 or not job.output:
         return ""
     total = 0
     chunks: List[str] = []
-    partial = job.partial_line or ""
+    partial = _sanitize_partial_output_line(job.partial_line or "")
     if partial:
         chunks.append(partial)
         total += len(partial)
@@ -2256,8 +2291,9 @@ def _read_job_output_lines_for_api(job: JobData) -> List[str]:
     else:
         selected_entries = list(job.output)
     lines = [entry.text.rstrip("\n") for entry in selected_entries]
-    if job.partial_line and not _is_internal_dashboard_snapshot_line(job.partial_line):
-        lines.append(job.partial_line)
+    partial = _sanitize_partial_output_line(job.partial_line or "")
+    if partial.strip():
+        lines.append(partial)
     if job.dropped_output_lines > 0:
         notice = (
             f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "

@@ -534,6 +534,50 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
 
         self.assertEqual(lines, [])
 
+    def test_dashboard_snapshot_embedded_after_progress_line_does_not_leak_or_duplicate(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        snapshot_payload = {
+            "pulledAssets": 99,
+            "updatedAt": "2026-07-15T08:00:00Z",
+        }
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : [Pull] : ##### 5/10 50.0%\r"
+                f"{self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX}{self.web_app.json.dumps(snapshot_payload)}\n"
+            )
+            self.web_app._append_job_output(
+                job,
+                "INFO    : [Pull] : ########## 10/10 100.0%\n"
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+            persisted = Path(job.output_file).read_text(encoding="utf-8")
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertTrue(job.dashboard_snapshot_from_events)
+        self.assertEqual(job.dashboard_snapshot["pulledAssets"], 99)
+        self.assertEqual(lines, ["INFO    : [Pull] : ########## 10/10 100.0%"])
+        self.assertNotIn(self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX, persisted)
+        self.assertNotIn("INFO    :\n", persisted)
+
+    def test_dashboard_snapshot_inline_partial_keeps_visible_prefix_only(self):
+        job = type("JobStub", (), {})()
+        job.output = deque([])
+        job.partial_line = (
+            "INFO    : [Pull] : ##### 5/10 50.0%\r"
+            f"{self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX}{{\"pulledAssets\":321"
+        )
+        job.dropped_output_lines = 0
+
+        lines = self.web_app._read_job_output_lines_for_api(job)
+
+        self.assertEqual(lines, ["INFO    : [Pull] : ##### 5/10 50.0%\r"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -334,6 +334,41 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertFalse(ClassSynologyPhotos.is_shared_album(hydrated))
         self.assertTrue(ClassSynologyPhotos.is_album_owned_by_user(hydrated))
 
+    def test_hydrate_album_payload_learns_current_owner_from_full_shared_space_album(self):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.CURRENT_OWNER_USER_ID = None
+
+        seed_album = {
+            "id": "43",
+            "albumName": "Shared Space Seed",
+            "category": "normal_share_with_me",
+            "owner_user_id": 1,
+            "additional": {
+                "sharing_info": {
+                    "permission": [{"role": "full"}]
+                }
+            },
+        }
+        later_album = {
+            "id": "44",
+            "albumName": "Shared Space Later",
+            "category": "normal_share_with_me",
+            "owner_user_id": 1,
+            "additional": {
+                "sharing_info": {
+                    "permission": [{"role": "editor"}]
+                }
+            },
+        }
+
+        hydrated_seed = manager._hydrate_album_payload(seed_album, fallback_scope="shared_with_me")
+        hydrated_later = manager._hydrate_album_payload(later_album, fallback_scope="shared_with_me")
+
+        self.assertEqual(manager.CURRENT_OWNER_USER_ID, "1")
+        self.assertEqual(hydrated_seed["_synology_album_scope"], "owned_shared_space")
+        self.assertEqual(hydrated_later["_synology_album_scope"], "owned_shared_space")
+        self.assertFalse(ClassSynologyPhotos.is_shared_album(hydrated_later))
+
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
     def test_ensure_shared_album_access_populates_missing_passphrase_from_album_get(self, _mock_logger):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)

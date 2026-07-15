@@ -218,7 +218,22 @@ class ClassSynologyPhotos:
 
     def _remember_current_owner_user_id(self, album):
         owner_user_id = self._extract_album_owner_user_id(album)
-        if owner_user_id and self.is_album_owned_by_user(album) and not getattr(self, "CURRENT_OWNER_USER_ID", None):
+        if not owner_user_id or getattr(self, "CURRENT_OWNER_USER_ID", None):
+            return
+        if self.is_album_owned_by_user(album):
+            self.CURRENT_OWNER_USER_ID = owner_user_id
+            return
+
+        permission_role = self._extract_album_primary_permission_role(album)
+        category = self._normalize_album_category(album)
+        if "share_with_me" in category and permission_role == "full":
+            # Synology Shared Space albums can be exposed through the
+            # `normal_share_with_me` namespace even when they still belong to
+            # the current account. We cannot always query the numeric current
+            # owner id directly, so we learn it from the first album that the
+            # browser exposes in that namespace with `full` permissions. Once
+            # discovered, every other album with the same owner_user_id can be
+            # classified deterministically as `owned_shared_space`.
             self.CURRENT_OWNER_USER_ID = owner_user_id
 
     def _infer_album_scope(self, album, fallback_scope=None):
