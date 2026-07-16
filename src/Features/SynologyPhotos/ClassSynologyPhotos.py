@@ -355,6 +355,32 @@ class ClassSynologyPhotos(BaseMediaClient):
             return None
         return parsed_value if parsed_value >= 0 else None
 
+    @staticmethod
+    def _iter_entry_transport_variants(prefer_post=False):
+        if prefer_post:
+            yield "post", "data"
+        yield "get", "params"
+        if not prefer_post:
+            yield "post", "data"
+
+    def _request_entry_api(self, url, payload, headers=None, prefer_post=False, stream=False):
+        last_error = None
+        for method_name, payload_key in self._iter_entry_transport_variants(prefer_post=prefer_post):
+            request_method = getattr(self.SESSION, method_name)
+            try:
+                return request_method(
+                    url,
+                    headers=headers,
+                    verify=False,
+                    stream=stream,
+                    **{payload_key: payload},
+                )
+            except Exception as error:
+                last_error = error
+        if last_error:
+            raise last_error
+        raise RuntimeError("No valid Synology entry.cgi transport available")
+
     def _fetch_album_details(self, album_id, log_level=None):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
@@ -368,9 +394,9 @@ class ClassSynologyPhotos(BaseMediaClient):
                 "method": "get",
                 "version": "4",
                 "id": album_id,
-                "additional": '["sharing_info", "thumbnail"]',
+                "additional": '["sharing_info","flex_section","provider_count","thumbnail"]',
             }
-            response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+            response = self._request_entry_api(url, params, headers=headers, prefer_post=True)
             response.raise_for_status()
             data = response.json()
             if not data.get("success"):
@@ -515,7 +541,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                         "limit": limit
                     }
 
-                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    response = self._request_entry_api(url, params, headers=headers, prefer_post=True)
                     data = response.json()
                     if not data.get("success"):
                         LOGGER.error(f"Failed to list shared albums with current user: {data}")
@@ -1150,7 +1176,8 @@ class ClassSynologyPhotos(BaseMediaClient):
                     if variant.get("passphrase"):
                         params["passphrase"] = variant["passphrase"]
                     try:
-                        response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                        prefer_post = album_scope in {"owned_shared_space", "shared_with_me"}
+                        response = self._request_entry_api(url, params, headers=headers, prefer_post=prefer_post)
                         response.raise_for_status()
                         data = response.json()
                         if not data.get("success"):
@@ -1583,7 +1610,8 @@ class ClassSynologyPhotos(BaseMediaClient):
                     params["offset"] = offset
                     params["limit"] = limit
                     try:
-                        resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                        prefer_post = album_scope in {"owned_shared_space", "shared_with_me"}
+                        resp = self._request_entry_api(url, params, headers=headers, prefer_post=prefer_post)
                         data = resp.json()
                         if not data.get("success"):
                             failure_messages.append(f"variant={params.get('version')}/{params.get('method')} response={data}")
@@ -2355,7 +2383,14 @@ class ClassSynologyPhotos(BaseMediaClient):
                 # first and only then fall back to the passphrase variant.
                 resp = None
                 for request_params in request_variants:
-                    resp = self.SESSION.get(url, params=request_params, headers=headers, verify=False, stream=True)
+                    prefer_post = album_scope in {"owned_shared_space", "shared_with_me"}
+                    resp = self._request_entry_api(
+                        url,
+                        request_params,
+                        headers=headers,
+                        prefer_post=prefer_post,
+                        stream=True,
+                    )
                     if resp.status_code == 200:
                         break
                 if resp.status_code != 200:

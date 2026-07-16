@@ -410,7 +410,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
                 }
             },
         }
-        manager.SESSION.get.return_value = response
+        manager.SESSION.post.return_value = response
 
         album = {
             "id": "shared-1",
@@ -442,7 +442,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
                 ]
             },
         }
-        manager.SESSION.get.return_value = response
+        manager.SESSION.post.return_value = response
 
         assets = manager.get_all_assets_from_album_shared(
             album_id="album-shared-1",
@@ -452,7 +452,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         )
 
         self.assertEqual([asset["id"] for asset in assets], ["asset-1"])
-        params = manager.SESSION.get.call_args.kwargs["params"]
+        params = manager.SESSION.post.call_args.kwargs["data"]
         self.assertEqual(params["album_id"], "album-shared-1")
         self.assertIn(params["version"], {"4", "7"})
 
@@ -472,7 +472,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
                 "list": [{"id": "6083", "filename": "photo.jpg", "type": "PHOTO"}]
             },
         }
-        manager.SESSION.get.return_value = response
+        manager.SESSION.post.return_value = response
 
         assets = manager.get_all_assets_from_album(
             album_id="43",
@@ -483,7 +483,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         )
 
         self.assertEqual([asset["id"] for asset in assets], ["6083"])
-        params = manager.SESSION.get.call_args.kwargs["params"]
+        params = manager.SESSION.post.call_args.kwargs["data"]
         self.assertEqual(params["version"], "7")
         self.assertEqual(params["album_id"], "43")
         self.assertNotIn("passphrase", params)
@@ -504,7 +504,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
             "success": True,
             "data": {"list": [{"id": "asset-1", "filename": "photo.jpg", "type": "PHOTO"}]},
         }
-        manager.SESSION.get.side_effect = [first_response, second_response]
+        manager.SESSION.post.side_effect = [first_response, second_response]
 
         assets = manager.get_all_assets_from_album(
             album_id="43",
@@ -515,9 +515,9 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         )
 
         self.assertEqual([asset["id"] for asset in assets], ["asset-1"])
-        self.assertEqual(manager.SESSION.get.call_count, 2)
-        first_params = manager.SESSION.get.call_args_list[0].kwargs["params"]
-        second_params = manager.SESSION.get.call_args_list[1].kwargs["params"]
+        self.assertEqual(manager.SESSION.post.call_count, 2)
+        first_params = manager.SESSION.post.call_args_list[0].kwargs["data"]
+        second_params = manager.SESSION.post.call_args_list[1].kwargs["data"]
         self.assertEqual(first_params["version"], "7")
         self.assertEqual(second_params["version"], "4")
 
@@ -545,7 +545,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
                 }
             },
         }
-        manager.SESSION.get.return_value = response
+        manager.SESSION.post.return_value = response
 
         album = {
             "id": "43",
@@ -574,7 +574,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         response.status_code = 200
         response.headers = {"Content-Type": "image/jpeg"}
         response.iter_content = lambda chunk_size=8192: [b"jpg-data"]
-        manager.SESSION.get.return_value = response
+        manager.SESSION.post.return_value = response
 
         with tempfile.TemporaryDirectory() as tmpdir:
             downloaded = manager.pull_asset(
@@ -588,7 +588,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
             )
 
         self.assertEqual(downloaded, 1)
-        params = manager.SESSION.get.call_args.kwargs["params"]
+        params = manager.SESSION.post.call_args.kwargs["data"]
         self.assertEqual(params["album_id"], "43")
         self.assertNotIn("passphrase", params)
 
@@ -608,7 +608,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         second_response.status_code = 200
         second_response.headers = {"Content-Type": "image/jpeg"}
         second_response.iter_content = lambda chunk_size=8192: [b"jpg-data"]
-        manager.SESSION.get.side_effect = [first_response, second_response]
+        manager.SESSION.post.side_effect = [first_response, second_response]
 
         with tempfile.TemporaryDirectory() as tmpdir:
             downloaded = manager.pull_asset(
@@ -623,8 +623,8 @@ class TestSynologyPhotosUnit(unittest.TestCase):
             )
 
         self.assertEqual(downloaded, 1)
-        first_params = manager.SESSION.get.call_args_list[0].kwargs["params"]
-        second_params = manager.SESSION.get.call_args_list[1].kwargs["params"]
+        first_params = manager.SESSION.post.call_args_list[0].kwargs["data"]
+        second_params = manager.SESSION.post.call_args_list[1].kwargs["data"]
         self.assertEqual(first_params["album_id"], "43")
         self.assertNotIn("passphrase", first_params)
         self.assertEqual(second_params["passphrase"], '"shared-passphrase"')
