@@ -2383,10 +2383,6 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
         return ""
     total = 0
     chunks: List[str] = []
-    partial = _resolve_visible_partial_output_line(job)
-    if partial:
-        chunks.append(partial)
-        total += len(partial)
     for entry in reversed(job.output):
         chunk = entry.text
         chunks.append(chunk)
@@ -2441,19 +2437,12 @@ def _read_job_output_lines_for_api(job: JobData) -> List[str]:
     # lines. The structured dashboard snapshot now owns the counters, so the web
     # UI can safely consume the full visible log buffer again without merging
     # paginated batches or reconstructing history windows client-side.
+    #
+    # Do not expose the current trailing partial line during polling. The web
+    # log panel should only render completed logical lines; any in-progress
+    # fragment remains buffered in `job.partial_line` until a later poll closes
+    # it with a newline or another parser-compacted full line.
     lines = [entry.text.rstrip("\n") for entry in list(job.output)]
-    partial = _resolve_visible_partial_output_line(job)
-    if partial.strip():
-        partial_progress_key = _extract_progress_key(partial)
-        if partial_progress_key:
-            for index in range(len(lines) - 1, -1, -1):
-                if _extract_progress_key(lines[index]) == partial_progress_key:
-                    lines[index] = partial
-                    break
-            else:
-                lines.append(partial)
-        else:
-            lines.append(partial)
     if job.dropped_output_lines > 0:
         notice = (
             f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
