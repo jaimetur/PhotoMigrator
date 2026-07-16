@@ -632,6 +632,9 @@
     let currentJobStartedAt = null;
     let currentJobIsAutomatic = false;
     let webDashboardState = {rawOutput: "", status: "idle", jobData: {}};
+    let pollRequestInFlight = false;
+    let lastOutputVersion = -1;
+    let lastDashboardSnapshotUpdatedAt = "";
     let outputVirtualLastRangeKey = "";
     let outputVirtualRenderedModel = null;
     let outputVirtualLineHeight = 0;
@@ -648,6 +651,26 @@
         outputVirtualRenderedModel = null;
         outputRenderDeferredBySelection = false;
         pendingVisiblePartialOutputLine = "";
+        lastOutputVersion = -1;
+        lastDashboardSnapshotUpdatedAt = "";
+    }
+
+    function stopPolling() {
+        if (pollTimer) {
+            clearTimeout(pollTimer);
+            pollTimer = null;
+        }
+    }
+
+    function scheduleNextPoll() {
+        if (!currentJob) return;
+        stopPolling();
+        pollTimer = setTimeout(() => {
+            refreshJob().catch((error) => {
+                console.error(error);
+                if (currentJob) scheduleNextPoll();
+            });
+        }, JOB_POLL_INTERVAL_MS);
     }
 
     function extractProgressKeyFromLogLine(line) {
@@ -3224,64 +3247,91 @@
     }
 
     async function refreshJob() {
-        if (!currentJob) return;
+        if (!currentJob || pollRequestInFlight) return;
+        pollRequestInFlight = true;
         const perfStarted = performance.now();
-        const fetchStarted = performance.now();
-        const response = await fetch(`/api/jobs/${currentJob}`);
-        const fetchElapsedMs = performance.now() - fetchStarted;
-        if (response.status === 404) {
-            currentJob = null;
-            currentJobStartedAt = null;
-            setActiveJobInUiState(null);
-            setStatus("Status: idle", false);
-            updateRunStopButtons("idle");
-            const controls = document.getElementById("job-input-controls");
-            controls.classList.add("hidden");
-            if (pollTimer) {
-                clearInterval(pollTimer);
-                pollTimer = null;
+        try {
+            const fetchStarted = performance.now();
+            const response = await fetch(`/api/jobs/${currentJob}?compact=1`);
+            const fetchElapsedMs = performance.now() - fetchStarted;
+            if (response.status === 404) {
+                currentJob = null;
+                currentJobStartedAt = null;
+                setActiveJobInUiState(null);
+                setStatus("Status: idle", false);
+                updateRunStopButtons("idle");
+                const controls = document.getElementById("job-input-controls");
+                controls.classList.add("hidden");
+                stopPolling();
+                return;
             }
-            return;
-        }
-        const jsonStarted = performance.now();
-        const data = await response.json();
-        const jsonElapsedMs = performance.now() - jsonStarted;
-        setStatus(`Status: ${data.status}`, false);
-        updateRunStopButtons(data.status || "idle");
-        const renderOutputStarted = performance.now();
-        const renderableOutputLines = buildRenderableOutputLines(
-            data.output_lines || [],
-            data.visible_partial_output_line || ""
-        );
-        renderOutputWithLevels("", {outputLines: renderableOutputLines});
-        const renderOutputElapsedMs = performance.now() - renderOutputStarted;
-        let dashboardElapsedMs = 0;
-        if (currentJobIsAutomatic) {
-            const dashboardStarted = performance.now();
-            renderWebDashboard(displayedRawOutput, data.status || "idle", data);
-            dashboardElapsedMs = performance.now() - dashboardStarted;
-        } else if (activeModuleTab === "automatic_migration") {
-            const dashboardStarted = performance.now();
-            renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
-            dashboardElapsedMs = performance.now() - dashboardStarted;
-        }
-        const controls = document.getElementById("job-input-controls");
-        const awaitingConfirmation = Boolean(data.awaiting_confirmation);
-        controls.classList.toggle("hidden", !awaitingConfirmation);
-        debugWebPerf("refreshJob", {
-            jobId: currentJob,
-            status: data.status,
-            fetchMs: Number(fetchElapsedMs.toFixed(2)),
-            jsonMs: Number(jsonElapsedMs.toFixed(2)),
-            renderOutputMs: Number(renderOutputElapsedMs.toFixed(2)),
-            renderDashboardMs: Number(dashboardElapsedMs.toFixed(2)),
-            totalMs: Number((performance.now() - perfStarted).toFixed(2)),
-            outputChars: String(displayedRawOutput || "").length
-        });
-        if (data.status !== "running" && data.status !== "stopping") {
-            setActiveJobInUiState(null);
-            clearInterval(pollTimer);
-            pollTimer = null;
+            const jsonStarted = performance.now();
+            const data = await response.json();
+            const jsonElapsedMs = performance.now() - jsonStarted;
+            setStatus(`Status: ${data.status}`, false);
+            updateRunStopButtons(data.status || "idle");
+
+            const nextOutputVersion = Number(data.output_version || 0);
+            const nextVisiblePartial = String(data.visible_partial_output_line || "");
+            const shouldRenderOutput = (
+                nextOutputVersion !== lastOutputVersion
+                || nextVisiblePartial !== pendingVisiblePartialOutputLine
+            );
+
+            let renderOutputElapsedMs = 0;
+            if (shouldRenderOutput) {
+                const renderOutputStarted = performance.now();
+                const renderableOutputLines = buildRenderableOutputLines(
+                    data.output_lines || [],
+                    nextVisiblePartial
+                );
+                renderOutputWithLevels("", {outputLines: renderableOutputLines});
+                renderOutputElapsedMs = performance.now() - renderOutputStarted;
+                lastOutputVersion = nextOutputVersion;
+            }
+
+            let dashboardElapsedMs = 0;
+            const shouldRenderDashboard = (
+                data.dashboard_snapshot_updated_at !== lastDashboardSnapshotUpdatedAt
+                || data.status !== webDashboardState.status
+            );
+            if (shouldRenderDashboard) {
+                if (currentJobIsAutomatic) {
+                    const dashboardStarted = performance.now();
+                    renderWebDashboard(displayedRawOutput, data.status || "idle", data);
+                    dashboardElapsedMs = performance.now() - dashboardStarted;
+                } else if (activeModuleTab === "automatic_migration") {
+                    const dashboardStarted = performance.now();
+                    renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
+                    dashboardElapsedMs = performance.now() - dashboardStarted;
+                }
+                lastDashboardSnapshotUpdatedAt = String(data.dashboard_snapshot_updated_at || "");
+            }
+
+            const controls = document.getElementById("job-input-controls");
+            const awaitingConfirmation = Boolean(data.awaiting_confirmation);
+            controls.classList.toggle("hidden", !awaitingConfirmation);
+            debugWebPerf("refreshJob", {
+                jobId: currentJob,
+                status: data.status,
+                fetchMs: Number(fetchElapsedMs.toFixed(2)),
+                jsonMs: Number(jsonElapsedMs.toFixed(2)),
+                renderOutputMs: Number(renderOutputElapsedMs.toFixed(2)),
+                renderDashboardMs: Number(dashboardElapsedMs.toFixed(2)),
+                totalMs: Number((performance.now() - perfStarted).toFixed(2)),
+                outputChars: String(displayedRawOutput || "").length,
+                outputVersion: nextOutputVersion,
+                renderedOutput: shouldRenderOutput,
+                renderedDashboard: shouldRenderDashboard
+            });
+            if (data.status !== "running" && data.status !== "stopping") {
+                setActiveJobInUiState(null);
+                stopPolling();
+                return;
+            }
+            scheduleNextPoll();
+        } finally {
+            pollRequestInFlight = false;
         }
     }
 
@@ -3359,8 +3409,7 @@
         setStatus("Status: running", false);
         updateRunStopButtons("running");
         document.getElementById("job-input-controls").classList.add("hidden");
-        if (pollTimer) clearInterval(pollTimer);
-        pollTimer = setInterval(refreshJob, JOB_POLL_INTERVAL_MS);
+        stopPolling();
         await refreshJob();
     }
 
@@ -3421,8 +3470,7 @@
 
         setStatus("Status: reconnecting", false);
         updateRunStopButtons("running");
-        if (pollTimer) clearInterval(pollTimer);
-        pollTimer = setInterval(refreshJob, JOB_POLL_INTERVAL_MS);
+        stopPolling();
         try {
             await refreshJob();
         } catch (error) {
@@ -3432,10 +3480,7 @@
             setActiveJobInUiState(null);
             setStatus("Status: idle", false);
             updateRunStopButtons("idle");
-            if (pollTimer) {
-                clearInterval(pollTimer);
-                pollTimer = null;
-            }
+            stopPolling();
         }
     }
 

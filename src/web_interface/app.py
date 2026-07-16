@@ -462,6 +462,7 @@ class JobData:
         self.output: Deque["OutputLine"] = deque()  # last completed logical lines in memory
         self.output_chars = 0
         self.dropped_output_lines = 0
+        self.output_version = 0
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.pending_cr = False            # track split CRLF across chunk boundaries
         self.pending_level_prefix = ""     # orphan log-level prefix waiting for a progress/continuation line
@@ -2183,6 +2184,7 @@ def _append_job_output(job: JobData, text: str) -> None:
 
     # Keep last completed logical lines in memory (line-based, not char-based).
     # '\r' rewrites the same line and does not create a new history line.
+    previous_partial = job.partial_line
     current = job.partial_line
     completed: List[str] = []
     for ch in text:
@@ -2203,6 +2205,7 @@ def _append_job_output(job: JobData, text: str) -> None:
         else:
             current += ch
     job.partial_line = current
+    output_changed = (job.partial_line != previous_partial)
 
     persisted_chunks: List[str] = []
     for line in completed:
@@ -2236,11 +2239,13 @@ def _append_job_output(job: JobData, text: str) -> None:
                 prev_len = len(prev_entry.text)
                 prev_entry.text = logical_line
                 job.output_chars += len(logical_line) - prev_len
+                output_changed = True
                 continue
 
             entry = OutputLine(text=logical_line, progress_key=progress_key)
             job.output.append(entry)
             job.output_chars += len(logical_line)
+            output_changed = True
             if progress_key:
                 job.progress_lines[progress_key] = entry
 
@@ -2255,8 +2260,11 @@ def _append_job_output(job: JobData, text: str) -> None:
         removed = job.output.popleft()
         job.output_chars -= len(removed.text)
         job.dropped_output_lines += 1
+        output_changed = True
         if removed.progress_key and job.progress_lines.get(removed.progress_key) is removed:
             del job.progress_lines[removed.progress_key]
+    if output_changed:
+        job.output_version += 1
     if perf_started_at is not None:
         _debug_perf_log(
             "web.append_job_output",
@@ -2396,10 +2404,11 @@ def _get_job_output_tail(job: JobData, max_chars: int) -> str:
     return "".join(reversed(chunks))[-max_chars:]
 
 
-def _read_job_output_for_api(job: JobData) -> str:
+def _read_job_output_for_api(job: JobData, recent_lines: List[str] | None = None) -> str:
     perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     # Serve only a compact recent tail to keep polling latency bounded.
-    recent_lines = _read_job_output_lines_for_api(job)
+    if recent_lines is None:
+        recent_lines = _read_job_output_lines_for_api(job)
     base = "\n".join(recent_lines)
     if base and not base.endswith("\n"):
         base += "\n"
@@ -2433,7 +2442,7 @@ def _read_job_output_for_api(job: JobData) -> str:
     return output
 
 
-def _read_job_output_lines_for_api(job: JobData) -> List[str]:
+def _read_job_output_lines_for_api(job: JobData, partial: str | None = None) -> List[str]:
     # Keep the full compact in-memory log visible in the browser.
     #
     # Performance regressions were caused by reparsing the whole log to rebuild
@@ -2442,7 +2451,8 @@ def _read_job_output_lines_for_api(job: JobData) -> List[str]:
     # UI can safely consume the full visible log buffer again without merging
     # paginated batches or reconstructing history windows client-side.
     lines = [entry.text.rstrip("\n") for entry in list(job.output)]
-    partial = _resolve_visible_partial_output_line(job)
+    if partial is None:
+        partial = _resolve_visible_partial_output_line(job)
     if partial.strip():
         partial_progress_key = _extract_progress_key(partial)
         if partial_progress_key:
@@ -3978,7 +3988,7 @@ def get_active_job(current_user: Dict[str, Any] = Depends(_require_user)) -> Dic
 
 
 @app.get("/api/jobs/{job_id}")
-def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
+def get_job(job_id: str, compact: bool = False, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
     perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     with JOBS_LOCK:
         if job_id not in JOBS:
@@ -3986,7 +3996,8 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
         job = JOBS[job_id]
         if int(job.owner_user_id or -1) != int(current_user["id"]):
             raise HTTPException(status_code=404, detail="Job not found")
-        output = _read_job_output_for_api(job)
+        visible_partial_output_line = _resolve_visible_partial_output_line(job)
+        output_lines = _read_job_output_lines_for_api(job, partial=visible_partial_output_line)
         can_send_input = bool(
             job.status == "running"
             and job.process is not None
@@ -3994,6 +4005,7 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
             and not job.process.stdin.closed
         )
         can_stop = bool(job.status in {"running", "stopping"} and job.process is not None)
+        output_file_size = _get_job_output_file_size(job) if not compact else 0
         response_payload = {
             "job_id": job_id,
             "tab": job.tab,
@@ -4008,12 +4020,17 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
             "dashboard_context": dict(job.dashboard_context or {}),
             "dashboard_snapshot": dict(job.dashboard_snapshot or {}),
             "dashboard_snapshot_updated_at": job.dashboard_snapshot_updated_at,
-            "output": output,
-            "output_lines": _read_job_output_lines_for_api(job),
-            "visible_partial_output_line": _resolve_visible_partial_output_line(job),
-            "output_history_before_offset": _get_job_output_file_size(job),
-            "output_history_has_more": bool(_get_job_output_file_size(job) > 0),
+            "output_lines": output_lines,
+            "output_version": int(job.output_version or 0),
+            "visible_partial_output_line": visible_partial_output_line,
         }
+        if not compact:
+            output = _read_job_output_for_api(job, recent_lines=output_lines)
+            response_payload.update({
+                "output": output,
+                "output_history_before_offset": output_file_size,
+                "output_history_has_more": bool(output_file_size > 0),
+            })
         if perf_started_at is not None:
             _debug_perf_log(
                 "web.api.get_job",
@@ -4021,8 +4038,9 @@ def get_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user)) 
                 job_id=job_id,
                 status=job.status,
                 tab=job.tab,
-                output_chars=len(output),
+                output_chars=len("\n".join(output_lines)),
                 snapshot_keys=len(job.dashboard_snapshot or {}),
+                compact=compact,
             )
         return response_payload
 
