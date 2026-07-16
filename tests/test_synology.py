@@ -94,6 +94,48 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
         self.assertEqual([asset["id"] for asset in filtered], ["2"])
 
+    def test_normalize_user_id_preserves_zero(self):
+        self.assertEqual(ClassSynologyPhotos._normalize_user_id(0), "0")
+        self.assertEqual(ClassSynologyPhotos._normalize_user_id("0"), "0")
+        self.assertIsNone(ClassSynologyPhotos._normalize_user_id(None))
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.has_any_filter", return_value=False)
+    def test_filter_assets_returns_album_assets_unchanged_when_no_filters_active(self, _mock_has_any_filter):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.all_assets_filtered = None
+        manager.get_assets_by_filters = MagicMock(side_effect=AssertionError("Should not query global filters"))
+
+        assets = [
+            {"id": "shared-1", "filename": "shared-1.jpg"},
+            {"id": "shared-2", "filename": "shared-2.jpg"},
+        ]
+
+        filtered = manager.filter_assets(assets, log_level=logging.INFO)
+
+        self.assertEqual(filtered, assets)
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_session_get_logs_debug_api_trace(self, mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SESSION = MagicMock()
+
+        response = MagicMock()
+        response.status_code = 200
+        response.json.return_value = {"success": True}
+        manager.SESSION.get.return_value = response
+
+        result = manager._session_get(
+            "http://synology.local/webapi/entry.cgi",
+            params={"api": "SYNO.Foto.Browse.Item", "passphrase": "secret"},
+            verify=False,
+        )
+
+        self.assertIs(result, response)
+        debug_message = mock_logger.debug.call_args.args[0]
+        self.assertIn("[SYNOLOGY_API] GET", debug_message)
+        self.assertIn('"api": "SYNO.Foto.Browse.Item"', debug_message)
+        self.assertIn('"passphrase": "***"', debug_message)
+
     def _prepare_push_manager(self):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
         manager.ALLOWED_MEDIA_EXTENSIONS = [".jpg"]

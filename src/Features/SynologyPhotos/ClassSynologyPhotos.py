@@ -149,7 +149,9 @@ class ClassSynologyPhotos(BaseMediaClient):
 
     @staticmethod
     def _normalize_user_id(value):
-        text = str(value or "").strip()
+        if value is None:
+            return None
+        text = str(value).strip()
         return text or None
 
     @classmethod
@@ -363,18 +365,65 @@ class ClassSynologyPhotos(BaseMediaClient):
         if not prefer_post:
             yield "post", "data"
 
+    @staticmethod
+    def _sanitize_api_payload(payload):
+        if isinstance(payload, dict):
+            sanitized = {}
+            for key, value in payload.items():
+                key_text = str(key).lower()
+                if any(secret_key in key_text for secret_key in ("pass", "token", "otp", "passwd")):
+                    sanitized[key] = "***"
+                else:
+                    sanitized[key] = value
+            return sanitized
+        return payload
+
+    def _log_api_request_debug(self, method_name, url, payload_key, payload, response=None, error=None):
+        sanitized_payload = self._sanitize_api_payload(payload)
+        if error is not None:
+            LOGGER.debug(
+                f"[SYNOLOGY_API] {method_name.upper()} {url} {payload_key}={json.dumps(sanitized_payload, ensure_ascii=True, default=str)} "
+                f"-> error={error}"
+            )
+            return
+
+        status_code = getattr(response, "status_code", None)
+        success = None
+        try:
+            response_json = response.json()
+            success = response_json.get("success")
+        except Exception:
+            success = None
+        LOGGER.debug(
+            f"[SYNOLOGY_API] {method_name.upper()} {url} {payload_key}={json.dumps(sanitized_payload, ensure_ascii=True, default=str)} "
+            f"-> status={status_code} success={success}"
+        )
+
+    def _session_get(self, url, *, params=None, headers=None, verify=False, stream=False):
+        try:
+            response = self.SESSION.get(url, params=params, headers=headers, verify=verify, stream=stream)
+        except Exception as error:
+            self._log_api_request_debug("get", url, "params", params, error=error)
+            raise
+        self._log_api_request_debug("get", url, "params", params, response=response)
+        return response
+
+    def _session_post(self, url, *, data=None, headers=None, verify=False, stream=False):
+        try:
+            response = self.SESSION.post(url, data=data, headers=headers, verify=verify, stream=stream)
+        except Exception as error:
+            self._log_api_request_debug("post", url, "data", data, error=error)
+            raise
+        self._log_api_request_debug("post", url, "data", data, response=response)
+        return response
+
     def _request_entry_api(self, url, payload, headers=None, prefer_post=False, stream=False):
         last_error = None
         for method_name, payload_key in self._iter_entry_transport_variants(prefer_post=prefer_post):
-            request_method = getattr(self.SESSION, method_name)
             try:
-                return request_method(
-                    url,
-                    headers=headers,
-                    verify=False,
-                    stream=stream,
-                    **{payload_key: payload},
-                )
+                if method_name == "post":
+                    return self._session_post(url, data=payload, headers=headers, verify=False, stream=stream)
+                return self._session_get(url, params=payload, headers=headers, verify=False, stream=stream)
             except Exception as error:
                 last_error = error
         if last_error:
@@ -673,7 +722,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     params.update({"enable_device_token": "yes"})
                     params.update({"device_name": "PhotoMigrator"})
 
-                response = self.SESSION.get(url, params=params, verify=False)
+                response = self._session_get(url, params=params, verify=False)
                 response.raise_for_status()
                 data = response.json()
 
@@ -710,7 +759,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                         "version": "3",
                         "method": "logout",
                     }
-                    response = self.SESSION.get(url, params=params, verify=False)
+                    response = self._session_get(url, params=params, verify=False)
                     response.raise_for_status()
                     data = response.json()
                     if data.get("success"):
@@ -802,7 +851,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     "version": "2",
                     "setting": '{"geocoding":true,"person":true}'
                 }
-                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                resp = self._session_get(url, params=params, headers=headers, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
                 if data["success"]:
@@ -881,7 +930,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     "version": "3",
                     "name": f'"{album_name}"',
                 }
-                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                resp = self._session_get(url, params=params, headers=headers, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
 
@@ -922,7 +971,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     "id": f"[{album_id}]",
                     "name": album_name,
                 }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response = self._session_get(url, params=params, headers=headers, verify=False)
                 response.raise_for_status()
                 data = response.json()
                 success = True
@@ -970,7 +1019,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                         "offset": offset,
                         "limit": limit
                     }
-                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp = self._session_get(url, params=params, headers=headers, verify=False)
                     resp.raise_for_status()
                     data = resp.json()
 
@@ -1120,7 +1169,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                         "offset": offset,
                         "limit": limit
                     }
-                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp = self._session_get(url, params=params, headers=headers, verify=False)
                     resp.raise_for_status()
                     data = resp.json()
 
@@ -1235,28 +1284,27 @@ class ClassSynologyPhotos(BaseMediaClient):
     ###########################################################################
     def filter_assets(self, assets, log_level=None):
         """
-        Filters a list of assets by person name.
+        Filters a list of assets with the currently configured Synology criteria.
 
-        The method looks for a match in the 'name' field of each person listed in the
-        'people' key of each asset. Matching is case-insensitive and allows partial matches.
+        Historically this method revalidated album items against the global
+        `get_assets_by_filters()` result set. Issue #1173 showed that this is
+        unsafe for Synology Shared Space because the global library filter flow
+        can expose a different namespace than the album-scoped item listing
+        flow, causing valid album assets to be discarded even when no explicit
+        filters are active.
 
         Args:
             assets (list): List of asset dictionaries.
 
         Returns:
-            list: A filtered list of assets that include the specified person.
+            list: A filtered list of assets that match the active criteria.
             :param log_level:
         """
         with set_log_level(LOGGER, log_level):
-            filtered = []
-            for asset in assets:
-                asset_id = asset.get('id')
-                # if assets exists in all_assets_filtered is because match all filters criteria, so will include in the filtered list to return
-                if self.all_assets_filtered is None:
-                    self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
-                if any(asset.get('id') == asset_id for asset in self.all_assets_filtered):
-                    filtered.append(asset)
-            return filtered
+            assets = list(assets or [])
+            if not has_any_filter():
+                return assets
+            return self.filter_assets_old(assets, log_level=log_level)
 
     def filter_assets_old(self, assets, log_level=None):
         """
@@ -1506,7 +1554,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     params['offset'] = offset
                     params['limit'] = limit
                     try:
-                        resp = self.SESSION.get(url, headers=headers, params=params, verify=False)
+                        resp = self._session_get(url, headers=headers, params=params, verify=False)
                         data = resp.json()
                         if not data.get("success"):
                             LOGGER.error(f"Failed to list assets")
@@ -1849,7 +1897,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                         "id": album_id,
                         "item": json.dumps(chunk, separators=(",", ":")),
                     }
-                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp = self._session_get(url, params=params, headers=headers, verify=False)
                     resp.raise_for_status()
                     data = resp.json()
 
@@ -2049,7 +2097,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     'folder_id': '[]'
                 }
                 try:
-                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    response = self._session_get(url, params=params, headers=headers, verify=False)
                     data = response.json()
                     if not data.get("success"):
                         LOGGER.error(f"Failed to remove assets")
@@ -2136,7 +2184,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 params = base_params.copy()
                 params["offset"] = offset
                 params["limit"] = limit
-                resp = self.SESSION.get(url, headers=headers, params=params, verify=False)
+                resp = self._session_get(url, headers=headers, params=params, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
                 if not data.get("success"):
@@ -2271,7 +2319,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     )
                     headers.update({"Content-Type": multipart_data.content_type})
 
-                    response = self.SESSION.post(url, data=multipart_data, headers=headers, verify=False)
+                    response = self._session_post(url, data=multipart_data, headers=headers, verify=False)
                     response.raise_for_status()
                     data = response.json()
                     if not data["success"]:
@@ -2518,7 +2566,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     "method": "get",
                     "version": "2",
                 }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response = self._session_get(url, params=params, headers=headers, verify=False)
                 response.raise_for_status()
                 data = response.json()
 
@@ -2565,7 +2613,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     "version": "2",
                     "id": search_in_folder_id,
                 }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response = self._session_get(url, params=params, headers=headers, verify=False)
                 data = response.json()
                 if not data.get("success"):
                     LOGGER.error(f"Cannot obtain name for folder ID '{search_in_folder_id}' due to an error in the API call.")
@@ -2584,7 +2632,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                         "offset": offset,
                         "limit": limit
                     }
-                    resp = self.SESSION.get(url, params=params_list, headers=headers, verify=False)
+                    resp = self._session_get(url, params=params_list, headers=headers, verify=False)
                     resp.raise_for_status()
                     data_list = resp.json()
 
@@ -2648,7 +2696,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                         "offset": offset,
                         "limit": limit
                     }
-                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    response = self._session_get(url, params=params, headers=headers, verify=False)
                     response.raise_for_status()
                     data = response.json()
 
@@ -2697,7 +2745,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     'folder_id': f'{folder_id}',
                 }
                 try:
-                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    response = self._session_get(url, params=params, headers=headers, verify=False)
                     data = response.json()
                     if not data.get("success"):
                         LOGGER.error(f"Failed to remove folder '{folder_name}'")
@@ -2737,7 +2785,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     "folder_id": folder_id,
                 }
                 try:
-                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp = self._session_get(url, params=params, headers=headers, verify=False)
                     data = resp.json()
                     if not data.get("success"):
                         LOGGER.error(f"Failed to count assets for folder '{folder_name}'.")
@@ -2800,7 +2848,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     'id': f'[{task_id}]'
                 }
                 try:
-                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp = self._session_get(url, params=params, headers=headers, verify=False)
                     data = resp.json()
                     if not data.get("success"):
                         LOGGER.error(f"Failed to get removing assets status")
@@ -3519,7 +3567,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     'id': album_id,
                     'name': album_info["new_name"],
                 }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response = self._session_get(url, params=params, headers=headers, verify=False)
                 if response.ok:
                     LOGGER.info(f"Album '{album_info['album_name']}' (ID={album_id}) renamed to '{album_info['new_name']}'.")
                     total_renamed_albums += 1
