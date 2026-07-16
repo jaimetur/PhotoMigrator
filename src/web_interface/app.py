@@ -465,8 +465,6 @@ class JobData:
         self.output_version = 0
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.pending_cr = False            # track split CRLF across chunk boundaries
-        self.pending_level_prefix = ""     # orphan log-level prefix waiting for a progress/continuation line
-        self.pending_structured_prefix = ""  # GPTH-style outer prefix waiting for the next inner step line
         self.progress_lines: Dict[str, "OutputLine"] = {}
         self.total_output_chars = 0        # full execution chars
         self.output_file = _create_job_output_file()
@@ -2016,7 +2014,6 @@ def _env_int(name: str, default: int) -> int:
 WEB_JOB_LOG_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_JOB_LOG_DIR", "/tmp/photomigrator-web-jobs"))
 MAX_JOB_OUTPUT_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES", 100_000)
 MAX_JOB_OUTPUT_API_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_API_LINES", 100)
-MAX_JOB_OUTPUT_HISTORY_API_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_HISTORY_API_LINES", 500)
 WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
 TAIL_CONFIRM_CHARS = 4_000
 ANSI_ESCAPE_RE = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
@@ -2050,95 +2047,6 @@ def _close_job_output_file(job: JobData) -> None:
 
 def _strip_ansi(text: str) -> str:
     return ANSI_ESCAPE_RE.sub("", str(text or ""))
-
-
-def _extract_orphan_log_level_prefix(raw_line: str) -> str | None:
-    line = str(raw_line or "").rstrip("\n")
-    match = re.fullmatch(r"((?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?)\s*", line)
-    if not match:
-        return None
-    return str(match.group(1) or "").rstrip() or None
-
-
-def _line_can_inherit_log_level_prefix(raw_line: str) -> bool:
-    clean = _strip_ansi(raw_line).replace("\r", "").rstrip("\n")
-    if not clean.strip():
-        return False
-    if re.match(r"^(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?", clean.lstrip()):
-        return False
-    if _extract_progress_key(clean):
-        return True
-    return bool(
-        PROGRESS_SEPARATOR_RE.match(clean.strip())
-        or re.search(r"\d{1,3}%\|", clean)
-        or re.search(r"\[\s*step\s+\d+\/\d+\]", clean, flags=re.IGNORECASE)
-    )
-
-
-def _prepend_log_level_prefix(prefix: str, raw_line: str) -> str:
-    line = str(raw_line or "")
-    suffix = line.rstrip("\n")
-    separator = "" if not suffix or suffix[:1].isspace() else " "
-    return f"{prefix.rstrip()}{separator}{suffix}\n"
-
-
-def _starts_with_gpth_inner_step(raw_line: str) -> bool:
-    clean = _strip_ansi(raw_line).replace("\r", "").lstrip()
-    return bool(re.match(r"^\[\s*(?:INFO|DEBUG|WARNING|ERROR|VERBOSE)\s*\]\s*\[\s*Step\s+\d+/\d+\]", clean, flags=re.IGNORECASE))
-
-
-def _extract_gpth_outer_prefix(raw_line: str) -> str | None:
-    clean = _strip_ansi(raw_line).replace("\r", "").rstrip("\n")
-    match = re.match(
-        r"^(.*:)\s*(\[\s*(?:INFO|DEBUG|WARNING|ERROR|VERBOSE)\s*\]\s*\[\s*Step\s+\d+/\d+\].*)$",
-        clean,
-        flags=re.IGNORECASE,
-    )
-    if not match:
-        return None
-    return str(match.group(1) or "").rstrip() or None
-
-
-def _split_embedded_progress_line_breaks(raw_line: str) -> List[str]:
-    text = _strip_ansi(str(raw_line or "")).replace("\r", "").rstrip("\n")
-    if not text:
-        return []
-    next_line_prefix = r"(?=(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:|\[web-interface\])"
-    next_gpth_step_prefix = r"(?=\[\s*(?:INFO|DEBUG|WARNING|ERROR|VERBOSE)\s*\]\s*\[\s*Step\s+\d+/\d+\])"
-    text = re.sub(
-        rf"(\d{{1,3}}%\|[^\n\r]*?\|\s*\d+/\d+[^\n\r]*?(?:\[[^\n\r]*?\])?)\s*{next_line_prefix}",
-        r"\1\n",
-        text,
-    )
-    text = re.sub(
-        rf"(\d{{1,3}}%\|[^\n\r]*?\|\s*\d+/\d+[^\n\r]*?(?:\[[^\n\r]*?\])?)\s*{next_gpth_step_prefix}",
-        r"\1\n",
-        text,
-        flags=re.IGNORECASE,
-    )
-    text = re.sub(
-        rf"((?:.*?:)?\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%)\s*{next_line_prefix}",
-        r"\1\n",
-        text,
-    )
-    text = re.sub(
-        rf"((?:.*?:)?\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+\d+/\d+\s+\d+(?:\.\d+)?%)\s*{next_gpth_step_prefix}",
-        r"\1\n",
-        text,
-        flags=re.IGNORECASE,
-    )
-    text = re.sub(
-        rf"(\d+/\d+\s+\d+(?:\.\d+)?%)\s*{next_line_prefix}",
-        r"\1\n",
-        text,
-    )
-    text = re.sub(
-        rf"((?:.*?\[\s*Step\s+\d+/\d+\][^\n\r]*?:)\s*\d+/\d+)\s*{next_gpth_step_prefix}",
-        r"\1\n",
-        text,
-        flags=re.IGNORECASE,
-    )
-    return [f"{segment}\n" for segment in text.split("\n") if segment != ""]
 
 
 def _extract_progress_key(line: str) -> str | None:
@@ -2215,39 +2123,24 @@ def _append_job_output(job: JobData, text: str) -> None:
             job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
             job.dashboard_snapshot_from_events = True
             job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
-        logical_lines = _split_embedded_progress_line_breaks(line_with_nl) or [line_with_nl]
-        for logical_line in logical_lines:
-            orphan_level_prefix = _extract_orphan_log_level_prefix(logical_line)
-            if orphan_level_prefix is not None:
-                job.pending_level_prefix = orphan_level_prefix
-                continue
-            if job.pending_structured_prefix and _starts_with_gpth_inner_step(logical_line):
-                logical_line = _prepend_log_level_prefix(job.pending_structured_prefix, logical_line)
-            job.pending_structured_prefix = ""
-            if job.pending_level_prefix and _line_can_inherit_log_level_prefix(logical_line):
-                logical_line = _prepend_log_level_prefix(job.pending_level_prefix, logical_line)
-            job.pending_level_prefix = ""
-            if not _should_persist_visible_output_line(logical_line):
-                continue
-            persisted_chunks.append(logical_line)
-            progress_key = _extract_progress_key(logical_line)
-            gpth_outer_prefix = _extract_gpth_outer_prefix(logical_line)
-            if gpth_outer_prefix and progress_key:
-                job.pending_structured_prefix = gpth_outer_prefix
-            if progress_key and progress_key in job.progress_lines:
-                prev_entry = job.progress_lines[progress_key]
-                prev_len = len(prev_entry.text)
-                prev_entry.text = logical_line
-                job.output_chars += len(logical_line) - prev_len
-                output_changed = True
-                continue
-
-            entry = OutputLine(text=logical_line, progress_key=progress_key)
-            job.output.append(entry)
-            job.output_chars += len(logical_line)
+        if not _should_persist_visible_output_line(line_with_nl):
+            continue
+        persisted_chunks.append(line_with_nl)
+        progress_key = _extract_progress_key(line_with_nl)
+        if progress_key and progress_key in job.progress_lines:
+            prev_entry = job.progress_lines[progress_key]
+            prev_len = len(prev_entry.text)
+            prev_entry.text = line_with_nl
+            job.output_chars += len(line_with_nl) - prev_len
             output_changed = True
-            if progress_key:
-                job.progress_lines[progress_key] = entry
+            continue
+
+        entry = OutputLine(text=line_with_nl, progress_key=progress_key)
+        job.output.append(entry)
+        job.output_chars += len(line_with_nl)
+        output_changed = True
+        if progress_key:
+            job.progress_lines[progress_key] = entry
 
     if persisted_chunks and job.output_fp is not None:
         try:
@@ -2362,18 +2255,10 @@ def _sanitize_partial_output_line(raw_line: str) -> str:
 
 def _resolve_visible_partial_output_line(job: JobData) -> str:
     partial = _sanitize_partial_output_line(job.partial_line or "")
-    logical_partial_lines = _split_embedded_progress_line_breaks(partial)
-    if logical_partial_lines:
-        partial = logical_partial_lines[0].rstrip("\n")
-    if _extract_orphan_log_level_prefix(partial) is not None:
+    partial = partial.rstrip("\n")
+    if not partial.strip():
         return ""
-    pending_prefix = str(getattr(job, "pending_level_prefix", "") or "")
-    if pending_prefix and _line_can_inherit_log_level_prefix(partial):
-        return _prepend_log_level_prefix(pending_prefix, partial).rstrip("\n")
-    pending_structured_prefix = str(getattr(job, "pending_structured_prefix", "") or "")
-    if pending_structured_prefix and _starts_with_gpth_inner_step(partial):
-        return _prepend_log_level_prefix(pending_structured_prefix, partial).rstrip("\n")
-    return partial
+    return partial if _extract_progress_key(partial) else ""
 
 
 def _should_persist_visible_output_line(raw_line: str) -> bool:
@@ -2443,13 +2328,6 @@ def _read_job_output_for_api(job: JobData, recent_lines: List[str] | None = None
 
 
 def _read_job_output_lines_for_api(job: JobData, partial: str | None = None) -> List[str]:
-    # Keep the full compact in-memory log visible in the browser.
-    #
-    # Performance regressions were caused by reparsing the whole log to rebuild
-    # dashboard counters, not by simply shipping the already-compacted logical
-    # lines. The structured dashboard snapshot now owns the counters, so the web
-    # UI can safely consume the full visible log buffer again without merging
-    # paginated batches or reconstructing history windows client-side.
     lines = [entry.text.rstrip("\n") for entry in list(job.output)]
     if partial is None:
         partial = _resolve_visible_partial_output_line(job)
@@ -2472,78 +2350,6 @@ def _read_job_output_lines_for_api(job: JobData, partial: str | None = None) -> 
         return [notice, *lines]
     return lines
 
-
-def _get_job_output_file_size(job: JobData) -> int:
-    try:
-        return max(0, int(Path(job.output_file).stat().st_size))
-    except Exception:
-        return 0
-
-
-def _read_job_output_history_page(job: JobData, before_offset: int | None = None, limit: int | None = None) -> Dict[str, Any]:
-    """
-    Read older persisted log lines from the physical job log without replaying
-    the whole file on every poll.
-
-    The live `/api/jobs/{id}` endpoint keeps returning only the recent compact
-    window so polling cost stays bounded. This helper is only used on-demand
-    when the browser scrolls upward and asks for older history blocks.
-    """
-    requested_limit = int(limit or MAX_JOB_OUTPUT_HISTORY_API_LINES or 500)
-    safe_limit = max(1, min(requested_limit, MAX_JOB_OUTPUT_HISTORY_API_LINES))
-    path = Path(job.output_file)
-    if not path.exists():
-        return {"lines": [], "next_before_offset": 0, "has_more": False}
-
-    file_size = _get_job_output_file_size(job)
-    if file_size <= 0:
-        return {"lines": [], "next_before_offset": 0, "has_more": False}
-
-    target_before = file_size if before_offset is None else max(0, min(int(before_offset), file_size))
-    if target_before <= 0:
-        return {"lines": [], "next_before_offset": 0, "has_more": False}
-
-    block_size = 64 * 1024
-    read_pos = target_before
-    data = b""
-    try:
-        with path.open("rb") as fp:
-            while read_pos > 0 and data.count(b"\n") <= safe_limit:
-                chunk_size = min(block_size, read_pos)
-                read_pos -= chunk_size
-                fp.seek(read_pos)
-                data = fp.read(chunk_size) + data
-    except Exception:
-        return {"lines": [], "next_before_offset": 0, "has_more": False}
-
-    raw_segments = data.splitlines(keepends=True)
-    segment_base_offset = read_pos
-    if read_pos > 0 and raw_segments:
-        # The first segment can start in the middle of a line because we read
-        # backwards by bytes. Drop it so every returned element is a full line.
-        segment_base_offset += len(raw_segments[0])
-        raw_segments = raw_segments[1:]
-
-    if not raw_segments:
-        return {"lines": [], "next_before_offset": 0, "has_more": False}
-
-    if len(raw_segments) > safe_limit:
-        skipped = raw_segments[:-safe_limit]
-        next_before_offset = segment_base_offset + sum(len(segment) for segment in skipped)
-        selected_segments = raw_segments[-safe_limit:]
-    else:
-        next_before_offset = segment_base_offset
-        selected_segments = raw_segments
-
-    lines = [
-        segment.decode("utf-8", errors="replace").rstrip("\r\n")
-        for segment in selected_segments
-    ]
-    return {
-        "lines": lines,
-        "next_before_offset": max(0, int(next_before_offset)),
-        "has_more": bool(next_before_offset > 0),
-    }
 
 
 _DASHBOARD_MONOTONIC_KEYS = {
@@ -4005,7 +3811,6 @@ def get_job(job_id: str, compact: bool = False, current_user: Dict[str, Any] = D
             and not job.process.stdin.closed
         )
         can_stop = bool(job.status in {"running", "stopping"} and job.process is not None)
-        output_file_size = _get_job_output_file_size(job) if not compact else 0
         response_payload = {
             "job_id": job_id,
             "tab": job.tab,
@@ -4022,14 +3827,11 @@ def get_job(job_id: str, compact: bool = False, current_user: Dict[str, Any] = D
             "dashboard_snapshot_updated_at": job.dashboard_snapshot_updated_at,
             "output_lines": output_lines,
             "output_version": int(job.output_version or 0),
-            "visible_partial_output_line": visible_partial_output_line,
         }
         if not compact:
             output = _read_job_output_for_api(job, recent_lines=output_lines)
             response_payload.update({
                 "output": output,
-                "output_history_before_offset": output_file_size,
-                "output_history_has_more": bool(output_file_size > 0),
             })
         if perf_started_at is not None:
             _debug_perf_log(
@@ -4043,27 +3845,6 @@ def get_job(job_id: str, compact: bool = False, current_user: Dict[str, Any] = D
                 compact=compact,
             )
         return response_payload
-
-
-@app.get("/api/jobs/{job_id}/output-history")
-def get_job_output_history(
-    job_id: str,
-    before_offset: int | None = None,
-    limit: int = MAX_JOB_OUTPUT_HISTORY_API_LINES,
-    current_user: Dict[str, Any] = Depends(_require_user),
-) -> Dict[str, Any]:
-    with JOBS_LOCK:
-        if job_id not in JOBS:
-            raise HTTPException(status_code=404, detail="Job not found")
-        job = JOBS[job_id]
-        if int(job.owner_user_id or -1) != int(current_user["id"]):
-            raise HTTPException(status_code=404, detail="Job not found")
-        page = _read_job_output_history_page(job, before_offset=before_offset, limit=limit)
-        return {
-            "job_id": job_id,
-            **page,
-        }
-
 
 class JobInputRequest(BaseModel):
     text: str = ""
