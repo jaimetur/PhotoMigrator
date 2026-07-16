@@ -1318,22 +1318,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     reassigned_count = 0
                     should_remove_redundant = False
                     if duplicate_asset_ids:
-                        added_count = target_client.add_assets_to_album(
-                            album_id=keeper_id,
-                            asset_ids=duplicate_asset_ids,
-                            album_name=keeper_name,
-                            log_level=log_level,
-                        )
-                        if isinstance(added_count, int) and added_count >= 1:
-                            _set_cached_target_album_asset_ids(
-                                keeper_id,
-                                _get_cached_target_album_asset_ids(
-                                    keeper_id,
-                                    album_name=keeper_name,
-                                    log_level=log_level,
-                                ).union(set(duplicate_asset_ids))
-                            )
+                        added_count = 0
                         if isinstance(target_client, ClassNextCloudPhotos):
+                            added_count = target_client.add_assets_to_album(
+                                album_id=keeper_id,
+                                asset_ids=duplicate_asset_ids,
+                                album_name=keeper_name,
+                                log_level=log_level,
+                            )
                             keeper_assets = _get_target_album_assets(
                                 target_client=target_client,
                                 album_id=keeper_id,
@@ -1361,12 +1353,25 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 for filename, count in redundant_name_counts.items()
                             )
                         else:
-                            keeper_asset_ids = set(_get_target_album_asset_ids(
-                                target_client=target_client,
+                            previously_confirmed_ids = set(_get_cached_target_album_asset_ids(
                                 album_id=keeper_id,
                                 album_name=keeper_name,
                                 log_level=log_level,
                             ))
+                            confirmed_ids = _add_assets_to_target_album(
+                                album_id_dest=keeper_id,
+                                album_name=keeper_name,
+                                asset_ids=duplicate_asset_ids,
+                                log_level=log_level,
+                            )
+                            keeper_asset_ids = set(_get_cached_target_album_asset_ids(
+                                album_id=keeper_id,
+                                album_name=keeper_name,
+                                log_level=log_level,
+                            ))
+                            if not keeper_asset_ids and confirmed_ids:
+                                keeper_asset_ids = set(confirmed_ids)
+                            added_count = max(0, len(set(confirmed_ids) - previously_confirmed_ids))
                             reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
                         LOGGER.info(
                             f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
