@@ -1002,6 +1002,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     canonicalized_album_keys = set()
     processed_albums = set()
     processed_albums_lock = threading.Lock()
+    album_stats_by_name = {}
+    album_stats_lock = threading.Lock()
     target_album_asset_ids_cache = {}
     target_album_asset_ids_lock = threading.Lock()
     album_assoc_locks = {}
