@@ -268,7 +268,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIs(sanitized["google-keep-takeout-folder"], True)
         self.assertIs(sanitized["no-log-file"], True)
 
-    def test_read_job_output_lines_for_api_preserves_compact_lines_and_partial(self):
+    def test_read_job_output_lines_for_api_omits_non_progress_partial(self):
         job = type("JobStub", (), {})()
         job.output = deque([
             self.web_app.OutputLine(text="INFO: line 1\n"),
@@ -279,7 +279,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
 
         lines = self.web_app._read_job_output_lines_for_api(job)
 
-        self.assertEqual(lines, ["INFO: line 1", "INFO: line 2", "INFO: partial"])
+        self.assertEqual(lines, ["INFO: line 1", "INFO: line 2"])
 
     def test_read_job_output_lines_for_api_prepends_drop_notice_when_needed(self):
         job = type("JobStub", (), {})()
@@ -306,41 +306,8 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(lines[0], "INFO: line 0")
         self.assertEqual(lines[-1], "INFO: line 149")
 
-    def test_read_job_output_history_page_returns_last_page_and_previous_cursor(self):
-        history_path = self.base_path / "job-history.log"
-        history_path.write_text("".join(f"INFO: line {idx}\n" for idx in range(12)), encoding="utf-8")
-        job = type("JobStub", (), {})()
-        job.output_file = history_path
-
-        page = self.web_app._read_job_output_history_page(job, before_offset=history_path.stat().st_size, limit=5)
-
-        self.assertEqual(page["lines"], [f"INFO: line {idx}" for idx in range(7, 12)])
-        self.assertTrue(page["has_more"])
-        self.assertGreater(page["next_before_offset"], 0)
-
-    def test_read_job_output_history_page_uses_next_cursor_for_older_block(self):
-        history_path = self.base_path / "job-history.log"
-        history_path.write_text("".join(f"INFO: line {idx}\n" for idx in range(12)), encoding="utf-8")
-        job = type("JobStub", (), {})()
-        job.output_file = history_path
-
-        newest_page = self.web_app._read_job_output_history_page(job, before_offset=history_path.stat().st_size, limit=5)
-        older_page = self.web_app._read_job_output_history_page(job, before_offset=newest_page["next_before_offset"], limit=5)
-
-        self.assertEqual(older_page["lines"], [f"INFO: line {idx}" for idx in range(2, 7)])
-        self.assertTrue(older_page["has_more"])
-
-    def test_read_job_output_history_page_handles_start_of_file_without_more_pages(self):
-        history_path = self.base_path / "job-history.log"
-        history_path.write_text("INFO: line 0\nINFO: line 1\n", encoding="utf-8")
-        job = type("JobStub", (), {})()
-        job.output_file = history_path
-
-        page = self.web_app._read_job_output_history_page(job, before_offset=history_path.stat().st_size, limit=10)
-
-        self.assertEqual(page["lines"], ["INFO: line 0", "INFO: line 1"])
-        self.assertFalse(page["has_more"])
-        self.assertEqual(page["next_before_offset"], 0)
+    def test_read_job_output_history_page_helper_is_not_exposed(self):
+        self.assertFalse(hasattr(self.web_app, "_read_job_output_history_page"))
 
     def test_web_parser_schema_exposes_auxiliary_organize_fields_by_dest(self):
         fields_by_dest = self.web_app.PARSER_SCHEMA.get("fields_by_dest", {})
@@ -465,7 +432,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("--no-log-file", enabled_args)
         self.assertNotIn("--no-log-file", disabled_args)
 
-    def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
+    def test_web_job_output_preserves_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")
         fake_process.stdin = None
@@ -485,7 +452,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             self.web_app._close_job_output_file(job)
 
         self.assertIn("1289 files", output)
-        self.assertNotIn("1262 files", output)
+        self.assertIn("1262 files", output)
 
     def test_dashboard_snapshot_events_update_job_snapshot_without_polluting_visible_output(self):
         fake_process = Mock()
@@ -572,11 +539,13 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             "INFO    : [Pull] : ##### 5/10 50.0%\r"
             f"{self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX}{{\"pulledAssets\":321"
         )
+        job.pending_structured_prefix = ""
+        job.pending_level_prefix = ""
         job.dropped_output_lines = 0
 
         lines = self.web_app._read_job_output_lines_for_api(job)
 
-        self.assertEqual(lines, ["INFO    : [Pull] : ##### 5/10 50.0%"])
+        self.assertEqual(lines, ["INFO    : [Pull] : ##### 5/10 50.0%\r"])
 
     def test_dashboard_snapshot_with_trailing_info_prefix_is_fully_removed_from_visible_log(self):
         fake_process = Mock()
@@ -688,6 +657,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             self.web_app.OutputLine(text="INFO    : Downloading Albums:  37%|███▋      | 94/254 [00:26<00:33,  4.84 albums/s]\n")
         ])
         job.partial_line = "INFO    : Downloading Albums:  38%|███▊      | 95/254 [00:27<00:33,  4.84 albums/s]"
+        job.pending_structured_prefix = ""
         job.pending_level_prefix = ""
         job.dropped_output_lines = 0
 
