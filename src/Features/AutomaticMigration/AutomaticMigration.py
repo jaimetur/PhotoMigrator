@@ -106,6 +106,7 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "migrationMode": "parallel" if bool(parallel) else "sequential",
         "sourceClientName": info.get("source_client_name"),
         "targetClientName": info.get("target_client_name"),
+        "assetTransferStartedAt": info.get("asset_transfer_start_time"),
         "totalAssets": int(info.get("total_assets", 0) or 0),
         "totalPhotos": int(info.get("total_photos", 0) or 0),
         "totalVideos": int(info.get("total_videos", 0) or 0),
@@ -563,6 +564,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         input_info = {
             "source_client_name": "Source Client",
             "target_client_name": "Target Client",
+            "asset_transfer_start_time": None,
             "total_assets": 0,
             "total_photos": 0,
             "total_videos": 0,
@@ -2716,6 +2718,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Launching {num_pull_threads} Pull worker in parallel...")
             num_push_threads = max(1, int(cpu_total_threads * 2))
             LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
+            SHARED_DATA.info["asset_transfer_start_time"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
             configured_album_assoc_threads = int(ARGS.get("album-association-workers", 0) or 0)
             if configured_album_assoc_threads > 0:
                 num_album_assoc_threads = configured_album_assoc_threads
@@ -3870,7 +3873,19 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     max(0, int(SHARED_DATA.counters.get('total_pulled_assets', 0) or 0))
                 )
                 pending_assets = max(0, total_assets - processed_assets)
-                elapsed_seconds = max(0.0, (datetime.now() - step_start_time).total_seconds())
+                transfer_started_at_raw = SHARED_DATA.info.get("asset_transfer_start_time")
+                transfer_started_at = None
+                if isinstance(transfer_started_at_raw, datetime):
+                    transfer_started_at = transfer_started_at_raw
+                elif transfer_started_at_raw:
+                    try:
+                        transfer_started_at = datetime.fromisoformat(str(transfer_started_at_raw).replace("Z", "+00:00"))
+                    except ValueError:
+                        transfer_started_at = None
+                elapsed_seconds = max(
+                    0.0,
+                    (datetime.now(timezone.utc) - transfer_started_at).total_seconds()
+                ) if transfer_started_at else 0.0
                 SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time(
                     elapsed_seconds=elapsed_seconds,
                     processed_assets=processed_assets,

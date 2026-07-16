@@ -130,9 +130,9 @@
                     <div id="web-dashboard-chip" class="web-dashboard__chip">Idle</div>
                 </div>
                 <div class="web-dashboard__meta">
-                    <span id="web-dashboard-elapsed">Elapsed: 00:00:00</span>
-                    <span id="web-dashboard-estimated">Estimated: -</span>
-                    <span id="web-dashboard-updated">Updated: -</span>
+                    <span id="web-dashboard-elapsed">Elapsed Time: 00:00:00</span>
+                    <span id="web-dashboard-estimated">Estimated Remaining Time: -</span>
+                    <span id="web-dashboard-updated">Last Updated: -</span>
                 </div>
                 <div class="stats-columns">
                     <div class="stats-card">
@@ -148,7 +148,7 @@
                         <div class="stat-row"><span class="stat-label">🔒 Blocked Assets</span><span id="dash-blocked-assets" class="stat-value">-</span></div>
                         <div class="bar-row"><span>📊 Assets in Queue</span><div class="progress-track"><div id="bar-info-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-queue-count">0/100 (0.0%)</span></span></div>
                         <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
-                        <div class="stat-row"><span class="stat-label">⏳ Estimated Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">⏳ Estimated Remaining Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
                     </div>
                     <div class="stats-card">
                         <h4 id="dash-pull-title" class="stats-card__title">⬇️ Pull Panel</h4>
@@ -1247,8 +1247,10 @@
         const startedMs = startedAt ? Date.parse(startedAt) : Date.now();
         const elapsedMs = Number.isFinite(startedMs) ? Math.max(0, Date.now() - startedMs) : 0;
         const elapsed = Number.isFinite(startedMs) ? formatDuration(elapsedMs) : "00:00:00";
+        const assetTransferStartedAt = stats.assetTransferStartedAt || "";
+        const assetTransferStartedMs = assetTransferStartedAt ? Date.parse(assetTransferStartedAt) : NaN;
         const estimated = computeEstimatedRemainingDuration({
-            elapsedMs,
+            elapsedMs: Number.isFinite(assetTransferStartedMs) ? Math.max(0, Date.now() - assetTransferStartedMs) : elapsedMs,
             totalAssets: stats.totalAssets,
             pulledAssets: stats.pulledAssets,
         });
@@ -1267,9 +1269,9 @@
         chip.textContent = normalizedStatus.toUpperCase();
         chip.dataset.state = normalizedStatus;
 
-        document.getElementById("web-dashboard-elapsed").textContent = `Elapsed: ${elapsed}`;
-        document.getElementById("web-dashboard-estimated").textContent = `Estimated: ${estimated}`;
-        document.getElementById("web-dashboard-updated").textContent = `Updated: ${updated}`;
+        document.getElementById("web-dashboard-elapsed").textContent = `Elapsed Time: ${elapsed}`;
+        document.getElementById("web-dashboard-estimated").textContent = `Estimated Remaining Time: ${estimated}`;
+        document.getElementById("web-dashboard-updated").textContent = `Last Updated: ${updated}`;
         setText("dash-total-assets", stats.totalAssets);
         setText("dash-total-photos", stats.totalPhotos);
         setText("dash-total-videos", stats.totalVideos);
