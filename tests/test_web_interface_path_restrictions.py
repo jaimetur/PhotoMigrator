@@ -432,7 +432,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("--no-log-file", enabled_args)
         self.assertNotIn("--no-log-file", disabled_args)
 
-    def test_web_job_output_preserves_indeterminate_tqdm_lines(self):
+    def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")
         fake_process.stdin = None
@@ -452,7 +452,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             self.web_app._close_job_output_file(job)
 
         self.assertIn("1289 files", output)
-        self.assertIn("1262 files", output)
+        self.assertNotIn("1262 files", output)
 
     def test_dashboard_snapshot_events_update_job_snapshot_without_polluting_visible_output(self):
         fake_process = Mock()

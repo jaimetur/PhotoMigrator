@@ -2149,6 +2149,8 @@ def _looks_like_progress_or_progress_followup(line: str) -> bool:
         return True
     if "████" in candidate or "...." in candidate:
         return True
+    if "/s]" in candidate and " [" in candidate and any(token in candidate for token in (" files ", " albums ", " assets ", " folders ", " subfolders ")):
+        return True
     if "INFO    :" in candidate and "%" in candidate:
         return True
     if "[Step " in candidate and "%" in candidate:
