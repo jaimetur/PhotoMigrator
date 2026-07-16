@@ -804,6 +804,33 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             ],
         )
 
+    def test_gpth_structured_followup_line_recovers_outer_info_prefix(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 7/8] Writing EXIF data : ██████████████████████████████████████████████████ 170/170 100.0%\n",
+            )
+            self.web_app._append_job_output(
+                job,
+                "🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 7/8] Pending before final flush → Images: 0, Videos: 0\n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            [
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 7/8] Writing EXIF data : ██████████████████████████████████████████████████ 170/170 100.0%",
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 7/8] Pending before final flush → Images: 0, Videos: 0",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

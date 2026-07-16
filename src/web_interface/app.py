@@ -2112,6 +2112,10 @@ def _extract_leading_log_level_prefix(line: str) -> str:
     return f"{match.group(1).upper():<8}: "
 
 
+def _strip_leading_log_level_prefix(line: str) -> str:
+    return LOG_LEVEL_PREFIX_RE.sub("", str(line or "").lstrip(), count=1)
+
+
 def _extract_structured_context_prefix(line: str) -> str:
     raw = str(line or "").rstrip("\n")
     match = INNER_STEP_INFO_SEARCH_RE.search(raw)
@@ -2233,7 +2237,15 @@ def _append_job_output(job: JobData, text: str) -> None:
                 line_with_nl = f"{job.pending_structured_prefix}{line_with_nl.lstrip()}"
                 job.pending_structured_prefix = ""
                 output_changed = True
-            elif job.pending_structured_prefix and not _starts_with_inner_step_info(line_with_nl):
+            elif job.pending_structured_prefix and not _has_log_level_prefix(line_with_nl):
+                structured_without_level = _strip_leading_log_level_prefix(job.pending_structured_prefix).rstrip()
+                if structured_without_level and line_with_nl.lstrip().startswith(structured_without_level):
+                    outer_level_prefix = _extract_leading_log_level_prefix(job.pending_structured_prefix)
+                    if outer_level_prefix:
+                        line_with_nl = f"{outer_level_prefix}{line_with_nl.lstrip()}"
+                        output_changed = True
+                job.pending_structured_prefix = ""
+            elif job.pending_structured_prefix:
                 job.pending_structured_prefix = ""
 
             if job.pending_level_prefix and not _has_log_level_prefix(line_with_nl):
