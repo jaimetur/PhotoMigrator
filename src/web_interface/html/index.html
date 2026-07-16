@@ -628,6 +628,17 @@
     let lastRawOutput = "";
     let lastOutputLines = [];
     let displayedRawOutput = "";
+    let lastOutputSeq = 0;
+    let outputPersistentEntries = [];
+    let outputEntryIndexById = new Map();
+    let outputLineNodesById = new Map();
+    let outputNoticeNode = null;
+    let outputPartialNode = null;
+    let outputNoticeText = "";
+    let outputPartialText = "";
+    let outputTailBlock = null;
+    let outputTailBlockCount = 0;
+    let pendingOutputRenderPayload = null;
     let currentRunPayload = null;
     let currentJobStartedAt = null;
     let currentJobIsAutomatic = false;
@@ -637,12 +648,24 @@
     let lastDashboardSnapshotUpdatedAt = "";
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
+    const OUTPUT_BLOCK_SIZE = 400;
     const JOB_POLL_INTERVAL_MS = 25;
 
     function resetOutputHistory() {
         lastRawOutput = "";
         lastOutputLines = [];
         displayedRawOutput = "";
+        lastOutputSeq = 0;
+        outputPersistentEntries = [];
+        outputEntryIndexById = new Map();
+        outputLineNodesById = new Map();
+        outputNoticeNode = null;
+        outputPartialNode = null;
+        outputNoticeText = "";
+        outputPartialText = "";
+        outputTailBlock = null;
+        outputTailBlockCount = 0;
+        pendingOutputRenderPayload = null;
         outputRenderDeferredBySelection = false;
         lastOutputVersion = -1;
         lastDashboardSnapshotUpdatedAt = "";
@@ -1083,19 +1106,183 @@
         };
     }
 
-    function buildLogHtml(lines) {
-        if (!Array.isArray(lines) || lines.length === 0) return "";
-        return lines.map((line) => {
-            const rendered = getRenderedLogLineDescriptor(line);
-            const safe = rendered.cleaned === "" ? "<br>" : escapeHtml(rendered.cleaned);
-            return rendered.cls
-                ? `<span class="log-line ${rendered.cls}">${safe}</span>`
-                : `<span class="log-line">${safe}</span>`;
-        }).join("");
+    function createRenderedLogNode(line, lineId = "") {
+        const rendered = getRenderedLogLineDescriptor(line);
+        const node = document.createElement("span");
+        node.className = rendered.cls ? `log-line ${rendered.cls}` : "log-line";
+        node.textContent = rendered.cleaned === "" ? "" : rendered.cleaned;
+        if (lineId !== "" && lineId != null) node.dataset.lineId = String(lineId);
+        return node;
     }
 
-    function renderOutputWithLevels(rawText, options = {}) {
+    function ensureOutputTailBlock(outputEl) {
+        if (outputTailBlock && outputTailBlock.isConnected && outputTailBlockCount < OUTPUT_BLOCK_SIZE) {
+            return outputTailBlock;
+        }
+        const block = document.createElement("div");
+        block.className = "log-block";
+        if (outputPartialNode && outputPartialNode.parentNode === outputEl) {
+            outputEl.insertBefore(block, outputPartialNode);
+        } else {
+            outputEl.appendChild(block);
+        }
+        outputTailBlock = block;
+        outputTailBlockCount = 0;
+        return block;
+    }
+
+    function removeDetachedOutputBlocks(outputEl) {
+        const blocks = outputEl.querySelectorAll(".log-block");
+        outputTailBlock = blocks.length ? blocks[blocks.length - 1] : null;
+        outputTailBlockCount = outputTailBlock ? outputTailBlock.childElementCount : 0;
+    }
+
+    function updateOutputSpecialTextCache(kind, text) {
+        const normalized = String(text || "");
+        if (kind === "notice") {
+            const previous = outputNoticeText;
+            if (previous && normalized) lastOutputLines[0] = normalized;
+            else if (!previous && normalized) lastOutputLines.unshift(normalized);
+            else if (previous && !normalized) lastOutputLines.shift();
+            outputNoticeText = normalized;
+            return;
+        }
+        const previous = outputPartialText;
+        if (previous && normalized) lastOutputLines[lastOutputLines.length - 1] = normalized;
+        else if (!previous && normalized) lastOutputLines.push(normalized);
+        else if (previous && !normalized) lastOutputLines.pop();
+        outputPartialText = normalized;
+    }
+
+    function setOutputSpecialNode(kind, line) {
         const outputEl = document.getElementById("output");
+        if (!outputEl) return;
+        let currentNode = kind === "notice" ? outputNoticeNode : outputPartialNode;
+        const text = String(line || "");
+
+        if (!text) {
+            if (currentNode && currentNode.parentNode) currentNode.parentNode.removeChild(currentNode);
+            if (kind === "notice") outputNoticeNode = null;
+            else outputPartialNode = null;
+            updateOutputSpecialTextCache(kind, "");
+            return;
+        }
+
+        const replacementNode = createRenderedLogNode(text, kind);
+        replacementNode.dataset.synthetic = kind;
+
+        if (currentNode && currentNode.parentNode) {
+            currentNode.parentNode.replaceChild(replacementNode, currentNode);
+        } else if (kind === "notice") {
+            outputEl.insertBefore(replacementNode, outputEl.firstChild);
+        } else {
+            outputEl.appendChild(replacementNode);
+        }
+
+        if (kind === "notice") outputNoticeNode = replacementNode;
+        else outputPartialNode = replacementNode;
+        updateOutputSpecialTextCache(kind, text);
+    }
+
+    function initializeOutputFromSnapshot(snapshotEntries = [], droppedNotice = "", partialLine = "") {
+        const outputEl = document.getElementById("output");
+        if (!outputEl) return;
+        outputEl.textContent = "";
+        lastOutputLines = [];
+        lastRawOutput = "";
+        displayedRawOutput = "";
+        outputPersistentEntries = [];
+        outputEntryIndexById = new Map();
+        outputLineNodesById = new Map();
+        outputNoticeNode = null;
+        outputPartialNode = null;
+        outputNoticeText = "";
+        outputPartialText = "";
+        outputTailBlock = null;
+        outputTailBlockCount = 0;
+
+        if (droppedNotice) {
+            setOutputSpecialNode("notice", droppedNotice);
+        }
+
+        for (const rawEntry of Array.isArray(snapshotEntries) ? snapshotEntries : []) {
+            const lineId = Number(rawEntry?.line_id || 0);
+            const text = String(rawEntry?.text || "");
+            const entry = {line_id: lineId, text};
+            outputPersistentEntries.push(entry);
+            outputEntryIndexById.set(lineId, outputPersistentEntries.length - 1);
+            lastOutputLines.push(text);
+            const block = ensureOutputTailBlock(outputEl);
+            const node = createRenderedLogNode(text, lineId);
+            block.appendChild(node);
+            outputLineNodesById.set(lineId, node);
+            outputTailBlockCount += 1;
+        }
+
+        setOutputSpecialNode("partial", partialLine);
+    }
+
+    function applyOutputDelta(outputOps = [], droppedNotice = "", partialLine = "") {
+        const outputEl = document.getElementById("output");
+        if (!outputEl) return;
+
+        if (droppedNotice !== undefined) {
+            setOutputSpecialNode("notice", droppedNotice || "");
+        }
+
+        const fragmentByBlock = new Map();
+        for (const rawOp of Array.isArray(outputOps) ? outputOps : []) {
+            const op = String(rawOp?.op || "append");
+            const lineId = Number(rawOp?.line_id || 0);
+            const text = String(rawOp?.text || "");
+            if (!lineId) continue;
+
+            if (op === "append") {
+                const entry = {line_id: lineId, text};
+                outputEntryIndexById.set(lineId, outputPersistentEntries.length);
+                outputPersistentEntries.push(entry);
+                const insertIndex = lastOutputLines.length - (outputPartialText ? 1 : 0);
+                lastOutputLines.splice(insertIndex, 0, text);
+                const block = ensureOutputTailBlock(outputEl);
+                let blockFragment = fragmentByBlock.get(block);
+                if (!blockFragment) {
+                    blockFragment = document.createDocumentFragment();
+                    fragmentByBlock.set(block, blockFragment);
+                }
+                const node = createRenderedLogNode(text, lineId);
+                blockFragment.appendChild(node);
+                outputLineNodesById.set(lineId, node);
+                outputTailBlockCount += 1;
+            } else if (op === "replace") {
+                const index = outputEntryIndexById.get(lineId);
+                if (index == null) continue;
+                outputPersistentEntries[index].text = text;
+                const visibleIndex = index + (outputNoticeText ? 1 : 0);
+                if (visibleIndex >= 0 && visibleIndex < lastOutputLines.length) {
+                    lastOutputLines[visibleIndex] = text;
+                }
+                const existingNode = outputLineNodesById.get(lineId);
+                if (existingNode && existingNode.parentNode) {
+                    const replacementNode = createRenderedLogNode(text, lineId);
+                    existingNode.parentNode.replaceChild(replacementNode, existingNode);
+                    outputLineNodesById.set(lineId, replacementNode);
+                }
+            }
+        }
+
+        for (const [block, blockFragment] of fragmentByBlock.entries()) {
+            block.appendChild(blockFragment);
+        }
+
+        setOutputSpecialNode("partial", partialLine);
+        lastRawOutput = "";
+        displayedRawOutput = "";
+        removeDetachedOutputBlocks(outputEl);
+    }
+
+    function applyOutputPayload(payload = {}, options = {}) {
+        const outputEl = document.getElementById("output");
+        if (!outputEl) return;
         outputVirtualLineHeight = getOutputVirtualLineHeight(outputEl);
         const autoScrollEnabled = uiState.auto_scroll !== false;
         const nearBottomBeforeRender = (
@@ -1103,23 +1290,62 @@
             + (outputEl.clientHeight || 0)
             + Math.max(16, outputVirtualLineHeight || 20) * 2
         ) >= (outputEl.scrollHeight || 0);
-        const providedLines = Array.isArray(options.outputLines) && options.outputLines.length
-            ? options.outputLines
-            : (rawText ? String(rawText).replace(/\r\n/g, "\n").split("\n") : []);
-        lastOutputLines = providedLines.slice();
-        lastRawOutput = providedLines.join("\n");
-        displayedRawOutput = lastRawOutput;
+
         if (shouldFreezeOutputRenderForSelection(options)) {
+            pendingOutputRenderPayload = {...payload};
             outputRenderDeferredBySelection = true;
             return;
         }
+
         outputRenderDeferredBySelection = false;
         const previousScrollTop = outputEl.scrollTop;
-        outputEl.innerHTML = buildLogHtml(providedLines);
+
+        if (payload.output_reset) {
+            initializeOutputFromSnapshot(
+                payload.output_entries || [],
+                payload.dropped_output_notice || "",
+                payload.visible_partial_output_line || "",
+            );
+        } else {
+            applyOutputDelta(
+                payload.output_ops || [],
+                payload.dropped_output_notice || "",
+                payload.visible_partial_output_line || "",
+            );
+        }
+
         if (options.preserveScrollAnchor) {
             outputEl.scrollTop = previousScrollTop;
-        } else if (options.force || (autoScrollEnabled && nearBottomBeforeRender)) outputEl.scrollTop = outputEl.scrollHeight;
-        else outputEl.scrollTop = previousScrollTop;
+        } else if (options.force || (autoScrollEnabled && nearBottomBeforeRender)) {
+            outputEl.scrollTop = outputEl.scrollHeight;
+        } else {
+            outputEl.scrollTop = previousScrollTop;
+        }
+
+        pendingOutputRenderPayload = null;
+    }
+
+    function renderOutputWithLevels(rawText, options = {}) {
+        const providedLines = Array.isArray(options.outputLines) ? options.outputLines : [];
+        const syntheticPayload = {
+            output_reset: true,
+            output_entries: providedLines.map((line, index) => ({line_id: index + 1, text: String(line || "")})),
+            dropped_output_notice: "",
+            visible_partial_output_line: "",
+        };
+        applyOutputPayload(syntheticPayload, options);
+    }
+
+    function buildCurrentOutputSnapshotPayload() {
+        return {
+            output_reset: true,
+            output_entries: outputPersistentEntries.map((entry) => ({
+                line_id: Number(entry?.line_id || 0),
+                text: String(entry?.text || ""),
+            })),
+            dropped_output_notice: outputNoticeNode ? String(outputNoticeNode.textContent || "") : "",
+            visible_partial_output_line: outputPartialNode ? String(outputPartialNode.textContent || "") : "",
+        };
     }
 
     function getOutputSelectionText() {
@@ -3101,7 +3327,8 @@
         const perfStarted = performance.now();
         try {
             const fetchStarted = performance.now();
-            const response = await fetch(`/api/jobs/${currentJob}?compact=1`);
+            const query = lastOutputSeq > 0 ? `?compact=1&after_seq=${encodeURIComponent(String(lastOutputSeq))}` : "?compact=1";
+            const response = await fetch(`/api/jobs/${currentJob}${query}`);
             const fetchElapsedMs = performance.now() - fetchStarted;
             if (response.status === 404) {
                 currentJob = null;
@@ -3126,9 +3353,10 @@
             let renderOutputElapsedMs = 0;
             if (shouldRenderOutput) {
                 const renderOutputStarted = performance.now();
-                renderOutputWithLevels("", {outputLines: data.output_lines || []});
+                applyOutputPayload(data, {});
                 renderOutputElapsedMs = performance.now() - renderOutputStarted;
                 lastOutputVersion = nextOutputVersion;
+                lastOutputSeq = Number(data.output_cursor || lastOutputSeq || 0);
             }
 
             let dashboardElapsedMs = 0;
@@ -3162,6 +3390,7 @@
                 totalMs: Number((performance.now() - perfStarted).toFixed(2)),
                 outputChars: String(displayedRawOutput || "").length,
                 outputVersion: nextOutputVersion,
+                outputSeq: lastOutputSeq,
                 renderedOutput: shouldRenderOutput,
                 renderedDashboard: shouldRenderDashboard
             });
@@ -4869,7 +5098,7 @@
             queueSaveState();
             if (uiState.auto_scroll !== false) {
                 // Catch up all missed output when autoscroll is re-enabled.
-                renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, force: true});
+                applyOutputPayload(pendingOutputRenderPayload || buildCurrentOutputSnapshotPayload(), {force: true});
             }
             });
         document.getElementById("output").addEventListener("scroll", () => {
@@ -4887,14 +5116,14 @@
                 uiState.auto_scroll = true;
                 autoScrollCheck.checked = true;
                 queueSaveState();
-                renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, force: true});
+                applyOutputPayload(pendingOutputRenderPayload || buildCurrentOutputSnapshotPayload(), {force: true});
             }
         });
         document.addEventListener("selectionchange", () => {
             if (!outputRenderDeferredBySelection) return;
             if (getOutputSelectionText().length > 0) return;
             if (uiState.auto_scroll === false) {
-                renderOutputWithLevels(lastRawOutput, {outputLines: lastOutputLines, force: true});
+                applyOutputPayload(pendingOutputRenderPayload || buildCurrentOutputSnapshotPayload(), {force: true});
             }
         });
         document.addEventListener("keydown", (event) => {

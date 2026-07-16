@@ -2029,6 +2029,13 @@ body.is-resizing-log {
     overflow-wrap: normal;
 }
 
+.log-block {
+    display: block;
+    content-visibility: auto;
+    contain: layout style paint;
+    contain-intrinsic-size: 480px;
+}
+
 .log-spacer {
     display: block;
     pointer-events: none;

@@ -460,9 +460,12 @@ class JobData:
         self.awaiting_confirmation = False
         self.status = "running"
         self.output: Deque["OutputLine"] = deque()  # last completed logical lines in memory
+        self.output_ops: Deque["OutputOp"] = deque()  # incremental append/replace ops for frontend polling
         self.output_chars = 0
         self.dropped_output_lines = 0
         self.output_version = 0
+        self.next_output_line_id = 1
+        self.next_output_op_seq = 1
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.pending_cr = False            # track split CRLF across chunk boundaries
         self.pending_level_prefix = ""
@@ -485,6 +488,15 @@ class JobData:
 class OutputLine:
     text: str
     progress_key: str | None = None
+    line_id: int = 0
+
+
+@dataclass
+class OutputOp:
+    seq: int
+    op: str
+    line_id: int
+    text: str
 
 
 def _utc_now_iso() -> str:
@@ -2015,6 +2027,7 @@ def _env_int(name: str, default: int) -> int:
 
 WEB_JOB_LOG_DIR = Path(os.environ.get("PHOTOMIGRATOR_WEB_JOB_LOG_DIR", "/tmp/photomigrator-web-jobs"))
 MAX_JOB_OUTPUT_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_LINES", 100_000)
+MAX_JOB_OUTPUT_OPS = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_OPS", 200_000)
 MAX_JOB_OUTPUT_API_LINES = _env_int("PHOTOMIGRATOR_WEB_MAX_JOB_OUTPUT_API_LINES", 100)
 WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
 TAIL_CONFIRM_CHARS = 4_000
@@ -2301,6 +2314,7 @@ def _append_job_output(job: JobData, text: str) -> None:
                 prev_len = len(prev_entry.text)
                 prev_entry.text = line_with_nl
                 job.output_chars += len(line_with_nl) - prev_len
+                _record_job_output_op(job, "replace", prev_entry)
                 output_changed = True
                 structured_prefix = _extract_structured_context_prefix(line_with_nl) if needs_progress_processing else ""
                 if structured_prefix:
@@ -2309,9 +2323,15 @@ def _append_job_output(job: JobData, text: str) -> None:
                     job.pending_level_prefix = trailing_prefix
                 continue
 
-            entry = OutputLine(text=line_with_nl, progress_key=progress_key)
+            entry = OutputLine(
+                text=line_with_nl,
+                progress_key=progress_key,
+                line_id=int(job.next_output_line_id or 1),
+            )
+            job.next_output_line_id += 1
             job.output.append(entry)
             job.output_chars += len(line_with_nl)
+            _record_job_output_op(job, "append", entry)
             output_changed = True
             if progress_key:
                 job.progress_lines[progress_key] = entry
@@ -2461,6 +2481,73 @@ def _should_persist_visible_output_line(raw_line: str) -> bool:
     if ORPHAN_LOG_LEVEL_LINE_RE.fullmatch(visible):
         return False
     return True
+
+
+def _record_job_output_op(job: JobData, op: str, entry: OutputLine) -> None:
+    if not job or not entry or not entry.line_id:
+        return
+    job.output_ops.append(
+        OutputOp(
+            seq=int(job.next_output_op_seq or 1),
+            op=str(op or "append"),
+            line_id=int(entry.line_id),
+            text=str(entry.text or "").rstrip("\n"),
+        )
+    )
+    job.next_output_op_seq += 1
+    while len(job.output_ops) > MAX_JOB_OUTPUT_OPS:
+        job.output_ops.popleft()
+
+
+def _serialize_output_entry(entry: OutputLine) -> Dict[str, Any]:
+    return {
+        "line_id": int(entry.line_id or 0),
+        "text": str(entry.text or "").rstrip("\n"),
+    }
+
+
+def _read_job_output_entries_for_api(job: JobData) -> List[Dict[str, Any]]:
+    return [_serialize_output_entry(entry) for entry in list(job.output)]
+
+
+def _read_job_output_ops_after(job: JobData, after_seq: int) -> List[Dict[str, Any]] | None:
+    after_seq = int(after_seq or 0)
+    if after_seq < 0:
+        after_seq = 0
+    if not job.output_ops:
+        return []
+    first_seq = int(job.output_ops[0].seq or 0)
+    latest_seq = int((job.next_output_op_seq or 1) - 1)
+    if after_seq > latest_seq:
+        return []
+    if after_seq and after_seq < first_seq - 1:
+        return None
+    return [
+        {
+            "seq": int(op.seq or 0),
+            "op": str(op.op or "append"),
+            "line_id": int(op.line_id or 0),
+            "text": str(op.text or ""),
+        }
+        for op in job.output_ops
+        if int(op.seq or 0) > after_seq
+    ]
+
+
+def _build_job_output_snapshot_for_api(job: JobData, partial: str | None = None) -> Dict[str, Any]:
+    if partial is None:
+        partial = _resolve_visible_partial_output_line(job)
+    return {
+        "entries": _read_job_output_entries_for_api(job),
+        "dropped_notice": (
+            f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
+            f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines)."
+            if job.dropped_output_lines > 0 else ""
+        ),
+        "visible_partial": str(partial or ""),
+        "visible_partial_progress_key": _extract_progress_key(partial or "") or "",
+        "cursor": int((job.next_output_op_seq or 1) - 1),
+    }
 
 
 def _get_job_output_tail(job: JobData, max_chars: int) -> str:
@@ -3986,7 +4073,12 @@ def get_active_job(current_user: Dict[str, Any] = Depends(_require_user)) -> Dic
 
 
 @app.get("/api/jobs/{job_id}")
-def get_job(job_id: str, compact: bool = False, current_user: Dict[str, Any] = Depends(_require_user)) -> Dict[str, Any]:
+def get_job(
+    job_id: str,
+    compact: bool = False,
+    after_seq: int | None = Query(default=None, ge=0),
+    current_user: Dict[str, Any] = Depends(_require_user),
+) -> Dict[str, Any]:
     perf_started_at = time.perf_counter() if WEB_LOGGER.isEnabledFor(logging.DEBUG) else None
     with JOBS_LOCK:
         if job_id not in JOBS:
@@ -3995,7 +4087,6 @@ def get_job(job_id: str, compact: bool = False, current_user: Dict[str, Any] = D
         if int(job.owner_user_id or -1) != int(current_user["id"]):
             raise HTTPException(status_code=404, detail="Job not found")
         visible_partial_output_line = _resolve_visible_partial_output_line(job)
-        output_lines = _read_job_output_lines_for_api(job, partial=visible_partial_output_line)
         can_send_input = bool(
             job.status == "running"
             and job.process is not None
@@ -4017,10 +4108,40 @@ def get_job(job_id: str, compact: bool = False, current_user: Dict[str, Any] = D
             "dashboard_context": dict(job.dashboard_context or {}),
             "dashboard_snapshot": dict(job.dashboard_snapshot or {}),
             "dashboard_snapshot_updated_at": job.dashboard_snapshot_updated_at,
-            "output_lines": output_lines,
             "output_version": int(job.output_version or 0),
+            "output_cursor": int((job.next_output_op_seq or 1) - 1),
+            "visible_partial_output_line": str(visible_partial_output_line or ""),
+            "visible_partial_progress_key": _extract_progress_key(visible_partial_output_line or "") or "",
         }
-        if not compact:
+        output_lines: List[str] = []
+        if compact:
+            output_ops = _read_job_output_ops_after(job, after_seq) if after_seq is not None else None
+            if after_seq is None or output_ops is None:
+                snapshot = _build_job_output_snapshot_for_api(job, partial=visible_partial_output_line)
+                response_payload.update({
+                    "output_reset": True,
+                    "output_entries": snapshot["entries"],
+                    "output_ops": [],
+                    "dropped_output_notice": snapshot["dropped_notice"],
+                    "output_cursor": int(snapshot["cursor"] or 0),
+                    "visible_partial_output_line": str(snapshot["visible_partial"] or ""),
+                    "visible_partial_progress_key": str(snapshot["visible_partial_progress_key"] or ""),
+                })
+                output_lines = _read_job_output_lines_for_api(job, partial=visible_partial_output_line)
+            else:
+                response_payload.update({
+                    "output_reset": False,
+                    "output_entries": [],
+                    "output_ops": output_ops,
+                    "dropped_output_notice": (
+                        f"[web-interface] Output too large ({job.dropped_output_lines} lines were dropped). "
+                        f"Showing compact log buffer (max {MAX_JOB_OUTPUT_LINES} lines)."
+                        if job.dropped_output_lines > 0 else ""
+                    ),
+                })
+        else:
+            output_lines = _read_job_output_lines_for_api(job, partial=visible_partial_output_line)
+            response_payload["output_lines"] = output_lines
             output = _read_job_output_for_api(job, recent_lines=output_lines)
             response_payload.update({
                 "output": output,
@@ -4032,9 +4153,10 @@ def get_job(job_id: str, compact: bool = False, current_user: Dict[str, Any] = D
                 job_id=job_id,
                 status=job.status,
                 tab=job.tab,
-                output_chars=len("\n".join(output_lines)),
+                output_chars=len("\n".join(output_lines)) if output_lines else 0,
                 snapshot_keys=len(job.dashboard_snapshot or {}),
                 compact=compact,
+                after_seq=after_seq,
             )
         return response_payload
 

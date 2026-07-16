@@ -454,6 +454,53 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("1289 files", output)
         self.assertNotIn("1262 files", output)
 
+    def test_web_job_output_records_incremental_append_ops(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="icloud_takeout", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(job, "INFO    : Asset Pulled    : 'IMG_0001.jpg'\n")
+            ops = self.web_app._read_job_output_ops_after(job, 0)
+            snapshot = self.web_app._build_job_output_snapshot_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(len(ops), 1)
+        self.assertEqual(ops[0]["op"], "append")
+        self.assertEqual(ops[0]["text"], "INFO    : Asset Pulled    : 'IMG_0001.jpg'")
+        self.assertEqual(snapshot["entries"][0]["line_id"], ops[0]["line_id"])
+        self.assertEqual(snapshot["cursor"], ops[0]["seq"])
+
+    def test_web_job_output_records_incremental_replace_ops_for_progress_updates(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="icloud_takeout", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : [iCloud PROCESS]-[Stage Media] : Staging iCloud assets: 1262 files [00:33, 29.74 files/s]\n",
+            )
+            first_ops = self.web_app._read_job_output_ops_after(job, 0)
+            self.web_app._append_job_output(
+                job,
+                "INFO    : [iCloud PROCESS]-[Stage Media] : Staging iCloud assets: 1289 files [00:34, 38.65 files/s]\n",
+            )
+            delta_ops = self.web_app._read_job_output_ops_after(job, first_ops[-1]["seq"])
+            snapshot = self.web_app._build_job_output_snapshot_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(len(first_ops), 1)
+        self.assertEqual(first_ops[0]["op"], "append")
+        self.assertEqual(len(delta_ops), 1)
+        self.assertEqual(delta_ops[0]["op"], "replace")
+        self.assertEqual(delta_ops[0]["line_id"], first_ops[0]["line_id"])
+        self.assertEqual(snapshot["entries"][0]["text"], "INFO    : [iCloud PROCESS]-[Stage Media] : Staging iCloud assets: 1289 files [00:34, 38.65 files/s]")
+
     def test_dashboard_snapshot_events_update_job_snapshot_without_polluting_visible_output(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")
