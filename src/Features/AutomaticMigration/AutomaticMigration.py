@@ -57,6 +57,37 @@ class SharedData:
         self.logs_queue = logs_queue
 
 
+def _ensure_album_stats_entry(album_stats_by_name, album_stats_lock, album_name):
+    if not album_name or album_stats_by_name is None or album_stats_lock is None:
+        return None
+    with album_stats_lock:
+        return album_stats_by_name.setdefault(
+            album_name,
+            {
+                "total_assets": 0,
+                "pushed_assets": 0,
+                "duplicated_assets": 0,
+                "failed_assets": 0,
+            },
+        )
+
+
+def _increment_album_stat_counter(album_stats_by_name, album_stats_lock, album_name, field_name, amount=1):
+    if not album_name or album_stats_by_name is None or album_stats_lock is None:
+        return
+    with album_stats_lock:
+        stats = album_stats_by_name.setdefault(
+            album_name,
+            {
+                "total_assets": 0,
+                "pushed_assets": 0,
+                "duplicated_assets": 0,
+                "failed_assets": 0,
+            },
+        )
+        stats[field_name] = max(0, int(stats.get(field_name, 0) or 0) + int(amount or 0))
+
+
 def _build_web_dashboard_snapshot(shared_data, parallel=None):
     info = dict(getattr(shared_data, "info", {}) or {})
     counters = dict(getattr(shared_data, "counters", {}) or {})
@@ -550,35 +581,6 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         SHARED_DATA = SharedData(input_info, counters, logs_queue)
         album_stats_by_name = {}
         album_stats_lock = threading.Lock()
-
-        def _ensure_album_stats(album_name):
-            if not album_name:
-                return None
-            with album_stats_lock:
-                return album_stats_by_name.setdefault(
-                    album_name,
-                    {
-                        "total_assets": 0,
-                        "pushed_assets": 0,
-                        "duplicated_assets": 0,
-                        "failed_assets": 0,
-                    },
-                )
-
-        def _increment_album_stat(album_name, field_name, amount=1):
-            if not album_name:
-                return
-            with album_stats_lock:
-                stats = album_stats_by_name.setdefault(
-                    album_name,
-                    {
-                        "total_assets": 0,
-                        "pushed_assets": 0,
-                        "duplicated_assets": 0,
-                        "failed_assets": 0,
-                    },
-                )
-                stats[field_name] = max(0, int(stats.get(field_name, 0) or 0) + int(amount or 0))
 
         # Check if parallel=None, and in that case, get it from ARGS
         if parallel is None: parallel = ARGS['parallel-migration']
@@ -1875,10 +1877,22 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_stats_lock=album_stats_lock,
             )
 
-    def _record_final_push_failure(asset_type, count_push_stats, album_name=None):
+    def _record_final_push_failure(
+        asset_type,
+        count_push_stats,
+        album_name=None,
+        album_stats_by_name_ref=None,
+        album_stats_lock_ref=None,
+    ):
         if count_push_stats:
             SHARED_DATA.counters['total_push_failed_assets'] += 1
-            _increment_album_stat(album_name, "failed_assets", 1)
+            _increment_album_stat_counter(
+                album_stats_by_name_ref,
+                album_stats_lock_ref,
+                album_name,
+                "failed_assets",
+                1,
+            )
             if asset_type.lower() in video_labels:
                 SHARED_DATA.counters['total_push_failed_videos'] += 1
             else:
@@ -2865,7 +2879,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # --------------------------------------------------------------------------------
     # 1) PULLER: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
-    def puller_worker(parallel=None, log_level=logging.INFO):
+    def puller_worker(parallel=None, log_level=logging.INFO, album_stats_by_name_ref=album_stats_by_name, album_stats_lock_ref=album_stats_lock):
         # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
         # from Core.GlobalVariables import LOGGER as GV_LOGGER
         # thread_id = threading.get_ident()
@@ -2939,7 +2953,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 with open(active_file, 'w') as lock_album_folder:
                     lock_album_folder.write("Pulling Album")
                 try:
-                    _ensure_album_stats(album_name)
+                    _ensure_album_stats_entry(album_stats_by_name_ref, album_stats_lock_ref, album_name)
                     for asset in album_assets:
                         asset_perf_started = time.perf_counter()
                         asset_id = asset['id']
@@ -2951,7 +2965,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if asset_type in ['metadata', 'sidecar']:
                             continue
 
-                        _increment_album_stat(album_name, "total_assets", 1)
+                        _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "total_assets", 1)
 
                         # Ruta del archivo descargado
                         local_file_path = os.path.join(album_folder, asset_filename)
@@ -3039,7 +3053,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if not unique:
                                     LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
                                     SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                                    _increment_album_stat(album_name, "duplicated_assets", 1)
+                                    _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "duplicated_assets", 1)
                                     # Solo borramos si el fichero ya no está reservado por la cola ni por un pusher en curso.
                                     if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
                                         safe_remove_local_file(pulled_file_path)
@@ -3062,7 +3076,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         else:
                             if skipped_not_found:
                                 SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                                _increment_album_stat(album_name, "failed_assets", 1)
+                                _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "failed_assets", 1)
                                 if asset_type.lower() in video_labels:
                                     SHARED_DATA.counters['total_pull_failed_videos'] += 1
                                 else:
@@ -3070,7 +3084,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 continue
                             LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}' from Album '{album_name}'")
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                            _increment_album_stat(album_name, "failed_assets", 1)
+                            _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "failed_assets", 1)
                             if asset_type.lower() in video_labels:
                                 SHARED_DATA.counters['total_pull_failed_videos'] += 1
                             else:
@@ -3230,7 +3244,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------
     # 2) PUSHER: Función pusher_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
-    def pusher_worker(processed_albums=None, processed_albums_lock=None, worker_id=1, log_level=logging.INFO):
+    def pusher_worker(
+        processed_albums=None,
+        processed_albums_lock=None,
+        worker_id=1,
+        log_level=logging.INFO,
+        album_stats_by_name_ref=album_stats_by_name,
+        album_stats_lock_ref=album_stats_lock,
+    ):
         # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
         # from Core.GlobalVariables import LOGGER as GV_LOGGER
         # thread_id = threading.get_ident()
@@ -3356,11 +3377,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     )
                                     if count_push_stats:
                                         SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                                        _increment_album_stat(album_name, "duplicated_assets", 1)
+                                        _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "duplicated_assets", 1)
                                 else:
                                     if count_push_stats:
                                         SHARED_DATA.counters['total_pushed_assets'] += 1
-                                        _increment_album_stat(album_name, "pushed_assets", 1)
+                                        _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "pushed_assets", 1)
                                         if asset_type.lower() in video_labels:
                                             SHARED_DATA.counters['total_pushed_videos'] += 1
                                         else:
@@ -3393,7 +3414,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     treat_as_consumed = True
                                     if count_push_stats:
                                         SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                                        _increment_album_stat(album_name, "duplicated_assets", 1)
+                                        _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "duplicated_assets", 1)
                                     if album_name:
                                         _register_pending_duplicate_resolution(album_name=album_name, asset=asset)
                                         _maybe_finalize_album(
@@ -3419,6 +3440,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                             asset_type=asset_type,
                                             count_push_stats=count_push_stats,
                                             album_name=album_name,
+                                            album_stats_by_name_ref=album_stats_by_name_ref,
+                                            album_stats_lock_ref=album_stats_lock_ref,
                                         )
 
                     except Exception as e:
@@ -3439,6 +3462,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 asset_type=asset_type,
                                 count_push_stats=count_push_stats,
                                 album_name=album_name,
+                                album_stats_by_name_ref=album_stats_by_name_ref,
+                                album_stats_lock_ref=album_stats_lock_ref,
                             )
                             continue
 
@@ -3547,6 +3572,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             asset_type=asset_type,
                             count_push_stats=count_push_stats,
                             album_name=album_name,
+                            album_stats_by_name_ref=album_stats_by_name_ref,
+                            album_stats_lock_ref=album_stats_lock_ref,
                         )
                 finally:
                     if asset is not None and isinstance(asset, dict):
