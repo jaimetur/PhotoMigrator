@@ -220,7 +220,7 @@ def _relocate_misclassified_special_folders(base_root, step_name="", log_level=N
                     shutil.move(str(child), str(destination_path))
                 moved_any = True
 
-        return moved_any
+        return True
 
 def _normalize_folder_name(value):
     return re.sub(r"\s+", " ", str(value or "").strip()).casefold()
@@ -3644,6 +3644,16 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                         return False
                 else:
                     preserve_archive_browser_artifacts(output_folder=output_folder, step_name=step_name, log_level=log_level)
+                    relocated_special_folders = _relocate_misclassified_special_folders(
+                        base_root=output_folder,
+                        step_name=step_name,
+                        log_level=log_level,
+                    )
+                    if relocated_special_folders is False:
+                        LOGGER.error(
+                            f"{step_name}❌ GPTH completed but PhotoMigrator could not relocate misclassified special folders from the normal output."
+                        )
+                        return False
                 LOGGER.info(f"{step_name}✅ GPTH Tool fixing completed successfully.")
                 return True
             else:

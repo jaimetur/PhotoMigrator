@@ -733,6 +733,49 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertTrue((output_folder / "ALL_PHOTOS").is_dir())
             self.assertTrue((output_folder / "Albums").is_dir())
 
+    def test_fix_metadata_with_gpth_tool_relocates_special_folders_after_normal_gpth_run(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_folder = root / "Google Photos"
+            output_folder = root / "Processed"
+            gpth_path = root / "gpth"
+            input_folder.mkdir()
+            (output_folder / "Albums" / "Carpeta privada").mkdir(parents=True)
+            (output_folder / "Albums" / "Carpeta privada" / "locked.jpg").write_bytes(b"x")
+            gpth_path.write_text("", encoding="utf-8")
+
+            fake_logger = MagicMock()
+            fake_logger.handlers = []
+
+            with (
+                patch.object(takeout_module, "LOGGER", fake_logger),
+                patch.object(takeout_module, "ARGS", {"log-level": "info", "gpth-no-log": False}),
+                patch.object(takeout_module, "get_os", return_value="linux"),
+                patch.object(takeout_module, "get_arch", return_value="x64"),
+                patch.object(takeout_module, "get_gpth_tool_path", return_value=str(gpth_path)),
+                patch.object(takeout_module, "ensure_executable"),
+                patch.object(takeout_module, "print_arguments_pretty"),
+                patch.object(takeout_module, "run_command", return_value=0) as mock_run_command,
+                patch.object(takeout_module, "preserve_archive_browser_artifacts"),
+            ):
+                ok = takeout_module.fix_metadata_with_gpth_tool(
+                    input_folder=str(input_folder),
+                    output_folder=str(output_folder),
+                    capture_output=True,
+                    capture_errors=True,
+                    print_messages=False,
+                    no_symbolic_albums=False,
+                    ignore_takeout_structure=False,
+                    step_name="STEP : ",
+                )
+
+            self.assertTrue(ok)
+            command = mock_run_command.call_args.args[0]
+            self.assertIn("--input", command)
+            self.assertIn("--output", command)
+            self.assertTrue((output_folder / "Special Folders" / "Carpeta privada" / "locked.jpg").is_file())
+            self.assertFalse((output_folder / "Albums" / "Carpeta privada").exists())
+
     def test_repair_conflicting_video_xmp_dates_rewrites_conflicting_video_tags(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
