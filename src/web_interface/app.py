@@ -465,6 +465,7 @@ class JobData:
         self.output_version = 0
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.pending_cr = False            # track split CRLF across chunk boundaries
+        self.pending_level_prefix = ""
         self.progress_lines: Dict[str, "OutputLine"] = {}
         self.total_output_chars = 0        # full execution chars
         self.output_file = _create_job_output_file()
@@ -2026,6 +2027,9 @@ PROGRESS_TQDM_INDETERMINATE_RE = re.compile(
 )
 PROGRESS_STEP_COUNTER_RE = re.compile(r"^(.*?\[\s*step\s+\d+/\d+\][^:]*:)\s*\d+/\d+\s*$", re.IGNORECASE)
 PROGRESS_SEPARATOR_RE = re.compile(r"^[=\-_\s]{6,}$")
+LOG_LEVEL_PREFIX_RE = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*", re.IGNORECASE)
+ORPHAN_LOG_LEVEL_LINE_RE = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*$", re.IGNORECASE)
+TRAILING_LOG_LEVEL_PREFIX_RE = re.compile(r"(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*$", re.IGNORECASE)
 
 
 def _create_job_output_file() -> Path:
@@ -2084,6 +2088,36 @@ def _extract_progress_key(line: str) -> str | None:
     return None
 
 
+def _extract_orphan_log_level_prefix(line: str) -> str:
+    stripped = str(line or "").strip()
+    if not stripped:
+        return ""
+    match = ORPHAN_LOG_LEVEL_LINE_RE.fullmatch(stripped)
+    return f"{match.group(1).upper():<8}: " if match else ""
+
+
+def _has_log_level_prefix(line: str) -> bool:
+    return bool(LOG_LEVEL_PREFIX_RE.match(str(line or "").lstrip()))
+
+
+def _split_trailing_orphan_level_prefix_from_progress_line(line: str) -> tuple[str, str]:
+    raw_line = str(line or "")
+    newline = "\n" if raw_line.endswith("\n") else ""
+    body = raw_line[:-1] if newline else raw_line
+    if not _extract_progress_key(body):
+        return raw_line, ""
+    match = TRAILING_LOG_LEVEL_PREFIX_RE.search(body)
+    if not match:
+        return raw_line, ""
+    prefix = _extract_orphan_log_level_prefix(match.group(0))
+    if not prefix:
+        return raw_line, ""
+    stripped_body = body[:match.start()].rstrip()
+    if not stripped_body:
+        return raw_line, ""
+    return f"{stripped_body}{newline}", prefix
+
+
 def _append_job_output(job: JobData, text: str) -> None:
     if not text:
         return
@@ -2123,7 +2157,19 @@ def _append_job_output(job: JobData, text: str) -> None:
             job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
             job.dashboard_snapshot_from_events = True
             job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
+        line_with_nl, trailing_prefix = _split_trailing_orphan_level_prefix_from_progress_line(line_with_nl)
+        orphan_prefix = _extract_orphan_log_level_prefix(line_with_nl)
+        if orphan_prefix:
+            job.pending_level_prefix = orphan_prefix
+            output_changed = True
+            continue
+        if job.pending_level_prefix and not _has_log_level_prefix(line_with_nl):
+            line_with_nl = f"{job.pending_level_prefix}{line_with_nl}"
+            output_changed = True
+            job.pending_level_prefix = ""
         if not _should_persist_visible_output_line(line_with_nl):
+            if trailing_prefix:
+                job.pending_level_prefix = trailing_prefix
             continue
         persisted_chunks.append(line_with_nl)
         progress_key = _extract_progress_key(line_with_nl)
@@ -2133,6 +2179,8 @@ def _append_job_output(job: JobData, text: str) -> None:
             prev_entry.text = line_with_nl
             job.output_chars += len(line_with_nl) - prev_len
             output_changed = True
+            if trailing_prefix:
+                job.pending_level_prefix = trailing_prefix
             continue
 
         entry = OutputLine(text=line_with_nl, progress_key=progress_key)
@@ -2141,6 +2189,8 @@ def _append_job_output(job: JobData, text: str) -> None:
         output_changed = True
         if progress_key:
             job.progress_lines[progress_key] = entry
+        if trailing_prefix:
+            job.pending_level_prefix = trailing_prefix
 
     if persisted_chunks and job.output_fp is not None:
         try:
@@ -2258,6 +2308,12 @@ def _resolve_visible_partial_output_line(job: JobData) -> str:
     partial = partial.rstrip("\n")
     if not partial.strip():
         return ""
+    if _extract_orphan_log_level_prefix(partial):
+        return ""
+    partial, _trailing_prefix = _split_trailing_orphan_level_prefix_from_progress_line(partial)
+    partial = partial.rstrip("\n")
+    if job.pending_level_prefix and not _has_log_level_prefix(partial):
+        partial = f"{job.pending_level_prefix}{partial}"
     return partial if _extract_progress_key(partial) else ""
 
 
@@ -2266,7 +2322,7 @@ def _should_persist_visible_output_line(raw_line: str) -> bool:
     visible = line.rstrip("\n").strip()
     if not visible:
         return False
-    if re.fullmatch(r"(?:CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*", visible):
+    if ORPHAN_LOG_LEVEL_LINE_RE.fullmatch(visible):
         return False
     return True
 
