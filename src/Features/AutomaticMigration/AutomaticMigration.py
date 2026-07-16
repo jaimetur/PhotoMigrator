@@ -474,6 +474,46 @@ def _mark_album_pushed_if_ready(
         return True
 
 
+def _cleanup_local_source_album_folders_after_push(
+    source_client,
+    album_name,
+    source_album_paths_by_name,
+    log_level=None,
+):
+    if not album_name or not isinstance(source_client, ClassLocalFolder):
+        return 0
+    if not isinstance(source_album_paths_by_name, dict):
+        return 0
+
+    candidate_paths = source_album_paths_by_name.get(album_name) or ()
+    if not candidate_paths:
+        return 0
+
+    cleanup_file_patterns = merge_exclusion_patterns(
+        [".active", "*.lock"],
+        default_patterns=getattr(source_client, "FILE_EXCLUSION_PATTERNS", DEFAULT_FILE_EXCLUSION_PATTERNS),
+    )
+    cleanup_folder_patterns = getattr(source_client, "FOLDER_EXCLUSION_PATTERNS", DEFAULT_FOLDER_EXCLUSION_PATTERNS)
+
+    removed = 0
+    for candidate_path in sorted(set(str(path) for path in candidate_paths if path)):
+        try:
+            if remove_dir_if_effectively_empty(
+                candidate_path,
+                exclusion_folders=cleanup_folder_patterns,
+                exclusion_files=cleanup_file_patterns,
+                preserve_root=False,
+                log_level=log_level,
+            ):
+                removed += 1
+        except FileNotFoundError:
+            continue
+        except OSError:
+            continue
+
+    return removed
+
+
 def _album_finalize_wait_reason(album_folder_path, pending_duplicate_keys=None):
     pending_duplicate_keys = pending_duplicate_keys or set()
     if not album_folder_path or not os.path.isdir(album_folder_path):
@@ -1006,6 +1046,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     processed_albums_lock = threading.Lock()
     album_stats_by_name = {}
     album_stats_lock = threading.Lock()
+    source_album_paths_by_name = {}
+    source_album_paths_lock = threading.Lock()
     target_album_asset_ids_cache = {}
     target_album_asset_ids_lock = threading.Lock()
     album_assoc_locks = {}
@@ -1870,7 +1912,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 log_level=log_level,
             )
 
-            return _mark_album_pushed_if_ready(
+            counted = _mark_album_pushed_if_ready(
                 album_name=album_name,
                 album_folder_path=album_folder_path,
                 processed_albums=processed_albums,
@@ -1880,6 +1922,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_stats_by_name=album_stats_by_name,
                 album_stats_lock=album_stats_lock,
             )
+            if counted and ARGS.get('move-assets', None):
+                with source_album_paths_lock:
+                    album_source_paths = tuple(source_album_paths_by_name.get(album_name) or ())
+                _cleanup_local_source_album_folders_after_push(
+                    source_client=source_client,
+                    album_name=album_name,
+                    source_album_paths_by_name={album_name: album_source_paths},
+                    log_level=log_level,
+                )
+            return counted
 
     def _record_final_push_failure(
         asset_type,
@@ -2911,6 +2963,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_assets = []
                 album_id = album['id']
                 album_name = album['albumName']
+                if isinstance(source_client, ClassLocalFolder) and album_id:
+                    with source_album_paths_lock:
+                        source_album_paths_by_name.setdefault(album_name, set()).add(str(album_id))
                 album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
                 album_scope = album.get("_synology_album_scope")
                 if isinstance(source_client, ClassSynologyPhotos):

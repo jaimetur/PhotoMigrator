@@ -107,6 +107,12 @@ class ClassLocalFolder(BaseMediaClient):
 
         self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
 
+    def _get_effective_cleanup_file_exclusion_patterns(self):
+        return merge_exclusion_patterns(
+            [".active", "*.lock"],
+            default_patterns=self.FILE_EXCLUSION_PATTERNS,
+        )
+
     @staticmethod
     def _normalize_folder_token(name):
         text = unicodedata.normalize("NFKD", str(name or ""))
@@ -536,7 +542,7 @@ class ClassLocalFolder(BaseMediaClient):
                     remove_dir_if_effectively_empty(
                         self.base_folder,
                         exclusion_folders=self.FOLDER_EXCLUSION_PATTERNS,
-                        exclusion_files=self.FILE_EXCLUSION_PATTERNS,
+                        exclusion_files=self._get_effective_cleanup_file_exclusion_patterns(),
                         preserve_root=False,
                         log_level=log_level,
                     )
@@ -2236,7 +2242,7 @@ class ClassLocalFolder(BaseMediaClient):
             removed = remove_effectively_empty_dirs(
                 self.base_folder,
                 exclusion_folders=self.FOLDER_EXCLUSION_PATTERNS,
-                exclusion_files=self.FILE_EXCLUSION_PATTERNS,
+                exclusion_files=self._get_effective_cleanup_file_exclusion_patterns(),
                 remove_root=False,
                 log_level=log_level,
             )
@@ -2303,7 +2309,7 @@ class ClassLocalFolder(BaseMediaClient):
                 if remove_dir_if_effectively_empty(
                     album,
                     exclusion_folders=self.FOLDER_EXCLUSION_PATTERNS,
-                    exclusion_files=self.FILE_EXCLUSION_PATTERNS,
+                    exclusion_files=self._get_effective_cleanup_file_exclusion_patterns(),
                     preserve_root=False,
                     log_level=log_level,
                 ):

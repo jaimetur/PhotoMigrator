@@ -164,6 +164,18 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         self.assertTrue(summary["root_removed"])
         self.assertFalse(clean_root.exists())
 
+    def test_cleanup_after_move_assets_ignores_runtime_lock_markers_when_pruning_empty_tree(self):
+        clean_root = self.root / "CleanupRootWithLocks"
+        (clean_root / "Albums/OnlyRuntimeMarkers").mkdir(parents=True, exist_ok=True)
+        (clean_root / "Albums/OnlyRuntimeMarkers/.active").write_text("busy", encoding="utf-8")
+        (clean_root / "Albums/OnlyRuntimeMarkers/asset.jpg.lock").write_text("busy", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=clean_root)
+        summary = local_folder.cleanup_after_move_assets(log_level=logging.INFO)
+
+        self.assertTrue(summary["root_removed"])
+        self.assertFalse(clean_root.exists())
+
     def test_remove_assets_initializes_analyzer_before_refresh_when_missing(self):
         removable = self.root / "ALL_PHOTOS/2024/remove-after-init.jpg"
         removable.parent.mkdir(parents=True, exist_ok=True)

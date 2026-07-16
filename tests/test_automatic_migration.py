@@ -368,6 +368,29 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertTrue(second_attempt)
         self.assertEqual(counters["total_pushed_albums"], 1)
 
+    def test_cleanup_local_source_album_folders_after_push_removes_effectively_empty_local_album(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            album_folder = root / "Albums/Album A"
+            (album_folder / "@eaDir").mkdir(parents=True)
+            (album_folder / "@eaDir" / "thumb.jpg").write_text("thumb", encoding="utf-8")
+            (album_folder / ".DS_Store").write_text("junk", encoding="utf-8")
+            (album_folder / ".active").write_text("busy", encoding="utf-8")
+
+            local_client = object.__new__(automatic_module.ClassLocalFolder)
+            local_client.FOLDER_EXCLUSION_PATTERNS = ["@eaDir", "@Recycle", ".*"]
+            local_client.FILE_EXCLUSION_PATTERNS = [".DS_Store", "Thumbs.db", "._*"]
+
+            removed = automatic_module._cleanup_local_source_album_folders_after_push(
+                source_client=local_client,
+                album_name="Album A",
+                source_album_paths_by_name={"Album A": {str(album_folder)}},
+                log_level=logging.INFO,
+            )
+
+        self.assertEqual(removed, 1)
+        self.assertFalse(album_folder.exists())
+
     def test_parse_dashboard_progress_line_supports_simple_gpth_counter_frames(self):
         parsed = automatic_module._parse_dashboard_progress_line(
             "__TQDM__ [INFO] [Step 8/8] Updating creation times : 42/100"
