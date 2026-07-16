@@ -131,7 +131,7 @@
                 </div>
                 <div class="web-dashboard__meta">
                     <span id="web-dashboard-elapsed">Elapsed Time: 00:00:00</span>
-                    <span id="web-dashboard-estimated">Remaining Time: -</span>
+                    <span id="web-dashboard-remaining">Remaining Time: -</span>
                     <span id="web-dashboard-updated">Last Updated: -</span>
                 </div>
                 <div class="stats-columns">
@@ -1496,7 +1496,7 @@
         chip.dataset.state = normalizedStatus;
 
         document.getElementById("web-dashboard-elapsed").textContent = `Elapsed Time: ${elapsed}`;
-        document.getElementById("web-dashboard-estimated").textContent = `Estimated Remaining Time: ${estimated}`;
+        document.getElementById("web-dashboard-remaining").textContent = `Remaining Time: ${estimated}`;
         document.getElementById("web-dashboard-updated").textContent = `Last Updated: ${updated}`;
         setText("dash-total-assets", stats.totalAssets);
         setText("dash-total-photos", stats.totalPhotos);
