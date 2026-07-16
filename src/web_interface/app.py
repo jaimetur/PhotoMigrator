@@ -466,6 +466,7 @@ class JobData:
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.pending_cr = False            # track split CRLF across chunk boundaries
         self.pending_level_prefix = ""
+        self.pending_structured_prefix = ""
         self.progress_lines: Dict[str, "OutputLine"] = {}
         self.total_output_chars = 0        # full execution chars
         self.output_file = _create_job_output_file()
@@ -2030,6 +2031,13 @@ PROGRESS_SEPARATOR_RE = re.compile(r"^[=\-_\s]{6,}$")
 LOG_LEVEL_PREFIX_RE = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*", re.IGNORECASE)
 ORPHAN_LOG_LEVEL_LINE_RE = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*$", re.IGNORECASE)
 TRAILING_LOG_LEVEL_PREFIX_RE = re.compile(r"(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*$", re.IGNORECASE)
+EMBEDDED_LOG_LEVEL_PREFIX_RE = re.compile(r"(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s+", re.IGNORECASE)
+INNER_STEP_INFO_RE = re.compile(r"^\[\s*[A-Z]+\s*\]\s*\[Step\s+\d+/\d+\]", re.IGNORECASE)
+INNER_STEP_INFO_SEARCH_RE = re.compile(r"\[\s*[A-Z]+\s*\]\s*\[Step\s+\d+/\d+\]", re.IGNORECASE)
+PROGRESS_THEN_INNER_STEP_RE = re.compile(
+    r"^(.*?\d+/\d+\s+\d+(?:\.\d+)?%)\s+(\[\s*[A-Z]+\s*\]\s*\[Step\s+\d+/\d+\].*)$",
+    re.IGNORECASE,
+)
 
 
 def _create_job_output_file() -> Path:
@@ -2058,30 +2066,31 @@ def _extract_progress_key(line: str) -> str | None:
     if not clean:
         return None
     without_level = re.sub(r"^[A-Z]+\s*:?\s*", "", clean).strip()
-    if without_level and PROGRESS_SEPARATOR_RE.match(without_level):
+    candidate = without_level or clean
+    if candidate and PROGRESS_SEPARATOR_RE.match(candidate):
         return None
 
-    m = PROGRESS_CUSTOM_FULL_RE.match(clean)
+    m = PROGRESS_CUSTOM_FULL_RE.match(candidate)
     if m:
         return str(m.group(1) or "").strip().lower() or None
 
-    m = PROGRESS_TQDM_RE.search(clean)
+    m = PROGRESS_TQDM_RE.search(candidate)
     if m and m.start() >= 0:
-        return clean[:m.start()].strip().lower() or None
+        return candidate[:m.start()].strip().lower() or None
 
-    m = PROGRESS_CUSTOM_PARTIAL_RE.match(clean)
+    m = PROGRESS_CUSTOM_PARTIAL_RE.match(candidate)
     if m:
         return str(m.group(1) or "").strip().lower() or None
 
-    m = PROGRESS_TQDM_PARTIAL_RE.search(clean)
+    m = PROGRESS_TQDM_PARTIAL_RE.search(candidate)
     if m and m.start() >= 0:
-        return clean[:m.start()].strip().lower() or None
+        return candidate[:m.start()].strip().lower() or None
 
-    m = PROGRESS_TQDM_INDETERMINATE_RE.match(clean)
+    m = PROGRESS_TQDM_INDETERMINATE_RE.match(candidate)
     if m:
         return str(m.group(1) or "").strip().lower() or None
 
-    m = PROGRESS_STEP_COUNTER_RE.match(clean)
+    m = PROGRESS_STEP_COUNTER_RE.match(candidate)
     if m:
         return str(m.group(1) or "").strip().lower() or None
 
@@ -2096,6 +2105,28 @@ def _extract_orphan_log_level_prefix(line: str) -> str:
     return f"{match.group(1).upper():<8}: " if match else ""
 
 
+def _extract_leading_log_level_prefix(line: str) -> str:
+    match = LOG_LEVEL_PREFIX_RE.match(str(line or "").lstrip())
+    if not match:
+        return ""
+    return f"{match.group(1).upper():<8}: "
+
+
+def _extract_structured_context_prefix(line: str) -> str:
+    raw = str(line or "").rstrip("\n")
+    match = INNER_STEP_INFO_SEARCH_RE.search(raw)
+    if not match:
+        return ""
+    prefix = raw[:match.start()].rstrip()
+    if not prefix or prefix.endswith("%"):
+        return ""
+    return f"{prefix} " if not prefix.endswith(" ") else prefix
+
+
+def _starts_with_inner_step_info(line: str) -> bool:
+    return bool(INNER_STEP_INFO_RE.match(str(line or "").lstrip()))
+
+
 def _has_log_level_prefix(line: str) -> bool:
     return bool(LOG_LEVEL_PREFIX_RE.match(str(line or "").lstrip()))
 
@@ -2104,18 +2135,44 @@ def _split_trailing_orphan_level_prefix_from_progress_line(line: str) -> tuple[s
     raw_line = str(line or "")
     newline = "\n" if raw_line.endswith("\n") else ""
     body = raw_line[:-1] if newline else raw_line
-    if not _extract_progress_key(body):
-        return raw_line, ""
     match = TRAILING_LOG_LEVEL_PREFIX_RE.search(body)
     if not match:
+        return raw_line, ""
+    stripped_body = body[:match.start()].rstrip()
+    if not stripped_body or not _extract_progress_key(stripped_body):
         return raw_line, ""
     prefix = _extract_orphan_log_level_prefix(match.group(0))
     if not prefix:
         return raw_line, ""
-    stripped_body = body[:match.start()].rstrip()
-    if not stripped_body:
-        return raw_line, ""
     return f"{stripped_body}{newline}", prefix
+
+
+def _split_combined_progress_followup_line(line: str) -> List[str]:
+    raw_line = str(line or "")
+    newline = "\n" if raw_line.endswith("\n") else ""
+    body = raw_line[:-1] if newline else raw_line
+    if not body:
+        return [raw_line]
+
+    for match in EMBEDDED_LOG_LEVEL_PREFIX_RE.finditer(body):
+        if match.start() <= 0:
+            continue
+        left = body[:match.start()].rstrip()
+        right = body[match.start():].lstrip()
+        if left and right and _extract_progress_key(left):
+            return [f"{left}{newline}", f"{right}{newline}"]
+
+    match = PROGRESS_THEN_INNER_STEP_RE.match(body)
+    if match:
+        left = str(match.group(1) or "").rstrip()
+        right = str(match.group(2) or "").lstrip()
+        if left and right and _extract_progress_key(left):
+            structured_prefix = _extract_structured_context_prefix(left)
+            if structured_prefix and not _has_log_level_prefix(right):
+                right = f"{structured_prefix}{right}"
+            return [f"{left}{newline}", f"{right}{newline}"]
+
+    return [raw_line]
 
 
 def _append_job_output(job: JobData, text: str) -> None:
@@ -2151,46 +2208,74 @@ def _append_job_output(job: JobData, text: str) -> None:
 
     persisted_chunks: List[str] = []
     for line in completed:
-        line_with_nl = f"{line}\n"
-        line_with_nl, snapshot_events = _strip_dashboard_snapshots_from_line(line_with_nl)
-        for snapshot_event in snapshot_events:
-            job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
-            job.dashboard_snapshot_from_events = True
-            job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
-        line_with_nl, trailing_prefix = _split_trailing_orphan_level_prefix_from_progress_line(line_with_nl)
-        orphan_prefix = _extract_orphan_log_level_prefix(line_with_nl)
-        if orphan_prefix:
-            job.pending_level_prefix = orphan_prefix
-            output_changed = True
-            continue
-        if job.pending_level_prefix and not _has_log_level_prefix(line_with_nl):
-            line_with_nl = f"{job.pending_level_prefix}{line_with_nl}"
-            output_changed = True
-            job.pending_level_prefix = ""
-        if not _should_persist_visible_output_line(line_with_nl):
-            if trailing_prefix:
-                job.pending_level_prefix = trailing_prefix
-            continue
-        persisted_chunks.append(line_with_nl)
-        progress_key = _extract_progress_key(line_with_nl)
-        if progress_key and progress_key in job.progress_lines:
-            prev_entry = job.progress_lines[progress_key]
-            prev_len = len(prev_entry.text)
-            prev_entry.text = line_with_nl
-            job.output_chars += len(line_with_nl) - prev_len
-            output_changed = True
-            if trailing_prefix:
-                job.pending_level_prefix = trailing_prefix
-            continue
+        pending_lines = [f"{line}\n"]
+        while pending_lines:
+            line_with_nl = pending_lines.pop(0)
+            line_with_nl, snapshot_events = _strip_dashboard_snapshots_from_line(line_with_nl)
+            for snapshot_event in snapshot_events:
+                job.dashboard_snapshot = _merge_dashboard_snapshot(job.dashboard_snapshot, snapshot_event)
+                job.dashboard_snapshot_from_events = True
+                job.dashboard_snapshot_updated_at = str(snapshot_event.get("updatedAt") or _utc_now_iso())
 
-        entry = OutputLine(text=line_with_nl, progress_key=progress_key)
-        job.output.append(entry)
-        job.output_chars += len(line_with_nl)
-        output_changed = True
-        if progress_key:
-            job.progress_lines[progress_key] = entry
-        if trailing_prefix:
-            job.pending_level_prefix = trailing_prefix
+            split_lines = _split_combined_progress_followup_line(line_with_nl)
+            if len(split_lines) > 1:
+                pending_lines = split_lines + pending_lines
+                continue
+
+            line_with_nl, trailing_prefix = _split_trailing_orphan_level_prefix_from_progress_line(line_with_nl)
+            orphan_prefix = _extract_orphan_log_level_prefix(line_with_nl)
+            if orphan_prefix:
+                job.pending_level_prefix = orphan_prefix
+                output_changed = True
+                continue
+
+            if job.pending_structured_prefix and _starts_with_inner_step_info(line_with_nl):
+                line_with_nl = f"{job.pending_structured_prefix}{line_with_nl.lstrip()}"
+                job.pending_structured_prefix = ""
+                output_changed = True
+            elif job.pending_structured_prefix and not _starts_with_inner_step_info(line_with_nl):
+                job.pending_structured_prefix = ""
+
+            if job.pending_level_prefix and not _has_log_level_prefix(line_with_nl):
+                line_with_nl = f"{job.pending_level_prefix}{line_with_nl}"
+                output_changed = True
+                job.pending_level_prefix = ""
+
+            if not _should_persist_visible_output_line(line_with_nl):
+                if trailing_prefix:
+                    job.pending_level_prefix = trailing_prefix
+                continue
+
+            persisted_chunks.append(line_with_nl)
+            progress_key = _extract_progress_key(line_with_nl)
+            if progress_key and progress_key in job.progress_lines:
+                prev_entry = job.progress_lines[progress_key]
+                if not _has_log_level_prefix(line_with_nl):
+                    previous_prefix = _extract_leading_log_level_prefix(prev_entry.text)
+                    if previous_prefix:
+                        line_with_nl = f"{previous_prefix}{line_with_nl.lstrip()}"
+                prev_len = len(prev_entry.text)
+                prev_entry.text = line_with_nl
+                job.output_chars += len(line_with_nl) - prev_len
+                output_changed = True
+                structured_prefix = _extract_structured_context_prefix(line_with_nl)
+                if structured_prefix:
+                    job.pending_structured_prefix = structured_prefix
+                if trailing_prefix:
+                    job.pending_level_prefix = trailing_prefix
+                continue
+
+            entry = OutputLine(text=line_with_nl, progress_key=progress_key)
+            job.output.append(entry)
+            job.output_chars += len(line_with_nl)
+            output_changed = True
+            if progress_key:
+                job.progress_lines[progress_key] = entry
+            structured_prefix = _extract_structured_context_prefix(line_with_nl)
+            if structured_prefix:
+                job.pending_structured_prefix = structured_prefix
+            if trailing_prefix:
+                job.pending_level_prefix = trailing_prefix
 
     if persisted_chunks and job.output_fp is not None:
         try:
@@ -2312,6 +2397,11 @@ def _resolve_visible_partial_output_line(job: JobData) -> str:
         return ""
     partial, _trailing_prefix = _split_trailing_orphan_level_prefix_from_progress_line(partial)
     partial = partial.rstrip("\n")
+    split_lines = _split_combined_progress_followup_line(partial)
+    if len(split_lines) > 1:
+        partial = split_lines[0].rstrip("\n")
+    if job.pending_structured_prefix and _starts_with_inner_step_info(partial):
+        partial = f"{job.pending_structured_prefix}{partial.lstrip()}"
     if job.pending_level_prefix and not _has_log_level_prefix(partial):
         partial = f"{job.pending_level_prefix}{partial}"
     return partial if _extract_progress_key(partial) else ""

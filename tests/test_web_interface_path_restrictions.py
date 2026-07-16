@@ -752,6 +752,58 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             ],
         )
 
+    def test_gpth_progress_updates_without_outer_level_replace_previous_progress_line(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : .................................................. 1/170 0.6%\n",
+            )
+            self.web_app._append_job_output(
+                job,
+                "🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : █................................................. 4/170 2.4%\n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            [
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : █................................................. 4/170 2.4%",
+            ],
+        )
+
+    def test_gpth_progress_line_trailing_info_prefix_is_reattached_to_next_progress_update(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : .................................................. 1/170 0.6%INFO    : \n",
+            )
+            self.web_app._append_job_output(
+                job,
+                "🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : .................................................. 2/170 1.2%\n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            [
+                "INFO    : 🧠 [PROCESS]-[Metadata Processing] : [ INFO  ] [Step 5/8] Processing album associations : .................................................. 2/170 1.2%",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
