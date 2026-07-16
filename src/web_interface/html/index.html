@@ -1054,15 +1054,15 @@
         if (/^(verbose)\s*:/.test(normalizedLower)) return "log-verbose";
 
         if (automaticMigrationMode) {
-            if (/\bduplicat(?:e|ed|es|ion)?\b/.test(normalizedLower) || /\bdupplicat(?:e|ed|es|ion)?\b/.test(normalizedLower)) {
-                return "log-duplicate";
-            }
             // Keep pull/push semantic coloring even for INFO lines, but only in automatic migration logs.
             if (/\balbum pulled\b/.test(normalizedLower) || /\balbum\s+pull(?:ed| fail| error)?\s*:/.test(normalizedLower)) {
                 return "log-pull-album";
             }
             if (/\balbum pushed\b/.test(normalizedLower) || /\balbum\s+push(?:ed| fail| error)?\s*:/.test(normalizedLower)) {
                 return "log-push-album";
+            }
+            if (/\bduplicat(?:e|ed|es|ion)?\b/.test(normalizedLower) || /\bdupplicat(?:e|ed|es|ion)?\b/.test(normalizedLower)) {
+                return "log-duplicate";
             }
             if (
                 /(asset|album)\s+pull(?:ed| fail| error)?\s*:/.test(normalizedLower)

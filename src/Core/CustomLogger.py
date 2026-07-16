@@ -1,6 +1,7 @@
 # CustomLogger.py
 import logging
 import os
+import re
 import sys
 import threading
 from contextlib import contextmanager
@@ -10,6 +11,25 @@ from colorama import Fore, Style
 from Core import GlobalVariables as GV
 from Core.GlobalVariables import VERBOSE_LEVEL_NUM
 from Utils.StandaloneUtils import resolve_external_path, custom_print
+
+
+LOG_SEMANTIC_LEVEL_PREFIX_RE = re.compile(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*", flags=re.IGNORECASE)
+
+
+def _resolve_semantic_console_color(message: str) -> str:
+    clean = str(message or "")
+    event_line = LOG_SEMANTIC_LEVEL_PREFIX_RE.sub("", clean).strip().lower()
+    if event_line.startswith("album pulled"):
+        return Fore.LIGHTCYAN_EX
+    if event_line.startswith("album pushed"):
+        return Fore.LIGHTGREEN_EX
+    if event_line.startswith("asset pulled"):
+        return Fore.CYAN
+    if event_line.startswith("asset pushed"):
+        return Fore.GREEN
+    if event_line.startswith("asset duplicated"):
+        return Fore.LIGHTBLACK_EX
+    return ""
 
 
 #------------------------------------------------------------------
@@ -105,7 +125,7 @@ class CustomConsoleFormatter(logging.Formatter):
                 "CRITICAL": f"{Fore.WHITE}{Style.BRIGHT}",
             }
             # Apply color by logging level
-            color = COLORS.get(record.levelname, "")
+            color = _resolve_semantic_console_color(formatted_message) or COLORS.get(record.levelname, "")
             formatted_message = f"{color}{formatted_message}{Style.RESET_ALL}"
         return formatted_message
 

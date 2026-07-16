@@ -88,6 +88,21 @@ MODULE_TO_CONFIG_SECTION = {
 }
 INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.items() if key != "upload_folder"}
 LOG_LEVEL_PREFIX_RE = re.compile(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*")
+
+
+def _resolve_semantic_log_style(line: str) -> str | None:
+    clean = LOG_LEVEL_PREFIX_RE.sub("", str(line or "")).strip().lower()
+    if clean.startswith("album pulled"):
+        return "bright_cyan"
+    if clean.startswith("album pushed"):
+        return "bright_green"
+    if clean.startswith("asset pulled"):
+        return "cyan"
+    if clean.startswith("asset pushed"):
+        return "green"
+    if clean.startswith("asset duplicated"):
+        return "grey66"
+    return None
 FOCUS_PANEL_IDS = (
     "sidebar-features",
     "general-tabs",
@@ -3860,6 +3875,13 @@ if TEXTUAL_AVAILABLE:
                 text = Text.from_ansi(raw)
             except Exception:
                 text = Text(raw)
+            semantic_style = _resolve_semantic_log_style(text.plain)
+            if semantic_style:
+                try:
+                    text.stylize(semantic_style, 0, len(text.plain))
+                except Exception:
+                    pass
+                return text
             match = LOG_LEVEL_PREFIX_RE.match(text.plain)
             if not match:
                 return text
