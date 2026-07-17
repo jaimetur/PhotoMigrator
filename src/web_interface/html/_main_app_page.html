@@ -1392,7 +1392,10 @@
 
         if (options.preserveScrollAnchor) {
             outputEl.scrollTop = previousScrollTop;
-        } else if (options.force || (autoScrollEnabled && nearBottomBeforeRender)) {
+        } else if (options.force || autoScrollEnabled) {
+            // If auto-scroll is enabled, always follow the tail after rendering.
+            // Relying on a "near bottom before render" heuristic is fragile when
+            // scrollHeight changes abruptly because of progress/log block updates.
             scrollOutputToBottom(outputEl);
         } else {
             outputEl.scrollTop = previousScrollTop;
