@@ -3107,8 +3107,14 @@ def _dest_is_active_for_values(dest: str, field: Dict[str, Any], values: Dict[st
     return text != "" and text != str(default)
 
 
-def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str | None = None) -> List[str]:
+def _build_cli_args(
+    tab: str,
+    values: Dict[str, Any],
+    selected_action_dest: str | None = None,
+    include_default_dests: set[str] | None = None,
+) -> List[str]:
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
+    include_default_dests = set(include_default_dests or set())
 
     args_unordered: List[str] = []
     client_value = _client_value_for_tab(tab)
@@ -3164,7 +3170,9 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
             continue
 
         text = str(raw_value).strip()
-        if text == "" or text == str(default):
+        if text == "":
+            continue
+        if text == str(default) and dest not in include_default_dests:
             continue
         args_unordered.extend([long_option, text])
         _emit_client_if_needed(dest)
@@ -3190,7 +3198,11 @@ def _normalize_incoming_values(values: Dict[str, Any], config_path: Path) -> Dic
     return incoming_values
 
 
-def _build_command_from_payload(payload: RunRequest, config_path: Path) -> List[str]:
+def _build_command_from_payload(
+    payload: RunRequest,
+    config_path: Path,
+    include_default_dests: set[str] | None = None,
+) -> List[str]:
     normalized_values = _normalize_incoming_values(payload.values or {}, config_path=config_path)
     blocked_folders = ", ".join([f"'{name}'" for name in TAKEOUT_SPECIAL_FOLDER_NAMES])
     if payload.tab == "google_takeout":
@@ -3219,7 +3231,12 @@ def _build_command_from_payload(payload: RunRequest, config_path: Path) -> List[
                         f"(special folders: {blocked_folders})."
                     ),
                 )
-    cli_args = _build_cli_args(payload.tab, normalized_values, payload.selected_action_dest)
+    cli_args = _build_cli_args(
+        payload.tab,
+        normalized_values,
+        payload.selected_action_dest,
+        include_default_dests=include_default_dests,
+    )
     return [sys.executable, str(CLI_ENTRYPOINT), *cli_args, "--configuration-file", str(config_path)]
 
 
@@ -4200,7 +4217,11 @@ def preview_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_req
     normalized_values = _normalize_incoming_values(payload.values or {}, config_path=config_path)
     scope = _path_validation_scope_for_payload(payload.tab, payload.selected_action_dest, normalized_values)
     normalized_values = _sanitize_payload_paths_for_user(normalized_values, current_user, path_scope=scope)
-    command = _build_command_from_payload(RunRequest(tab=payload.tab, values=normalized_values, selected_action_dest=payload.selected_action_dest), config_path=config_path)
+    command = _build_command_from_payload(
+        RunRequest(tab=payload.tab, values=normalized_values, selected_action_dest=payload.selected_action_dest),
+        config_path=config_path,
+        include_default_dests={"account-id"},
+    )
     return {"command": _display_command_for_user(command, config_path, current_user)}
 
 
