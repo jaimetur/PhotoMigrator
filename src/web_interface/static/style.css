@@ -51,6 +51,9 @@ body[data-theme="emerald"] {
     --badge-bg: linear-gradient(135deg, #1d6b4a, #2a9a6b);
     --badge-border: #2b7f5c;
     --badge-text: #ffffff;
+    --badge-subtle-bg: #e4f3eb;
+    --badge-subtle-border: #b8dcc8;
+    --badge-subtle-text: #245744;
     --optional-bg: #e3f4ec;
     --optional-text: #1f5b42;
     --optional-border: #add6c2;
@@ -96,6 +99,9 @@ body[data-theme="ocean"] {
     --badge-bg: linear-gradient(135deg, #1f5ea8, #3b8fe0);
     --badge-border: #2f6fb4;
     --badge-text: #ffffff;
+    --badge-subtle-bg: #e5f0fb;
+    --badge-subtle-border: #bdd3ec;
+    --badge-subtle-text: #244f82;
     --optional-bg: #dfeeff;
     --optional-text: #1c4f90;
     --optional-border: #b8d2f1;
@@ -141,6 +147,9 @@ body[data-theme="dark"] {
     --badge-bg: linear-gradient(135deg, #2a3643, #3c5268);
     --badge-border: #4a6178;
     --badge-text: #ecf4ff;
+    --badge-subtle-bg: #334252;
+    --badge-subtle-border: #556a81;
+    --badge-subtle-text: #e0ebf8;
     --optional-bg: #2a3948;
     --optional-text: #d5e2ef;
     --optional-border: #445a70;
@@ -186,6 +195,9 @@ body[data-theme="sunset"] {
     --badge-bg: linear-gradient(135deg, #b84a2c, #e07c3e);
     --badge-border: #b05b35;
     --badge-text: #fff5ef;
+    --badge-subtle-bg: #f9e8df;
+    --badge-subtle-border: #ebc6b4;
+    --badge-subtle-text: #8e4a31;
     --optional-bg: #fae6de;
     --optional-text: #8a3f2b;
     --optional-border: #e8c1b2;
@@ -936,6 +948,12 @@ body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active
     font-weight: 700;
     line-height: 1.2;
     white-space: nowrap;
+}
+
+.feature-panel-title__badge--subtle {
+    background: var(--badge-subtle-bg);
+    border-color: var(--badge-subtle-border);
+    color: var(--badge-subtle-text);
 }
 
 .collapse-btn {

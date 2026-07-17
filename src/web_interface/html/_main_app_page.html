@@ -732,6 +732,8 @@
     let currentRunPayload = null;
     let currentJobStartedAt = null;
     let currentJobIsAutomatic = false;
+    let restoredFinishedJobId = "";
+    let restoreLastVisibleJobSeq = 0;
     let webDashboardState = {rawOutput: "", status: "idle", jobData: {}};
     let pollRequestInFlight = false;
     let lastOutputVersion = -1;
@@ -1488,6 +1490,21 @@
         }
     }
 
+    function scrollOutputToBottomSettled(outputEl) {
+        if (!outputEl) return;
+        scrollOutputToBottom(outputEl);
+        if (typeof window.requestAnimationFrame === "function") {
+            window.requestAnimationFrame(() => {
+                scrollOutputToBottom(outputEl);
+                window.requestAnimationFrame(() => {
+                    scrollOutputToBottom(outputEl);
+                });
+            });
+        }
+        window.setTimeout(() => scrollOutputToBottom(outputEl), 0);
+        window.setTimeout(() => scrollOutputToBottom(outputEl), 50);
+    }
+
     function getOutputSelectionText() {
         const outputEl = document.getElementById("output");
         const selection = window.getSelection ? window.getSelection() : null;
@@ -1594,7 +1611,10 @@
             jobData: {...(jobData || {})}
         };
         const panel = document.getElementById("web-dashboard");
-        const active = activeModuleTab === "automatic_migration";
+        const pendingJobResolution = !currentJob && Boolean(String(uiState?.active_job_id || "").trim());
+        const active = currentJob
+            ? Boolean(currentJobIsAutomatic)
+            : (!pendingJobResolution && activeModuleTab === "automatic_migration");
         if (!active) {
             panel.classList.add("hidden");
             return;
@@ -2453,6 +2473,7 @@
             clearValidationErrorStatus();
             renderCloudActionPanel(tabKey);
             updateOutputPanelTitle();
+            restoreLastVisibleJobForCurrentContext();
             queueCommandPreview();
         });
         selectRow.appendChild(selectLabel);
@@ -2658,6 +2679,7 @@
             clearValidationErrorStatus();
             renderStandaloneActionPanel();
             updateOutputPanelTitle();
+            restoreLastVisibleJobForCurrentContext();
             queueCommandPreview();
         });
         selectRow.appendChild(selectLabel);
@@ -3331,6 +3353,9 @@
         bindStateForInputs();
         queueCommandPreview();
         renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
+        if (currentJob || restoreLastVisibleJobSeq > 0) {
+            restoreLastVisibleJobForCurrentContext();
+        }
     }
 
     function collectValues() {
@@ -3691,9 +3716,15 @@
             : (effectiveTab === "standalone_features" ? standaloneActionDest : cloudActionDest);
         const featureName = getModuleDisplayNameForContext(effectiveTab);
         const submoduleName = getSelectedSubmoduleDisplayNameForContext(effectiveTab, effectiveSelectedActionDest);
-        titleEl.textContent = submoduleName
-            ? `Output Panel: ${featureName} - ${submoduleName}`
-            : `Output Panel: ${featureName}`;
+        if (submoduleName) {
+            titleEl.innerHTML =
+                `Output Panel: ` +
+                `<span class="feature-panel-title__badge">${escapeHtml(featureName)}</span>` +
+                ` &rarr; ` +
+                `<span class="feature-panel-title__badge feature-panel-title__badge--subtle">${escapeHtml(submoduleName)}</span>`;
+            return;
+        }
+        titleEl.innerHTML = `Output Panel: <span class="feature-panel-title__badge">${escapeHtml(featureName)}</span>`;
     }
 
     function setActiveJobInUiState(jobId, tab = null) {
@@ -3706,6 +3737,80 @@
             delete uiState.active_job_tab;
         }
         queueSaveState();
+    }
+
+    function setLastVisibleJobInUiState(jobId, tab = null, selectedActionDest = null) {
+        if (!uiState) uiState = {};
+        if (jobId) {
+            uiState.last_visible_job_id = String(jobId || "").trim();
+            uiState.last_visible_job_tab = String(tab || "").trim();
+            uiState.last_visible_job_selected_action_dest = String(selectedActionDest || "").trim();
+        } else {
+            delete uiState.last_visible_job_id;
+            delete uiState.last_visible_job_tab;
+            delete uiState.last_visible_job_selected_action_dest;
+        }
+        queueSaveState();
+    }
+
+    function clearOutputPanelSnapshot() {
+        const outputEl = document.getElementById("output");
+        if (outputEl) outputEl.innerHTML = "";
+        resetOutputHistory();
+        restoredFinishedJobId = "";
+        setStatus("Status: idle", false);
+        updateRunStopButtons("idle");
+        setJobInputControlsState(false, false);
+        renderWebDashboard("", "idle", {});
+    }
+
+    async function restoreLastVisibleJobForCurrentContext() {
+        if (CURRENT_PAGE !== "output" || currentJob) return;
+        const restoreSeq = ++restoreLastVisibleJobSeq;
+        const savedJobId = String(uiState?.last_visible_job_id || "").trim();
+        const savedTab = String(uiState?.last_visible_job_tab || "").trim();
+        const savedSelectedActionDest = String(uiState?.last_visible_job_selected_action_dest || "").trim();
+        if (!savedJobId) {
+            clearOutputPanelSnapshot();
+            return;
+        }
+        if (restoredFinishedJobId === savedJobId) {
+            renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
+            return;
+        }
+        try {
+            const response = await fetch(`/api/jobs/${savedJobId}?compact=1`);
+            if (response.status === 404) {
+                setLastVisibleJobInUiState(null);
+                clearOutputPanelSnapshot();
+                return;
+            }
+            if (!response.ok) {
+                clearOutputPanelSnapshot();
+                return;
+            }
+            const data = await response.json();
+            if (restoreSeq !== restoreLastVisibleJobSeq) return;
+            restoredFinishedJobId = savedJobId;
+            currentJobTab = String(data.tab || savedTab || "").trim();
+            currentJobSelectedActionDest = String(data.selected_action_dest || savedSelectedActionDest || "").trim();
+            currentJobIsAutomatic = currentJobTab === "automatic_migration";
+            updateOutputPanelTitle();
+            applyOutputPayload(data, {force: true});
+            lastOutputVersion = Number(data.output_version || 0);
+            lastOutputSeq = Number(data.output_cursor || 0);
+            setStatus(`Status: ${data.status}`, false);
+            updateRunStopButtons(data.status || "idle");
+            setJobInputControlsState(Boolean(data.can_send_input), Boolean(data.awaiting_confirmation));
+            renderWebDashboard(displayedRawOutput, data.status || "idle", data);
+            if (uiState.auto_scroll !== false) {
+                scrollOutputToBottomSettled(document.getElementById("output"));
+            }
+        } catch (error) {
+            if (restoreSeq !== restoreLastVisibleJobSeq) return;
+            console.error(error);
+            clearOutputPanelSnapshot();
+        }
     }
 
     async function refreshJob() {
@@ -3721,9 +3826,11 @@
                 currentJob = null;
                 currentJobTab = "";
                 currentJobSelectedActionDest = "";
+                currentJobIsAutomatic = false;
                 currentJobStartedAt = null;
                 setActiveJobInUiState(null);
                 updateOutputPanelTitle();
+                renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
                 setStatus("Status: idle", false);
                 updateRunStopButtons("idle");
                 setJobInputControlsState(false, false);
@@ -3745,7 +3852,11 @@
             let renderOutputElapsedMs = 0;
             if (shouldRenderOutput) {
                 const renderOutputStarted = performance.now();
-                applyOutputPayload(data, {});
+                const isInitialJobSnapshot = lastOutputVersion < 0 && Boolean(data.output_reset);
+                applyOutputPayload(data, isInitialJobSnapshot ? {force: true} : {});
+                if (isInitialJobSnapshot && uiState.auto_scroll !== false) {
+                    scrollOutputToBottomSettled(document.getElementById("output"));
+                }
                 renderOutputElapsedMs = performance.now() - renderOutputStarted;
                 lastOutputVersion = nextOutputVersion;
                 lastOutputSeq = Number(data.output_cursor || lastOutputSeq || 0);
@@ -3760,10 +3871,6 @@
                 if (currentJobIsAutomatic) {
                     const dashboardStarted = performance.now();
                     renderWebDashboard(displayedRawOutput, data.status || "idle", data);
-                    dashboardElapsedMs = performance.now() - dashboardStarted;
-                } else if (activeModuleTab === "automatic_migration") {
-                    const dashboardStarted = performance.now();
-                    renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
                     dashboardElapsedMs = performance.now() - dashboardStarted;
                 }
                 lastDashboardSnapshotUpdatedAt = String(data.dashboard_snapshot_updated_at || "");
@@ -3791,6 +3898,12 @@
                 renderedDashboard: shouldRenderDashboard
             });
             if (data.status !== "running" && data.status !== "stopping") {
+                setLastVisibleJobInUiState(currentJob, data.tab, data.selected_action_dest);
+                restoredFinishedJobId = String(currentJob || "").trim();
+                currentJob = null;
+                currentJobTab = "";
+                currentJobSelectedActionDest = "";
+                currentJobIsAutomatic = false;
                 setActiveJobInUiState(null);
                 stopPolling();
                 return;
@@ -3857,9 +3970,7 @@
                 message: validationErrors.join("\n"),
                 closeLabel: "OK"
             });
-            if (activeModuleTab === "automatic_migration") {
-                renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
-            }
+            renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
             return;
         }
         const dangerousPrompt = dangerousModuleConfirmationForPayload(payload);
@@ -3898,8 +4009,6 @@
         resetOutputHistory();
         if (currentJobIsAutomatic) {
             renderWebDashboard("", "running", {});
-        } else if (activeModuleTab === "automatic_migration") {
-            renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
         }
         setStatus("Status: running", false);
         updateRunStopButtons("running");
@@ -3962,7 +4071,10 @@
             }
         }
 
-        if (!savedJobId) return;
+        if (!savedJobId) {
+            await restoreLastVisibleJobForCurrentContext();
+            return;
+        }
 
         currentJob = savedJobId;
         currentJobTab = savedTab;
@@ -3980,9 +4092,11 @@
             currentJob = null;
             currentJobTab = "";
             currentJobSelectedActionDest = "";
+            currentJobIsAutomatic = false;
             currentJobStartedAt = null;
             setActiveJobInUiState(null);
             updateOutputPanelTitle();
+            await restoreLastVisibleJobForCurrentContext();
             setStatus("Status: idle", false);
             updateRunStopButtons("idle");
             stopPolling();
