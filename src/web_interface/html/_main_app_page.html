@@ -2416,12 +2416,7 @@
         const modulesHtml = [
             '<span class="desc-optional-title">Supported modules:</span>',
             '<span class="desc-modules-grid">',
-            ...supportedModules.map((label, index) => {
-                const separator = index < (supportedModules.length - 1)
-                    ? '<span class="desc-modules-separator"> | </span>'
-                    : "";
-                return `<span class="desc-modules-item">${escapeHtml(label)}</span>${separator}`;
-            }),
+            ...supportedModules.map((label) => `<span class="desc-modules-item">${escapeHtml(label)}</span>`),
             '</span>',
         ].join("");
         generalDocBody.innerHTML = `${introHtml}<br>${modulesHtml}`;

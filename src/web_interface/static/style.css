@@ -1518,20 +1518,15 @@ textarea.field__input {
 }
 
 .desc-card p .desc-modules-grid {
-    display: block;
+    display: inline-grid;
+    grid-template-columns: repeat(2, max-content);
+    justify-content: start;
+    gap: 4px 96px;
     margin-top: 6px;
 }
 
 .desc-card p .desc-modules-item {
-    display: inline;
-}
-
-.desc-card p .desc-modules-separator {
-    display: inline;
-    margin: 0 8px;
-    color: var(--text-main);
-    opacity: 0.6;
-    font-weight: 700;
+    display: block;
 }
 
 .selector-main {
