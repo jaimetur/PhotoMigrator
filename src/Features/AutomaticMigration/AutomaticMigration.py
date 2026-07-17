@@ -178,6 +178,25 @@ def _record_unique_counter(counter_map, counter_name, seen_set, unique_key):
     return True
 
 
+def _finalize_album_assoc_failed_asset_safely(
+    finalizer,
+    *,
+    report_logger,
+    log_asset_file_path,
+    log_album_name,
+    **kwargs,
+):
+    try:
+        return finalizer(**kwargs)
+    except Exception as error:
+        if report_logger is not None:
+            report_logger.error(
+                f"Album Association Failed Cleanup Exception: asset '{os.path.basename(str(log_asset_file_path or ''))}' "
+                f"into album '{log_album_name}' - {error}\n{traceback.format_exc()}"
+            )
+        return None
+
+
 def _remove_target_empty_albums_if_supported(target_client, log_level=None):
     remove_fn = getattr(target_client, "remove_empty_albums", None)
     if not callable(remove_fn):
@@ -1818,7 +1837,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 )
             if not scheduled_retry:
                 SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
-                cleanup_elapsed_ms = _finalize_album_association_failed_asset(
+                cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
+                    _finalize_album_association_failed_asset,
+                    report_logger=LOGGER,
+                    log_asset_file_path=asset.get("asset_file_path"),
+                    log_album_name=album_name,
                     source_asset_id=asset.get("asset_id"),
                     source_live_photo_video_path=asset.get("source_live_photo_video_path"),
                     asset_file_path=asset.get("asset_file_path"),
@@ -1847,7 +1870,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             )
             if not scheduled_retry:
                 SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
-                cleanup_elapsed_ms = _finalize_album_association_failed_asset(
+                cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
+                    _finalize_album_association_failed_asset,
+                    report_logger=LOGGER,
+                    log_asset_file_path=asset.get("asset_file_path"),
+                    log_album_name=album_name,
                     source_asset_id=asset.get("asset_id"),
                     source_live_photo_video_path=asset.get("source_live_photo_video_path"),
                     asset_file_path=asset.get("asset_file_path"),
@@ -2429,7 +2456,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 )
                             item["_final_duplicate_counted"] = True
                         SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
-                        cleanup_elapsed_ms = _finalize_album_association_failed_asset(
+                        cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
+                            _finalize_album_association_failed_asset,
+                            report_logger=LOGGER,
+                            log_asset_file_path=item.get("asset_file_path"),
+                            log_album_name=album_name,
                             source_asset_id=item.get("asset_id"),
                             source_live_photo_video_path=item.get("source_live_photo_video_path"),
                             asset_file_path=item.get("asset_file_path"),

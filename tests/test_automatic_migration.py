@@ -306,6 +306,40 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             self.assertTrue((failed_album_folder / "IMG_0001.JPG").exists())
             self.assertTrue((failed_album_folder / "IMG_0001.MP4").exists())
 
+    def test_finalize_album_assoc_failed_asset_safely_returns_none_when_cleanup_raises(self):
+        logger = unittest.mock.Mock()
+
+        def failing_finalizer(**_kwargs):
+            raise RuntimeError("cleanup failed")
+
+        result = automatic_module._finalize_album_assoc_failed_asset_safely(
+            failing_finalizer,
+            report_logger=logger,
+            log_asset_file_path="/tmp/Carpeta privada/VID_20170914_005330.mp4",
+            log_album_name="Carpeta privada",
+            asset_id="asset-1",
+        )
+
+        self.assertIsNone(result)
+        logger.error.assert_called_once()
+
+    def test_finalize_album_assoc_failed_asset_safely_returns_finalizer_result(self):
+        logger = unittest.mock.Mock()
+
+        def ok_finalizer(**_kwargs):
+            return 12.5
+
+        result = automatic_module._finalize_album_assoc_failed_asset_safely(
+            ok_finalizer,
+            report_logger=logger,
+            log_asset_file_path="/tmp/Album/IMG_0001.JPG",
+            log_album_name="Album",
+            asset_id="asset-1",
+        )
+
+        self.assertEqual(result, 12.5)
+        logger.error.assert_not_called()
+
     def test_is_blocked_synology_shared_album_returns_false_for_non_synology_sources(self):
         local_client = object.__new__(automatic_module.ClassLocalFolder)
         album = {"id": "album-1", "albumName": "Album"}
