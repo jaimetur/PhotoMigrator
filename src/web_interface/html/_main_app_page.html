@@ -691,8 +691,8 @@
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
     const OUTPUT_BLOCK_SIZE = 400;
-    const JOB_POLL_ACTIVE_INTERVAL_MS = 150;
-    const JOB_POLL_IDLE_INTERVAL_MS = 600;
+    const JOB_POLL_ACTIVE_INTERVAL_MS = 25;
+    const JOB_POLL_IDLE_INTERVAL_MS = 250;
 
     function resetOutputHistory() {
         lastRawOutput = "";
