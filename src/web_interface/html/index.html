@@ -77,7 +77,7 @@
 
     <section class="panel" data-panel-id="feature-panel">
         <div class="panel-head">
-            <h2 id="feature-panel-title">Feature Selector: Automatic Migration</h2>
+            <h2 id="feature-panel-title">Feature Selector Panel: Automatic Migration</h2>
             <button type="button" class="collapse-btn" data-collapse-target="feature-panel" aria-label="Collapse panel">
                 <span class="collapse-btn__icon">▲</span>
             </button>
@@ -92,7 +92,7 @@
 
             <form id="module-form" class="form-grid module-grid"></form>
             <div class="command-preview-panel">
-                <h3>Command Preview</h3>
+                <h3>Command Preview:</h3>
                 <div id="command-preview-inline" class="command"></div>
             </div>
             <div class="module-actions">
@@ -110,13 +110,10 @@
             </button>
         </div>
         <div class="panel-body">
-            <h3>Command Preview</h3>
+            <h4>Command Preview:</h4>
             <div id="command-preview" class="command"></div>
-            <div class="output-subhead">
-                <h3>Execution Output</h3>
-            </div>
             <div class="output-toolbar">
-                <div id="status" class="status">Status: idle</div>
+                <div id="status" class="status">Output Status: idle</div>
                 <div class="output-toolbar__actions">
                     <label class="autos-scroll">
                         <input id="auto-scroll-check" type="checkbox">
@@ -3378,7 +3375,7 @@
     function updateFeaturePanelTitle() {
         const titleEl = document.getElementById("feature-panel-title");
         if (!titleEl) return;
-        titleEl.textContent = `Feature Selector: ${getActiveModuleDisplayName()}`;
+        titleEl.textContent = `Feature Selector Panel: ${getActiveModuleDisplayName()}`;
     }
 
     function setActiveJobInUiState(jobId, tab = null) {
