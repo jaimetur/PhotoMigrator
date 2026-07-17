@@ -90,7 +90,7 @@ class ClassLocalFolder(BaseMediaClient):
 
         # Create cache lists for future use
         self.all_assets_filtered = None
-        self.assets_without_albums_filtered = {}
+        self.assets_without_albums_filtered = None
         self.albums_assets_filtered = None
 
         # Get the values from the arguments (if exists)
@@ -225,7 +225,7 @@ class ClassLocalFolder(BaseMediaClient):
 
     def _invalidate_asset_caches(self):
         self.all_assets_filtered = None
-        self.assets_without_albums_filtered = {}
+        self.assets_without_albums_filtered = None
         self.albums_assets_filtered = None
 
     @staticmethod
@@ -1611,9 +1611,10 @@ class ClassLocalFolder(BaseMediaClient):
             LOGGER.info(f"Retrieving {type} assets excluding albums, shared albums, _Duplicates, and excluded patterns.")
 
             # Return cached if already computed
-            cached_assets = self.assets_without_albums_filtered.get(type)
-            if cached_assets is not None:
-                return cached_assets
+            if isinstance(self.assets_without_albums_filtered, dict):
+                cached_assets = self.assets_without_albums_filtered.get(type)
+                if cached_assets is not None:
+                    return cached_assets
 
             # Ensure analyzer is initialized (with global filters applied)
             self._ensure_analyzer(log_level=log_level)
@@ -1713,6 +1714,8 @@ class ClassLocalFolder(BaseMediaClient):
 
             LOGGER.info(f"Found {len(all_assets)} assets of type '{type}' in No-Album folders (excluding _Duplicates).")
             # cache result for next calls
+            if not isinstance(self.assets_without_albums_filtered, dict):
+                self.assets_without_albums_filtered = {}
             self.assets_without_albums_filtered[type] = all_assets
             return all_assets
 
