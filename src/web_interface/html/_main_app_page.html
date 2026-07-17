@@ -825,7 +825,8 @@
                 message = `This module will delete duplicated albums in ${clientLabel} (same name and size).`;
             } else if (action === "merge-duplicates-albums") {
                 message = `This module will merge duplicated albums in ${clientLabel} by moving assets into the most relevant album and removing duplicates.`;
-            // } else if (action === "remove-orphan-assets") {
+            }
+            // else if (action === "remove-orphan-assets") {
             //     message = "This module will delete orphan assets from the Immich database (assets referenced in DB but missing on disk).";
             // }
             if (!message) return null;

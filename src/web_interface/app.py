@@ -1782,8 +1782,6 @@ def _client_value_for_tab(tab: str) -> str | None:
         return "immich"
     if tab == "nextcloud_photos":
         return "nextcloud"
-    if tab == "google_takeout":
-        return "google-takeout"
     return None
 
 
@@ -3112,6 +3110,7 @@ def _build_cli_args(
     values: Dict[str, Any],
     selected_action_dest: str | None = None,
     include_default_dests: set[str] | None = None,
+    include_empty_selected_action: bool = False,
 ) -> List[str]:
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     include_default_dests = set(include_default_dests or set())
@@ -3158,19 +3157,31 @@ def _build_cli_args(
                 if text:
                     args_unordered.extend([long_option, text])
                     _emit_client_if_needed(dest)
+                elif dest == selected_action_key and include_empty_selected_action:
+                    args_unordered.extend([long_option, ""])
+                    _emit_client_if_needed(dest)
                 continue
             values_list = _to_list(raw_value)
             if values_list:
                 args_unordered.append(long_option)
                 args_unordered.extend(values_list)
                 _emit_client_if_needed(dest)
+            elif dest == selected_action_key and include_empty_selected_action:
+                args_unordered.extend([long_option, ""])
+                _emit_client_if_needed(dest)
             continue
 
         if raw_value is None:
+            if dest == selected_action_key and include_empty_selected_action:
+                args_unordered.extend([long_option, ""])
+                _emit_client_if_needed(dest)
             continue
 
         text = str(raw_value).strip()
         if text == "":
+            if dest == selected_action_key and include_empty_selected_action:
+                args_unordered.extend([long_option, ""])
+                _emit_client_if_needed(dest)
             continue
         if text == str(default) and dest not in include_default_dests:
             continue
@@ -3202,6 +3213,7 @@ def _build_command_from_payload(
     payload: RunRequest,
     config_path: Path,
     include_default_dests: set[str] | None = None,
+    include_empty_selected_action: bool = False,
 ) -> List[str]:
     normalized_values = _normalize_incoming_values(payload.values or {}, config_path=config_path)
     blocked_folders = ", ".join([f"'{name}'" for name in TAKEOUT_SPECIAL_FOLDER_NAMES])
@@ -3236,6 +3248,7 @@ def _build_command_from_payload(
         normalized_values,
         payload.selected_action_dest,
         include_default_dests=include_default_dests,
+        include_empty_selected_action=include_empty_selected_action,
     )
     return [sys.executable, str(CLI_ENTRYPOINT), *cli_args, "--configuration-file", str(config_path)]
 
@@ -4221,6 +4234,7 @@ def preview_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_req
         RunRequest(tab=payload.tab, values=normalized_values, selected_action_dest=payload.selected_action_dest),
         config_path=config_path,
         include_default_dests={"account-id"},
+        include_empty_selected_action=True,
     )
     return {"command": _display_command_for_user(command, config_path, current_user)}
 

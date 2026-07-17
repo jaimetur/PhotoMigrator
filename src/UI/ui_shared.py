@@ -1527,8 +1527,6 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
         args.extend(["--client", "immich"])
     elif tab == "nextcloud_photos":
         args.extend(["--client", "nextcloud"])
-    elif tab == "google_takeout":
-        args.extend(["--client", "google-takeout"])
     return args
 
 
