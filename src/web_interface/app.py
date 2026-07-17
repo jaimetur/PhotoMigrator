@@ -1734,8 +1734,8 @@ def _ordered_allowed_dests(tab: str, allowed_dests: set[str], selected_action_de
             seen.add(text)
 
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
-        _push("account-id")
         _push(selected_action_dest or "")
+        _push("account-id")
         for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest or "", []):
             _push(str((item or {}).get("dest") or ""))
         for dep in MODULE_DEPENDENCIES_REQUIRED.get(tab, {}).get(selected_action_dest or "", set()):
@@ -1771,6 +1771,20 @@ def _ordered_allowed_dests(tab: str, allowed_dests: set[str], selected_action_de
     for dest in sorted(allowed_dests):
         _push(dest)
     return ordered
+
+
+def _client_value_for_tab(tab: str) -> str | None:
+    if tab == "google_photos":
+        return "google-photos"
+    if tab == "synology_photos":
+        return "synology"
+    if tab == "immich_photos":
+        return "immich"
+    if tab == "nextcloud_photos":
+        return "nextcloud"
+    if tab == "google_takeout":
+        return "google-takeout"
+    return None
 
 
 def _display_command_for_user(command: List[str], config_path: Path, current_user: Dict[str, Any]) -> str:
@@ -3097,6 +3111,16 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
 
     args_unordered: List[str] = []
+    client_value = _client_value_for_tab(tab)
+    client_emitted = False
+    selected_action_key = str(selected_action_dest or "").strip()
+
+    def _emit_client_if_needed(current_dest: str) -> None:
+        nonlocal client_emitted
+        if client_value and not client_emitted and current_dest == selected_action_key:
+            args_unordered.extend(["--client", client_value])
+            client_emitted = True
+
     for dest in _ordered_allowed_dests(tab, allowed_dests, selected_action_dest):
         field = PARSER_FIELDS_BY_DEST[dest]
         raw_value = values.get(dest)
@@ -3107,6 +3131,7 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
         if kind == "flag":
             if _bool_from_value(raw_value):
                 args_unordered.append(long_option)
+                _emit_client_if_needed(dest)
             continue
 
         if kind == "bool":
@@ -3118,6 +3143,7 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
                     args_unordered.append(long_option if current else false_option)
                 else:
                     args_unordered.extend([long_option, "true" if current else "false"])
+                _emit_client_if_needed(dest)
             continue
 
         if kind == "list":
@@ -3125,11 +3151,13 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
                 text = str(raw_value or "").strip()
                 if text:
                     args_unordered.extend([long_option, text])
+                    _emit_client_if_needed(dest)
                 continue
             values_list = _to_list(raw_value)
             if values_list:
                 args_unordered.append(long_option)
                 args_unordered.extend(values_list)
+                _emit_client_if_needed(dest)
             continue
 
         if raw_value is None:
@@ -3139,17 +3167,10 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
         if text == "" or text == str(default):
             continue
         args_unordered.extend([long_option, text])
+        _emit_client_if_needed(dest)
 
-    if tab == "google_photos":
-        args_unordered.extend(["--client", "google-photos"])
-    elif tab == "synology_photos":
-        args_unordered.extend(["--client", "synology"])
-    elif tab == "immich_photos":
-        args_unordered.extend(["--client", "immich"])
-    elif tab == "nextcloud_photos":
-        args_unordered.extend(["--client", "nextcloud"])
-    elif tab == "google_takeout":
-        args_unordered.extend(["--client", "google-takeout"])
+    if client_value and not client_emitted:
+        args_unordered.extend(["--client", client_value])
 
     return args_unordered
 
