@@ -107,6 +107,19 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         self.assertEqual(local_folder._determine_file_type(metadata_csv), "metadata")
         self.assertEqual(local_folder._determine_file_type(generic_csv), "unknown")
 
+    def test_determine_file_type_treats_webp_and_mp_as_images(self):
+        webp_file = self.root / "ALL_PHOTOS/2024/IMG_20210805_112248_719.webp"
+        webp_file.parent.mkdir(parents=True, exist_ok=True)
+        webp_file.write_text("img", encoding="utf-8")
+
+        mp_file = self.root / "ALL_PHOTOS/2024/PXL_20230512_222825532.MP"
+        mp_file.write_text("img", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=self.root)
+
+        self.assertEqual(local_folder._determine_file_type(webp_file), "image")
+        self.assertEqual(local_folder._determine_file_type(mp_file), "image")
+
     def test_remove_assets_refreshes_analyzer_with_supported_methods_and_invalidates_caches(self):
         removable = self.root / "ALL_PHOTOS/2024/remove-me.jpg"
         removable.parent.mkdir(parents=True, exist_ok=True)

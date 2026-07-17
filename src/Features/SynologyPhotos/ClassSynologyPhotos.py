@@ -19,7 +19,7 @@ import urllib3
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
+from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS, PHOTO_EXT
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
@@ -81,11 +81,7 @@ class ClassSynologyPhotos(BaseMediaClient):
 
         # Allowed extensions:
         self.ALLOWED_SIDECAR_EXTENSIONS = []
-        self.ALLOWED_PHOTO_EXTENSIONS = [
-            '.BMP', '.GIF', '.JPG', '.JPEG', '.PNG', '.3fr', '.arw', '.cr2', '.cr3', '.crw', '.dcr',
-            '.dng', '.erf', '.k25', '.kdc', '.mef', '.mos', '.mrw', '.nef', '.orf', '.ptx', '.pef',
-            '.raf', '.raw', '.rw2', '.sr2', '.srf', '.TIFF', '.HEIC'
-        ]
+        self.ALLOWED_PHOTO_EXTENSIONS = list(PHOTO_EXT)
         self.ALLOWED_VIDEO_EXTENSIONS = [
             '.3G2', '.3GP', '.ASF', '.AVI', '.DivX', '.FLV', '.M4V',
             '.MOV', '.MP4', '.MPEG', '.MPG', '.MTS', '.M2TS', '.M2T',
