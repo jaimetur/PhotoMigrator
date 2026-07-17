@@ -219,14 +219,16 @@
                 <pre id="output" class="terminal"></pre>
                 <div id="output-resize-handle" class="terminal-resize-handle" title="Drag from bottom edge or bottom corners to resize the log panel"></div>
             </div>
+            <div id="job-input-controls" class="job-input-controls">
+                <span id="job-input-label" class="job-input-label">Process Input: idle</span>
+                <input id="job-input-text" type="text" class="field__input job-input-text" placeholder="Send text to the running job when it requests input">
+                <button id="job-input-send" type="button" class="run-btn">Send</button>
+                <button id="job-input-yes" type="button" class="run-btn">Yes</button>
+                <button id="job-input-no" type="button" class="run-btn run-btn--danger">No</button>
+            </div>
             <div class="module-actions module-actions--output">
                 <button id="run-btn-output" type="button" class="run-btn">Run module</button>
                 <button id="stop-btn-output" type="button" class="run-btn run-btn--danger" disabled>Stop module</button>
-            </div>
-            <div id="job-input-controls" class="job-input-controls hidden">
-                <span class="job-input-label">Send confirmation:</span>
-                <button id="job-input-yes" type="button" class="run-btn">Yes</button>
-                <button id="job-input-no" type="button" class="run-btn run-btn--danger">No</button>
             </div>
         </div>
     </section>
@@ -3625,8 +3627,7 @@
                 setActiveJobInUiState(null);
                 setStatus("Status: idle", false);
                 updateRunStopButtons("idle");
-                const controls = document.getElementById("job-input-controls");
-                controls.classList.add("hidden");
+                setJobInputControlsState(false, false);
                 stopPolling();
                 return;
             }
@@ -3666,10 +3667,13 @@
                 lastDashboardSnapshotUpdatedAt = String(data.dashboard_snapshot_updated_at || "");
             }
 
-            const controls = document.getElementById("job-input-controls");
+            const canSendInput = Boolean(data.can_send_input);
             const awaitingConfirmation = Boolean(data.awaiting_confirmation);
-            const awaitingConfirmationChanged = controls.classList.contains("hidden") === awaitingConfirmation;
-            controls.classList.toggle("hidden", !awaitingConfirmation);
+            const controls = document.getElementById("job-input-controls");
+            const previousAwaitingInput = controls.classList.contains("job-input-controls--waiting");
+            const previousCanSendInput = Array.from(controls.querySelectorAll("input,button")).some((node) => !node.disabled);
+            setJobInputControlsState(canSendInput, awaitingConfirmation);
+            const awaitingConfirmationChanged = previousAwaitingInput !== awaitingConfirmation || previousCanSendInput !== canSendInput;
             debugWebPerf("refreshJob", {
                 jobId: currentJob,
                 status: data.status,
@@ -3698,10 +3702,35 @@
 
     async function sendJobInput(text) {
         if (!currentJob) return;
+        const normalized = String(text || "").trim();
+        if (!normalized) return;
         await fetch(`/api/jobs/${currentJob}/input`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({text})
+            body: JSON.stringify({text: normalized})
+        });
+        const jobInputText = document.getElementById("job-input-text");
+        if (jobInputText) jobInputText.value = "";
+    }
+
+    function setJobInputControlsState(canSendInput, awaitingInput = false) {
+        const controls = document.getElementById("job-input-controls");
+        const label = document.getElementById("job-input-label");
+        const input = document.getElementById("job-input-text");
+        const sendBtn = document.getElementById("job-input-send");
+        const yesBtn = document.getElementById("job-input-yes");
+        const noBtn = document.getElementById("job-input-no");
+        const enabled = Boolean(currentJob) && Boolean(canSendInput);
+        const waiting = enabled && Boolean(awaitingInput);
+        controls.classList.toggle("job-input-controls--waiting", waiting);
+        if (label) {
+            label.textContent = waiting
+                ? "Process Input: waiting for input"
+                : (enabled ? "Process Input: ready" : "Process Input: idle");
+        }
+        [input, sendBtn, yesBtn, noBtn].forEach((node) => {
+            if (!node) return;
+            node.disabled = !enabled;
         });
     }
 
@@ -3769,7 +3798,7 @@
         }
         setStatus("Status: running", false);
         updateRunStopButtons("running");
-        document.getElementById("job-input-controls").classList.add("hidden");
+        setJobInputControlsState(false, false);
         stopPolling();
         await refreshJob();
     }
@@ -5374,8 +5403,15 @@
         document.getElementById("import-config-btn").addEventListener("click", importConfigFromFile);
         document.getElementById("config-import-input").addEventListener("change", onConfigImportPicked);
         document.getElementById("export-config-btn").addEventListener("click", exportConfigToFile);
+        document.getElementById("job-input-send").addEventListener("click", () => sendJobInput(document.getElementById("job-input-text").value));
         document.getElementById("job-input-yes").addEventListener("click", () => sendJobInput("yes"));
         document.getElementById("job-input-no").addEventListener("click", () => sendJobInput("no"));
+        document.getElementById("job-input-text").addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            sendJobInput(event.currentTarget.value);
+        });
+        setJobInputControlsState(false);
         document.getElementById("save-config-btn").addEventListener("click", saveConfig);
         document.getElementById("save-app-settings-btn").addEventListener("click", saveConfig);
         document.getElementById("logout-btn").addEventListener("click", async () => {

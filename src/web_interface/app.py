@@ -2148,6 +2148,45 @@ def _has_log_level_prefix(line: str) -> bool:
     return bool(LOG_LEVEL_PREFIX_RE.match(str(line or "").lstrip()))
 
 
+def _job_tail_indicates_stdin_prompt(tail_text: str) -> bool:
+    candidate = str(tail_text or "").lower()
+    if not candidate:
+        return False
+
+    yes_no_markers = (
+        "awaiting user confirmation (yes/no)",
+        "do you want to continue? (yes/no):",
+    )
+    if any(marker in candidate for marker in yes_no_markers):
+        return True
+
+    free_text_markers = (
+        "will be requested on screen.",
+        "enter synology_url:",
+        "enter synology_username:",
+        "enter synology_password:",
+        "enter synology otp token:",
+        " enter immich_url",
+        " enter immich_username",
+        " enter immich_password:",
+        "[prompt] enter ",
+        " introduce ",
+    )
+    if any(marker in candidate for marker in free_text_markers):
+        return True
+
+    # Match free-form prompts that end with ":" and are typically emitted by input().
+    # This catches prompts that arrive without a preceding space or with a leading newline.
+    if re.search(r"(?:^|\n)\s*(?:\[prompt\]\s*)?enter [^:\n]{1,120}:\s*$", candidate):
+        return True
+    if re.search(r"(?:^|\n)\s*.+will be requested on screen\.\s*$", candidate):
+        return True
+    if re.search(r"(?:^|\n)\s*(?:[^\n]{0,80}\s)?introduce [^:\n]{1,120}:\s*$", candidate):
+        return True
+
+    return False
+
+
 def _looks_like_progress_or_progress_followup(line: str) -> bool:
     raw = str(line or "")
     if not raw:
@@ -3309,10 +3348,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
             with JOBS_LOCK:
                 _append_job_output(job, chunk)
                 lowered_tail = _get_job_output_tail(job, TAIL_CONFIRM_CHARS).lower()
-                if (
-                    "awaiting user confirmation (yes/no)" in lowered_tail
-                    or "do you want to continue? (yes/no):" in lowered_tail
-                ):
+                if _job_tail_indicates_stdin_prompt(lowered_tail):
                     job.awaiting_confirmation = True
                 elif "continuing..." in lowered_tail or "operation canceled." in lowered_tail:
                     job.awaiting_confirmation = False

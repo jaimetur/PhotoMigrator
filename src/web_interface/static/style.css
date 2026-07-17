@@ -2253,14 +2253,24 @@ body[data-theme="dark"] .theme-card__name {
 }
 
 .job-input-controls {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(260px, 1fr) auto auto auto;
     align-items: center;
     gap: 8px;
     margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(148, 163, 184, 0.08);
 }
 
 .job-input-controls.hidden {
     display: none;
+}
+
+.job-input-controls--waiting {
+    border-color: #d2a447;
+    background: rgba(210, 164, 71, 0.12);
 }
 
 .job-input-label {
@@ -2271,6 +2281,17 @@ body[data-theme="dark"] .theme-card__name {
 .job-input-controls .run-btn {
     margin-top: 0;
     padding: 6px 12px;
+}
+
+.job-input-text {
+    min-width: 0;
+}
+
+@media (max-width: 980px) {
+    .job-input-controls {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
 }
 
 .terminal-shell {
