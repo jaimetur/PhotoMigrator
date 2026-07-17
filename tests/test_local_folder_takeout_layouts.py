@@ -135,6 +135,12 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         self.assertIn("progress.json", unsupported_filenames)
         self.assertIn("PXL_20230512_222825532.MP", unsupported_filenames)
 
+        all_assets = local_folder.get_all_assets_without_albums(type="all", log_level=logging.INFO)
+        all_filenames = sorted(asset["filename"] for asset in all_assets)
+
+        self.assertNotIn("progress.json", all_filenames)
+        self.assertNotIn("PXL_20230512_222825532.MP", all_filenames)
+
     def test_remove_assets_refreshes_analyzer_with_supported_methods_and_invalidates_caches(self):
         removable = self.root / "ALL_PHOTOS/2024/remove-me.jpg"
         removable.parent.mkdir(parents=True, exist_ok=True)

@@ -90,7 +90,7 @@ class ClassLocalFolder(BaseMediaClient):
 
         # Create cache lists for future use
         self.all_assets_filtered = None
-        self.assets_without_albums_filtered = None
+        self.assets_without_albums_filtered = {}
         self.albums_assets_filtered = None
 
         # Get the values from the arguments (if exists)
@@ -225,7 +225,7 @@ class ClassLocalFolder(BaseMediaClient):
 
     def _invalidate_asset_caches(self):
         self.all_assets_filtered = None
-        self.assets_without_albums_filtered = None
+        self.assets_without_albums_filtered = {}
         self.albums_assets_filtered = None
 
     @staticmethod
@@ -1611,8 +1611,9 @@ class ClassLocalFolder(BaseMediaClient):
             LOGGER.info(f"Retrieving {type} assets excluding albums, shared albums, _Duplicates, and excluded patterns.")
 
             # Return cached if already computed
-            if self.assets_without_albums_filtered is not None:
-                return self.assets_without_albums_filtered
+            cached_assets = self.assets_without_albums_filtered.get(type)
+            if cached_assets is not None:
+                return cached_assets
 
             # Ensure analyzer is initialized (with global filters applied)
             self._ensure_analyzer(log_level=log_level)
@@ -1677,6 +1678,10 @@ class ClassLocalFolder(BaseMediaClient):
                         if file_type != "unknown":
                             pbar.update(1)
                             continue
+                    elif type == 'all':
+                        if file_type == "unknown":
+                            pbar.update(1)
+                            continue
                     elif sel_ext == self.ALLOWED_METADATA_EXTENSIONS:
                         if file_type != "metadata":
                             pbar.update(1)
@@ -1708,7 +1713,7 @@ class ClassLocalFolder(BaseMediaClient):
 
             LOGGER.info(f"Found {len(all_assets)} assets of type '{type}' in No-Album folders (excluding _Duplicates).")
             # cache result for next calls
-            self.assets_without_albums_filtered = all_assets
+            self.assets_without_albums_filtered[type] = all_assets
             return all_assets
 
     # def get_all_assets_without_albums(self, type='all', log_level=logging.WARNING):

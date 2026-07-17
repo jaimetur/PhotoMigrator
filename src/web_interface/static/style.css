@@ -840,6 +840,7 @@ body {
 }
 
 body .page-nav .hero__nav-btn.hero__nav-btn--features,
+body .page-nav .hero__nav-btn.hero__nav-btn--output,
 body .page-nav .hero__nav-btn.hero__nav-btn--configuration {
     background: var(--hero-nav-bg);
     border-color: var(--hero-nav-border);
@@ -848,6 +849,8 @@ body .page-nav .hero__nav-btn.hero__nav-btn--configuration {
 
 body .page-nav .hero__nav-btn.hero__nav-btn--features:hover,
 body .page-nav .hero__nav-btn.hero__nav-btn--features:focus-visible,
+body .page-nav .hero__nav-btn.hero__nav-btn--output:hover,
+body .page-nav .hero__nav-btn.hero__nav-btn--output:focus-visible,
 body .page-nav .hero__nav-btn.hero__nav-btn--configuration:hover,
 body .page-nav .hero__nav-btn.hero__nav-btn--configuration:focus-visible {
     background: var(--hero-nav-hover-bg);
@@ -858,6 +861,9 @@ body .page-nav .hero__nav-btn.hero__nav-btn--configuration:focus-visible {
 body .page-nav .hero__nav-btn.hero__nav-btn--features.hero__nav-btn--active,
 body .page-nav .hero__nav-btn.hero__nav-btn--features.hero__nav-btn--active:hover,
 body .page-nav .hero__nav-btn.hero__nav-btn--features.hero__nav-btn--active:focus-visible,
+body .page-nav .hero__nav-btn.hero__nav-btn--output.hero__nav-btn--active,
+body .page-nav .hero__nav-btn.hero__nav-btn--output.hero__nav-btn--active:hover,
+body .page-nav .hero__nav-btn.hero__nav-btn--output.hero__nav-btn--active:focus-visible,
 body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active,
 body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active:hover,
 body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active:focus-visible {

@@ -47,6 +47,9 @@
             <a href="/features" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
                 🧩 Features
             </a>
+            <a href="/output" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
+                📟 Output
+            </a>
             <a href="/configuration" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
                 ⚙️ Configuration
             </a>
@@ -102,6 +105,9 @@
             <a href="/features" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
                 🧩 Features
             </a>
+            <a href="/output" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
+                📟 Output
+            </a>
             <a href="/configuration" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
                 ⚙️ Configuration
             </a>
@@ -134,7 +140,19 @@
         </section>
     </div>
 
-    <section class="panel output{% if active_page != 'features' %} page-panel-hidden{% endif %}" data-panel-id="output-panel">
+    <div class="panel-shell{% if active_page != 'output' %} page-panel-hidden{% endif %}">
+        <div class="page-nav" aria-label="Main page navigation">
+            <a href="/features" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
+                🧩 Features
+            </a>
+            <a href="/output" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
+                📟 Output
+            </a>
+            <a href="/configuration" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
+                ⚙️ Configuration
+            </a>
+        </div>
+    <section class="panel output" data-panel-id="output-panel">
         <div class="panel-head">
             <h2>Output Panel</h2>
             <button type="button" class="collapse-btn" data-collapse-target="output-panel" aria-label="Collapse panel">
@@ -232,6 +250,7 @@
             </div>
         </div>
     </section>
+    </div>
 </main>
 
 <dialog id="folder-dialog" class="folder-dialog">

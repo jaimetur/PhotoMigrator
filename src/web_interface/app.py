@@ -3511,6 +3511,14 @@ def features_page(request: Request, session_token: str | None = Cookie(default=N
     return _render_main_page(request, current_user, "features.html")
 
 
+@app.get("/output", response_class=HTMLResponse)
+def output_page(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
+    current_user = _user_from_session_token(session_token)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    return _render_main_page(request, current_user, "output.html")
+
+
 @app.get("/configuration", response_class=HTMLResponse)
 def configuration_page(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
     current_user = _user_from_session_token(session_token)
