@@ -3646,7 +3646,9 @@ def import_config(payload: ConfigUpdateRequest, current_user: Dict[str, Any] = D
     )
     parsed_values = _parse_ini_text_to_values(payload.content or "", strict=True)
     merged = _merge_values_with_schema(parsed_values, CONFIG_FORM_SCHEMA)
-    merged = _sanitize_config_values_for_user(merged, CONFIG_FORM_SCHEMA, current_user)
+    # Preserve imported config paths exactly as provided by the source file.
+    # Runtime command execution still re-sanitizes path arguments per user,
+    # but import itself should behave as a pure config import operation.
     _save_user_config_values(current_user, merged, CONFIG_FORM_SCHEMA)
     _sync_user_theme_to_state(current_user, merged)
     response = _build_config_form_response(current_user, merged=merged)
