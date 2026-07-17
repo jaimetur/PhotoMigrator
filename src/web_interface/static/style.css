@@ -2275,9 +2275,11 @@ body[data-theme="dark"] .theme-card__name {
 
 .terminal-shell {
     position: relative;
+    overflow: visible;
 }
 
 .terminal {
+    display: block;
     margin: 0;
     border-radius: 12px;
     background: #11181c;
@@ -2285,12 +2287,40 @@ body[data-theme="dark"] .theme-card__name {
     height: 760px;
     min-height: 420px;
     max-height: 1520px;
-    overflow-y: auto;
-    overflow-x: auto;
+    overflow-y: scroll;
+    overflow-x: scroll;
     padding: 12px;
     font-size: 0.85rem;
     line-height: 1.4;
+    white-space: pre;
     overscroll-behavior: contain;
+    scrollbar-gutter: stable both-edges;
+    scrollbar-width: auto;
+    scrollbar-color: rgba(176, 190, 198, 0.82) #1a2329;
+}
+
+.terminal::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+}
+
+.terminal::-webkit-scrollbar-track {
+    background: #1a2329;
+    border-radius: 10px;
+}
+
+.terminal::-webkit-scrollbar-thumb {
+    background: rgba(176, 190, 198, 0.82);
+    border: 3px solid #1a2329;
+    border-radius: 10px;
+}
+
+.terminal::-webkit-scrollbar-thumb:hover {
+    background: rgba(206, 216, 223, 0.9);
+}
+
+.terminal::-webkit-scrollbar-corner {
+    background: #1a2329;
 }
 
 .terminal-resize-handle {
@@ -2335,12 +2365,14 @@ body.is-resizing-log {
     white-space: pre;
     word-break: normal;
     overflow-wrap: normal;
+    min-width: max-content;
 }
 
 .log-block {
     display: block;
+    min-width: max-content;
     content-visibility: auto;
-    contain: layout style paint;
+    contain: style paint;
     contain-intrinsic-size: 480px;
 }
 

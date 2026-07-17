@@ -2697,6 +2697,8 @@ def _initialize_web_app_state() -> None:
 
 @asynccontextmanager
 async def _web_app_lifespan(_app: FastAPI):
+    logging.getLogger("uvicorn.access").disabled = True
+    logging.getLogger("uvicorn.access").propagate = False
     _initialize_web_app_state()
     try:
         yield
