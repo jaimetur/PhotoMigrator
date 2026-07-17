@@ -3485,13 +3485,9 @@ def api_change_password(payload: ChangePasswordRequest, current_user: Dict[str, 
     return {"saved": True}
 
 
-@app.get("/", response_class=HTMLResponse)
-def home(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
-    current_user = _user_from_session_token(session_token)
-    if not current_user:
-        return RedirectResponse(url="/login", status_code=302)
+def _render_main_page(request: Request, current_user: Dict[str, Any], template_name: str) -> HTMLResponse:
     response = templates.TemplateResponse(
-        "index.html",
+        template_name,
         {
             "request": request,
             "tool_name": TOOL_NAME,
@@ -3504,6 +3500,30 @@ def home(request: Request, session_token: str | None = Cookie(default=None, alia
         },
     )
     return _html_no_store_response(response)
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
+    current_user = _user_from_session_token(session_token)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    return RedirectResponse(url="/features", status_code=302)
+
+
+@app.get("/features", response_class=HTMLResponse)
+def features_page(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
+    current_user = _user_from_session_token(session_token)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    return _render_main_page(request, current_user, "features.html")
+
+
+@app.get("/configuration", response_class=HTMLResponse)
+def configuration_page(request: Request, session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOKIE)) -> HTMLResponse:
+    current_user = _user_from_session_token(session_token)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    return _render_main_page(request, current_user, "configuration.html")
 
 
 @app.get("/admin", response_class=HTMLResponse)
