@@ -609,6 +609,13 @@ class ClassLocalFolder(BaseMediaClient):
             str: 'image', 'video', 'metadata', 'sidecar', or 'unknown'.
         """
         ext = file.suffix.lower()
+        if ext == ".csv":
+            try:
+                from Features.ICloudTakeout.ClassICloudTakeoutFolder import is_icloud_metadata_csv_path
+                if is_icloud_metadata_csv_path(file):
+                    return "metadata"
+            except Exception:
+                pass
         if ext in self.ALLOWED_PHOTO_EXTENSIONS:
             return "image"
         elif ext in self.ALLOWED_VIDEO_EXTENSIONS:

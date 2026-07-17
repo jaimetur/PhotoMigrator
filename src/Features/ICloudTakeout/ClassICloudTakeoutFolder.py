@@ -99,6 +99,14 @@ def _is_icloud_metadata_csv(path_value, fieldnames) -> bool:
     )
 
 
+def is_icloud_metadata_csv_path(csv_path) -> bool:
+    path_obj = Path(str(csv_path or "")).expanduser()
+    if path_obj.suffix.lower() != ".csv" or not path_obj.is_file():
+        return False
+    header = _read_csv_header_from_path(path_obj)
+    return _is_icloud_metadata_csv(path_obj, header)
+
+
 def _zip_contains_icloud_takeout_structure(zip_path: Path, log_level=None) -> bool:
     with set_log_level(LOGGER, log_level):
         try:

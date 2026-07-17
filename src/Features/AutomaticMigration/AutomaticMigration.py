@@ -19,7 +19,7 @@ from typing import Union, cast
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
 from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE, FOLDERNAME_EXTRACTED_DATES
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
-from Features.ICloudTakeout.ClassICloudTakeoutFolder import ClassICloudTakeoutFolder, contains_icloud_takeout_structure
+from Features.ICloudTakeout.ClassICloudTakeoutFolder import ClassICloudTakeoutFolder, contains_icloud_takeout_structure, is_icloud_metadata_csv_path
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
@@ -91,17 +91,6 @@ def _increment_album_stat_counter(album_stats_by_name, album_stats_lock, album_n
 def _build_web_dashboard_snapshot(shared_data, parallel=None):
     info = dict(getattr(shared_data, "info", {}) or {})
     counters = dict(getattr(shared_data, "counters", {}) or {})
-    inferred_queue = max(
-        0,
-        int(counters.get("total_pulled_assets", 0) or 0)
-        - int(counters.get("total_pushed_assets", 0) or 0)
-        - int(counters.get("total_push_failed_assets", 0) or 0)
-        - int(counters.get("total_push_duplicates_assets", 0) or 0),
-    )
-    queue_value = max(
-        int(info.get("assets_in_queue", 0) or 0),
-        inferred_queue,
-    )
     snapshot = {
         "migrationMode": "parallel" if bool(parallel) else "sequential",
         "sourceClientName": info.get("source_client_name"),
@@ -116,7 +105,9 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "totalInvalid": int(info.get("total_invalid", 0) or 0),
         "blockedAlbums": int(info.get("total_albums_blocked", 0) or 0),
         "blockedAssets": int(counters.get("total_assets_blocked", 0) or 0),
-        "assetsInQueue": queue_value,
+        "assetsInQueue": int(info.get("assets_in_queue", 0) or 0),
+        "albumAssocQueue": int(info.get("album_assoc_queue_size", 0) or 0),
+        "delayedRetriesQueue": int(info.get("delayed_assets_pending", 0) or 0),
         "pulledAssets": int(counters.get("total_pulled_assets", 0) or 0),
         "pulledPhotos": int(counters.get("total_pulled_photos", 0) or 0),
         "pulledVideos": int(counters.get("total_pulled_videos", 0) or 0),
@@ -134,6 +125,8 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "pushFailedPhotos": int(counters.get("total_push_failed_photos", 0) or 0),
         "pushFailedVideos": int(counters.get("total_push_failed_videos", 0) or 0),
         "pushFailedAlbums": int(counters.get("total_push_failed_albums", 0) or 0),
+        "pushRetryRecovered": int(counters.get("total_push_retry_recovered_assets", 0) or 0),
+        "pushRetryFailed": int(counters.get("total_push_retry_failed_assets", 0) or 0),
         "consolidatedAlbums": int(counters.get("total_consolidated_albums", 0) or 0),
         "canonicalizedAlbums": int(counters.get("total_canonicalized_albums", 0) or 0),
         "targetEmptyAlbumsRemoved": int(counters.get("total_target_empty_albums_removed", 0) or 0),
@@ -367,6 +360,84 @@ def _remove_source_asset_after_move(source_client, asset_id, log_level=logging.I
     return source_client.remove_assets(asset_ids=asset_id, log_level=log_level)
 
 
+def _build_physical_transfer_stats(asset_type, include_live_companion=False):
+    asset_type_normalized = str(asset_type or "").strip().lower()
+    if asset_type_normalized in ['video', 'videos', 'live']:
+        return {"assets": 1, "photos": 0, "videos": 1}
+    if include_live_companion:
+        return {"assets": 2, "photos": 1, "videos": 1}
+    return {"assets": 1, "photos": 1, "videos": 0}
+
+
+def _increment_transfer_counters(counter_map, counter_prefix, asset_stats=None, asset_type=None):
+    stats = dict(asset_stats or _build_physical_transfer_stats(asset_type))
+    counter_map[f'{counter_prefix}_assets'] = int(counter_map.get(f'{counter_prefix}_assets', 0) or 0) + int(stats.get("assets", 0) or 0)
+    counter_map[f'{counter_prefix}_photos'] = int(counter_map.get(f'{counter_prefix}_photos', 0) or 0) + int(stats.get("photos", 0) or 0)
+    counter_map[f'{counter_prefix}_videos'] = int(counter_map.get(f'{counter_prefix}_videos', 0) or 0) + int(stats.get("videos", 0) or 0)
+
+
+def _increment_pull_counters(counter_map, asset_type, asset_stats=None):
+    _increment_transfer_counters(
+        counter_map=counter_map,
+        counter_prefix='total_pulled',
+        asset_stats=asset_stats,
+        asset_type=asset_type,
+    )
+
+
+def _move_to_album_association_failed_folder(temp_folder, album_name, asset_file_path, live_photo_video_path=None, log_level=logging.INFO):
+    if not temp_folder or not album_name:
+        return {}
+
+    failed_album_folder = os.path.join(temp_folder, "Album Association Failed", album_name)
+    os.makedirs(failed_album_folder, exist_ok=True)
+    moved_paths = {}
+    logger = LOGGER if hasattr(LOGGER, "warning") else None
+
+    def _resolve_existing_local_path(path):
+        if not path:
+            return path
+        if os.path.exists(path):
+            return path
+        folder = os.path.dirname(path) or "."
+        wanted_name = os.path.basename(path)
+        try:
+            for entry in os.listdir(folder):
+                if entry.lower() == wanted_name.lower():
+                    candidate = os.path.join(folder, entry)
+                    if os.path.exists(candidate):
+                        return candidate
+        except Exception:
+            pass
+        return path
+
+    def _move_one(path, label):
+        resolved = _resolve_existing_local_path(path)
+        if not resolved or not os.path.exists(resolved):
+            return None
+        if os.path.commonpath([os.path.abspath(resolved), os.path.abspath(failed_album_folder)]) == os.path.abspath(failed_album_folder):
+            return resolved
+        base_name = os.path.basename(resolved)
+        stem, ext = os.path.splitext(base_name)
+        candidate = os.path.join(failed_album_folder, base_name)
+        suffix = 1
+        while os.path.exists(candidate):
+            candidate = os.path.join(failed_album_folder, f"{stem}_{suffix}{ext}")
+            suffix += 1
+        shutil.move(resolved, candidate)
+        if logger is not None:
+            logger.warning(
+                f"Album Association Failed: '{base_name}' preserved at '{candidate}' "
+                f"because the upload succeeded but album '{album_name}' was not confirmed."
+            )
+        moved_paths[label] = candidate
+        return candidate
+
+    _move_one(asset_file_path, "asset_file_path")
+    _move_one(live_photo_video_path, "live_photo_video_path")
+    return moved_paths
+
+
 def _cleanup_local_source_after_move(source_client, log_level=logging.INFO):
     if not isinstance(source_client, ClassLocalFolder):
         return {}
@@ -592,6 +663,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             'total_push_duplicates_assets': 0,
             'total_push_retry_scheduled_assets': 0,
             'total_push_retry_recovered_assets': 0,
+            'total_push_retry_failed_assets': 0,
             'total_album_assoc_retry_scheduled_assets': 0,
             'total_album_assoc_retry_recovered_assets': 0,
             'total_album_assoc_unconfirmed_assets': 0,
@@ -614,6 +686,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             "total_sidecar": 0,
             "total_invalid": 0,
             "assets_in_queue": 0,
+            "album_assoc_queue_size": 0,
             "delayed_assets_pending": 0,
             "elapsed_time": 0,
             "estimated_time": "-",
@@ -1021,7 +1094,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_assoc_queue_size = album_assoc_queue.qsize()
             except NameError:
                 album_assoc_queue_size = 0
-            SHARED_DATA.info['assets_in_queue'] = queue_size + album_assoc_queue_size + delayed_assets
+            SHARED_DATA.info['assets_in_queue'] = queue_size
+            SHARED_DATA.info['album_assoc_queue_size'] = album_assoc_queue_size
+            SHARED_DATA.info['delayed_assets_pending'] = delayed_assets
 
     class MonitoredQueue(Queue):
         def put(self, item, *args, **kwargs):
@@ -1112,6 +1187,34 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         ))
         with target_album_asset_ids_lock:
             return target_album_asset_ids_cache.setdefault(album_id, asset_ids)
+
+    def _find_local_source_live_video_companion(source_asset_id):
+        if not isinstance(source_client, ClassLocalFolder):
+            return None
+        if not isinstance(target_client, ClassImmichPhotos):
+            return None
+        source_path = str(source_asset_id or "").strip()
+        if not source_path:
+            return None
+        photo_ext = os.path.splitext(source_path)[1].lower()
+        if photo_ext not in ['.heic', '.heif', '.jpg', '.jpeg']:
+            return None
+        source_dir = os.path.dirname(source_path)
+        source_stem = os.path.splitext(os.path.basename(source_path))[0].lower()
+        try:
+            entries = os.listdir(source_dir)
+        except Exception:
+            return None
+        for entry in entries:
+            entry_base, entry_ext = os.path.splitext(entry)
+            if entry_base.lower() != source_stem:
+                continue
+            if entry_ext.lower() not in (getattr(target_client, "ALLOWED_IMMICH_VIDEO_EXTENSIONS", []) or []):
+                continue
+            companion_path = os.path.join(source_dir, entry)
+            if os.path.exists(companion_path):
+                return companion_path
+        return None
 
     def _mark_target_album_asset_present(album_id, asset_id):
         album_id = str(album_id or "").strip()
@@ -1216,8 +1319,63 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         if live_photo_video_path:
             safe_remove_local_file(live_photo_video_path)
 
+    def _finalize_album_association_failed_asset(
+        source_asset_id,
+        source_live_photo_video_path,
+        asset_file_path,
+        live_photo_video_path,
+        album_name,
+        asset_id,
+        retry_attempt,
+        association_retry_attempt,
+        move_assets,
+        removed_source_asset_ids,
+        processed_albums,
+        processed_albums_lock,
+        worker_id,
+        logger,
+    ):
+        cleanup_started_at = time.perf_counter()
+        if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and asset_id:
+            _remove_source_asset_after_move(
+                source_client=source_client,
+                asset_id=source_asset_id,
+                log_level=log_level,
+            )
+            removed_source_asset_ids.add(source_asset_id)
+        if move_assets and source_live_photo_video_path and source_live_photo_video_path not in removed_source_asset_ids and asset_id:
+            _remove_source_asset_after_move(
+                source_client=source_client,
+                asset_id=source_live_photo_video_path,
+                log_level=log_level,
+            )
+            removed_source_asset_ids.add(source_live_photo_video_path)
+        _move_to_album_association_failed_folder(
+            temp_folder=temp_folder,
+            album_name=album_name,
+            asset_file_path=asset_file_path,
+            live_photo_video_path=live_photo_video_path,
+            log_level=log_level,
+        )
+        if retry_attempt > 0:
+            SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
+        if association_retry_attempt > 0:
+            SHARED_DATA.counters['total_album_assoc_retry_recovered_assets'] += 1
+        if album_name:
+            _maybe_finalize_album(
+                album_name=album_name,
+                removed_source_asset_ids=removed_source_asset_ids,
+                processed_albums=processed_albums,
+                processed_albums_lock=processed_albums_lock,
+                worker_id=worker_id,
+                logger=logger,
+                log_level=log_level,
+            )
+        return (time.perf_counter() - cleanup_started_at) * 1000.0
+
     def _finalize_asset_success(
         source_asset_id,
+        source_live_photo_video_path,
         asset_file_path,
         live_photo_video_path,
         album_name,
@@ -1244,6 +1402,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 log_level=log_level,
             )
             removed_source_asset_ids.add(source_asset_id)
+        if move_assets and source_live_photo_video_path and source_live_photo_video_path not in removed_source_asset_ids and asset_id:
+            _remove_source_asset_after_move(
+                source_client=source_client,
+                asset_id=source_live_photo_video_path,
+                log_level=log_level,
+            )
+            removed_source_asset_ids.add(source_live_photo_video_path)
         _cleanup_local_artifacts(asset_file_path, live_photo_video_path)
         if retry_attempt > 0:
             SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
@@ -1619,6 +1784,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 _mark_target_album_asset_present(album_id_dest, asset_id)
                 cleanup_elapsed_ms = _finalize_asset_success(
                     source_asset_id=asset.get("asset_id"),
+                    source_live_photo_video_path=asset.get("source_live_photo_video_path"),
                     asset_file_path=asset.get("asset_file_path"),
                     live_photo_video_path=asset.get("live_photo_video_path"),
                     album_name=album_name,
@@ -1649,10 +1815,27 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     resolved_target_asset_id=asset_id,
                 )
             if not scheduled_retry:
-                deferred_asset = dict(asset or {})
-                deferred_asset["resolved_target_asset_id"] = asset_id
-                _register_pending_duplicate_resolution(album_name=album_name, asset=deferred_asset)
-            return False, assoc_elapsed_ms, None, scheduled_retry
+                SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
+                cleanup_elapsed_ms = _finalize_album_association_failed_asset(
+                    source_asset_id=asset.get("asset_id"),
+                    source_live_photo_video_path=asset.get("source_live_photo_video_path"),
+                    asset_file_path=asset.get("asset_file_path"),
+                    live_photo_video_path=asset.get("live_photo_video_path"),
+                    album_name=album_name,
+                    asset_id=asset_id,
+                    retry_attempt=int(asset.get("retry_attempt", 0) or 0),
+                    association_retry_attempt=int(asset.get("album_assoc_retry_attempt", 0) or 0),
+                    asset_type=asset.get("asset_type", "photo"),
+                    count_push_stats=asset.get("count_push_stats", True),
+                    move_assets=ARGS.get('move-assets', None),
+                    removed_source_asset_ids=removed_source_asset_ids,
+                    processed_albums=processed_albums,
+                    processed_albums_lock=processed_albums_lock,
+                    worker_id=worker_id,
+                    logger=LOGGER,
+                )
+                return False, assoc_elapsed_ms, cleanup_elapsed_ms, False
+            return False, assoc_elapsed_ms, None, True
         except Exception as e:
             assoc_elapsed_ms = (time.perf_counter() - assoc_started_at) * 1000.0
             scheduled_retry = _schedule_album_association_retry(
@@ -1661,14 +1844,31 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 resolved_target_asset_id=asset_id,
             )
             if not scheduled_retry:
-                deferred_asset = dict(asset or {})
-                deferred_asset["resolved_target_asset_id"] = asset_id
-                _register_pending_duplicate_resolution(album_name=album_name, asset=deferred_asset)
+                SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
+                cleanup_elapsed_ms = _finalize_album_association_failed_asset(
+                    source_asset_id=asset.get("asset_id"),
+                    source_live_photo_video_path=asset.get("source_live_photo_video_path"),
+                    asset_file_path=asset.get("asset_file_path"),
+                    live_photo_video_path=asset.get("live_photo_video_path"),
+                    album_name=album_name,
+                    asset_id=asset_id,
+                    retry_attempt=int(asset.get("retry_attempt", 0) or 0),
+                    association_retry_attempt=int(asset.get("album_assoc_retry_attempt", 0) or 0),
+                    asset_type=asset.get("asset_type", "photo"),
+                    count_push_stats=asset.get("count_push_stats", True),
+                    move_assets=ARGS.get('move-assets', None),
+                    removed_source_asset_ids=removed_source_asset_ids,
+                    processed_albums=processed_albums,
+                    processed_albums_lock=processed_albums_lock,
+                    worker_id=worker_id,
+                    logger=LOGGER,
+                )
                 LOGGER.error(
                     f"Album Association Exception: asset '{os.path.basename(asset.get('asset_file_path', ''))}' "
                     f"into album '{album_name}' - {e}"
                 )
-            return False, assoc_elapsed_ms, None, scheduled_retry
+                return False, assoc_elapsed_ms, cleanup_elapsed_ms, False
+            return False, assoc_elapsed_ms, None, True
 
     def _finalize_canonical_album_name(album_name, worker_id=1, log_level=logging.ERROR):
         if not prefer_canonical_album_names:
@@ -1849,11 +2049,18 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         resolved_asset_ids.append(resolved_target_asset_id)
                     else:
                         if not item.get("_final_resolution_counted"):
-                            SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
+                            _record_final_push_failure(
+                                asset_type=item.get("asset_type", "photo"),
+                                count_push_stats=item.get("count_push_stats", True),
+                                asset_stats=item.get("physical_stats"),
+                                album_name=album_name,
+                                album_stats_by_name_ref=album_stats_by_name_ref,
+                                album_stats_lock_ref=album_stats_lock_ref,
+                            )
                             item["_final_resolution_counted"] = True
                         unresolved_items.append(item)
                         logger.error(
-                            f"Album Association Unconfirmed: '{os.path.basename(item.get('asset_file_path', ''))}' "
+                            f"Asset Push Fail : '{os.path.basename(item.get('asset_file_path', ''))}' "
                             f"could not resolve an existing target asset id during album finalization for '{album_name}'."
                         )
 
@@ -1880,8 +2087,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if target_asset_id not in confirmed_ids:
                             unresolved_items.append(item)
                             continue
+                        if item.get("_pending_duplicate_resolution") and not item.get("_final_duplicate_counted"):
+                            if item.get("count_push_stats", True):
+                                duplicate_assets = int((item.get("physical_stats") or {}).get("assets", 1) or 1)
+                                SHARED_DATA.counters['total_push_duplicates_assets'] += duplicate_assets
+                                _increment_album_stat_counter(
+                                    album_stats_by_name_ref,
+                                    album_stats_lock_ref,
+                                    album_name,
+                                    "duplicated_assets",
+                                    duplicate_assets,
+                                )
+                            item["_final_duplicate_counted"] = True
                         _finalize_asset_success(
                             source_asset_id=item.get("asset_id"),
+                            source_live_photo_video_path=item.get("source_live_photo_video_path"),
                             asset_file_path=item.get("asset_file_path"),
                             live_photo_video_path=item.get("live_photo_video_path"),
                             album_name=None,
@@ -1941,23 +2161,23 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     def _record_final_push_failure(
         asset_type,
         count_push_stats,
+        asset_stats=None,
         album_name=None,
         album_stats_by_name_ref=None,
         album_stats_lock_ref=None,
     ):
         if count_push_stats:
-            SHARED_DATA.counters['total_push_failed_assets'] += 1
+            stats = dict(asset_stats or _build_physical_transfer_stats(asset_type))
+            SHARED_DATA.counters['total_push_failed_assets'] += int(stats.get("assets", 0) or 0)
             _increment_album_stat_counter(
                 album_stats_by_name_ref,
                 album_stats_lock_ref,
                 album_name,
                 "failed_assets",
-                1,
+                int(stats.get("assets", 0) or 0),
             )
-            if asset_type.lower() in video_labels:
-                SHARED_DATA.counters['total_push_failed_videos'] += 1
-            else:
-                SHARED_DATA.counters['total_push_failed_photos'] += 1
+            SHARED_DATA.counters['total_push_failed_photos'] += int(stats.get("photos", 0) or 0)
+            SHARED_DATA.counters['total_push_failed_videos'] += int(stats.get("videos", 0) or 0)
 
     NO_RETRY_LARGE_ASSET_BYTES = 50 * 1024 * 1024
 
@@ -1986,6 +2206,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         current_attempt = int(asset.get('retry_attempt', 0) or 0)
         next_attempt = current_attempt + 1
         if next_attempt > max_push_retries:
+            if current_attempt > 0:
+                SHARED_DATA.counters['total_push_retry_failed_assets'] += 1
             return False
 
         retry_asset = dict(asset)
@@ -2021,7 +2243,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         current_attempt = int((asset or {}).get('album_assoc_retry_attempt', 0) or 0)
         next_attempt = current_attempt + 1
         if next_attempt > max_album_assoc_retries:
-            SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
             LOGGER.error(
                 f"Album Association Unconfirmed: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
                 f"exhausted {max_album_assoc_retries} verification attempt(s). Reason: {reason}"
@@ -2150,9 +2371,22 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 scheduled_retry = False
 
                 if asset_confirmed:
+                    if item.get("_pending_duplicate_resolution") and not item.get("_final_duplicate_counted"):
+                        if item.get("count_push_stats", True):
+                            duplicate_assets = int((item.get("physical_stats") or {}).get("assets", 1) or 1)
+                            SHARED_DATA.counters['total_push_duplicates_assets'] += duplicate_assets
+                            _increment_album_stat_counter(
+                                album_stats_by_name_ref,
+                                album_stats_lock_ref,
+                                album_name,
+                                "duplicated_assets",
+                                duplicate_assets,
+                            )
+                        item["_final_duplicate_counted"] = True
                     _mark_target_album_asset_present(album_id_dest, target_asset_id)
                     cleanup_elapsed_ms = _finalize_asset_success(
                         source_asset_id=item.get("asset_id"),
+                        source_live_photo_video_path=item.get("source_live_photo_video_path"),
                         asset_file_path=item.get("asset_file_path"),
                         live_photo_video_path=item.get("live_photo_video_path"),
                         album_name=album_name,
@@ -2178,6 +2412,38 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             asset=item,
                             reason=f"album association to '{album_name}' was not confirmed",
                             resolved_target_asset_id=target_asset_id,
+                        )
+                    if not scheduled_retry:
+                        if item.get("_pending_duplicate_resolution") and not item.get("_final_duplicate_counted"):
+                            if item.get("count_push_stats", True):
+                                duplicate_assets = int((item.get("physical_stats") or {}).get("assets", 1) or 1)
+                                SHARED_DATA.counters['total_push_duplicates_assets'] += duplicate_assets
+                                _increment_album_stat_counter(
+                                    album_stats_by_name_ref,
+                                    album_stats_lock_ref,
+                                    album_name,
+                                    "duplicated_assets",
+                                    duplicate_assets,
+                                )
+                            item["_final_duplicate_counted"] = True
+                        SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
+                        cleanup_elapsed_ms = _finalize_album_association_failed_asset(
+                            source_asset_id=item.get("asset_id"),
+                            source_live_photo_video_path=item.get("source_live_photo_video_path"),
+                            asset_file_path=item.get("asset_file_path"),
+                            live_photo_video_path=item.get("live_photo_video_path"),
+                            album_name=album_name,
+                            asset_id=target_asset_id,
+                            retry_attempt=int(item.get("retry_attempt", 0) or 0),
+                            association_retry_attempt=int(item.get("album_assoc_retry_attempt", 0) or 0),
+                            asset_type=item.get("asset_type", "photo"),
+                            count_push_stats=item.get("count_push_stats", True),
+                            move_assets=ARGS.get('move-assets', None),
+                            removed_source_asset_ids=removed_source_asset_ids,
+                            processed_albums=processed_albums,
+                            processed_albums_lock=processed_albums_lock,
+                            worker_id=worker_id,
+                            logger=LOGGER,
                         )
 
                 _debug_perf_log(
@@ -2436,6 +2702,23 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             return False
         with consumed_live_companion_paths_lock:
             return normalized in consumed_live_companion_paths
+
+    source_consumed_live_companion_paths = set()
+    source_consumed_live_companion_paths_lock = threading.Lock()
+
+    def _mark_source_live_companion_consumed(path):
+        normalized = _normalized_asset_path_key(path)
+        if not normalized:
+            return
+        with source_consumed_live_companion_paths_lock:
+            source_consumed_live_companion_paths.add(normalized)
+
+    def _is_source_live_companion_consumed(path):
+        normalized = _normalized_asset_path_key(path)
+        if not normalized:
+            return False
+        with source_consumed_live_companion_paths_lock:
+            return normalized in source_consumed_live_companion_paths
 
     def infer_asset_type_from_path(file_path, fallback_type):
         """Infers media type from extension; falls back to source type when unknown."""
@@ -2733,6 +3016,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             all_metadata = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in metadata_labels]
             all_sidecar = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in sidecar_labels]
             all_invalid = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['unknown']]
+            extra_metadata_csv_count = 0
+            if isinstance(source_client, ClassLocalFolder):
+                try:
+                    for csv_path in Path(source_client.base_folder).rglob("*.csv"):
+                        if is_icloud_metadata_csv_path(csv_path):
+                            extra_metadata_csv_count += 1
+                except Exception as error:
+                    LOGGER.warning(f"Unable to count iCloud metadata CSV files in local source '{source_client_name}': {error}")
 
             SHARED_DATA.info.update({
                 "total_assets": len(all_assets),
@@ -2740,7 +3031,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 "total_videos": len(all_videos),
                 "total_albums": len(all_albums),
                 "total_albums_blocked": total_albums_blocked_count,
-                "total_metadata": len(all_metadata),
+                "total_metadata": len(all_metadata) + extra_metadata_csv_count,
                 "total_sidecar": len(all_sidecar),
                 "total_invalid": len(all_invalid),
             })
@@ -2904,9 +3195,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             total_failed_assets = (
                 SHARED_DATA.counters['total_pull_failed_assets']
                 + SHARED_DATA.counters['total_push_failed_assets']
+            )
+            total_issue_assets = (
+                total_failed_assets
                 + SHARED_DATA.counters['total_album_assoc_unconfirmed_assets']
             )
-            if total_failed_assets > 0:
+            if total_issue_assets > 0:
                 LOGGER.warning(f"{MSG_TAGS['WARNING']}Migration finished with partial failures.")
             else:
                 LOGGER.info(f"🚀 All assets pulled and pushed successfully!")
@@ -2922,6 +3216,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
             LOGGER.info(f"Push Retry Scheduled        : {SHARED_DATA.counters['total_push_retry_scheduled_assets']}")
             LOGGER.info(f"Push Retry Recovered        : {SHARED_DATA.counters['total_push_retry_recovered_assets']}")
+            LOGGER.info(f"Push Retry Failed           : {SHARED_DATA.counters['total_push_retry_failed_assets']}")
             LOGGER.info(f"Album Assoc Retry Scheduled : {SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets']}")
             LOGGER.info(f"Album Assoc Retry Recovered : {SHARED_DATA.counters['total_album_assoc_retry_recovered_assets']}")
             LOGGER.info(f"Album Assoc Unconfirmed     : {SHARED_DATA.counters['total_album_assoc_unconfirmed_assets']}")
@@ -3026,6 +3321,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         asset_datetime = asset.get('asset_datetime') or asset.get('time')
                         asset_filename = asset.get('filename')
 
+                        if _is_source_live_companion_consumed(asset_id):
+                            LOGGER.info(f"Asset Live Companion Consumed: '{os.path.basename(asset_filename)}' from Album '{album_name}'. Skipped")
+                            continue
+
                         # Skip pull metadata and sidecar for the time being
                         if asset_type in ['metadata', 'sidecar']:
                             continue
@@ -3090,13 +3389,20 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         safe_remove_local_file(pulled_file_path)
                                     continue
                                 normalized_asset_type = infer_asset_type_from_path(pulled_file_path, asset_type)
-                                count_push_stats = (idx == 0)
+                                include_live_companion = bool(
+                                    immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path)
+                                )
+                                asset_stats = _build_physical_transfer_stats(
+                                    normalized_asset_type,
+                                    include_live_companion=include_live_companion,
+                                )
+                                count_push_stats = True
                                 LOGGER.info(f"Asset Pulled    : '{os.path.basename(pulled_file_path)}'")
-                                SHARED_DATA.counters['total_pulled_assets'] += 1
-                                if normalized_asset_type.lower() in video_labels:
-                                    SHARED_DATA.counters['total_pulled_videos'] += 1
-                                else:
-                                    SHARED_DATA.counters['total_pulled_photos'] += 1
+                                _increment_pull_counters(
+                                    SHARED_DATA.counters,
+                                    asset_type=normalized_asset_type,
+                                    asset_stats=asset_stats,
+                                )
 
                                 # Enviar a la cola con la información necesaria para la subida
                                 asset_dict = {
@@ -3107,18 +3413,30 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     'album_name': album_name,
                                     'album_is_shared': is_shared,
                                     'count_push_stats': count_push_stats,
+                                    'physical_stats': asset_stats,
                                     'enqueued_at_monotonic': time.perf_counter(),
                                 }
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                     asset_dict['live_photo_video_path'] = immich_live_companion
+                                    source_companion_path = _find_local_source_live_video_companion(asset_id)
+                                    if source_companion_path:
+                                        asset_dict['source_live_photo_video_path'] = source_companion_path
                                 # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                                 unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                                 if unique and asset_dict.get('live_photo_video_path'):
                                     _mark_live_companion_consumed(asset_dict.get('live_photo_video_path'))
+                                if unique and asset_dict.get('source_live_photo_video_path'):
+                                    _mark_source_live_companion_consumed(asset_dict.get('source_live_photo_video_path'))
                                 if not unique:
                                     LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
-                                    SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                                    _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "duplicated_assets", 1)
+                                    SHARED_DATA.counters['total_push_duplicates_assets'] += int(asset_stats.get("assets", 1) or 1)
+                                    _increment_album_stat_counter(
+                                        album_stats_by_name_ref,
+                                        album_stats_lock_ref,
+                                        album_name,
+                                        "duplicated_assets",
+                                        int(asset_stats.get("assets", 1) or 1),
+                                    )
                                     # Solo borramos si el fichero ya no está reservado por la cola ni por un pusher en curso.
                                     if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
                                         safe_remove_local_file(pulled_file_path)
@@ -3196,6 +3514,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     asset_filename = asset.get('filename')
                     lock_file = None
 
+                    if _is_source_live_companion_consumed(asset_id):
+                        LOGGER.info(f"Asset Live Companion Consumed: '{os.path.basename(asset_filename)}'. Skipped")
+                        continue
+
                     # Skip pull metadata and sidecar for the time being
                     if asset_type in ['metadata', 'sidecar']:
                         continue
@@ -3246,14 +3568,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     safe_remove_local_file(pulled_file_path)
                                 continue
                             normalized_asset_type = infer_asset_type_from_path(pulled_file_path, asset_type)
-                            count_push_stats = (idx == 0)
+                            include_live_companion = bool(
+                                immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path)
+                            )
+                            asset_stats = _build_physical_transfer_stats(
+                                normalized_asset_type,
+                                include_live_companion=include_live_companion,
+                            )
+                            count_push_stats = True
                             # Actualizamos Contadores de descargas
                             LOGGER.info(f"Asset Pulled    : '{os.path.basename(pulled_file_path)}'")
-                            SHARED_DATA.counters['total_pulled_assets'] += 1
-                            if normalized_asset_type.lower() in video_labels:
-                                SHARED_DATA.counters['total_pulled_videos'] += 1
-                            else:
-                                SHARED_DATA.counters['total_pulled_photos'] += 1
+                            _increment_pull_counters(
+                                SHARED_DATA.counters,
+                                asset_type=normalized_asset_type,
+                                asset_stats=asset_stats,
+                            )
 
                             # Enviar a la cola de push con la información necesaria para la subida (sin album_name)
                             asset_dict = {
@@ -3263,16 +3592,22 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 'asset_type': normalized_asset_type,
                                 'album_name': None,
                                 'count_push_stats': count_push_stats,
+                                'physical_stats': asset_stats,
                                 'enqueued_at_monotonic': time.perf_counter(),
                             }
                             if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                 asset_dict['live_photo_video_path'] = immich_live_companion
+                                source_companion_path = _find_local_source_live_video_companion(asset_id)
+                                if source_companion_path:
+                                    asset_dict['source_live_photo_video_path'] = source_companion_path
                             unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                             if unique and asset_dict.get('live_photo_video_path'):
                                 _mark_live_companion_consumed(asset_dict.get('live_photo_video_path'))
+                            if unique and asset_dict.get('source_live_photo_video_path'):
+                                _mark_source_live_companion_consumed(asset_dict.get('source_live_photo_video_path'))
                             if not unique:
                                 LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}'. Skipped")
-                                SHARED_DATA.counters['total_push_duplicates_assets'] += 1
+                                SHARED_DATA.counters['total_push_duplicates_assets'] += int(asset_stats.get("assets", 1) or 1)
                                 # Solo borramos si el fichero ya no está reservado por la cola ni por un pusher en curso.
                                 if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
                                     safe_remove_local_file(pulled_file_path)
@@ -3349,6 +3684,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     album_name = asset['album_name']
                     album_is_shared = asset.get('album_is_shared', False)
                     count_push_stats = asset.get('count_push_stats', True)
+                    physical_stats = dict(asset.get('physical_stats') or _build_physical_transfer_stats(asset_type))
                     live_photo_video_path = asset.get('live_photo_video_path', None)
                     retry_attempt = int(asset.get('retry_attempt', 0) or 0)
                     association_retry_attempt = int(asset.get('album_assoc_retry_attempt', 0) or 0)
@@ -3379,6 +3715,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             treat_as_consumed = True
                             cleanup_elapsed_ms = _finalize_asset_success(
                                 source_asset_id=source_asset_id,
+                                source_live_photo_video_path=asset.get('source_live_photo_video_path'),
                                 asset_file_path=asset_file_path,
                                 live_photo_video_path=None,
                                 album_name=album_name,
@@ -3441,16 +3778,29 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         f"{_format_album_pending_context(album_name, asset_file_path)}"
                                     )
                                     if count_push_stats:
-                                        SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                                        _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "duplicated_assets", 1)
+                                        SHARED_DATA.counters['total_push_duplicates_assets'] += int(physical_stats.get("assets", 1) or 1)
+                                        _increment_album_stat_counter(
+                                            album_stats_by_name_ref,
+                                            album_stats_lock_ref,
+                                            album_name,
+                                            "duplicated_assets",
+                                            int(physical_stats.get("assets", 1) or 1),
+                                        )
                                 else:
                                     if count_push_stats:
-                                        SHARED_DATA.counters['total_pushed_assets'] += 1
-                                        _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "pushed_assets", 1)
-                                        if asset_type.lower() in video_labels:
-                                            SHARED_DATA.counters['total_pushed_videos'] += 1
-                                        else:
-                                            SHARED_DATA.counters['total_pushed_photos'] += 1
+                                        _increment_transfer_counters(
+                                            counter_map=SHARED_DATA.counters,
+                                            counter_prefix='total_pushed',
+                                            asset_stats=physical_stats,
+                                            asset_type=asset_type,
+                                        )
+                                        _increment_album_stat_counter(
+                                            album_stats_by_name_ref,
+                                            album_stats_lock_ref,
+                                            album_name,
+                                            "pushed_assets",
+                                            int(physical_stats.get("assets", 1) or 1),
+                                        )
                                     LOGGER.info(
                                         f"Asset Pushed    : '{os.path.basename(asset_file_path)}'"
                                         f"{_format_album_pending_context(album_name, asset_file_path)}"
@@ -3477,10 +3827,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         f"{_format_album_pending_context(album_name, asset_file_path)}"
                                     )
                                     treat_as_consumed = True
-                                    if count_push_stats:
-                                        SHARED_DATA.counters['total_push_duplicates_assets'] += 1
-                                        _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "duplicated_assets", 1)
+                                    if count_push_stats and not album_name:
+                                        SHARED_DATA.counters['total_push_duplicates_assets'] += int(physical_stats.get("assets", 1) or 1)
+                                        _increment_album_stat_counter(
+                                            album_stats_by_name_ref,
+                                            album_stats_lock_ref,
+                                            album_name,
+                                            "duplicated_assets",
+                                            int(physical_stats.get("assets", 1) or 1),
+                                        )
                                     if album_name:
+                                        asset["_pending_duplicate_resolution"] = True
                                         _register_pending_duplicate_resolution(album_name=album_name, asset=asset)
                                         _maybe_finalize_album(
                                             album_name=album_name,
@@ -3504,6 +3861,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         _record_final_push_failure(
                                             asset_type=asset_type,
                                             count_push_stats=count_push_stats,
+                                            asset_stats=physical_stats,
                                             album_name=album_name,
                                             album_stats_by_name_ref=album_stats_by_name_ref,
                                             album_stats_lock_ref=album_stats_lock_ref,
@@ -3526,6 +3884,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             _record_final_push_failure(
                                 asset_type=asset_type,
                                 count_push_stats=count_push_stats,
+                                asset_stats=physical_stats,
                                 album_name=album_name,
                                 album_stats_by_name_ref=album_stats_by_name_ref,
                                 album_stats_lock_ref=album_stats_lock_ref,
@@ -3578,6 +3937,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         cleanup_delay_seconds = 1.0 if skip_target_push and not album_name else 0.0
                         cleanup_elapsed_ms = _finalize_asset_success(
                             source_asset_id=source_asset_id,
+                            source_live_photo_video_path=asset.get('source_live_photo_video_path'),
                             asset_file_path=asset_file_path,
                             live_photo_video_path=live_photo_video_path,
                             album_name=album_name,
@@ -3636,6 +3996,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         _record_final_push_failure(
                             asset_type=asset_type,
                             count_push_stats=count_push_stats,
+                            asset_stats=physical_stats,
                             album_name=album_name,
                             album_stats_by_name_ref=album_stats_by_name_ref,
                             album_stats_lock_ref=album_stats_lock_ref,
@@ -3916,17 +4277,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 panel_overhead = 8  # panel borders + paddings + table separators (approx)
                 counter_width = 8 if parallel else 7
                 BAR_WIDTH = max(3, info_panel_width - label_col_width - panel_overhead - counter_width)
-                # 🔹 Obtener backlog real (queued + in-flight) para evitar que qsize() aparente 0
-                #     cuando los push workers hacen get() pero aún están procesando.
-                raw_queue_size = int(SHARED_DATA.info.get('assets_in_queue', 0) or 0)
-                inferred_queue_size = max(
-                    0,
-                    int(SHARED_DATA.counters.get('total_pulled_assets', 0) or 0)
-                    - int(SHARED_DATA.counters.get('total_pushed_assets', 0) or 0)
-                    - int(SHARED_DATA.counters.get('total_push_failed_assets', 0) or 0)
-                    - int(SHARED_DATA.counters.get('total_push_duplicates_assets', 0) or 0)
-                )
-                current_queue_size = max(raw_queue_size, inferred_queue_size)
+                current_queue_size = int(SHARED_DATA.info.get('assets_in_queue', 0) or 0)
+                current_album_assoc_queue_size = int(SHARED_DATA.info.get('album_assoc_queue_size', 0) or 0)
+                current_delayed_queue_size = int(SHARED_DATA.info.get('delayed_assets_pending', 0) or 0)
                 total_assets = int(SHARED_DATA.info.get('total_assets', 0) or 0)
                 processed_assets = min(
                     total_assets,
@@ -3952,20 +4305,24 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     pending_assets=pending_assets,
                     total_assets=total_assets,
                 )
-                # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
-                filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
-                empty_blocks = BAR_WIDTH - filled_blocks
-                # 🔹 Crear la barra de progreso con "█" y espacios
-                queue_bar = "█" * filled_blocks + " " * empty_blocks
-                if parallel:
-                    # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola y el máximo de 100 al final
-                    queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
-                else:
-                    # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola aquí sin máximo, y dando espacio para 7 dígitos
-                    queue_bar = f"[{queue_bar}] {current_queue_size:>7}"
-                # 🔹 borra la barra al final
+
+                def _format_queue_bar(current_value, max_value=100):
+                    safe_max = max(1, int(max_value or 100))
+                    safe_value = max(0, int(current_value or 0))
+                    filled_blocks = min(int((safe_value / safe_max) * BAR_WIDTH), BAR_WIDTH)
+                    empty_blocks = BAR_WIDTH - filled_blocks
+                    bar = "█" * filled_blocks + " " * empty_blocks
+                    if parallel:
+                        return f"[{bar}] {safe_value:>3}/{safe_max}"
+                    return f"[{bar}] {safe_value:>7}"
+
+                queue_bar = _format_queue_bar(current_queue_size)
+                album_assoc_queue_bar = _format_queue_bar(current_album_assoc_queue_size)
+                delayed_queue_bar = _format_queue_bar(current_delayed_queue_size)
                 if clean_queue_history:
                     queue_bar = 0
+                    album_assoc_queue_bar = 0
+                    delayed_queue_bar = 0
 
                 # 🔹 Datos a mostrar
                 info_data = [
@@ -3974,12 +4331,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("🎬 Total Videos", SHARED_DATA.info.get('total_videos', 0)),
                     ("📂 Total Albums", SHARED_DATA.info.get('total_albums', 0)),
                     ("🔒 Blocked Albums", SHARED_DATA.info.get('total_albums_blocked', 0)),
+                    ("🔒 Blocked Assets", SHARED_DATA.counters.get('total_assets_blocked', 0)),
                     ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
                     ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
-                    ("🔍 Invalid Files", SHARED_DATA.info.get('total_invalid', 0)),
+                    ("❔ Unknown Files", SHARED_DATA.info.get('total_invalid', 0)),
                     ("📊 Assets in Queue", f"{queue_bar}"),
-                    ("🕒 Elapsed Time", SHARED_DATA.info.get('elapsed_time', 0)),
-                    ("⏳ Estimated Time", SHARED_DATA.info.get('estimated_time', "-")),
+                    ("🧾 Album Assoc Queue", f"{album_assoc_queue_bar}"),
+                    ("⏱️ Delayed Retries", f"{delayed_queue_bar}"),
                 ]
 
                 # 🔹 Crear la tabla
@@ -4051,6 +4409,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 "🚩 Failed Videos": 'total_push_failed_videos',
                 "🚩 Failed Albums": 'total_push_failed_albums',
             }
+            delayed_pushs = {
+                "⏱️ Delayed Recovered": 'total_push_retry_recovered_assets',
+                "⏱️ Delayed Failed": 'total_push_retry_failed_assets',
+            }
             push_tasks = {}
             for label, (bar, completed_label, total_label) in push_bars.items():
                 # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
@@ -4070,6 +4432,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 for label, counter_label in failed_pulls.items():
                     value = SHARED_DATA.counters[counter_label]
                     table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
+                separator = "─" * 18
+                table.add_row("", f"[cyan dim]{separator}[/cyan dim]")
+                table.add_row(f"[cyan]{'🕒 Elapsed Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('elapsed_time', 0)}[/cyan]")
+                table.add_row(f"[cyan]{'⏳ Remaining Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('estimated_time', '-')}[/cyan]")
                 return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
 
 
@@ -4081,6 +4447,11 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     table.add_row(f"[green]{label:<16}:[/green]", bar)
                     bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
                 for label, counter_label in failed_pushs.items():
+                    value = SHARED_DATA.counters[counter_label]
+                    table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
+                separator = "─" * 18
+                table.add_row("", f"[green dim]{separator}[/green dim]")
+                for label, counter_label in delayed_pushs.items():
                     value = SHARED_DATA.counters[counter_label]
                     table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
                 return Panel(table, title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
@@ -4287,9 +4658,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             def _build_info_signature():
                 keys = (
                     "total_assets", "total_photos", "total_videos", "total_albums", "total_albums_blocked",
-                    "total_metadata", "total_sidecar", "total_invalid", "assets_in_queue", "estimated_time",
+                    "total_metadata", "total_sidecar", "total_invalid",
+                    "assets_in_queue", "album_assoc_queue_size", "delayed_assets_pending",
                 )
-                return tuple(SHARED_DATA.info.get(k) for k in keys)
+                return (
+                    tuple(SHARED_DATA.info.get(k) for k in keys),
+                    int(SHARED_DATA.counters.get('total_assets_blocked', 0) or 0),
+                )
 
             def _build_pull_signature():
                 completed_keys = [cfg[1] for cfg in pull_bars.values()]
@@ -4298,12 +4673,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 return (
                     tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
                     tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),
+                    SHARED_DATA.info.get("elapsed_time", 0),
+                    SHARED_DATA.info.get("estimated_time", "-"),
                 )
 
             def _build_push_signature():
                 completed_keys = [cfg[1] for cfg in push_bars.values()]
                 total_keys = [cfg[2] for cfg in push_bars.values()]
-                failed_keys = list(failed_pushs.values())
+                failed_keys = list(failed_pushs.values()) + list(delayed_pushs.values())
                 return (
                     tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
                     tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),

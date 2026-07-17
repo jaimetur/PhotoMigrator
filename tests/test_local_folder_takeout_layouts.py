@@ -91,6 +91,22 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         no_album_filenames = sorted(asset["filename"] for asset in no_album_assets)
         self.assertNotIn("memory-a.jpg", no_album_filenames)
 
+    def test_determine_file_type_treats_real_icloud_metadata_csv_as_metadata_but_not_generic_reports(self):
+        metadata_csv = self.root / "Albums/Trip/Photo Details.csv"
+        metadata_csv.parent.mkdir(parents=True, exist_ok=True)
+        metadata_csv.write_text(
+            "ImgName,FileChecksum,Original Creation Date,Import Date,Favorite\n"
+            "IMG_0001.JPG,abc,2024-01-01,2024-01-02,false\n",
+            encoding="utf-8",
+        )
+        generic_csv = self.root / "No_Date_Assets.csv"
+        generic_csv.write_text("filename,path\nIMG_0002.JPG,/tmp/IMG_0002.JPG\n", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=self.root)
+
+        self.assertEqual(local_folder._determine_file_type(metadata_csv), "metadata")
+        self.assertEqual(local_folder._determine_file_type(generic_csv), "unknown")
+
     def test_remove_assets_refreshes_analyzer_with_supported_methods_and_invalidates_caches(self):
         removable = self.root / "ALL_PHOTOS/2024/remove-me.jpg"
         removable.parent.mkdir(parents=True, exist_ok=True)

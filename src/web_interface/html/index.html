@@ -142,13 +142,13 @@
                         <div class="stat-row"><span class="stat-label">🎬 Total Videos</span><span id="dash-total-videos" class="stat-value">-</span></div>
                         <div class="stat-row"><span class="stat-label">📂 Total Albums</span><span id="dash-total-albums" class="stat-value">-</span></div>
                         <div class="stat-row"><span class="stat-label">🔒 Blocked Albums</span><span id="dash-blocked-albums" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">🔒 Blocked Assets</span><span id="dash-blocked-assets" class="stat-value">-</span></div>
                         <div class="stat-row"><span class="stat-label">📜 Total Metadata</span><span id="dash-total-metadata" class="stat-value">-</span></div>
                         <div class="stat-row"><span class="stat-label">🔗 Total Sidecar</span><span id="dash-total-sidecar" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">🔍 Invalid Files</span><span id="dash-total-invalid" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">🔒 Blocked Assets</span><span id="dash-blocked-assets" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">❔ Unknown Files</span><span id="dash-total-invalid" class="stat-value">-</span></div>
                         <div class="bar-row"><span>📊 Assets in Queue</span><div class="progress-track"><div id="bar-info-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-queue-count">0/100 (0.0%)</span></span></div>
-                        <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
-                        <div class="stat-row"><span class="stat-label">⏳ Remaining Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
+                        <div class="bar-row"><span>🧾 Album Assoc Queue</span><div class="progress-track"><div id="bar-info-album-assoc-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-album-assoc-queue-count">0/100 (0.0%)</span></span></div>
+                        <div class="bar-row"><span>⏱️ Delayed Retries</span><div class="progress-track"><div id="bar-info-delayed-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-delayed-queue-count">0/100 (0.0%)</span></span></div>
                     </div>
                     <div class="stats-card">
                         <h4 id="dash-pull-title" class="stats-card__title">⬇️ Pull Panel</h4>
@@ -160,6 +160,9 @@
                         <div class="stat-row"><span class="stat-label">🚩 Failed Photos</span><span id="dash-pull-failed-photos" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">🚩 Failed Videos</span><span id="dash-pull-failed-videos" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">🚩 Failed Albums</span><span id="dash-pull-failed-albums" class="stat-value">0</span></div>
+                        <div class="stats-separator" aria-hidden="true"></div>
+                        <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
+                        <div class="stat-row"><span class="stat-label">⏳ Remaining Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
                     </div>
                     <div class="stats-card">
                         <h4 id="dash-push-title" class="stats-card__title">⬆️ Push Panel</h4>
@@ -172,6 +175,9 @@
                         <div class="stat-row"><span class="stat-label">🚩 Failed Photos</span><span id="dash-push-failed-photos" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">🚩 Failed Videos</span><span id="dash-push-failed-videos" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">🚩 Failed Albums</span><span id="dash-push-failed-albums" class="stat-value">0</span></div>
+                        <div class="stats-separator" aria-hidden="true"></div>
+                        <div class="stat-row"><span class="stat-label">⏱️ Delayed Recovered</span><span id="dash-push-delayed-recovered" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">⏱️ Delayed Failed</span><span id="dash-push-delayed-failed" class="stat-value">0</span></div>
                     </div>
                 </div>
             </section>
@@ -1502,11 +1508,11 @@
         setText("dash-total-photos", stats.totalPhotos);
         setText("dash-total-videos", stats.totalVideos);
         setText("dash-total-albums", stats.totalAlbums);
+        setText("dash-blocked-albums", stats.blockedAlbums);
+        setText("dash-blocked-assets", stats.blockedAssets);
         setText("dash-total-metadata", stats.totalMetadata);
         setText("dash-total-sidecar", stats.totalSidecar);
         setText("dash-total-invalid", stats.totalInvalid);
-        setText("dash-blocked-albums", stats.blockedAlbums);
-        setText("dash-blocked-assets", stats.blockedAssets);
         setText("dash-elapsed-time", elapsed, "00:00:00");
         setText("dash-estimated-time", estimated, "-");
 
@@ -1516,10 +1522,18 @@
         const logSaysParallel = String(stats.migrationMode || "").toLowerCase() === "parallel";
         const isParallel = stateSaysParallel || contextSaysParallel || logSaysParallel;
         const queueValue = Number(stats.assetsInQueue || 0);
+        const albumAssocQueueValue = Number(stats.albumAssocQueue || 0);
+        const delayedQueueValue = Number(stats.delayedRetriesQueue || 0);
         setProgressRow("bar-info-queue", "bar-info-queue-count", queueValue, 100);
+        setProgressRow("bar-info-album-assoc-queue", "bar-info-album-assoc-queue-count", albumAssocQueueValue, 100);
+        setProgressRow("bar-info-delayed-queue", "bar-info-delayed-queue-count", delayedQueueValue, 100);
         if (!isParallel) {
             const queueCountEl = document.getElementById("bar-info-queue-count");
             if (queueCountEl) queueCountEl.textContent = `${queueValue} (-)`;
+            const albumAssocQueueCountEl = document.getElementById("bar-info-album-assoc-queue-count");
+            if (albumAssocQueueCountEl) albumAssocQueueCountEl.textContent = `${albumAssocQueueValue} (-)`;
+            const delayedQueueCountEl = document.getElementById("bar-info-delayed-queue-count");
+            if (delayedQueueCountEl) delayedQueueCountEl.textContent = `${delayedQueueValue} (-)`;
         }
 
         setText("dash-pull-failed-assets", stats.pullFailedAssets, "0");
@@ -1532,6 +1546,8 @@
         setText("dash-push-failed-photos", stats.pushFailedPhotos, "0");
         setText("dash-push-failed-videos", stats.pushFailedVideos, "0");
         setText("dash-push-failed-albums", stats.pushFailedAlbums, "0");
+        setText("dash-push-delayed-recovered", stats.pushRetryRecovered, "0");
+        setText("dash-push-delayed-failed", stats.pushRetryFailed, "0");
 
         const totalAssetsForPull = resolveTotal(stats.totalAssets, stats.pulledAssets, stats.pullFailedAssets);
         const totalPhotosForPull = resolveTotal(stats.totalPhotos, stats.pulledPhotos, stats.pullFailedPhotos);

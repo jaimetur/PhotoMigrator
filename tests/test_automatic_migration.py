@@ -99,6 +99,8 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 "total_invalid": 2,
                 "total_albums_blocked": 1,
                 "assets_in_queue": 7,
+                "album_assoc_queue_size": 4,
+                "delayed_assets_pending": 3,
             },
             counters={
                 "total_assets_blocked": 9,
@@ -119,6 +121,8 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 "total_push_failed_photos": 3,
                 "total_push_failed_videos": 1,
                 "total_push_failed_albums": 0,
+                "total_push_retry_recovered_assets": 8,
+                "total_push_retry_failed_assets": 2,
                 "total_consolidated_albums": 6,
                 "total_canonicalized_albums": 4,
                 "total_target_empty_albums_removed": 2,
@@ -137,8 +141,12 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["assetTransferStartedAt"], "2026-07-16T10:00:00Z")
         self.assertEqual(snapshot["pulledAssets"], 240)
         self.assertEqual(snapshot["pushedAssets"], 210)
-        self.assertEqual(snapshot["assetsInQueue"], 21)
+        self.assertEqual(snapshot["assetsInQueue"], 7)
+        self.assertEqual(snapshot["albumAssocQueue"], 4)
+        self.assertEqual(snapshot["delayedRetriesQueue"], 3)
         self.assertEqual(snapshot["blockedAssets"], 9)
+        self.assertEqual(snapshot["pushRetryRecovered"], 8)
+        self.assertEqual(snapshot["pushRetryFailed"], 2)
         self.assertEqual(snapshot["consolidatedAlbums"], 6)
         self.assertEqual(snapshot["canonicalizedAlbums"], 4)
         self.assertEqual(snapshot["targetEmptyAlbumsRemoved"], 2)
@@ -239,6 +247,64 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
 
         self.assertEqual(removed, 1)
         remote_client.remove_assets.assert_called_once_with(asset_ids="abc123", log_level=logging.ERROR)
+
+    def test_build_physical_transfer_stats_counts_live_photo_as_two_physical_assets(self):
+        self.assertEqual(
+            automatic_module._build_physical_transfer_stats("photo", include_live_companion=True),
+            {"assets": 2, "photos": 1, "videos": 1},
+        )
+        self.assertEqual(
+            automatic_module._build_physical_transfer_stats("video"),
+            {"assets": 1, "photos": 0, "videos": 1},
+        )
+
+    def test_increment_pull_counters_uses_physical_stats_bundle(self):
+        counters = {
+            "total_pulled_assets": 0,
+            "total_pulled_photos": 0,
+            "total_pulled_videos": 0,
+        }
+
+        automatic_module._increment_pull_counters(
+            counters,
+            asset_type="photo",
+            asset_stats={"assets": 2, "photos": 1, "videos": 1},
+        )
+
+        self.assertEqual(counters["total_pulled_assets"], 2)
+        self.assertEqual(counters["total_pulled_photos"], 1)
+        self.assertEqual(counters["total_pulled_videos"], 1)
+
+    def test_move_to_album_association_failed_folder_preserves_files_under_album_subfolder(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_root = Path(tmpdir)
+            album_folder = temp_root / "Fotos Javi"
+            album_folder.mkdir(parents=True)
+            photo = album_folder / "IMG_0001.JPG"
+            video = album_folder / "IMG_0001.MP4"
+            photo.write_text("photo", encoding="utf-8")
+            video.write_text("video", encoding="utf-8")
+
+            moved = automatic_module._move_to_album_association_failed_folder(
+                temp_folder=str(temp_root),
+                album_name="Fotos Javi",
+                asset_file_path=str(photo),
+                live_photo_video_path=str(video),
+                log_level=logging.INFO,
+            )
+
+            failed_album_folder = temp_root / "Album Association Failed" / "Fotos Javi"
+            self.assertEqual(
+                moved,
+                {
+                    "asset_file_path": str(failed_album_folder / "IMG_0001.JPG"),
+                    "live_photo_video_path": str(failed_album_folder / "IMG_0001.MP4"),
+                },
+            )
+            self.assertFalse(photo.exists())
+            self.assertFalse(video.exists())
+            self.assertTrue((failed_album_folder / "IMG_0001.JPG").exists())
+            self.assertTrue((failed_album_folder / "IMG_0001.MP4").exists())
 
     def test_is_blocked_synology_shared_album_returns_false_for_non_synology_sources(self):
         local_client = object.__new__(automatic_module.ClassLocalFolder)

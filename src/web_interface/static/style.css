@@ -1872,6 +1872,12 @@ body[data-theme="dark"] .theme-card__name {
     font-weight: 700;
 }
 
+.stats-separator {
+    height: 1px;
+    margin: 8px 0 6px;
+    background: rgba(170, 210, 198, 0.28);
+}
+
 .bar-row {
     display: grid;
     grid-template-columns: 132px 1fr 140px;
