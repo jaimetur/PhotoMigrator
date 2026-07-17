@@ -210,7 +210,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             self.web_app.CONFIG_FORM_SCHEMA = original_schema
 
         self.assertTrue(response["saved"])
-        imported = response["sections"][0]["fields"][0]["value"]
+        imported = self.web_app._get_user_config_values(self.current_user)["Google Takeout"]["INPUT_FOLDER"]
         self.assertEqual(imported, "/etc/passwd")
 
     def test_exclusion_pattern_fields_are_not_treated_as_paths(self):

@@ -2620,13 +2620,8 @@
             .join("");
         const featuresHtml = [
             '<span class="desc-optional-title">Supported features:</span>',
-            '<span class="desc-modules-grid">',
-            ...supportedFeatures.map((label, index) => {
-                const separator = index < (supportedFeatures.length - 1)
-                    ? '<span class="desc-modules-separator"> | </span>'
-                    : "";
-                return `<span class="desc-modules-item">${escapeHtml(label)}</span>${separator}`;
-            }),
+            '<span class="desc-features-list">',
+            ...supportedFeatures.map((label) => `<span class="desc-modules-item">${escapeHtml(label)}</span>`),
             '</span>',
         ].join("");
         generalDocBody.innerHTML = `${introHtml}<br>${featuresHtml}`;
