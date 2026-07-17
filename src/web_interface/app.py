@@ -3378,10 +3378,17 @@ def _sanitize_payload_paths_for_user(
             continue
         candidates = _to_list(raw_value) if field.get("kind") == "list" else [str(raw_value)]
         sanitized_candidates: List[str] = []
+        find_duplicates_action_emitted = False
         for candidate in candidates:
             text = str(candidate or "").strip()
             if not text:
                 continue
+            if dest == "find-duplicates" and not find_duplicates_action_emitted:
+                lowered = text.lower()
+                if lowered in {"list", "move", "remove", "delete"}:
+                    sanitized_candidates.append(text)
+                    find_duplicates_action_emitted = True
+                    continue
             if dest in {"source", "target"} and _is_automatic_migration_cloud_endpoint(text):
                 sanitized_candidates.append(text)
                 continue
