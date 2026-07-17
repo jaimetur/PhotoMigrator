@@ -778,7 +778,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
         LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
+        albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.INFO)
         # logout
         LOGGER.info(f"")
         LOGGER.info(f"Logged out from {client} Photos.")
