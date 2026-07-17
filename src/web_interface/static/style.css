@@ -819,6 +819,7 @@ body {
 .panel-shell {
     display: grid;
     gap: 0;
+    min-width: 0;
 }
 
 .panel-shell > .page-nav {
@@ -832,6 +833,8 @@ body {
 .panel-shell > .panel {
     position: relative;
     z-index: 1;
+    min-width: 0;
+    width: 100%;
 }
 
 .hero__nav-btn:hover,
@@ -882,6 +885,8 @@ body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active
     padding: 20px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
+    min-width: 0;
+    width: 100%;
 }
 
 .panel h2 {
@@ -2303,6 +2308,8 @@ body[data-theme="dark"] .theme-card__name {
 .terminal-shell {
     position: relative;
     overflow: visible;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .terminal {
@@ -2324,6 +2331,8 @@ body[data-theme="dark"] .theme-card__name {
     scrollbar-gutter: stable both-edges;
     scrollbar-width: auto;
     scrollbar-color: rgba(176, 190, 198, 0.82) #1a2329;
+    width: 100%;
+    max-width: 100%;
 }
 
 .terminal::-webkit-scrollbar {
