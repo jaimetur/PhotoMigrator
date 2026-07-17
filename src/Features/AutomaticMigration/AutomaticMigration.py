@@ -1328,6 +1328,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         asset_id,
         retry_attempt,
         association_retry_attempt,
+        asset_type,
+        count_push_stats,
         move_assets,
         removed_source_asset_ids,
         processed_albums,
