@@ -1762,7 +1762,14 @@ def _display_command_for_user(command: List[str], config_path: Path, current_use
     cli_parts = raw_parts[2:] if len(raw_parts) >= 2 and str(raw_parts[1]).lower().endswith(".py") else raw_parts[1:]
     rendered_parts = ["PhotoMigrator"]
     for segment in _order_cli_segments(cli_parts):
-        rendered_parts.extend(segment)
+        if (
+            len(segment) == 2
+            and str(segment[0]).startswith("--")
+            and not str(segment[1]).startswith("--")
+        ):
+            rendered_parts.append(f"{segment[0]}={segment[1]}")
+        else:
+            rendered_parts.extend(segment)
     return subprocess.list2cmdline(rendered_parts)
 
 
