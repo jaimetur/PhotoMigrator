@@ -426,6 +426,56 @@ class ClassSynologyPhotos(BaseMediaClient):
             raise last_error
         raise RuntimeError("No valid Synology entry.cgi transport available")
 
+    @staticmethod
+    def _summarize_assets_debug(assets, sample_size=5):
+        assets = list(assets or [])
+        sample = []
+        for asset in assets[:sample_size]:
+            if not isinstance(asset, dict):
+                continue
+            sample.append({
+                "id": asset.get("id"),
+                "filename": asset.get("filename"),
+                "owner_user_id": asset.get("owner_user_id"),
+                "provider_user_id": asset.get("provider_user_id"),
+                "type": asset.get("type"),
+            })
+        owner_ids = sorted({str(asset.get("owner_user_id")) for asset in assets if isinstance(asset, dict) and asset.get("owner_user_id") is not None})
+        provider_ids = sorted({str(asset.get("provider_user_id")) for asset in assets if isinstance(asset, dict) and asset.get("provider_user_id") is not None})
+        return {
+            "count": len(assets),
+            "owner_user_ids": owner_ids,
+            "provider_user_ids": provider_ids,
+            "sample": sample,
+        }
+
+    def _iter_global_item_request_variants(self, base_params):
+        base_params = dict(base_params or {})
+        variants = [
+            {
+                "label": "default_v2_list_with_filter",
+                "prefer_post": False,
+                "params": dict(base_params),
+            }
+        ]
+
+        shared_variant_params = dict(base_params)
+        shared_variant_params.update({
+            "version": "7",
+            "method": "list",
+            "sort_by": "takentime",
+            "sort_direction": "asc",
+            "additional": '["thumbnail","resolution","orientation","video_convert","video_meta","provider_user_id"]',
+        })
+        variants.append({
+            "label": "experimental_v7_shared_space_style",
+            "prefer_post": True,
+            "params": shared_variant_params,
+        })
+
+        for variant in variants:
+            yield variant
+
     def _fetch_album_details(self, album_id, log_level=None):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
@@ -1546,26 +1596,85 @@ class ClassSynologyPhotos(BaseMediaClient):
                 if types: base_params["item_type"] = json.dumps(types)
                 LOGGER.debug(f"base_params: {json.dumps(base_params, indent=4)}")
 
-                offset = 0
-                limit = 5000
-                all_filtered_assets = []
-                while True:
-                    params = base_params.copy()  # Hacemos una copia para no modificar el original
-                    params['offset'] = offset
-                    params['limit'] = limit
-                    try:
-                        resp = self._session_get(url, headers=headers, params=params, verify=False)
-                        data = resp.json()
-                        if not data.get("success"):
-                            LOGGER.error(f"Failed to list assets")
-                            return []
-                        all_filtered_assets.extend(data["data"]["list"])
-                        if len(data["data"]["list"]) < limit:
+                variant_results = []
+                variant_failures = []
+                for variant in self._iter_global_item_request_variants(base_params):
+                    offset = 0
+                    limit = 5000
+                    variant_assets = []
+                    while True:
+                        params = dict(variant["params"])
+                        params['offset'] = offset
+                        params['limit'] = limit
+                        try:
+                            resp = self._request_entry_api(
+                                url,
+                                params,
+                                headers=headers,
+                                prefer_post=variant.get("prefer_post", False),
+                            )
+                            data = resp.json()
+                            if not data.get("success"):
+                                variant_failures.append(f"{variant['label']} response={data}")
+                                variant_assets = None
+                                break
+                            page = list((data.get("data") or {}).get("list") or [])
+                            variant_assets.extend(page)
+                            if len(page) < limit:
+                                break
+                            offset += limit
+                        except Exception as e:
+                            variant_failures.append(f"{variant['label']} error={e}")
+                            variant_assets = None
                             break
-                        offset += limit
-                    except Exception as e:
-                        LOGGER.error(f"Exception while listing assets {e}")
-                        return []
+
+                    if variant_assets is None:
+                        continue
+
+                    summary = self._summarize_assets_debug(variant_assets)
+                    LOGGER.debug(
+                        f"Synology global assets variant '{variant['label']}' summary: "
+                        f"{json.dumps(summary, ensure_ascii=True, default=str)}"
+                    )
+                    variant_results.append((variant["label"], variant_assets))
+
+                if not variant_results:
+                    if variant_failures:
+                        LOGGER.debug("Synology global assets variants failed: " + " | ".join(variant_failures))
+                    LOGGER.error("Failed to list assets")
+                    return []
+
+                merged_assets_by_id = {}
+                merged_assets_without_id = []
+                merge_sources = {}
+                for label, variant_assets in variant_results:
+                    for asset in variant_assets:
+                        if not isinstance(asset, dict):
+                            continue
+                        asset_id = str(asset.get("id") or "").strip()
+                        if not asset_id:
+                            merged_assets_without_id.append(asset)
+                            continue
+                        if asset_id not in merged_assets_by_id:
+                            merged_assets_by_id[asset_id] = asset
+                            merge_sources[asset_id] = [label]
+                        else:
+                            merge_sources[asset_id].append(label)
+
+                all_filtered_assets = list(merged_assets_by_id.values()) + merged_assets_without_id
+                merged_summary = self._summarize_assets_debug(all_filtered_assets)
+                LOGGER.debug(
+                    "Synology global assets merged summary: "
+                    + json.dumps(
+                        {
+                            "variants": [label for label, _assets in variant_results],
+                            "variant_counts": {label: len(assets) for label, assets in variant_results},
+                            "merged": merged_summary,
+                        },
+                        ensure_ascii=True,
+                        default=str,
+                    )
+                )
 
                 self.all_assets_filtered = all_filtered_assets # Cache all_filtered_assets for future use
                 return all_filtered_assets
@@ -1779,7 +1888,19 @@ class ClassSynologyPhotos(BaseMediaClient):
                 all_assets = self.get_assets_by_filters(log_level=logging.INFO)
                 album_assets = self.get_all_assets_from_all_albums(log_level=logging.INFO)
                 # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
-                assets_without_albums = get_unique_items(all_assets, album_assets, key='filename')
+                assets_without_albums = get_unique_items(all_assets, album_assets, key='id')
+                LOGGER.debug(
+                    "Synology no-albums diff summary: "
+                    + json.dumps(
+                        {
+                            "all_assets": self._summarize_assets_debug(all_assets),
+                            "album_assets": self._summarize_assets_debug(album_assets),
+                            "assets_without_albums": self._summarize_assets_debug(assets_without_albums),
+                        },
+                        ensure_ascii=True,
+                        default=str,
+                    )
+                )
                 LOGGER.info(f"Number of all_assets without Albums associated: {len(assets_without_albums)}")
                 self.assets_without_albums_filtered = assets_without_albums # Cache assets_without_albums for future use
                 return assets_without_albums

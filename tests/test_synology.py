@@ -136,6 +136,52 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertIn('"api": "SYNO.Foto.Browse.Item"', debug_message)
         self.assertIn('"passphrase": "***"', debug_message)
 
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_get_assets_by_filters_merges_variant_results_by_id(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.all_assets_filtered = None
+        manager.from_date = None
+        manager.to_date = None
+        manager.country = None
+        manager.city = None
+        manager.person = None
+        manager.type = "all"
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.login = lambda log_level=None: True
+        manager._request_entry_api = MagicMock(side_effect=[
+            MagicMock(json=lambda: {"success": True, "data": {"list": [
+                {"id": "1", "filename": "one.jpg", "owner_user_id": 1, "type": "PHOTO"},
+                {"id": "2", "filename": "two.jpg", "owner_user_id": 1, "type": "PHOTO"},
+            ]}}),
+            MagicMock(json=lambda: {"success": True, "data": {"list": [
+                {"id": "2", "filename": "two.jpg", "owner_user_id": 0, "type": "PHOTO"},
+                {"id": "3", "filename": "three.jpg", "owner_user_id": 0, "type": "PHOTO"},
+            ]}}),
+        ])
+
+        assets = manager.get_assets_by_filters(log_level=logging.INFO)
+
+        self.assertEqual([asset["id"] for asset in assets], ["1", "2", "3"])
+        self.assertEqual(manager._request_entry_api.call_count, 2)
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_get_all_assets_without_albums_uses_id_diff_instead_of_filename(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.assets_without_albums_filtered = None
+        manager.login = lambda log_level=None: True
+        manager.get_assets_by_filters = MagicMock(return_value=[
+            {"id": "10", "filename": "IMG_0001.jpg", "type": "PHOTO"},
+            {"id": "20", "filename": "IMG_0001.jpg", "type": "PHOTO"},
+        ])
+        manager.get_all_assets_from_all_albums = MagicMock(return_value=[
+            {"id": "10", "filename": "IMG_0001.jpg", "type": "PHOTO"},
+        ])
+
+        assets_without_albums = manager.get_all_assets_without_albums(log_level=logging.INFO)
+
+        self.assertEqual([asset["id"] for asset in assets_without_albums], ["20"])
+
     def _prepare_push_manager(self):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
         manager.ALLOWED_MEDIA_EXTENSIONS = [".jpg"]
