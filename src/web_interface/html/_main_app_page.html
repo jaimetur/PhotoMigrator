@@ -154,7 +154,7 @@
         </div>
     <section class="panel output" data-panel-id="output-panel">
         <div class="panel-head">
-            <h2>Output Panel</h2>
+            <h2 id="output-panel-title">Output Panel: Automatic Migration</h2>
             <button type="button" class="collapse-btn" data-collapse-target="output-panel" aria-label="Collapse panel">
                 <span class="collapse-btn__icon">▲</span>
             </button>
@@ -2450,6 +2450,7 @@
             queueSaveState();
             clearValidationErrorStatus();
             renderCloudActionPanel(tabKey);
+            updateOutputPanelTitle();
             queueCommandPreview();
         });
         selectRow.appendChild(selectLabel);
@@ -2588,6 +2589,7 @@
         panel.appendChild(wrap);
         panel.classList.remove("hidden");
         bindStateForInputs();
+        updateOutputPanelTitle();
     }
 
     function renderStandaloneActionPanel() {
@@ -2653,6 +2655,7 @@
             queueSaveState();
             clearValidationErrorStatus();
             renderStandaloneActionPanel();
+            updateOutputPanelTitle();
             queueCommandPreview();
         });
         selectRow.appendChild(selectLabel);
@@ -2821,6 +2824,7 @@
         panel.appendChild(wrap);
         panel.classList.remove("hidden");
         bindStateForInputs();
+        updateOutputPanelTitle();
     }
 
     async function uploadLocalFolderFiles(files, targetPath, extractZip) {
@@ -3275,6 +3279,7 @@
             renderAll();
         });
         updateFeaturePanelTitle();
+        updateOutputPanelTitle();
         renderGeneralTabs();
 
         renderBulkArgumentPanel("general-core-panel", schema.general_tabs.general || []);
@@ -3645,10 +3650,32 @@
             .replace(/\b\w/g, (match) => match.toUpperCase());
     }
 
+    function getSelectedSubmoduleDisplayName() {
+        if (activeModuleTab === "google_photos" || activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos" || activeModuleTab === "nextcloud_photos") {
+            const selected = (schema?.tabs?.[activeModuleTab] || []).find((f) => f.dest === cloudActionDest);
+            return selected ? uiFeatureName(selected) : "";
+        }
+        if (activeModuleTab === "standalone_features") {
+            const selected = (schema?.tabs?.standalone_features || []).find((f) => f.dest === standaloneActionDest);
+            return selected ? uiFeatureName(selected) : "";
+        }
+        return "";
+    }
+
     function updateFeaturePanelTitle() {
         const titleEl = document.getElementById("feature-panel-title");
         if (!titleEl) return;
         titleEl.innerHTML = `Feature Selector Panel: <span class="feature-panel-title__badge">${escapeHtml(getActiveModuleDisplayName())}</span>`;
+    }
+
+    function updateOutputPanelTitle() {
+        const titleEl = document.getElementById("output-panel-title");
+        if (!titleEl) return;
+        const featureName = getActiveModuleDisplayName();
+        const submoduleName = getSelectedSubmoduleDisplayName();
+        titleEl.textContent = submoduleName
+            ? `Output Panel: ${featureName} - ${submoduleName}`
+            : `Output Panel: ${featureName}`;
     }
 
     function setActiveJobInUiState(jobId, tab = null) {
