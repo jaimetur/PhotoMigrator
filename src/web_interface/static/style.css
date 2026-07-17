@@ -776,21 +776,26 @@ body {
 }
 
 .hero__nav-btn {
+    appearance: none;
+    border: 1px solid transparent;
     text-decoration: none;
     transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
     font-size: 1rem;
     font-weight: 800;
-    padding: 10px 18px;
+    padding: 9px 14px;
     line-height: 1.2;
-    min-height: 44px;
-    min-width: 180px;
+    min-height: 40px;
+    min-width: 170px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    border-radius: 14px 14px 0 0;
-    border-bottom-width: 0;
-    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.06) inset;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    margin-bottom: -1px;
+    box-shadow: 0 2px 8px rgba(26, 54, 92, 0.12);
+    background-clip: padding-box;
+    cursor: pointer;
 }
 
 .page-nav {
@@ -799,11 +804,9 @@ body {
     flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-start;
-    margin: 0 0 -19px;
+    margin: 0 0 -5px;
     padding: 0;
     width: 100%;
-    position: relative;
-    z-index: 3;
     overflow-x: auto;
     overflow-y: visible;
     scrollbar-width: none;
@@ -813,9 +816,27 @@ body {
     display: none;
 }
 
+.panel-shell {
+    display: grid;
+    gap: 0;
+}
+
+.panel-shell > .page-nav {
+    margin: 0 0 -9px;
+    padding: 0 0 0 1px;
+    width: 100%;
+    position: relative;
+    z-index: 3;
+}
+
+.panel-shell > .panel {
+    position: relative;
+    z-index: 1;
+}
+
 .hero__nav-btn:hover,
 .hero__nav-btn:focus-visible {
-    transform: translateY(-1px);
+    transform: none;
 }
 
 body .page-nav .hero__nav-btn.hero__nav-btn--features,
@@ -844,7 +865,9 @@ body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active
     border-color: var(--hero-nav-active-border);
     color: var(--hero-nav-active-text);
     transform: none;
-    box-shadow: 0 0 0 1px var(--hero-nav-active-border), 0 10px 22px rgba(22, 22, 22, 0.18);
+    box-shadow: 0 4px 12px rgba(16, 36, 66, 0.2);
+    position: relative;
+    z-index: 3;
 }
 
 .panel {
@@ -869,7 +892,7 @@ body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active
     position: relative;
     min-height: 34px;
     padding-right: 44px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .panel-head h2 {
@@ -966,11 +989,40 @@ body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active
     color: var(--feature-tab-text);
 }
 
+#module-tabs {
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: 0 0 -5px;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+    position: relative;
+    z-index: 2;
+}
+
+#module-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+#module-tabs .tab-btn {
+    border-radius: 14px 14px 0 0;
+    border-bottom-width: 0;
+    padding: 10px 14px;
+    min-height: 42px;
+    white-space: nowrap;
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+
 #module-tabs .tab-btn.active,
 #config-section-tabs .tab-btn.active {
     background: var(--feature-tab-active-bg);
     border-color: var(--feature-tab-active-border);
     color: var(--feature-tab-active-text);
+}
+
+#module-tabs .tab-btn.active {
+    transform: none;
+    box-shadow: 0 0 0 1px currentColor inset, 0 8px 18px rgba(22, 22, 22, 0.12);
 }
 
 #module-tabs .tab-btn.module-tab--migration {
@@ -1045,6 +1097,36 @@ body .page-nav .hero__nav-btn.hero__nav-btn--configuration.hero__nav-btn--active
     border-color: var(--general-tab-active-border);
     color: var(--general-tab-active-text);
     box-shadow: 0 4px 12px rgba(16, 36, 66, 0.2);
+}
+
+#general-tabs {
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: 0 0 -5px;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+    position: relative;
+    z-index: 2;
+}
+
+#general-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+#general-tabs .tab-btn {
+    border-radius: 14px 14px 0 0;
+    border-bottom-width: 0;
+    padding: 9px 14px;
+    min-height: 40px;
+    min-width: 170px;
+    white-space: nowrap;
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+
+#general-tabs .tab-btn.active {
+    transform: none;
+    box-shadow: 0 0 0 1px currentColor inset, 0 8px 18px rgba(22, 22, 22, 0.12);
 }
 
 body[data-theme="dark"] .tab-btn {

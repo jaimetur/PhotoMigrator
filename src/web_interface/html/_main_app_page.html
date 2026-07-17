@@ -42,16 +42,16 @@
         <img class="hero__logo" src="/assets/logos/logo_17_1024x1024.png" alt="PhotoMigrator logo">
     </header>
 
-    <div class="page-nav" aria-label="Main page navigation">
-        <a href="/features" class="ghost-btn hero__doc-btn hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
-            🧩 Features
-        </a>
-        <a href="/configuration" class="ghost-btn hero__doc-btn hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
-            ⚙️ Configuration
-        </a>
-    </div>
-
-    <section class="panel{% if active_page != 'configuration' %} page-panel-hidden{% endif %}" data-panel-id="general-panel">
+    <div class="panel-shell{% if active_page != 'configuration' %} page-panel-hidden{% endif %}">
+        <div class="page-nav" aria-label="Main page navigation">
+            <a href="/features" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
+                🧩 Features
+            </a>
+            <a href="/configuration" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
+                ⚙️ Configuration
+            </a>
+        </div>
+        <section class="panel" data-panel-id="general-panel">
         <div class="panel-head">
             <h2>Configuration Panel</h2>
             <button type="button" class="collapse-btn" data-collapse-target="general-panel" aria-label="Collapse panel">
@@ -94,9 +94,19 @@
                 <div id="app-settings-status" class="status">App settings status: idle</div>
             </div>
         </div>
-    </section>
+        </section>
+    </div>
 
-    <section class="panel{% if active_page != 'features' %} page-panel-hidden{% endif %}" data-panel-id="feature-panel">
+    <div class="panel-shell{% if active_page != 'features' %} page-panel-hidden{% endif %}">
+        <div class="page-nav" aria-label="Main page navigation">
+            <a href="/features" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
+                🧩 Features
+            </a>
+            <a href="/configuration" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
+                ⚙️ Configuration
+            </a>
+        </div>
+        <section class="panel" data-panel-id="feature-panel">
         <div class="panel-head">
             <h2 id="feature-panel-title">Feature Selector Panel: Automatic Migration</h2>
             <button type="button" class="collapse-btn" data-collapse-target="feature-panel" aria-label="Collapse panel">
@@ -121,7 +131,8 @@
                 <button id="stop-btn" type="button" class="run-btn run-btn--danger" disabled>Stop module</button>
             </div>
         </div>
-    </section>
+        </section>
+    </div>
 
     <section class="panel output{% if active_page != 'features' %} page-panel-hidden{% endif %}" data-panel-id="output-panel">
         <div class="panel-head">
