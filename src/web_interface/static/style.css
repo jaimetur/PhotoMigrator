@@ -1903,6 +1903,10 @@ body[data-theme="dark"] .theme-card__name {
     background: rgba(170, 210, 198, 0.28);
 }
 
+.stats-gap {
+    height: 8px;
+}
+
 .bar-row {
     display: grid;
     grid-template-columns: 132px 1fr 140px;
@@ -2014,6 +2018,7 @@ body[data-theme="dark"] .theme-card__name {
     padding: 12px;
     font-size: 0.85rem;
     line-height: 1.4;
+    overscroll-behavior: contain;
 }
 
 .terminal-resize-handle {

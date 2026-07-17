@@ -4433,6 +4433,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     value = SHARED_DATA.counters[counter_label]
                     table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
                 separator = "─" * 18
+                table.add_row("", "")
                 table.add_row("", f"[cyan dim]{separator}[/cyan dim]")
                 table.add_row(f"[cyan]{'🕒 Elapsed Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('elapsed_time', 0)}[/cyan]")
                 table.add_row(f"[cyan]{'⏳ Remaining Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('estimated_time', '-')}[/cyan]")

@@ -160,6 +160,7 @@
                         <div class="stat-row"><span class="stat-label">🚩 Failed Photos</span><span id="dash-pull-failed-photos" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">🚩 Failed Videos</span><span id="dash-pull-failed-videos" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">🚩 Failed Albums</span><span id="dash-pull-failed-albums" class="stat-value">0</span></div>
+                        <div class="stats-gap" aria-hidden="true"></div>
                         <div class="stats-separator" aria-hidden="true"></div>
                         <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
                         <div class="stat-row"><span class="stat-label">⏳ Remaining Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
@@ -1305,6 +1306,7 @@
 
         outputRenderDeferredBySelection = false;
         const previousScrollTop = outputEl.scrollTop;
+        const previousScrollLeft = outputEl.scrollLeft;
 
         if (payload.output_reset) {
             initializeOutputFromSnapshot(
@@ -1323,10 +1325,11 @@
         if (options.preserveScrollAnchor) {
             outputEl.scrollTop = previousScrollTop;
         } else if (options.force || (autoScrollEnabled && nearBottomBeforeRender)) {
-            outputEl.scrollTop = outputEl.scrollHeight;
+            scrollOutputToBottom(outputEl);
         } else {
             outputEl.scrollTop = previousScrollTop;
         }
+        outputEl.scrollLeft = previousScrollLeft;
 
         pendingOutputRenderPayload = null;
     }
@@ -1352,6 +1355,17 @@
             dropped_output_notice: outputNoticeNode ? String(outputNoticeNode.textContent || "") : "",
             visible_partial_output_line: outputPartialNode ? String(outputPartialNode.textContent || "") : "",
         };
+    }
+
+    function scrollOutputToBottom(outputEl) {
+        if (!outputEl) return;
+        const applyBottomScroll = () => {
+            outputEl.scrollTop = outputEl.scrollHeight;
+        };
+        applyBottomScroll();
+        if (typeof window.requestAnimationFrame === "function") {
+            window.requestAnimationFrame(applyBottomScroll);
+        }
     }
 
     function getOutputSelectionText() {
@@ -5151,10 +5165,13 @@
             uiState.auto_scroll = autoScrollCheck.checked;
             queueSaveState();
             if (uiState.auto_scroll !== false) {
-                // Catch up all missed output when autoscroll is re-enabled.
-                applyOutputPayload(pendingOutputRenderPayload || buildCurrentOutputSnapshotPayload(), {force: true});
+                if (pendingOutputRenderPayload) {
+                    applyOutputPayload(pendingOutputRenderPayload, {force: true});
+                } else {
+                    scrollOutputToBottom(document.getElementById("output"));
+                }
             }
-            });
+        });
         document.getElementById("output").addEventListener("scroll", () => {
             const outputEl = document.getElementById("output");
             const nearBottom = (
@@ -5170,14 +5187,20 @@
                 uiState.auto_scroll = true;
                 autoScrollCheck.checked = true;
                 queueSaveState();
-                applyOutputPayload(pendingOutputRenderPayload || buildCurrentOutputSnapshotPayload(), {force: true});
+                if (pendingOutputRenderPayload) {
+                    applyOutputPayload(pendingOutputRenderPayload, {force: true});
+                } else {
+                    scrollOutputToBottom(outputEl);
+                }
             }
         });
         document.addEventListener("selectionchange", () => {
             if (!outputRenderDeferredBySelection) return;
             if (getOutputSelectionText().length > 0) return;
             if (uiState.auto_scroll === false) {
-                applyOutputPayload(pendingOutputRenderPayload || buildCurrentOutputSnapshotPayload(), {force: true});
+                if (pendingOutputRenderPayload) {
+                    applyOutputPayload(pendingOutputRenderPayload, {force: true});
+                }
             }
         });
         document.addEventListener("keydown", (event) => {
