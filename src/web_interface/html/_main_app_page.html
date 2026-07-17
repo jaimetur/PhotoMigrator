@@ -416,6 +416,8 @@
     let activeModuleTab = "automatic_migration";
     let activeGeneralTab = "general";
     let currentJob = null;
+    let currentJobTab = "";
+    let currentJobSelectedActionDest = "";
     let pollTimer = null;
     let folderTargetInput = null;
     let fileTargetInput = null;
@@ -3642,24 +3644,35 @@
         setStatus("Status: idle", false);
     }
 
-    function getActiveModuleDisplayName() {
-        if (activeModuleTab === "icloud_takeout") return "iCloud Takeout";
-        const raw = MODULE_TAB_NAMES[activeModuleTab] || String(activeModuleTab || "");
+    function getModuleDisplayNameForContext(tabKey) {
+        if (tabKey === "icloud_takeout") return "iCloud Takeout";
+        const raw = MODULE_TAB_NAMES[tabKey] || String(tabKey || "");
         return raw
             .toLowerCase()
             .replace(/\b\w/g, (match) => match.toUpperCase());
     }
 
-    function getSelectedSubmoduleDisplayName() {
-        if (activeModuleTab === "google_photos" || activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos" || activeModuleTab === "nextcloud_photos") {
-            const selected = (schema?.tabs?.[activeModuleTab] || []).find((f) => f.dest === cloudActionDest);
+    function getActiveModuleDisplayName() {
+        return getModuleDisplayNameForContext(activeModuleTab);
+    }
+
+    function getSelectedSubmoduleDisplayNameForContext(tabKey, selectedActionDest) {
+        if (tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos") {
+            const selected = (schema?.tabs?.[tabKey] || []).find((f) => f.dest === selectedActionDest);
             return selected ? uiFeatureName(selected) : "";
         }
-        if (activeModuleTab === "standalone_features") {
-            const selected = (schema?.tabs?.standalone_features || []).find((f) => f.dest === standaloneActionDest);
+        if (tabKey === "standalone_features") {
+            const selected = (schema?.tabs?.standalone_features || []).find((f) => f.dest === selectedActionDest);
             return selected ? uiFeatureName(selected) : "";
         }
         return "";
+    }
+
+    function getSelectedSubmoduleDisplayName() {
+        return getSelectedSubmoduleDisplayNameForContext(
+            activeModuleTab,
+            activeModuleTab === "standalone_features" ? standaloneActionDest : cloudActionDest
+        );
     }
 
     function updateFeaturePanelTitle() {
@@ -3671,8 +3684,13 @@
     function updateOutputPanelTitle() {
         const titleEl = document.getElementById("output-panel-title");
         if (!titleEl) return;
-        const featureName = getActiveModuleDisplayName();
-        const submoduleName = getSelectedSubmoduleDisplayName();
+        const useRunningJobContext = Boolean(currentJob && (currentJobTab || activeModuleTab));
+        const effectiveTab = useRunningJobContext ? (currentJobTab || activeModuleTab) : activeModuleTab;
+        const effectiveSelectedActionDest = useRunningJobContext
+            ? currentJobSelectedActionDest
+            : (effectiveTab === "standalone_features" ? standaloneActionDest : cloudActionDest);
+        const featureName = getModuleDisplayNameForContext(effectiveTab);
+        const submoduleName = getSelectedSubmoduleDisplayNameForContext(effectiveTab, effectiveSelectedActionDest);
         titleEl.textContent = submoduleName
             ? `Output Panel: ${featureName} - ${submoduleName}`
             : `Output Panel: ${featureName}`;
@@ -3701,8 +3719,11 @@
             const fetchElapsedMs = performance.now() - fetchStarted;
             if (response.status === 404) {
                 currentJob = null;
+                currentJobTab = "";
+                currentJobSelectedActionDest = "";
                 currentJobStartedAt = null;
                 setActiveJobInUiState(null);
+                updateOutputPanelTitle();
                 setStatus("Status: idle", false);
                 updateRunStopButtons("idle");
                 setJobInputControlsState(false, false);
@@ -3712,6 +3733,9 @@
             const jsonStarted = performance.now();
             const data = await response.json();
             const jsonElapsedMs = performance.now() - jsonStarted;
+            currentJobTab = String(data.tab || currentJobTab || "").trim();
+            currentJobSelectedActionDest = String(data.selected_action_dest || currentJobSelectedActionDest || "").trim();
+            updateOutputPanelTitle();
             setStatus(`Status: ${data.status}`, false);
             updateRunStopButtons(data.status || "idle");
 
@@ -3861,8 +3885,11 @@
             return;
         }
         currentJob = data.job_id;
+        currentJobTab = payload.tab;
+        currentJobSelectedActionDest = String(payload.selected_action_dest || "").trim();
         setActiveJobInUiState(currentJob, payload.tab);
         await saveStateNow();
+        updateOutputPanelTitle();
         setCommandPreviewText(data.command);
         uiState.auto_scroll = true;
         const autoScrollCheck = document.getElementById("auto-scroll-check");
@@ -3925,6 +3952,7 @@
                     if (activeJobId) {
                         savedJobId = activeJobId;
                         savedTab = String(activeData?.tab || "").trim() || savedTab;
+                        currentJobSelectedActionDest = String(activeData?.selected_action_dest || "").trim();
                         setActiveJobInUiState(savedJobId, savedTab || null);
                         await saveStateNow();
                     }
@@ -3937,8 +3965,10 @@
         if (!savedJobId) return;
 
         currentJob = savedJobId;
+        currentJobTab = savedTab;
         currentJobStartedAt = null;
         currentJobIsAutomatic = savedTab === "automatic_migration";
+        updateOutputPanelTitle();
 
         setStatus("Status: reconnecting", false);
         updateRunStopButtons("running");
@@ -3948,8 +3978,11 @@
         } catch (error) {
             console.error(error);
             currentJob = null;
+            currentJobTab = "";
+            currentJobSelectedActionDest = "";
             currentJobStartedAt = null;
             setActiveJobInUiState(null);
+            updateOutputPanelTitle();
             setStatus("Status: idle", false);
             updateRunStopButtons("idle");
             stopPolling();

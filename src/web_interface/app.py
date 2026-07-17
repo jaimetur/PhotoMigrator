@@ -447,12 +447,14 @@ class JobData:
         command: List[str],
         process: subprocess.Popen[str],
         tab: str | None = None,
+        selected_action_dest: str | None = None,
         owner_user_id: int | None = None,
         dashboard_context: Dict[str, Any] | None = None,
     ) -> None:
         self.command = command
         self.command_string = subprocess.list2cmdline(command)
         self.tab = str(tab or "").strip() or None
+        self.selected_action_dest = str(selected_action_dest or "").strip() or None
         self.owner_user_id = owner_user_id
         self.process = process
         self.stop_requested = False
@@ -4285,6 +4287,7 @@ def run_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_require
             command=command,
             process=process,
             tab=payload.tab,
+            selected_action_dest=payload.selected_action_dest,
             owner_user_id=int(current_user["id"]),
             dashboard_context={
                 "source": normalized_values.get("source"),
@@ -4314,6 +4317,7 @@ def get_active_job(current_user: Dict[str, Any] = Depends(_require_user)) -> Dic
         return {
             "job_id": job_id,
             "tab": job.tab,
+            "selected_action_dest": job.selected_action_dest,
             "status": job.status,
             "started_at": job.started_at,
             "command": job.command_string,
@@ -4345,6 +4349,7 @@ def get_job(
         response_payload = {
             "job_id": job_id,
             "tab": job.tab,
+            "selected_action_dest": job.selected_action_dest,
             "status": job.status,
             "return_code": job.return_code,
             "started_at": job.started_at,
