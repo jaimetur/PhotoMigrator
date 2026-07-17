@@ -195,7 +195,6 @@ Following arguments allow you to interact with Google Photos, Synology, Immich, 
 | `-mDupAlb`,<br>`--merge-duplicates-albums`         | Merge duplicate albums                                                                       |
 | `-rAll`,<br>`--remove-all-assets`                  | Delete all assets and albums (DANGER!)                                                       |
 | `-rAllAlb`,<br>`--remove-all-albums`               | Delete all albums (assets optional)                                                          |
-| `-rOrphan`,<br>`--remove-orphan-assets`            | Delete orphan assets                                                                         |
 | `-OTP`,<br>`--one-time-password`                   | Use 2FA login with OTP token                                                                 |
 
 

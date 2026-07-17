@@ -136,9 +136,11 @@ def detect_and_run_execution_mode():
     elif ARGS['remove-all-assets'] != "":
         EXECUTION_MODE = 'remove-all-assets'
         mode_cloud_remove_ALL(client=ARGS['client'])
-    elif ARGS['remove-orphan-assets'] != "":
-        EXECUTION_MODE = 'remove-orphan-assets'
-        mode_cloud_remove_orphan_assets(client=ARGS['client'])
+    # NOTE: Immich "Remove Orphan Assets" has been discontinued and is hidden from
+    # CLI/Web/TUI/GUI. Keep the execution path commented for possible future reuse.
+    # elif ARGS['remove-orphan-assets'] != "":
+    #     EXECUTION_MODE = 'remove-orphan-assets'
+    #     mode_cloud_remove_orphan_assets(client=ARGS['client'])
 
 
     # Other Stand-alone Extra Features:

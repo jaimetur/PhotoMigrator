@@ -8,6 +8,7 @@
 ### Release Date: 2026-07-17
   
 #### 🚨 Breaking Changes:
+  - Removed the discontinued `Immich Photos -> Remove Orphan Assets` module from all exposed interfaces (`Web`, `CLI`, `TUI`, and `GUI`) and from the related `Immich` documentation, while keeping the underlying implementation paths commented/preserved in code for possible future reuse.
 
 #### 🌟 New Features:
   - Added a new cloud-only `Consolidate Albums Names` feature for `Google Photos`, `Synology Photos`, `Immich Photos`, and `NextCloud Photos`, available from CLI, Web Interface, TUI, and desktop GUI. This action reuses the same equivalent-album-family detection logic as `--consolidate-similar-albums` but operates entirely in the destination cloud without uploading new assets. On targets that support album deletion (`Immich`, `Synology`, `NextCloud`), redundant albums are removed after confirmed reassignment; on `Google Photos`, redundant variants are kept because the public API cannot delete albums.

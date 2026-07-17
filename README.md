@@ -138,7 +138,6 @@ Currently, the Features Supported per each Photo Cloud Service are:
   | Remove Empty Albums             | Not supported by API                            | [doc](help/07-synology-photos.md#remove-empty-albums-from-synology-photos)             | [doc](help/08-immich-photos.md#remove-empty-albums-from-immich-photos)             | [doc](help/09-nextcloud-photos.md#remove-empty-albums-from-nextcloud-photos)             |
   | Remove Duplicates Albums        | Not supported by API                            | [doc](help/07-synology-photos.md#remove-duplicates-albums-from-synology-photos)        | [doc](help/08-immich-photos.md#remove-duplicates-albums-from-immich-photos)        | [doc](help/09-nextcloud-photos.md#remove-duplicates-albums-from-nextcloud-photos)        |
   | Merge Duplicates Albums         | Not supported by API                            | [doc](help/07-synology-photos.md#merge-duplicates-albums-from-synology-photos)         | [doc](help/08-immich-photos.md#merge-duplicates-albums-from-immich-photos)         | [doc](help/09-nextcloud-photos.md#merge-duplicates-albums-from-nextcloud-photos)         |
-  | Remove Orphans Assets           | Not supported by API                            | Not supported by API                                                                   | [doc](help/08-immich-photos.md#remove-orphans-assets-from-immich-photos)           | Not supported by API                                                                     |
 
 > [!NOTE]
 > For more info you can check the feature documentation in below links:

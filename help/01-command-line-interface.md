@@ -435,10 +435,6 @@ If more than one optional arguments are detected, only the first one will be exe
                Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.
                Requires '--client'.
                Example: --client=immich --merge-duplicates-albums
--rOrphan     ; --remove-orphan-assets
-               Remove orphan assets.
-               Requires '--client'. IMPORTANT: requires a valid ADMIN_API_KEY in Config.ini.
-               Example: --client=immich --remove-orphan-assets
 -OTP         ; --one-time-password
                Allow login into Synology Photos using 2FA with an OTP token.
                Example: --client=synology --download-all ./MyLibrary --one-time-password

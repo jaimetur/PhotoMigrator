@@ -21,7 +21,6 @@ From version 4.0.0 onwards, the Tool can connect to Google Photos using the offi
 5. Remove Empty Albums
 6. Remove Duplicates Albums
 7. Merge Duplicates Albums
-8. Remove Orphan Assets
 
 You can apply filters in Google Photos modules.
 

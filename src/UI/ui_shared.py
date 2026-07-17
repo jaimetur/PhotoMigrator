@@ -66,7 +66,7 @@ FEATURE_LABELS = {
     "remove-empty-albums": "Remove Empty Albums",
     "remove-duplicates-albums": "Remove Duplicates Albums",
     "merge-duplicates-albums": "Merge Duplicates Albums",
-    "remove-orphan-assets": "Remove Orphan Assets",
+    # "remove-orphan-assets": "Remove Orphan Assets",  # Discontinued for Immich; keep commented for future reuse.
     "fix-symlinks-broken": "Fix Broken Symlinks",
     "rename-folders-content-based": "Auto Rename Folders Content Based",
     "organize-local-folder-by-date": "Organize Local Folder By Date",
@@ -191,7 +191,7 @@ CLOUD_DESTS = {
     "remove-empty-albums",
     "remove-duplicates-albums",
     "merge-duplicates-albums",
-    "remove-orphan-assets",
+    # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
     "one-time-password",
 }
@@ -223,7 +223,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "remove-empty-albums",
         "remove-duplicates-albums",
         "merge-duplicates-albums",
-        "remove-orphan-assets",
+        # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
         "consolidate-albums-names",
     },
     "nextcloud_photos": {

@@ -174,7 +174,7 @@ CLOUD_DESTS = {
     "remove-empty-albums",
     "remove-duplicates-albums",
     "merge-duplicates-albums",
-    "remove-orphan-assets",
+    # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
     "one-time-password",
 }
@@ -207,7 +207,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "remove-empty-albums",
         "remove-duplicates-albums",
         "merge-duplicates-albums",
-        "remove-orphan-assets",
+        # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
         "consolidate-albums-names",
     },
     "nextcloud_photos": {

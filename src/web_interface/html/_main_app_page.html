@@ -525,7 +525,7 @@
         "remove-empty-albums": "Remove Empty Albums",
         "remove-duplicates-albums": "Remove Duplicates Albums",
         "merge-duplicates-albums": "Merge Duplicates Albums",
-        "remove-orphan-assets": "Remove Orphan Assets",
+        // "remove-orphan-assets": "Remove Orphan Assets",  // Discontinued for Immich; keep commented for future reuse.
         "fix-symlinks-broken": "Fix Broken Symlinks",
         "rename-folders-content-based": "Auto Rename Folders Content Based",
         "organize-local-folder-by-date": "Organize Local Folder By Date",
@@ -668,7 +668,7 @@
             "remove-empty-albums",
             "remove-duplicates-albums",
             "merge-duplicates-albums",
-            "remove-orphan-assets",
+            // "remove-orphan-assets",  // Discontinued for Immich; keep commented for future reuse.
             "consolidate-albums-names"
         ],
         nextcloud_photos: [
@@ -825,9 +825,9 @@
                 message = `This module will delete duplicated albums in ${clientLabel} (same name and size).`;
             } else if (action === "merge-duplicates-albums") {
                 message = `This module will merge duplicated albums in ${clientLabel} by moving assets into the most relevant album and removing duplicates.`;
-            } else if (action === "remove-orphan-assets") {
-                message = "This module will delete orphan assets from the Immich database (assets referenced in DB but missing on disk).";
-            }
+            // } else if (action === "remove-orphan-assets") {
+            //     message = "This module will delete orphan assets from the Immich database (assets referenced in DB but missing on disk).";
+            // }
             if (!message) return null;
             return {
                 title: "Dangerous Module",

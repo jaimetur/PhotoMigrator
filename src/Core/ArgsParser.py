@@ -456,10 +456,13 @@ def parse_arguments():
                              "Requires '--client'.\n"
                              "Example: --client=immich --merge-duplicates-albums")
 
-    PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
-                        help="Remove orphan assets.\n"
-                             "Requires '--client'. IMPORTANT: requires a valid ADMIN_API_KEY in Config.ini.\n"
-                             "Example: --client=immich --remove-orphan-assets")
+    # NOTE: Immich "Remove Orphan Assets" has been discontinued and is intentionally
+    # hidden from all exposed interfaces and documentation for now. Keep the old
+    # parser definition commented so it can be restored easily in the future.
+    # PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
+    #                     help="Remove orphan assets.\n"
+    #                          "Requires '--client'. IMPORTANT: requires a valid ADMIN_API_KEY in Config.ini.\n"
+    #                          "Example: --client=immich --remove-orphan-assets")
 
     PARSER.add_argument("-consAlbNames", "--consolidate-albums-names", action="store_true", default=False,
                         help="Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets.\n"
@@ -606,7 +609,7 @@ def validate_client_arg(ARGS, PARSER):
         'merge-duplicates-albums',
         'remove-all-assets',
         'remove-all-albums',
-        'remove-orphan-assets'
+        # 'remove-orphan-assets',  # Discontinued for Immich; keep commented for possible future reuse.
     ]
 
     # Iterate through all flags requiring client

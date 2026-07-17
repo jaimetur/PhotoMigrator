@@ -315,25 +315,6 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one transferring all the assets from the removed albums into the main one.
 
 
-## Remove Orphans Assets from Immich Photos:
-- **From:** v3.0.0
-> [!WARNING]
-> This functionality was removed from Immich starting with version **v1.133.0** (**May 23, 2025**) and is no longer available in newer Immich versions.
-- **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the argument _**`--remove-orphan-assets`**_
-- **Pre-Requisites:**
-  - Configure properly the file `Config.ini` to include your Immich account credentials and the administrator credential (mandatory for this feature)
-- **Explanation:**
-  - An Orphan asset is an asset that is in your Immich Photos account but is pointing to a non-existing file.  
-  - The Tool will connect automatically to your Immich Photos account and will remove all Orphan assets found.
-- **Example of use:**
-  ```
-  ./PhotoMigrator.bin --client=immich --remove-orphan-assets
-  ```
-  With this example, the Tool will connect to your Immich Photos account and will remove all Orphan assets found.
-
-
 ## Consolidate Albums Names from Immich Photos:
 - **From:** v4.5.0
 - **Usage:**
