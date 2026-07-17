@@ -1653,9 +1653,116 @@ def _user_config_db_path(current_user: Dict[str, Any]) -> str:
     return f"db://users/{username}/Config.ini"
 
 
+def _build_cli_option_specs() -> tuple[Dict[str, Dict[str, Any]], set[str]]:
+    option_specs: Dict[str, Dict[str, Any]] = {}
+    standalone_bool_options: set[str] = set()
+    for field in PARSER_FIELDS_BY_DEST.values():
+        long_option = str(field.get("long_option") or "").strip()
+        if long_option:
+            option_specs[long_option] = field
+        false_option = str(field.get("false_option") or "").strip()
+        if false_option:
+            standalone_bool_options.add(false_option)
+    return option_specs, standalone_bool_options
+
+
+def _consume_cli_option_segment(parts: List[str], start: int) -> tuple[List[str], int]:
+    option_specs, standalone_bool_options = _build_cli_option_specs()
+    token = str(parts[start] or "")
+    field = option_specs.get(token)
+    if token in standalone_bool_options:
+        return [token], start + 1
+    if not token.startswith("--"):
+        return [token], start + 1
+    if not field:
+        if start + 1 < len(parts) and not str(parts[start + 1]).startswith("--"):
+            return [token, str(parts[start + 1])], start + 2
+        return [token], start + 1
+
+    kind = str(field.get("kind") or "")
+    dest = str(field.get("dest") or "")
+    false_option = str(field.get("false_option") or "").strip()
+    if kind == "flag" or false_option:
+        return [token], start + 1
+    if kind == "list":
+        if dest == "rename-albums":
+            if start + 1 < len(parts):
+                return [token, str(parts[start + 1])], start + 2
+            return [token], start + 1
+        end = start + 1
+        while end < len(parts) and not str(parts[end]).startswith("--"):
+            end += 1
+        return [str(item) for item in parts[start:end]], end
+    if start + 1 < len(parts):
+        return [token, str(parts[start + 1])], start + 2
+    return [token], start + 1
+
+
+def _order_cli_segments(parts: List[str]) -> List[List[str]]:
+    segments: List[List[str]] = []
+    index = 0
+    while index < len(parts):
+        segment, index = _consume_cli_option_segment(parts, index)
+        if segment:
+            segments.append(segment)
+
+    primary_context_order = {
+        "--client": 0,
+        "--account-id": 1,
+        "--source": 2,
+        "--target": 3,
+        "--input-folder": 4,
+        "--input": 5,
+        "--output-folder": 6,
+        "--google-takeout": 7,
+        "--icloud-takeout": 8,
+        "--takeout-folder": 9,
+        "--remove-albums": 10,
+        "--rename-albums": 11,
+        "--consolidate-albums-names": 12,
+        "--remove-empty-albums": 13,
+        "--remove-duplicates-albums": 14,
+        "--remove-all-albums": 15,
+        "--remove-all-assets": 16,
+        "--push-albums": 17,
+        "--push-no-albums": 18,
+        "--push-all": 19,
+        "--pull-albums": 20,
+        "--pull-no-albums": 21,
+        "--pull-all": 22,
+        "--automatic-migration": 23,
+        "--organize-local-folder-by-date": 24,
+    }
+    trailing_secondary_flags = {
+        "--consolidate-similar-albums",
+        "--prefer-canonical-album-names",
+    }
+    final_options = {"--configuration-file"}
+
+    def _segment_bucket(segment: List[str]) -> tuple[int, int, str]:
+        option = str(segment[0] or "") if segment else ""
+        if option in primary_context_order:
+            return 0, primary_context_order[option], option
+        if option in trailing_secondary_flags:
+            return 2, 0, option
+        if option in final_options:
+            return 3, 0, option
+        return 1, 0, option
+
+    ordered_segments = sorted(enumerate(segments), key=lambda item: (_segment_bucket(item[1]), item[0]))
+    return [segment for _, segment in ordered_segments]
+
+
 def _display_command_for_user(command: List[str], config_path: Path, current_user: Dict[str, Any]) -> str:
     safe_config_path = _user_config_db_path(current_user)
-    rendered_parts = [safe_config_path if str(part) == str(config_path) else str(part) for part in (command or [])]
+    if not command:
+        return ""
+
+    raw_parts = [safe_config_path if str(part) == str(config_path) else str(part) for part in (command or [])]
+    cli_parts = raw_parts[2:] if len(raw_parts) >= 2 and str(raw_parts[1]).lower().endswith(".py") else raw_parts[1:]
+    rendered_parts = ["PhotoMigrator"]
+    for segment in _order_cli_segments(cli_parts):
+        rendered_parts.extend(segment)
     return subprocess.list2cmdline(rendered_parts)
 
 
@@ -2934,7 +3041,7 @@ def _dest_is_active_for_values(dest: str, field: Dict[str, Any], values: Dict[st
 def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str | None = None) -> List[str]:
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
 
-    args: List[str] = []
+    args_unordered: List[str] = []
     for dest in sorted(allowed_dests):
         field = PARSER_FIELDS_BY_DEST[dest]
         raw_value = values.get(dest)
@@ -2944,7 +3051,7 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
 
         if kind == "flag":
             if _bool_from_value(raw_value):
-                args.append(long_option)
+                args_unordered.append(long_option)
             continue
 
         if kind == "bool":
@@ -2953,21 +3060,21 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
             if current != default_bool:
                 false_option = str(field.get("false_option") or "").strip()
                 if false_option:
-                    args.append(long_option if current else false_option)
+                    args_unordered.append(long_option if current else false_option)
                 else:
-                    args.extend([long_option, "true" if current else "false"])
+                    args_unordered.extend([long_option, "true" if current else "false"])
             continue
 
         if kind == "list":
             if dest == "rename-albums":
                 text = str(raw_value or "").strip()
                 if text:
-                    args.extend([long_option, text])
+                    args_unordered.extend([long_option, text])
                 continue
             values_list = _to_list(raw_value)
             if values_list:
-                args.append(long_option)
-                args.extend(values_list)
+                args_unordered.append(long_option)
+                args_unordered.extend(values_list)
             continue
 
         if raw_value is None:
@@ -2976,20 +3083,23 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
         text = str(raw_value).strip()
         if text == "" or text == str(default):
             continue
-        args.extend([long_option, text])
+        args_unordered.extend([long_option, text])
 
     if tab == "google_photos":
-        args.extend(["--client", "google-photos"])
+        args_unordered.extend(["--client", "google-photos"])
     elif tab == "synology_photos":
-        args.extend(["--client", "synology"])
+        args_unordered.extend(["--client", "synology"])
     elif tab == "immich_photos":
-        args.extend(["--client", "immich"])
+        args_unordered.extend(["--client", "immich"])
     elif tab == "nextcloud_photos":
-        args.extend(["--client", "nextcloud"])
+        args_unordered.extend(["--client", "nextcloud"])
     elif tab == "google_takeout":
-        args.extend(["--client", "google-takeout"])
+        args_unordered.extend(["--client", "google-takeout"])
 
-    return args
+    ordered_args: List[str] = []
+    for segment in _order_cli_segments(args_unordered):
+        ordered_args.extend(segment)
+    return ordered_args
 
 
 def _normalize_incoming_values(values: Dict[str, Any], config_path: Path) -> Dict[str, Any]:
