@@ -347,8 +347,13 @@ class ClassLocalFolder(BaseMediaClient):
         def is_allowed_extension(path_obj):
             if not sel_ext_local:
                 return True
+            file_type = self._determine_file_type(path_obj)
             if sel_ext_local == "unsupported":
-                return path_obj.suffix.lower() not in self.ALLOWED_EXTENSIONS
+                return file_type == "unknown"
+            if sel_ext_local == self.ALLOWED_METADATA_EXTENSIONS:
+                return file_type == "metadata"
+            if sel_ext_local == self.ALLOWED_SIDECAR_EXTENSIONS:
+                return file_type == "sidecar"
             return path_obj.suffix.lower() in sel_ext_local
 
         def score(path_str):
@@ -451,12 +456,17 @@ class ClassLocalFolder(BaseMediaClient):
             "archive_browser.html",
             "automatic_migration_album_manifest.json",
             "automatic_migration_dates_metadata.json",
+            "progress.json",
             "remember-list.json",
             "shared_album_comments.json",
             "user-generated-memory-titles.json",
         }:
             return True
         return False
+
+    @staticmethod
+    def _is_excluded_metadata_filename(file_path):
+        return Path(file_path).name.casefold() in {"progress.json"}
 
     def remove_metadata_only_folders(self, log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -612,6 +622,8 @@ class ClassLocalFolder(BaseMediaClient):
                     return "metadata"
             except Exception:
                 pass
+        if ext in self.ALLOWED_METADATA_EXTENSIONS and self._is_excluded_metadata_filename(file):
+            return "unknown"
         if ext in self.ALLOWED_PHOTO_EXTENSIONS:
             return "image"
         elif ext in self.ALLOWED_VIDEO_EXTENSIONS:
@@ -1309,8 +1321,15 @@ class ClassLocalFolder(BaseMediaClient):
 
                 # -- local type filter (if requested) --
                 if sel_ext_local:
+                    file_type = self._determine_file_type(filepath)
                     if sel_ext_local == "unsupported":
-                        if filepath.suffix.lower() in self.ALLOWED_EXTENSIONS:
+                        if file_type != "unknown":
+                            continue
+                    elif sel_ext_local == self.ALLOWED_METADATA_EXTENSIONS:
+                        if file_type != "metadata":
+                            continue
+                    elif sel_ext_local == self.ALLOWED_SIDECAR_EXTENSIONS:
+                        if file_type != "sidecar":
                             continue
                     elif filepath.suffix.lower() not in sel_ext_local:
                         continue
@@ -1652,9 +1671,18 @@ class ClassLocalFolder(BaseMediaClient):
                         pass
 
                     ext = f.suffix.lower()
+                    file_type = self._determine_file_type(f)
                     # local filter by requested type
                     if sel_ext == 'unsupported':
-                        if ext in self.ALLOWED_EXTENSIONS:
+                        if file_type != "unknown":
+                            pbar.update(1)
+                            continue
+                    elif sel_ext == self.ALLOWED_METADATA_EXTENSIONS:
+                        if file_type != "metadata":
+                            pbar.update(1)
+                            continue
+                    elif sel_ext == self.ALLOWED_SIDECAR_EXTENSIONS:
+                        if file_type != "sidecar":
                             pbar.update(1)
                             continue
                     elif sel_ext is not None and ext not in sel_ext:
@@ -1667,7 +1695,7 @@ class ClassLocalFolder(BaseMediaClient):
                         'time': f.stat().st_mtime,
                         'filename': f.name,
                         'filepath': str(f),
-                        'type': self._determine_file_type(f),
+                        'type': file_type,
                     })
                     pbar.update(1)
 

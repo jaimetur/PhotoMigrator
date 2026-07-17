@@ -116,6 +116,25 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
 
         self.assertEqual(local_folder._determine_file_type(webp_file), "image")
 
+    def test_progress_json_is_unknown_and_mp_is_counted_as_unsupported(self):
+        progress_json = self.root / "ALL_PHOTOS/2024/progress.json"
+        progress_json.parent.mkdir(parents=True, exist_ok=True)
+        progress_json.write_text("{}", encoding="utf-8")
+
+        mp_file = self.root / "ALL_PHOTOS/2024/PXL_20230512_222825532.MP"
+        mp_file.write_text("img", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=self.root)
+
+        self.assertEqual(local_folder._determine_file_type(progress_json), "unknown")
+        self.assertEqual(local_folder._determine_file_type(mp_file), "unknown")
+
+        unsupported_assets = local_folder.get_all_assets_without_albums(type="unsupported", log_level=logging.INFO)
+        unsupported_filenames = sorted(asset["filename"] for asset in unsupported_assets)
+
+        self.assertIn("progress.json", unsupported_filenames)
+        self.assertIn("PXL_20230512_222825532.MP", unsupported_filenames)
+
     def test_remove_assets_refreshes_analyzer_with_supported_methods_and_invalidates_caches(self):
         removable = self.root / "ALL_PHOTOS/2024/remove-me.jpg"
         removable.parent.mkdir(parents=True, exist_ok=True)
