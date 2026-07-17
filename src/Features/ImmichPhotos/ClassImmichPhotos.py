@@ -84,6 +84,8 @@ class ClassImmichPhotos(BaseMediaClient):
         self.ALLOWED_IMMICH_VIDEO_EXTENSIONS = []
         self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = []
         self.ALLOWED_IMMICH_EXTENSIONS = []
+        self.IMMICH_MEDIA_TYPES_CACHE = None
+        self.CURRENT_USER_PROFILE = None
 
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
@@ -262,10 +264,11 @@ class ClassImmichPhotos(BaseMediaClient):
                 LOGGER.info(f"Authentication Successfully with user/password found in Config file.")
 
             # Now retrieve list of allowed media/sidecar extensions
-            self.ALLOWED_IMMICH_PHOTO_EXTENSIONS = self.get_supported_media_types(type='image', log_level=logging.WARNING)
-            self.ALLOWED_IMMICH_VIDEO_EXTENSIONS = self.get_supported_media_types(type='video', log_level=logging.WARNING)
-            self.ALLOWED_IMMICH_MEDIA_EXTENSIONS = self.get_supported_media_types(log_level=logging.WARNING)
-            self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = self.get_supported_media_types(type='sidecar', log_level=logging.WARNING)
+            media_types = self._get_media_types_payload(log_level=logging.WARNING) or {}
+            self.ALLOWED_IMMICH_PHOTO_EXTENSIONS = media_types.get("image", []) or []
+            self.ALLOWED_IMMICH_VIDEO_EXTENSIONS = media_types.get("video", []) or []
+            self.ALLOWED_IMMICH_MEDIA_EXTENSIONS = (self.ALLOWED_IMMICH_PHOTO_EXTENSIONS or []) + (self.ALLOWED_IMMICH_VIDEO_EXTENSIONS or [])
+            self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = media_types.get("sidecar", []) or []
             self.ALLOWED_IMMICH_EXTENSIONS = self.ALLOWED_IMMICH_MEDIA_EXTENSIONS + self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS
             return True
 
@@ -292,14 +295,11 @@ class ClassImmichPhotos(BaseMediaClient):
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            url = f"{self.IMMICH_URL}/api/server/media-types"
             try:
-                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS)
-                resp.raise_for_status()
-                data = resp.json()
-                image = data.get("image", [])
-                video = data.get("video", [])
-                sidecar = data.get("sidecar", [])
+                data = self._get_media_types_payload(log_level=log_level) or {}
+                image = data.get("image", []) or []
+                video = data.get("video", []) or []
+                sidecar = data.get("sidecar", []) or []
 
                 if type.lower() == 'media':
                     supported_types = image + video
@@ -321,19 +321,48 @@ class ClassImmichPhotos(BaseMediaClient):
                 LOGGER.error(f"Cannot get Supported media types: {e}")
                 return None
 
+    def _get_media_types_payload(self, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            if isinstance(self.IMMICH_MEDIA_TYPES_CACHE, dict):
+                return self.IMMICH_MEDIA_TYPES_CACHE
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/server/media-types"
+            try:
+                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS)
+                resp.raise_for_status()
+                data = resp.json() or {}
+                self.IMMICH_MEDIA_TYPES_CACHE = data if isinstance(data, dict) else {}
+                return self.IMMICH_MEDIA_TYPES_CACHE
+            except Exception as e:
+                LOGGER.error(f"Cannot get Supported media types: {e}")
+                return None
+
+    def _get_current_user_profile(self, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            if isinstance(self.CURRENT_USER_PROFILE, dict) and self.CURRENT_USER_PROFILE.get("id"):
+                return self.CURRENT_USER_PROFILE
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/users/me"
+            try:
+                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, data={})
+                resp.raise_for_status()
+                data = resp.json() or {}
+                if isinstance(data, dict):
+                    self.CURRENT_USER_PROFILE = data
+                    return data
+                return None
+            except Exception as e:
+                LOGGER.error(f"Cannot retrieve current Immich user profile for '{self.IMMICH_USERNAME}': {e}")
+                return None
+
 
     def get_user_id(self, log_level=None):
         """
         Returns the user_id of the currently logged-in user.
         """
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.IMMICH_URL}/api/users/me"
-            payload = {}
             try:
-                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload)
-                resp.raise_for_status()
-                data = resp.json()
+                data = self._get_current_user_profile(log_level=log_level) or {}
                 user_id = data.get("id")
                 user_mail = data.get("email")
                 LOGGER.info(f"User ID: '{user_id}' found for user '{user_mail}'.")
@@ -349,13 +378,8 @@ class ClassImmichPhotos(BaseMediaClient):
         Returns the user_mail of the currently logged-in user.
         """
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.IMMICH_URL}/api/users/me"
-            payload = {}
             try:
-                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload)
-                resp.raise_for_status()
-                data = resp.json()
+                data = self._get_current_user_profile(log_level=log_level) or {}
                 user_id = data.get("id")
                 user_mail = data.get("email")
                 LOGGER.info(f"User ID: '{user_id}' found for user '{user_mail}'.")
@@ -493,6 +517,7 @@ class ClassImmichPhotos(BaseMediaClient):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
             try:
+                LOGGER.info("Retrieving owned albums from Immich Photos. This may take some time, please be patient...")
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 albums = resp.json()
@@ -539,6 +564,7 @@ class ClassImmichPhotos(BaseMediaClient):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
             try:
+                LOGGER.info("Retrieving owned and shared albums from Immich Photos. This may take some time, please be patient...")
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 albums = resp.json()
@@ -1109,6 +1135,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 return self.assets_without_albums_filtered
 
             self.login(log_level=log_level)
+            LOGGER.info("Retrieving assets without associated albums from Immich Photos. This may take some time, please be patient...")
             assets_without_albums = self.get_assets_by_filters(is_not_in_album=True, log_level=log_level)
             LOGGER.info(f"Number of all_assets without Albums associated: {len(assets_without_albums)}")
             self.assets_without_albums_filtered = assets_without_albums  # Cache assets_without_albums for future use
@@ -1131,6 +1158,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 return self.albums_assets_filtered
 
             self.login(log_level=log_level)
+            LOGGER.info("Gathering all albums' assets from Immich Photos. This may take some time, please be patient...")
             all_albums = self.get_albums_including_shared_with_user(filter_assets=True, log_level=log_level)
             combined_assets = []
             if not all_albums:
@@ -2032,6 +2060,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 total_duplicates_assets_skipped = 0
                 prefer_canonical_album_names = prefer_canonical_album_names_enabled(ARGS)
                 consolidate_similar_albums = consolidate_similar_albums_enabled(ARGS)
+                LOGGER.info("Retrieving existing albums from Immich Photos and scanning local album folders. This may take some time, please be patient...")
                 existing_albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
 
                 # # If 'Albums' is not in subfolders_inclusion, add it (like original code).
@@ -2249,6 +2278,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 ARGS.get("exclude-files", []),
                 default_patterns=["SYNOFILE_THUMB*", "SYNOPHOTO_THUMB*", "SYNOVIDEO_THUMB*", "SYNOPHOTO_FILM*", "Thumbs.db", "ehthumbs.db", ".DS_Store", "._*"],
             )
+            LOGGER.info("Scanning local files to upload into Immich Photos. This may take some time, please be patient...")
 
             def collect_files(base_folder, only_subfolders):
                 flist = []
@@ -2742,6 +2772,7 @@ class ClassImmichPhotos(BaseMediaClient):
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
+            LOGGER.info("Retrieving albums from Immich Photos to remove. This may take some time, please be patient...")
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info(f"No albums found.")
@@ -2864,6 +2895,7 @@ class ClassImmichPhotos(BaseMediaClient):
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
+            LOGGER.info("Retrieving albums from Immich Photos to detect duplicates. This may take some time, please be patient...")
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 # self.logout(log_level=log_level)
