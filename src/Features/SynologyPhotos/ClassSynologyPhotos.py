@@ -1015,14 +1015,18 @@ class ClassSynologyPhotos(BaseMediaClient):
                         "offset": offset,
                         "limit": limit
                     }
-                    resp = self._session_get(url, params=params, headers=headers, verify=False)
+                    # Use the same resilient entry.cgi transport strategy already
+                    # used by the newer Synology shared-space/shared-album code.
+                    # Some DSM/Photos combinations are stricter about GET vs POST
+                    # on album-list endpoints even when authentication succeeded.
+                    resp = self._request_entry_api(url, params, headers=headers, prefer_post=True)
                     resp.raise_for_status()
                     data = resp.json()
 
                     if data["success"]:
                         album_list.extend(data["data"]["list"])
                     else:
-                        LOGGER.error(f"Failed to list albums: ", data)
+                        LOGGER.error(f"Failed to list albums: {data}")
                         return None
 
                     if len(data["data"]["list"]) < limit:
