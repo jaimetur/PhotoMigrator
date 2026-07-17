@@ -133,8 +133,8 @@
                 <div id="command-preview-inline" class="command"></div>
             </div>
             <div class="module-actions">
-                <button id="run-btn" type="button" class="run-btn">Run module</button>
-                <button id="stop-btn" type="button" class="run-btn run-btn--danger" disabled>Stop module</button>
+                <button id="run-btn" type="button" class="run-btn">Run</button>
+                <button id="stop-btn" type="button" class="run-btn run-btn--danger" disabled>Stop</button>
             </div>
         </div>
         </section>
@@ -245,8 +245,8 @@
                 <button id="job-input-no" type="button" class="run-btn run-btn--danger">No</button>
             </div>
             <div class="module-actions module-actions--output">
-                <button id="run-btn-output" type="button" class="run-btn">Run module</button>
-                <button id="stop-btn-output" type="button" class="run-btn run-btn--danger" disabled>Stop module</button>
+                <button id="run-btn-output" type="button" class="run-btn">Run</button>
+                <button id="stop-btn-output" type="button" class="run-btn run-btn--danger" disabled>Stop</button>
             </div>
         </div>
     </section>
@@ -681,6 +681,7 @@
         "range-separator"
     ];
 
+    const CURRENT_PAGE = "{{ active_page }}";
     let stateValues = {};
     let uiState = {collapsed_panels: {}};
     let saveStateTimer = null;
@@ -805,7 +806,7 @@
             return {
                 title: "Dangerous Module",
                 message: `${message} Do you want to continue?`,
-                acceptLabel: "Run module",
+                acceptLabel: "Run",
                 danger: true
             };
         }
@@ -814,7 +815,7 @@
             return {
                 title: "Dangerous Module",
                 message: "This module will rename local album folders in place using content-based dates. Original folder names will be changed on disk. Do you want to continue?",
-                acceptLabel: "Run module",
+                acceptLabel: "Run",
                 danger: true
             };
         }
@@ -822,7 +823,7 @@
             return {
                 title: "Dangerous Module",
                 message: "This module will move the original local folder into the processed output before reorganizing it by date. The source folder path will no longer exist after the move. Do you want to continue?",
-                acceptLabel: "Run module",
+                acceptLabel: "Run",
                 danger: true
             };
         }
@@ -3821,6 +3822,10 @@
         setStatus("Status: running", false);
         updateRunStopButtons("running");
         setJobInputControlsState(false, false);
+        if (CURRENT_PAGE === "features") {
+            window.location.href = "/output";
+            return;
+        }
         stopPolling();
         await refreshJob();
     }

@@ -1440,6 +1440,11 @@ textarea.field__input {
 
 .module-actions .run-btn {
     margin-top: 0;
+    display: inline-flex;
+    align-items: center;
+    min-width: 112px;
+    justify-content: center;
+    text-align: center;
 }
 
 .module-actions--output {
