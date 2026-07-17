@@ -27,6 +27,8 @@ By default, the whole Migration process is executed in parallel using multi-thre
 
 By default, (if your terminal size has enough width and height) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the argument **`-dashboard=false or --dashboard=false`**.   
 
+If either `<SOURCE>` or `<TARGET>` is `Synology Photos`, you can also include **`-OTP, --one-time-password`** to allow the login flow to request a 2FA one-time-password token when needed.
+
 Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **`--parallel-migration=false`**, so first, all the assets will be pulled from `<SOURCE>` and when finish, they will be pushed into `<TARGET>`, but take into account that in this case, you will need enough disk space to store all your assets pulled from `<SOURCE>` service.
 
 By default, destination albums are only reused when the existing target album name matches exactly, and newly created albums keep the original source name.
@@ -88,6 +90,92 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
        - `--exclude-folders @eaDir .@__thumb @Recycle`
        - `--exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store`
 
+## How asset counters are counted
+
+All live dashboard counters and final summary counters in `Automatic Migration` are intended to follow **physical files**, not abstract logical entities.
+
+This means:
+- `Total Assets`, `Total Photos`, `Total Videos`
+  - represent the physical media files discovered in the source analysis.
+- `Pulled Assets`, `Pulled Photos`, `Pulled Videos`
+  - represent the physical files that were actually staged locally after pull.
+- `Pushed Assets`, `Pushed Photos`, `Pushed Videos`
+  - represent the physical files that were successfully uploaded or accepted by the destination.
+- `Push Duplicates`
+  - represent physical files that did not need a new upload because the destination already had a reusable equivalent.
+- `Pull Failed` / `Push Failed`
+  - represent physical files whose pull or upload path really failed.
+
+Practical examples:
+- A normal JPEG counts as:
+  - `1 asset`
+  - `1 photo`
+- A normal MP4 counts as:
+  - `1 asset`
+  - `1 video`
+- A live-photo pair composed of `IMG_0001.JPG` + `IMG_0001.MP4` counts as:
+  - `2 assets`
+  - `1 photo`
+  - `1 video`
+
+This is important because all cleanup behavior, temp leftovers, retries, duplicates, and final manual review happen on the real files stored on disk.
+
+## Meaning of the live dashboard counters
+
+### Info Panel
+- `Total Assets`
+  - all supported physical media files considered for migration after source analysis.
+- `Total Photos`
+  - physical image files.
+- `Total Videos`
+  - physical video files.
+- `Total Albums`
+  - source albums detected before the migration starts.
+- `Blocked Albums`
+  - albums that the current source backend can detect but cannot actually process.
+  - in practice this mainly applies to blocked/shared `Synology` album cases.
+- `Blocked Assets`
+  - physical assets inside those blocked albums.
+- `Total Metadata`
+  - metadata files detected in the source analysis, such as Google Takeout JSON sidecars or real iCloud metadata CSV files.
+- `Total Sidecar`
+  - sidecar files detected in the source analysis.
+- `Unknown Files`
+  - files that were found in the source tree but do not match supported media, metadata, or sidecar categories.
+- `Assets in Queue`
+  - only the real push queue backlog waiting for upload workers.
+- `Album Assoc Queue`
+  - assets already uploaded or resolved that are still waiting for destination album association/finalization work.
+- `Delayed Retries`
+  - delayed retry items not yet re-enqueued into the hot push pipeline.
+
+### Pull Panel
+- `Pulled Assets / Photos / Videos`
+  - physical files already staged locally.
+- `Pulled Albums`
+  - source albums already fully pulled.
+- `Failed Assets / Photos / Videos`
+  - physical files that could not be pulled.
+- `Failed Albums`
+  - source albums that could not be processed as album units.
+
+### Push Panel
+- `Pushed Assets / Photos / Videos`
+  - physical files successfully uploaded or otherwise accepted in the destination.
+- `Pushed Albums`
+  - albums fully finalized in the target.
+- `Duplicates`
+  - physical files that were skipped because the destination already had a reusable equivalent.
+- `Failed Assets / Photos / Videos`
+  - physical files whose upload/reuse resolution path ultimately failed.
+- `Delayed Recovered`
+  - physical files that succeeded after having been scheduled into the delayed retry queue.
+- `Delayed Failed`
+  - physical files whose delayed upload retry path was exhausted without recovery.
+- `Album Assoc Unconfirmed`
+  - not a hard upload failure.
+  - it means the media file did reach or resolve in the destination, but PhotoMigrator could not confirm that it was finally attached to the intended album after all association retries.
+
 
 > [!WARNING]  
 > If you use a local folder `<INPUT_FOLDER>` as source client, all your Albums should be placed into a subfolder called *'<ALBUMS_FOLDER>'* within `<INPUT_FOLDER>`, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
@@ -100,6 +188,40 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
 
 > [!TIP]
 > If `--source` points to a raw Apple iCloud Takeout export, PhotoMigrator now detects it automatically, preprocesses it first, and only then starts the normal Automatic Migration upload flow.
+
+## Meaning of files left in the temp folder after migration
+
+`Automatic Migration` uses a temp working folder named like:
+
+```text
+Automatic_Migration_Push_Failed_<TIMESTAMP>
+```
+
+At the end of a clean migration, that folder should normally disappear or be reduced to only expected housekeeping artifacts during runtime.
+
+If files remain there after the migration finishes, they mean something specific:
+
+- Files left directly inside the normal temp staging tree
+  - these usually represent assets whose upload/reuse/finalization path did not complete successfully.
+  - they are the first place to inspect when `Push Failed Assets` is greater than zero.
+
+- Files preserved under:
+  - `Album Association Failed/<AlbumName>/`
+  - these assets were **uploaded successfully** (or resolved successfully as duplicates/reusable destination assets), and if `--move-assets=true` they may already have been removed from the original source too.
+  - however, PhotoMigrator could not confirm their final membership inside the destination album named `<AlbumName>`.
+  - they are therefore kept on disk for audit/manual review instead of being deleted silently.
+
+- Empty or nearly empty temp folders
+  - these are cleaned automatically at the end.
+  - folders that only contain ignorable runtime/system artifacts such as `.active`, `*.lock`, `@eaDir`, `.DS_Store`, or similar excluded files are also considered removable during cleanup.
+
+Practical interpretation:
+- `Push Failed Assets > 0`
+  - inspect the normal temp leftovers first.
+- `Album Assoc Unconfirmed > 0`
+  - inspect `Album Association Failed/<AlbumName>/` first.
+- source files removed but temp files still present under `Album Association Failed`
+  - expected when the media itself was migrated but the album attachment could not be confirmed.
 
 > [!IMPORTANT]  
 > It is important that you configure properly the file `Config.ini` (included with the tool), to set properly the accounts for your Photo Cloud Service.  

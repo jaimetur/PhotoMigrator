@@ -73,6 +73,7 @@
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
+  - Expanded the `Automatic Migration` documentation to explain the current physical-file counter semantics, the meaning of each live dashboard counter, and how to interpret leftovers in `Automatic_Migration_Push_Failed_*`, especially the new `Album Association Failed/<AlbumName>` preservation path. Also updated the Web Interface documentation panels so `Automatic Migration` now lists `--one-time-password` under `Optional arguments`, and `Google Takeout` / `iCloud Takeout` now expose their feature documentation panel directly above the argument form.
 
 ---
 

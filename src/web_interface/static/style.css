@@ -1574,6 +1574,31 @@ body[data-theme="dark"] .theme-card__name {
     grid-row: 3;
 }
 
+.module-grid.google-layout.google-layout--with-doc .takeout-doc-card {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+.module-grid.google-layout.google-layout--with-doc .google-subpanel--takeout {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.module-grid.google-layout.google-layout--with-doc .google-subpanel--flags {
+    grid-column: 2;
+    grid-row: 2 / span 3;
+}
+
+.module-grid.google-layout.google-layout--with-doc .google-subpanel--structure {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+.module-grid.google-layout.google-layout--with-doc .google-subpanel--runtime {
+    grid-column: 1;
+    grid-row: 4;
+}
+
 /* Google Photos subcards: wider argument name, narrower control column. */
 .module-grid.google-layout .arg-row {
     grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);

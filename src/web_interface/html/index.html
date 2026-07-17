@@ -2050,6 +2050,39 @@
     function renderTakeoutSubpanels(container, fields) {
         container.innerHTML = "";
         container.classList.add("google-layout");
+        container.classList.add("google-layout--with-doc");
+
+        const isGoogleTakeout = activeModuleTab === "google_takeout";
+        const docCard = document.createElement("div");
+        docCard.className = "desc-card takeout-doc-card";
+        const docTitle = document.createElement("h3");
+        docTitle.textContent = "Feature documentation";
+        const docName = document.createElement("div");
+        docName.className = "desc-card__name";
+        docName.textContent = isGoogleTakeout ? "Google Takeout" : "iCloud Takeout";
+        const docBody = document.createElement("p");
+        const mainField = isGoogleTakeout
+            ? {
+                dest: "google-takeout-module",
+                help: "Process a raw Google Photos Takeout export before importing it into another photo service. "
+                    + "This feature repairs dates and metadata, rebuilds album membership from sidecar JSON files, "
+                    + "organizes the output into ALL_PHOTOS and Albums, and can optionally create symbolic album entries instead of duplicating files. "
+                    + "When the input is an album-only Takeout with no year folders, PhotoMigrator detects it automatically and switches GPTH to the appropriate recovery flow. "
+                    + "IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+            }
+            : {
+                dest: "icloud-takeout-module",
+                help: "Process a raw Apple iCloud Photos export before importing it into another photo service. "
+                    + "This feature reads Photo Details.csv metadata, restores dates into photos and videos, rebuilds Albums from Apple CSV collections, "
+                    + "and writes a portable output library with ALL_PHOTOS and Albums. "
+                    + "When enabled, Memories CSV collections are also reconstructed as album-like folders. "
+                    + "IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
+            };
+        docBody.innerHTML = formatDescriptionHtml(mainField, fields || []);
+        docCard.appendChild(docTitle);
+        docCard.appendChild(docName);
+        docCard.appendChild(docBody);
+        container.appendChild(docCard);
 
         const groups = {
             takeout: {title: "Takeout Input & Output", items: []},
@@ -2913,7 +2946,7 @@
             byDest["parallel-migration"],
             byDest["prefer-canonical-album-names"],
             byDest["consolidate-similar-albums"],
-            automaticMigrationNeedsOtp() ? otpField : null,
+            otpField,
             getFieldByDest("filter-by-type"),
             getFieldByDest("filter-from-date"),
             getFieldByDest("filter-to-date"),
@@ -2968,16 +3001,19 @@
         const moduleForm = document.getElementById("module-form");
         if (activeModuleTab === "google_photos" || activeModuleTab === "synology_photos" || activeModuleTab === "immich_photos" || activeModuleTab === "nextcloud_photos") {
             moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("google-layout--with-doc");
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.add("hidden");
             renderCloudActionPanel(activeModuleTab);
         } else if (activeModuleTab === "standalone_features") {
             moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("google-layout--with-doc");
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.add("hidden");
             renderStandaloneActionPanel();
         } else if (activeModuleTab === "upload_folder") {
             moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("google-layout--with-doc");
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.add("hidden");
             renderUploadFolderPanel();
@@ -2985,6 +3021,7 @@
             setCommandPreviewText("Upload mode active: this feature runs direct upload (no CLI command preview).");
         } else if (activeModuleTab === "automatic_migration") {
             moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("google-layout--with-doc");
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.add("hidden");
             renderMigrationPanel();
@@ -2994,6 +3031,7 @@
             renderTakeoutSubpanels(moduleForm, schema.tabs[activeModuleTab] || []);
         } else {
             moduleForm.classList.remove("google-layout");
+            moduleForm.classList.remove("google-layout--with-doc");
             moduleForm.classList.remove("selector-mode");
             moduleForm.classList.remove("hidden");
             renderFields(moduleForm, schema.tabs[activeModuleTab]);
