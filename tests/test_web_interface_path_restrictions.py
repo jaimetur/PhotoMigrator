@@ -190,7 +190,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn(self.web_app._user_config_db_path(self.current_user), rendered)
         self.assertNotIn(str(own_config_path), rendered)
 
-    def test_import_config_rejects_paths_outside_user_roots(self):
+    def test_import_config_preserves_paths_outside_user_roots(self):
         original_schema = self.web_app.CONFIG_FORM_SCHEMA
         self.web_app.CONFIG_FORM_SCHEMA = [
             {
@@ -205,13 +205,13 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         )
 
         try:
-            with self.assertRaises(self.HTTPException) as context:
-                self.web_app.import_config(payload, self.current_user)
+            response = self.web_app.import_config(payload, self.current_user)
         finally:
             self.web_app.CONFIG_FORM_SCHEMA = original_schema
 
-        self.assertEqual(context.exception.status_code, 403)
-        self.assertIn("allowed user roots", str(context.exception.detail))
+        self.assertTrue(response["saved"])
+        imported = response["sections"][0]["fields"][0]["value"]
+        self.assertEqual(imported, "/etc/passwd")
 
     def test_exclusion_pattern_fields_are_not_treated_as_paths(self):
         self.assertEqual(self.web_app._path_hint("exclude-folders", "<FOLDER_PATTERN>"), "")

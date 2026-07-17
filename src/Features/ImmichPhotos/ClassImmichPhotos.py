@@ -513,11 +513,12 @@ class ClassImmichPhotos(BaseMediaClient):
             None on error
             :param filter_assets:
         """
-        with set_log_level(LOGGER, log_level):
+        logger = LOGGER or logging.getLogger("PhotoMigrator")
+        with set_log_level(logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
             try:
-                LOGGER.info("Retrieving owned albums from Immich Photos. This may take some time, please be patient...")
+                logger.info("Retrieving owned albums from Immich Photos. This may take some time, please be patient...")
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 albums = resp.json()
@@ -538,7 +539,7 @@ class ClassImmichPhotos(BaseMediaClient):
                             albums_filtered.append(album)
                 return albums_filtered
             except Exception as e:
-                LOGGER.error(f"Error while listing albums: {e}")
+                logger.error(f"Error while listing albums: {e}")
                 return None
 
 
