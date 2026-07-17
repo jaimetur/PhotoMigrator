@@ -1666,91 +1666,111 @@ def _build_cli_option_specs() -> tuple[Dict[str, Dict[str, Any]], set[str]]:
     return option_specs, standalone_bool_options
 
 
-def _consume_cli_option_segment(parts: List[str], start: int) -> tuple[List[str], int]:
-    option_specs, standalone_bool_options = _build_cli_option_specs()
-    token = str(parts[start] or "")
-    field = option_specs.get(token)
-    if token in standalone_bool_options:
-        return [token], start + 1
-    if not token.startswith("--"):
-        return [token], start + 1
-    if not field:
-        if start + 1 < len(parts) and not str(parts[start + 1]).startswith("--"):
-            return [token, str(parts[start + 1])], start + 2
-        return [token], start + 1
-
-    kind = str(field.get("kind") or "")
-    dest = str(field.get("dest") or "")
-    false_option = str(field.get("false_option") or "").strip()
-    if kind == "flag" or false_option:
-        return [token], start + 1
-    if kind == "list":
-        if dest == "rename-albums":
-            if start + 1 < len(parts):
-                return [token, str(parts[start + 1])], start + 2
-            return [token], start + 1
-        end = start + 1
-        while end < len(parts) and not str(parts[end]).startswith("--"):
-            end += 1
-        return [str(item) for item in parts[start:end]], end
-    if start + 1 < len(parts):
-        return [token, str(parts[start + 1])], start + 2
-    return [token], start + 1
+GENERAL_PANEL_DEST_ORDER = [
+    "no-log-file",
+    "log-level",
+    "log-format",
+    "foldername-logs",
+    "no-request-user-confirmation",
+    "exec-gpth-tool",
+    "exec-exif-tool",
+    "remove-albums-assets",
+    "prefer-canonical-album-names",
+    "consolidate-similar-albums",
+    "date-separator",
+    "range-separator",
+    "albums-folders",
+    "foldername-albums",
+    "foldername-no-albums",
+    "foldername-duplicates-output",
+    "foldername-extracted-dates",
+    "filter-from-date",
+    "filter-to-date",
+    "filter-by-type",
+    "filter-by-country",
+    "filter-by-city",
+    "filter-by-person",
+    "exclude-folders",
+    "exclude-files",
+]
 
 
-def _order_cli_segments(parts: List[str]) -> List[List[str]]:
-    segments: List[List[str]] = []
-    index = 0
-    while index < len(parts):
-        segment, index = _consume_cli_option_segment(parts, index)
-        if segment:
-            segments.append(segment)
+def _schema_dest_order(tab: str) -> List[str]:
+    ordered: List[str] = []
+    seen: set[str] = set()
 
-    primary_context_order = {
-        "--client": 0,
-        "--account-id": 1,
-        "--source": 2,
-        "--target": 3,
-        "--input-folder": 4,
-        "--input": 5,
-        "--output-folder": 6,
-        "--google-takeout": 7,
-        "--icloud-takeout": 8,
-        "--takeout-folder": 9,
-        "--remove-albums": 10,
-        "--rename-albums": 11,
-        "--consolidate-albums-names": 12,
-        "--remove-empty-albums": 13,
-        "--remove-duplicates-albums": 14,
-        "--remove-all-albums": 15,
-        "--remove-all-assets": 16,
-        "--push-albums": 17,
-        "--push-no-albums": 18,
-        "--push-all": 19,
-        "--pull-albums": 20,
-        "--pull-no-albums": 21,
-        "--pull-all": 22,
-        "--automatic-migration": 23,
-        "--organize-local-folder-by-date": 24,
-    }
-    trailing_secondary_flags = {
-        "--consolidate-similar-albums",
-        "--prefer-canonical-album-names",
-    }
-    final_options = {"--configuration-file"}
+    def _push(dest: str) -> None:
+        text = str(dest or "").strip()
+        if text and text not in seen:
+            ordered.append(text)
+            seen.add(text)
 
-    def _segment_bucket(segment: List[str]) -> tuple[int, int, str]:
-        option = str(segment[0] or "") if segment else ""
-        if option in primary_context_order:
-            return 0, primary_context_order[option], option
-        if option in trailing_secondary_flags:
-            return 2, 0, option
-        if option in final_options:
-            return 3, 0, option
-        return 1, 0, option
+    if tab == "google_takeout":
+        for field in PARSER_SCHEMA["tabs"].get("google_takeout", []):
+            _push(field["dest"])
+    elif tab == "icloud_takeout":
+        for field in PARSER_SCHEMA["tabs"].get("icloud_takeout", []):
+            _push(field["dest"])
+    elif tab == "automatic_migration":
+        for field in PARSER_SCHEMA["tabs"].get("automatic_migration", []):
+            _push(field["dest"])
+    elif tab == "standalone_features":
+        for field in PARSER_SCHEMA["tabs"].get("standalone_features", []):
+            _push(field["dest"])
+    elif tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        for field in PARSER_SCHEMA["tabs"].get(tab, []):
+            _push(field["dest"])
+    return ordered
 
-    ordered_segments = sorted(enumerate(segments), key=lambda item: (_segment_bucket(item[1]), item[0]))
-    return [segment for _, segment in ordered_segments]
+
+def _ordered_allowed_dests(tab: str, allowed_dests: set[str], selected_action_dest: str | None = None) -> List[str]:
+    ordered: List[str] = []
+    seen: set[str] = set()
+
+    def _push(dest: str) -> None:
+        text = str(dest or "").strip()
+        if text and text in allowed_dests and text not in seen:
+            ordered.append(text)
+            seen.add(text)
+
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        _push("account-id")
+        _push(selected_action_dest or "")
+        for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest or "", []):
+            _push(str((item or {}).get("dest") or ""))
+        for dep in MODULE_DEPENDENCIES_REQUIRED.get(tab, {}).get(selected_action_dest or "", set()):
+            _push(dep)
+        for dep in _parse_required_dests_from_help(
+            (PARSER_FIELDS_BY_DEST.get(selected_action_dest or "", {}) or {}).get("help", "") or "",
+            ignore_dests={selected_action_dest or ""},
+        ):
+            _push(dep)
+    elif tab == "standalone_features":
+        _push(selected_action_dest or "")
+        for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest or "", []):
+            _push(str((item or {}).get("dest") or ""))
+    elif tab == "automatic_migration":
+        for dest in ["source", "target", "move-assets", "dashboard", "parallel-migration", "one-time-password"]:
+            _push(dest)
+    elif tab == "google_takeout":
+        for dest in _schema_dest_order("google_takeout"):
+            _push(dest)
+    elif tab == "icloud_takeout":
+        for dest in _schema_dest_order("icloud_takeout"):
+            _push(dest)
+
+    for dest in GENERAL_PANEL_DEST_ORDER:
+        _push(dest)
+
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "standalone_features", "automatic_migration"}:
+        for dest in _schema_dest_order(tab):
+            _push(dest)
+
+    _push("configuration-file")
+
+    for dest in sorted(allowed_dests):
+        _push(dest)
+    return ordered
 
 
 def _display_command_for_user(command: List[str], config_path: Path, current_user: Dict[str, Any]) -> str:
@@ -1761,15 +1781,43 @@ def _display_command_for_user(command: List[str], config_path: Path, current_use
     raw_parts = [safe_config_path if str(part) == str(config_path) else str(part) for part in (command or [])]
     cli_parts = raw_parts[2:] if len(raw_parts) >= 2 and str(raw_parts[1]).lower().endswith(".py") else raw_parts[1:]
     rendered_parts = ["PhotoMigrator"]
-    for segment in _order_cli_segments(cli_parts):
-        if (
-            len(segment) == 2
-            and str(segment[0]).startswith("--")
-            and not str(segment[1]).startswith("--")
-        ):
-            rendered_parts.append(f"{segment[0]}={segment[1]}")
+    index = 0
+    option_specs, standalone_bool_options = _build_cli_option_specs()
+    while index < len(cli_parts):
+        token = str(cli_parts[index] or "")
+        field = option_specs.get(token)
+        if token in standalone_bool_options or not token.startswith("--"):
+            rendered_parts.append(token)
+            index += 1
+            continue
+        if not field:
+            if index + 1 < len(cli_parts) and not str(cli_parts[index + 1]).startswith("--"):
+                rendered_parts.append(f"{token}={cli_parts[index + 1]}")
+                index += 2
+            else:
+                rendered_parts.append(token)
+                index += 1
+            continue
+        kind = str(field.get("kind") or "")
+        dest = str(field.get("dest") or "")
+        false_option = str(field.get("false_option") or "").strip()
+        if kind == "flag" or false_option:
+            rendered_parts.append(token)
+            index += 1
+            continue
+        if kind == "list" and dest != "rename-albums":
+            rendered_parts.append(token)
+            index += 1
+            while index < len(cli_parts) and not str(cli_parts[index]).startswith("--"):
+                rendered_parts.append(str(cli_parts[index]))
+                index += 1
+            continue
+        if index + 1 < len(cli_parts):
+            rendered_parts.append(f"{token}={cli_parts[index + 1]}")
+            index += 2
         else:
-            rendered_parts.extend(segment)
+            rendered_parts.append(token)
+            index += 1
     return subprocess.list2cmdline(rendered_parts)
 
 
@@ -3049,7 +3097,7 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
 
     args_unordered: List[str] = []
-    for dest in sorted(allowed_dests):
+    for dest in _ordered_allowed_dests(tab, allowed_dests, selected_action_dest):
         field = PARSER_FIELDS_BY_DEST[dest]
         raw_value = values.get(dest)
         kind = field["kind"]
@@ -3103,10 +3151,7 @@ def _build_cli_args(tab: str, values: Dict[str, Any], selected_action_dest: str 
     elif tab == "google_takeout":
         args_unordered.extend(["--client", "google-takeout"])
 
-    ordered_args: List[str] = []
-    for segment in _order_cli_segments(args_unordered):
-        ordered_args.extend(segment)
-    return ordered_args
+    return args_unordered
 
 
 def _normalize_incoming_values(values: Dict[str, Any], config_path: Path) -> Dict[str, Any]:
