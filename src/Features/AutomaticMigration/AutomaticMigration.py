@@ -4165,27 +4165,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                     if not scheduled_retry and album_name and asset_id:
                         asset['resolved_target_asset_id'] = asset_id
-                        asset['asset_started_at_perf'] = asset_started_at
-                        asset['push_elapsed_ms'] = push_elapsed_ms
-                        asset['queue_wait_ms'] = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0) if isinstance(enqueued_at_monotonic, (int, float)) else None
-                        asset['worker_id'] = worker_id
-                        asset['isDuplicated'] = isDuplicated
-                        asset['asset_pushed'] = asset_pushed
-                        asset['treat_as_consumed'] = treat_as_consumed
-                        asset['album_assoc_enqueued_at_monotonic'] = time.perf_counter()
-                        moved_asset = _move_staged_asset_to_queue_folder(
-                            temp_folder=temp_folder,
+                        album_association_confirmed, album_assoc_elapsed_ms, cleanup_elapsed_ms, scheduled_retry = _associate_uploaded_asset_to_album(
                             asset=asset,
-                            queue_folder_name=AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+                            asset_id=asset_id,
+                            album_name=album_name,
+                            album_is_shared=album_is_shared,
+                            worker_id=worker_id,
+                            removed_source_asset_ids=removed_source_asset_ids,
+                            processed_albums=processed_albums,
+                            processed_albums_lock=processed_albums_lock,
                             log_level=log_level,
-                        )
-                        asset.update(moved_asset)
-                        asset_file_path = asset.get('asset_file_path')
-                        live_photo_video_path = asset.get('live_photo_video_path')
-                        album_assoc_queue.put(asset)
-                        LOGGER.info(
-                            f"Album Association Queued: '{os.path.basename(asset_file_path)}' "
-                            f"for album '{album_name}'"
                         )
 
                     if not scheduled_retry and album_name and isDuplicated and not asset_id:
