@@ -116,6 +116,7 @@
   - Aligned the Rich `Automatic Migration` Live Dashboard panels with the web layout: `Blocked Albums` and `Blocked Assets` now remain only in Info, the queue label uses a consistent-width timer emoji, and full-width separators now precede Info queues, Pull timing, and Push delayed-retry counters.
   - Fixed the macOS GUI external-terminal launcher for `Automatic Migration` Live Dashboard runs. PhotoMigrator now stays in the foreground terminal job while its PID is still reported to the GUI for `Stop`, preventing `zsh` `suspended (tty output)` / `terminated` job-control messages from shifting the final Rich dashboard.
   - Refined Rich `Automatic Migration` Live Dashboard panel alignment: the Push delayed-retry divider now has matching vertical spacing, both delayed counters use the same-width emoji, and the shared panel height was reduced after the layout fit was corrected.
+  - Prevented Terminal.app `zsh` job-control suspension of the external Rich `Automatic Migration` Live Dashboard by disabling shell job monitoring before the foreground launch. Rich panel separators now also size themselves to their current panel width instead of overflowing fixed-length divider strings.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

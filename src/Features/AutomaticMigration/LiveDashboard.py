@@ -287,6 +287,15 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 Layout(name="pushs_panel", ratio=4),
             )
 
+            def _panel_separator(color, label_width, panel_ratio):
+                current_width = max(40, int(getattr(console.size, "width", terminal_width) or terminal_width))
+                panel_width = max(label_width + 1, ((current_width * panel_ratio) // 11) - 8)
+                right_width = max(1, panel_width - label_width - 2)
+                return (
+                    f"[{color} dim]{'─' * label_width}[/{color} dim]",
+                    f"[{color} dim]{'─' * right_width}[/{color} dim]",
+                )
+
             # ─────────────────────────────────────────────────────────────────────────
             # 0) Header Panel
             # ─────────────────────────────────────────────────────────────────────────
@@ -436,10 +445,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 table.add_column(justify="right", ratio=1, no_wrap=True, overflow="crop")
                 for label, value in info_data:
                     table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
-                table.add_row(
-                    f"[bright_magenta dim]{'─' * 27}[/bright_magenta dim]",
-                    f"[bright_magenta dim]{'─' * 80}[/bright_magenta dim]",
-                )
+                table.add_row(*_panel_separator("bright_magenta", 27, 3))
                 for label, value in queue_data:
                     table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
 
@@ -526,10 +532,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     failed_value = SHARED_DATA.counters.get(failed_counter, 0)
                     table.add_row(f"[cyan]  {failed_label}:[/cyan]", f"[cyan]{failed_value}[/cyan]")
                 table.add_row("", "")
-                table.add_row(
-                    f"[cyan dim]{'─' * 24}[/cyan dim]",
-                    f"[cyan dim]{'─' * 80}[/cyan dim]",
-                )
+                table.add_row(*_panel_separator("cyan", 24, 4))
                 table.add_row(f"[cyan]{'🕒 Elapsed Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('elapsed_time', 0)}[/cyan]")
                 table.add_row(f"[cyan]{'⏳ Remaining Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('estimated_time', '-')}[/cyan]")
                 return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
@@ -551,10 +554,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         f"[green]{new_value} / {duplicate_value} / {failed_value}[/green]",
                     )
                 table.add_row("", "")
-                table.add_row(
-                    f"[green dim]{'─' * 40}[/green dim]",
-                    f"[green dim]{'─' * 80}[/green dim]",
-                )
+                table.add_row(*_panel_separator("green", 40, 4))
                 for label, counter_label in delayed_pushs.items():
                     value = SHARED_DATA.counters[counter_label]
                     table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")

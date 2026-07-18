@@ -401,6 +401,9 @@ def _posix_terminal_job_command(
         value = effective_env.get(key)
         if value is not None and str(value) != "":
             parts.append(f"export {key}={shlex.quote(str(value))}")
+    # Terminal.app starts an interactive zsh session. Disable job control so its
+    # shell never suspends the Rich foreground renderer for terminal output.
+    parts.append("setopt NO_MONITOR 2>/dev/null || true")
     parts.append(f"cd {shlex.quote(str(Path(cwd)))}")
     command_text = _posix_command_to_shell(command)
     if pid_file is None and completion_file is None:
