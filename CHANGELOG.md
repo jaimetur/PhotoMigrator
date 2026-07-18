@@ -80,6 +80,7 @@
   - Reduced the Rich `Automatic Migration` Live Dashboard Info, Pull, and Push panel band by one terminal row, giving the live log panel more vertical space.
   - Improved the Web Interface mobile layout for Google Takeout and iCloud Takeout by resetting their desktop card placement to a single column, and made cloud `Supported modules` lists render in one column on narrow screens.
   - Automatic Migration now prunes empty relative-path folders immediately after assets move between persistent staging queues or are deleted after successful processing, while retaining the queue roots themselves.
+  - Corrected the initial `Delayed Retries Queue` and `Album Assoc Queue` dashboard totals so they display `0/0` before any asset enters either queue instead of showing a synthetic total of `1`.
 
 #### 🐛 Bug fixes:
   - Fixed the cloud `Automatic Migration` regression introduced after `v4.0.0` where duplicate-heavy album uploads could become dramatically slower because the migration pipeline tried to resolve reusable destination asset ids and apply album-family consolidation in the hot path for every asset. Known-id assets are now still associated during the normal migration flow, while duplicate uploads without an immediate reusable id are postponed to a final per-album resolution pass instead of forcing repeated remote lookups during each upload.

@@ -1587,14 +1587,14 @@
         return estimate > 0 ? estimate : null;
     }
 
-    function setProgressRow(fillId, countId, completed, total) {
+    function setProgressRow(fillId, countId, completed, total, showZeroTotal = false) {
         const fill = document.getElementById(fillId);
         const countText = document.getElementById(countId);
         if (!fill || !countText) return;
         const done = Number(completed || 0);
         if (!Number.isFinite(total) || total <= 0) {
             fill.style.width = "0%";
-            countText.textContent = `${done}/- (-)`;
+            countText.textContent = showZeroTotal ? `${done}/0 (0%)` : `${done}/- (-)`;
             return;
         }
         const pctRaw = (done / total) * 100;
@@ -1679,10 +1679,10 @@
         const albumAssocQueueValue = Number(stats.albumAssocQueue || 0);
         const delayedQueueValue = Number(stats.delayedRetriesQueue || 0);
         setProgressRow("bar-info-queue", "bar-info-queue-count", queueValue, 100);
-        const delayedQueueTotal = Math.max(1, Number(stats.delayedRetriesQueueTotal || 0));
-        const albumAssocQueueTotal = Math.max(1, Number(stats.albumAssocQueueTotal || 0));
-        setProgressRow("bar-info-delayed-queue", "bar-info-delayed-queue-count", delayedQueueValue, delayedQueueTotal);
-        setProgressRow("bar-info-album-assoc-queue", "bar-info-album-assoc-queue-count", albumAssocQueueValue, albumAssocQueueTotal);
+        const delayedQueueTotal = Math.max(0, Number(stats.delayedRetriesQueueTotal || 0));
+        const albumAssocQueueTotal = Math.max(0, Number(stats.albumAssocQueueTotal || 0));
+        setProgressRow("bar-info-delayed-queue", "bar-info-delayed-queue-count", delayedQueueValue, delayedQueueTotal, true);
+        setProgressRow("bar-info-album-assoc-queue", "bar-info-album-assoc-queue-count", albumAssocQueueValue, albumAssocQueueTotal, true);
         if (!isParallel) {
             const queueCountEl = document.getElementById("bar-info-queue-count");
             if (queueCountEl) queueCountEl.textContent = `${queueValue} (-)`;

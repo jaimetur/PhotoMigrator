@@ -394,13 +394,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 )
 
                 def _format_queue_bar(current_value, max_value=None, show_total=False):
-                    safe_max = max(1, int(max_value if max_value is not None else total_assets or 1))
+                    displayed_max = max(0, int(max_value if max_value is not None else total_assets or 0))
+                    safe_max = max(1, displayed_max)
                     safe_value = max(0, int(current_value or 0))
                     filled_blocks = min(int((safe_value / safe_max) * BAR_WIDTH), BAR_WIDTH)
                     empty_blocks = BAR_WIDTH - filled_blocks
                     bar = "█" * filled_blocks + " " * empty_blocks
                     if parallel or show_total:
-                        return f"[{bar}] {safe_value:>3}/{safe_max}"
+                        return f"[{bar}] {safe_value:>3}/{displayed_max}"
                     return f"[{bar}] {safe_value:>7}"
 
                 queue_bar = _format_queue_bar(current_queue_size)
