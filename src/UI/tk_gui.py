@@ -4,6 +4,7 @@ import os
 import queue
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -266,6 +267,7 @@ class PhotoMigratorTkGUI:
         self.external_dashboard_active = False
         self.external_dashboard_status_file: Path | None = None
         self.external_dashboard_launcher_file: Path | None = None
+        self.external_dashboard_pid_file: Path | None = None
         self.running_command: List[str] = []
         self.output_queue: queue.Queue[str | tuple[str, int]] = queue.Queue()
         self.log_buffer = CompactLogBuffer()
@@ -932,7 +934,10 @@ class PhotoMigratorTkGUI:
         return not self.can_stop_job() and not self.external_dashboard_active
 
     def can_stop_job(self) -> bool:
-        return self.running_process is not None and self.running_process.poll() is None
+        return (
+            (self.running_process is not None and self.running_process.poll() is None)
+            or self.external_dashboard_active
+        )
 
     def can_exit_app(self) -> bool:
         return not self.can_stop_job() and not self.external_dashboard_active
@@ -1546,7 +1551,9 @@ class PhotoMigratorTkGUI:
     def _launch_dashboard_job_in_external_terminal(self, command: List[str]) -> None:
         env = build_ui_subprocess_env(ui_mode="gui", embedded_ui=False)
         status_path = Path(tempfile.gettempdir()) / f"photomigrator_dashboard_exit_{time.time_ns()}.txt"
+        pid_path = Path(tempfile.gettempdir()) / f"photomigrator_dashboard_pid_{time.time_ns()}.txt"
         self.external_dashboard_status_file = status_path
+        self.external_dashboard_pid_file = pid_path
         launcher_file: Path | None = None
         creationflags = 0
         launcher: List[str] | str
@@ -1559,9 +1566,10 @@ class PhotoMigratorTkGUI:
             launcher = ["cmd", "/v:on", "/c", str(launcher_file)]
             creationflags = int(getattr(subprocess, "CREATE_NEW_CONSOLE", 0))
         else:
-            launcher = build_external_terminal_command(command, self.launch_cwd, env, completion_file=status_path)
+            launcher = build_external_terminal_command(command, self.launch_cwd, env, completion_file=status_path, pid_file=pid_path)
         if not launcher:
             self.external_dashboard_status_file = None
+            self.external_dashboard_pid_file = None
             raise RuntimeError("No supported external terminal launcher was found on this system.")
         self.external_dashboard_launcher_file = launcher_file
         try:
@@ -1569,6 +1577,7 @@ class PhotoMigratorTkGUI:
         except Exception:
             self.external_dashboard_status_file = None
             self.external_dashboard_launcher_file = None
+            self.external_dashboard_pid_file = None
             if launcher_file is not None:
                 try:
                     launcher_file.unlink(missing_ok=True)
@@ -1578,11 +1587,12 @@ class PhotoMigratorTkGUI:
         self.external_dashboard_active = True
         self.sync_content_panel_for_run_state(True)
         self.refresh_action_buttons()
-        threading.Thread(target=self._external_dashboard_watcher, args=(status_path, launcher_process, launcher_file), daemon=True).start()
+        threading.Thread(target=self._external_dashboard_watcher, args=(status_path, pid_path, launcher_process, launcher_file), daemon=True).start()
 
     def _external_dashboard_watcher(
         self,
         status_path: Path,
+        pid_path: Path,
         launcher_process: subprocess.Popen[str] | None = None,
         launcher_file: Path | None = None,
     ) -> None:
@@ -1604,6 +1614,10 @@ class PhotoMigratorTkGUI:
         finally:
             try:
                 status_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+            try:
+                pid_path.unlink(missing_ok=True)
             except Exception:
                 pass
             if launcher_file is not None:
@@ -2010,6 +2024,7 @@ class PhotoMigratorTkGUI:
                 self.external_dashboard_active = False
                 self.external_dashboard_status_file = None
                 self.external_dashboard_launcher_file = None
+                self.external_dashboard_pid_file = None
                 self.append_log(f"[internal] Live Dashboard finished with exit code {item[1]}")
                 self.update_status(f"Job finished with exit code {item[1]}")
                 self.sync_content_panel_for_run_state(False)
@@ -2116,6 +2131,9 @@ class PhotoMigratorTkGUI:
         threading.Thread(target=self._job_output_worker, args=(process,), daemon=True).start()
 
     def action_stop_job(self) -> None:
+        if self.external_dashboard_active:
+            self._stop_external_dashboard_job()
+            return
         if self.running_process is None or self.running_process.poll() is not None:
             self.update_status("No running job to stop.")
             return
@@ -2125,6 +2143,22 @@ class PhotoMigratorTkGUI:
             self.refresh_action_buttons()
         except Exception as exc:
             self.update_status(f"Unable to stop job: {exc}")
+
+    def _stop_external_dashboard_job(self) -> None:
+        pid_path = self.external_dashboard_pid_file
+        if pid_path is None or not pid_path.exists():
+            self.update_status("Live Dashboard is starting; wait a moment and try Stop again.")
+            return
+        try:
+            process_id = int(pid_path.read_text(encoding="utf-8", errors="replace").strip())
+            if sys.platform.startswith("win"):
+                subprocess.run(["taskkill", "/PID", str(process_id), "/T", "/F"], check=True, capture_output=True)
+            else:
+                os.kill(process_id, signal.SIGTERM)
+            self.update_status("Stop signal sent to Live Dashboard job.")
+            self.refresh_action_buttons()
+        except Exception as exc:
+            self.update_status(f"Unable to stop Live Dashboard job: {exc}")
 
     def action_request_exit(self) -> None:
         if not self.can_exit_app():

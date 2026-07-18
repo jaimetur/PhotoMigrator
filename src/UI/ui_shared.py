@@ -393,6 +393,7 @@ def _posix_terminal_job_command(
     cwd: Path,
     env: Dict[str, str] | None = None,
     completion_file: Path | None = None,
+    pid_file: Path | None = None,
 ) -> str:
     parts: List[str] = []
     effective_env = dict(env or {})
@@ -402,13 +403,26 @@ def _posix_terminal_job_command(
             parts.append(f"export {key}={shlex.quote(str(value))}")
     parts.append(f"cd {shlex.quote(str(Path(cwd)))}")
     command_text = _posix_command_to_shell(command)
-    if completion_file is None:
+    if pid_file is None and completion_file is None:
         parts.append(command_text)
-    else:
+    elif pid_file is None:
         completion_target = shlex.quote(str(Path(completion_file)))
         parts.append(
             f"{command_text}; _photomigrator_exit_code=$?; "
             f"printf '%s' \"$_photomigrator_exit_code\" > {completion_target}; "
+            "exit $_photomigrator_exit_code"
+        )
+    else:
+        pid_target = shlex.quote(str(Path(pid_file)))
+        completion_write = ""
+        if completion_file is not None:
+            completion_target = shlex.quote(str(Path(completion_file)))
+            completion_write = f"printf '%s' \"$_photomigrator_exit_code\" > {completion_target}; "
+        parts.append(
+            f"{command_text} & _photomigrator_pid=$!; "
+            f"printf '%s' \"$_photomigrator_pid\" > {pid_target}; "
+            "wait \"$_photomigrator_pid\"; _photomigrator_exit_code=$?; "
+            f"{completion_write}"
             "exit $_photomigrator_exit_code"
         )
     return "; ".join(parts)
@@ -475,13 +489,14 @@ def build_external_terminal_command(
     *,
     platform_name: str | None = None,
     completion_file: Path | None = None,
+    pid_file: Path | None = None,
 ) -> List[str]:
     target_platform = str(platform_name or sys.platform or "").lower()
 
     if target_platform == "darwin":
         if not shutil.which("osascript"):
             return []
-        shell_command = _posix_terminal_job_command(command, cwd, env, completion_file)
+        shell_command = _posix_terminal_job_command(command, cwd, env, completion_file, pid_file)
         apple_script = (
             'tell application "Terminal"\n'
             "activate\n"
@@ -494,7 +509,7 @@ def build_external_terminal_command(
         shell_command = _windows_terminal_job_command(command, cwd, env, completion_file)
         return ["cmd", "/v:on", "/c", f'start "PhotoMigrator Live Dashboard" cmd /v:on /k "{shell_command}"']
 
-    shell_command = _posix_terminal_job_command(command, cwd, env, completion_file)
+    shell_command = _posix_terminal_job_command(command, cwd, env, completion_file, pid_file)
     if shutil.which("x-terminal-emulator"):
         return ["x-terminal-emulator", "-e", "bash", "-lc", shell_command]
     if shutil.which("gnome-terminal"):

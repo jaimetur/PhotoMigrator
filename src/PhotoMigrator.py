@@ -79,6 +79,106 @@ def _record_launcher_context() -> None:
                 return
 
 
+def _selected_feature_details(args: dict) -> tuple[str, list[str]]:
+    """Return the feature selected by the CLI and its effective required arguments."""
+    is_set = lambda dest: bool(args.get(dest))
+    feature_definitions = (
+        (is_set("source") and is_set("target"), "Automatic Migration", ["source", "target"]),
+        (is_set("google-takeout"), "Google Takeout Processor", ["google-takeout"]),
+        (is_set("icloud-takeout"), "iCloud Takeout Processor", ["icloud-takeout"]),
+        (is_set("upload-albums"), "Upload Albums", ["client", "upload-albums"]),
+        (is_set("upload-all"), "Upload All", ["client", "upload-all"]),
+        (is_set("download-albums"), "Download Albums", ["client", "download-albums", "output-folder"]),
+        (is_set("download-all"), "Download All", ["client", "download-all"]),
+        (is_set("remove-albums"), "Remove Albums", ["client", "remove-albums"]),
+        (is_set("rename-albums"), "Rename Albums", ["client", "rename-albums"]),
+        (is_set("consolidate-albums-names"), "Consolidate Album Names", ["client", "consolidate-albums-names"]),
+        (is_set("remove-empty-albums"), "Remove Empty Albums", ["client", "remove-empty-albums"]),
+        (is_set("remove-duplicates-albums"), "Remove Duplicate Albums", ["client", "remove-duplicates-albums"]),
+        (is_set("merge-duplicates-albums"), "Merge Duplicate Albums", ["client", "merge-duplicates-albums"]),
+        (is_set("remove-all-albums"), "Remove All Albums", ["client", "remove-all-albums"]),
+        (is_set("remove-all-assets"), "Remove All Assets", ["client", "remove-all-assets"]),
+        (is_set("fix-symlinks-broken"), "Fix Broken Symlinks", ["fix-symlinks-broken"]),
+        (args.get("find-duplicates") != ["list", ""], "Find Duplicates", ["find-duplicates"]),
+        (is_set("process-duplicates"), "Process Duplicates", ["process-duplicates"]),
+        (is_set("rename-folders-content-based"), "Rename Folders Content Based", ["rename-folders-content-based"]),
+        (is_set("organize-local-folder-by-date"), "Organize Local Folder By Date", ["organize-local-folder-by-date"]),
+    )
+    for selected, label, required_dests in feature_definitions:
+        if selected:
+            return label, required_dests
+    return "Unknown", []
+
+
+def _parser_option_details(parser) -> dict[str, tuple[str, str]]:
+    """Map normalized argument destinations to their preferred long option and parser destination."""
+    details = {}
+    for action in getattr(parser, "_actions", []):
+        option_strings = list(getattr(action, "option_strings", []) or [])
+        if not option_strings:
+            continue
+        normalized_dest = str(getattr(action, "dest", "") or "").replace("_", "-")
+        long_option = next((option for option in option_strings if option.startswith("--")), option_strings[0])
+        details[normalized_dest] = (long_option, str(getattr(action, "dest", "") or ""))
+    return details
+
+
+def _explicit_argument_dests(parser, argv: list[str]) -> set[str]:
+    """Find only options written explicitly by the caller, not parser defaults."""
+    option_to_dest = {}
+    for action in getattr(parser, "_actions", []):
+        normalized_dest = str(getattr(action, "dest", "") or "").replace("_", "-")
+        for option in getattr(action, "option_strings", []) or []:
+            option_to_dest[option] = normalized_dest
+
+    explicit_dests = set()
+    for token in argv:
+        option = str(token).split("=", 1)[0]
+        dest = option_to_dest.get(option)
+        if dest:
+            explicit_dests.add(dest)
+    return explicit_dests
+
+
+def _format_startup_value(value) -> str:
+    if isinstance(value, bool):
+        return str(value).lower()
+    if isinstance(value, (list, tuple)):
+        return ", ".join(str(item) for item in value)
+    return str(value)
+
+
+def _log_feature_and_optional_flags(*, include_feature: bool = True, include_optional: bool = True) -> None:
+    """Log the selected feature, its required values, and explicitly supplied optional flags."""
+    args = GV.ARGS or {}
+    option_details = _parser_option_details(GV.PARSER)
+    feature_name, required_dests = _selected_feature_details(args)
+
+    if include_feature:
+        GV.LOGGER.info(f"Selected Feature:")
+        GV.LOGGER.info(f"  - Feature                       : {feature_name}")
+        GV.LOGGER.info(f"  - Required Flags:")
+        if required_dests:
+            for dest in required_dests:
+                option, _ = option_details.get(dest, (f"--{dest}", dest.replace("-", "_")))
+                GV.LOGGER.info(f"    {option:<30}: {_format_startup_value(args.get(dest, ''))}")
+        else:
+            GV.LOGGER.info("    - None")
+        GV.LOGGER.info("")
+
+    if include_optional:
+        explicit_dests = _explicit_argument_dests(GV.PARSER, sys.argv[1:])
+        optional_dests = sorted(explicit_dests - set(required_dests))
+        GV.LOGGER.info("Optional Flags Used:")
+        if optional_dests:
+            for dest in optional_dests:
+                option, _ = option_details.get(dest, (f"--{dest}", dest.replace("-", "_")))
+                GV.LOGGER.info(f"  {option:<32}: {_format_startup_value(args.get(dest, ''))}")
+        else:
+            GV.LOGGER.info("  - None")
+        GV.LOGGER.info("")
+
+
 # -------------------------------------------------------------
 # MAIN FUNCTION
 # -------------------------------------------------------------
@@ -173,6 +273,8 @@ def PhotoMigrator():
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(f"Starting {GV.TOOL_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
+    _log_feature_and_optional_flags(include_optional=False)
+    _log_feature_and_optional_flags(include_feature=False)
     from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns
     effective_exclude_folders = merge_exclusion_patterns(
         GV.ARGS.get('exclude-folders', []) if GV.ARGS else [],

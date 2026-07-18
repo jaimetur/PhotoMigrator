@@ -24,7 +24,7 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Features.AutomaticMigration.LiveDashboard import start_dashboard
+from Features.AutomaticMigration.LiveDashboard import _compute_dashboard_estimated_time, _format_hms_from_seconds, _parse_int, start_dashboard
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
 from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, has_any_filter
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
@@ -168,18 +168,6 @@ def _debug_perf_log_elapsed(logger, label, elapsed_ms, **fields):
     logger.debug(f"[PERF] {label}: {float(elapsed_ms):.2f} ms{suffix}")
 
 
-def _parse_int(value, default=0):
-    try:
-        return int(str(value or "").replace(",", "").strip())
-    except (TypeError, ValueError):
-        return default
-
-
-def _format_hms_from_seconds(total_seconds):
-    safe_seconds = max(0, int(round(float(total_seconds or 0))))
-    return str(timedelta(seconds=safe_seconds))
-
-
 def _record_unique_counter(counter_map, counter_name, seen_set, unique_key):
     key = str(unique_key or "").strip()
     if not key:
@@ -223,26 +211,6 @@ def _remove_target_empty_albums_if_supported(target_client, log_level=None):
         return max(0, int(removed or 0))
     except (TypeError, ValueError):
         return 0
-
-
-def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending_assets, total_assets=None):
-    total_assets = max(0, _parse_int(total_assets, 0))
-    processed_assets = max(0, _parse_int(processed_assets, 0))
-    pending_assets = max(0, _parse_int(pending_assets, 0))
-
-    if total_assets <= 0 and (processed_assets > 0 or pending_assets > 0):
-        total_assets = processed_assets + pending_assets
-    if total_assets <= 0:
-        return "-"
-    if pending_assets <= 0:
-        return "00:00:00"
-    if processed_assets <= 0:
-        return "Estimating..."
-
-    safe_elapsed_seconds = max(0.0, float(elapsed_seconds or 0.0))
-    avg_seconds_per_asset = safe_elapsed_seconds / float(processed_assets)
-    estimated_remaining_seconds = avg_seconds_per_asset * float(pending_assets)
-    return _format_hms_from_seconds(estimated_remaining_seconds)
 
 
 def _strip_bg_level_prefix(text):

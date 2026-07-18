@@ -17,6 +17,38 @@ from Core.GlobalVariables import ARGS, FOLDERNAME_LOGS, LOGGER, TOOL_DATE, TOOL_
 BG_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
 
+def _parse_int(value, default=0):
+    try:
+        return int(str(value or "").replace(",", "").strip())
+    except (TypeError, ValueError):
+        return default
+
+
+def _format_hms_from_seconds(total_seconds):
+    safe_seconds = max(0, int(round(float(total_seconds or 0))))
+    return str(timedelta(seconds=safe_seconds))
+
+
+def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending_assets, total_assets=None):
+    total_assets = max(0, _parse_int(total_assets, 0))
+    processed_assets = max(0, _parse_int(processed_assets, 0))
+    pending_assets = max(0, _parse_int(pending_assets, 0))
+
+    if total_assets <= 0 and (processed_assets > 0 or pending_assets > 0):
+        total_assets = processed_assets + pending_assets
+    if total_assets <= 0:
+        return "-"
+    if pending_assets <= 0:
+        return "00:00:00"
+    if processed_assets <= 0:
+        return "Estimating..."
+
+    safe_elapsed_seconds = max(0.0, float(elapsed_seconds or 0.0))
+    avg_seconds_per_asset = safe_elapsed_seconds / float(processed_assets)
+    estimated_remaining_seconds = avg_seconds_per_asset * float(pending_assets)
+    return _format_hms_from_seconds(estimated_remaining_seconds)
+
+
 def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name='', log_level=None):
     with set_log_level(LOGGER, log_level):
         import time
