@@ -317,6 +317,38 @@ def _relative_staged_asset_path(temp_folder, asset_file_path):
         return Path(asset_path.name)
 
 
+def _prune_empty_staging_queue_parents(temp_folder, asset_file_path):
+    """Remove empty folders above a staged asset without removing a queue root."""
+    if not temp_folder or not asset_file_path:
+        return
+    try:
+        asset_path = Path(str(asset_file_path)).resolve()
+    except OSError:
+        return
+
+    queue_roots = (
+        AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER,
+        AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
+        AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+        AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER,
+    )
+    for queue_folder_name in queue_roots:
+        try:
+            queue_root = (Path(temp_folder) / queue_folder_name).resolve()
+            asset_path.relative_to(queue_root)
+        except (OSError, ValueError):
+            continue
+
+        current_folder = asset_path.parent
+        while current_folder != queue_root:
+            try:
+                current_folder.rmdir()
+            except OSError:
+                break
+            current_folder = current_folder.parent
+        return
+
+
 def _move_staged_asset_to_queue_folder(temp_folder, asset, queue_folder_name, log_level=logging.INFO):
     if not isinstance(asset, dict):
         return asset
@@ -336,6 +368,7 @@ def _move_staged_asset_to_queue_folder(temp_folder, asset, queue_folder_name, lo
         except Exception:
             pass
         shutil.move(str(current_path), str(destination_path))
+        _prune_empty_staging_queue_parents(temp_folder, current_path)
         return str(destination_path)
 
     moved_asset = dict(asset)
@@ -422,6 +455,7 @@ def _move_to_album_association_failed_folder(temp_folder, album_name, asset_file
         candidate = _dedupe_destination_path(Path(association_queue_folder) / relative_path)
         os.makedirs(os.path.dirname(candidate), exist_ok=True)
         shutil.move(resolved, candidate)
+        _prune_empty_staging_queue_parents(temp_folder, resolved)
         if logger is not None:
             logger.warning(
                 f"Album Association Queued: '{os.path.basename(resolved)}' preserved at '{candidate}' "
@@ -2916,6 +2950,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         for _ in range(max(1, retries)):
             try:
                 os.remove(resolved)
+                _prune_empty_staging_queue_parents(temp_folder, resolved)
                 return True
             except Exception as e:
                 last_exc = e

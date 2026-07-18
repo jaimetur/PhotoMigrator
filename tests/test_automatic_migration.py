@@ -353,6 +353,8 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             self.assertEqual(delayed_asset["asset_file_path"], str(expected_delayed))
             self.assertFalse(queued_photo.exists())
             self.assertTrue(expected_delayed.exists())
+            self.assertFalse((temp_root / "Push_Queue" / "Albums").exists())
+            self.assertTrue((temp_root / "Push_Queue").exists())
 
     def test_count_staged_queue_files_ignores_runtime_markers(self):
         with tempfile.TemporaryDirectory() as tmpdir:
