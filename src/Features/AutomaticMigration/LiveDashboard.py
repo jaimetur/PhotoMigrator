@@ -254,13 +254,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             LOGGER.propagate = False
             log_file = get_logger_filename(LOGGER)
 
-            # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (16 lines),
+            # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (15 lines),
             # logs fill remainder, background_progress_panel (7 lines) at the bottom.
             layout.split_column(
                 Layout(name="empty_line_1", size=1),  # Línea vacía
                 Layout(name="header_panel", size=8),
                 Layout(name="title_panel", size=3),
-                Layout(name="content_panel", size=16),
+                Layout(name="content_panel", size=15),
                 Layout(name="logs_panel", ratio=1),
                 Layout(name="background_progress_panel", size=7),
                 Layout(name="empty_line_2", size=1),  # Línea vacía
