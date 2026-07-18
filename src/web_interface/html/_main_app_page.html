@@ -1685,10 +1685,6 @@
         if (!isParallel) {
             const queueCountEl = document.getElementById("bar-info-queue-count");
             if (queueCountEl) queueCountEl.textContent = `${queueValue} (-)`;
-            const albumAssocQueueCountEl = document.getElementById("bar-info-album-assoc-queue-count");
-            if (albumAssocQueueCountEl) albumAssocQueueCountEl.textContent = `${albumAssocQueueValue} (-)`;
-            const delayedQueueCountEl = document.getElementById("bar-info-delayed-queue-count");
-            if (delayedQueueCountEl) delayedQueueCountEl.textContent = `${delayedQueueValue} (-)`;
         }
 
         setText("dash-pull-failed-assets", stats.pullFailedAssets, "0");

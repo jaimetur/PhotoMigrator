@@ -1247,7 +1247,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     def _refresh_queue_depth():
         with metrics_lock:
-            delayed_assets = int(SHARED_DATA.info.get('delayed_assets_pending', 0) or 0)
+            delayed_assets = _count_staged_queue_files(
+                temp_folder,
+                AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
+            )
             try:
                 queue_size = push_queue.qsize()
             except NameError:
@@ -4650,21 +4653,21 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     total_assets=total_assets,
                 )
 
-                def _format_queue_bar(current_value, max_value=None):
+                def _format_queue_bar(current_value, max_value=None, show_total=False):
                     safe_max = max(1, int(max_value if max_value is not None else total_assets or 1))
                     safe_value = max(0, int(current_value or 0))
                     filled_blocks = min(int((safe_value / safe_max) * BAR_WIDTH), BAR_WIDTH)
                     empty_blocks = BAR_WIDTH - filled_blocks
                     bar = "█" * filled_blocks + " " * empty_blocks
-                    if parallel:
+                    if parallel or show_total:
                         return f"[{bar}] {safe_value:>3}/{safe_max}"
                     return f"[{bar}] {safe_value:>7}"
 
                 queue_bar = _format_queue_bar(current_queue_size)
                 delayed_queue_total = SHARED_DATA.counters.get('total_delayed_queue_assets', 0)
                 album_assoc_queue_total = SHARED_DATA.counters.get('total_album_assoc_queue_assets', 0)
-                delayed_queue_bar = _format_queue_bar(current_delayed_queue_size, delayed_queue_total)
-                album_assoc_queue_bar = _format_queue_bar(current_album_assoc_queue_size, album_assoc_queue_total)
+                delayed_queue_bar = _format_queue_bar(current_delayed_queue_size, delayed_queue_total, show_total=True)
+                album_assoc_queue_bar = _format_queue_bar(current_album_assoc_queue_size, album_assoc_queue_total, show_total=True)
                 if clean_queue_history:
                     queue_bar = 0
                     album_assoc_queue_bar = 0
