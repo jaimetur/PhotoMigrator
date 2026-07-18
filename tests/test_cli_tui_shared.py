@@ -576,7 +576,7 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("PHOTOMIGRATOR_DASHBOARD_COMPLETION_FILE", shell_script)
         self.assertIn("/tmp/dashboard_pid.txt", shell_script)
         self.assertIn("/tmp/dashboard_status.txt", shell_script)
-        self.assertIn("exec \"$@\"", shell_script)
+        self.assertIn("shift; exec ", shell_script)
         self.assertNotIn(" & ", shell_script)
 
     def test_build_windows_external_terminal_script_writes_title_env_and_completion_file(self):

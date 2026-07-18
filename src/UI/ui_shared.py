@@ -500,11 +500,16 @@ def build_external_terminal_command(
     pid_file: Path | None = None,
 ) -> List[str]:
     target_platform = str(platform_name or sys.platform or "").lower()
+    effective_env = dict(env or {})
+    if completion_file is not None and effective_env.get("PHOTOMIGRATOR_GUI_MODE") == "1":
+        # The dashboard reports migration completion before its final Ctrl+C wait.
+        # Derive the notification target from the same status file the GUI watches.
+        effective_env.setdefault("PHOTOMIGRATOR_DASHBOARD_COMPLETION_FILE", str(Path(completion_file)))
 
     if target_platform == "darwin":
         if not shutil.which("osascript"):
             return []
-        shell_command = _posix_terminal_job_command(command, cwd, env, completion_file, pid_file)
+        shell_command = _posix_terminal_job_command(command, cwd, effective_env, completion_file, pid_file)
         apple_script = (
             'tell application "Terminal"\n'
             "activate\n"
@@ -514,10 +519,10 @@ def build_external_terminal_command(
         return ["osascript", "-e", apple_script]
 
     if target_platform.startswith("win"):
-        shell_command = _windows_terminal_job_command(command, cwd, env, completion_file)
+        shell_command = _windows_terminal_job_command(command, cwd, effective_env, completion_file)
         return ["cmd", "/v:on", "/c", f'start "PhotoMigrator Live Dashboard" cmd /v:on /k "{shell_command}"']
 
-    shell_command = _posix_terminal_job_command(command, cwd, env, completion_file, pid_file)
+    shell_command = _posix_terminal_job_command(command, cwd, effective_env, completion_file, pid_file)
     if shutil.which("x-terminal-emulator"):
         return ["x-terminal-emulator", "-e", "bash", "-lc", shell_command]
     if shutil.which("gnome-terminal"):
