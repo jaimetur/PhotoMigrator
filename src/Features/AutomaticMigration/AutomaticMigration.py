@@ -244,8 +244,13 @@ def _build_physical_transfer_stats(asset_type, include_live_companion=False):
 def _safe_asset_relative_path(source_root, source_path, fallback_name):
     fallback_name = str(fallback_name or os.path.basename(str(source_path or "")) or "asset").strip()
     try:
-        source_root_path = Path(str(source_root)).expanduser().resolve()
-        source_path_obj = Path(str(source_path)).expanduser().resolve()
+        # Do not resolve source_path_obj here. A local album can contain a
+        # symlink to ALL_PHOTOS and its staged copy must remain under Albums.
+        source_root_path = Path(str(source_root)).expanduser().absolute()
+        source_path_obj = Path(str(source_path)).expanduser()
+        if not source_path_obj.is_absolute():
+            source_path_obj = source_root_path / source_path_obj
+        source_path_obj = source_path_obj.absolute()
         relative_path = source_path_obj.relative_to(source_root_path)
         if str(relative_path).strip() and not str(relative_path).startswith(".."):
             return relative_path
@@ -289,7 +294,27 @@ def _stage_local_asset_for_automatic_migration(source_client, source_asset_id, a
     )
     destination_path = _dedupe_destination_path(Path(queue_root) / relative_path)
     destination_path.parent.mkdir(parents=True, exist_ok=True)
-    if move_assets:
+    if source_path.is_symlink():
+        resolved_target = source_path.resolve(strict=False)
+        copy_source = resolved_target
+        if not copy_source.is_file():
+            # A regular ALL_PHOTOS asset may already have been moved into the
+            # queue before its album symlink is processed. Materialize its staged
+            # copy instead of leaving the album link dangling.
+            try:
+                source_root = Path(str(getattr(source_client, "base_folder", ""))).expanduser().resolve()
+                staged_target_relative = resolved_target.relative_to(source_root)
+                staged_target = Path(queue_root) / staged_target_relative
+                if staged_target.is_file():
+                    copy_source = staged_target
+            except (OSError, ValueError):
+                pass
+        if not copy_source.is_file():
+            raise FileNotFoundError(f"Symlink target is not available for staging: '{source_path}'")
+        shutil.copy2(copy_source, destination_path, follow_symlinks=True)
+        if move_assets:
+            source_path.unlink()
+    elif move_assets:
         shutil.move(str(source_path), str(destination_path))
     else:
         shutil.copy2(source_path, destination_path)

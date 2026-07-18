@@ -396,6 +396,34 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             self.assertFalse(source_photo.exists())
             self.assertTrue(expected_path.exists())
 
+    def test_stage_local_symlink_copies_target_into_album_path_and_removes_only_link_on_move(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source_root = Path(tmpdir) / "source"
+            physical_photo = source_root / "ALL_PHOTOS" / "2020" / "01" / "IMG_0001.JPG"
+            album_link = source_root / "Albums" / "Album1" / "IMG_0001.JPG"
+            physical_photo.parent.mkdir(parents=True)
+            album_link.parent.mkdir(parents=True)
+            physical_photo.write_text("photo", encoding="utf-8")
+            album_link.symlink_to(physical_photo)
+            local_client = object.__new__(automatic_module.ClassLocalFolder)
+            local_client.base_folder = source_root
+            queue_root = Path(tmpdir) / "Automatic_Migration" / "Push_Queue"
+
+            physical_staged = automatic_module._stage_local_asset_for_automatic_migration(
+                local_client, str(physical_photo), physical_photo.name, None, str(queue_root), move_assets=True,
+            )
+            album_staged = automatic_module._stage_local_asset_for_automatic_migration(
+                local_client, str(album_link), album_link.name, None, str(queue_root), move_assets=True,
+            )
+
+            self.assertEqual(physical_staged, str(queue_root / "ALL_PHOTOS" / "2020" / "01" / "IMG_0001.JPG"))
+            self.assertEqual(album_staged, str(queue_root / "Albums" / "Album1" / "IMG_0001.JPG"))
+            self.assertFalse(physical_photo.exists())
+            self.assertFalse(album_link.exists())
+            self.assertTrue((queue_root / "ALL_PHOTOS" / "2020" / "01" / "IMG_0001.JPG").is_file())
+            self.assertTrue((queue_root / "Albums" / "Album1" / "IMG_0001.JPG").is_file())
+            self.assertFalse((queue_root / "Albums" / "Album1" / "IMG_0001.JPG").is_symlink())
+
     def test_finalize_album_assoc_failed_asset_safely_returns_none_when_cleanup_raises(self):
         logger = unittest.mock.Mock()
 
