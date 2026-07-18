@@ -2112,9 +2112,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     album_source_path,
                     album_name,
                 )
-                candidate = os.path.join(push_queue_folder, str(relative_path))
-                if os.path.isdir(candidate):
-                    return candidate
+                return os.path.join(push_queue_folder, str(relative_path))
         return os.path.join(push_queue_folder, str(album_name))
 
     def _list_album_remaining_files(album_folder_path):
@@ -4594,7 +4592,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
                     ("❔ Unknown Files", SHARED_DATA.info.get('total_invalid', 0)),
                     ("📊 Assets in Queue", f"{queue_bar}"),
-                    ("⏱️ Delayed Retenes Queue", f"{delayed_queue_bar}"),
+                    ("⏱️ Delayed Retries Queue", f"{delayed_queue_bar}"),
                     ("🧾 Album Assoc Queue", f"{album_assoc_queue_bar}"),
                 ]
 
