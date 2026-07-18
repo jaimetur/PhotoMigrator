@@ -113,6 +113,7 @@
   - Fixed the GUI `Stop` button being disabled for `Automatic Migration` runs launched in an external Live Dashboard terminal. The GUI now tracks the external migration PID and sends the stop signal to that process rather than only tracking the terminal launcher.
   - Fixed `Automatic Migration` Live Dashboard startup after its renderer extraction. Its estimated-time calculation, UTC timezone dependency, background progress parser, and visible-progress-row selection now reside in `LiveDashboard.py`, preventing `NameError` failures while rendering or consuming `tqdm` progress lines.
   - Fixed the Rich `Automatic Migration` Live Dashboard layout so the Info Panel has enough height to render `Assets in Queue`, `Delayed Retries Queue`, and `Album Assoc Queue` together. Pull failure rows and Push `🔢 Total (New / Duplicates / Failed)` summaries now remain on one line below their matching bars.
+  - Aligned the Rich `Automatic Migration` Live Dashboard panels with the web layout: `Blocked Albums` and `Blocked Assets` now remain only in Info, the queue label uses a consistent-width timer emoji, and full-width separators now precede Info queues, Pull timing, and Push delayed-retry counters.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

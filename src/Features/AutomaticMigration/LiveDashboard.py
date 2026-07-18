@@ -423,8 +423,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
                     ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
                     ("❔ Unknown Files", SHARED_DATA.info.get('total_invalid', 0)),
+                ]
+                queue_data = [
                     ("📊 Assets in Queue", f"{queue_bar}"),
-                    ("⏱️ Delayed Retries Queue", f"{delayed_queue_bar}"),
+                    ("⏳ Delayed Retries Queue", f"{delayed_queue_bar}"),
                     ("🧾 Album Assoc Queue", f"{album_assoc_queue_bar}"),
                 ]
 
@@ -433,6 +435,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 table.add_column(justify="left", width=27, no_wrap=True)
                 table.add_column(justify="right", ratio=1, no_wrap=True, overflow="crop")
                 for label, value in info_data:
+                    table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
+                table.add_row(
+                    f"[bright_magenta dim]{'─' * 27}[/bright_magenta dim]",
+                    f"[bright_magenta dim]{'─' * 80}[/bright_magenta dim]",
+                )
+                for label, value in queue_data:
                     table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
 
                 # 🔹 Devolver el panel
@@ -476,10 +484,6 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 "🎬 Pulled Videos": ("🚩 Failed Videos", 'total_pull_failed_videos'),
                 "📂 Pulled Albums": ("🚩 Failed Albums", 'total_pull_failed_albums'),
             }
-            pull_static_stats = {
-                "🔒 Blocked Albums": 'total_albums_blocked',
-                "🔒 Blocked Assets": 'total_assets_blocked',
-            }
             pull_tasks = {}
             for label, (bar, completed_label, total_label) in pull_bars.items():
                 # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
@@ -499,7 +503,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 "📂 Pushed Albums": ("🔢 Total", 'total_pushed_albums', None, 'total_push_failed_albums'),
             }
             delayed_pushs = {
-                "⏱️ Delayed Retries": 'total_push_retry_scheduled_assets',
+                "⏳ Delayed Retries": 'total_push_retry_scheduled_assets',
                 "⏱️ Delayed Recovered": 'total_push_retry_recovered_assets',
             }
             push_tasks = {}
@@ -521,12 +525,11 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     failed_label, failed_counter = pull_failures[label]
                     failed_value = SHARED_DATA.counters.get(failed_counter, 0)
                     table.add_row(f"[cyan]  {failed_label:<17}:[/cyan]", f"[cyan]{failed_value}[/cyan]")
-                for label, counter_label in pull_static_stats.items():
-                    value = SHARED_DATA.counters[counter_label]
-                    table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
-                separator = "─" * 18
                 table.add_row("", "")
-                table.add_row("", f"[cyan dim]{separator}[/cyan dim]")
+                table.add_row(
+                    f"[cyan dim]{'─' * 24}[/cyan dim]",
+                    f"[cyan dim]{'─' * 80}[/cyan dim]",
+                )
                 table.add_row(f"[cyan]{'🕒 Elapsed Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('elapsed_time', 0)}[/cyan]")
                 table.add_row(f"[cyan]{'⏳ Remaining Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('estimated_time', '-')}[/cyan]")
                 return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
@@ -547,8 +550,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         f"[green]  {outcome_label} (New / Duplicates / Failed):[/green]",
                         f"[green]{new_value} / {duplicate_value} / {failed_value}[/green]",
                     )
-                separator = "─" * 18
-                table.add_row("", f"[green dim]{separator}[/green dim]")
+                table.add_row(
+                    f"[green dim]{'─' * 40}[/green dim]",
+                    f"[green dim]{'─' * 80}[/green dim]",
+                )
                 for label, counter_label in delayed_pushs.items():
                     value = SHARED_DATA.counters[counter_label]
                     table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
@@ -767,7 +772,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             def _build_pull_signature():
                 completed_keys = [cfg[1] for cfg in pull_bars.values()]
                 total_keys = [cfg[2] for cfg in pull_bars.values()]
-                failed_keys = [counter for _, counter in pull_failures.values()] + list(pull_static_stats.values())
+                failed_keys = [counter for _, counter in pull_failures.values()]
                 return (
                     tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
                     tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),
