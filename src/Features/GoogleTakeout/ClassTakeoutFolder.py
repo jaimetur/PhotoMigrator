@@ -1720,7 +1720,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 1: Delete hidden subfolders '@eaDir'
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🪛 [PRE-PROCESS]-[Clean/Sanitize Takeout Folder] : '
+            step_name = '🪛 [PRE-PROCESS]-[Sanitize Takeout Folder]   : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"================================================================================================================================================")
@@ -2145,7 +2145,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
                 LOGGER.info(f"{step_id_and_label.ljust(55)} : {entry['duration'].rjust(8)}")
             LOGGER.info(f"")
-            LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(55)}  : {formatted_duration.rjust(8)}")
+            LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(55)} : {formatted_duration.rjust(8)}")
             LOGGER.info(f"================================================================================================================================================")
 
             # PRINT RESULTS
@@ -2387,7 +2387,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 4.2: Normalize conflicting video XMP dates left by GPTH
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🎞️ [POST-PROCESS]-[Repair Video XMP Dates] : '
+            step_name = '🎞️ [POST-PROCESS]-[Repair Video XMP Dates]  : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             sub_step_start_time = datetime.now()
             self.substep += 1
