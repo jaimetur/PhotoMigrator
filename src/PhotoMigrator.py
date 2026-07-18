@@ -247,7 +247,7 @@ def _log_feature_and_optional_flags(*, include_feature: bool = True, include_opt
     if include_optional:
         explicit_dests = _explicit_argument_dests(GV.PARSER, sys.argv[1:])
         optional_dests = sorted(explicit_dests - set(required_dests))
-        GV.LOGGER.info("Optional Flags Used:")
+        GV.LOGGER.info("Optional Flags Provided:")
         if optional_dests:
             for dest in optional_dests:
                 option, _ = option_details.get(dest, (f"--{dest}", dest.replace("-", "_")))
