@@ -2527,6 +2527,27 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             normalized_items = []
             for item in batch_items:
                 target_asset_id = str(item.get("resolved_target_asset_id") or "").strip()
+                if not target_asset_id and item.get("_pending_duplicate_resolution"):
+                    target_asset_id = str(_resolve_duplicate_target_asset_id(
+                        asset_file_path=item.get("asset_file_path"),
+                        log_level=log_level,
+                    ) or "").strip()
+                    if target_asset_id:
+                        item["resolved_target_asset_id"] = target_asset_id
+                    else:
+                        LOGGER.error(
+                            f"Asset Push Fail : '{os.path.basename(item.get('asset_file_path', ''))}' "
+                            f"could not resolve an existing target asset id for album '{album_name}'."
+                        )
+                        _record_final_push_failure(
+                            asset_type=item.get("asset_type", "photo"),
+                            count_push_stats=item.get("count_push_stats", True),
+                            asset_stats=item.get("physical_stats"),
+                            album_name=album_name,
+                            album_stats_by_name_ref=album_stats_by_name_ref,
+                            album_stats_lock_ref=album_stats_lock_ref,
+                            asset=item,
+                        )
                 if not target_asset_id:
                     continue
                 normalized_items.append((item, target_asset_id))
@@ -4092,16 +4113,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         )
                                     if album_name:
                                         asset["_pending_duplicate_resolution"] = True
-                                        _register_pending_duplicate_resolution(album_name=album_name, asset=asset)
-                                        _maybe_finalize_album(
-                                            album_name=album_name,
-                                            removed_source_asset_ids=removed_source_asset_ids,
-                                            processed_albums=processed_albums,
-                                            processed_albums_lock=processed_albums_lock,
-                                            worker_id=worker_id,
-                                            logger=LOGGER,
-                                            log_level=log_level,
-                                        )
                                 else:
                                     scheduled_retry = _schedule_asset_retry(
                                         asset=asset,
@@ -4178,6 +4189,28 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         )
 
                     if not scheduled_retry and album_name and isDuplicated and not asset_id:
+                        asset['asset_started_at_perf'] = asset_started_at
+                        asset['push_elapsed_ms'] = push_elapsed_ms
+                        asset['queue_wait_ms'] = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0) if isinstance(enqueued_at_monotonic, (int, float)) else None
+                        asset['worker_id'] = worker_id
+                        asset['isDuplicated'] = True
+                        asset['asset_pushed'] = False
+                        asset['treat_as_consumed'] = treat_as_consumed
+                        asset['album_assoc_enqueued_at_monotonic'] = time.perf_counter()
+                        moved_asset = _move_staged_asset_to_queue_folder(
+                            temp_folder=temp_folder,
+                            asset=asset,
+                            queue_folder_name=AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+                            log_level=log_level,
+                        )
+                        asset.update(moved_asset)
+                        asset_file_path = asset.get('asset_file_path')
+                        live_photo_video_path = asset.get('live_photo_video_path')
+                        album_assoc_queue.put(asset)
+                        LOGGER.info(
+                            f"Album Association Queued: duplicate '{os.path.basename(asset_file_path)}' "
+                            f"for album '{album_name}' requires target-id resolution."
+                        )
                         queue_wait_ms = None
                         if isinstance(enqueued_at_monotonic, (int, float)):
                             queue_wait_ms = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0)
