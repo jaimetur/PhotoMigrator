@@ -424,8 +424,9 @@ def _posix_terminal_job_command(
             completion_write = f"printf '%s' \"$_photomigrator_exit_code\" > {completion_target}; "
         # Keep Rich in the terminal foreground. The wrapper records its PID, then
         # execs PhotoMigrator so the GUI can still stop the actual migration.
+        pid_wrapper_script = 'printf \'%s\' "$$" > "$1"; shift; exec "$@"'
         pid_wrapper = (
-            f"sh -c {shlex.quote('printf \'%s\' \"$$\" > \"$1\"; shift; exec \"$@\"')} "
+            f"sh -c {shlex.quote(pid_wrapper_script)} "
             f"photomigrator-dashboard {pid_target} {command_text}"
         )
         parts.append(
