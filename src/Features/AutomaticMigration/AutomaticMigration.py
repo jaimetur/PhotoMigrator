@@ -496,6 +496,22 @@ def _move_staged_asset_to_queue_folder(temp_folder, asset, queue_folder_name, lo
     return moved_asset
 
 
+def _count_staged_queue_files(temp_folder, queue_folder_name):
+    """Return the physical media files still retained by a persistent queue."""
+    queue_root = Path(temp_folder) / queue_folder_name
+    if not queue_root.is_dir():
+        return 0
+    ignored_names = {".active", ".DS_Store"}
+    try:
+        return sum(
+            1
+            for path in queue_root.rglob("*")
+            if path.is_file() and path.name not in ignored_names and not path.name.endswith(".lock")
+        )
+    except OSError:
+        return 0
+
+
 def _increment_transfer_counters(counter_map, counter_prefix, asset_stats=None, asset_type=None):
     stats = dict(asset_stats or _build_physical_transfer_stats(asset_type))
     counter_map[f'{counter_prefix}_assets'] = int(counter_map.get(f'{counter_prefix}_assets', 0) or 0) + int(stats.get("assets", 0) or 0)
@@ -1212,10 +1228,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 queue_size = push_queue.qsize()
             except NameError:
                 queue_size = 0
-            try:
-                album_assoc_queue_size = album_assoc_queue.qsize()
-            except NameError:
-                album_assoc_queue_size = 0
+            album_assoc_queue_size = _count_staged_queue_files(
+                temp_folder,
+                AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+            )
             SHARED_DATA.info['assets_in_queue'] = queue_size
             SHARED_DATA.info['album_assoc_queue_size'] = album_assoc_queue_size
             SHARED_DATA.info['delayed_assets_pending'] = delayed_assets
@@ -1229,6 +1245,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             item = super().get(*args, **kwargs)
             _refresh_queue_depth()
             return item
+
+        def task_done(self):
+            super().task_done()
+            _refresh_queue_depth()
 
     # -------------------------------------------------------------------
     # Variables compartidas para controlar la creación de álbumes
@@ -4278,6 +4298,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             item = super().get(*args, **kwargs)
             _refresh_queue_depth()
             return item
+
+        def task_done(self):
+            super().task_done()
+            _refresh_queue_depth()
 
     push_queue = MonitoredPriorityQueue() if push_queue_priority_enabled else MonitoredQueue()
     album_assoc_queue = MonitoredQueue()

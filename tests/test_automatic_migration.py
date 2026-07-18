@@ -324,6 +324,22 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             self.assertFalse(queued_photo.exists())
             self.assertTrue(expected_delayed.exists())
 
+    def test_count_staged_queue_files_ignores_runtime_markers(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            queue_folder = Path(tmpdir) / automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER / "Albums" / "MiAlbum"
+            queue_folder.mkdir(parents=True)
+            (queue_folder / "IMG_0001.JPG").write_text("photo", encoding="utf-8")
+            (queue_folder / "IMG_0001.MP4").write_text("video", encoding="utf-8")
+            (queue_folder / ".active").write_text("active", encoding="utf-8")
+            (queue_folder / "IMG_0002.JPG.lock").write_text("lock", encoding="utf-8")
+
+            count = automatic_module._count_staged_queue_files(
+                tmpdir,
+                automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+            )
+
+            self.assertEqual(count, 2)
+
     def test_stage_local_asset_moves_and_preserves_source_relative_path(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             source_root = Path(tmpdir) / "source"
