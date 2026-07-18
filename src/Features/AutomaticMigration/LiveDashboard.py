@@ -253,13 +253,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             LOGGER.propagate = False
             log_file = get_logger_filename(LOGGER)
 
-            # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (18 lines),
+            # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (16 lines),
             # logs fill remainder, background_progress_panel (7 lines) at the bottom.
             layout.split_column(
                 Layout(name="empty_line_1", size=1),  # Línea vacía
                 Layout(name="header_panel", size=8),
                 Layout(name="title_panel", size=3),
-                Layout(name="content_panel", size=18),
+                Layout(name="content_panel", size=16),
                 Layout(name="logs_panel", ratio=1),
                 Layout(name="background_progress_panel", size=7),
                 Layout(name="empty_line_2", size=1),  # Línea vacía
@@ -504,7 +504,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             }
             delayed_pushs = {
                 "⏳ Delayed Retries": 'total_push_retry_scheduled_assets',
-                "⏱️ Delayed Recovered": 'total_push_retry_recovered_assets',
+                "⏳ Delayed Recovered": 'total_push_retry_recovered_assets',
             }
             push_tasks = {}
             for label, (bar, completed_label, total_label) in push_bars.items():
@@ -524,7 +524,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
                     failed_label, failed_counter = pull_failures[label]
                     failed_value = SHARED_DATA.counters.get(failed_counter, 0)
-                    table.add_row(f"[cyan]  {failed_label:<17}:[/cyan]", f"[cyan]{failed_value}[/cyan]")
+                    table.add_row(f"[cyan]  {failed_label}:[/cyan]", f"[cyan]{failed_value}[/cyan]")
                 table.add_row("", "")
                 table.add_row(
                     f"[cyan dim]{'─' * 24}[/cyan dim]",
@@ -550,6 +550,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         f"[green]  {outcome_label} (New / Duplicates / Failed):[/green]",
                         f"[green]{new_value} / {duplicate_value} / {failed_value}[/green]",
                     )
+                table.add_row("", "")
                 table.add_row(
                     f"[green dim]{'─' * 40}[/green dim]",
                     f"[green dim]{'─' * 80}[/green dim]",
