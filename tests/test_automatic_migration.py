@@ -275,10 +275,10 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(counters["total_pulled_photos"], 1)
         self.assertEqual(counters["total_pulled_videos"], 1)
 
-    def test_move_to_album_association_failed_folder_preserves_files_under_album_subfolder(self):
+    def test_move_to_album_association_queue_preserves_relative_folder_structure(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             temp_root = Path(tmpdir)
-            album_folder = temp_root / "Fotos Javi"
+            album_folder = temp_root / automatic_module.AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER / "Albums" / "Fotos Javi"
             album_folder.mkdir(parents=True)
             photo = album_folder / "IMG_0001.JPG"
             video = album_folder / "IMG_0001.MP4"
@@ -293,7 +293,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 log_level=logging.INFO,
             )
 
-            failed_album_folder = temp_root / "Album Association Failed" / "Fotos Javi"
+            failed_album_folder = temp_root / automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER / "Albums" / "Fotos Javi"
             self.assertEqual(
                 moved,
                 {
@@ -305,6 +305,48 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             self.assertFalse(video.exists())
             self.assertTrue((failed_album_folder / "IMG_0001.JPG").exists())
             self.assertTrue((failed_album_folder / "IMG_0001.MP4").exists())
+
+    def test_move_staged_asset_between_queues_preserves_relative_folder_structure(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_root = Path(tmpdir)
+            queued_photo = temp_root / "Push_Queue" / "Albums" / "MiAlbum" / "IMG_0001.JPG"
+            queued_photo.parent.mkdir(parents=True)
+            queued_photo.write_text("photo", encoding="utf-8")
+
+            delayed_asset = automatic_module._move_staged_asset_to_queue_folder(
+                str(temp_root),
+                {"asset_file_path": str(queued_photo)},
+                automatic_module.AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
+            )
+            expected_delayed = temp_root / "Delayed_Queue" / "Albums" / "MiAlbum" / "IMG_0001.JPG"
+
+            self.assertEqual(delayed_asset["asset_file_path"], str(expected_delayed))
+            self.assertFalse(queued_photo.exists())
+            self.assertTrue(expected_delayed.exists())
+
+    def test_stage_local_asset_moves_and_preserves_source_relative_path(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source_root = Path(tmpdir) / "source"
+            source_photo = source_root / "Albums" / "MiAlbum" / "IMG_0001.JPG"
+            source_photo.parent.mkdir(parents=True)
+            source_photo.write_text("photo", encoding="utf-8")
+            local_client = object.__new__(automatic_module.ClassLocalFolder)
+            local_client.base_folder = source_root
+            queue_root = Path(tmpdir) / "Automatic_Migration" / "Push_Queue"
+
+            staged_path = automatic_module._stage_local_asset_for_automatic_migration(
+                source_client=local_client,
+                source_asset_id=str(source_photo),
+                asset_filename=source_photo.name,
+                asset_time=None,
+                queue_root=str(queue_root),
+                move_assets=True,
+            )
+
+            expected_path = queue_root / "Albums" / "MiAlbum" / "IMG_0001.JPG"
+            self.assertEqual(staged_path, str(expected_path))
+            self.assertFalse(source_photo.exists())
+            self.assertTrue(expected_path.exists())
 
     def test_finalize_album_assoc_failed_asset_safely_returns_none_when_cleanup_raises(self):
         logger = unittest.mock.Mock()

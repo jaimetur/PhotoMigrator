@@ -48,6 +48,10 @@ BG_LEVEL_PREFIX_RE = re.compile(
     flags=re.IGNORECASE,
 )
 WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
+AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER = "Push_Queue"
+AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER = "Delayed_Queue"
+AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER = "Push_Failed"
+AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER = "Album_Association_Queue"
 
 
 class SharedData:
@@ -191,7 +195,7 @@ def _finalize_album_assoc_failed_asset_safely(
     except Exception as error:
         if report_logger is not None:
             report_logger.error(
-                f"Album Association Failed Cleanup Exception: asset '{os.path.basename(str(log_asset_file_path or ''))}' "
+                f"Album Association Queue Cleanup Exception: asset '{os.path.basename(str(log_asset_file_path or ''))}' "
                 f"into album '{log_album_name}' - {error}\n{traceback.format_exc()}"
             )
         return None
@@ -388,6 +392,110 @@ def _build_physical_transfer_stats(asset_type, include_live_companion=False):
     return {"assets": 1, "photos": 1, "videos": 0}
 
 
+def _safe_asset_relative_path(source_root, source_path, fallback_name):
+    fallback_name = str(fallback_name or os.path.basename(str(source_path or "")) or "asset").strip()
+    try:
+        source_root_path = Path(str(source_root)).expanduser().resolve()
+        source_path_obj = Path(str(source_path)).expanduser().resolve()
+        relative_path = source_path_obj.relative_to(source_root_path)
+        if str(relative_path).strip() and not str(relative_path).startswith(".."):
+            return relative_path
+    except Exception:
+        pass
+    return Path(fallback_name)
+
+
+def _build_automatic_migration_relative_asset_path(source_client, source_asset_id, asset_filename, album_name=None):
+    if isinstance(source_client, ClassLocalFolder):
+        base_folder = getattr(source_client, "base_folder", None)
+        relative_path = _safe_asset_relative_path(base_folder, source_asset_id, asset_filename)
+        if str(relative_path).strip():
+            return relative_path
+    if album_name:
+        return Path(str(album_name)) / str(asset_filename)
+    return Path(str(asset_filename))
+
+
+def _dedupe_destination_path(destination_path):
+    destination_path = Path(destination_path)
+    if not destination_path.exists():
+        return destination_path
+    stem = destination_path.stem
+    suffix = destination_path.suffix
+    parent = destination_path.parent
+    counter = 1
+    while True:
+        candidate = parent / f"{stem}_{counter}{suffix}"
+        if not candidate.exists():
+            return candidate
+        counter += 1
+
+
+def _stage_local_asset_for_automatic_migration(source_client, source_asset_id, asset_filename, asset_time, queue_root, move_assets=False):
+    source_path = Path(str(source_asset_id))
+    relative_path = _build_automatic_migration_relative_asset_path(
+        source_client=source_client,
+        source_asset_id=source_asset_id,
+        asset_filename=asset_filename,
+    )
+    destination_path = _dedupe_destination_path(Path(queue_root) / relative_path)
+    destination_path.parent.mkdir(parents=True, exist_ok=True)
+    if move_assets:
+        shutil.move(str(source_path), str(destination_path))
+    else:
+        shutil.copy2(source_path, destination_path)
+    if asset_time:
+        os.utime(destination_path, (asset_time, asset_time))
+    return str(destination_path)
+
+
+def _relative_staged_asset_path(temp_folder, asset_file_path):
+    asset_path = Path(str(asset_file_path))
+    queue_roots = [
+        Path(temp_folder) / AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER,
+        Path(temp_folder) / AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
+        Path(temp_folder) / AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+        Path(temp_folder) / AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER,
+    ]
+    for queue_root in queue_roots:
+        try:
+            return asset_path.resolve().relative_to(queue_root.resolve())
+        except Exception:
+            continue
+    try:
+        return asset_path.resolve().relative_to(Path(temp_folder).resolve())
+    except Exception:
+        return Path(asset_path.name)
+
+
+def _move_staged_asset_to_queue_folder(temp_folder, asset, queue_folder_name, log_level=logging.INFO):
+    if not isinstance(asset, dict):
+        return asset
+
+    def _move_one(path):
+        if not path:
+            return path
+        current_path = Path(str(path))
+        if not current_path.exists():
+            return str(current_path)
+        relative_path = _relative_staged_asset_path(temp_folder, current_path)
+        destination_path = _dedupe_destination_path(Path(temp_folder) / queue_folder_name / relative_path)
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            if current_path.resolve() == destination_path.resolve():
+                return str(current_path)
+        except Exception:
+            pass
+        shutil.move(str(current_path), str(destination_path))
+        return str(destination_path)
+
+    moved_asset = dict(asset)
+    moved_asset["asset_file_path"] = _move_one(moved_asset.get("asset_file_path"))
+    if moved_asset.get("live_photo_video_path"):
+        moved_asset["live_photo_video_path"] = _move_one(moved_asset.get("live_photo_video_path"))
+    return moved_asset
+
+
 def _increment_transfer_counters(counter_map, counter_prefix, asset_stats=None, asset_type=None):
     stats = dict(asset_stats or _build_physical_transfer_stats(asset_type))
     counter_map[f'{counter_prefix}_assets'] = int(counter_map.get(f'{counter_prefix}_assets', 0) or 0) + int(stats.get("assets", 0) or 0)
@@ -408,8 +516,8 @@ def _move_to_album_association_failed_folder(temp_folder, album_name, asset_file
     if not temp_folder or not album_name:
         return {}
 
-    failed_album_folder = os.path.join(temp_folder, "Album Association Failed", album_name)
-    os.makedirs(failed_album_folder, exist_ok=True)
+    association_queue_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER)
+    os.makedirs(association_queue_folder, exist_ok=True)
     moved_paths = {}
     logger = LOGGER if hasattr(LOGGER, "warning") else None
 
@@ -434,23 +542,19 @@ def _move_to_album_association_failed_folder(temp_folder, album_name, asset_file
         resolved = _resolve_existing_local_path(path)
         if not resolved or not os.path.exists(resolved):
             return None
-        if os.path.commonpath([os.path.abspath(resolved), os.path.abspath(failed_album_folder)]) == os.path.abspath(failed_album_folder):
+        if os.path.commonpath([os.path.abspath(resolved), os.path.abspath(association_queue_folder)]) == os.path.abspath(association_queue_folder):
             return resolved
-        base_name = os.path.basename(resolved)
-        stem, ext = os.path.splitext(base_name)
-        candidate = os.path.join(failed_album_folder, base_name)
-        suffix = 1
-        while os.path.exists(candidate):
-            candidate = os.path.join(failed_album_folder, f"{stem}_{suffix}{ext}")
-            suffix += 1
+        relative_path = _relative_staged_asset_path(temp_folder, resolved)
+        candidate = _dedupe_destination_path(Path(association_queue_folder) / relative_path)
+        os.makedirs(os.path.dirname(candidate), exist_ok=True)
         shutil.move(resolved, candidate)
         if logger is not None:
             logger.warning(
-                f"Album Association Failed: '{base_name}' preserved at '{candidate}' "
+                f"Album Association Queued: '{os.path.basename(resolved)}' preserved at '{candidate}' "
                 f"because the upload succeeded but album '{album_name}' was not confirmed."
             )
-        moved_paths[label] = candidate
-        return candidate
+        moved_paths[label] = str(candidate)
+        return str(candidate)
 
     _move_one(asset_file_path, "asset_file_path")
     _move_one(live_photo_video_path, "live_photo_video_path")
@@ -731,7 +835,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
         # Define the INTERMEDIATE_FOLDER
-        INTERMEDIATE_FOLDER = resolve_external_path(f'./Automatic_Migration_Push_Failed_{TIMESTAMP}')
+        INTERMEDIATE_FOLDER = resolve_external_path(f'./Automatic_Migration_{TIMESTAMP}')
 
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target
@@ -1081,14 +1185,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     # Protector para que no se pisen las actualizaciones de métricas
     metrics_lock = threading.Lock()
-    retry_delay_seconds = max(60, int(ARGS.get("push-failed-asset-retry-delay-seconds", 180) or 180))
-    # Keep failed uploads in the temp folder by default instead of re-enqueueing them.
-    max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 0) or 0))
+    retry_delay_seconds = max(60, int(ARGS.get("push-failed-asset-retry-delay-seconds", 300) or 300))
+    max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 3) or 3))
     retry_backoff_factor = max(1, int(ARGS.get("push-failed-asset-retry-backoff-factor", 1) or 1))
     album_assoc_retry_delays_seconds = [2, 5, 10]
     max_album_assoc_retries = min(
         len(album_assoc_retry_delays_seconds),
-        max(0, int(ARGS.get("album-association-retries", 0) or 0)),
+        max(0, int(ARGS.get("album-association-retries", 3) or 3)),
     )
     default_album_assoc_batch_size = 10 if isinstance(target_client, ClassImmichPhotos) else 100
     album_assoc_batch_size = max(5, int(ARGS.get("album-association-batch-size", default_album_assoc_batch_size) or default_album_assoc_batch_size))
@@ -1355,16 +1458,18 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         processed_albums_lock,
         worker_id,
         logger,
+        source_asset_already_moved=False,
+        source_live_companion_already_moved=False,
     ):
         cleanup_started_at = time.perf_counter()
-        if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and asset_id:
+        if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and asset_id and not source_asset_already_moved:
             _remove_source_asset_after_move(
                 source_client=source_client,
                 asset_id=source_asset_id,
                 log_level=log_level,
             )
             removed_source_asset_ids.add(source_asset_id)
-        if move_assets and source_live_photo_video_path and source_live_photo_video_path not in removed_source_asset_ids and asset_id:
+        if move_assets and source_live_photo_video_path and source_live_photo_video_path not in removed_source_asset_ids and asset_id and not source_live_companion_already_moved:
             _remove_source_asset_after_move(
                 source_client=source_client,
                 asset_id=source_live_photo_video_path,
@@ -1412,18 +1517,20 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         worker_id,
         logger,
         cleanup_delay_seconds=0.0,
+        source_asset_already_moved=False,
+        source_live_companion_already_moved=False,
     ):
         cleanup_started_at = time.perf_counter()
         if cleanup_delay_seconds > 0:
             time.sleep(cleanup_delay_seconds)
-        if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and asset_id:
+        if move_assets and source_asset_id and source_asset_id not in removed_source_asset_ids and asset_id and not source_asset_already_moved:
             _remove_source_asset_after_move(
                 source_client=source_client,
                 asset_id=source_asset_id,
                 log_level=log_level,
             )
             removed_source_asset_ids.add(source_asset_id)
-        if move_assets and source_live_photo_video_path and source_live_photo_video_path not in removed_source_asset_ids and asset_id:
+        if move_assets and source_live_photo_video_path and source_live_photo_video_path not in removed_source_asset_ids and asset_id and not source_live_companion_already_moved:
             _remove_source_asset_after_move(
                 source_client=source_client,
                 asset_id=source_live_photo_video_path,
@@ -1820,6 +1927,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     processed_albums_lock=processed_albums_lock,
                     worker_id=worker_id,
                     logger=LOGGER,
+                    source_asset_already_moved=bool(asset.get("source_asset_already_moved")),
+                    source_live_companion_already_moved=bool(asset.get("source_live_companion_already_moved")),
                 )
                 return True, assoc_elapsed_ms, cleanup_elapsed_ms, False
 
@@ -1858,6 +1967,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     processed_albums_lock=processed_albums_lock,
                     worker_id=worker_id,
                     logger=LOGGER,
+                    source_asset_already_moved=bool(asset.get("source_asset_already_moved")),
+                    source_live_companion_already_moved=bool(asset.get("source_live_companion_already_moved")),
                 )
                 return False, assoc_elapsed_ms, cleanup_elapsed_ms, False
             return False, assoc_elapsed_ms, None, True
@@ -1891,6 +2002,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     processed_albums_lock=processed_albums_lock,
                     worker_id=worker_id,
                     logger=LOGGER,
+                    source_asset_already_moved=bool(asset.get("source_asset_already_moved")),
+                    source_live_companion_already_moved=bool(asset.get("source_live_companion_already_moved")),
                 )
                 LOGGER.error(
                     f"Album Association Exception: asset '{os.path.basename(asset.get('asset_file_path', ''))}' "
@@ -1989,22 +2102,37 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             log_level=log_level,
         )
 
+    def _get_album_staging_folder(album_name):
+        if isinstance(source_client, ClassLocalFolder):
+            with source_album_paths_lock:
+                album_source_paths = sorted(source_album_paths_by_name.get(album_name) or [])
+            for album_source_path in album_source_paths:
+                relative_path = _safe_asset_relative_path(
+                    getattr(source_client, "base_folder", None),
+                    album_source_path,
+                    album_name,
+                )
+                candidate = os.path.join(push_queue_folder, str(relative_path))
+                if os.path.isdir(candidate):
+                    return candidate
+        return os.path.join(push_queue_folder, str(album_name))
+
     def _list_album_remaining_files(album_folder_path):
         remaining_files = []
         if not os.path.isdir(album_folder_path):
             return remaining_files
-        for entry in os.listdir(album_folder_path):
-            if entry == ".active" or entry.endswith(".lock"):
-                continue
-            full_path = os.path.join(album_folder_path, entry)
-            if os.path.isfile(full_path):
-                remaining_files.append(full_path)
+        for root, dirs, files in os.walk(album_folder_path):
+            dirs[:] = [entry for entry in dirs if entry not in {"@eaDir", "__MACOSX"}]
+            for entry in files:
+                if entry == ".active" or entry.endswith(".lock") or entry == ".DS_Store":
+                    continue
+                remaining_files.append(os.path.join(root, entry))
         return remaining_files
 
     def _format_album_pending_context(album_name, current_asset_file_path=None):
         if not album_name:
             return ""
-        album_folder_path = os.path.join(temp_folder, album_name)
+        album_folder_path = _get_album_staging_folder(album_name)
         if not os.path.isdir(album_folder_path):
             return f" (Album: '{album_name}')"
 
@@ -2031,7 +2159,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         removed_source_asset_ids = removed_source_asset_ids if removed_source_asset_ids is not None else set()
         processed_albums = processed_albums if processed_albums is not None else set()
         processed_albums_lock = processed_albums_lock if processed_albums_lock is not None else threading.Lock()
-        album_folder_path = os.path.join(temp_folder, album_name)
+        album_folder_path = _get_album_staging_folder(album_name)
         finalize_lock = _get_album_finalize_lock(album_name)
 
         def _log_finalize_wait(reason):
@@ -2085,6 +2213,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 album_name=album_name,
                                 album_stats_by_name_ref=album_stats_by_name_ref,
                                 album_stats_lock_ref=album_stats_lock_ref,
+                                asset=item,
                             )
                             item["_final_resolution_counted"] = True
                         unresolved_items.append(item)
@@ -2145,6 +2274,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             processed_albums_lock=processed_albums_lock,
                             worker_id=worker_id,
                             logger=logger,
+                            source_asset_already_moved=bool(item.get("source_asset_already_moved")),
+                            source_live_companion_already_moved=bool(item.get("source_live_companion_already_moved")),
                         )
                     if unresolved_items:
                         _set_pending_duplicate_resolution_items(album_name, unresolved_items)
@@ -2194,6 +2325,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         album_name=None,
         album_stats_by_name_ref=None,
         album_stats_lock_ref=None,
+        asset=None,
     ):
         if count_push_stats:
             stats = dict(asset_stats or _build_physical_transfer_stats(asset_type))
@@ -2207,6 +2339,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             )
             SHARED_DATA.counters['total_push_failed_photos'] += int(stats.get("photos", 0) or 0)
             SHARED_DATA.counters['total_push_failed_videos'] += int(stats.get("videos", 0) or 0)
+        if isinstance(asset, dict):
+            moved_asset = _move_staged_asset_to_queue_folder(
+                temp_folder=temp_folder,
+                asset=asset,
+                queue_folder_name=AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER,
+                log_level=log_level,
+            )
+            asset.update({
+                "asset_file_path": moved_asset.get("asset_file_path"),
+                "live_photo_video_path": moved_asset.get("live_photo_video_path"),
+            })
 
     NO_RETRY_LARGE_ASSET_BYTES = 50 * 1024 * 1024
 
@@ -2216,6 +2359,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     def _schedule_asset_retry(asset, reason, resolved_target_asset_id=None, skip_target_push=False):
         if max_push_retries <= 0:
+            _move_staged_asset_to_queue_folder(temp_folder, asset, AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER)
             return False
 
         asset_file_path = str((asset or {}).get('asset_file_path', '') or '').strip()
@@ -2237,9 +2381,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         if next_attempt > max_push_retries:
             if current_attempt > 0:
                 SHARED_DATA.counters['total_push_retry_failed_assets'] += 1
+            _move_staged_asset_to_queue_folder(temp_folder, asset, AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER)
             return False
 
-        retry_asset = dict(asset)
+        retry_asset = _move_staged_asset_to_queue_folder(
+            temp_folder, asset, AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
+        )
         retry_asset['retry_attempt'] = next_attempt
         if resolved_target_asset_id:
             retry_asset['resolved_target_asset_id'] = resolved_target_asset_id
@@ -2285,20 +2432,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         retry_asset['retry_kind'] = 'album_assoc'
         retry_asset.pop('retry_attempt', None)
 
-        delay_seconds = album_assoc_retry_delays_seconds[next_attempt - 1]
-        ready_at = time.time() + delay_seconds
-
-        with retry_condition:
-            retry_sequence['value'] += 1
-            heapq.heappush(retry_heap, (ready_at, retry_sequence['value'], retry_asset))
-            SHARED_DATA.info['delayed_assets_pending'] = len(retry_heap)
-            retry_condition.notify_all()
-        _refresh_queue_depth()
+        retry_asset = _move_staged_asset_to_queue_folder(
+            temp_folder, retry_asset, AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+        )
+        retry_asset['album_assoc_enqueued_at_monotonic'] = time.perf_counter()
+        album_assoc_queue.put(retry_asset)
 
         SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += 1
         LOGGER.warning(
             f"Album Association Retry Delayed: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
-            f"attempt {next_attempt}/{max_album_assoc_retries} scheduled in {delay_seconds}s. Reason: {reason}"
+            f"attempt {next_attempt}/{max_album_assoc_retries} queued for an album-association worker. Reason: {reason}"
         )
         return True
 
@@ -2320,6 +2463,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     heapq.heappop(retry_heap)
                     SHARED_DATA.info['delayed_assets_pending'] = len(retry_heap)
                 _refresh_queue_depth()
+                retry_asset = _move_staged_asset_to_queue_folder(
+                    temp_folder, retry_asset, AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER,
+                )
                 _push_queue_put(retry_asset)
                 retry_kind = str(retry_asset.get('retry_kind') or 'push').strip().lower()
                 if retry_kind == 'album_assoc':
@@ -2430,6 +2576,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         processed_albums_lock=processed_albums_lock,
                         worker_id=worker_id,
                         logger=LOGGER,
+                        source_asset_already_moved=bool(item.get("source_asset_already_moved")),
+                        source_live_companion_already_moved=bool(item.get("source_live_companion_already_moved")),
                     )
                 else:
                     LOGGER.warning(
@@ -2477,6 +2625,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             processed_albums_lock=processed_albums_lock,
                             worker_id=worker_id,
                             logger=LOGGER,
+                            source_asset_already_moved=bool(item.get("source_asset_already_moved")),
+                            source_live_companion_already_moved=bool(item.get("source_live_companion_already_moved")),
                         )
 
                 _debug_perf_log(
@@ -2638,6 +2788,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             return 0
         if item is None:
             return 99
+        if int((item or {}).get('retry_attempt', 0) or 0) > 0:
+            return -10
         asset_type = str((item or {}).get("asset_type", "") or "").strip().lower()
         if asset_type in video_labels:
             return 10
@@ -3339,7 +3491,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     continue
 
                 # Crear carpeta del álbum dentro de temp_folder, y bloquea su eliminación hasta que terminen las descargas del album
-                album_folder = os.path.join(temp_folder, album_name)
+                album_folder = _get_album_staging_folder(album_name)
                 os.makedirs(album_folder, exist_ok=True)
                 # Crear archivo `.active` para marcar que la carpeta está en uso
                 active_file = os.path.join(album_folder, ".active")
@@ -3364,8 +3516,18 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "total_assets", 1)
 
-                        # Ruta del archivo descargado
-                        local_file_path = os.path.join(album_folder, asset_filename)
+                        # Stage every pending upload under Push_Queue. Local-folder
+                        # sources retain their full path relative to the source root.
+                        download_folder = album_folder
+                        staged_filename = asset_filename
+                        if isinstance(source_client, ClassLocalFolder):
+                            relative_path = _build_automatic_migration_relative_asset_path(
+                                source_client, asset_id, asset_filename, album_name,
+                            )
+                            download_folder = os.path.join(push_queue_folder, str(relative_path.parent))
+                            staged_filename = relative_path.name
+                        local_file_path = os.path.join(download_folder, staged_filename)
+                        os.makedirs(download_folder, exist_ok=True)
 
                         # Archivo de bloqueo temporal para que el pusher no borre el fichero mientras que el puller lo está creando
                         lock_file = local_file_path + ".lock"
@@ -3376,18 +3538,33 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         skipped_not_found = False
                         pull_started_at = time.perf_counter()
                         try:
-                            pull_kwargs = {
-                                "asset_id": asset_id,
-                                "asset_filename": asset_filename,
-                                "asset_time": asset_datetime,
-                                "download_folder": album_folder,
-                                "album_passphrase": album_passphrase if is_shared else None,
-                                "log_level": logging.ERROR,
-                            }
-                            if isinstance(source_client, ClassSynologyPhotos):
-                                pull_kwargs["album_id"] = album_id
-                                pull_kwargs["album_scope"] = album_scope
-                            pulled_assets = source_client.pull_asset(**pull_kwargs)
+                            if not isinstance(source_client, ClassLocalFolder):
+                                pull_kwargs = {
+                                    "asset_id": asset_id,
+                                    "asset_filename": staged_filename,
+                                    "asset_time": asset_datetime,
+                                    "download_folder": download_folder,
+                                    "album_passphrase": album_passphrase if is_shared else None,
+                                    "log_level": logging.ERROR,
+                                }
+                                if isinstance(source_client, ClassSynologyPhotos):
+                                    pull_kwargs["album_id"] = album_id
+                                    pull_kwargs["album_scope"] = album_scope
+                            if isinstance(source_client, ClassLocalFolder):
+                                staged_path = _stage_local_asset_for_automatic_migration(
+                                    source_client=source_client,
+                                    source_asset_id=asset_id,
+                                    asset_filename=asset_filename,
+                                    asset_time=asset_datetime,
+                                    queue_root=push_queue_folder,
+                                    move_assets=bool(ARGS.get('move-assets', False)),
+                                )
+                                pulled_assets = [staged_path]
+                                local_file_path = staged_path
+                                download_folder = os.path.dirname(staged_path)
+                                staged_filename = os.path.basename(staged_path)
+                            else:
+                                pulled_assets = source_client.pull_asset(**pull_kwargs)
                         except Exception as e:
                             if _is_nextcloud_photo_not_found_error(e):
                                 skipped_not_found = True
@@ -3407,7 +3584,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         # Actualizamos Contadores de descargas
                         if _pull_has_content(pulled_assets):
-                            pulled_file_paths = collect_pulled_asset_paths(album_folder, asset_filename)
+                            pulled_file_paths = collect_pulled_asset_paths(download_folder, staged_filename)
                             if not pulled_file_paths:
                                 pulled_file_paths = [local_file_path]
                             collect_finished_at = time.perf_counter()
@@ -3448,6 +3625,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     'count_push_stats': count_push_stats,
                                     'physical_stats': asset_stats,
                                     'enqueued_at_monotonic': time.perf_counter(),
+                                    'source_asset_already_moved': bool(ARGS.get('move-assets', None)) and isinstance(source_client, ClassLocalFolder),
                                 }
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                     asset_dict['live_photo_video_path'] = immich_live_companion
@@ -3532,9 +3710,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.error(f"Error Retrieving All Assets without Albums - {e} \n{traceback.format_exc()}")
 
             # Crear carpeta temp_folder si no existe, y bloquea su eliminación hasta que terminen las descargas
-            os.makedirs(temp_folder, exist_ok=True)
+            os.makedirs(push_queue_folder, exist_ok=True)
             # Crear archivo `.active` para marcar que la carpeta está en uso
-            active_file = os.path.join(temp_folder, ".active")
+            active_file = os.path.join(push_queue_folder, ".active")
             with open(active_file, 'w') as lock_temp_folder:
                 lock_temp_folder.write("Pulling Asset")
             try:
@@ -3556,8 +3734,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         continue
 
                     try:
-                        # Ruta del archivo descargado
-                        local_file_path = os.path.join(temp_folder, asset_filename)
+                        download_folder = push_queue_folder
+                        staged_filename = asset_filename
+                        if isinstance(source_client, ClassLocalFolder):
+                            relative_path = _build_automatic_migration_relative_asset_path(
+                                source_client, asset_id, asset_filename,
+                            )
+                            download_folder = os.path.join(push_queue_folder, str(relative_path.parent))
+                            staged_filename = relative_path.name
+                        local_file_path = os.path.join(download_folder, staged_filename)
+                        os.makedirs(download_folder, exist_ok=True)
 
                         # Archivo de bloqueo temporal para que el pusher no borre el fichero mientras que el puller lo está creando
                         lock_file = local_file_path + ".lock"
@@ -3566,7 +3752,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             lock.write("Pulling")
                         # Descargar directamente en temp_folder
                         pull_started_at = time.perf_counter()
-                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.ERROR)
+                        if isinstance(source_client, ClassLocalFolder):
+                            staged_path = _stage_local_asset_for_automatic_migration(
+                                source_client=source_client,
+                                source_asset_id=asset_id,
+                                asset_filename=asset_filename,
+                                asset_time=asset_datetime,
+                                queue_root=push_queue_folder,
+                                move_assets=bool(ARGS.get('move-assets', False)),
+                            )
+                            pulled_assets = [staged_path]
+                            local_file_path = staged_path
+                            download_folder = os.path.dirname(staged_path)
+                            staged_filename = os.path.basename(staged_path)
+                        else:
+                            pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=staged_filename, asset_time=asset_datetime, download_folder=download_folder, log_level=logging.ERROR)
                     except Exception as e:
                         if _is_nextcloud_photo_not_found_error(e):
                             LOGGER.warning(
@@ -3586,7 +3786,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                     # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
                     if _pull_has_content(pulled_assets):
-                        pulled_file_paths = collect_pulled_asset_paths(temp_folder, asset_filename)
+                        pulled_file_paths = collect_pulled_asset_paths(download_folder, staged_filename)
                         if not pulled_file_paths:
                             pulled_file_paths = [local_file_path]
                         collect_finished_at = time.perf_counter()
@@ -3627,6 +3827,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 'count_push_stats': count_push_stats,
                                 'physical_stats': asset_stats,
                                 'enqueued_at_monotonic': time.perf_counter(),
+                                'source_asset_already_moved': bool(ARGS.get('move-assets', None)) and isinstance(source_client, ClassLocalFolder),
                             }
                             if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                 asset_dict['live_photo_video_path'] = immich_live_companion
@@ -3763,6 +3964,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 processed_albums_lock=processed_albums_lock,
                                 worker_id=worker_id,
                                 logger=LOGGER,
+                                source_asset_already_moved=bool(asset.get("source_asset_already_moved")),
+                                source_live_companion_already_moved=bool(asset.get("source_live_companion_already_moved")),
                             )
                             continue
                         # SUBIR el asset salvo que ya tengamos que reintentar solo la asociación al álbum.
@@ -3898,6 +4101,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                             album_name=album_name,
                                             album_stats_by_name_ref=album_stats_by_name_ref,
                                             album_stats_lock_ref=album_stats_lock_ref,
+                                            asset=asset,
                                         )
 
                     except Exception as e:
@@ -3921,6 +4125,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 album_name=album_name,
                                 album_stats_by_name_ref=album_stats_by_name_ref,
                                 album_stats_lock_ref=album_stats_lock_ref,
+                                asset=asset,
                             )
                             continue
 
@@ -3931,16 +4136,27 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                     if not scheduled_retry and album_name and asset_id:
                         asset['resolved_target_asset_id'] = asset_id
-                        album_association_confirmed, album_assoc_elapsed_ms, cleanup_elapsed_ms, scheduled_retry = _associate_uploaded_asset_to_album(
+                        asset['asset_started_at_perf'] = asset_started_at
+                        asset['push_elapsed_ms'] = push_elapsed_ms
+                        asset['queue_wait_ms'] = max(0.0, (asset_started_at - float(enqueued_at_monotonic)) * 1000.0) if isinstance(enqueued_at_monotonic, (int, float)) else None
+                        asset['worker_id'] = worker_id
+                        asset['isDuplicated'] = isDuplicated
+                        asset['asset_pushed'] = asset_pushed
+                        asset['treat_as_consumed'] = treat_as_consumed
+                        asset['album_assoc_enqueued_at_monotonic'] = time.perf_counter()
+                        moved_asset = _move_staged_asset_to_queue_folder(
+                            temp_folder=temp_folder,
                             asset=asset,
-                            asset_id=asset_id,
-                            album_name=album_name,
-                            album_is_shared=album_is_shared,
-                            worker_id=worker_id,
-                            removed_source_asset_ids=removed_source_asset_ids,
-                            processed_albums=processed_albums,
-                            processed_albums_lock=processed_albums_lock,
+                            queue_folder_name=AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
                             log_level=log_level,
+                        )
+                        asset.update(moved_asset)
+                        asset_file_path = asset.get('asset_file_path')
+                        live_photo_video_path = asset.get('live_photo_video_path')
+                        album_assoc_queue.put(asset)
+                        LOGGER.info(
+                            f"Album Association Queued: '{os.path.basename(asset_file_path)}' "
+                            f"for album '{album_name}'"
                         )
 
                     if not scheduled_retry and album_name and isDuplicated and not asset_id:
@@ -3986,6 +4202,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             worker_id=worker_id,
                             logger=LOGGER,
                             cleanup_delay_seconds=cleanup_delay_seconds,
+                            source_asset_already_moved=bool(asset.get("source_asset_already_moved")),
+                            source_live_companion_already_moved=bool(asset.get("source_live_companion_already_moved")),
                         )
                         album_association_confirmed = True
 
@@ -4033,6 +4251,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             album_name=album_name,
                             album_stats_by_name_ref=album_stats_by_name_ref,
                             album_stats_lock_ref=album_stats_lock_ref,
+                            asset=asset if isinstance(asset, dict) else None,
                         )
                 finally:
                     if asset is not None and isinstance(asset, dict):
@@ -4073,6 +4292,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     # Normalizamos temp_folder
     temp_folder = normalize_path(temp_folder)
+    push_queue_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER)
+    delayed_queue_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER)
+    push_failed_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER)
+    album_association_queue_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER)
+    for queue_folder in (push_queue_folder, delayed_queue_folder, push_failed_folder, album_association_queue_folder):
+        os.makedirs(queue_folder, exist_ok=True)
 
     # Listas de posibles etiquetas para los distintos tipos de archivos en los diferentes clientes
     image_labels = ['photo', 'image']
@@ -4339,8 +4564,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     total_assets=total_assets,
                 )
 
-                def _format_queue_bar(current_value, max_value=100):
-                    safe_max = max(1, int(max_value or 100))
+                def _format_queue_bar(current_value, max_value=None):
+                    safe_max = max(1, int(max_value if max_value is not None else total_assets or 1))
                     safe_value = max(0, int(current_value or 0))
                     filled_blocks = min(int((safe_value / safe_max) * BAR_WIDTH), BAR_WIDTH)
                     empty_blocks = BAR_WIDTH - filled_blocks
@@ -4350,8 +4575,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     return f"[{bar}] {safe_value:>7}"
 
                 queue_bar = _format_queue_bar(current_queue_size)
-                album_assoc_queue_bar = _format_queue_bar(current_album_assoc_queue_size)
-                delayed_queue_bar = _format_queue_bar(current_delayed_queue_size)
+                delayed_queue_bar = _format_queue_bar(current_delayed_queue_size, total_assets)
+                album_assoc_queue_bar = _format_queue_bar(current_album_assoc_queue_size, total_assets)
                 if clean_queue_history:
                     queue_bar = 0
                     album_assoc_queue_bar = 0
@@ -4369,8 +4594,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
                     ("❔ Unknown Files", SHARED_DATA.info.get('total_invalid', 0)),
                     ("📊 Assets in Queue", f"{queue_bar}"),
+                    ("⏱️ Delayed Retenes Queue", f"{delayed_queue_bar}"),
                     ("🧾 Album Assoc Queue", f"{album_assoc_queue_bar}"),
-                    ("⏱️ Delayed Retries", f"{delayed_queue_bar}"),
                 ]
 
                 # 🔹 Crear la tabla
