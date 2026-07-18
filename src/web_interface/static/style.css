@@ -2270,6 +2270,14 @@ body[data-theme="dark"] .theme-card__name {
     background: rgba(170, 210, 198, 0.28);
 }
 
+.stats-separator--push-delayed {
+    margin-top: 40px;
+}
+
+.stats-separator--info-queues {
+    margin: 5px 0 8px;
+}
+
 .stats-gap {
     height: 20px;
 }
@@ -2281,6 +2289,14 @@ body[data-theme="dark"] .theme-card__name {
     align-items: center;
     font-size: 0.78rem;
     margin-bottom: 4px;
+}
+
+.stats-card--transfer .bar-row {
+    grid-template-columns: 158px minmax(24px, 1fr) 112px;
+}
+
+.stats-card--transfer .progress-track {
+    width: calc(100% - 18px);
 }
 
 .bar-metrics {
