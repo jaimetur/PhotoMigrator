@@ -2300,7 +2300,7 @@ body[data-theme="dark"] .theme-card__name {
 }
 
 .bar-row--queue {
-    grid-template-columns: 100px minmax(36px, 1fr) 100px;
+    grid-template-columns: 150px minmax(36px, 1fr) 100px;
 }
 
 .bar-row--queue .progress-track {
