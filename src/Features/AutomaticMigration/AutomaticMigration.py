@@ -2878,6 +2878,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     def _push_queue_get():
         _, _, item = push_queue.get()
+        if isinstance(item, dict) and not item.get('_push_pipeline_started_counted'):
+            _increment_transfer_counters(
+                counter_map=SHARED_DATA.counters,
+                counter_prefix='total_push_queued',
+                asset_stats=item.get('physical_stats'),
+                asset_type=item.get('asset_type'),
+            )
+            item['_push_pipeline_started_counted'] = True
         return item
 
     # ----------------------------------------------------------------------------------------
@@ -2913,12 +2921,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # Añadir a la cola y al registro global
             _push_queue_put(item_dict)
             added_file_paths.add(asset_file_key)
-            _increment_transfer_counters(
-                counter_map=SHARED_DATA.counters,
-                counter_prefix='total_push_queued',
-                asset_stats=item_dict.get('physical_stats'),
-                asset_type=item_dict.get('asset_type'),
-            )
             return True
 
     def is_asset_in_queue(queue, path):
