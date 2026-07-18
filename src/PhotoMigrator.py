@@ -275,34 +275,12 @@ def PhotoMigrator():
     GV.LOGGER.info(f"==========================================")
     _log_feature_and_optional_flags(include_optional=False)
     _log_feature_and_optional_flags(include_feature=False)
-    from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns
-    effective_exclude_folders = merge_exclusion_patterns(
-        GV.ARGS.get('exclude-folders', []) if GV.ARGS else [],
-        default_patterns=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
-    )
-    effective_exclude_files = merge_exclusion_patterns(
-        GV.ARGS.get('exclude-files', []) if GV.ARGS else [],
-        default_patterns=DEFAULT_FILE_EXCLUSION_PATTERNS,
-    )
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
-    GV.LOGGER.info(f"  - Dates Separator               : '{GV.DATE_SEPARATOR}'")
-    GV.LOGGER.info(f"  - Range of Dates Separator      : '{GV.RANGE_OF_DATES_SEPARATOR}'")
     GV.LOGGER.info(f"  - Project Root                  : {GV.PROJECT_ROOT}")
-    GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
     GV.LOGGER.info(f"  - GPTH TOOL Version             : {GV.GPTH_VERSION}")
     GV.LOGGER.info(f"  - EXIF TOOL Version             : {GV.EXIFTOOL_VERSION}")
-    GV.LOGGER.info(f"  - Folder/Binary for GPTH TOOL   : {GV.FOLDERNAME_GPTH}")
-    GV.LOGGER.info(f"  - Folder/Binary for EXIF TOOL   : {GV.FOLDERNAME_EXIFTOOL}")
-    GV.LOGGER.info(f"  - Folder for Duplicates Outputs : {GV.FOLDERNAME_DUPLICATES_OUTPUT}")
-    GV.LOGGER.info(f"  - Folder for Exiftool Outputs   : {GV.FOLDERNAME_EXTRACTED_DATES}")
-    GV.LOGGER.info(f"  - Exclude Folders               : {effective_exclude_folders}")
-    GV.LOGGER.info(f"  - Exclude Files                 : {effective_exclude_files}")
     if not GV.ARGS['no-log-file']:
-        GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
-        GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FILENAME + '.log'}")
-        GV.LOGGER.info(f"  - Log Level                     : {logging.getLevelName(GV.LOG_LEVEL)} ({str(GV.LOG_LEVEL).upper()})")
-    GV.LOGGER.info(f"  - SubFolder for Albums          : <OUTPUT_FOLDER>/{GV.FOLDERNAME_ALBUMS}")
-    GV.LOGGER.info(f"  - SubFolder for No-Albums       : <OUTPUT_FOLDER>/{GV.FOLDERNAME_NO_ALBUMS}")
+        GV.LOGGER.info(f"  - Generated Log File Location   : {GV.LOG_FILENAME + '.log'}")
     GV.LOGGER.info(f"")
 
     # Get the execution mode and run it.
