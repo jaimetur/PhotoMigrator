@@ -79,35 +79,42 @@ def _record_launcher_context() -> None:
                 return
 
 
-def _selected_feature_details(args: dict) -> tuple[str, list[str]]:
+def _selected_feature_details(args: dict) -> tuple[str, str | None, list[str]]:
     """Return the feature selected by the CLI and its effective required arguments."""
     is_set = lambda dest: bool(args.get(dest))
+    cloud_feature_names = {
+        "google-photos": "Google Photos",
+        "synology": "Synology Photos",
+        "immich": "Immich Photos",
+        "nextcloud": "NextCloud Photos",
+    }
+    cloud_feature_name = cloud_feature_names.get(str(args.get("client") or "").strip().lower(), "Cloud Photos")
     feature_definitions = (
-        (is_set("source") and is_set("target"), "Automatic Migration", ["source", "target"]),
-        (is_set("google-takeout"), "Google Takeout Processor", ["google-takeout"]),
-        (is_set("icloud-takeout"), "iCloud Takeout Processor", ["icloud-takeout"]),
-        (is_set("upload-albums"), "Upload Albums", ["client", "upload-albums"]),
-        (is_set("upload-all"), "Upload All", ["client", "upload-all"]),
-        (is_set("download-albums"), "Download Albums", ["client", "download-albums", "output-folder"]),
-        (is_set("download-all"), "Download All", ["client", "download-all"]),
-        (is_set("remove-albums"), "Remove Albums", ["client", "remove-albums"]),
-        (is_set("rename-albums"), "Rename Albums", ["client", "rename-albums"]),
-        (is_set("consolidate-albums-names"), "Consolidate Album Names", ["client", "consolidate-albums-names"]),
-        (is_set("remove-empty-albums"), "Remove Empty Albums", ["client", "remove-empty-albums"]),
-        (is_set("remove-duplicates-albums"), "Remove Duplicate Albums", ["client", "remove-duplicates-albums"]),
-        (is_set("merge-duplicates-albums"), "Merge Duplicate Albums", ["client", "merge-duplicates-albums"]),
-        (is_set("remove-all-albums"), "Remove All Albums", ["client", "remove-all-albums"]),
-        (is_set("remove-all-assets"), "Remove All Assets", ["client", "remove-all-assets"]),
-        (is_set("fix-symlinks-broken"), "Fix Broken Symlinks", ["fix-symlinks-broken"]),
-        (args.get("find-duplicates") != ["list", ""], "Find Duplicates", ["find-duplicates"]),
-        (is_set("process-duplicates"), "Process Duplicates", ["process-duplicates"]),
-        (is_set("rename-folders-content-based"), "Rename Folders Content Based", ["rename-folders-content-based"]),
-        (is_set("organize-local-folder-by-date"), "Organize Local Folder By Date", ["organize-local-folder-by-date"]),
+        (is_set("source") and is_set("target"), "Automatic Migration", None, ["source", "target"]),
+        (is_set("google-takeout"), "Google Takeout Processor", None, ["google-takeout"]),
+        (is_set("icloud-takeout"), "iCloud Takeout Processor", None, ["icloud-takeout"]),
+        (is_set("upload-albums"), cloud_feature_name, "Upload Albums", ["client", "upload-albums"]),
+        (is_set("upload-all"), cloud_feature_name, "Upload All", ["client", "upload-all"]),
+        (is_set("download-albums"), cloud_feature_name, "Download Albums", ["client", "download-albums", "output-folder"]),
+        (is_set("download-all"), cloud_feature_name, "Download All", ["client", "download-all"]),
+        (is_set("remove-albums"), cloud_feature_name, "Remove Albums", ["client", "remove-albums"]),
+        (is_set("rename-albums"), cloud_feature_name, "Rename Albums", ["client", "rename-albums"]),
+        (is_set("consolidate-albums-names"), cloud_feature_name, "Consolidate Album Names", ["client", "consolidate-albums-names"]),
+        (is_set("remove-empty-albums"), cloud_feature_name, "Remove Empty Albums", ["client", "remove-empty-albums"]),
+        (is_set("remove-duplicates-albums"), cloud_feature_name, "Remove Duplicate Albums", ["client", "remove-duplicates-albums"]),
+        (is_set("merge-duplicates-albums"), cloud_feature_name, "Merge Duplicate Albums", ["client", "merge-duplicates-albums"]),
+        (is_set("remove-all-albums"), cloud_feature_name, "Remove All Albums", ["client", "remove-all-albums"]),
+        (is_set("remove-all-assets"), cloud_feature_name, "Remove All Assets", ["client", "remove-all-assets"]),
+        (is_set("fix-symlinks-broken"), "Other Features", "Fix Broken Symlinks", ["fix-symlinks-broken"]),
+        (args.get("find-duplicates") != ["list", ""], "Other Features", "Find Duplicates", ["find-duplicates"]),
+        (is_set("process-duplicates"), "Other Features", "Process Duplicates", ["process-duplicates"]),
+        (is_set("rename-folders-content-based"), "Other Features", "Rename Folders Content Based", ["rename-folders-content-based"]),
+        (is_set("organize-local-folder-by-date"), "Other Features", "Organize Local Folder By Date", ["organize-local-folder-by-date"]),
     )
-    for selected, label, required_dests in feature_definitions:
+    for selected, feature_name, module_name, required_dests in feature_definitions:
         if selected:
-            return label, required_dests
-    return "Unknown", []
+            return feature_name, module_name, required_dests
+    return "Unknown", None, []
 
 
 def _parser_option_details(parser) -> dict[str, tuple[str, str]]:
@@ -152,11 +159,13 @@ def _log_feature_and_optional_flags(*, include_feature: bool = True, include_opt
     """Log the selected feature, its required values, and explicitly supplied optional flags."""
     args = GV.ARGS or {}
     option_details = _parser_option_details(GV.PARSER)
-    feature_name, required_dests = _selected_feature_details(args)
+    feature_name, module_name, required_dests = _selected_feature_details(args)
 
     if include_feature:
         GV.LOGGER.info(f"Selected Feature:")
         GV.LOGGER.info(f"  - Feature                       : {feature_name}")
+        if module_name:
+            GV.LOGGER.info(f"  - Module                        : {module_name}")
         GV.LOGGER.info(f"  - Required Flags:")
         if required_dests:
             for dest in required_dests:
