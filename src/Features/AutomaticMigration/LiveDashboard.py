@@ -13,8 +13,26 @@ from queue import Empty
 
 from Core.CustomLogger import CustomConsoleFormatter, CustomInMemoryLogHandler, get_logger_filename, set_log_level
 from Core.GlobalVariables import ARGS, FOLDERNAME_LOGS, LOGGER, TOOL_DATE, TOOL_NAME_VERSION, TOOL_VERSION
+from Utils.GeneralUtils import TQDM_DASHBOARD_META_PREFIX, TQDM_DASHBOARD_PREFIX
 
 BG_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+BG_TQDM_PROGRESS_RE = re.compile(
+    r"(?P<pct>\d{1,3})%\|[^|]*\|\s*(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)"
+)
+BG_CUSTOM_PROGRESS_RE = re.compile(
+    r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
+    r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$"
+)
+BG_SIMPLE_PROGRESS_RE = re.compile(
+    r"^(?P<desc>.+?)\s*:\s*(?P<current>[0-9][0-9,]*)\s*/\s*(?P<total>[0-9][0-9,]*)\b.*$"
+)
+BG_INDETERMINATE_TQDM_RE = re.compile(
+    r"(?P<current>[0-9][0-9,]*)\s+(?P<unit>[A-Za-z][A-Za-z0-9_./-]*)\s+\[[^\]]+\]\s*$"
+)
+BG_LEVEL_PREFIX_RE = re.compile(
+    r"^(?:\[\s*(?:VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*\]|(?:VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL))\s*:?\s*",
+    flags=re.IGNORECASE,
+)
 
 
 def _parse_int(value, default=0):
@@ -47,6 +65,82 @@ def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending
     avg_seconds_per_asset = safe_elapsed_seconds / float(processed_assets)
     estimated_remaining_seconds = avg_seconds_per_asset * float(pending_assets)
     return _format_hms_from_seconds(estimated_remaining_seconds)
+
+
+def _strip_bg_level_prefix(text):
+    value = str(text or "")
+    previous = None
+    while value != previous:
+        previous = value
+        value = BG_LEVEL_PREFIX_RE.sub("", value, count=1)
+    return value
+
+
+def _normalize_bg_progress_desc(desc):
+    text = re.sub(r"\s+", " ", str(desc or "")).strip()
+    text = _strip_bg_level_prefix(text)
+    if ":" in text:
+        text = text.split(":", 1)[1].strip()
+    text = _strip_bg_level_prefix(text.strip())
+    text = re.sub(
+        r"\s+\b(?:in|at|from)(?:\s+\w+){0,2}\s+[\"']?(?:[A-Za-z]:[\\/]|/)[^\"']*[\"']?\s*$",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(r"\s*:\s*$", "", text)
+    return text.strip() or "Progress"
+
+
+def _parse_dashboard_progress_line(line):
+    raw = str(line or "")
+    if not raw:
+        return None
+    plain = BG_ANSI_ESCAPE_RE.sub("", raw.replace("\r", "")).strip()
+    if not plain:
+        return None
+
+    if plain.startswith(TQDM_DASHBOARD_META_PREFIX):
+        parts = plain[len(TQDM_DASHBOARD_META_PREFIX):].split("\t")
+        if len(parts) != 3:
+            return None
+        return {"desc": parts[0], "current": _parse_int(parts[1], 0), "total": _parse_int(parts[2], 0), "has_total": _parse_int(parts[2], 0) > 0}
+
+    if plain.startswith(TQDM_DASHBOARD_PREFIX):
+        plain = plain[len(TQDM_DASHBOARD_PREFIX):].strip()
+    elif plain.upper().startswith("TQDM "):
+        plain = plain[5:].strip()
+    plain = _strip_bg_level_prefix(plain)
+
+    custom_match = BG_CUSTOM_PROGRESS_RE.match(plain)
+    simple_match = BG_SIMPLE_PROGRESS_RE.match(plain)
+    tqdm_match = BG_TQDM_PROGRESS_RE.search(plain)
+    if custom_match or simple_match or tqdm_match:
+        match = custom_match or simple_match or tqdm_match
+        total = _parse_int(match.group("total"), 0)
+        desc = match.group("desc").strip(" :") if match is not tqdm_match else plain[:match.start()].strip(" :-")
+        if not desc:
+            return None
+        return {"desc": desc, "current": _parse_int(match.group("current"), 0), "total": total, "has_total": total > 0}
+
+    indeterminate_match = BG_INDETERMINATE_TQDM_RE.search(plain)
+    if indeterminate_match:
+        desc = plain[:indeterminate_match.start()].strip(" :-")
+        if desc:
+            return {"desc": desc, "current": _parse_int(indeterminate_match.group("current"), 0), "total": None, "has_total": False}
+    return None
+
+
+def _select_visible_bg_progress_rows(rows, visible_limit):
+    ordered = list(rows or [])
+    ordered.sort(
+        key=lambda info: (
+            bool(info.get("completed")),
+            -float(info.get("last_update", 0.0)),
+            str(info.get("label", "")).lower(),
+        )
+    )
+    return ordered[:max(1, int(visible_limit or 1))]
 
 
 def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name='', log_level=None):

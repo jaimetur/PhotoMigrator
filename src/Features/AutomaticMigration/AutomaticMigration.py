@@ -24,30 +24,12 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Features.AutomaticMigration.LiveDashboard import _compute_dashboard_estimated_time, _format_hms_from_seconds, _parse_int, start_dashboard
+from Features.AutomaticMigration.LiveDashboard import _compute_dashboard_estimated_time, _format_hms_from_seconds, _normalize_bg_progress_desc, _parse_dashboard_progress_line, _parse_int, _select_visible_bg_progress_rows, start_dashboard
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
 from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, has_any_filter
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 
 terminal_width = shutil.get_terminal_size().columns
-BG_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-BG_TQDM_PROGRESS_RE = re.compile(
-    r"(?P<pct>\d{1,3})%\|[^|]*\|\s*(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)"
-)
-BG_CUSTOM_PROGRESS_RE = re.compile(
-    r"^(?P<desc>.*?:)\s*[#=>.\s\u2588\u2593\u2592\u2591]+\s+"
-    r"(?P<current>[0-9][0-9,]*)/(?P<total>[0-9][0-9,]*)\s+\d+(?:\.\d+)?%\s*$"
-)
-BG_SIMPLE_PROGRESS_RE = re.compile(
-    r"^(?P<desc>.+?)\s*:\s*(?P<current>[0-9][0-9,]*)\s*/\s*(?P<total>[0-9][0-9,]*)\b.*$"
-)
-BG_INDETERMINATE_TQDM_RE = re.compile(
-    r"(?P<current>[0-9][0-9,]*)\s+(?P<unit>[A-Za-z][A-Za-z0-9_./-]*)\s+\[[^\]]+\]\s*$"
-)
-BG_LEVEL_PREFIX_RE = re.compile(
-    r"^(?:\[\s*(?:VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*\]|(?:VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL))\s*:?\s*",
-    flags=re.IGNORECASE,
-)
 WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
 AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER = "Push_Queue"
 AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER = "Delayed_Queue"
@@ -213,116 +195,6 @@ def _remove_target_empty_albums_if_supported(target_client, log_level=None):
         return 0
 
 
-def _strip_bg_level_prefix(text):
-    value = str(text or "")
-    previous = None
-    while value != previous:
-        previous = value
-        value = BG_LEVEL_PREFIX_RE.sub("", value, count=1)
-    return value
-
-
-def _normalize_bg_progress_desc(desc):
-    text = re.sub(r"\s+", " ", str(desc or "")).strip()
-    text = _strip_bg_level_prefix(text)
-    if ":" in text:
-        text = text.split(":", 1)[1].strip()
-    text = _strip_bg_level_prefix(text.strip())
-    text = re.sub(
-        r"\s+\b(?:in|at|from)(?:\s+\w+){0,2}\s+[\"']?(?:[A-Za-z]:[\\/]|/)[^\"']*[\"']?\s*$",
-        "",
-        text,
-        flags=re.IGNORECASE,
-    )
-    text = re.sub(r"\s*:\s*$", "", text)
-    text = text.strip()
-    return text or "Progress"
-
-
-def _parse_dashboard_progress_line(line):
-    raw = str(line or "")
-    if not raw:
-        return None
-    plain = BG_ANSI_ESCAPE_RE.sub("", raw.replace("\r", "")).strip()
-    if not plain:
-        return None
-
-    if plain.startswith(TQDM_DASHBOARD_META_PREFIX):
-        payload = plain[len(TQDM_DASHBOARD_META_PREFIX):]
-        parts = payload.split("\t")
-        if len(parts) != 3:
-            return None
-        return {
-            "desc": parts[0],
-            "current": _parse_int(parts[1], 0),
-            "total": _parse_int(parts[2], 0),
-            "has_total": _parse_int(parts[2], 0) > 0,
-        }
-
-    if plain.startswith(TQDM_DASHBOARD_PREFIX):
-        plain = plain[len(TQDM_DASHBOARD_PREFIX):].strip()
-    elif plain.upper().startswith("TQDM "):
-        plain = plain[5:].strip()
-    plain = _strip_bg_level_prefix(plain)
-
-    custom_match = BG_CUSTOM_PROGRESS_RE.match(plain)
-    if custom_match:
-        total = _parse_int(custom_match.group("total"), 0)
-        return {
-            "desc": custom_match.group("desc").strip(" :"),
-            "current": _parse_int(custom_match.group("current"), 0),
-            "total": total,
-            "has_total": total > 0,
-        }
-
-    simple_match = BG_SIMPLE_PROGRESS_RE.match(plain)
-    if simple_match:
-        total = _parse_int(simple_match.group("total"), 0)
-        return {
-            "desc": simple_match.group("desc").strip(" :"),
-            "current": _parse_int(simple_match.group("current"), 0),
-            "total": total,
-            "has_total": total > 0,
-        }
-
-    tqdm_match = BG_TQDM_PROGRESS_RE.search(plain)
-    if tqdm_match:
-        desc = plain[:tqdm_match.start()].strip(" :-")
-        if not desc:
-            return None
-        total = _parse_int(tqdm_match.group("total"), 0)
-        return {
-            "desc": desc,
-            "current": _parse_int(tqdm_match.group("current"), 0),
-            "total": total,
-            "has_total": total > 0,
-        }
-
-    indeterminate_match = BG_INDETERMINATE_TQDM_RE.search(plain)
-    if indeterminate_match:
-        desc = plain[:indeterminate_match.start()].strip(" :-")
-        if not desc:
-            return None
-        return {
-            "desc": desc,
-            "current": _parse_int(indeterminate_match.group("current"), 0),
-            "total": None,
-            "has_total": False,
-        }
-
-    return None
-
-
-def _select_visible_bg_progress_rows(rows, visible_limit):
-    ordered = list(rows or [])
-    ordered.sort(
-        key=lambda info: (
-            bool(info.get("completed")),
-            -float(info.get("last_update", 0.0)),
-            str(info.get("label", "")).lower(),
-        )
-    )
-    return ordered[:max(1, int(visible_limit or 1))]
 
 
 def _pull_has_content(pulled_result) -> bool:
