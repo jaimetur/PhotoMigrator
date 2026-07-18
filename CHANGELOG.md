@@ -112,6 +112,7 @@
   - Fixed the extracted `Automatic Migration` Rich Live Dashboard failing on its first render with `NameError: _compute_dashboard_estimated_time`. The dashboard timing helpers now live with the terminal renderer and remain shared with the web snapshot path.
   - Fixed the GUI `Stop` button being disabled for `Automatic Migration` runs launched in an external Live Dashboard terminal. The GUI now tracks the external migration PID and sends the stop signal to that process rather than only tracking the terminal launcher.
   - Fixed `Automatic Migration` Live Dashboard startup after its renderer extraction. Its estimated-time calculation, UTC timezone dependency, background progress parser, and visible-progress-row selection now reside in `LiveDashboard.py`, preventing `NameError` failures while rendering or consuming `tqdm` progress lines.
+  - Fixed the Rich `Automatic Migration` Live Dashboard layout so the Info Panel has enough height to render `Assets in Queue`, `Delayed Retries Queue`, and `Album Assoc Queue` together. Pull failure rows and Push `🔢 Total (New / Duplicates / Failed)` summaries now remain on one line below their matching bars.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

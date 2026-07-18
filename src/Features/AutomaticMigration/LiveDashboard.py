@@ -253,13 +253,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             LOGGER.propagate = False
             log_file = get_logger_filename(LOGGER)
 
-            # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines),
+            # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (18 lines),
             # logs fill remainder, background_progress_panel (7 lines) at the bottom.
             layout.split_column(
                 Layout(name="empty_line_1", size=1),  # Línea vacía
                 Layout(name="header_panel", size=8),
                 Layout(name="title_panel", size=3),
-                Layout(name="content_panel", size=12),
+                Layout(name="content_panel", size=18),
                 Layout(name="logs_panel", ratio=1),
                 Layout(name="background_progress_panel", size=7),
                 Layout(name="empty_line_2", size=1),  # Línea vacía
@@ -493,10 +493,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 "📂 Pushed Albums": (create_progress_bar("green"), 'total_pushed_albums', "total_albums"),
             }
             push_outcomes = {
-                "🎯 Pushed Assets": ("🔢 Total Assets", 'total_pushed_assets', 'total_push_duplicates_assets', 'total_push_failed_assets'),
-                "📷 Pushed Photos": ("🔢 Total Photos", 'total_pushed_photos', 'total_push_duplicates_photos', 'total_push_failed_photos'),
-                "🎬 Pushed Videos": ("🔢 Total Videos", 'total_pushed_videos', 'total_push_duplicates_videos', 'total_push_failed_videos'),
-                "📂 Pushed Albums": ("🔢 Total Albums", 'total_pushed_albums', None, 'total_push_failed_albums'),
+                "🎯 Pushed Assets": ("🔢 Total", 'total_pushed_assets', 'total_push_duplicates_assets', 'total_push_failed_assets'),
+                "📷 Pushed Photos": ("🔢 Total", 'total_pushed_photos', 'total_push_duplicates_photos', 'total_push_failed_photos'),
+                "🎬 Pushed Videos": ("🔢 Total", 'total_pushed_videos', 'total_push_duplicates_videos', 'total_push_failed_videos'),
+                "📂 Pushed Albums": ("🔢 Total", 'total_pushed_albums', None, 'total_push_failed_albums'),
             }
             delayed_pushs = {
                 "⏱️ Delayed Retries": 'total_push_retry_scheduled_assets',
@@ -513,7 +513,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             # ─────────────────────────────────────────────────────────────────────────
             def build_pull_panel():
                 table = Table.grid(expand=True)
-                table.add_column(justify="left", width=20)
+                table.add_column(justify="left", width=24, no_wrap=True)
                 table.add_column(justify="right")
                 for label, (bar, completed_labeld, total_label) in pull_bars.items():
                     table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
@@ -534,7 +534,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
             def build_push_panel():
                 table = Table.grid(expand=True)
-                table.add_column(justify="left", width=19)
+                table.add_column(justify="left", width=40, no_wrap=True)
                 table.add_column(justify="right")
                 for label, (bar, completed_labeld, total_label) in push_bars.items():
                     table.add_row(f"[green]{label:<16}:[/green]", bar)
