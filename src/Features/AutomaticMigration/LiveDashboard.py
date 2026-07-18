@@ -426,9 +426,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("❔ Unknown Files", SHARED_DATA.info.get('total_invalid', 0)),
                 ]
                 queue_data = [
-                    ("📊 Assets in Queue", f"{queue_bar}"),
-                    ("⏳ Delayed Retries Queue", f"{delayed_queue_bar}"),
-                    ("🧾 Album Assoc Queue", f"{album_assoc_queue_bar}"),
+                    ("📊 Assets in Queue       ", f"{queue_bar}"),
+                    ("⏳ Delayed Retries Queue ", f"{delayed_queue_bar}"),
+                    ("🧾 Album Assoc Queue     ", f"{album_assoc_queue_bar}"),
                 ]
 
                 def _new_info_table():
@@ -510,8 +510,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 "📂 Pushed Albums": ("🔢 Total", 'total_pushed_albums', None, 'total_push_failed_albums'),
             }
             delayed_pushs = {
-                "⏳ Delayed Retries": 'total_push_retry_scheduled_assets',
-                "⏳ Delayed Recovered": 'total_push_retry_recovered_assets',
+                "⏳ Delayed Retries   ": 'total_push_retry_scheduled_assets',
+                "⏳ Delayed Recovered ": 'total_push_retry_recovered_assets',
             }
             push_tasks = {}
             for label, (bar, completed_label, total_label) in push_bars.items():
