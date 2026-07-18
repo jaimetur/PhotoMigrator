@@ -815,9 +815,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 layout.size = terminal_height
                 return True
 
-            def _wait_for_any_key_to_close_dashboard():
+            def _wait_for_ctrl_c_to_close_dashboard():
                 """
-                Keep the final dashboard visible until the user confirms close.
+                Keep the final dashboard visible until the user presses Ctrl+C.
                 """
                 stdin_is_tty = bool(getattr(sys.stdin, "isatty", lambda: False)())
                 stdout_is_tty = bool(getattr(original_stdout, "isatty", lambda: False)())
@@ -829,7 +829,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         # Flush pending keypresses (e.g., buffered Enter) to avoid instant close.
                         while msvcrt.kbhit():
                             msvcrt.getch()
-                        msvcrt.getch()
+                        while msvcrt.getch() != b"\x03":
+                            pass
                     else:
                         import termios
                         import tty
@@ -838,7 +839,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         try:
                             termios.tcflush(fd, termios.TCIFLUSH)
                             tty.setraw(fd)
-                            os.read(fd, 1)
+                            while os.read(fd, 1) != b"\x03":
+                                pass
                         finally:
                             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
                 except KeyboardInterrupt:
@@ -974,10 +976,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     layout["logs_panel"].update(build_log_panel())
                     live.refresh()
 
-                    # Report migration completion to the GUI before the silent key
-                    # wait so its controls reset while the final dashboard remains.
+                    # Report migration completion to the GUI before waiting so its
+                    # controls reset while the final dashboard remains visible.
                     _notify_gui_migration_completed()
-                    _wait_for_any_key_to_close_dashboard()
+                    LOGGER.info("Automatic Migration completed. Press Ctrl+C to close the dashboard...")
+                    _drain_logs_queue()
+                    layout["logs_panel"].update(build_log_panel())
+                    live.refresh()
+                    _wait_for_ctrl_c_to_close_dashboard()
 
                 except ModuleNotFoundError as error:
                     missing = str(getattr(error, "name", "") or "")
