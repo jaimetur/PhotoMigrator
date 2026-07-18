@@ -4666,13 +4666,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
                     ("❔ Unknown Files", SHARED_DATA.info.get('total_invalid', 0)),
                     ("📊 Assets in Queue", f"{queue_bar}"),
-                    ("⏱️ Delayed Retry Queue", f"{delayed_queue_bar}"),
+                    ("⏱️ Delayed Retries Queue", f"{delayed_queue_bar}"),
                     ("🧾 Album Assoc Queue", f"{album_assoc_queue_bar}"),
                 ]
 
                 # 🔹 Crear la tabla
                 table = Table.grid(expand=True)
-                table.add_column(justify="left", width=20, no_wrap=True)
+                table.add_column(justify="left", width=27, no_wrap=True)
                 table.add_column(justify="right", ratio=1, no_wrap=True, overflow="crop")
                 for label, value in info_data:
                     table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")

@@ -2276,7 +2276,7 @@ body[data-theme="dark"] .theme-card__name {
 
 .bar-row {
     display: grid;
-    grid-template-columns: 132px 1fr 140px;
+    grid-template-columns: 172px minmax(36px, 1fr) 100px;
     gap: 8px;
     align-items: center;
     font-size: 0.78rem;
