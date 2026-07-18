@@ -2255,6 +2255,11 @@ body[data-theme="dark"] .theme-card__name {
     font-size: 0.8rem;
 }
 
+.stat-row--push-outcome,
+.stat-row--pull-failure {
+    padding-left: 16px;
+}
+
 .stat-label {
     color: #a8d3c5;
 }
@@ -2271,7 +2276,7 @@ body[data-theme="dark"] .theme-card__name {
 }
 
 .stats-separator--push-delayed {
-    margin-top: 40px;
+    margin-top: 28px;
 }
 
 .stats-separator--info-queues {

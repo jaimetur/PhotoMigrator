@@ -205,13 +205,13 @@
                     <div class="stats-card stats-card--transfer">
                         <h4 id="dash-pull-title" class="stats-card__title">⬇️ Pull Panel</h4>
                         <div class="bar-row"><span>🎯 Pulled Assets</span><div class="progress-track"><div id="bar-pulled-assets" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-assets-count">0/- (-)</span></span></div>
+                        <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Assets</span><span id="dash-pull-failed-assets" class="stat-value">0</span></div>
                         <div class="bar-row"><span>📷 Pulled Photos</span><div class="progress-track"><div id="bar-pulled-photos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-photos-count">0/- (-)</span></span></div>
+                        <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Photos</span><span id="dash-pull-failed-photos" class="stat-value">0</span></div>
                         <div class="bar-row"><span>🎬 Pulled Videos</span><div class="progress-track"><div id="bar-pulled-videos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-videos-count">0/- (-)</span></span></div>
+                        <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Videos</span><span id="dash-pull-failed-videos" class="stat-value">0</span></div>
                         <div class="bar-row"><span>📂 Pulled Albums</span><div class="progress-track"><div id="bar-pulled-albums" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-albums-count">0/- (-)</span></span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Failed Assets</span><span id="dash-pull-failed-assets" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Failed Photos</span><span id="dash-pull-failed-photos" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Failed Videos</span><span id="dash-pull-failed-videos" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Failed Albums</span><span id="dash-pull-failed-albums" class="stat-value">0</span></div>
+                        <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Albums</span><span id="dash-pull-failed-albums" class="stat-value">0</span></div>
                         <div class="stats-gap" aria-hidden="true"></div>
                         <div class="stats-separator" aria-hidden="true"></div>
                         <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
@@ -220,13 +220,13 @@
                     <div class="stats-card stats-card--transfer">
                         <h4 id="dash-push-title" class="stats-card__title">⬆️ Push Panel</h4>
                         <div class="bar-row"><span>🎯 Pushed Assets</span><div class="progress-track"><div id="bar-pushed-assets" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-assets-count">0/- (-)</span></span></div>
-                        <div class="stat-row"><span class="stat-label">Total Assets (New / Duplicates / Failed)</span><span id="dash-push-assets-outcomes" class="stat-value">0 / 0 / 0</span></div>
+                        <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Assets (New / Duplicates / Failed)</span><span id="dash-push-assets-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="bar-row"><span>📷 Pushed Photos</span><div class="progress-track"><div id="bar-pushed-photos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-photos-count">0/- (-)</span></span></div>
-                        <div class="stat-row"><span class="stat-label">Total Photos (New / Duplicates / Failed)</span><span id="dash-push-photos-outcomes" class="stat-value">0 / 0 / 0</span></div>
+                        <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Photos (New / Duplicates / Failed)</span><span id="dash-push-photos-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="bar-row"><span>🎬 Pushed Videos</span><div class="progress-track"><div id="bar-pushed-videos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-videos-count">0/- (-)</span></span></div>
-                        <div class="stat-row"><span class="stat-label">Total Videos (New / Duplicates / Failed)</span><span id="dash-push-videos-outcomes" class="stat-value">0 / 0 / 0</span></div>
+                        <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Videos (New / Duplicates / Failed)</span><span id="dash-push-videos-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="bar-row"><span>📂 Pushed Albums</span><div class="progress-track"><div id="bar-pushed-albums" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-albums-count">0/- (-)</span></span></div>
-                        <div class="stat-row"><span class="stat-label">Total Albums (New / Duplicates / Failed)</span><span id="dash-push-albums-outcomes" class="stat-value">0 / 0 / 0</span></div>
+                        <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Albums (New / Duplicates / Failed)</span><span id="dash-push-albums-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="stats-separator stats-separator--push-delayed" aria-hidden="true"></div>
                         <div class="stat-row"><span class="stat-label">⏱️ Delayed Retries</span><span id="dash-push-delayed-retries" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">⏱️ Delayed Recovered</span><span id="dash-push-delayed-recovered" class="stat-value">0</span></div>

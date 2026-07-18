@@ -4733,13 +4733,15 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 "🎬 Pulled Videos": (create_progress_bar("cyan"), 'total_pulled_videos', "total_videos"),
                 "📂 Pulled Albums": (create_progress_bar("cyan"), 'total_pulled_albums', "total_albums"),
             }
-            failed_pulls = {
+            pull_failures = {
+                "🎯 Pulled Assets": ("🚩 Failed Assets", 'total_pull_failed_assets'),
+                "📷 Pulled Photos": ("🚩 Failed Photos", 'total_pull_failed_photos'),
+                "🎬 Pulled Videos": ("🚩 Failed Videos", 'total_pull_failed_videos'),
+                "📂 Pulled Albums": ("🚩 Failed Albums", 'total_pull_failed_albums'),
+            }
+            pull_static_stats = {
                 "🔒 Blocked Albums": 'total_albums_blocked',
                 "🔒 Blocked Assets": 'total_assets_blocked',
-                "🚩 Failed Assets": 'total_pull_failed_assets',
-                "🚩 Failed Photos": 'total_pull_failed_photos',
-                "🚩 Failed Videos": 'total_pull_failed_videos',
-                "🚩 Failed Albums": 'total_pull_failed_albums',
             }
             pull_tasks = {}
             for label, (bar, completed_label, total_label) in pull_bars.items():
@@ -4754,10 +4756,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 "📂 Pushed Albums": (create_progress_bar("green"), 'total_pushed_albums', "total_albums"),
             }
             push_outcomes = {
-                "🎯 Pushed Assets": ("Total Assets", 'total_pushed_assets', 'total_push_duplicates_assets', 'total_push_failed_assets'),
-                "📷 Pushed Photos": ("Total Photos", 'total_pushed_photos', 'total_push_duplicates_photos', 'total_push_failed_photos'),
-                "🎬 Pushed Videos": ("Total Videos", 'total_pushed_videos', 'total_push_duplicates_videos', 'total_push_failed_videos'),
-                "📂 Pushed Albums": ("Total Albums", 'total_pushed_albums', None, 'total_push_failed_albums'),
+                "🎯 Pushed Assets": ("🔢 Total Assets", 'total_pushed_assets', 'total_push_duplicates_assets', 'total_push_failed_assets'),
+                "📷 Pushed Photos": ("🔢 Total Photos", 'total_pushed_photos', 'total_push_duplicates_photos', 'total_push_failed_photos'),
+                "🎬 Pushed Videos": ("🔢 Total Videos", 'total_pushed_videos', 'total_push_duplicates_videos', 'total_push_failed_videos'),
+                "📂 Pushed Albums": ("🔢 Total Albums", 'total_pushed_albums', None, 'total_push_failed_albums'),
             }
             delayed_pushs = {
                 "⏱️ Delayed Retries": 'total_push_retry_scheduled_assets',
@@ -4779,7 +4781,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 for label, (bar, completed_labeld, total_label) in pull_bars.items():
                     table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
                     bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
-                for label, counter_label in failed_pulls.items():
+                    failed_label, failed_counter = pull_failures[label]
+                    failed_value = SHARED_DATA.counters.get(failed_counter, 0)
+                    table.add_row(f"[cyan]  {failed_label:<17}:[/cyan]", f"[cyan]{failed_value}[/cyan]")
+                for label, counter_label in pull_static_stats.items():
                     value = SHARED_DATA.counters[counter_label]
                     table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
                 separator = "─" * 18
@@ -4802,7 +4807,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     duplicate_value = SHARED_DATA.counters.get(duplicate_counter, 0) if duplicate_counter else 0
                     failed_value = SHARED_DATA.counters.get(failed_counter, 0)
                     table.add_row(
-                        f"[green]{outcome_label} (New / Duplicates / Failed):[/green]",
+                        f"[green]  {outcome_label} (New / Duplicates / Failed):[/green]",
                         f"[green]{new_value} / {duplicate_value} / {failed_value}[/green]",
                     )
                 separator = "─" * 18
@@ -5025,7 +5030,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             def _build_pull_signature():
                 completed_keys = [cfg[1] for cfg in pull_bars.values()]
                 total_keys = [cfg[2] for cfg in pull_bars.values()]
-                failed_keys = list(failed_pulls.values())
+                failed_keys = [counter for _, counter in pull_failures.values()] + list(pull_static_stats.values())
                 return (
                     tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
                     tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),
