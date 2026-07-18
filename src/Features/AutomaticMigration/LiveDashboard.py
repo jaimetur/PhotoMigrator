@@ -817,13 +817,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
             def _wait_for_any_key_to_close_dashboard():
                 """
-                Keep final dashboard visible until user confirms close (interactive CLI only).
+                Keep the final dashboard visible until the user confirms close.
                 """
-                # GUI launches use a separate terminal solely as a renderer. Waiting
-                # for input there leaves the process alive and the GUI job controls
-                # disabled after the migration has already completed.
-                if os.environ.get("PHOTOMIGRATOR_GUI_MODE") == "1":
-                    return
                 stdin_is_tty = bool(getattr(sys.stdin, "isatty", lambda: False)())
                 stdout_is_tty = bool(getattr(original_stdout, "isatty", lambda: False)())
                 if not (stdin_is_tty and stdout_is_tty):
@@ -850,6 +845,20 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     pass
                 except Exception:
                     # Never fail dashboard shutdown due to input handling issues.
+                    pass
+
+            def _notify_gui_migration_completed():
+                """Notify the GUI while leaving the final Rich dashboard open."""
+                if os.environ.get("PHOTOMIGRATOR_GUI_MODE") != "1":
+                    return
+                completion_file = str(os.environ.get("PHOTOMIGRATOR_DASHBOARD_COMPLETION_FILE") or "").strip()
+                if not completion_file:
+                    return
+                try:
+                    with open(completion_file, "w", encoding="utf-8") as status_file:
+                        status_file.write("0")
+                except OSError:
+                    # The wrapper will still report its eventual process exit.
                     pass
 
 
@@ -965,16 +974,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     layout["logs_panel"].update(build_log_panel())
                     live.refresh()
 
-                    # Keep final result visible for interactive CLI runs only. GUI
-                    # renderer terminals must finish so their completion status can
-                    # re-enable the GUI Run button.
-                    if os.environ.get("PHOTOMIGRATOR_GUI_MODE") == "1":
-                        LOGGER.info("Automatic Migration completed. Closing GUI dashboard terminal...")
-                    else:
-                        LOGGER.info("Automatic Migration completed. Press any key to close the dashboard...")
-                    _drain_logs_queue()
-                    layout["logs_panel"].update(build_log_panel())
-                    live.refresh()
+                    # Report migration completion to the GUI before the silent key
+                    # wait so its controls reset while the final dashboard remains.
+                    _notify_gui_migration_completed()
                     _wait_for_any_key_to_close_dashboard()
 
                 except ModuleNotFoundError as error:

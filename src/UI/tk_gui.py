@@ -1552,6 +1552,9 @@ class PhotoMigratorTkGUI:
         env = build_ui_subprocess_env(ui_mode="gui", embedded_ui=False)
         status_path = Path(tempfile.gettempdir()) / f"photomigrator_dashboard_exit_{time.time_ns()}.txt"
         pid_path = Path(tempfile.gettempdir()) / f"photomigrator_dashboard_pid_{time.time_ns()}.txt"
+        # The Rich dashboard may remain open for final-statistics inspection after
+        # the migration itself ends. Let it report that milestone to the GUI.
+        env["PHOTOMIGRATOR_DASHBOARD_COMPLETION_FILE"] = str(status_path)
         self.external_dashboard_status_file = status_path
         self.external_dashboard_pid_file = pid_path
         launcher_file: Path | None = None

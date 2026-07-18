@@ -573,6 +573,7 @@ class TestCliTuiShared(unittest.TestCase):
 
         shell_script = command[2]
         self.assertIn("unsetopt MONITOR", shell_script)
+        self.assertIn("PHOTOMIGRATOR_DASHBOARD_COMPLETION_FILE", shell_script)
         self.assertIn("/tmp/dashboard_pid.txt", shell_script)
         self.assertIn("/tmp/dashboard_status.txt", shell_script)
         self.assertIn("exec \"$@\"", shell_script)
