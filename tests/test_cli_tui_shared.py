@@ -558,6 +558,26 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("cd /tmp/project", command[4])
         self.assertIn("/usr/bin/python3", command[4])
 
+    def test_macos_dashboard_launcher_runs_foreground_and_reports_completion(self):
+        env = build_ui_subprocess_env({"TERM": "xterm-256color"}, ui_mode="gui", embedded_ui=False)
+
+        with patch("UI.ui_shared.shutil.which", side_effect=lambda name: "/usr/bin/osascript" if name == "osascript" else None):
+            command = build_external_terminal_command(
+                ["/usr/bin/python3", "/tmp/PhotoMigrator.py", "--automatic-migration"],
+                Path("/tmp/project"),
+                env,
+                platform_name="darwin",
+                completion_file=Path("/tmp/dashboard_status.txt"),
+                pid_file=Path("/tmp/dashboard_pid.txt"),
+            )
+
+        shell_script = command[2]
+        self.assertIn("unsetopt MONITOR", shell_script)
+        self.assertIn("/tmp/dashboard_pid.txt", shell_script)
+        self.assertIn("/tmp/dashboard_status.txt", shell_script)
+        self.assertIn("exec \"$@\"", shell_script)
+        self.assertNotIn(" & ", shell_script)
+
     def test_build_windows_external_terminal_script_writes_title_env_and_completion_file(self):
         env = build_ui_subprocess_env({"TERM": "xterm-256color"}, ui_mode="gui", embedded_ui=False)
 

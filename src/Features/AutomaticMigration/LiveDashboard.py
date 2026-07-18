@@ -147,11 +147,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
     with set_log_level(LOGGER, log_level):
         import time
         from datetime import datetime
-        from rich.console import Console
+        from rich.console import Console, Group
         from rich.layout import Layout
         from rich.progress import Progress, BarColumn, TextColumn
         from rich.table import Table
         from rich.panel import Panel
+        from rich.rule import Rule
         from rich.live import Live
         from rich.text import Text
         from rich.markup import escape
@@ -286,15 +287,6 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 Layout(name="pulls_panel", ratio=4),
                 Layout(name="pushs_panel", ratio=4),
             )
-
-            def _panel_separator(color, label_width, panel_ratio):
-                current_width = max(40, int(getattr(console.size, "width", terminal_width) or terminal_width))
-                panel_width = max(label_width + 1, ((current_width * panel_ratio) // 11) - 8)
-                right_width = max(1, panel_width - label_width - 2)
-                return (
-                    f"[{color} dim]{'─' * label_width}[/{color} dim]",
-                    f"[{color} dim]{'─' * right_width}[/{color} dim]",
-                )
 
             # ─────────────────────────────────────────────────────────────────────────
             # 0) Header Panel
@@ -439,18 +431,27 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("🧾 Album Assoc Queue", f"{album_assoc_queue_bar}"),
                 ]
 
-                # 🔹 Crear la tabla
-                table = Table.grid(expand=True)
-                table.add_column(justify="left", width=27, no_wrap=True)
-                table.add_column(justify="right", ratio=1, no_wrap=True, overflow="crop")
+                def _new_info_table():
+                    table = Table.grid(expand=True)
+                    table.add_column(justify="left", width=27, no_wrap=True)
+                    table.add_column(justify="right", ratio=1, no_wrap=True, overflow="crop")
+                    return table
+
+                summary_table = _new_info_table()
                 for label, value in info_data:
-                    table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
-                table.add_row(*_panel_separator("bright_magenta", 27, 3))
+                    summary_table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
+                queue_table = _new_info_table()
                 for label, value in queue_data:
-                    table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
+                    queue_table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
 
                 # 🔹 Devolver el panel
-                return Panel(table, title="📊 Info Panel", border_style="bright_magenta", expand=True, padding=(0, 1))
+                return Panel(
+                    Group(summary_table, Rule(style="bright_magenta dim"), queue_table),
+                    title="📊 Info Panel",
+                    border_style="bright_magenta",
+                    expand=True,
+                    padding=(0, 1),
+                )
 
 
             # ─────────────────────────────────────────────────────────────────────────
@@ -522,43 +523,55 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             # 4) Build the Pull/Push Panels
             # ─────────────────────────────────────────────────────────────────────────
             def build_pull_panel():
-                table = Table.grid(expand=True)
-                table.add_column(justify="left", width=24, no_wrap=True)
-                table.add_column(justify="right")
+                progress_table = Table.grid(expand=True)
+                progress_table.add_column(justify="left", width=24, no_wrap=True)
+                progress_table.add_column(justify="right")
                 for label, (bar, completed_labeld, total_label) in pull_bars.items():
-                    table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
+                    progress_table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
                     bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
                     failed_label, failed_counter = pull_failures[label]
                     failed_value = SHARED_DATA.counters.get(failed_counter, 0)
-                    table.add_row(f"[cyan]  {failed_label}:[/cyan]", f"[cyan]{failed_value}[/cyan]")
-                table.add_row("", "")
-                table.add_row(*_panel_separator("cyan", 24, 4))
-                table.add_row(f"[cyan]{'🕒 Elapsed Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('elapsed_time', 0)}[/cyan]")
-                table.add_row(f"[cyan]{'⏳ Remaining Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('estimated_time', '-')}[/cyan]")
-                return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
+                    progress_table.add_row(f"[cyan]  {failed_label}:[/cyan]", f"[cyan]{failed_value}[/cyan]")
+                timing_table = Table.grid(expand=True)
+                timing_table.add_column(justify="left", width=24, no_wrap=True)
+                timing_table.add_column(justify="right")
+                timing_table.add_row(f"[cyan]{'🕒 Elapsed Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('elapsed_time', 0)}[/cyan]")
+                timing_table.add_row(f"[cyan]{'⏳ Remaining Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('estimated_time', '-')}[/cyan]")
+                return Panel(
+                    Group(progress_table, Text(""), Rule(style="cyan dim"), timing_table),
+                    title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}',
+                    border_style="cyan",
+                    expand=True,
+                )
 
 
             def build_push_panel():
-                table = Table.grid(expand=True)
-                table.add_column(justify="left", width=40, no_wrap=True)
-                table.add_column(justify="right")
+                progress_table = Table.grid(expand=True)
+                progress_table.add_column(justify="left", width=40, no_wrap=True)
+                progress_table.add_column(justify="right")
                 for label, (bar, completed_labeld, total_label) in push_bars.items():
-                    table.add_row(f"[green]{label:<16}:[/green]", bar)
+                    progress_table.add_row(f"[green]{label:<16}:[/green]", bar)
                     bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
                     outcome_label, new_counter, duplicate_counter, failed_counter = push_outcomes[label]
                     new_value = SHARED_DATA.counters.get(new_counter, 0)
                     duplicate_value = SHARED_DATA.counters.get(duplicate_counter, 0) if duplicate_counter else 0
                     failed_value = SHARED_DATA.counters.get(failed_counter, 0)
-                    table.add_row(
+                    progress_table.add_row(
                         f"[green]  {outcome_label} (New / Duplicates / Failed):[/green]",
                         f"[green]{new_value} / {duplicate_value} / {failed_value}[/green]",
                     )
-                table.add_row("", "")
-                table.add_row(*_panel_separator("green", 40, 4))
+                delayed_table = Table.grid(expand=True)
+                delayed_table.add_column(justify="left", width=40, no_wrap=True)
+                delayed_table.add_column(justify="right")
                 for label, counter_label in delayed_pushs.items():
                     value = SHARED_DATA.counters[counter_label]
-                    table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
-                return Panel(table, title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
+                    delayed_table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
+                return Panel(
+                    Group(progress_table, Text(""), Rule(style="green dim"), delayed_table),
+                    title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}',
+                    border_style="green",
+                    expand=True,
+                )
 
             # -------------------------------------------------------------------------
             # 5) Background Progress Panel (capture any tqdm emitted in background)
@@ -806,6 +819,11 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 """
                 Keep final dashboard visible until user confirms close (interactive CLI only).
                 """
+                # GUI launches use a separate terminal solely as a renderer. Waiting
+                # for input there leaves the process alive and the GUI job controls
+                # disabled after the migration has already completed.
+                if os.environ.get("PHOTOMIGRATOR_GUI_MODE") == "1":
+                    return
                 stdin_is_tty = bool(getattr(sys.stdin, "isatty", lambda: False)())
                 stdout_is_tty = bool(getattr(original_stdout, "isatty", lambda: False)())
                 if not (stdin_is_tty and stdout_is_tty):
@@ -947,8 +965,13 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     layout["logs_panel"].update(build_log_panel())
                     live.refresh()
 
-                    # Keep final result visible in CLI until the user closes it.
-                    LOGGER.info("Automatic Migration completed. Press any key to close the dashboard...")
+                    # Keep final result visible for interactive CLI runs only. GUI
+                    # renderer terminals must finish so their completion status can
+                    # re-enable the GUI Run button.
+                    if os.environ.get("PHOTOMIGRATOR_GUI_MODE") == "1":
+                        LOGGER.info("Automatic Migration completed. Closing GUI dashboard terminal...")
+                    else:
+                        LOGGER.info("Automatic Migration completed. Press any key to close the dashboard...")
                     _drain_logs_queue()
                     layout["logs_panel"].update(build_log_panel())
                     live.refresh()
