@@ -1678,9 +1678,10 @@
         const albumAssocQueueValue = Number(stats.albumAssocQueue || 0);
         const delayedQueueValue = Number(stats.delayedRetriesQueue || 0);
         setProgressRow("bar-info-queue", "bar-info-queue-count", queueValue, 100);
-        const totalAssets = Math.max(1, Number(stats.totalAssets || 0));
-        setProgressRow("bar-info-delayed-queue", "bar-info-delayed-queue-count", delayedQueueValue, totalAssets);
-        setProgressRow("bar-info-album-assoc-queue", "bar-info-album-assoc-queue-count", albumAssocQueueValue, totalAssets);
+        const delayedQueueTotal = Math.max(1, Number(stats.delayedRetriesQueueTotal || 0));
+        const albumAssocQueueTotal = Math.max(1, Number(stats.albumAssocQueueTotal || 0));
+        setProgressRow("bar-info-delayed-queue", "bar-info-delayed-queue-count", delayedQueueValue, delayedQueueTotal);
+        setProgressRow("bar-info-album-assoc-queue", "bar-info-album-assoc-queue-count", albumAssocQueueValue, albumAssocQueueTotal);
         if (!isParallel) {
             const queueCountEl = document.getElementById("bar-info-queue-count");
             if (queueCountEl) queueCountEl.textContent = `${queueValue} (-)`;

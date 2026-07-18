@@ -111,7 +111,9 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "blockedAssets": int(counters.get("total_assets_blocked", 0) or 0),
         "assetsInQueue": int(info.get("assets_in_queue", 0) or 0),
         "albumAssocQueue": int(info.get("album_assoc_queue_size", 0) or 0),
+        "albumAssocQueueTotal": int(counters.get("total_album_assoc_queue_assets", 0) or 0),
         "delayedRetriesQueue": int(info.get("delayed_assets_pending", 0) or 0),
+        "delayedRetriesQueueTotal": int(counters.get("total_delayed_queue_assets", 0) or 0),
         "pulledAssets": int(counters.get("total_pulled_assets", 0) or 0),
         "pulledPhotos": int(counters.get("total_pulled_photos", 0) or 0),
         "pulledVideos": int(counters.get("total_pulled_videos", 0) or 0),
@@ -823,6 +825,8 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             'total_push_retry_scheduled_assets': 0,
             'total_push_retry_recovered_assets': 0,
             'total_push_retry_failed_assets': 0,
+            'total_delayed_queue_assets': 0,
+            'total_album_assoc_queue_assets': 0,
             'total_album_assoc_retry_scheduled_assets': 0,
             'total_album_assoc_retry_recovered_assets': 0,
             'total_album_assoc_unconfirmed_assets': 0,
@@ -2395,6 +2399,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         exponent = max(0, int(retry_attempt) - 1)
         return int(retry_delay_seconds * (retry_backoff_factor ** exponent))
 
+    def _record_queue_admission(asset, counter_name, marker_name):
+        if not isinstance(asset, dict) or asset.get(marker_name):
+            return
+        physical_stats = asset.get('physical_stats') or _build_physical_transfer_stats(asset.get('asset_type'))
+        SHARED_DATA.counters[counter_name] += int(physical_stats.get('assets', 1) or 1)
+        asset[marker_name] = True
+
     def _schedule_asset_retry(asset, reason, resolved_target_asset_id=None, skip_target_push=False):
         if max_push_retries <= 0:
             _move_staged_asset_to_queue_folder(temp_folder, asset, AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER)
@@ -2425,6 +2436,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         retry_asset = _move_staged_asset_to_queue_folder(
             temp_folder, asset, AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
         )
+        _record_queue_admission(retry_asset, 'total_delayed_queue_assets', '_delayed_queue_counted')
         retry_asset['retry_attempt'] = next_attempt
         if resolved_target_asset_id:
             retry_asset['resolved_target_asset_id'] = resolved_target_asset_id
@@ -2473,6 +2485,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         retry_asset = _move_staged_asset_to_queue_folder(
             temp_folder, retry_asset, AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
         )
+        _record_queue_admission(retry_asset, 'total_album_assoc_queue_assets', '_album_assoc_queue_counted')
         retry_asset['album_assoc_enqueued_at_monotonic'] = time.perf_counter()
         album_assoc_queue.put(retry_asset)
 
@@ -4221,6 +4234,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             log_level=log_level,
                         )
                         asset.update(moved_asset)
+                        _record_queue_admission(asset, 'total_album_assoc_queue_assets', '_album_assoc_queue_counted')
                         asset_file_path = asset.get('asset_file_path')
                         live_photo_video_path = asset.get('live_photo_video_path')
                         album_assoc_queue.put(asset)
@@ -4647,8 +4661,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     return f"[{bar}] {safe_value:>7}"
 
                 queue_bar = _format_queue_bar(current_queue_size)
-                delayed_queue_bar = _format_queue_bar(current_delayed_queue_size, total_assets)
-                album_assoc_queue_bar = _format_queue_bar(current_album_assoc_queue_size, total_assets)
+                delayed_queue_total = SHARED_DATA.counters.get('total_delayed_queue_assets', 0)
+                album_assoc_queue_total = SHARED_DATA.counters.get('total_album_assoc_queue_assets', 0)
+                delayed_queue_bar = _format_queue_bar(current_delayed_queue_size, delayed_queue_total)
+                album_assoc_queue_bar = _format_queue_bar(current_album_assoc_queue_size, album_assoc_queue_total)
                 if clean_queue_history:
                     queue_bar = 0
                     album_assoc_queue_bar = 0

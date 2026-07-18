@@ -129,6 +129,8 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 "total_push_retry_recovered_assets": 8,
                 "total_push_retry_failed_assets": 2,
                 "total_push_retry_scheduled_assets": 10,
+                "total_delayed_queue_assets": 9,
+                "total_album_assoc_queue_assets": 6,
                 "total_consolidated_albums": 6,
                 "total_canonicalized_albums": 4,
                 "total_target_empty_albums_removed": 2,
@@ -150,6 +152,8 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["pushQueuedAssets"], 219)
         self.assertEqual(snapshot["pushDuplicatePhotos"], 4)
         self.assertEqual(snapshot["pushRetryScheduled"], 10)
+        self.assertEqual(snapshot["delayedRetriesQueueTotal"], 9)
+        self.assertEqual(snapshot["albumAssocQueueTotal"], 6)
         self.assertEqual(snapshot["assetsInQueue"], 7)
         self.assertEqual(snapshot["albumAssocQueue"], 4)
         self.assertEqual(snapshot["delayedRetriesQueue"], 3)
