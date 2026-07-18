@@ -123,14 +123,20 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "pushedAssets": int(counters.get("total_pushed_assets", 0) or 0),
         "pushedPhotos": int(counters.get("total_pushed_photos", 0) or 0),
         "pushedVideos": int(counters.get("total_pushed_videos", 0) or 0),
+        "pushQueuedAssets": int(counters.get("total_push_queued_assets", 0) or 0),
+        "pushQueuedPhotos": int(counters.get("total_push_queued_photos", 0) or 0),
+        "pushQueuedVideos": int(counters.get("total_push_queued_videos", 0) or 0),
         "pushedAlbums": int(counters.get("total_pushed_albums", 0) or 0),
         "pushDuplicates": int(counters.get("total_push_duplicates_assets", 0) or 0),
+        "pushDuplicatePhotos": int(counters.get("total_push_duplicates_photos", 0) or 0),
+        "pushDuplicateVideos": int(counters.get("total_push_duplicates_videos", 0) or 0),
         "pushFailedAssets": int(counters.get("total_push_failed_assets", 0) or 0),
         "pushFailedPhotos": int(counters.get("total_push_failed_photos", 0) or 0),
         "pushFailedVideos": int(counters.get("total_push_failed_videos", 0) or 0),
         "pushFailedAlbums": int(counters.get("total_push_failed_albums", 0) or 0),
         "pushRetryRecovered": int(counters.get("total_push_retry_recovered_assets", 0) or 0),
         "pushRetryFailed": int(counters.get("total_push_retry_failed_assets", 0) or 0),
+        "pushRetryScheduled": int(counters.get("total_push_retry_scheduled_assets", 0) or 0),
         "consolidatedAlbums": int(counters.get("total_consolidated_albums", 0) or 0),
         "canonicalizedAlbums": int(counters.get("total_canonicalized_albums", 0) or 0),
         "targetEmptyAlbumsRemoved": int(counters.get("total_target_empty_albums_removed", 0) or 0),
@@ -528,6 +534,15 @@ def _increment_pull_counters(counter_map, asset_type, asset_stats=None):
     )
 
 
+def _increment_push_duplicate_counters(counter_map, asset_type, asset_stats=None):
+    _increment_transfer_counters(
+        counter_map=counter_map,
+        counter_prefix='total_push_duplicates',
+        asset_stats=asset_stats,
+        asset_type=asset_type,
+    )
+
+
 def _move_to_album_association_failed_folder(temp_folder, album_name, asset_file_path, live_photo_video_path=None, log_level=logging.INFO):
     if not temp_folder or not album_name:
         return {}
@@ -794,12 +809,17 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             'total_pushed_assets': 0,
             'total_pushed_photos': 0,
             'total_pushed_videos': 0,
+            'total_push_queued_assets': 0,
+            'total_push_queued_photos': 0,
+            'total_push_queued_videos': 0,
             'total_pushed_albums': 0,
             'total_push_failed_assets': 0,
             'total_push_failed_photos': 0,
             'total_push_failed_videos': 0,
             'total_push_failed_albums': 0,
             'total_push_duplicates_assets': 0,
+            'total_push_duplicates_photos': 0,
+            'total_push_duplicates_videos': 0,
             'total_push_retry_scheduled_assets': 0,
             'total_push_retry_recovered_assets': 0,
             'total_push_retry_failed_assets': 0,
@@ -2266,7 +2286,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if item.get("_pending_duplicate_resolution") and not item.get("_final_duplicate_counted"):
                             if item.get("count_push_stats", True):
                                 duplicate_assets = int((item.get("physical_stats") or {}).get("assets", 1) or 1)
-                                SHARED_DATA.counters['total_push_duplicates_assets'] += duplicate_assets
+                                _increment_push_duplicate_counters(SHARED_DATA.counters, item.get("asset_type"), item.get("physical_stats"))
                                 _increment_album_stat_counter(
                                     album_stats_by_name_ref,
                                     album_stats_lock_ref,
@@ -2588,7 +2608,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     if item.get("_pending_duplicate_resolution") and not item.get("_final_duplicate_counted"):
                         if item.get("count_push_stats", True):
                             duplicate_assets = int((item.get("physical_stats") or {}).get("assets", 1) or 1)
-                            SHARED_DATA.counters['total_push_duplicates_assets'] += duplicate_assets
+                            _increment_push_duplicate_counters(SHARED_DATA.counters, item.get("asset_type"), item.get("physical_stats"))
                             _increment_album_stat_counter(
                                 album_stats_by_name_ref,
                                 album_stats_lock_ref,
@@ -2633,7 +2653,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if item.get("_pending_duplicate_resolution") and not item.get("_final_duplicate_counted"):
                             if item.get("count_push_stats", True):
                                 duplicate_assets = int((item.get("physical_stats") or {}).get("assets", 1) or 1)
-                                SHARED_DATA.counters['total_push_duplicates_assets'] += duplicate_assets
+                                _increment_push_duplicate_counters(SHARED_DATA.counters, item.get("asset_type"), item.get("physical_stats"))
                                 _increment_album_stat_counter(
                                     album_stats_by_name_ref,
                                     album_stats_lock_ref,
@@ -2877,6 +2897,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # Añadir a la cola y al registro global
             _push_queue_put(item_dict)
             added_file_paths.add(asset_file_key)
+            _increment_transfer_counters(
+                counter_map=SHARED_DATA.counters,
+                counter_prefix='total_push_queued',
+                asset_stats=item_dict.get('physical_stats'),
+                asset_type=item_dict.get('asset_type'),
+            )
             return True
 
     def is_asset_in_queue(queue, path):
@@ -3679,7 +3705,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     _mark_source_live_companion_consumed(asset_dict.get('source_live_photo_video_path'))
                                 if not unique:
                                     LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
-                                    SHARED_DATA.counters['total_push_duplicates_assets'] += int(asset_stats.get("assets", 1) or 1)
+                                    _increment_push_duplicate_counters(SHARED_DATA.counters, normalized_asset_type, asset_stats)
+                                    _increment_transfer_counters(SHARED_DATA.counters, 'total_push_queued', asset_stats, normalized_asset_type)
                                     _increment_album_stat_counter(
                                         album_stats_by_name_ref,
                                         album_stats_lock_ref,
@@ -3880,7 +3907,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 _mark_source_live_companion_consumed(asset_dict.get('source_live_photo_video_path'))
                             if not unique:
                                 LOGGER.info(f"Asset Duplicated: '{os.path.basename(pulled_file_path)}'. Skipped")
-                                SHARED_DATA.counters['total_push_duplicates_assets'] += int(asset_stats.get("assets", 1) or 1)
+                                _increment_push_duplicate_counters(SHARED_DATA.counters, normalized_asset_type, asset_stats)
+                                _increment_transfer_counters(SHARED_DATA.counters, 'total_push_queued', asset_stats, normalized_asset_type)
                                 # Solo borramos si el fichero ya no está reservado por la cola ni por un pusher en curso.
                                 if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
                                     safe_remove_local_file(pulled_file_path)
@@ -4053,7 +4081,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         f"{_format_album_pending_context(album_name, asset_file_path)}"
                                     )
                                     if count_push_stats:
-                                        SHARED_DATA.counters['total_push_duplicates_assets'] += int(physical_stats.get("assets", 1) or 1)
+                                        _increment_push_duplicate_counters(SHARED_DATA.counters, asset_type, physical_stats)
                                         _increment_album_stat_counter(
                                             album_stats_by_name_ref,
                                             album_stats_lock_ref,
@@ -4103,7 +4131,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     )
                                     treat_as_consumed = True
                                     if count_push_stats and not album_name:
-                                        SHARED_DATA.counters['total_push_duplicates_assets'] += int(physical_stats.get("assets", 1) or 1)
+                                        _increment_push_duplicate_counters(SHARED_DATA.counters, asset_type, physical_stats)
                                         _increment_album_stat_counter(
                                             album_stats_by_name_ref,
                                             album_stats_lock_ref,
@@ -4638,7 +4666,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
                     ("❔ Unknown Files", SHARED_DATA.info.get('total_invalid', 0)),
                     ("📊 Assets in Queue", f"{queue_bar}"),
-                    ("⏱️ Delayed Retries Queue", f"{delayed_queue_bar}"),
+                    ("⏱️ Delayed Retry Queue", f"{delayed_queue_bar}"),
                     ("🧾 Album Assoc Queue", f"{album_assoc_queue_bar}"),
                 ]
 
@@ -4699,21 +4727,20 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
             # PUSHS (Green)
             push_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
-                "🎯 Pushed Assets": (create_progress_bar("green"), 'total_pushed_assets', "total_assets"),
-                "📷 Pushed Photos": (create_progress_bar("green"), 'total_pushed_photos', "total_photos"),
-                "🎬 Pushed Videos": (create_progress_bar("green"), 'total_pushed_videos', "total_videos"),
+                "🎯 Pushed Assets": (create_progress_bar("green"), 'total_push_queued_assets', "total_assets"),
+                "📷 Pushed Photos": (create_progress_bar("green"), 'total_push_queued_photos', "total_photos"),
+                "🎬 Pushed Videos": (create_progress_bar("green"), 'total_push_queued_videos', "total_videos"),
                 "📂 Pushed Albums": (create_progress_bar("green"), 'total_pushed_albums', "total_albums"),
             }
-            failed_pushs = {
-                "🧩 Duplicates": 'total_push_duplicates_assets',
-                "🚩 Failed Assets": 'total_push_failed_assets',
-                "🚩 Failed Photos": 'total_push_failed_photos',
-                "🚩 Failed Videos": 'total_push_failed_videos',
-                "🚩 Failed Albums": 'total_push_failed_albums',
+            push_outcomes = {
+                "🎯 Pushed Assets": ("Total Assets", 'total_pushed_assets', 'total_push_duplicates_assets', 'total_push_failed_assets'),
+                "📷 Pushed Photos": ("Total Photos", 'total_pushed_photos', 'total_push_duplicates_photos', 'total_push_failed_photos'),
+                "🎬 Pushed Videos": ("Total Videos", 'total_pushed_videos', 'total_push_duplicates_videos', 'total_push_failed_videos'),
+                "📂 Pushed Albums": ("Total Albums", 'total_pushed_albums', None, 'total_push_failed_albums'),
             }
             delayed_pushs = {
+                "⏱️ Delayed Retries": 'total_push_retry_scheduled_assets',
                 "⏱️ Delayed Recovered": 'total_push_retry_recovered_assets',
-                "⏱️ Delayed Failed": 'total_push_retry_failed_assets',
             }
             push_tasks = {}
             for label, (bar, completed_label, total_label) in push_bars.items():
@@ -4749,9 +4776,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 for label, (bar, completed_labeld, total_label) in push_bars.items():
                     table.add_row(f"[green]{label:<16}:[/green]", bar)
                     bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
-                for label, counter_label in failed_pushs.items():
-                    value = SHARED_DATA.counters[counter_label]
-                    table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
+                    outcome_label, new_counter, duplicate_counter, failed_counter = push_outcomes[label]
+                    new_value = SHARED_DATA.counters.get(new_counter, 0)
+                    duplicate_value = SHARED_DATA.counters.get(duplicate_counter, 0) if duplicate_counter else 0
+                    failed_value = SHARED_DATA.counters.get(failed_counter, 0)
+                    table.add_row(
+                        f"[green]{outcome_label} (New / Duplicates / Failed):[/green]",
+                        f"[green]{new_value} / {duplicate_value} / {failed_value}[/green]",
+                    )
                 separator = "─" * 18
                 table.add_row("", f"[green dim]{separator}[/green dim]")
                 for label, counter_label in delayed_pushs.items():
@@ -4983,7 +5015,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             def _build_push_signature():
                 completed_keys = [cfg[1] for cfg in push_bars.values()]
                 total_keys = [cfg[2] for cfg in push_bars.values()]
-                failed_keys = list(failed_pushs.values()) + list(delayed_pushs.values())
+                outcome_keys = [counter for outcome in push_outcomes.values() for counter in outcome[1:] if counter]
+                failed_keys = outcome_keys + list(delayed_pushs.values())
                 return (
                     tuple(SHARED_DATA.counters.get(k, 0) for k in completed_keys + failed_keys),
                     tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),

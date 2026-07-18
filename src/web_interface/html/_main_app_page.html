@@ -198,7 +198,7 @@
                         <div class="stat-row"><span class="stat-label">🔗 Total Sidecar</span><span id="dash-total-sidecar" class="stat-value">-</span></div>
                         <div class="stat-row"><span class="stat-label">❔ Unknown Files</span><span id="dash-total-invalid" class="stat-value">-</span></div>
                         <div class="bar-row"><span>📊 Assets in Queue</span><div class="progress-track"><div id="bar-info-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-queue-count">0/100 (0.0%)</span></span></div>
-                        <div class="bar-row"><span>⏱️ Delayed Retries Queue</span><div class="progress-track"><div id="bar-info-delayed-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-delayed-queue-count">0/- (-)</span></span></div>
+                        <div class="bar-row"><span>⏱️ Delayed Retry Queue</span><div class="progress-track"><div id="bar-info-delayed-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-delayed-queue-count">0/- (-)</span></span></div>
                         <div class="bar-row"><span>🧾 Album Assoc Queue</span><div class="progress-track"><div id="bar-info-album-assoc-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-album-assoc-queue-count">0/- (-)</span></span></div>
                     </div>
                     <div class="stats-card">
@@ -219,17 +219,16 @@
                     <div class="stats-card">
                         <h4 id="dash-push-title" class="stats-card__title">⬆️ Push Panel</h4>
                         <div class="bar-row"><span>🎯 Pushed Assets</span><div class="progress-track"><div id="bar-pushed-assets" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-assets-count">0/- (-)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">Total Assets (New / Duplicates / Failed)</span><span id="dash-push-assets-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="bar-row"><span>📷 Pushed Photos</span><div class="progress-track"><div id="bar-pushed-photos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-photos-count">0/- (-)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">Total Photos (New / Duplicates / Failed)</span><span id="dash-push-photos-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="bar-row"><span>🎬 Pushed Videos</span><div class="progress-track"><div id="bar-pushed-videos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-videos-count">0/- (-)</span></span></div>
+                        <div class="stat-row"><span class="stat-label">Total Videos (New / Duplicates / Failed)</span><span id="dash-push-videos-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="bar-row"><span>📂 Pushed Albums</span><div class="progress-track"><div id="bar-pushed-albums" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-albums-count">0/- (-)</span></span></div>
-                        <div class="stat-row"><span class="stat-label">🧩 Duplicates</span><span id="dash-push-duplicates" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Failed Assets</span><span id="dash-push-failed-assets" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Failed Photos</span><span id="dash-push-failed-photos" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Failed Videos</span><span id="dash-push-failed-videos" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Failed Albums</span><span id="dash-push-failed-albums" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">Total Albums (New / Duplicates / Failed)</span><span id="dash-push-albums-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="stats-separator" aria-hidden="true"></div>
+                        <div class="stat-row"><span class="stat-label">⏱️ Delayed Retries</span><span id="dash-push-delayed-retries" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">⏱️ Delayed Recovered</span><span id="dash-push-delayed-recovered" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">⏱️ Delayed Failed</span><span id="dash-push-delayed-failed" class="stat-value">0</span></div>
                     </div>
                 </div>
             </section>
@@ -1696,31 +1695,30 @@
         setText("dash-pull-failed-videos", stats.pullFailedVideos, "0");
         setText("dash-pull-failed-albums", stats.pullFailedAlbums, "0");
 
-        setText("dash-push-duplicates", stats.pushDuplicates, "0");
-        setText("dash-push-failed-assets", stats.pushFailedAssets, "0");
-        setText("dash-push-failed-photos", stats.pushFailedPhotos, "0");
-        setText("dash-push-failed-videos", stats.pushFailedVideos, "0");
-        setText("dash-push-failed-albums", stats.pushFailedAlbums, "0");
+        setText("dash-push-assets-outcomes", `${stats.pushedAssets || 0} / ${stats.pushDuplicates || 0} / ${stats.pushFailedAssets || 0}`);
+        setText("dash-push-photos-outcomes", `${stats.pushedPhotos || 0} / ${stats.pushDuplicatePhotos || 0} / ${stats.pushFailedPhotos || 0}`);
+        setText("dash-push-videos-outcomes", `${stats.pushedVideos || 0} / ${stats.pushDuplicateVideos || 0} / ${stats.pushFailedVideos || 0}`);
+        setText("dash-push-albums-outcomes", `${stats.pushedAlbums || 0} / 0 / ${stats.pushFailedAlbums || 0}`);
+        setText("dash-push-delayed-retries", stats.pushRetryScheduled, "0");
         setText("dash-push-delayed-recovered", stats.pushRetryRecovered, "0");
-        setText("dash-push-delayed-failed", stats.pushRetryFailed, "0");
 
         const totalAssetsForPull = resolveTotal(stats.totalAssets, stats.pulledAssets, stats.pullFailedAssets);
         const totalPhotosForPull = resolveTotal(stats.totalPhotos, stats.pulledPhotos, stats.pullFailedPhotos);
         const totalVideosForPull = resolveTotal(stats.totalVideos, stats.pulledVideos, stats.pullFailedVideos);
         const totalAlbumsForPull = resolveTotal(stats.totalAlbums, stats.pulledAlbums, stats.pullFailedAlbums);
 
-        const totalAssetsForPush = resolveTotal(stats.totalAssets, stats.pushedAssets, stats.pushFailedAssets);
-        const totalPhotosForPush = resolveTotal(stats.totalPhotos, stats.pushedPhotos, stats.pushFailedPhotos);
-        const totalVideosForPush = resolveTotal(stats.totalVideos, stats.pushedVideos, stats.pushFailedVideos);
+        const totalAssetsForPush = resolveTotal(stats.totalAssets, stats.pushQueuedAssets, stats.pushFailedAssets);
+        const totalPhotosForPush = resolveTotal(stats.totalPhotos, stats.pushQueuedPhotos, stats.pushFailedPhotos);
+        const totalVideosForPush = resolveTotal(stats.totalVideos, stats.pushQueuedVideos, stats.pushFailedVideos);
         const totalAlbumsForPush = resolveTotal(stats.totalAlbums, stats.pushedAlbums, stats.pushFailedAlbums);
 
         setProgressRow("bar-pulled-assets", "bar-pulled-assets-count", stats.pulledAssets, totalAssetsForPull);
         setProgressRow("bar-pulled-photos", "bar-pulled-photos-count", stats.pulledPhotos, totalPhotosForPull);
         setProgressRow("bar-pulled-videos", "bar-pulled-videos-count", stats.pulledVideos, totalVideosForPull);
         setProgressRow("bar-pulled-albums", "bar-pulled-albums-count", stats.pulledAlbums, totalAlbumsForPull);
-        setProgressRow("bar-pushed-assets", "bar-pushed-assets-count", stats.pushedAssets, totalAssetsForPush);
-        setProgressRow("bar-pushed-photos", "bar-pushed-photos-count", stats.pushedPhotos, totalPhotosForPush);
-        setProgressRow("bar-pushed-videos", "bar-pushed-videos-count", stats.pushedVideos, totalVideosForPush);
+        setProgressRow("bar-pushed-assets", "bar-pushed-assets-count", stats.pushQueuedAssets, totalAssetsForPush);
+        setProgressRow("bar-pushed-photos", "bar-pushed-photos-count", stats.pushQueuedPhotos, totalPhotosForPush);
+        setProgressRow("bar-pushed-videos", "bar-pushed-videos-count", stats.pushQueuedVideos, totalVideosForPush);
         setProgressRow("bar-pushed-albums", "bar-pushed-albums-count", stats.pushedAlbums, totalAlbumsForPush);
         debugWebPerf("renderWebDashboard", {
             rawChars: String(webDashboardState.rawOutput || "").length,

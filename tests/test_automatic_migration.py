@@ -116,13 +116,19 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 "total_pushed_photos": 180,
                 "total_pushed_videos": 30,
                 "total_pushed_albums": 9,
+                "total_push_queued_assets": 219,
+                "total_push_queued_photos": 187,
+                "total_push_queued_videos": 32,
                 "total_push_duplicates_assets": 5,
+                "total_push_duplicates_photos": 4,
+                "total_push_duplicates_videos": 1,
                 "total_push_failed_assets": 4,
                 "total_push_failed_photos": 3,
                 "total_push_failed_videos": 1,
                 "total_push_failed_albums": 0,
                 "total_push_retry_recovered_assets": 8,
                 "total_push_retry_failed_assets": 2,
+                "total_push_retry_scheduled_assets": 10,
                 "total_consolidated_albums": 6,
                 "total_canonicalized_albums": 4,
                 "total_target_empty_albums_removed": 2,
@@ -141,6 +147,9 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["assetTransferStartedAt"], "2026-07-16T10:00:00Z")
         self.assertEqual(snapshot["pulledAssets"], 240)
         self.assertEqual(snapshot["pushedAssets"], 210)
+        self.assertEqual(snapshot["pushQueuedAssets"], 219)
+        self.assertEqual(snapshot["pushDuplicatePhotos"], 4)
+        self.assertEqual(snapshot["pushRetryScheduled"], 10)
         self.assertEqual(snapshot["assetsInQueue"], 7)
         self.assertEqual(snapshot["albumAssocQueue"], 4)
         self.assertEqual(snapshot["delayedRetriesQueue"], 3)
@@ -274,6 +283,23 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(counters["total_pulled_assets"], 2)
         self.assertEqual(counters["total_pulled_photos"], 1)
         self.assertEqual(counters["total_pulled_videos"], 1)
+
+    def test_increment_push_duplicate_counters_uses_physical_stats_bundle(self):
+        counters = {
+            "total_push_duplicates_assets": 0,
+            "total_push_duplicates_photos": 0,
+            "total_push_duplicates_videos": 0,
+        }
+
+        automatic_module._increment_push_duplicate_counters(
+            counters,
+            asset_type="photo",
+            asset_stats={"assets": 2, "photos": 1, "videos": 1},
+        )
+
+        self.assertEqual(counters["total_push_duplicates_assets"], 2)
+        self.assertEqual(counters["total_push_duplicates_photos"], 1)
+        self.assertEqual(counters["total_push_duplicates_videos"], 1)
 
     def test_move_to_album_association_queue_preserves_relative_folder_structure(self):
         with tempfile.TemporaryDirectory() as tmpdir:
