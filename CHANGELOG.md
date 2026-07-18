@@ -5,7 +5,7 @@
 ---
 
 ## Release: v4.5.0
-### Release Date: 2026-07-17
+### Release Date: 2026-07-18
   
 #### 🚨 Breaking Changes:
   - Removed the discontinued `Immich Photos -> Remove Orphan Assets` module from all exposed interfaces (`Web`, `CLI`, `TUI`, and `GUI`) and from the related `Immich` documentation, while keeping the underlying implementation paths commented/preserved in code for possible future reuse.
