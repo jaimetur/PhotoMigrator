@@ -3083,12 +3083,28 @@ body[data-theme="sunset"] .folder-item--select {
         grid-row: auto;
     }
 
+    /* Override the more specific desktop placements used when the Takeout
+       description card is present, otherwise mobile creates an implicit column. */
+    .module-grid.google-layout.google-layout--with-doc .takeout-doc-card,
+    .module-grid.google-layout.google-layout--with-doc .google-subpanel--takeout,
+    .module-grid.google-layout.google-layout--with-doc .google-subpanel--flags,
+    .module-grid.google-layout.google-layout--with-doc .google-subpanel--structure,
+    .module-grid.google-layout.google-layout--with-doc .google-subpanel--runtime {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
     .module-grid.google-layout .arg-row {
         grid-template-columns: 1fr;
     }
 
     .module-grid.google-layout .field__input {
         max-width: none;
+    }
+
+    .desc-card p .desc-modules-grid {
+        grid-template-columns: max-content;
+        gap: 4px 0;
     }
 
     .arg-block__help {
