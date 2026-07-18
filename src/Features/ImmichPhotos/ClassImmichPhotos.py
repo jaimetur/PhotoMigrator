@@ -1071,10 +1071,15 @@ class ClassImmichPhotos(BaseMediaClient):
                     return self.filter_assets(assets=album_assets, log_level=log_level)
                 return album_assets
             except Exception as e:
+                response = getattr(e, "response", None)
+                response_details = ""
+                if response is not None:
+                    response_body = str(getattr(response, "text", "") or "").strip().replace("\n", " ")
+                    response_details = f" status={getattr(response, 'status_code', '?')} body={response_body[:500]!r}"
                 if album_name:
-                    LOGGER.error(f"Failed to retrieve assets from album '{album_name}': {str(e)}")
+                    LOGGER.error(f"Failed to retrieve assets from album '{album_name}':{response_details} {str(e)}")
                 else:
-                    LOGGER.error(f"Failed to retrieve assets from album ID={album_id}: {str(e)}")
+                    LOGGER.error(f"Failed to retrieve assets from album ID={album_id}:{response_details} {str(e)}")
                 return []
 
     def get_all_assets_from_album_shared(self, album_id, album_name=None, type="all", album_passphrase=None, album_scope=None, album_expected_count=None, log_level=None):
@@ -1198,6 +1203,7 @@ class ClassImmichPhotos(BaseMediaClient):
                         "confirmed_asset_ids": set(),
                         "failed_asset_ids": set(),
                         "real_failures": [],
+                        "request_failed": False,
                     }
                 return 0
             asset_ids = convert_to_list(asset_ids)
@@ -1252,13 +1258,19 @@ class ClassImmichPhotos(BaseMediaClient):
                         "confirmed_asset_ids": confirmed_asset_ids,
                         "failed_asset_ids": failed_asset_ids,
                         "real_failures": real_failures,
+                        "request_failed": False,
                     }
                 return confirmed_count
             except Exception as e:
+                response = getattr(e, "response", None)
+                response_details = ""
+                if response is not None:
+                    response_body = str(getattr(response, "text", "") or "").strip().replace("\n", " ")
+                    response_details = f" status={getattr(response, 'status_code', '?')} body={response_body[:500]!r}"
                 if album_name:
-                    LOGGER.error(f"Error while adding assets to album '{album_name}' with ID={album_id}: {e}")
+                    LOGGER.error(f"Error while adding assets to album '{album_name}' with ID={album_id}:{response_details} {e}")
                 else:
-                    LOGGER.error(f"Error while adding assets to album with ID={album_id}: {e}")
+                    LOGGER.error(f"Error while adding assets to album with ID={album_id}:{response_details} {e}")
                 if return_details:
                     return {
                         "requested_count": len(asset_ids),
@@ -1266,6 +1278,7 @@ class ClassImmichPhotos(BaseMediaClient):
                         "confirmed_asset_ids": set(),
                         "failed_asset_ids": {str(asset_id).strip() for asset_id in asset_ids if str(asset_id).strip()},
                         "real_failures": [str(e)],
+                        "request_failed": True,
                     }
                 return 0
 

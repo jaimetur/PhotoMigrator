@@ -1198,6 +1198,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     album_assoc_locks_lock = threading.Lock()
     pending_duplicate_resolution_by_album = {}
     pending_duplicate_resolution_lock = threading.Lock()
+    album_assoc_completed_album_keys = set()
+    album_assoc_completed_album_keys_lock = threading.Lock()
     album_finalize_wait_log_by_album = {}
     album_finalize_wait_log_lock = threading.Lock()
     album_finalize_locks = {}
@@ -1742,6 +1744,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             ]
             confirmed_ids = set(already_present_ids)
             if ids_to_add:
+                immich_request_failed = False
                 if isinstance(target_client, ClassImmichPhotos):
                     add_result = target_client.add_assets_to_album(
                         album_id=album_id_dest,
@@ -1751,6 +1754,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         return_details=True,
                     )
                     if isinstance(add_result, dict):
+                        immich_request_failed = bool(add_result.get("request_failed"))
                         confirmed_ids.update({
                             str(asset_id).strip()
                             for asset_id in add_result.get("confirmed_asset_ids", set())
@@ -1770,7 +1774,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     asset_id for asset_id in normalized_asset_ids
                     if asset_id not in confirmed_ids
                 ]
-                if unresolved_ids:
+                # A failed PUT cannot be clarified by immediately issuing a GET
+                # plus one PUT per asset. Retry the batch later instead, avoiding
+                # an API storm while Immich is returning 4xx/5xx responses.
+                if unresolved_ids and not immich_request_failed:
                     refreshed_ids = _refresh_target_album_asset_ids(
                         album_id=album_id_dest,
                         album_name=album_name,
@@ -1784,7 +1791,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         asset_id for asset_id in normalized_asset_ids
                         if asset_id not in confirmed_ids
                     ]
-                if unresolved_ids:
+                if unresolved_ids and not immich_request_failed:
                     individually_confirmed = set()
                     for unresolved_asset_id in unresolved_ids:
                         add_result = target_client.add_assets_to_album(
@@ -1806,7 +1813,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         asset_id for asset_id in normalized_asset_ids
                         if asset_id not in confirmed_ids
                     ]
-                if unresolved_ids:
+                if unresolved_ids and not immich_request_failed:
                     refreshed_ids = _refresh_target_album_asset_ids(
                         album_id=album_id_dest,
                         album_name=album_name,
@@ -2394,7 +2401,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
         SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += 1
         LOGGER.warning(
-            f"Album Association Retry Delayed: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
+            f"Album Association Retry Queued: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
             f"attempt {next_attempt}/{max_album_assoc_retries} queued for an album-association worker. Reason: {reason}"
         )
         return True
@@ -2554,6 +2561,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         source_asset_already_moved=bool(item.get("source_asset_already_moved")),
                         source_live_companion_already_moved=bool(item.get("source_live_companion_already_moved")),
                     )
+                    LOGGER.info(
+                        f"Album Association Completed: '{os.path.basename(item.get('asset_file_path', ''))}' "
+                        f"associated with album '{album_name}' (worker={worker_id}, batch={len(normalized_items)})."
+                    )
                 else:
                     LOGGER.warning(
                         f"Album association was not confirmed by target for asset '{os.path.basename(item.get('asset_file_path', ''))}' "
@@ -2603,6 +2614,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             source_asset_already_moved=bool(item.get("source_asset_already_moved")),
                             source_live_companion_already_moved=bool(item.get("source_live_companion_already_moved")),
                         )
+                        LOGGER.error(
+                            f"Album Association Failed: '{os.path.basename(item.get('asset_file_path', ''))}' "
+                            f"could not be associated with album '{album_name}' after "
+                            f"{item.get('album_assoc_retry_attempt', 0)}/{max_album_assoc_retries} retry attempt(s); "
+                            f"it remains in {AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER}."
+                        )
 
                 _debug_perf_log(
                     LOGGER,
@@ -2645,7 +2662,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         removed_source_asset_ids = set()
         pending_by_album = {}
         pending_order = []
-        completed_album_keys = set()
         stop_requested = False
 
         def flush_ready(force=False):
@@ -2657,7 +2673,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 if not state:
                     continue
                 if defer_album_association_until_album_end:
-                    album_is_complete = bool(state.get("album_complete")) or album_key in completed_album_keys
+                    with album_assoc_completed_album_keys_lock:
+                        album_is_complete = bool(state.get("album_complete")) or album_key in album_assoc_completed_album_keys
                     if force:
                         album_is_complete = True
                     if not album_is_complete:
@@ -2718,7 +2735,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                 if item.get("_album_done"):
                     album_key = item.get("album_name") or ""
-                    completed_album_keys.add(album_key)
+                    with album_assoc_completed_album_keys_lock:
+                        album_assoc_completed_album_keys.add(album_key)
                     state = pending_by_album.get(album_key)
                     if state is None:
                         state = {"items": [], "first_enqueued_at": time.perf_counter(), "album_complete": True}
@@ -2735,10 +2753,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_key = item.get("album_name") or ""
                 state = pending_by_album.get(album_key)
                 if state is None:
+                    with album_assoc_completed_album_keys_lock:
+                        album_is_complete = album_key in album_assoc_completed_album_keys
                     state = {
                         "items": [],
                         "first_enqueued_at": time.perf_counter(),
-                        "album_complete": album_key in completed_album_keys,
+                        "album_complete": album_is_complete,
                     }
                     pending_by_album[album_key] = state
                     pending_order.append(album_key)
