@@ -1184,6 +1184,18 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     retry_scheduler_stop = threading.Event()
     retries_enabled = max_push_retries > 0 or max_album_assoc_retries > 0
 
+    def _physical_file_count(asset=None, asset_type=None, live_photo_video_path=None):
+        if isinstance(asset, dict):
+            stats = asset.get("physical_stats")
+            if stats:
+                return max(0, int(stats.get("assets", 0) or 0))
+            asset_type = asset.get("asset_type", asset_type)
+            live_photo_video_path = asset.get("live_photo_video_path", live_photo_video_path)
+        return int(_build_physical_transfer_stats(
+            asset_type,
+            include_live_companion=bool(live_photo_video_path),
+        ).get("assets", 1) or 1)
+
     def _refresh_queue_depth():
         with metrics_lock:
             delayed_assets = _count_staged_queue_files(
@@ -1479,7 +1491,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             SHARED_DATA.counters['total_album_assoc_queue_assets'] += admitted_files
             SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += admitted_files
         if retry_attempt > 0:
-            SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
+            SHARED_DATA.counters['total_push_retry_recovered_assets'] += _physical_file_count(
+                asset_type=asset_type,
+                live_photo_video_path=live_photo_video_path,
+            )
         if album_name:
             _maybe_finalize_album(
                 album_name=album_name,
@@ -1532,9 +1547,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             removed_source_asset_ids.add(source_live_photo_video_path)
         _cleanup_local_artifacts(asset_file_path, live_photo_video_path)
         if retry_attempt > 0:
-            SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
+            SHARED_DATA.counters['total_push_retry_recovered_assets'] += _physical_file_count(
+                asset_type=asset_type,
+                live_photo_video_path=live_photo_video_path,
+            )
         if association_retry_attempt > 0:
-            SHARED_DATA.counters['total_album_assoc_retry_recovered_assets'] += 1
+            SHARED_DATA.counters['total_album_assoc_retry_recovered_assets'] += _physical_file_count(
+                asset_type=asset_type,
+                live_photo_video_path=live_photo_video_path,
+            )
         if album_name:
             _maybe_finalize_album(
                 album_name=album_name,
@@ -1943,7 +1964,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     resolved_target_asset_id=asset_id,
                 )
             if not scheduled_retry:
-                SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
+                SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += _physical_file_count(asset=asset)
                 cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                     _finalize_album_association_failed_asset,
                     report_logger=LOGGER,
@@ -1978,7 +1999,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 resolved_target_asset_id=asset_id,
             )
             if not scheduled_retry:
-                SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
+                SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += _physical_file_count(asset=asset)
                 cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                     _finalize_album_association_failed_asset,
                     report_logger=LOGGER,
@@ -2363,6 +2384,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # Scheduled means admitted to the persistent association queue, not
             # the number of attempts made while the same file is retried.
             SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += admitted_files
+        elif counter_name == 'total_delayed_queue_assets':
+            # Delayed Retry Scheduled follows the same physical-file admission
+            # rule as its queue total, never the number of retry attempts.
+            SHARED_DATA.counters['total_push_retry_scheduled_assets'] += admitted_files
         asset[marker_name] = True
 
     def _schedule_asset_retry(asset, reason, resolved_target_asset_id=None, skip_target_push=False):
@@ -2388,7 +2413,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         next_attempt = current_attempt + 1
         if next_attempt > max_push_retries:
             if current_attempt > 0:
-                SHARED_DATA.counters['total_push_retry_failed_assets'] += 1
+                SHARED_DATA.counters['total_push_retry_failed_assets'] += _physical_file_count(asset=asset)
             _move_staged_asset_to_queue_folder(temp_folder, asset, AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER)
             return False
 
@@ -2414,7 +2439,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             retry_condition.notify_all()
         _refresh_queue_depth()
 
-        SHARED_DATA.counters['total_push_retry_scheduled_assets'] += 1
         LOGGER.warning(
             f"Asset Retry Delayed: '{os.path.basename(asset.get('asset_file_path', ''))}' "
             f"attempt {next_attempt}/{max_push_retries} scheduled in {delay_seconds}s. Reason: {reason}"
@@ -2637,7 +2661,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     duplicate_assets,
                                 )
                             item["_final_duplicate_counted"] = True
-                        SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += 1
+                        SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += _physical_file_count(asset=item)
                         cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                             _finalize_album_association_failed_asset,
                             report_logger=LOGGER,
@@ -3582,8 +3606,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if asset_type in ['metadata', 'sidecar']:
                             continue
 
-                        _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "total_assets", 1)
-
                         # Stage every pending upload under Push_Queue. Local-folder
                         # sources retain their full path relative to the source root.
                         download_folder = album_folder
@@ -3673,6 +3695,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 asset_stats = _build_physical_transfer_stats(
                                     normalized_asset_type,
                                     include_live_companion=include_live_companion,
+                                )
+                                _increment_album_stat_counter(
+                                    album_stats_by_name_ref,
+                                    album_stats_lock_ref,
+                                    album_name,
+                                    "total_assets",
+                                    int(asset_stats.get("assets", 1) or 1),
                                 )
                                 count_push_stats = True
                                 LOGGER.info(f"Asset Pulled    : '{os.path.basename(pulled_file_path)}'")
