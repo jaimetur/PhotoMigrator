@@ -168,6 +168,38 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["albumAssocRetryRecovered"], 5)
         self.assertEqual(snapshot["albumAssocUnconfirmed"], 1)
 
+    def test_web_dashboard_snapshot_uses_physical_pull_and_push_totals(self):
+        shared_data = automatic_module.SharedData(
+            info={
+                "total_assets": 10,
+                "total_photos": 7,
+                "total_videos": 3,
+            },
+            counters={
+                # A Live Photo companion raises the transferred video count
+                # above the source's logical video-record count.
+                "total_pulled_assets": 12,
+                "total_pulled_photos": 7,
+                "total_pulled_videos": 5,
+                "total_pull_failed_assets": 1,
+                "total_pull_failed_photos": 1,
+                "total_pull_failed_videos": 0,
+                "total_push_queued_assets": 12,
+                "total_push_queued_photos": 7,
+                "total_push_queued_videos": 5,
+            },
+            logs_queue=None,
+        )
+
+        snapshot = automatic_module._build_web_dashboard_snapshot(shared_data, parallel=True)
+
+        self.assertEqual(snapshot["totalAssets"], 13)
+        self.assertEqual(snapshot["totalPhotos"], 8)
+        self.assertEqual(snapshot["totalVideos"], 5)
+        self.assertEqual(snapshot["pushTotalAssets"], 12)
+        self.assertEqual(snapshot["pushTotalPhotos"], 7)
+        self.assertEqual(snapshot["pushTotalVideos"], 5)
+
     def test_compute_dashboard_estimated_time_returns_estimate_from_processed_and_pending_assets(self):
         estimated = automatic_module._compute_dashboard_estimated_time(
             elapsed_seconds=120,

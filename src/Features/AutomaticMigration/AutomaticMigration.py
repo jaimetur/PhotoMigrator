@@ -78,14 +78,52 @@ def _increment_album_stat_counter(album_stats_by_name, album_stats_lock, album_n
 def _build_web_dashboard_snapshot(shared_data, parallel=None):
     info = dict(getattr(shared_data, "info", {}) or {})
     counters = dict(getattr(shared_data, "counters", {}) or {})
+    # Source analysis counts logical media records. Pull/push counters represent
+    # physical files and can include an additional Live Photo video companion.
+    # Keep dashboard maxima in that same physical-file unit so progress never
+    # exceeds its advertised total.
+    def _physical_pull_total(total_key, pulled_key, failed_key):
+        return max(
+            int(info.get(total_key, 0) or 0),
+            int(counters.get(pulled_key, 0) or 0) + int(counters.get(failed_key, 0) or 0),
+        )
+
+    def _physical_push_total(total_key, pulled_key, failed_key, queued_key):
+        pulled = int(counters.get(pulled_key, 0) or 0)
+        failed = int(counters.get(failed_key, 0) or 0)
+        queued = int(counters.get(queued_key, 0) or 0)
+        # Once pulling has started, only successfully pulled physical files can
+        # enter Push_Queue; pull failures must not inflate the Push maximum.
+        if pulled or failed:
+            return max(pulled, queued)
+        return int(info.get(total_key, 0) or 0)
+
+    physical_total_assets = _physical_pull_total(
+        "total_assets", "total_pulled_assets", "total_pull_failed_assets",
+    )
+    physical_total_photos = _physical_pull_total(
+        "total_photos", "total_pulled_photos", "total_pull_failed_photos",
+    )
+    physical_total_videos = _physical_pull_total(
+        "total_videos", "total_pulled_videos", "total_pull_failed_videos",
+    )
     snapshot = {
         "migrationMode": "parallel" if bool(parallel) else "sequential",
         "sourceClientName": info.get("source_client_name"),
         "targetClientName": info.get("target_client_name"),
         "assetTransferStartedAt": info.get("asset_transfer_start_time"),
-        "totalAssets": int(info.get("total_assets", 0) or 0),
-        "totalPhotos": int(info.get("total_photos", 0) or 0),
-        "totalVideos": int(info.get("total_videos", 0) or 0),
+        "totalAssets": physical_total_assets,
+        "totalPhotos": physical_total_photos,
+        "totalVideos": physical_total_videos,
+        "pushTotalAssets": _physical_push_total(
+            "total_assets", "total_pulled_assets", "total_pull_failed_assets", "total_push_queued_assets",
+        ),
+        "pushTotalPhotos": _physical_push_total(
+            "total_photos", "total_pulled_photos", "total_pull_failed_photos", "total_push_queued_photos",
+        ),
+        "pushTotalVideos": _physical_push_total(
+            "total_videos", "total_pulled_videos", "total_pull_failed_videos", "total_push_queued_videos",
+        ),
         "totalAlbums": int(info.get("total_albums", 0) or 0),
         "totalMetadata": int(info.get("total_metadata", 0) or 0),
         "totalSidecar": int(info.get("total_sidecar", 0) or 0),

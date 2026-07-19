@@ -322,6 +322,35 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {TOOL_NAME_VERSION}"
                 layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
+            def physical_progress_total(completed_label, configured_total_label):
+                """Return a physical-file maximum for Pull/Push progress bars."""
+                counter_pairs = {
+                    'total_pulled_assets': ('total_assets', 'total_pull_failed_assets'),
+                    'total_pulled_photos': ('total_photos', 'total_pull_failed_photos'),
+                    'total_pulled_videos': ('total_videos', 'total_pull_failed_videos'),
+                }
+                push_sources = {
+                    'total_push_queued_assets': ('total_assets', 'total_pulled_assets', 'total_pull_failed_assets'),
+                    'total_push_queued_photos': ('total_photos', 'total_pulled_photos', 'total_pull_failed_photos'),
+                    'total_push_queued_videos': ('total_videos', 'total_pulled_videos', 'total_pull_failed_videos'),
+                }
+                if completed_label in counter_pairs:
+                    total_label, failed_label = counter_pairs[completed_label]
+                    return max(
+                        int(SHARED_DATA.info.get(total_label, 0) or 0),
+                        int(SHARED_DATA.counters.get(completed_label, 0) or 0)
+                        + int(SHARED_DATA.counters.get(failed_label, 0) or 0),
+                    )
+                if completed_label in push_sources:
+                    total_label, pulled_label, failed_label = push_sources[completed_label]
+                    pulled = int(SHARED_DATA.counters.get(pulled_label, 0) or 0)
+                    failed = int(SHARED_DATA.counters.get(failed_label, 0) or 0)
+                    queued = int(SHARED_DATA.counters.get(completed_label, 0) or 0)
+                    if pulled or failed:
+                        return max(pulled, queued)
+                    return int(SHARED_DATA.info.get(total_label, 0) or 0)
+                return int(SHARED_DATA.info.get(configured_total_label, 0) or 0)
+
             # ─────────────────────────────────────────────────────────────────────────
             # 2) Info Panel
             # ─────────────────────────────────────────────────────────────────────────
@@ -376,7 +405,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 current_queue_size = int(SHARED_DATA.info.get('assets_in_queue', 0) or 0)
                 current_album_assoc_queue_size = int(SHARED_DATA.info.get('album_assoc_queue_size', 0) or 0)
                 current_delayed_queue_size = int(SHARED_DATA.info.get('delayed_assets_pending', 0) or 0)
-                total_assets = int(SHARED_DATA.info.get('total_assets', 0) or 0)
+                total_assets = physical_progress_total('total_pulled_assets', 'total_assets')
                 processed_assets = min(
                     total_assets,
                     max(0, int(SHARED_DATA.counters.get('total_pulled_assets', 0) or 0))
@@ -428,9 +457,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
 
                 # 🔹 Datos a mostrar
                 info_data = [
-                    ("🎯 Total Assets", SHARED_DATA.info.get('total_assets', 0)),
-                    ("📷 Total Photos", SHARED_DATA.info.get('total_photos', 0)),
-                    ("🎬 Total Videos", SHARED_DATA.info.get('total_videos', 0)),
+                    ("🎯 Total Assets", total_assets),
+                    ("📷 Total Photos", physical_progress_total('total_pulled_photos', 'total_photos')),
+                    ("🎬 Total Videos", physical_progress_total('total_pulled_videos', 'total_videos')),
                     ("📂 Total Albums", SHARED_DATA.info.get('total_albums', 0)),
                     ("🔒 Blocked Albums", SHARED_DATA.info.get('total_albums_blocked', 0)),
                     ("🔒 Blocked Assets", SHARED_DATA.counters.get('total_assets_blocked', 0)),
@@ -507,7 +536,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             pull_tasks = {}
             for label, (bar, completed_label, total_label) in pull_bars.items():
                 # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
-                pull_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
+                pull_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=physical_progress_total(completed_label, total_label))
 
             # PUSHS (Green)
             push_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
@@ -529,7 +558,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
             push_tasks = {}
             for label, (bar, completed_label, total_label) in push_bars.items():
                 # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
-                push_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
+                push_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=physical_progress_total(completed_label, total_label))
 
 
             # ─────────────────────────────────────────────────────────────────────────
@@ -541,7 +570,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 progress_table.add_column(justify="right")
                 for label, (bar, completed_labeld, total_label) in pull_bars.items():
                     progress_table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
-                    bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
+                    bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=physical_progress_total(completed_labeld, total_label))
                     failed_label, failed_counter = pull_failures[label]
                     failed_value = SHARED_DATA.counters.get(failed_counter, 0)
                     progress_table.add_row(f"[cyan]  {failed_label}:[/cyan]", f"[cyan]{failed_value}[/cyan]")
@@ -565,7 +594,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 progress_table.add_column(justify="right")
                 for label, (bar, completed_labeld, total_label) in push_bars.items():
                     progress_table.add_row(f"[green]{label:<16}:[/green]", bar)
-                    bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
+                    bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=physical_progress_total(completed_labeld, total_label))
                     outcome_label, new_counter, duplicate_counter, failed_counter = push_outcomes[label]
                     new_value = SHARED_DATA.counters.get(new_counter, 0)
                     duplicate_value = SHARED_DATA.counters.get(duplicate_counter, 0) if duplicate_counter else 0
