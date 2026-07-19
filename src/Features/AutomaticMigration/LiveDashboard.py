@@ -67,6 +67,15 @@ def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending
     return _format_hms_from_seconds(estimated_remaining_seconds)
 
 
+def _compute_dashboard_estimated_end(estimated_time, now=None):
+    """Return a local completion timestamp for a valid ``HH:MM:SS`` estimate."""
+    match = re.fullmatch(r"(\d+):(\d{2}):(\d{2})", str(estimated_time or "").strip())
+    if not match:
+        return "-"
+    hours, minutes, seconds = (int(part) for part in match.groups())
+    return ((now or datetime.now()) + timedelta(hours=hours, minutes=minutes, seconds=seconds)).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _strip_bg_level_prefix(text):
     value = str(text or "")
     previous = None
@@ -392,6 +401,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     pending_assets=pending_assets,
                     total_assets=total_assets,
                 )
+                SHARED_DATA.info["estimated_end"] = _compute_dashboard_estimated_end(
+                    SHARED_DATA.info["estimated_time"],
+                )
 
                 def _format_queue_bar(current_value, max_value=None, show_total=False):
                     displayed_max = max(0, int(max_value if max_value is not None else total_assets or 0))
@@ -538,6 +550,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 timing_table.add_column(justify="right")
                 timing_table.add_row(f"[cyan]{'🕒 Elapsed Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('elapsed_time', 0)}[/cyan]")
                 timing_table.add_row(f"[cyan]{'⏳ Remaining Time':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('estimated_time', '-')}[/cyan]")
+                timing_table.add_row(f"[cyan]{'📅 Estimated End':<17}:[/cyan]", f"[cyan]{SHARED_DATA.info.get('estimated_end', '-')}[/cyan]")
                 return Panel(
                     Group(progress_table, Text(""), Rule(style="cyan dim"), timing_table),
                     title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}',
@@ -793,6 +806,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     tuple(SHARED_DATA.info.get(k, 0) for k in total_keys),
                     SHARED_DATA.info.get("elapsed_time", 0),
                     SHARED_DATA.info.get("estimated_time", "-"),
+                    SHARED_DATA.info.get("estimated_end", "-"),
                 )
 
             def _build_push_signature():

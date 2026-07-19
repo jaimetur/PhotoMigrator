@@ -183,6 +183,7 @@
                 <div class="web-dashboard__meta">
                     <span id="web-dashboard-elapsed">Elapsed Time: 00:00:00</span>
                     <span id="web-dashboard-remaining">Remaining Time: -</span>
+                    <span id="web-dashboard-estimated-end">Estimated End: -</span>
                     <span id="web-dashboard-updated">Last Updated: -</span>
                 </div>
                 <div class="stats-columns">
@@ -216,6 +217,7 @@
                         <div class="stats-separator" aria-hidden="true"></div>
                         <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
                         <div class="stat-row"><span class="stat-label">⏳ Remaining Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
+                        <div class="stat-row"><span class="stat-label">📅 Estimated End</span><span id="dash-estimated-end" class="stat-value">-</span></div>
                     </div>
                     <div class="stats-card stats-card--transfer">
                         <h4 id="dash-push-title" class="stats-card__title">⬆️ Push Panel</h4>
@@ -1562,6 +1564,20 @@
         return formatDuration(avgMsPerAsset * pending);
     }
 
+    function computeEstimatedEnd(remainingDuration, now = new Date()) {
+        const match = /^(\d+):(\d{2}):(\d{2})$/.exec(String(remainingDuration || "").trim());
+        if (!match) return "-";
+        const seconds = (Number(match[1]) * 3600) + (Number(match[2]) * 60) + Number(match[3]);
+        const estimatedEnd = new Date(now.getTime() + (seconds * 1000));
+        const year = estimatedEnd.getFullYear();
+        const month = String(estimatedEnd.getMonth() + 1).padStart(2, "0");
+        const day = String(estimatedEnd.getDate()).padStart(2, "0");
+        const hours = String(estimatedEnd.getHours()).padStart(2, "0");
+        const minutes = String(estimatedEnd.getMinutes()).padStart(2, "0");
+        const secondsText = String(estimatedEnd.getSeconds()).padStart(2, "0");
+        return `${year}-${month}-${day} ${hours}:${minutes}:${secondsText}`;
+    }
+
     function setText(id, value, fallback = "-") {
         const el = document.getElementById(id);
         if (!el) return;
@@ -1641,6 +1657,7 @@
             pulledAssets: stats.pulledAssets,
         });
         const now = new Date();
+        const estimatedEnd = computeEstimatedEnd(estimated, now);
         const updated = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
 
         const sourceLabel = stats.sourceClientName || source;
@@ -1657,6 +1674,7 @@
 
         document.getElementById("web-dashboard-elapsed").textContent = `Elapsed Time: ${elapsed}`;
         document.getElementById("web-dashboard-remaining").textContent = `Remaining Time: ${estimated}`;
+        document.getElementById("web-dashboard-estimated-end").textContent = `Estimated End: ${estimatedEnd}`;
         document.getElementById("web-dashboard-updated").textContent = `Last Updated: ${updated}`;
         setText("dash-total-assets", stats.totalAssets);
         setText("dash-total-photos", stats.totalPhotos);
@@ -1669,6 +1687,7 @@
         setText("dash-total-invalid", stats.totalInvalid);
         setText("dash-elapsed-time", elapsed, "00:00:00");
         setText("dash-estimated-time", estimated, "-");
+        setText("dash-estimated-end", estimatedEnd, "-");
 
         const modeFromState = currentRunPayload?.values?.["parallel-migration"];
         const stateSaysParallel = coerceBooleanLike(modeFromState);

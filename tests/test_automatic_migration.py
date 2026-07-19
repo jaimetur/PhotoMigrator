@@ -4,6 +4,7 @@ import tempfile
 import threading
 import types
 import unittest
+from datetime import datetime
 from pathlib import Path
 from queue import PriorityQueue
 from unittest.mock import patch
@@ -186,6 +187,15 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         )
 
         self.assertEqual(estimated, "Estimating...")
+
+    def test_compute_dashboard_estimated_end_uses_local_time_for_valid_duration(self):
+        estimated_end = automatic_module._compute_dashboard_estimated_end(
+            "01:02:03",
+            now=datetime(2026, 7, 19, 10, 30, 0),
+        )
+
+        self.assertEqual(estimated_end, "2026-07-19 11:32:03")
+        self.assertEqual(automatic_module._compute_dashboard_estimated_end("Estimating..."), "-")
 
     def test_pull_has_content_handles_common_types(self):
         self.assertTrue(automatic_module._pull_has_content(True))

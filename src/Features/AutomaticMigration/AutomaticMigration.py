@@ -24,7 +24,7 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Features.AutomaticMigration.LiveDashboard import _compute_dashboard_estimated_time, _format_hms_from_seconds, _normalize_bg_progress_desc, _parse_dashboard_progress_line, _parse_int, _select_visible_bg_progress_rows, start_dashboard
+from Features.AutomaticMigration.LiveDashboard import _compute_dashboard_estimated_end, _compute_dashboard_estimated_time, _format_hms_from_seconds, _normalize_bg_progress_desc, _parse_dashboard_progress_line, _parse_int, _select_visible_bg_progress_rows, start_dashboard
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
 from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, has_any_filter
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
@@ -753,6 +753,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             "delayed_assets_pending": 0,
             "elapsed_time": 0,
             "estimated_time": "-",
+            "estimated_end": "-",
             "start_time": start_time
         }
 
