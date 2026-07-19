@@ -1426,17 +1426,22 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 log_level=log_level,
             )
             removed_source_asset_ids.add(source_live_photo_video_path)
-        _move_to_album_association_failed_folder(
+        moved_paths = _move_to_album_association_failed_folder(
             temp_folder=temp_folder,
             album_name=album_name,
             asset_file_path=asset_file_path,
             live_photo_video_path=live_photo_video_path,
             log_level=log_level,
         )
+        if moved_paths:
+            # This path enters Album_Association_Queue directly instead of via
+            # _schedule_album_association_retry, so account for its physical files
+            # in both queue-admission metrics.
+            admitted_files = len(moved_paths)
+            SHARED_DATA.counters['total_album_assoc_queue_assets'] += admitted_files
+            SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += admitted_files
         if retry_attempt > 0:
             SHARED_DATA.counters['total_push_retry_recovered_assets'] += 1
-        if association_retry_attempt > 0:
-            SHARED_DATA.counters['total_album_assoc_retry_recovered_assets'] += 1
         if album_name:
             _maybe_finalize_album(
                 album_name=album_name,
@@ -2314,7 +2319,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         if not isinstance(asset, dict) or asset.get(marker_name):
             return
         physical_stats = asset.get('physical_stats') or _build_physical_transfer_stats(asset.get('asset_type'))
-        SHARED_DATA.counters[counter_name] += int(physical_stats.get('assets', 1) or 1)
+        admitted_files = int(physical_stats.get('assets', 1) or 1)
+        SHARED_DATA.counters[counter_name] += admitted_files
+        if counter_name == 'total_album_assoc_queue_assets':
+            # Scheduled means admitted to the persistent association queue, not
+            # the number of attempts made while the same file is retried.
+            SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += admitted_files
         asset[marker_name] = True
 
     def _schedule_asset_retry(asset, reason, resolved_target_asset_id=None, skip_target_push=False):
@@ -2400,7 +2410,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         retry_asset['album_assoc_enqueued_at_monotonic'] = time.perf_counter()
         album_assoc_queue.put(retry_asset)
 
-        SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += 1
         LOGGER.warning(
             f"Album Association Retry Queued: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
             f"attempt {next_attempt}/{max_album_assoc_retries} queued for an album-association worker. Reason: {reason}"
@@ -2778,6 +2787,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             if retries_pending == 0 and push_queue.qsize() == 0 and album_assoc_queue.qsize() == 0:
                 break
             time.sleep(0.25)
+
+    def _reconcile_terminal_albums():
+        """Count source albums whose staging work reached a terminal outcome."""
+        with album_stats_lock:
+            album_names = tuple(album_stats_by_name.keys())
+        for album_name in album_names:
+            album_folder_path = _get_album_staging_folder(album_name)
+            if _list_album_remaining_files(album_folder_path):
+                continue
+            with processed_albums_lock:
+                if album_name in processed_albums:
+                    continue
+                processed_albums.add(album_name)
+                SHARED_DATA.counters['total_pushed_albums'] += 1
+            LOGGER.info(f"Album Pushed    : '{album_name}' (all assets reached a terminal outcome)")
 
     def _get_push_queue_priority(item):
         if not push_queue_priority_enabled:
@@ -3354,6 +3378,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 t.join()
 
             # En este punto todos los pulls y pushs están listas y la cola está vacía.
+            _reconcile_terminal_albums()
 
             # Auto-stack burst photos in Immich target using uploaded records.
             if isinstance(target_client, ClassImmichPhotos):
