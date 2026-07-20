@@ -9,7 +9,7 @@
 [![Open Github issues](https://img.shields.io/github/issues/jaimetur/PhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/PhotoMigrator/issues)
 [![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases)
 [![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases/latest)
-[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/v4.5.0/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases?q=prerelease%3Atrue)
+[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/v4.6.0/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases?q=prerelease%3Atrue)
 
 
 # 📸 **PhotoMigrator**
