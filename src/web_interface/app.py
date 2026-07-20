@@ -131,6 +131,7 @@ AUTOMATION_DESTS = {
     "prefer-canonical-album-names",
     "consolidate-similar-albums",
     "one-time-password",
+    "import-people",
 }
 
 GOOGLE_DESTS = {
@@ -321,8 +322,8 @@ MODULE_ACTION_ARGUMENTS = {
         "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "immich_photos": {
-        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
-        "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
+        "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
