@@ -5,7 +5,7 @@
 ---
 
 ## Release: v4.6.0
-### Release Date: 2026-07-20
+### Release Date: 2026-07-21
   
 #### 🚨 Breaking Changes:
 
@@ -26,10 +26,11 @@
   - Fixed Immich `Remove Duplicate Assets` detection to use the current `exifInfo.fileSizeInByte` response field, with fallback support for older size fields. Duplicate groups are no longer silently discarded when the legacy `fileSize` field is absent, and the analysis now reports assets that genuinely lack a usable size.
 
 #### 📚 Documentation:
+  - Updated documentation with all changes.
   - Documented `Remove Duplicate Assets` in the cloud-feature matrix and all cloud-service guides, including keeper selection, confirmation, backend-specific metadata limitations, and deletion safeguards.
   - Documented the Google Takeout people-processing flag, Immich-only people-import visibility, and Synology-only OTP visibility in the relevant interface and feature guides.
   - Documented Google Takeout people-map processing, including its dedicated pre-GPTH `Step 4.1` capture phase, Immich `--import-people` uploads, and the corresponding Automatic Migration behavior and limitations.
-  - Updated documentation with all changes.
+  - Added `Remove Duplicate Assets` and `--duplicate-asset-keeper oldest|newest` to the CLI syntax, full/short arguments references, and Automatic Migration guide, including its independent-module scope.
 
 ---
 

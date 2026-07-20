@@ -92,13 +92,14 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-uAlb <ALBUMS_FOLDER>] [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                      [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>]
                      [-renAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>] [-rAlb <ALBUMS_NAME_PATTERN>]
-                     [-rAllAlb] [-rAll] [-rEmpAlb] [-rDupAlb] [-mDupAlb] [-rOrphan] [-OTP]
+                     [-rAllAlb] [-rAll] [-rEmpAlb] [-rDupAlb] [-rDupAst] [-dupKeeper {oldest,newest}]
+                     [-mDupAlb] [-rOrphan] [-OTP]
                      [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>] [-orgDate <INPUT_FOLDER>]
                      [-olfs <SUFFIX>] [-olstr ['flatten', 'year', 'year/month', 'year-month']] [-omove]
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
 
-PhotoMigrator v4.6.0 - 2026-07-20
+PhotoMigrator v4.6.0 - 2026-07-21
 
           Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
           such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -431,6 +432,15 @@ If more than one optional arguments are detected, only the first one will be exe
                Remove duplicated albums (same name and size).
                Requires '--client'.
                Example: --client=synology --remove-duplicates-albums
+-rDupAst     ; --remove-duplicates-assets
+               Remove duplicate assets with the same exact filename and file size.
+               Requires '--client' and '--duplicate-asset-keeper oldest|newest'.
+               The keeper selector defaults to 'newest'. Google Photos reports that deletion is unavailable through
+               its public API and makes no changes.
+               Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest
+-dupKeeper   ; --duplicate-asset-keeper {oldest,newest}
+               Select the asset retained by '--remove-duplicates-assets' using the cloud timestamp.
+               Default: newest.
 -mDupAlb     ; --merge-duplicates-albums
                Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.
                Requires '--client'.
