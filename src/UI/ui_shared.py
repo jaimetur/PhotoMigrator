@@ -909,18 +909,13 @@ def build_parser_schema(
         by_dest[dest] = field
 
     cloud_common = [field for field in fields if field["tab"] == "cloud_common"]
-    takeout_album_name_fields = [
-        by_dest[dest]
-        for dest in ("prefer-canonical-album-names", "consolidate-similar-albums")
-        if dest in by_dest
-    ]
     merged_general = [field for field in fields if field["dest"] in (GENERAL_CORE_DESTS | GENERAL_OPTIONAL_DESTS)]
     schema = {
         "general_tabs": {"general": merged_general},
         "feature_scoped": [field for field in fields if field["dest"] in FEATURE_SCOPED_DESTS],
         "tabs": {
-            "google_takeout": [field for field in fields if field["tab"] == "google_takeout"] + takeout_album_name_fields,
-            "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"] + takeout_album_name_fields,
+            "google_takeout": [field for field in fields if field["tab"] == "google_takeout"],
+            "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"],
             "google_photos": cloud_common,
             "synology_photos": cloud_common,
             "immich_photos": cloud_common,
@@ -969,6 +964,26 @@ def build_automatic_migration_filter_fields(schema: Dict[str, Any]) -> List[Dict
 def normalize_field_for_context(field: Dict[str, Any] | None, tab_key: str) -> Dict[str, Any] | None:
     if not field:
         return field
+    if field.get("dest") in {"prefer-canonical-album-names", "consolidate-similar-albums"}:
+        normalized = dict(field)
+        is_canonical = field.get("dest") == "prefer-canonical-album-names"
+        if tab_key == "automatic_migration":
+            normalized["help"] = (
+                "When a destination album must be created, use the canonical form of its source name. "
+                "It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+                if is_canonical else
+                "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album. "
+                "Redundant albums are removed only when the target service supports album deletion."
+            )
+        elif tab_key in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            normalized["help"] = (
+                "When an uploaded album must be created, use the canonical form of its source name. "
+                "It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
+                if is_canonical else
+                "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. "
+                "Redundant albums are removed only when the service supports album deletion."
+            )
+        return normalized
     if tab_key in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and field.get("dest") == "account-id":
         normalized = dict(field)
         normalized["kind"] = "select"

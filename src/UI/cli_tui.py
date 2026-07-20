@@ -2361,12 +2361,10 @@ if TEXTUAL_AVAILABLE:
             if tab_key in {"google_takeout", "icloud_takeout"}:
                 regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
                 toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
-
                 if regular_fields:
                     widgets.append(Static("Module Fields", classes="section-title feature-section-title"))
                     for field in regular_fields:
                         widgets.extend(self.build_field_widgets(field, context=tab_key))
-
                 if toggle_fields:
                     widgets.append(Static("Flags", classes="section-title feature-section-title feature-section-title--spaced"))
                     widgets.append(self.build_flags_columns(toggle_fields, tab_key))

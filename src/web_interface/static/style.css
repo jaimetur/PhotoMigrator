@@ -1918,7 +1918,7 @@ body[data-theme="dark"] .theme-card__name {
     font-size: 1rem;
 }
 
-/* Desktop layout for Google Photos subcards:
+/* Desktop layout for Takeout subcards:
    left column: takeout + structure + runtime
    right column: processing flags */
 .module-grid.google-layout .google-subpanel--takeout {
@@ -1966,7 +1966,7 @@ body[data-theme="dark"] .theme-card__name {
     grid-row: 4;
 }
 
-/* Google Photos subcards: wider argument name, narrower control column. */
+/* Takeout subcards: wider argument name, narrower control column. */
 .module-grid.google-layout .arg-row {
     grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
     align-items: center;

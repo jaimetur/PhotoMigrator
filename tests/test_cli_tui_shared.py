@@ -31,6 +31,7 @@ try:
         merge_values_with_schema,
         load_config_editor_model,
         normalize_organize_local_folder_ui_state,
+        normalize_field_for_context,
         parse_find_duplicates_value,
         parse_migration_endpoint,
         parse_rename_albums_value,
@@ -74,7 +75,7 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("consolidate-similar-albums", automatic_dests)
         self.assertIn("one-time-password", automatic_dests)
 
-    def test_build_parser_schema_exposes_album_name_flags_in_takeout_tabs(self):
+    def test_build_parser_schema_excludes_unused_album_name_flags_from_takeout_tabs(self):
         schema = build_parser_schema()
         general_dests = {field["dest"] for field in schema["general_tabs"]["general"]}
 
@@ -83,8 +84,15 @@ class TestCliTuiShared(unittest.TestCase):
         for tab in ("google_takeout", "icloud_takeout"):
             with self.subTest(tab=tab):
                 tab_dests = {field["dest"] for field in schema["tabs"][tab]}
-                self.assertIn("prefer-canonical-album-names", tab_dests)
-                self.assertIn("consolidate-similar-albums", tab_dests)
+                self.assertNotIn("prefer-canonical-album-names", tab_dests)
+                self.assertNotIn("consolidate-similar-albums", tab_dests)
+
+    def test_album_naming_help_is_specific_to_each_feature_context(self):
+        schema = build_parser_schema()
+        field = schema["fields_by_dest"]["prefer-canonical-album-names"]
+
+        self.assertIn("destination album", normalize_field_for_context(field, "automatic_migration")["help"])
+        self.assertIn("uploaded albums", normalize_field_for_context(field, "immich_photos")["help"])
 
     def test_build_parser_schema_standalone_actions_exclude_auxiliary_organize_fields(self):
         schema = build_parser_schema()
