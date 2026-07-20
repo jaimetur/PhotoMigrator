@@ -45,7 +45,7 @@ def build_people_map(takeout_root):
     belonging to the physical file being uploaded.
     """
     entries = {}
-    for json_path in Path(takeout_root).rglob("*.json"):
+    for json_path in sorted(Path(takeout_root).rglob("*.json"), key=lambda path: str(path).casefold()):
         if json_path.name == PEOPLE_MAP_FILENAME:
             continue
         try:

@@ -1905,7 +1905,26 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if self.ARGS.get("google-process-people", True):
                 LOGGER.info(f"{step_name}Capturing Google Takeout person labels before GPTH processing.")
                 self.takeout_people_map = build_people_map(input_folder)
-                LOGGER.info(f"{step_name}Captured person labels for {len(self.takeout_people_map)} assets; the map will be written during Final Cleaning.")
+                unique_people = {
+                    str(person).strip().casefold()
+                    for entries in self.takeout_people_map.values()
+                    for entry in (entries if isinstance(entries, list) else [entries])
+                    if isinstance(entry, dict)
+                    for person in entry.get("people", [])
+                    if str(person).strip()
+                }
+                try:
+                    Path(output_folder).mkdir(parents=True, exist_ok=True)
+                    people_map_path = Path(output_folder) / PEOPLE_MAP_FILENAME
+                    people_map_path.write_text(
+                        json.dumps({"version": 2, "assets": self.takeout_people_map}, ensure_ascii=False, indent=2, sort_keys=True),
+                        encoding="utf-8",
+                    )
+                    LOGGER.info(f"{step_name}Google Takeout people map saved: '{people_map_path}' ({len(self.takeout_people_map)} assets).")
+                except Exception as error:
+                    LOGGER.warning(f"{step_name}Unable to save Google Takeout people map before GPTH: {error}")
+                LOGGER.info(f"{step_name}Detected {len(unique_people)} unique people labels.")
+                LOGGER.info(f"{step_name}Captured person labels for {len(self.takeout_people_map)} assets; the map ({PEOPLE_MAP_FILENAME}) will be written during Final Cleaning in output folder.")
                 formatted_duration = str(timedelta(seconds=round((datetime.now() - sub_step_start_time).total_seconds())))
                 LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             else:
@@ -2699,12 +2718,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
         LOGGER.info(f"{self.step}.{self.substep}. FINAL CLEANING... ")
         LOGGER.info(f"================================================================================================================================================")
         LOGGER.info(f"")
-        # Persist the map captured before GPTH, after all output-folder processing finishes.
+        # Persist the map captured before GPTH after all output-folder processing finishes.
         if self.ARGS.get("google-process-people", True):
             try:
                 people_map_path = Path(output_folder) / PEOPLE_MAP_FILENAME
                 people_map_path.write_text(
-                    json.dumps({"version": 1, "assets": getattr(self, "takeout_people_map", {}) or {}}, ensure_ascii=False, indent=2, sort_keys=True),
+                    json.dumps({"version": 2, "assets": getattr(self, "takeout_people_map", {}) or {}}, ensure_ascii=False, indent=2, sort_keys=True),
                     encoding="utf-8",
                 )
                 LOGGER.info(f"{step_name}Google Takeout people map saved: '{people_map_path}' ({len(getattr(self, 'takeout_people_map', {}) or {})} assets).")

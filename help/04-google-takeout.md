@@ -65,7 +65,7 @@ Below you can see the different steps of this feature:
 #### 3. 🔢 Calculate statistics of your original Takeout
 
 #### 4. 🧠 Process steps 
-  - 4.1. 👥 Capture people metadata from Google Takeout JSON sidecars before GPTH removes them. When `--google-process-people=true` (default), PhotoMigrator keeps the person labels and capture dates in memory and writes `takeout_people_metadata.json` to the processed output during Final Cleaning. This step can be disabled with `--google-process-people=false`.
+  - 4.1. 👥 Capture people metadata from Google Takeout JSON sidecars before GPTH removes them. When `--google-process-people=true` (default), PhotoMigrator reports the number of unique people labels, writes `takeout_people_metadata.json` immediately to the output folder, and keeps it in memory. Final Cleaning writes it again after GPTH in case GPTH removed it while initializing its output. This step can be disabled with `--google-process-people=false`.
   - 4.2. 🧠 GPTH Processing (Core of this Module) which includes the following sub-steps:
           `(default=enabled. Can be disabled using flag 'gSkipGpth, --google-skip-gpth-tool')`
     - ✂️ Fix Extensions
@@ -181,7 +181,7 @@ The final `<OUTPUT_FOLDER>` will include:
 
 ### Google Takeout people map
 
-Google Takeout sidecars can include the people labels that Google Photos stored for an asset. PhotoMigrator reads those labels before GPTH processing and writes them to `takeout_people_metadata.json` in the processed output folder.
+Google Takeout sidecars can include the people labels that Google Photos stored for an asset. PhotoMigrator reads those labels before GPTH processing, writes them immediately to `takeout_people_metadata.json` in the output folder, and writes the map again during Final Cleaning so it survives GPTH output cleanup.
 
 - `--google-process-people=true|false` controls this step and defaults to `true`.
 - With `--google-process-people=false`, PhotoMigrator ignores people fields in the JSON sidecars and does not create the map.

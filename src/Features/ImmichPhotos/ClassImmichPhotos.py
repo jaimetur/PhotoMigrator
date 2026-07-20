@@ -587,7 +587,7 @@ class ClassImmichPhotos(BaseMediaClient):
 
     def import_takeout_people_for_asset(self, file_path, asset_id, log_level=None):
         """Replicate immich-go's people-tag import using ``people/<name>`` tags."""
-        if not asset_id or not self._takeout_people_map:
+        if not asset_id or not getattr(self, "_takeout_people_map", None):
             return False
         entry = self._get_takeout_people_entry_for_asset(file_path)
         if not isinstance(entry, dict):
