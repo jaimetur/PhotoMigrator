@@ -13,9 +13,10 @@ From version 3.0.0 onwards, the Tool can connect to your Immich Photos account w
 8. Rename Albums by Name Pattern
 9. Remove Empty Albums
 10. Remove Duplicates Albums
-11. Merge Duplicates Albums
-12. Remove Orphans Assets
-13. Consolidate Albums Names
+11. Remove Duplicates Assets
+12. Merge Duplicates Albums
+13. Remove Orphans Assets
+14. Consolidate Albums Names
 
 You can apply different filters on all above features to filter assets from Immich Photos.  
 
@@ -296,6 +297,29 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   ./PhotoMigrator.bin --client=immich --remove-duplicates-albums
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one.
+
+
+## Remove Duplicates Assets from Immich Photos:
+- **From:** v4.6.0
+- **Usage:**
+  - Set Immich as the client using _**`--client=immich`**_.
+  - Use _**`--remove-duplicates-assets`**_.
+  - Select which upload to retain with _**`--duplicate-asset-keeper newest|oldest`**_. The default is `newest`.
+- **Pre-Requisites:**
+  - Configure `Config.ini` with an Immich account that can update assets, add assets to albums and tags, and delete assets.
+- **Explanation:**
+  - The Tool retrieves the Immich library through a paginated inventory and groups assets with the same exact filename and file size.
+  - For every group, it lists the proposed keeper and the redundant asset IDs before making any change. With normal confirmation enabled, it waits for confirmation after this preview. Add _**`--no-request-user-confirmation`**_ only for unattended executions.
+  - Before deleting redundant assets, it merges the available album memberships, tags, favorite state, description, and rating into the keeper. A group is left unchanged if any of its assets has face/person metadata, because that data cannot be safely copied through the supported API.
+  - This action permanently deletes the redundant assets. It is currently available only for Immich Photos.
+- **Examples:**
+  ```
+  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets
+  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicate-asset-keeper oldest
+  ```
+
+> [!CAUTION]
+> This process permanently deletes assets after confirmation. Review the listed groups and proposed keepers before continuing.
 
 
 ## Merge Duplicates Albums from Immich Photos:
