@@ -1067,18 +1067,35 @@ class ClassNextCloudPhotos(BaseMediaClient):
         """Find duplicate physical files in the configured NextCloud photos root."""
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
+            LOGGER.info(
+                "Retrieving NextCloud assets for duplicate analysis. This scans the configured "
+                "WebDAV folder recursively and can take several minutes for large libraries; "
+                "a progress bar will be displayed while files are received."
+            )
             groups = {}
-            for entry in self._iter_files_recursive(self._no_albums_root()):
-                filename = str(entry.get("name") or "")
-                if not self._is_supported_media(filename):
-                    continue
-                asset = self._build_asset_payload(
-                    entry.get("path", ""), filename, entry.get("last_modified", ""), entry.get("size", 0)
-                )
-                asset_id = str(asset.get("id") or "").strip()
-                size = self._duplicate_asset_size(asset)
-                if asset_id and filename and size is not None:
-                    groups.setdefault((filename.casefold(), size), []).append(asset)
+            assets_received = 0
+            # WebDAV does not expose a reliable recursive item count. Counting first
+            # would require a second complete remote traversal, so show real received
+            # physical assets with an indeterminate progress bar instead.
+            with tqdm(
+                total=None,
+                desc=f"{MSG_TAGS['INFO']}Retrieving NextCloud asset inventory",
+                unit=" assets",
+            ) as progress_bar:
+                for entry in self._iter_files_recursive(self._no_albums_root()):
+                    filename = str(entry.get("name") or "")
+                    if not self._is_supported_media(filename):
+                        continue
+                    asset = self._build_asset_payload(
+                        entry.get("path", ""), filename, entry.get("last_modified", ""), entry.get("size", 0)
+                    )
+                    assets_received += 1
+                    progress_bar.update(1)
+                    asset_id = str(asset.get("id") or "").strip()
+                    size = self._duplicate_asset_size(asset)
+                    if asset_id and filename and size is not None:
+                        groups.setdefault((filename.casefold(), size), []).append(asset)
+            LOGGER.info(f"Retrieved {assets_received} NextCloud physical asset(s) for duplicate analysis.")
             duplicate_groups = [group for group in groups.values() if len(group) > 1]
             LOGGER.info(f"Found {len(duplicate_groups)} NextCloud duplicate group(s) by exact filename and file size.")
             return duplicate_groups

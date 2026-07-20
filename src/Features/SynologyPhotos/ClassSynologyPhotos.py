@@ -12,6 +12,7 @@ import threading
 import time
 import uuid
 import zipfile
+from contextlib import ExitStack
 from datetime import datetime
 
 import requests
@@ -2193,7 +2194,12 @@ class ClassSynologyPhotos(BaseMediaClient):
     def find_duplicate_assets_by_name_and_size(self, log_level=None):
         """Find physical Synology assets sharing the same filename and size."""
         with set_log_level(LOGGER, log_level):
-            assets = self._get_all_assets_unfiltered(log_level=log_level) or []
+            LOGGER.info(
+                "Retrieving Synology assets for duplicate analysis (paginated). "
+                "This scans the entire library and can take several minutes for large libraries; "
+                "a progress bar will be displayed while pages are received."
+            )
+            assets = self._get_all_assets_unfiltered(log_level=log_level, show_progress=True) or []
             groups = {}
             for asset in assets:
                 asset_id = str((asset or {}).get("id") or "").strip()
@@ -2320,7 +2326,7 @@ class ClassSynologyPhotos(BaseMediaClient):
         with self._uploaded_asset_cache_lock:
             return self._uploaded_asset_cache.get(cache_key)
 
-    def _get_all_assets_unfiltered(self, log_level=None):
+    def _get_all_assets_unfiltered(self, log_level=None, show_progress=False):
         with set_log_level(LOGGER, log_level):
             if hasattr(self, "_all_assets_unfiltered_cache") and self._all_assets_unfiltered_cache is not None:
                 return self._all_assets_unfiltered_cache
@@ -2340,21 +2346,42 @@ class ClassSynologyPhotos(BaseMediaClient):
             offset = 0
             limit = 5000
             all_assets = []
-            while True:
-                params = base_params.copy()
-                params["offset"] = offset
-                params["limit"] = limit
-                resp = self._session_get(url, headers=headers, params=params, verify=False)
-                resp.raise_for_status()
-                data = resp.json()
-                if not data.get("success"):
-                    LOGGER.error("Failed to list assets while resolving Synology duplicate IDs")
-                    return []
-                batch = data.get("data", {}).get("list", [])
-                all_assets.extend(batch)
-                if len(batch) < limit:
-                    break
-                offset += limit
+            progress_bar = None
+            with ExitStack() as stack:
+                if show_progress:
+                    LOGGER.info(f"Downloading the Synology asset inventory in pages of up to {limit} assets...")
+                    progress_bar = stack.enter_context(tqdm(
+                        total=None,
+                        desc=f"{MSG_TAGS['INFO']}Retrieving Synology asset inventory",
+                        unit=" assets",
+                    ))
+                while True:
+                    params = base_params.copy()
+                    params["offset"] = offset
+                    params["limit"] = limit
+                    resp = self._session_get(url, headers=headers, params=params, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    if not data.get("success"):
+                        LOGGER.error("Failed to list assets while resolving Synology duplicate IDs")
+                        return []
+                    response_data = data.get("data", {})
+                    batch = response_data.get("list", [])
+                    if progress_bar is not None and progress_bar.total is None:
+                        try:
+                            total_assets = int(response_data.get("total"))
+                        except (TypeError, ValueError):
+                            total_assets = None
+                        if total_assets is not None and total_assets >= len(batch):
+                            progress_bar.total = total_assets
+                            progress_bar.refresh()
+                            LOGGER.info(f"Found {total_assets} Synology asset(s) to analyze.")
+                    all_assets.extend(batch)
+                    if progress_bar is not None:
+                        progress_bar.update(len(batch))
+                    if len(batch) < limit:
+                        break
+                    offset += limit
             self._all_assets_unfiltered_cache = all_assets
             return all_assets
 

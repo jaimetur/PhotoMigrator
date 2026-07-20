@@ -2162,7 +2162,7 @@
                 ...field,
                 kind: "select",
                 choices: [1, 2, 3],
-                help: "Select Account ID defined in Configuration file"
+                help: "Uses the configured cloud account ID. If omitted, account ID 1 is used."
             };
         }
         return field;
@@ -2605,12 +2605,6 @@
             left.appendChild(noArgs);
         } else {
             renderArgSpecs.forEach((spec) => {
-                if (spec.field.dest === "account-id" && spec.field.help) {
-                    const accountHelp = document.createElement("div");
-                    accountHelp.className = "arg-inline-help";
-                    accountHelp.textContent = uiHelpText(spec.field);
-                    left.appendChild(accountHelp);
-                }
                 left.appendChild(createArgumentRow(spec.field, spec.required));
             });
         }

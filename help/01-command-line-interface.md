@@ -441,7 +441,7 @@ If more than one optional arguments are detected, only the first one will be exe
                Example: --client=synology --remove-duplicates-albums
 -rDupAst     ; --remove-duplicates-assets
                Remove duplicate assets with the same exact filename and file size.
-               Requires '--client' and '--duplicate-asset-keeper oldest|newest'.
+               Requires '--client' and '--duplicate-asset-keeper {oldest, newest}'.
                The keeper selector defaults to 'newest'. Google Photos reports that deletion is unavailable through
                its public API and makes no changes.
                Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest

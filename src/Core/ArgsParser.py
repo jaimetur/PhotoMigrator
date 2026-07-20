@@ -466,7 +466,7 @@ def parse_arguments():
 
     PARSER.add_argument("-rDupAst", "--remove-duplicates-assets", action="store_true", default="",
                         help="Remove duplicate assets with the same filename and size, preserving available metadata on one keeper.\n"
-                             "Requires '--client' and the required module selector '--duplicate-asset-keeper oldest|newest'.\n"
+                             "Requires '--client' and the required module selector '--duplicate-asset-keeper {oldest, newest}'.\n"
                              "The selector defaults to 'newest'. Google Photos cannot delete library media through its public API.\n"
                              "Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest")
 

@@ -63,7 +63,7 @@ Following general arguments have different purposes depending on the Execution M
 | `-i`,<br>`--input-folder`                 | Input folder to process                                                              |
 | `-o`,<br>`--output-folder`                | Output folder to store results                                                       |
 | `-client`,<br>`--client`                  | Service client: `google-takeout`, `google-photos`, `synology`, `immich`, `nextcloud` |
-| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`                                                   |
+| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini` (default: `1`)                                    |
 | `-from`,<br>`--filter-from-date`          | Filter assets from this date                                                         |
 | `-to`,<br>`--filter-to-date`              | Filter assets up to this date                                                        |
 | `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`                                       |

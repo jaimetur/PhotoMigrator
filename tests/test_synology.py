@@ -72,6 +72,31 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
         self.assertEqual([asset["id"] for asset in filtered], ["1", "2"])
 
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.tqdm")
+    def test_unfiltered_asset_inventory_uses_synology_total_for_progress(self, mock_tqdm, _mock_logger):
+        self.manager.SYNOLOGY_URL = "https://synology.local"
+        self.manager.SYNO_TOKEN_HEADER = {}
+        self.manager.login = lambda log_level=None: True
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "success": True,
+            "data": {
+                "total": 2,
+                "list": [{"id": "a1"}, {"id": "a2"}],
+            },
+        }
+        self.manager._session_get = MagicMock(return_value=response)
+        progress_bar = mock_tqdm.return_value.__enter__.return_value
+        progress_bar.total = None
+
+        assets = self.manager._get_all_assets_unfiltered(show_progress=True)
+
+        self.assertEqual(assets, [{"id": "a1"}, {"id": "a2"}])
+        self.assertEqual(progress_bar.total, 2)
+        progress_bar.update.assert_called_once_with(2)
+
     def test_filter_assets_by_date_respects_epoch_range(self):
         assets = [
             {"id": "old", "time": 100},
