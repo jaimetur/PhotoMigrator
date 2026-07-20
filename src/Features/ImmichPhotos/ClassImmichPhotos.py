@@ -59,6 +59,8 @@ class ClassImmichPhotos(BaseMediaClient):
     Encapsulates all the functionality from the original ClassImmichPhotos.py
     into a single class that uses a global LOGGER from GlobalVariables.
     """
+    IMMICH_ASSET_INVENTORY_PAGE_SIZE = 1000
+
     def __init__(self, account_id=1):
         """
         Constructor that initializes what used to be global variables.
@@ -1824,7 +1826,11 @@ class ClassImmichPhotos(BaseMediaClient):
         """Return same-name/same-size duplicate groups from one paginated inventory."""
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.info("Retrieving Immich assets for duplicate analysis (paginated)...")
+            LOGGER.info(
+                "Retrieving Immich assets for duplicate analysis (paginated). "
+                "This scans the entire library and can take several minutes for large libraries; "
+                "progress will be logged as pages are received."
+            )
             assets = self._get_all_assets_unfiltered(log_level=log_level)
             groups = {}
             assets_missing_size = 0
@@ -1924,9 +1930,16 @@ class ClassImmichPhotos(BaseMediaClient):
             url = f"{self.IMMICH_URL}/api/search/metadata"
             all_assets = []
             next_page = 1
+            page_count = 0
+            total_assets = None
+            LOGGER.info(
+                f"Downloading the Immich asset inventory in pages of up to "
+                f"{self.IMMICH_ASSET_INVENTORY_PAGE_SIZE} assets..."
+            )
             while True:
                 payload = json.dumps({
                     "page": int(next_page),
+                    "size": self.IMMICH_ASSET_INVENTORY_PAGE_SIZE,
                     "order": "desc",
                     "withExif": True,
                     "withPeople": True,
@@ -1934,9 +1947,19 @@ class ClassImmichPhotos(BaseMediaClient):
                 resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
-                items = data.get("assets", {}).get("items", [])
+                assets_page = data.get("assets", {})
+                items = assets_page.get("items", [])
                 all_assets.extend(items)
-                next_page = data.get("assets", {}).get("nextPage", None)
+                page_count += 1
+                if total_assets is None:
+                    total_assets = assets_page.get("total")
+                if page_count == 1 or page_count % 10 == 0:
+                    total_suffix = f"/{total_assets}" if total_assets is not None else ""
+                    LOGGER.info(
+                        f"Immich asset inventory progress: page {page_count}, "
+                        f"received {len(all_assets)}{total_suffix} assets."
+                    )
+                next_page = assets_page.get("nextPage", None)
                 if next_page is None:
                     break
             self._all_assets_unfiltered_cache = all_assets

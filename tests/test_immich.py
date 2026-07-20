@@ -206,6 +206,27 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.assertIn('"page": 1', first_payload)
         self.assertIn('"page": 2', second_payload)
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    def test_unfiltered_asset_inventory_uses_large_pages_and_reports_progress(self, mock_post, mock_logger):
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "assets": {
+                "items": [{"id": "a1"}],
+                "nextPage": None,
+                "total": 1,
+            }
+        }
+        mock_post.return_value = response
+
+        assets = self.manager._get_all_assets_unfiltered()
+
+        self.assertEqual(assets, [{"id": "a1"}])
+        payload = mock_post.call_args.kwargs["data"]
+        self.assertIn('"size": 1000', payload)
+        self.assertTrue(any("asset inventory progress" in str(call) for call in mock_logger.info.call_args_list))
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.has_any_filter", return_value=False)
     @patch.object(ClassImmichPhotos, "_get_album_assets_via_search")
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
