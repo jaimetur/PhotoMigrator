@@ -10,6 +10,7 @@
 #### 🚨 Breaking Changes:
 
 #### 🌟 New Features:
+  - Added the Immich cloud module `Remove Duplicate Assets` (`--remove-duplicates-assets`). It performs one paginated asset inventory, groups exact filename-and-size matches, retains either the oldest or newest uploaded asset through the required module selector `--duplicate-asset-keeper oldest|newest` (default: `newest`), displays every detected group and proposed keeper, and requests confirmation before any deletion when confirmations are enabled. It then merges available albums, tags, favorites, descriptions, and ratings into the keeper before permanently deleting redundant assets. Groups with face/person metadata are deliberately skipped because copying face geometry is not safe through the stable API. The action is available in CLI, Web, TUI, and GUI only for Immich until equivalent metadata-preserving APIs are available for the other cloud clients.
 
 #### 🚀 Enhancements:
 

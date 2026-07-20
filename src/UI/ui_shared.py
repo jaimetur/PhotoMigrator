@@ -65,6 +65,7 @@ FEATURE_LABELS = {
     "remove-all-assets": "Remove All Assets",
     "remove-empty-albums": "Remove Empty Albums",
     "remove-duplicates-albums": "Remove Duplicates Albums",
+    "remove-duplicates-assets": "Remove Duplicate Assets",
     "merge-duplicates-albums": "Merge Duplicates Albums",
     # "remove-orphan-assets": "Remove Orphan Assets",  # Discontinued for Immich; keep commented for future reuse.
     "fix-symlinks-broken": "Fix Broken Symlinks",
@@ -190,6 +191,7 @@ CLOUD_DESTS = {
     "remove-all-assets",
     "remove-empty-albums",
     "remove-duplicates-albums",
+    "remove-duplicates-assets",
     "merge-duplicates-albums",
     # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
@@ -222,6 +224,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "remove-all-assets",
         "remove-empty-albums",
         "remove-duplicates-albums",
+        "remove-duplicates-assets",
         "merge-duplicates-albums",
         # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
         "consolidate-albums-names",
@@ -312,6 +315,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
+        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "nextcloud_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
@@ -1509,6 +1513,11 @@ def _allowed_dests_for_tab(schema: Dict[str, Any], tab: str, selected_action_des
 def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], selected_action_dest: str | None = None) -> List[str]:
     prepared = prepare_values_for_command(values, tab, selected_action_dest)
     allowed_dests = _allowed_dests_for_tab(schema, tab, selected_action_dest)
+    required_action_dests = {
+        str(item.get("dest") or "").strip()
+        for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest or "", [])
+        if bool(item.get("required"))
+    }
     args: List[str] = []
     for dest in sorted(allowed_dests):
         field = schema["fields_by_dest"][dest]
@@ -1544,7 +1553,7 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
         if raw_value is None:
             continue
         text = str(raw_value).strip()
-        if text == "" or text == str(default):
+        if text == "" or (text == str(default) and dest not in required_action_dests):
             continue
         args.extend([long_option, text])
 

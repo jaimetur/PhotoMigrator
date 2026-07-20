@@ -126,6 +126,9 @@ def detect_and_run_execution_mode():
     elif ARGS['remove-duplicates-albums']:
         EXECUTION_MODE = 'remove-duplicates-albums'
         mode_cloud_remove_duplicates_albums(client=ARGS['client'])
+    elif ARGS.get('remove-duplicates-assets'):
+        EXECUTION_MODE = 'remove-duplicates-assets'
+        mode_cloud_remove_duplicates_assets(client=ARGS['client'])
     elif ARGS['merge-duplicates-albums']:
         EXECUTION_MODE = 'merge-duplicates-albums'
         mode_cloud_merge_duplicates_albums(client=ARGS['client'])
@@ -863,6 +866,68 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info(f"==================================================")
         LOGGER.info(f"")
+
+
+def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log_level=None):
+    """Remove same-name/same-size Immich assets while retaining selected metadata."""
+    normalized_client = str(client or "").strip().lower()
+    if normalized_client != "immich":
+        LOGGER.error(
+            "Remove Duplicate Assets currently requires '--client=immich' because other cloud "
+            "clients do not expose enough metadata to merge it safely."
+        )
+        return
+
+    keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "newest").lower()
+    LOGGER.info("Immich Photos: 'Remove Duplicate Assets' Mode detected. Only this module will be run!!!")
+    LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")
+    LOGGER.info(f"Keeper strategy: {keeper_strategy} upload date.")
+    LOGGER.warning(
+        "Assets are grouped by exact filename and file size. Albums, tags, favorites, descriptions, "
+        "and ratings are merged into the keeper before redundant assets are deleted. Groups with "
+        "any face/person associations are left unchanged."
+    )
+    cloud_client_obj = _build_cloud_client_obj(normalized_client)
+    with set_log_level(LOGGER, log_level):
+        try:
+            duplicate_groups = cloud_client_obj.find_duplicate_assets_by_name_and_size(log_level=logging.INFO)
+            if not duplicate_groups:
+                LOGGER.info("No duplicate assets were found.")
+                return
+            LOGGER.info("Duplicate asset groups found:")
+            for group_index, group in enumerate(duplicate_groups, start=1):
+                ordered = sorted(
+                    group,
+                    key=lambda item: (cloud_client_obj._duplicate_asset_timestamp(item), str(item.get("id") or "")),
+                    reverse=(keeper_strategy == "newest"),
+                )
+                keeper, redundant = ordered[0], ordered[1:]
+                filename = str(keeper.get("originalFileName") or "")
+                size = cloud_client_obj._duplicate_asset_size(keeper)
+                LOGGER.info(
+                    f"  [{group_index}] {filename} ({size} bytes): keep ID={keeper.get('id')} "
+                    f"uploaded={keeper.get('createdAt')}; remove IDs={', '.join(str(item.get('id') or '') for item in redundant)}"
+                )
+            if user_confirmation and not confirm_continue():
+                LOGGER.info("Exiting program without deleting duplicate assets.")
+                return
+            removed, groups_found, groups_skipped = cloud_client_obj.remove_duplicates_assets_by_name_and_size(
+                keeper_strategy=keeper_strategy,
+                duplicate_groups=duplicate_groups,
+                log_level=logging.INFO,
+            )
+        finally:
+            cloud_client_obj.logout(log_level=logging.WARNING)
+
+    elapsed = str(timedelta(seconds=round((datetime.now() - START_TIME).total_seconds())))
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    LOGGER.info(f"Duplicate Groups Found                  : {groups_found}")
+    LOGGER.info(f"Duplicate Groups Skipped (metadata)    : {groups_skipped}")
+    LOGGER.info(f"Duplicate Assets Removed                : {removed}")
+    LOGGER.info(f"Total time elapsed                      : {elapsed}")
+    LOGGER.info("==================================================")
 
 
 def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_level=None):

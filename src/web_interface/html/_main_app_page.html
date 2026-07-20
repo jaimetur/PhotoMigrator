@@ -529,6 +529,7 @@
         "remove-all-assets": "Remove All Assets",
         "remove-empty-albums": "Remove Empty Albums",
         "remove-duplicates-albums": "Remove Duplicates Albums",
+        "remove-duplicates-assets": "Remove Duplicate Assets",
         "merge-duplicates-albums": "Merge Duplicates Albums",
         // "remove-orphan-assets": "Remove Orphan Assets",  // Discontinued for Immich; keep commented for future reuse.
         "fix-symlinks-broken": "Fix Broken Symlinks",
@@ -672,6 +673,7 @@
             "remove-all-assets",
             "remove-empty-albums",
             "remove-duplicates-albums",
+            "remove-duplicates-assets",
             "merge-duplicates-albums",
             // "remove-orphan-assets",  // Discontinued for Immich; keep commented for future reuse.
             "consolidate-albums-names"
@@ -830,6 +832,8 @@
                 message = `This module will delete all empty albums in ${clientLabel}.`;
             } else if (action === "remove-duplicates-albums") {
                 message = `This module will delete duplicated albums in ${clientLabel} (same name and size).`;
+            } else if (action === "remove-duplicates-assets") {
+                message = `This module will keep the selected oldest/newest Immich asset for every same-name/same-size group, merge supported metadata, and permanently delete the redundant assets.`;
             } else if (action === "merge-duplicates-albums") {
                 message = `This module will merge duplicated albums in ${clientLabel} by moving assets into the most relevant album and removing duplicates.`;
             }

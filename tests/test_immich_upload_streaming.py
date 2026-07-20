@@ -91,6 +91,43 @@ class TestImmichStreamingUpload(unittest.TestCase):
         return manager
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.tqdm", side_effect=lambda iterable, **kwargs: iterable)
+    def test_remove_duplicates_by_name_and_size_keeps_oldest_upload(self, _mock_tqdm, _mock_logger):
+        manager = self._build_manager()
+        manager._get_all_assets_unfiltered = MagicMock(return_value=[
+            {
+                "id": "old", "originalFileName": "IMG_0001.JPG",
+                "createdAt": "2020-01-01T00:00:00.000Z", "exifInfo": {"fileSize": 42},
+            },
+            {
+                "id": "new", "originalFileName": "IMG_0001.JPG",
+                "createdAt": "2021-01-01T00:00:00.000Z", "exifInfo": {"fileSize": 42},
+            },
+            {
+                "id": "other", "originalFileName": "IMG_0001.JPG",
+                "createdAt": "2022-01-01T00:00:00.000Z", "exifInfo": {"fileSize": 99},
+            },
+        ])
+        manager._merge_duplicate_asset_metadata = MagicMock(return_value=True)
+        manager.remove_assets = MagicMock(side_effect=lambda ids, log_level=None: len(ids))
+
+        removed, groups_found, groups_skipped = manager.remove_duplicates_assets_by_name_and_size("oldest")
+
+        self.assertEqual((removed, groups_found, groups_skipped), (1, 1, 0))
+        keeper, redundant = manager._merge_duplicate_asset_metadata.call_args.args[:2]
+        self.assertEqual(keeper["id"], "old")
+        self.assertEqual([asset["id"] for asset in redundant], ["new"])
+        manager.remove_assets.assert_called_once_with(["new"], log_level=None)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    def test_merge_duplicate_metadata_skips_groups_with_people(self, _mock_logger):
+        manager = self._build_manager()
+        keeper = {"id": "keeper", "originalFileName": "IMG.JPG", "people": [{"id": "person-1"}]}
+        duplicate = {"id": "duplicate", "originalFileName": "IMG.JPG"}
+
+        self.assertFalse(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     def test_push_asset_uses_streaming_multipart_without_files_arg(
         self, mock_post, _mock_logger

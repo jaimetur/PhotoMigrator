@@ -263,6 +263,23 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--preview-album-actions", args)
         self.assertIn("--remove-albums-assets", args)
 
+    def test_build_cli_args_includes_immich_duplicate_asset_keeper(self):
+        schema = build_parser_schema()
+        args = build_cli_args(
+            schema,
+            "immich_photos",
+            {
+                "account-id": "1",
+                "remove-duplicates-assets": True,
+                "duplicate-asset-keeper": "newest",
+            },
+            "remove-duplicates-assets",
+        )
+
+        self.assertIn("--remove-duplicates-assets", args)
+        self.assertIn("--duplicate-asset-keeper", args)
+        self.assertIn("newest", args)
+
     def test_build_cli_args_includes_album_name_flags_for_cloud_upload(self):
         schema = build_parser_schema()
         values = {

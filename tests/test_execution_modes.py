@@ -3,7 +3,7 @@ import unittest
 import sys
 import types
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -103,6 +103,8 @@ def _base_args():
         "consolidate-similar-albums": False,
         "remove-empty-albums": False,
         "remove-duplicates-albums": False,
+        "remove-duplicates-assets": False,
+        "duplicate-asset-keeper": "newest",
         "merge-duplicates-albums": False,
         "remove-all-albums": "",
         "remove-all-assets": "",
@@ -173,6 +175,44 @@ class TestExecutionModes(unittest.TestCase):
             execution_modes.detect_and_run_execution_mode()
 
         mock_mode.assert_called_once_with(client="nextcloud")
+
+    def test_remove_duplicate_assets_previews_groups_before_confirming_deletion(self):
+        args = _base_args()
+        duplicate_groups = [[
+            {
+                "id": "older",
+                "originalFileName": "IMG_0001.JPG",
+                "createdAt": "2020-01-01T00:00:00Z",
+                "exifInfo": {"fileSize": 42},
+            },
+            {
+                "id": "newer",
+                "originalFileName": "IMG_0001.JPG",
+                "createdAt": "2021-01-01T00:00:00Z",
+                "exifInfo": {"fileSize": 42},
+            },
+        ]]
+        cloud_client = MagicMock()
+        cloud_client.find_duplicate_assets_by_name_and_size.return_value = duplicate_groups
+        cloud_client._duplicate_asset_timestamp.side_effect = lambda asset: asset["createdAt"]
+        cloud_client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
+        cloud_client.remove_duplicates_assets_by_name_and_size.return_value = (1, 1, 0)
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
+            patch.object(execution_modes, "confirm_continue", return_value=True) as mock_confirm,
+            patch.object(execution_modes, "LOGGER", MagicMock()),
+        ):
+            execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
+
+        mock_confirm.assert_called_once_with()
+        cloud_client.remove_duplicates_assets_by_name_and_size.assert_called_once_with(
+            keeper_strategy="newest",
+            duplicate_groups=duplicate_groups,
+            log_level=execution_modes.logging.INFO,
+        )
+        cloud_client.logout.assert_called_once_with(log_level=execution_modes.logging.WARNING)
 
     def test_detect_and_run_execution_mode_dispatches_organize_local_folder_by_date(self):
         args = _base_args()

@@ -1498,6 +1498,164 @@ class ClassImmichPhotos(BaseMediaClient):
                 return self.remove_assets(duplicates_ids, log_level=log_level)
             return 0
 
+    @staticmethod
+    def _duplicate_asset_size(asset):
+        """Return the original file size supplied by Immich, when available."""
+        size = (asset.get("exifInfo") or {}).get("fileSize")
+        try:
+            return int(size) if size is not None else None
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _duplicate_asset_timestamp(asset):
+        raw_value = str(asset.get("createdAt") or "").strip()
+        try:
+            return datetime.fromisoformat(raw_value.replace("Z", "+00:00")).astimezone(timezone.utc)
+        except (TypeError, ValueError):
+            return datetime.min.replace(tzinfo=timezone.utc)
+
+    @staticmethod
+    def _asset_reference_ids(asset, key):
+        values = asset.get(key) or []
+        if not isinstance(values, list):
+            return set()
+        return {
+            str(item.get("id") if isinstance(item, dict) else item or "").strip()
+            for item in values
+            if str(item.get("id") if isinstance(item, dict) else item or "").strip()
+        }
+
+    def _merge_duplicate_asset_metadata(self, keeper, duplicates, log_level=None):
+        """Merge metadata that Immich exposes on search responses before deletion."""
+        keeper_id = str(keeper.get("id") or "").strip()
+        if not keeper_id:
+            return False
+
+        group_assets = [keeper, *duplicates]
+        has_face_data = any(
+            self._asset_reference_ids(asset, "people") or asset.get("unassignedFaces")
+            for asset in group_assets
+        )
+        if has_face_data:
+            LOGGER.warning(
+                f"Skipping duplicate group for '{keeper.get('originalFileName', '')}': "
+                "it contains face/person associations that cannot be copied without recreating face geometry."
+            )
+            return False
+
+        album_ids = set().union(*(self._asset_reference_ids(asset, "albums") for asset in group_assets))
+        tag_ids = set().union(*(self._asset_reference_ids(asset, "tags") for asset in group_assets))
+        descriptions = []
+        for asset in group_assets:
+            description = str((asset.get("exifInfo") or {}).get("description") or asset.get("description") or "").strip()
+            if description and description not in descriptions:
+                descriptions.append(description)
+        ratings = []
+        for asset in group_assets:
+            rating = (asset.get("exifInfo") or {}).get("rating", asset.get("rating"))
+            try:
+                if rating is not None:
+                    ratings.append(int(rating))
+            except (TypeError, ValueError):
+                continue
+
+        payload = {"ids": [keeper_id]}
+        if any(bool(asset.get("isFavorite")) for asset in group_assets):
+            payload["isFavorite"] = True
+        if descriptions:
+            payload["description"] = "\n\n".join(descriptions)
+        if ratings:
+            payload["rating"] = max(ratings)
+        try:
+            if len(payload) > 1:
+                response = requests.put(
+                    f"{self.IMMICH_URL}/api/assets",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    data=json.dumps(payload),
+                    verify=False,
+                )
+                response.raise_for_status()
+            for album_id in album_ids:
+                details = self.add_assets_to_album(
+                    album_id, [keeper_id], album_name=album_id,
+                    log_level=log_level, return_details=True,
+                )
+                if not details.get("request_failed") and keeper_id not in details.get("failed_asset_ids", set()):
+                    continue
+                LOGGER.warning(f"Could not merge album '{album_id}' into duplicate keeper '{keeper_id}'.")
+                return False
+            for tag_id in tag_ids:
+                response = requests.put(
+                    f"{self.IMMICH_URL}/api/tags/{tag_id}/assets",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    data=json.dumps({"ids": [keeper_id]}),
+                    verify=False,
+                )
+                response.raise_for_status()
+        except requests.RequestException as error:
+            LOGGER.warning(
+                f"Could not merge metadata into duplicate keeper '{keeper_id}': {error}. "
+                "The duplicate group was left unchanged."
+            )
+            return False
+        return True
+
+    def find_duplicate_assets_by_name_and_size(self, log_level=None):
+        """Return same-name/same-size duplicate groups from one paginated inventory."""
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            LOGGER.info("Retrieving Immich assets for duplicate analysis (paginated)...")
+            assets = self._get_all_assets_unfiltered(log_level=log_level)
+            groups = {}
+            for asset in assets:
+                asset_id = str(asset.get("id") or "").strip()
+                filename = str(asset.get("originalFileName") or "").strip()
+                size = self._duplicate_asset_size(asset)
+                if asset_id and filename and size is not None:
+                    groups.setdefault((filename.casefold(), size), []).append(asset)
+            duplicate_groups = [group for group in groups.values() if len(group) > 1]
+            LOGGER.info(
+                f"Found {len(duplicate_groups)} duplicate group(s) by exact filename and file size "
+                f"across {len(assets)} assets."
+            )
+            return duplicate_groups
+
+    def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
+        """Remove same-name/same-size assets while preserving metadata on one keeper."""
+        strategy = str(keeper_strategy or "newest").strip().lower()
+        if strategy not in {"oldest", "newest"}:
+            raise ValueError("keeper_strategy must be 'oldest' or 'newest'")
+
+        with set_log_level(LOGGER, log_level):
+            duplicate_groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)
+            removed_assets = 0
+            skipped_groups = 0
+            for group in tqdm(duplicate_groups, desc=f"{MSG_TAGS['INFO']}Resolving duplicate asset groups", unit=" groups"):
+                ordered = sorted(
+                    group,
+                    key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
+                    reverse=(strategy == "newest"),
+                )
+                keeper, redundant = ordered[0], ordered[1:]
+                if not self._merge_duplicate_asset_metadata(keeper, redundant, log_level=log_level):
+                    skipped_groups += 1
+                    continue
+                redundant_ids = [str(asset.get("id") or "").strip() for asset in redundant]
+                redundant_ids = [asset_id for asset_id in redundant_ids if asset_id]
+                if not redundant_ids:
+                    continue
+                removed_assets += self.remove_assets(redundant_ids, log_level=log_level)
+                LOGGER.info(
+                    f"Duplicate assets removed: keeper='{keeper.get('originalFileName', '')}' "
+                    f"ID={keeper.get('id')} removed={len(redundant_ids)} strategy={strategy}."
+                )
+            LOGGER.info(
+                f"Duplicate asset cleanup finished: removed={removed_assets}, "
+                f"groups_skipped_for_metadata_safety={skipped_groups}."
+            )
+            return removed_assets, len(duplicate_groups), skipped_groups
+
     def _ensure_uploaded_asset_cache(self):
         if not hasattr(self, "_uploaded_asset_cache"):
             self._uploaded_asset_cache = {}
@@ -1539,7 +1697,12 @@ class ClassImmichPhotos(BaseMediaClient):
             all_assets = []
             next_page = 1
             while True:
-                payload = json.dumps({"page": int(next_page), "order": "desc"})
+                payload = json.dumps({
+                    "page": int(next_page),
+                    "order": "desc",
+                    "withExif": True,
+                    "withPeople": True,
+                })
                 resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
                 resp.raise_for_status()
                 data = resp.json()

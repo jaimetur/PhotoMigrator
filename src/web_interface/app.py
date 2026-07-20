@@ -173,6 +173,7 @@ CLOUD_DESTS = {
     "remove-all-assets",
     "remove-empty-albums",
     "remove-duplicates-albums",
+    "remove-duplicates-assets",
     "merge-duplicates-albums",
     # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
@@ -206,6 +207,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "remove-all-assets",
         "remove-empty-albums",
         "remove-duplicates-albums",
+        "remove-duplicates-assets",
         "merge-duplicates-albums",
         # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
         "consolidate-albums-names",
@@ -321,6 +323,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
+        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "nextcloud_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
@@ -3116,6 +3119,11 @@ def _build_cli_args(
 ) -> List[str]:
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     include_default_dests = set(include_default_dests or set())
+    include_default_dests.update(
+        str(item.get("dest") or "").strip()
+        for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest or "", [])
+        if bool(item.get("required"))
+    )
 
     args_unordered: List[str] = []
     client_value = _client_value_for_tab(tab)

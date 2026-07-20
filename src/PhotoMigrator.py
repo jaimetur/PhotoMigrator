@@ -102,6 +102,7 @@ def _selected_feature_details(args: dict) -> tuple[str, str | None, list[str]]:
         (is_set("consolidate-albums-names"), cloud_feature_name, "Consolidate Album Names", ["client", "consolidate-albums-names"]),
         (is_set("remove-empty-albums"), cloud_feature_name, "Remove Empty Albums", ["client", "remove-empty-albums"]),
         (is_set("remove-duplicates-albums"), cloud_feature_name, "Remove Duplicate Albums", ["client", "remove-duplicates-albums"]),
+        (is_set("remove-duplicates-assets"), cloud_feature_name, "Remove Duplicate Assets", ["client", "remove-duplicates-assets"]),
         (is_set("merge-duplicates-albums"), cloud_feature_name, "Merge Duplicate Albums", ["client", "merge-duplicates-albums"]),
         (is_set("remove-all-albums"), cloud_feature_name, "Remove All Albums", ["client", "remove-all-albums"]),
         (is_set("remove-all-assets"), cloud_feature_name, "Remove All Assets", ["client", "remove-all-assets"]),
@@ -178,7 +179,7 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
     if feature_name in {"Google Photos", "Synology Photos", "Immich Photos", "NextCloud Photos"}:
         cloud_dests = filter_dests + [
             "albums-folders", "remove-albums-assets", "preview-album-actions", "prefer-canonical-album-names",
-            "consolidate-similar-albums", "one-time-password",
+            "consolidate-similar-albums", "duplicate-asset-keeper", "one-time-password",
         ]
         return common_dests + cloud_dests
     if feature_name == "Google Takeout Processor":

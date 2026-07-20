@@ -432,6 +432,21 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("--no-log-file", enabled_args)
         self.assertNotIn("--no-log-file", disabled_args)
 
+    def test_immich_duplicate_asset_keeper_default_is_sent_to_the_cli(self):
+        args = self.web_app._build_cli_args(
+            "immich_photos",
+            {
+                "account-id": 1,
+                "remove-duplicates-assets": True,
+                "duplicate-asset-keeper": "newest",
+            },
+            "remove-duplicates-assets",
+        )
+
+        self.assertIn("--remove-duplicates-assets", args)
+        self.assertIn("--duplicate-asset-keeper", args)
+        self.assertIn("newest", args)
+
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")
