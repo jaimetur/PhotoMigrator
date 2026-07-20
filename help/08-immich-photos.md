@@ -311,7 +311,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - The Tool retrieves the Immich library through a paginated inventory and groups assets with the same exact filename and file size.
   - For every group, it lists the proposed keeper and the redundant asset IDs before making any change. With normal confirmation enabled, it waits for confirmation after this preview. Add _**`--no-request-user-confirmation`**_ only for unattended executions.
   - Before deleting redundant assets, it merges the available album memberships, tags, favorite state, description, and rating into the keeper. A group is left unchanged if any of its assets has face/person metadata, because that data cannot be safely copied through the supported API.
-  - This action permanently deletes the redundant assets. It is currently available only for Immich Photos.
+  - This action permanently deletes the redundant assets. Immich is the backend that additionally merges the supported asset metadata before deletion.
 - **Examples:**
   ```
   ./PhotoMigrator.bin --client=immich --remove-duplicates-assets

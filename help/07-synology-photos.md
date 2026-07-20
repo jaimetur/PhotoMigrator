@@ -298,12 +298,26 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 
 ## Remove Duplicates Assets from Synology Photos:
 - **From:** v4.6.0
-- **Usage:** `./PhotoMigrator.bin --client=synology --remove-duplicates-assets --duplicate-asset-keeper newest`
-- **Explanation:** Assets are grouped by exact filename and file size. The required selector _**`--duplicate-asset-keeper newest|oldest`**_ chooses the retained upload; `newest` is the default. Groups are listed and require confirmation unless _**`--no-request-user-confirmation`**_ is set.
-- **Important:** Synology does not expose a portable metadata-merge operation for this flow, so only redundant physical assets are deleted after confirmation.
+- **Usage:**
+  - Set Synology as the client using _**`--client=synology`**_.
+  - Use _**`--remove-duplicates-assets`**_.
+  - Select the asset to retain with the required module selector _**`--duplicate-asset-keeper newest|oldest`**_. The default is `newest`.
+- **Pre-Requisites:**
+  - Configure `Config.ini` with a Synology account that can list and delete assets.
+  - Check that the account has access to the Photo Library that will be scanned.
+- **Explanation:**
+  - The Tool retrieves the Synology library in paginated requests and groups physical assets with the same exact filename and file size.
+  - `newest` and `oldest` use the timestamp returned by Synology for the asset. If an asset has no usable timestamp, it is treated as older than assets with a valid timestamp.
+  - Before deleting anything, the Tool logs every duplicate group, its proposed keeper, and the IDs selected for deletion. With normal confirmation enabled, it waits for confirmation after this preview. Use _**`--no-request-user-confirmation`**_ only for unattended executions.
+  - Synology does not expose a portable metadata-merge operation for this flow. Album membership, people, labels, favorites, ratings, descriptions, and other server metadata are not merged; the module deletes only the redundant physical assets after confirmation.
+- **Examples:**
+  ```
+  ./PhotoMigrator.bin --client=synology --remove-duplicates-assets
+  ./PhotoMigrator.bin --client=synology --remove-duplicates-assets --duplicate-asset-keeper oldest
+  ```
 
 > [!CAUTION]
-> This process permanently deletes redundant assets.
+> This process permanently deletes redundant assets after confirmation. Review the logged groups and proposed keeper before continuing.
 
 
 ## Merge Duplicates Albums from Synology Photos:

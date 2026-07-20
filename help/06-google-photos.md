@@ -306,8 +306,24 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ## Remove Duplicates Assets from Google Photos:
 - **From:** v4.6.0
-- **Usage:** `./PhotoMigrator.bin --client=google-photos --remove-duplicates-assets --duplicate-asset-keeper newest`
-- **Status:** The module and its required _**`--duplicate-asset-keeper newest|oldest`**_ selector are visible consistently across cloud-service interfaces, but Google Photos' public Library API does not provide media-item deletion. The command reports this limitation and does not modify the library.
+- **Usage:**
+  - Set Google Photos as the client using _**`--client=google-photos`**_.
+  - Use _**`--remove-duplicates-assets`**_.
+  - The required module selector is _**`--duplicate-asset-keeper newest|oldest`**_; its default is `newest`.
+- **Pre-Requisites:**
+  - Configure OAuth credentials in `Config.ini`.
+- **Current API limitation:**
+  - The command is exposed consistently in CLI, Web, TUI, and GUI so all cloud modules have the same selector and workflow entry point.
+  - Google Photos' public Library API does not provide an operation to delete media items from the library. Therefore, the command reports this limitation immediately and makes no inventory, metadata, album, or deletion change.
+  - The selector is retained for interface and command consistency. It does not choose or delete a keeper while the API limitation remains.
+- **Examples:**
+  ```
+  ./PhotoMigrator.bin --client=google-photos --remove-duplicates-assets
+  ./PhotoMigrator.bin --client=google-photos --remove-duplicates-assets --duplicate-asset-keeper oldest
+  ```
+
+> [!WARNING]
+> This command is currently non-destructive for Google Photos. It will log the unsupported deletion capability and exit without changing the library.
 
 
 ## Merge Duplicates Albums:

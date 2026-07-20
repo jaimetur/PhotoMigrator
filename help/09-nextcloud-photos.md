@@ -287,11 +287,26 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 
 ## Remove Duplicates Assets from NextCloud Photos:
 - **From:** v4.6.0
-- **Usage:** `./PhotoMigrator.bin --client=nextcloud --remove-duplicates-assets --duplicate-asset-keeper newest`
-- **Explanation:** The configured NextCloud photos root is scanned through WebDAV and physical files with the same exact filename and file size are grouped. The required selector _**`--duplicate-asset-keeper newest|oldest`**_ selects the retained file; `newest` is the default. Groups are listed before the normal confirmation prompt.
+- **Usage:**
+  - Set NextCloud as the client using _**`--client=nextcloud`**_.
+  - Use _**`--remove-duplicates-assets`**_.
+  - Select the file to retain with the required module selector _**`--duplicate-asset-keeper newest|oldest`**_. The default is `newest`.
+- **Pre-Requisites:**
+  - Configure `Config.ini` with valid NextCloud credentials and a writable configured photos root.
+  - The account must have WebDAV permission to list and delete files in that root.
+- **Explanation:**
+  - The Tool scans the configured NextCloud photos root through WebDAV. It uses each physical file's exact filename and WebDAV content length to form duplicate groups.
+  - `newest` and `oldest` use the WebDAV last-modified timestamp. A missing or invalid timestamp is treated as older than a valid timestamp.
+  - For each group, the Tool logs the proposed keeper and redundant file paths before requesting confirmation. Use _**`--no-request-user-confirmation`**_ only for unattended executions.
+  - This module operates on physical files in the configured photos root. WebDAV does not provide a portable asset-metadata merge for albums, faces, tags, favorites, descriptions, or ratings, so none of those are merged before deletion.
+- **Examples:**
+  ```
+  ./PhotoMigrator.bin --client=nextcloud --remove-duplicates-assets
+  ./PhotoMigrator.bin --client=nextcloud --remove-duplicates-assets --duplicate-asset-keeper oldest
+  ```
 
 > [!CAUTION]
-> This process permanently deletes redundant physical files from NextCloud after confirmation.
+> This process permanently deletes redundant physical files from the configured NextCloud photos root after confirmation. Review the logged groups and proposed keeper before continuing.
 
 
 ## Merge Duplicates Albums from NextCloud Photos:

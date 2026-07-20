@@ -19,7 +19,7 @@
 #### 🐛 Bug fixes:
 
 #### 📚 Documentation:
-  - Documented the Immich-only `Remove Duplicate Assets` module in the cloud-feature matrix and Immich management guide, including keeper selection, confirmation, metadata handling, and deletion safeguards.
+  - Documented `Remove Duplicate Assets` in the cloud-feature matrix and all cloud-service guides, including keeper selection, confirmation, backend-specific metadata limitations, and deletion safeguards.
   - Updated documentation with all changes.
 
 ---
