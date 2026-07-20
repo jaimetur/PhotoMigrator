@@ -433,6 +433,8 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"Total Assets                            : {total_assets_uploaded + total_dupplicated_assets_skipped}")
         LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
         LOGGER.info(f"Total Assets skipped (Duplicated)       : {total_dupplicated_assets_skipped}")
+        if isinstance(cloud_client_obj, ClassImmichPhotos) and ARGS.get('import-people', False):
+            LOGGER.info(f"Takeout People assigned (Unique)        : {cloud_client_obj.get_imported_takeout_people_count()}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded + total_dupplicated_assets_skipped}")
         LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
@@ -524,6 +526,8 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"Total Assets                            : {total_assets_uploaded + total_dupplicated_assets_skipped}")
         LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
         LOGGER.info(f"Total Assets skipped (Duplicated)       : {total_dupplicated_assets_skipped}")
+        if isinstance(cloud_client_obj, ClassImmichPhotos) and ARGS.get('import-people', False):
+            LOGGER.info(f"Takeout People assigned (Unique)        : {cloud_client_obj.get_imported_takeout_people_count()}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
         LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
         LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")

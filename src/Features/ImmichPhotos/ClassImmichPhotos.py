@@ -92,6 +92,7 @@ class ClassImmichPhotos(BaseMediaClient):
         self._takeout_people_import_lock = threading.Lock()
         self._takeout_people_tag_ids = {}
         self._takeout_people_resolution_cache = {}
+        self._takeout_people_imported_names = set()
 
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
@@ -423,6 +424,7 @@ class ClassImmichPhotos(BaseMediaClient):
             return False
         self._takeout_people_map = load_people_map(input_folder)
         self._takeout_people_resolution_cache = {}
+        self._takeout_people_imported_names = set()
         if not self._takeout_people_map:
             # Local folders can retain original Google sidecars without having run GPTH.
             self._takeout_people_map = build_people_map(input_folder)
@@ -438,6 +440,11 @@ class ClassImmichPhotos(BaseMediaClient):
         if not isinstance(entry, dict):
             return 0
         return len([name for name in entry.get("people", []) if str(name).strip()])
+
+    def get_imported_takeout_people_count(self):
+        """Return the unique Takeout people successfully associated with an asset."""
+        with self._takeout_people_import_lock:
+            return len(self._takeout_people_imported_names)
 
     @staticmethod
     def _parse_takeout_taken_at(value):
@@ -603,6 +610,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     )
                     response.raise_for_status()
                     tagged_count += 1
+                    self._takeout_people_imported_names.add(name.casefold())
                 if tagged_count:
                     LOGGER.info(
                         f"Imported {tagged_count} Takeout people tag(s) for "
