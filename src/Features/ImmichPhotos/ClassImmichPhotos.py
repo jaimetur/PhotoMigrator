@@ -2025,10 +2025,11 @@ class ClassImmichPhotos(BaseMediaClient):
                         return None, None
                 if asset_id:
                     self._remember_uploaded_asset_id(file_path, asset_id)
-                    # Automatic Migration normally suppresses upload chatter at ERROR.
-                    # Person import outcomes are operationally significant, so keep them visible.
-                    with set_log_level(LOGGER, logging.INFO):
-                        self.import_takeout_people_for_asset(file_path, asset_id, log_level=logging.INFO)
+                    if ARGS.get("import-people", False):
+                        # Automatic Migration normally suppresses upload chatter at ERROR.
+                        # Person import outcomes are operationally significant, so keep them visible.
+                        with set_log_level(LOGGER, logging.INFO):
+                            self.import_takeout_people_for_asset(file_path, asset_id, log_level=logging.INFO)
                     if is_duplicated:
                         LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Existing asset_id={asset_id}")
                     else:

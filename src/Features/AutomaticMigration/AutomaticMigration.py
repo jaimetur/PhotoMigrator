@@ -4246,7 +4246,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     live_photo_video_path = asset.get('live_photo_video_path', None)
                     takeout_people_count = (
                         target_client.get_takeout_people_count_for_asset(asset_file_path)
-                        if isinstance(target_client, ClassImmichPhotos)
+                        if ARGS.get('import-people', False) and isinstance(target_client, ClassImmichPhotos)
                         else 0
                     )
                     people_context = f" (People found: {takeout_people_count})" if takeout_people_count else ""
