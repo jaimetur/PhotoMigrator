@@ -137,7 +137,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 "total_target_empty_albums_removed": 2,
                 "total_album_assoc_retry_scheduled_assets": 7,
                 "total_album_assoc_retry_recovered_assets": 5,
-                "total_album_assoc_unconfirmed_assets": 1,
+                "total_album_assoc_failed_assets": 1,
             },
             logs_queue=None,
         )

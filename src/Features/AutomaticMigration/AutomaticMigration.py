@@ -168,7 +168,7 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "targetEmptyAlbumsRemoved": int(counters.get("total_target_empty_albums_removed", 0) or 0),
         "albumAssocRetryScheduled": int(counters.get("total_album_assoc_retry_scheduled_assets", 0) or 0),
         "albumAssocRetryRecovered": int(counters.get("total_album_assoc_retry_recovered_assets", 0) or 0),
-        "albumAssocUnconfirmed": int(counters.get("total_album_assoc_unconfirmed_assets", 0) or 0),
+        "albumAssocUnconfirmed": int(counters.get("total_album_assoc_failed_assets", 0) or 0),
         "updatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
     return snapshot
@@ -778,7 +778,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             'total_album_assoc_queue_assets': 0,
             'total_album_assoc_retry_scheduled_assets': 0,
             'total_album_assoc_retry_recovered_assets': 0,
-            'total_album_assoc_unconfirmed_assets': 0,
+            'total_album_assoc_failed_assets': 0,
             'total_consolidated_albums': 0,
             'total_canonicalized_albums': 0,
             'total_target_empty_albums_removed': 0,
@@ -2104,7 +2104,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     resolved_target_asset_id=asset_id,
                 )
             if not scheduled_retry:
-                SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += _physical_file_count(asset=asset)
+                SHARED_DATA.counters['total_album_assoc_failed_assets'] += _physical_file_count(asset=asset)
                 cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                     _finalize_album_association_failed_asset,
                     report_logger=LOGGER,
@@ -2139,7 +2139,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 resolved_target_asset_id=asset_id,
             )
             if not scheduled_retry:
-                SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += _physical_file_count(asset=asset)
+                SHARED_DATA.counters['total_album_assoc_failed_assets'] += _physical_file_count(asset=asset)
                 cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                     _finalize_album_association_failed_asset,
                     report_logger=LOGGER,
@@ -2692,7 +2692,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
         def _finalize_unconfirmed(item, target_asset_id, reason):
             _count_duplicate_outcome(item)
-            SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += _physical_file_count(asset=item)
+            # A terminal first-attempt failure bypasses the physical queue when
+            # association retries are disabled, but it still belongs to the
+            # association workflow and must contribute once to its total.
+            _record_queue_admission(
+                item,
+                'total_album_assoc_queue_assets',
+                '_album_assoc_queue_counted',
+            )
+            SHARED_DATA.counters['total_album_assoc_failed_assets'] += _physical_file_count(asset=item)
             _finalize_album_assoc_failed_asset_safely(
                 _finalize_album_association_failed_asset,
                 report_logger=LOGGER,
@@ -3655,7 +3663,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             )
             total_issue_assets = (
                 total_failed_assets
-                + SHARED_DATA.counters['total_album_assoc_unconfirmed_assets']
+                + SHARED_DATA.counters['total_album_assoc_failed_assets']
             )
             if total_issue_assets > 0:
                 LOGGER.warning(f"{MSG_TAGS['WARNING']}Migration finished with partial failures.")
@@ -3676,7 +3684,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Push Retry Failed           : {SHARED_DATA.counters['total_push_retry_failed_assets']}")
             LOGGER.info(f"Album Assoc Retry Scheduled : {SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets']}")
             LOGGER.info(f"Album Assoc Retry Recovered : {SHARED_DATA.counters['total_album_assoc_retry_recovered_assets']}")
-            LOGGER.info(f"Album Assoc Unconfirmed     : {SHARED_DATA.counters['total_album_assoc_unconfirmed_assets']}")
+            LOGGER.info(f"Album Assoc Failed          : {SHARED_DATA.counters['total_album_assoc_failed_assets']}")
             if consolidate_similar_albums:
                 LOGGER.info(f"Consolidated Albums         : {SHARED_DATA.counters['total_consolidated_albums']}")
             if prefer_canonical_album_names and not consolidate_similar_albums:
