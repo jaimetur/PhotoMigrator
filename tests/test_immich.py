@@ -1,6 +1,8 @@
 import sys
+import tempfile
 import types
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -97,6 +99,32 @@ class TestImmichPhotosUnit(unittest.TestCase):
     def test_normalize_burst_stem_removes_common_suffixes(self):
         normalized = self.manager._normalize_burst_stem("IMG_1234-edited.BURST0001.jpg")
         self.assertEqual(normalized, "img_1234-edited")
+
+    def test_resolve_existing_asset_id_indexes_cached_library_by_filename(self):
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as asset_file:
+            filename = Path(asset_file.name).name
+            modified_at = datetime.fromtimestamp(Path(asset_file.name).stat().st_mtime, tz=timezone.utc)
+            self.manager._lookup_uploaded_asset_id = lambda _: None
+            self.manager._remember_uploaded_asset_id = lambda *_: None
+            self.manager._get_all_assets_unfiltered = MagicMock(return_value=[
+                {
+                    "id": "remote-match",
+                    "originalFileName": filename,
+                    "fileCreatedAt": modified_at.isoformat().replace("+00:00", "Z"),
+                    "exifInfo": {"fileSize": 0},
+                },
+                {
+                    "id": "remote-other",
+                    "originalFileName": "other.jpg",
+                    "fileCreatedAt": modified_at.isoformat().replace("+00:00", "Z"),
+                    "exifInfo": {"fileSize": 0},
+                },
+            ])
+
+            resolved_id = self.manager._resolve_existing_asset_id(asset_file.name)
+
+        self.assertEqual(resolved_id, "remote-match")
+        self.assertIn(filename.casefold(), self.manager._existing_asset_name_index)
 
     def test_burst_primary_sort_key_prefers_image_then_larger_file(self):
         image_record = {"ext": ".jpg", "file_size": 300, "capture_epoch": 100}

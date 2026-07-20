@@ -1562,9 +1562,40 @@ class ClassImmichPhotos(BaseMediaClient):
                 target_time = None
                 target_size = None
 
+            # Duplicate resolution can be invoked hundreds of times in an
+            # album-heavy migration. Index the cached destination library once
+            # instead of walking every remote asset for every queued duplicate.
+            all_assets = self._get_all_assets_unfiltered(log_level=log_level)
+            library_identity = id(all_assets)
+            lookup_index = getattr(self, "_existing_asset_name_index", None)
+            if not isinstance(lookup_index, dict) or getattr(self, "_existing_asset_name_index_source", None) != library_identity:
+                lookup_index = {}
+                for candidate in all_assets:
+                    candidate_name = str(candidate.get("originalFileName", ""))
+                    if not candidate_name:
+                        continue
+                    exact_key = candidate_name.casefold()
+                    normalized_key = self._normalize_duplicate_lookup_name(candidate_name)
+                    lookup_index.setdefault(exact_key, []).append(candidate)
+                    if normalized_key != exact_key:
+                        lookup_index.setdefault(normalized_key, []).append(candidate)
+                self._existing_asset_name_index = lookup_index
+                self._existing_asset_name_index_source = library_identity
+
+            candidate_items = []
+            seen_candidate_ids = set()
+            for lookup_key in (target_name_casefold, target_name_normalized):
+                for candidate in lookup_index.get(lookup_key, []):
+                    candidate_id = str(candidate.get("id", "")).strip()
+                    unique_key = candidate_id or id(candidate)
+                    if unique_key in seen_candidate_ids:
+                        continue
+                    seen_candidate_ids.add(unique_key)
+                    candidate_items.append(candidate)
+
             best_asset_id = None
             best_score = None
-            for item in self._get_all_assets_unfiltered(log_level=log_level):
+            for item in candidate_items:
                 candidate_name = str(item.get("originalFileName", ""))
                 candidate_name_casefold = candidate_name.casefold()
                 candidate_name_normalized = self._normalize_duplicate_lookup_name(candidate_name)

@@ -1432,7 +1432,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     if target_existing_albums is not None:
                         target_existing_albums.append({"id": aid, "albumName": album_name})
                     _set_cached_target_album_asset_ids(aid, set())
-                created_albums[album_name] = aid
+                if aid:
+                    created_albums[album_name] = aid
+                else:
+                    # Do not poison the album cache with a failed lookup/create.
+                    # Association workers must be able to retry this later.
+                    LOGGER.error(
+                        f"Album Association Pending: unable to resolve or create destination album "
+                        f"'{album_name}' (worker={worker_id})."
+                    )
         album_id_dest = created_albums.get(album_name)
         return album_id_dest, album_name
 
@@ -2446,7 +2454,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         return True
 
     def _schedule_album_association_retry(asset, reason, resolved_target_asset_id):
-        if not resolved_target_asset_id or max_album_assoc_retries <= 0:
+        is_pending_duplicate_resolution = bool((asset or {}).get('_pending_duplicate_resolution'))
+        if (not resolved_target_asset_id and not is_pending_duplicate_resolution) or max_album_assoc_retries <= 0:
             return False
 
         current_attempt = int((asset or {}).get('album_assoc_retry_attempt', 0) or 0)
@@ -2459,7 +2468,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             return False
 
         retry_asset = dict(asset or {})
-        retry_asset['resolved_target_asset_id'] = resolved_target_asset_id
+        if resolved_target_asset_id:
+            retry_asset['resolved_target_asset_id'] = resolved_target_asset_id
+        else:
+            retry_asset.pop('resolved_target_asset_id', None)
         retry_asset['skip_target_push'] = True
         retry_asset['album_assoc_retry_attempt'] = next_attempt
         retry_asset['retry_kind'] = 'album_assoc'
@@ -2527,6 +2539,59 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         processed_albums = processed_albums if processed_albums is not None else set()
         processed_albums_lock = processed_albums_lock if processed_albums_lock is not None else threading.Lock()
 
+        def _count_duplicate_outcome(item):
+            if not item.get("_pending_duplicate_resolution") or item.get("_final_duplicate_counted"):
+                return
+            if item.get("count_push_stats", True):
+                duplicate_assets = _physical_file_count(asset=item)
+                _increment_push_duplicate_counters(
+                    SHARED_DATA.counters,
+                    item.get("asset_type"),
+                    item.get("physical_stats"),
+                )
+                _increment_album_stat_counter(
+                    album_stats_by_name_ref,
+                    album_stats_lock_ref,
+                    album_name,
+                    "duplicated_assets",
+                    duplicate_assets,
+                )
+            item["_final_duplicate_counted"] = True
+
+        def _finalize_unconfirmed(item, target_asset_id, reason):
+            _count_duplicate_outcome(item)
+            SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += _physical_file_count(asset=item)
+            _finalize_album_assoc_failed_asset_safely(
+                _finalize_album_association_failed_asset,
+                report_logger=LOGGER,
+                log_asset_file_path=item.get("asset_file_path"),
+                log_album_name=album_name,
+                source_asset_id=item.get("asset_id"),
+                source_live_photo_video_path=item.get("source_live_photo_video_path"),
+                asset_file_path=item.get("asset_file_path"),
+                live_photo_video_path=item.get("live_photo_video_path"),
+                album_name=album_name,
+                asset_id=target_asset_id,
+                retry_attempt=int(item.get("retry_attempt", 0) or 0),
+                association_retry_attempt=int(item.get("album_assoc_retry_attempt", 0) or 0),
+                asset_type=item.get("asset_type", "photo"),
+                count_push_stats=item.get("count_push_stats", True),
+                move_assets=ARGS.get('move-assets', None),
+                removed_source_asset_ids=removed_source_asset_ids,
+                processed_albums=processed_albums,
+                processed_albums_lock=processed_albums_lock,
+                worker_id=worker_id,
+                logger=LOGGER,
+                source_asset_already_moved=bool(item.get("source_asset_already_moved")),
+                source_live_companion_already_moved=bool(item.get("source_live_companion_already_moved")),
+            )
+            LOGGER.error(
+                f"Album Association Failed: '{os.path.basename(item.get('asset_file_path', ''))}' "
+                f"could not be associated with album '{album_name}' after "
+                f"{item.get('album_assoc_retry_attempt', 0)}/{max_album_assoc_retries} retry attempt(s); "
+                f"reason={reason}; it remains in {AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER}."
+            )
+
         album_is_shared = any(bool(item.get("album_is_shared")) for item in batch_items)
         album_assoc_started_at = time.perf_counter()
         album_id_dest = None
@@ -2550,24 +2615,36 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     if target_asset_id:
                         item["resolved_target_asset_id"] = target_asset_id
                     else:
-                        LOGGER.error(
-                            f"Asset Push Fail : '{os.path.basename(item.get('asset_file_path', ''))}' "
-                            f"could not resolve an existing target asset id for album '{album_name}'."
-                        )
-                        _record_final_push_failure(
-                            asset_type=item.get("asset_type", "photo"),
-                            count_push_stats=item.get("count_push_stats", True),
-                            asset_stats=item.get("physical_stats"),
-                            album_name=album_name,
-                            album_stats_by_name_ref=album_stats_by_name_ref,
-                            album_stats_lock_ref=album_stats_lock_ref,
+                        scheduled_retry = _schedule_album_association_retry(
                             asset=item,
+                            reason="remote duplicate asset ID could not be resolved",
+                            resolved_target_asset_id=None,
                         )
+                        if not scheduled_retry:
+                            _finalize_unconfirmed(
+                                item,
+                                target_asset_id=None,
+                                reason="remote duplicate asset ID could not be resolved",
+                            )
                 if not target_asset_id:
                     continue
                 normalized_items.append((item, target_asset_id))
 
             if not normalized_items:
+                return
+            if not album_id_dest:
+                for item, target_asset_id in normalized_items:
+                    scheduled_retry = _schedule_album_association_retry(
+                        asset=item,
+                        reason="destination album ID is unavailable",
+                        resolved_target_asset_id=target_asset_id,
+                    )
+                    if not scheduled_retry:
+                        _finalize_unconfirmed(
+                            item,
+                            target_asset_id=target_asset_id,
+                            reason="destination album ID is unavailable",
+                        )
                 return
             requested_asset_ids = [asset_id for _, asset_id in normalized_items]
             confirmed_ids = _add_assets_to_target_album(
@@ -2649,48 +2726,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             resolved_target_asset_id=target_asset_id,
                         )
                     if not scheduled_retry:
-                        if item.get("_pending_duplicate_resolution") and not item.get("_final_duplicate_counted"):
-                            if item.get("count_push_stats", True):
-                                duplicate_assets = int((item.get("physical_stats") or {}).get("assets", 1) or 1)
-                                _increment_push_duplicate_counters(SHARED_DATA.counters, item.get("asset_type"), item.get("physical_stats"))
-                                _increment_album_stat_counter(
-                                    album_stats_by_name_ref,
-                                    album_stats_lock_ref,
-                                    album_name,
-                                    "duplicated_assets",
-                                    duplicate_assets,
-                                )
-                            item["_final_duplicate_counted"] = True
-                        SHARED_DATA.counters['total_album_assoc_unconfirmed_assets'] += _physical_file_count(asset=item)
-                        cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
-                            _finalize_album_association_failed_asset,
-                            report_logger=LOGGER,
-                            log_asset_file_path=item.get("asset_file_path"),
-                            log_album_name=album_name,
-                            source_asset_id=item.get("asset_id"),
-                            source_live_photo_video_path=item.get("source_live_photo_video_path"),
-                            asset_file_path=item.get("asset_file_path"),
-                            live_photo_video_path=item.get("live_photo_video_path"),
-                            album_name=album_name,
-                            asset_id=target_asset_id,
-                            retry_attempt=int(item.get("retry_attempt", 0) or 0),
-                            association_retry_attempt=int(item.get("album_assoc_retry_attempt", 0) or 0),
-                            asset_type=item.get("asset_type", "photo"),
-                            count_push_stats=item.get("count_push_stats", True),
-                            move_assets=ARGS.get('move-assets', None),
-                            removed_source_asset_ids=removed_source_asset_ids,
-                            processed_albums=processed_albums,
-                            processed_albums_lock=processed_albums_lock,
-                            worker_id=worker_id,
-                            logger=LOGGER,
-                            source_asset_already_moved=bool(item.get("source_asset_already_moved")),
-                            source_live_companion_already_moved=bool(item.get("source_live_companion_already_moved")),
-                        )
-                        LOGGER.error(
-                            f"Album Association Failed: '{os.path.basename(item.get('asset_file_path', ''))}' "
-                            f"could not be associated with album '{album_name}' after "
-                            f"{item.get('album_assoc_retry_attempt', 0)}/{max_album_assoc_retries} retry attempt(s); "
-                            f"it remains in {AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER}."
+                        _finalize_unconfirmed(
+                            item,
+                            target_asset_id=target_asset_id,
+                            reason="target did not confirm album membership",
                         )
 
                 _debug_perf_log(
@@ -4254,6 +4293,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         )
                         asset.update(moved_asset)
                         _record_queue_admission(asset, 'total_album_assoc_queue_assets', '_album_assoc_queue_counted')
+                        if count_push_stats and not asset.get('_final_duplicate_counted'):
+                            _increment_push_duplicate_counters(SHARED_DATA.counters, asset_type, physical_stats)
+                            _increment_album_stat_counter(
+                                album_stats_by_name_ref,
+                                album_stats_lock_ref,
+                                album_name,
+                                "duplicated_assets",
+                                int(physical_stats.get("assets", 1) or 1),
+                            )
+                            asset['_final_duplicate_counted'] = True
                         asset_file_path = asset.get('asset_file_path')
                         live_photo_video_path = asset.get('live_photo_video_path')
                         album_assoc_queue.put(asset)
