@@ -2298,8 +2298,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 remaining_files.append(os.path.join(root, entry))
         return remaining_files
 
-    def _format_album_pending_context(album_name, current_asset_file_path=None, people_count=0):
-        people_label = f"People found: {people_count}" if people_count else ""
+    def _format_album_pending_context(album_name, current_asset_file_path=None, people_count=0, show_people_count=False):
+        people_label = f"People found: {people_count}" if show_people_count else ""
         if not album_name:
             return f" ({people_label})" if people_label else ""
         album_folder_path = _get_album_staging_folder(album_name)
@@ -4255,9 +4255,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     count_push_stats = asset.get('count_push_stats', True)
                     physical_stats = dict(asset.get('physical_stats') or _build_physical_transfer_stats(asset_type))
                     live_photo_video_path = asset.get('live_photo_video_path', None)
+                    show_takeout_people_count = (
+                        ARGS.get('import-people', False) and isinstance(target_client, ClassImmichPhotos)
+                    )
                     takeout_people_count = (
                         target_client.get_takeout_people_count_for_asset(asset_file_path)
-                        if ARGS.get('import-people', False) and isinstance(target_client, ClassImmichPhotos)
+                        if show_takeout_people_count
                         else 0
                     )
                     retry_attempt = int(asset.get('retry_attempt', 0) or 0)
@@ -4351,7 +4354,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if isDuplicated:
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, show_takeout_people_count)}"
                                     )
                                     if count_push_stats:
                                         _increment_push_duplicate_counters(SHARED_DATA.counters, asset_type, physical_stats)
@@ -4379,7 +4382,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         )
                                     LOGGER.info(
                                         f"Asset Pushed    : '{os.path.basename(asset_file_path)}'"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, show_takeout_people_count)}"
                                     )
                                     if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
                                         try:
@@ -4400,7 +4403,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if isDuplicated:
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, show_takeout_people_count)}"
                                     )
                                     treat_as_consumed = True
                                     if count_push_stats and not album_name:
