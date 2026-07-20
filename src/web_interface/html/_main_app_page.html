@@ -232,6 +232,7 @@
                         <div class="stats-separator stats-separator--push-delayed" aria-hidden="true"></div>
                         <div class="stat-row"><span class="stat-label">⏱️ Delayed Retries</span><span id="dash-push-delayed-retries" class="stat-value">0</span></div>
                         <div class="stat-row"><span class="stat-label">⏱️ Delayed Recovered</span><span id="dash-push-delayed-recovered" class="stat-value">0</span></div>
+                        <div class="stat-row"><span class="stat-label">🚩 Album Assoc Failed</span><span id="dash-push-album-assoc-failed" class="stat-value">0</span></div>
                     </div>
                 </div>
             </section>
@@ -1718,6 +1719,7 @@
         setText("dash-push-albums-outcomes", `${stats.pushedAlbums || 0} / 0 / ${stats.pushFailedAlbums || 0}`);
         setText("dash-push-delayed-retries", stats.pushRetryScheduled, "0");
         setText("dash-push-delayed-recovered", stats.pushRetryRecovered, "0");
+        setText("dash-push-album-assoc-failed", stats.albumAssocUnconfirmed, "0");
 
         const totalAssetsForPull = resolveTotal(stats.totalAssets, stats.pulledAssets, stats.pullFailedAssets);
         const totalPhotosForPull = resolveTotal(stats.totalPhotos, stats.pulledPhotos, stats.pullFailedPhotos);

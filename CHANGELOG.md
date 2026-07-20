@@ -97,6 +97,7 @@
   - Refined Automatic Migration album association failure handling: `Album_Association_Queue/` now receives only duplicate assets whose push did not return a reusable destination ID. Its workers perform the initial remote-ID lookup plus one retry by default; failures with an already known target ID remain in the hot path and move directly to `Album_Association_Failed/`. Repeated retry diagnostics are reduced to `DEBUG`, and terminal queue assets preserve their relative hierarchy in `Album_Association_Failed/`.
   - Corrected the `Album Assoc Queue` dashboard total to count only physical files actually admitted to `Album_Association_Queue/`; known-ID hot-path association failures are no longer represented as queued assets.
   - Renamed the Automatic Migration physical delayed upload-retry folder from `Delayed_Queue/` to `Push_Delayed_Queue/`.
+  - Added an `🚩 Album Assoc Failed` terminal-outcome row to the Push panel in the Web and Rich Automatic Migration live dashboards.
 
 #### 🐛 Bug fixes:
   - Fixed the cloud `Automatic Migration` regression introduced after `v4.0.0` where duplicate-heavy album uploads could become dramatically slower because the migration pipeline tried to resolve reusable destination asset ids and apply album-family consolidation in the hot path for every asset. Known-id assets are now still associated during the normal migration flow, while duplicate uploads without an immediate reusable id are postponed to a final per-album resolution pass instead of forcing repeated remote lookups during each upload.
