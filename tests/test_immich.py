@@ -230,7 +230,7 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.assertEqual(assets, [{"id": "a1"}])
         self.assertEqual(mock_post.call_args_list[0].args[0], "http://immich.local/api/search/statistics")
         payload = mock_post.call_args_list[1].kwargs["data"]
-        self.assertIn('"size": 1000', payload)
+        self.assertIn('"size": 5000', payload)
         self.assertNotIn('"withPeople"', payload)
         mock_tqdm.assert_called_once_with(
             total=3,

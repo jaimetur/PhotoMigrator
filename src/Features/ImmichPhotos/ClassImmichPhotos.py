@@ -59,7 +59,10 @@ class ClassImmichPhotos(BaseMediaClient):
     Encapsulates all the functionality from the original ClassImmichPhotos.py
     into a single class that uses a global LOGGER from GlobalVariables.
     """
-    IMMICH_ASSET_INVENTORY_PAGE_SIZE = 1000
+    # Metadata search is offset-paginated by Immich. Larger pages substantially
+    # reduce the server-side rows skipped across a full-library inventory scan.
+    IMMICH_ASSET_INVENTORY_PAGE_SIZE = 5000
+    IMMICH_ASSET_INVENTORY_FALLBACK_PAGE_SIZE = 1000
 
     def __init__(self, account_id=1):
         """
@@ -1988,6 +1991,7 @@ class ClassImmichPhotos(BaseMediaClient):
             url = f"{self.IMMICH_URL}/api/search/metadata"
             all_assets = []
             next_page = 1
+            page_size = self.IMMICH_ASSET_INVENTORY_PAGE_SIZE
             progress_bar = None
             with ExitStack() as stack:
                 if show_progress:
@@ -2008,12 +2012,27 @@ class ClassImmichPhotos(BaseMediaClient):
                 while True:
                     payload = json.dumps({
                         "page": int(next_page),
-                        "size": self.IMMICH_ASSET_INVENTORY_PAGE_SIZE,
+                        "size": page_size,
                         "order": "desc",
                         "withExif": True,
                     })
-                    resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
-                    resp.raise_for_status()
+                    try:
+                        resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
+                        resp.raise_for_status()
+                    except requests.HTTPError as error:
+                        status_code = getattr(error.response, "status_code", None)
+                        if (
+                            next_page == 1
+                            and page_size > self.IMMICH_ASSET_INVENTORY_FALLBACK_PAGE_SIZE
+                            and status_code in {400, 422}
+                        ):
+                            page_size = self.IMMICH_ASSET_INVENTORY_FALLBACK_PAGE_SIZE
+                            LOGGER.warning(
+                                "Immich rejected a 5,000-asset metadata page; retrying the inventory scan "
+                                "with 1,000-asset pages for this server version."
+                            )
+                            continue
+                        raise
                     data = resp.json()
                     assets_page = data.get("assets", {})
                     items = assets_page.get("items", [])
