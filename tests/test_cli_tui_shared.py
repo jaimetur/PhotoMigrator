@@ -74,6 +74,18 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("consolidate-similar-albums", automatic_dests)
         self.assertIn("one-time-password", automatic_dests)
 
+    def test_build_parser_schema_exposes_album_name_flags_in_takeout_tabs(self):
+        schema = build_parser_schema()
+        general_dests = {field["dest"] for field in schema["general_tabs"]["general"]}
+
+        self.assertNotIn("prefer-canonical-album-names", general_dests)
+        self.assertNotIn("consolidate-similar-albums", general_dests)
+        for tab in ("google_takeout", "icloud_takeout"):
+            with self.subTest(tab=tab):
+                tab_dests = {field["dest"] for field in schema["tabs"][tab]}
+                self.assertIn("prefer-canonical-album-names", tab_dests)
+                self.assertIn("consolidate-similar-albums", tab_dests)
+
     def test_build_parser_schema_standalone_actions_exclude_auxiliary_organize_fields(self):
         schema = build_parser_schema()
 

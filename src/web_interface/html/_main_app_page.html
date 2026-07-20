@@ -592,7 +592,7 @@
 
     const GENERAL_GROUPS = [
         { key: "logs", title: "Logs", dests: ["no-log-file", "log-level", "log-format", "foldername-logs"] },
-        { key: "execution", title: "Execution", dests: ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets", "prefer-canonical-album-names", "consolidate-similar-albums"] },
+        { key: "execution", title: "Execution", dests: ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets"] },
         { key: "naming", title: "Naming & Folders", dests: ["date-separator", "range-separator", "albums-folders", "foldername-albums", "foldername-no-albums", "foldername-duplicates-output", "foldername-extracted-dates"] },
         { key: "filters", title: "Filters", dests: ["filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country", "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files"] }
     ];
@@ -2299,6 +2299,7 @@
         if (dest === "icloud-takeout" || dest === "icloud-output-folder-suffix") return "takeout";
         if (dest === "google-albums-folders-structure" || dest === "google-no-albums-folders-structure") return "structure";
         if (dest === "icloud-albums-folders-structure" || dest === "icloud-no-albums-folders-structure") return "structure";
+        if (dest === "prefer-canonical-album-names" || dest === "consolidate-similar-albums") return "flags";
         if (dest === "google-process-people") return "flags";
         if (dest === "show-gpth-info" || dest === "show-gpth-errors" || dest === "gpth-no-log") return "runtime";
         if (field.kind === "flag") return "flags";

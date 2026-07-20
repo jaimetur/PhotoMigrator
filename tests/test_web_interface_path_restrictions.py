@@ -98,6 +98,23 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("subfolder", str(context.exception.detail))
         self.assertIn(str(self.allowed_roots[0]), str(context.exception.detail))
 
+    def test_takeout_tabs_expose_album_name_flags_outside_general_arguments(self):
+        general_dests = {
+            field["dest"]
+            for field in self.web_app.PARSER_SCHEMA["general_tabs"]["general"]
+        }
+        self.assertNotIn("prefer-canonical-album-names", general_dests)
+        self.assertNotIn("consolidate-similar-albums", general_dests)
+
+        for tab in ("google_takeout", "icloud_takeout"):
+            with self.subTest(tab=tab):
+                tab_dests = {
+                    field["dest"]
+                    for field in self.web_app.PARSER_SCHEMA["tabs"][tab]
+                }
+                self.assertIn("prefer-canonical-album-names", tab_dests)
+                self.assertIn("consolidate-similar-albums", tab_dests)
+
     def test_optional_output_folder_also_rejects_direct_user_root(self):
         takeout_subfolder = self.allowed_roots[0] / "TakeoutInput"
         takeout_subfolder.mkdir(parents=True, exist_ok=True)

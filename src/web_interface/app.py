@@ -269,8 +269,6 @@ GENERAL_OPTIONAL_DESTS = {
     "foldername-extracted-dates",
     "exec-gpth-tool",
     "exec-exif-tool",
-    "prefer-canonical-album-names",
-    "consolidate-similar-albums",
 }
 
 WEB_HIDDEN_GENERAL_DESTS = {
@@ -1688,8 +1686,6 @@ GENERAL_PANEL_DEST_ORDER = [
     "exec-gpth-tool",
     "exec-exif-tool",
     "remove-albums-assets",
-    "prefer-canonical-album-names",
-    "consolidate-similar-albums",
     "date-separator",
     "range-separator",
     "albums-folders",
@@ -3023,6 +3019,11 @@ def _load_parser_schema() -> Dict[str, Any]:
         by_dest[dest] = field
 
     cloud_common = [field for field in fields if field["tab"] == "cloud_common"]
+    takeout_album_name_fields = [
+        by_dest[dest]
+        for dest in ("prefer-canonical-album-names", "consolidate-similar-albums")
+        if dest in by_dest
+    ]
     merged_general = [
         field
         for field in fields
@@ -3037,8 +3038,8 @@ def _load_parser_schema() -> Dict[str, Any]:
         "feature_scoped": [field for field in fields if field["dest"] in FEATURE_SCOPED_DESTS],
         "fields_by_dest": by_dest,
         "tabs": {
-            "google_takeout": [field for field in fields if field["tab"] == "google_takeout"],
-            "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"],
+            "google_takeout": [field for field in fields if field["tab"] == "google_takeout"] + takeout_album_name_fields,
+            "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"] + takeout_album_name_fields,
             "google_photos": cloud_common,
             "synology_photos": cloud_common,
             "immich_photos": cloud_common,
