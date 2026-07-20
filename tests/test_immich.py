@@ -210,25 +210,29 @@ class TestImmichPhotosUnit(unittest.TestCase):
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     def test_unfiltered_asset_inventory_uses_large_pages_and_reports_progress(self, _mock_logger, mock_post, mock_tqdm):
-        response = MagicMock()
-        response.raise_for_status.return_value = None
-        response.json.return_value = {
+        statistics_response = MagicMock()
+        statistics_response.raise_for_status.return_value = None
+        statistics_response.json.return_value = {"total": 3}
+        inventory_response = MagicMock()
+        inventory_response.raise_for_status.return_value = None
+        inventory_response.json.return_value = {
             "assets": {
                 "items": [{"id": "a1"}],
                 "nextPage": None,
-                "total": 1,
+                "total": 1000,
             }
         }
-        mock_post.return_value = response
+        mock_post.side_effect = [statistics_response, inventory_response]
         progress_bar = mock_tqdm.return_value.__enter__.return_value
 
-        assets = self.manager._get_all_assets_unfiltered()
+        assets = self.manager._get_all_assets_unfiltered(show_progress=True)
 
         self.assertEqual(assets, [{"id": "a1"}])
-        payload = mock_post.call_args.kwargs["data"]
+        self.assertEqual(mock_post.call_args_list[0].args[0], "http://immich.local/api/search/statistics")
+        payload = mock_post.call_args_list[1].kwargs["data"]
         self.assertIn('"size": 1000', payload)
         mock_tqdm.assert_called_once_with(
-            total=None,
+            total=3,
             desc="INFO    : Retrieving Immich asset inventory",
             unit=" assets",
         )

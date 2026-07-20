@@ -1829,9 +1829,9 @@ class ClassImmichPhotos(BaseMediaClient):
             LOGGER.info(
                 "Retrieving Immich assets for duplicate analysis (paginated). "
                 "This scans the entire library and can take several minutes for large libraries; "
-                "progress will be logged as pages are received."
+                "a progress bar will be displayed while pages are received."
             )
-            assets = self._get_all_assets_unfiltered(log_level=log_level)
+            assets = self._get_all_assets_unfiltered(log_level=log_level, show_progress=True)
             groups = {}
             assets_missing_size = 0
             for asset in assets:
@@ -1922,7 +1922,25 @@ class ClassImmichPhotos(BaseMediaClient):
         with self._uploaded_asset_cache_lock:
             return self._uploaded_asset_cache.get(cache_key)
 
-    def _get_all_assets_unfiltered(self, log_level=None):
+    def _get_unfiltered_asset_inventory_total(self):
+        """Return the user-visible asset total for an unfiltered metadata search."""
+        try:
+            response = requests.post(
+                f"{self.IMMICH_URL}/api/search/statistics",
+                headers=self.HEADERS_WITH_CREDENTIALS,
+                data=json.dumps({}),
+                verify=False,
+            )
+            response.raise_for_status()
+            total = int((response.json() or {}).get("total"))
+            return max(0, total)
+        except (requests.RequestException, TypeError, ValueError) as error:
+            LOGGER.debug(
+                f"Immich did not provide an asset-inventory total; using indeterminate progress: {error}"
+            )
+            return None
+
+    def _get_all_assets_unfiltered(self, log_level=None, show_progress=False):
         with set_log_level(LOGGER, log_level):
             if hasattr(self, "_all_assets_unfiltered_cache") and self._all_assets_unfiltered_cache is not None:
                 return self._all_assets_unfiltered_cache
@@ -1930,17 +1948,23 @@ class ClassImmichPhotos(BaseMediaClient):
             url = f"{self.IMMICH_URL}/api/search/metadata"
             all_assets = []
             next_page = 1
-            LOGGER.info(
-                f"Downloading the Immich asset inventory in pages of up to "
-                f"{self.IMMICH_ASSET_INVENTORY_PAGE_SIZE} assets..."
-            )
-            # Immich's response total is the current page size on some server versions,
-            # so use an indeterminate progress bar instead of reporting a false maximum.
-            with tqdm(
-                total=None,
-                desc=f"{MSG_TAGS['INFO']}Retrieving Immich asset inventory",
-                unit=" assets",
-            ) as progress_bar:
+            progress_bar = None
+            with ExitStack() as stack:
+                if show_progress:
+                    total_assets = self._get_unfiltered_asset_inventory_total()
+                    LOGGER.info(
+                        f"Downloading the Immich asset inventory in pages of up to "
+                        f"{self.IMMICH_ASSET_INVENTORY_PAGE_SIZE} assets..."
+                    )
+                    if total_assets is not None:
+                        LOGGER.info(f"Found {total_assets} Immich asset(s) to analyze.")
+                    # Some Immich versions report the current page size as the
+                    # metadata-search total, so use the statistics endpoint instead.
+                    progress_bar = stack.enter_context(tqdm(
+                        total=total_assets,
+                        desc=f"{MSG_TAGS['INFO']}Retrieving Immich asset inventory",
+                        unit=" assets",
+                    ))
                 while True:
                     payload = json.dumps({
                         "page": int(next_page),
@@ -1955,7 +1979,8 @@ class ClassImmichPhotos(BaseMediaClient):
                     assets_page = data.get("assets", {})
                     items = assets_page.get("items", [])
                     all_assets.extend(items)
-                    progress_bar.update(len(items))
+                    if progress_bar is not None:
+                        progress_bar.update(len(items))
                     next_page = assets_page.get("nextPage", None)
                     if next_page is None:
                         break
