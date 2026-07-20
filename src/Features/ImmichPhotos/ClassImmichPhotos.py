@@ -1822,6 +1822,37 @@ class ClassImmichPhotos(BaseMediaClient):
             return False
         return True
 
+    def _get_duplicate_asset_metadata(self, asset_id, log_level=None):
+        """Fetch complete metadata only for a duplicate candidate being resolved."""
+        asset_id = str(asset_id or "").strip()
+        if not asset_id:
+            return None
+        try:
+            response = requests.get(
+                f"{self.IMMICH_URL}/api/assets/{asset_id}",
+                headers=self.HEADERS_WITH_CREDENTIALS,
+                verify=False,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data if isinstance(data, dict) else None
+        except requests.RequestException as error:
+            LOGGER.warning(
+                f"Could not retrieve metadata for duplicate asset ID={asset_id}; "
+                f"its duplicate group was left unchanged: {error}"
+            )
+            return None
+
+    def _hydrate_duplicate_group_metadata(self, group, log_level=None):
+        """Load relationship metadata after confirmation, not for the whole library scan."""
+        hydrated_assets = []
+        for asset in group:
+            metadata = self._get_duplicate_asset_metadata(asset.get("id"), log_level=log_level)
+            if metadata is None:
+                return None
+            hydrated_assets.append(metadata)
+        return hydrated_assets
+
     def find_duplicate_assets_by_name_and_size(self, log_level=None):
         """Return same-name/same-size duplicate groups from one paginated inventory."""
         with set_log_level(LOGGER, log_level):
@@ -1868,6 +1899,15 @@ class ClassImmichPhotos(BaseMediaClient):
             for group in tqdm(duplicate_groups, desc=f"{MSG_TAGS['INFO']}Resolving duplicate asset groups", unit=" groups"):
                 ordered = sorted(
                     group,
+                    key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
+                    reverse=(strategy == "newest"),
+                )
+                hydrated_group = self._hydrate_duplicate_group_metadata(ordered, log_level=log_level)
+                if hydrated_group is None:
+                    skipped_groups += 1
+                    continue
+                ordered = sorted(
+                    hydrated_group,
                     key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
                     reverse=(strategy == "newest"),
                 )
@@ -1971,7 +2011,6 @@ class ClassImmichPhotos(BaseMediaClient):
                         "size": self.IMMICH_ASSET_INVENTORY_PAGE_SIZE,
                         "order": "desc",
                         "withExif": True,
-                        "withPeople": True,
                     })
                     resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
                     resp.raise_for_status()

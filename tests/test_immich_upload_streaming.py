@@ -108,6 +108,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
                 "createdAt": "2022-01-01T00:00:00.000Z", "exifInfo": {"fileSize": 99},
             },
         ])
+        manager._hydrate_duplicate_group_metadata = MagicMock(side_effect=lambda group, log_level=None: group)
         manager._merge_duplicate_asset_metadata = MagicMock(return_value=True)
         manager.remove_assets = MagicMock(side_effect=lambda ids, log_level=None: len(ids))
 
@@ -118,6 +119,24 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertEqual(keeper["id"], "old")
         self.assertEqual([asset["id"] for asset in redundant], ["new"])
         manager.remove_assets.assert_called_once_with(["new"], log_level=None)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_duplicate_group_metadata_is_loaded_only_for_candidates(self, mock_get, _mock_logger):
+        manager = self._build_manager()
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"id": "asset-1", "people": []}
+        mock_get.return_value = response
+
+        metadata = manager._get_duplicate_asset_metadata("asset-1")
+
+        self.assertEqual(metadata, {"id": "asset-1", "people": []})
+        mock_get.assert_called_once_with(
+            "http://immich.local/api/assets/asset-1",
+            headers=manager.HEADERS_WITH_CREDENTIALS,
+            verify=False,
+        )
 
     def test_duplicate_asset_size_prefers_immich_file_size_in_byte(self):
         manager = self._build_manager()
