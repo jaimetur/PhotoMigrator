@@ -604,6 +604,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
+            "remove-duplicates-assets": [{dest: "duplicate-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -613,6 +614,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
+            "remove-duplicates-assets": [{dest: "duplicate-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -622,6 +624,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
+            "remove-duplicates-assets": [{dest: "duplicate-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -631,6 +634,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
+            "remove-duplicates-assets": [{dest: "duplicate-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -647,7 +651,7 @@
     };
 
     const CLOUD_ACTIONS_AVAILABLE = {
-        google_photos: ["upload-albums", "download-albums", "upload-all", "download-all", "consolidate-albums-names"],
+        google_photos: ["upload-albums", "download-albums", "upload-all", "download-all", "remove-duplicates-assets", "consolidate-albums-names"],
         synology_photos: [
             "upload-albums",
             "download-albums",
@@ -659,6 +663,7 @@
             "remove-all-assets",
             "remove-empty-albums",
             "remove-duplicates-albums",
+            "remove-duplicates-assets",
             "merge-duplicates-albums",
             "consolidate-albums-names"
         ],
@@ -689,6 +694,7 @@
             "remove-all-assets",
             "remove-empty-albums",
             "remove-duplicates-albums",
+            "remove-duplicates-assets",
             "merge-duplicates-albums",
             "consolidate-albums-names"
         ]
@@ -833,7 +839,7 @@
             } else if (action === "remove-duplicates-albums") {
                 message = `This module will delete duplicated albums in ${clientLabel} (same name and size).`;
             } else if (action === "remove-duplicates-assets") {
-                message = `This module will keep the selected oldest/newest Immich asset for every same-name/same-size group, merge supported metadata, and permanently delete the redundant assets.`;
+                message = `This module will keep the selected oldest/newest asset for every same-name/same-size group and permanently delete redundant assets when the selected cloud API supports deletion.`;
             } else if (action === "merge-duplicates-albums") {
                 message = `This module will merge duplicated albums in ${clientLabel} by moving assets into the most relevant album and removing duplicates.`;
             }

@@ -181,7 +181,7 @@ CLOUD_DESTS = {
 }
 
 CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
-    "google_photos": {"upload-albums", "download-albums", "upload-all", "download-all", "consolidate-albums-names"},
+    "google_photos": {"upload-albums", "download-albums", "upload-all", "download-all", "remove-duplicates-assets", "consolidate-albums-names"},
     "synology_photos": {
         "upload-albums",
         "download-albums",
@@ -193,6 +193,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "remove-all-assets",
         "remove-empty-albums",
         "remove-duplicates-albums",
+        "remove-duplicates-assets",
         "merge-duplicates-albums",
         "consolidate-albums-names",
     },
@@ -223,6 +224,7 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "remove-all-assets",
         "remove-empty-albums",
         "remove-duplicates-albums",
+        "remove-duplicates-assets",
         "merge-duplicates-albums",
         "consolidate-albums-names",
     },
@@ -303,6 +305,7 @@ MODULE_ACTION_ARGUMENTS = {
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "synology_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
@@ -313,6 +316,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
+        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "immich_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
@@ -334,6 +338,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
+        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "standalone_features": {
         "organize-local-folder-by-date": [

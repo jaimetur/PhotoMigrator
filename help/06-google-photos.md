@@ -20,7 +20,8 @@ From version 4.0.0 onwards, the Tool can connect to Google Photos using the offi
 4. Rename Albums by Name Pattern
 5. Remove Empty Albums
 6. Remove Duplicates Albums
-7. Merge Duplicates Albums
+7. Remove Duplicates Assets (API deletion unavailable)
+8. Merge Duplicates Albums
 
 You can apply filters in Google Photos modules.
 
@@ -301,6 +302,12 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 > [!WARNING]
 > Currently a no-op for Google Photos integration.
+
+
+## Remove Duplicates Assets from Google Photos:
+- **From:** v4.6.0
+- **Usage:** `./PhotoMigrator.bin --client=google-photos --remove-duplicates-assets --duplicate-asset-keeper newest`
+- **Status:** The module and its required _**`--duplicate-asset-keeper newest|oldest`**_ selector are visible consistently across cloud-service interfaces, but Google Photos' public Library API does not provide media-item deletion. The command reports this limitation and does not modify the library.
 
 
 ## Merge Duplicates Albums:

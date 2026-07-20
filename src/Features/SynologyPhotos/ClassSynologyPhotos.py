@@ -2176,16 +2176,61 @@ class ClassSynologyPhotos(BaseMediaClient):
             return families_consolidated, redundant_albums_detected
 
 
-    # TODO: Complete this method
-    def get_duplicates_assets(self, log_level=None):
-        """
-        Returns the list of duplicate assets from Synology
-        """
+    @staticmethod
+    def _duplicate_asset_size(asset):
+        try:
+            return int((asset or {}).get("filesize"))
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _duplicate_asset_timestamp(asset):
+        try:
+            return datetime.fromtimestamp(int((asset or {}).get("time")))
+        except (TypeError, ValueError, OSError, OverflowError):
+            return datetime.min
+
+    def find_duplicate_assets_by_name_and_size(self, log_level=None):
+        """Find physical Synology assets sharing the same filename and size."""
         with set_log_level(LOGGER, log_level):
-            try:
-                return []
-            except Exception as e:
-                LOGGER.error(f"Exception while getting duplicates Assets from Synology Photos. {e}")
+            assets = self._get_all_assets_unfiltered(log_level=log_level) or []
+            groups = {}
+            for asset in assets:
+                asset_id = str((asset or {}).get("id") or "").strip()
+                filename = str((asset or {}).get("filename") or "").strip()
+                size = self._duplicate_asset_size(asset)
+                if asset_id and filename and size is not None:
+                    groups.setdefault((filename.casefold(), size), []).append(asset)
+            duplicate_groups = [group for group in groups.values() if len(group) > 1]
+            LOGGER.info(f"Found {len(duplicate_groups)} Synology duplicate group(s) by exact filename and file size.")
+            return duplicate_groups
+
+    def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
+        """Delete redundant physical Synology assets from precomputed duplicate groups."""
+        strategy = str(keeper_strategy or "newest").strip().lower()
+        if strategy not in {"oldest", "newest"}:
+            raise ValueError("keeper_strategy must be 'oldest' or 'newest'")
+        with set_log_level(LOGGER, log_level):
+            groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)
+            removed = 0
+            skipped = 0
+            for group in tqdm(groups, desc=f"{MSG_TAGS['INFO']}Resolving Synology duplicate asset groups", unit=" groups"):
+                ordered = sorted(
+                    group,
+                    key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
+                    reverse=(strategy == "newest"),
+                )
+                redundant_ids = [str(item.get("id") or "").strip() for item in ordered[1:]]
+                redundant_ids = [asset_id for asset_id in redundant_ids if asset_id]
+                if not redundant_ids:
+                    skipped += 1
+                    continue
+                removed += int(self.remove_assets(redundant_ids, log_level=log_level) or 0)
+            return removed, len(groups), skipped
+
+    def get_duplicates_assets(self, log_level=None):
+        """Backward-compatible duplicate discovery entry point."""
+        return self.find_duplicate_assets_by_name_and_size(log_level=log_level)
 
 
     def remove_assets(self, asset_ids, log_level=None):
@@ -2238,16 +2283,10 @@ class ClassSynologyPhotos(BaseMediaClient):
                 LOGGER.error(f"Exception while removing Assets from Synology Photos. {e}")
             
 
-    # TODO: Complete this method
     def remove_duplicates_assets(self, log_level=None):
-        """
-        Removes duplicate assets in the Synology database. Returns how many duplicates got removed.
-        """
-        with set_log_level(LOGGER, log_level):
-            try:
-                return 0
-            except Exception as e:
-                LOGGER.error(f"Exception while removing duplicates assets from Synology Photos. {e}")
+        """Backward-compatible cleanup retaining the newest upload."""
+        removed, _groups, _skipped = self.remove_duplicates_assets_by_name_and_size(log_level=log_level)
+        return removed
 
     def _ensure_uploaded_asset_cache(self):
         if not hasattr(self, "_uploaded_asset_cache"):

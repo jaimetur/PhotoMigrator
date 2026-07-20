@@ -13,8 +13,9 @@ From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login 
 8. Rename Albums by Name Pattern
 9. Remove Empty Albums
 10. Remove Duplicates Albums
-11. Merge Duplicates Albums
-12. Consolidate Albums Names
+11. Remove Duplicates Assets
+12. Merge Duplicates Albums
+13. Consolidate Albums Names
 
 You can apply different filters on all above features to filter assets from Synology Photos.  
 
@@ -293,6 +294,16 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
   ./PhotoMigrator.bin --client=synology --remove-duplicates-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one.
+
+
+## Remove Duplicates Assets from Synology Photos:
+- **From:** v4.6.0
+- **Usage:** `./PhotoMigrator.bin --client=synology --remove-duplicates-assets --duplicate-asset-keeper newest`
+- **Explanation:** Assets are grouped by exact filename and file size. The required selector _**`--duplicate-asset-keeper newest|oldest`**_ chooses the retained upload; `newest` is the default. Groups are listed and require confirmation unless _**`--no-request-user-confirmation`**_ is set.
+- **Important:** Synology does not expose a portable metadata-merge operation for this flow, so only redundant physical assets are deleted after confirmation.
+
+> [!CAUTION]
+> This process permanently deletes redundant assets.
 
 
 ## Merge Duplicates Albums from Synology Photos:

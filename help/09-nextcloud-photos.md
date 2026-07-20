@@ -13,8 +13,9 @@ From version 4.0.0 onwards, the Tool can connect to your NextCloud account using
 8. Rename Albums by Name Pattern
 9. Remove Empty Albums
 10. Remove Duplicates Albums (currently no-op)
-11. Merge Duplicates Albums (currently no-op)
-12. Consolidate Albums Names
+11. Remove Duplicates Assets
+12. Merge Duplicates Albums (currently no-op)
+13. Consolidate Albums Names
 
 You can apply filters in NextCloud modules.
 
@@ -282,6 +283,15 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 
 > [!WARNING]
 > This operation is currently a no-op in NextCloud integration.
+
+
+## Remove Duplicates Assets from NextCloud Photos:
+- **From:** v4.6.0
+- **Usage:** `./PhotoMigrator.bin --client=nextcloud --remove-duplicates-assets --duplicate-asset-keeper newest`
+- **Explanation:** The configured NextCloud photos root is scanned through WebDAV and physical files with the same exact filename and file size are grouped. The required selector _**`--duplicate-asset-keeper newest|oldest`**_ selects the retained file; `newest` is the default. Groups are listed before the normal confirmation prompt.
+
+> [!CAUTION]
+> This process permanently deletes redundant physical files from NextCloud after confirmation.
 
 
 ## Merge Duplicates Albums from NextCloud Photos:

@@ -869,24 +869,37 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
 
 
 def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log_level=None):
-    """Remove same-name/same-size Immich assets while retaining selected metadata."""
+    """Remove same-name/same-size assets while retaining the selected upload."""
     normalized_client = str(client or "").strip().lower()
-    if normalized_client != "immich":
+    if normalized_client not in {"google-photos", "synology", "immich", "nextcloud"}:
         LOGGER.error(
-            "Remove Duplicate Assets currently requires '--client=immich' because other cloud "
-            "clients do not expose enough metadata to merge it safely."
+            "Remove Duplicate Assets requires one of: '--client=google-photos', '--client=synology', "
+            "'--client=immich', or '--client=nextcloud'."
+        )
+        return
+    if normalized_client == "google-photos":
+        LOGGER.error(
+            "Google Photos cannot remove duplicate assets: its public Library API does not provide "
+            "a media-item deletion operation. No changes were made."
         )
         return
 
     keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "newest").lower()
-    LOGGER.info("Immich Photos: 'Remove Duplicate Assets' Mode detected. Only this module will be run!!!")
+    client_label = capitalize_first_letter(normalized_client.replace("-photos", ""))
+    LOGGER.info(f"{client_label} Photos: 'Remove Duplicate Assets' Mode detected. Only this module will be run!!!")
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")
     LOGGER.info(f"Keeper strategy: {keeper_strategy} upload date.")
-    LOGGER.warning(
-        "Assets are grouped by exact filename and file size. Albums, tags, favorites, descriptions, "
-        "and ratings are merged into the keeper before redundant assets are deleted. Groups with "
-        "any face/person associations are left unchanged."
-    )
+    if normalized_client == "immich":
+        LOGGER.warning(
+            "Assets are grouped by exact filename and file size. Albums, tags, favorites, descriptions, "
+            "and ratings are merged into the keeper before redundant assets are deleted. Groups with "
+            "any face/person associations are left unchanged."
+        )
+    else:
+        LOGGER.warning(
+            "Assets are grouped by exact filename and file size. The selected backend does not expose "
+            "portable asset metadata merge operations, so only redundant physical assets are deleted."
+        )
     cloud_client_obj = _build_cloud_client_obj(normalized_client)
     with set_log_level(LOGGER, log_level):
         try:

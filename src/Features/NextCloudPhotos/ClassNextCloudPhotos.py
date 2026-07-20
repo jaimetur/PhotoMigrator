@@ -751,11 +751,12 @@ class ClassNextCloudPhotos(BaseMediaClient):
             albums.sort(key=lambda a: str(a.get("albumName", "")).lower())
             return albums
 
-    def _build_asset_payload(self, remote_path: str, name: str, last_modified: str) -> Dict[str, str]:
+    def _build_asset_payload(self, remote_path: str, name: str, last_modified: str, size: str | int = 0) -> Dict[str, str]:
         return {
             "id": remote_path,
             "filename": name,
             "asset_datetime": self._parse_iso_datetime(last_modified),
+            "size": str(size or 0),
             "type": self._asset_type_from_name(name),
         }
 
@@ -807,7 +808,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                 filename = entry.get("name", "")
                 if not self._is_supported_media(filename):
                     continue
-                payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""))
+                payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""), entry.get("size", 0))
                 if not self._asset_matches_filters(
                     asset_datetime=payload.get("asset_datetime", ""),
                     asset_type=payload.get("type", ""),
@@ -827,7 +828,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                 filename = entry.get("name", "")
                 if not self._is_supported_media(filename):
                     continue
-                payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""))
+                payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""), entry.get("size", 0))
                 if not self._asset_matches_filters(
                     asset_datetime=payload.get("asset_datetime", ""),
                     asset_type=payload.get("type", ""),
@@ -860,7 +861,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                 asset_path = str(entry.get("path", ""))
                 if albums_root and self._is_path_under(asset_path, albums_root):
                     continue
-                payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""))
+                payload = self._build_asset_payload(entry["path"], filename, entry.get("last_modified", ""), entry.get("size", 0))
                 if not self._asset_matches_filters(
                     asset_datetime=payload.get("asset_datetime", ""),
                     asset_type=payload.get("type", ""),
@@ -1052,9 +1053,35 @@ class ClassNextCloudPhotos(BaseMediaClient):
             )
             return families_consolidated, redundant_albums_detected
 
-    def get_duplicates_assets(self, log_level=None):
+    @staticmethod
+    def _duplicate_asset_size(asset):
+        try:
+            return int((asset or {}).get("size"))
+        except (TypeError, ValueError):
+            return None
+
+    def _duplicate_asset_timestamp(self, asset):
+        return self._to_datetime_utc(str((asset or {}).get("asset_datetime") or "")) or datetime.min.replace(tzinfo=timezone.utc)
+
+    def find_duplicate_assets_by_name_and_size(self, log_level=None):
+        """Find duplicate physical files in the configured NextCloud photos root."""
         with set_log_level(LOGGER, log_level):
-            return []
+            self.login(log_level=log_level)
+            groups = {}
+            for entry in self._iter_files_recursive(self._no_albums_root()):
+                filename = str(entry.get("name") or "")
+                if not self._is_supported_media(filename):
+                    continue
+                asset = self._build_asset_payload(
+                    entry.get("path", ""), filename, entry.get("last_modified", ""), entry.get("size", 0)
+                )
+                asset_id = str(asset.get("id") or "").strip()
+                size = self._duplicate_asset_size(asset)
+                if asset_id and filename and size is not None:
+                    groups.setdefault((filename.casefold(), size), []).append(asset)
+            duplicate_groups = [group for group in groups.values() if len(group) > 1]
+            LOGGER.info(f"Found {len(duplicate_groups)} NextCloud duplicate group(s) by exact filename and file size.")
+            return duplicate_groups
 
     def remove_assets(self, asset_ids, log_level=None):
         with set_log_level(LOGGER, log_level):
@@ -1066,9 +1093,34 @@ class ClassNextCloudPhotos(BaseMediaClient):
                     removed += 1
             return removed
 
-    def remove_duplicates_assets(self, log_level=None):
+    def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
         with set_log_level(LOGGER, log_level):
-            return 0
+            strategy = str(keeper_strategy or "newest").strip().lower()
+            if strategy not in {"oldest", "newest"}:
+                raise ValueError("keeper_strategy must be 'oldest' or 'newest'")
+            groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)
+            removed = 0
+            skipped = 0
+            for group in tqdm(groups, desc=f"{MSG_TAGS['INFO']}Resolving NextCloud duplicate asset groups", unit=" groups"):
+                ordered = sorted(
+                    group,
+                    key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
+                    reverse=(strategy == "newest"),
+                )
+                redundant_ids = [str(item.get("id") or "").strip() for item in ordered[1:]]
+                redundant_ids = [asset_id for asset_id in redundant_ids if asset_id]
+                if not redundant_ids:
+                    skipped += 1
+                    continue
+                removed += int(self.remove_assets(redundant_ids, log_level=log_level) or 0)
+            return removed, len(groups), skipped
+
+    def get_duplicates_assets(self, log_level=None):
+        return self.find_duplicate_assets_by_name_and_size(log_level=log_level)
+
+    def remove_duplicates_assets(self, log_level=None):
+        removed, _groups, _skipped = self.remove_duplicates_assets_by_name_and_size(log_level=log_level)
+        return removed
 
     def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         with set_log_level(LOGGER, log_level):

@@ -280,6 +280,24 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--duplicate-asset-keeper", args)
         self.assertIn("newest", args)
 
+    def test_duplicate_asset_keeper_is_available_for_every_cloud_tab(self):
+        schema = build_parser_schema()
+        for tab in ("google_photos", "synology_photos", "immich_photos", "nextcloud_photos"):
+            with self.subTest(tab=tab):
+                args = build_cli_args(
+                    schema,
+                    tab,
+                    {
+                        "account-id": "1",
+                        "remove-duplicates-assets": True,
+                        "duplicate-asset-keeper": "oldest",
+                    },
+                    "remove-duplicates-assets",
+                )
+                self.assertIn("--remove-duplicates-assets", args)
+                self.assertIn("--duplicate-asset-keeper", args)
+                self.assertIn("oldest", args)
+
     def test_build_cli_args_includes_album_name_flags_for_cloud_upload(self):
         schema = build_parser_schema()
         values = {
