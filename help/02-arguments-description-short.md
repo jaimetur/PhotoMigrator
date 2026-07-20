@@ -127,6 +127,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true).                                                                           |
 | `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true).                                                                              |
 | `-gpthNoLog`,<br>`--gpth-no-log`                   | Skip Save GPTH log messages into output folder.                                                                        |
+| `-gPeople`,<br>`--google-process-people` `<bool>`  | Process Google JSON people labels and write `takeout_people_metadata.json` (default: `true`). Set `false` to skip it.  |
 
 #### 🧪 Examples:
 ```bash
@@ -178,26 +179,27 @@ If more than one optional arguments are detected, only the first one will be exe
 
 Following arguments allow you to interact with Google Photos, Synology, Immich, and NextCloud.
 
-| Argument                                           | Description                                                                                  |
-|----------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `-uAlb`,<br>`--upload-albums`                      | Upload all subfolders as albums                                                              |
-| `-dAlb`,<br>`--download-albums`                    | Download specific albums                                                                     |
-| `-uAll`,<br>`--upload-all`                         | Upload all assets and albums from input folder                                               |
-| `-prefCanAlb`,<br>`--prefer-canonical-album-names` | Normalize new destination album names during cloud uploads and Automatic Migration           |
-| `-consSimAlb`,<br>`--consolidate-similar-albums`   | Reuse and consolidate equivalent album families during cloud uploads and Automatic Migration |
-| `-consAlbNames`,<br>`--consolidate-albums-names`   | Consolidate equivalent existing cloud album families directly in the target service          |
-| `-dAll`,<br>`--download-all`                       | Download all assets and albums                                                               |
-| `-renAlb`,<br>`--rename-albums`                    | Rename albums using text, wildcard, or regex                                                 |
-| `-rAlb`,<br>`--remove-albums`                      | Delete albums using text, wildcard, or regex                                                 |
-| `-prevAlbAct`,<br>`--preview-album-actions`        | Preview rename/remove/consolidation matches and confirm                                      |
-| `-rEmpAlb`,<br>`--remove-empty-albums`             | Delete empty albums                                                                          |
-| `-rDupAlb`,<br>`--remove-duplicates-albums`        | Delete duplicate albums                                                                      |
-| `-rDupAst`,<br>`--remove-duplicates-assets`        | Delete same-name/same-size duplicate assets; requires `--duplicate-asset-keeper`             |
-| `-dupKeeper`,<br>`--duplicate-asset-keeper`        | Required keeper selector: `oldest` or `newest` (default: `newest`)                           |
-| `-mDupAlb`,<br>`--merge-duplicates-albums`         | Merge duplicate albums                                                                       |
-| `-rAll`,<br>`--remove-all-assets`                  | Delete all assets and albums (DANGER!)                                                       |
-| `-rAllAlb`,<br>`--remove-all-albums`               | Delete all albums (assets optional)                                                          |
-| `-OTP`,<br>`--one-time-password`                   | Use 2FA login with OTP token                                                                 |
+| Argument                                           | Description                                                                                               |
+|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `-uAlb`,<br>`--upload-albums`                      | Upload all subfolders as albums                                                                           |
+| `-dAlb`,<br>`--download-albums`                    | Download specific albums                                                                                  |
+| `-uAll`,<br>`--upload-all`                         | Upload all assets and albums from input folder                                                            |
+| `-iPeople`,<br>`--import-people`                   | Immich Upload All, Upload Albums, or Immich-target Automatic Migration only: import Takeout people labels |
+| `-prefCanAlb`,<br>`--prefer-canonical-album-names` | Normalize new destination album names during cloud uploads and Automatic Migration                        |
+| `-consSimAlb`,<br>`--consolidate-similar-albums`   | Reuse and consolidate equivalent album families during cloud uploads and Automatic Migration              |
+| `-consAlbNames`,<br>`--consolidate-albums-names`   | Consolidate equivalent existing cloud album families directly in the target service                       |
+| `-dAll`,<br>`--download-all`                       | Download all assets and albums                                                                            |
+| `-renAlb`,<br>`--rename-albums`                    | Rename albums using text, wildcard, or regex                                                              |
+| `-rAlb`,<br>`--remove-albums`                      | Delete albums using text, wildcard, or regex                                                              |
+| `-prevAlbAct`,<br>`--preview-album-actions`        | Preview rename/remove/consolidation matches and confirm                                                   |
+| `-rEmpAlb`,<br>`--remove-empty-albums`             | Delete empty albums                                                                                       |
+| `-rDupAlb`,<br>`--remove-duplicates-albums`        | Delete duplicate albums                                                                                   |
+| `-rDupAst`,<br>`--remove-duplicates-assets`        | Delete same-name/same-size duplicate assets; requires `--duplicate-asset-keeper`                          |
+| `-dupKeeper`,<br>`--duplicate-asset-keeper`        | Required keeper selector: `oldest` or `newest` (default: `newest`)                                        |
+| `-mDupAlb`,<br>`--merge-duplicates-albums`         | Merge duplicate albums                                                                                    |
+| `-rAll`,<br>`--remove-all-assets`                  | Delete all assets and albums (DANGER!)                                                                    |
+| `-rAllAlb`,<br>`--remove-all-albums`               | Delete all albums (assets optional)                                                                       |
+| `-OTP`,<br>`--one-time-password`                   | Use 2FA login with OTP token                                                                              |
 
 
 #### 🧪 Examples:

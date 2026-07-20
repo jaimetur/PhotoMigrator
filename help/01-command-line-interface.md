@@ -302,6 +302,9 @@ for the rest of the arguments for this extra mode.
                Enable or disable Error messages during GPTH Processing. (default: True).
 -gpthNoLog   ; --gpth-no-log
                Skip saving GPTH log messages into output folder.
+-gPeople     ; --google-process-people = [true,false]
+               Process Google Takeout person labels from JSON sidecars and create `takeout_people_metadata.json`.
+               Enabled by default. Set to `false` to skip Step 4.1 and avoid generating the people map.
 
 
 iCLOUD TAKEOUT MANAGEMENT:
@@ -374,6 +377,10 @@ If more than one optional arguments are detected, only the first one will be exe
                - On supported cloud targets, that consolidation also merges redundant variants into the preferred clean keeper.
                - Immich, Synology, and NextCloud remove the redundant albums afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-all ./MyLibrary
+-iPeople     ; --import-people
+               Immich only. During Upload Albums, Upload All, or Automatic Migration with an Immich target, import
+               Google Takeout person labels from `takeout_people_metadata.json` or raw Google JSON sidecars.
+               The flag is ignored by other clients and is disabled by default.
 -prefCanAlb ; --prefer-canonical-album-names
                Normalize newly created destination album names during cloud Upload Albums / Upload All
                and Automatic Migration.

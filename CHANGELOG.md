@@ -31,6 +31,7 @@
   - Documented the Google Takeout people-processing flag, Immich-only people-import visibility, and Synology-only OTP visibility in the relevant interface and feature guides.
   - Documented Google Takeout people-map processing, including its dedicated pre-GPTH `Step 4.1` capture phase, Immich `--import-people` uploads, and the corresponding Automatic Migration behavior and limitations.
   - Added `Remove Duplicate Assets` and `--duplicate-asset-keeper oldest|newest` to the CLI syntax, full/short arguments references, and Automatic Migration guide, including its independent-module scope.
+  - Added the Google Takeout people-processing and Immich people-import flags to the CLI syntax and both full/short argument references, and updated the Automatic Migration guide with their scope, map lifecycle, duplicate-resolution behavior, and logging details.
 
 ---
 
