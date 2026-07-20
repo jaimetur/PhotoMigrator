@@ -1,3 +1,4 @@
+import csv
 import functools
 import heapq
 import json
@@ -34,6 +35,7 @@ WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
 AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER = "Push_Queue"
 AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER = "Delayed_Queue"
 AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER = "Push_Failed"
+AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER = "Pull_Failed"
 AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER = "Album_Association_Queue"
 
 
@@ -368,6 +370,7 @@ def _relative_staged_asset_path(temp_folder, asset_file_path):
         Path(temp_folder) / AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
         Path(temp_folder) / AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
         Path(temp_folder) / AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER,
+        Path(temp_folder) / AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER,
     ]
     for queue_root in queue_roots:
         try:
@@ -394,6 +397,7 @@ def _prune_empty_staging_queue_parents(temp_folder, asset_file_path):
         AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
         AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
         AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER,
+        AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER,
     )
     for queue_folder_name in queue_roots:
         try:
@@ -1195,6 +1199,73 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             asset_type,
             include_live_companion=bool(live_photo_video_path),
         ).get("assets", 1) or 1)
+
+    pull_failed_records_lock = threading.Lock()
+
+    def _record_pull_failure(asset_id, asset_filename, album_name, local_file_path, reason):
+        """Persist a pull failure and preserve any staged partial file for inspection."""
+        pull_failed_root = Path(temp_folder) / AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER
+        csv_path = pull_failed_root / "pull_failed_assets.csv"
+        preserved_path = ""
+        source_path = str(asset_id or "")
+        staged_path = str(local_file_path or "")
+
+        try:
+            pull_failed_root.mkdir(parents=True, exist_ok=True)
+            candidate_path = Path(staged_path) if staged_path else None
+            if candidate_path and candidate_path.is_file():
+                relative_path = _relative_staged_asset_path(temp_folder, candidate_path)
+                destination_path = _dedupe_destination_path(pull_failed_root / relative_path)
+                destination_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(candidate_path, destination_path)
+                preserved_path = str(destination_path)
+        except OSError as error:
+            LOGGER.warning(
+                f"Unable to preserve partial pull for '{asset_filename}' in "
+                f"{AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER}: {error}"
+            )
+
+        with pull_failed_records_lock:
+            try:
+                needs_header = not csv_path.exists() or csv_path.stat().st_size == 0
+                with csv_path.open("a", newline="", encoding="utf-8") as csv_file:
+                    writer = csv.writer(csv_file)
+                    if needs_header:
+                        writer.writerow([
+                            "timestamp_utc", "asset_filename", "album_name", "source_asset_id",
+                            "staged_path", "preserved_path", "reason",
+                        ])
+                    writer.writerow([
+                        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                        asset_filename or "",
+                        album_name or "",
+                        source_path,
+                        staged_path,
+                        preserved_path,
+                        str(reason or "pull did not return content"),
+                    ])
+            except OSError as error:
+                LOGGER.error(f"Unable to record pull failure for '{asset_filename}': {error}")
+
+    def _cleanup_terminal_push_queue_files():
+        """Remove orphaned staging files only after all push workers have stopped."""
+        queue_root = Path(temp_folder) / AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER
+        if not queue_root.is_dir():
+            return 0
+        removed_count = 0
+        for path in sorted(queue_root.rglob("*"), reverse=True):
+            if not path.is_file():
+                continue
+            try:
+                path.unlink()
+                removed_count += 1
+            except OSError as error:
+                LOGGER.warning(f"Unable to remove terminal Push_Queue residue '{path}': {error}")
+        if removed_count:
+            LOGGER.warning(
+                f"Push Queue Cleanup: removed {removed_count} orphaned staged file(s) after all push workers finished."
+            )
+        return removed_count
 
     def _refresh_queue_depth():
         with metrics_lock:
@@ -3472,6 +3543,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             for t in push_threads:
                 t.join()
 
+            _cleanup_terminal_push_queue_files()
+
             for _ in range(num_album_assoc_threads):
                 album_assoc_queue.put(None)
 
@@ -3665,6 +3738,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             lock.write("Pulling Asset")
                         # Descargar el asset (tolerante por-asset para no abortar todo el álbum).
                         skipped_not_found = False
+                        pull_failure_reason = "pull did not return content"
                         pull_started_at = time.perf_counter()
                         try:
                             if not isinstance(source_client, ClassLocalFolder):
@@ -3705,6 +3779,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 LOGGER.error(
                                     f"Asset Pull Error: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e}"
                                 )
+                            pull_failure_reason = str(e)
                             pulled_assets = 0
                         finally:
                             # Eliminar archivo de bloqueo después de la descarga
@@ -3805,6 +3880,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 pull_ms=f"{(collect_finished_at - pull_started_at) * 1000.0:.2f}",
                             )
                         else:
+                            _record_pull_failure(
+                                asset_id=asset_id,
+                                asset_filename=asset_filename,
+                                album_name=album_name,
+                                local_file_path=local_file_path,
+                                reason=pull_failure_reason,
+                            )
                             if skipped_not_found:
                                 SHARED_DATA.counters['total_pull_failed_assets'] += 1
                                 _increment_album_stat_counter(album_stats_by_name_ref, album_stats_lock_ref, album_name, "failed_assets", 1)
@@ -3911,6 +3993,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             )
                         else:
                             LOGGER.error(f"Asset Pull Error: '{os.path.basename(local_file_path)}' - {e}")
+                        _record_pull_failure(
+                            asset_id=asset_id,
+                            asset_filename=asset_filename,
+                            album_name=None,
+                            local_file_path=local_file_path,
+                            reason=str(e),
+                        )
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -4001,6 +4090,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         )
                     else:
                         LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}'")
+                        _record_pull_failure(
+                            asset_id=asset_id,
+                            asset_filename=asset_filename,
+                            album_name=None,
+                            local_file_path=local_file_path,
+                            reason="pull did not return content",
+                        )
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
