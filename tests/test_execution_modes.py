@@ -183,13 +183,16 @@ class TestExecutionModes(unittest.TestCase):
                 "id": "older",
                 "originalFileName": "IMG_0001.JPG",
                 "createdAt": "2020-01-01T00:00:00Z",
-                "exifInfo": {"fileSize": 42},
+                "exifInfo": {"fileSize": 42, "description": "Older description", "rating": 3},
+                "albums": [{"id": "album-1"}],
             },
             {
                 "id": "newer",
                 "originalFileName": "IMG_0001.JPG",
                 "createdAt": "2021-01-01T00:00:00Z",
                 "exifInfo": {"fileSize": 42},
+                "tags": [{"id": "tag-1"}],
+                "isFavorite": True,
             },
         ]]
         cloud_client = MagicMock()
@@ -202,7 +205,7 @@ class TestExecutionModes(unittest.TestCase):
             patch.object(execution_modes, "ARGS", args),
             patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
             patch.object(execution_modes, "confirm_continue", return_value=True) as mock_confirm,
-            patch.object(execution_modes, "LOGGER", MagicMock()),
+            patch.object(execution_modes, "LOGGER", MagicMock()) as mock_logger,
         ):
             execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
 
@@ -213,6 +216,14 @@ class TestExecutionModes(unittest.TestCase):
             log_level=execution_modes.logging.INFO,
         )
         cloud_client.logout.assert_called_once_with(log_level=execution_modes.logging.WARNING)
+        preview = next(
+            str(call.args[0])
+            for call in mock_logger.info.call_args_list
+            if "merge_metadata=" in str(call.args[0])
+        )
+        self.assertIn('remove=[{"id": "older", "uploaded": "2020-01-01T00:00:00Z"}]', preview)
+        self.assertIn('"newer": {"tags": ["tag-1"], "favorite": true}', preview)
+        self.assertIn('"older": {"albums": ["album-1"], "description": "Older description", "rating": 3}', preview)
 
     def test_detect_and_run_execution_mode_dispatches_organize_local_folder_by_date(self):
         args = _base_args()

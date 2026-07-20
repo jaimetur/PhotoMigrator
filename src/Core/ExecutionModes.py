@@ -1,4 +1,5 @@
 import logging
+import json
 import os
 import shutil
 import sys
@@ -40,6 +41,41 @@ def _normalize_merge_duplicates_result(result):
         # Backward/edge compatibility: some implementations return a single int.
         return result, 0
     return 0, 0
+
+
+def _duplicate_asset_merge_metadata_preview(asset):
+    """Return only the metadata fields that Immich can merge into a keeper."""
+    asset = asset if isinstance(asset, dict) else {}
+
+    def reference_ids(key):
+        values = asset.get(key) or []
+        if not isinstance(values, list):
+            return []
+        return sorted({
+            str(item.get("id") if isinstance(item, dict) else item or "").strip()
+            for item in values
+            if str(item.get("id") if isinstance(item, dict) else item or "").strip()
+        })
+
+    metadata = {}
+    album_ids = reference_ids("albums")
+    tag_ids = reference_ids("tags")
+    if album_ids:
+        metadata["albums"] = album_ids
+    if tag_ids:
+        metadata["tags"] = tag_ids
+    if asset.get("isFavorite"):
+        metadata["favorite"] = True
+    description = str((asset.get("exifInfo") or {}).get("description") or asset.get("description") or "").strip()
+    if description:
+        metadata["description"] = description
+    rating = (asset.get("exifInfo") or {}).get("rating", asset.get("rating"))
+    try:
+        if rating is not None:
+            metadata["rating"] = int(rating)
+    except (TypeError, ValueError):
+        pass
+    return metadata
 
 
 def _build_cloud_client_obj(client_name: str):
@@ -925,9 +961,21 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 keeper, redundant = ordered[0], ordered[1:]
                 filename = str(keeper.get("originalFileName") or "")
                 size = cloud_client_obj._duplicate_asset_size(keeper)
+                removal_details = [
+                    {"id": str(item.get("id") or ""), "uploaded": item.get("createdAt")}
+                    for item in redundant
+                ]
+                merge_metadata = (
+                    {
+                        str(item.get("id") or ""): _duplicate_asset_merge_metadata_preview(item)
+                        for item in ordered
+                    }
+                    if normalized_client == "immich" else {}
+                )
                 LOGGER.info(
                     f"  [{group_index}] {filename} ({size} bytes): keep ID={keeper.get('id')} "
-                    f"uploaded={keeper.get('createdAt')}; remove IDs={', '.join(str(item.get('id') or '') for item in redundant)}"
+                    f"uploaded={keeper.get('createdAt')}; remove={json.dumps(removal_details, ensure_ascii=False)}; "
+                    f"merge_metadata={json.dumps(merge_metadata, ensure_ascii=False)}"
                 )
             if user_confirmation and not confirm_continue():
                 LOGGER.info("Exiting program without deleting duplicate assets.")

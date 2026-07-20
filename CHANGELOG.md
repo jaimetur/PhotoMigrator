@@ -25,6 +25,7 @@
   - Removed inactive `--prefer-canonical-album-names` and `--consolidate-similar-albums` controls from Google Takeout and iCloud Takeout in the Web Interface, TUI, and desktop GUI. The codebase has no Takeout-side reads of these flags; they remain available only where their behavior is implemented.
   - Changed the Google Takeout Web controls for `--show-gpth-info`, `--show-gpth-errors`, and `--google-process-people` from true/false comboboxes to boolean checkboxes, matching the existing TUI and desktop GUI behavior while preserving their default-enabled state.
   - Restored Immich `Remove Duplicate Assets` inventory pages to 1,000 assets after compatibility testing showed that the target server rejects larger metadata pages.
+  - Expanded the single-line Immich `Remove Duplicate Assets` preview for each group with the upload timestamp of every asset selected for removal and a per-ID dictionary of the albums, tags, favorite state, description, and rating that can be merged into the keeper.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
