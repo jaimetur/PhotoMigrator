@@ -2447,7 +2447,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 "live_photo_video_path": moved_asset.get("live_photo_video_path"),
             })
 
-    NO_RETRY_LARGE_ASSET_BYTES = 50 * 1024 * 1024
+    NO_RETRY_LARGE_ASSET_BYTES = 200 * 1024 * 1024
 
     def _compute_push_retry_delay_seconds(retry_attempt):
         exponent = max(0, int(retry_attempt) - 1)
