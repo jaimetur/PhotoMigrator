@@ -451,11 +451,17 @@ def _count_staged_queue_files(temp_folder, queue_folder_name):
     if not queue_root.is_dir():
         return 0
     ignored_names = {".active", ".DS_Store"}
+    ignored_folders = {"@eaDir", "__MACOSX"}
     try:
         return sum(
             1
             for path in queue_root.rglob("*")
-            if path.is_file() and path.name not in ignored_names and not path.name.endswith(".lock")
+            if (
+                path.is_file()
+                and path.name not in ignored_names
+                and not path.name.endswith(".lock")
+                and not any(parent.name in ignored_folders for parent in path.parents)
+            )
         )
     except OSError:
         return 0
@@ -600,24 +606,22 @@ def _mark_album_pushed_if_ready(
     with processed_albums_lock:
         if album_name in processed_albums:
             return False
-        if not os.path.isdir(album_folder_path):
-            return False
+        if os.path.isdir(album_folder_path):
+            active_file = os.path.join(album_folder_path, ".active")
+            if os.path.exists(active_file):
+                return False
 
-        active_file = os.path.join(album_folder_path, ".active")
-        if os.path.exists(active_file):
-            return False
-
-        cleanup_file_patterns = merge_exclusion_patterns(
-            [".active", "*.lock"],
-            default_patterns=DEFAULT_FILE_EXCLUSION_PATTERNS,
-        )
-        if not remove_dir_if_effectively_empty(
-            album_folder_path,
-            exclusion_folders=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
-            exclusion_files=cleanup_file_patterns,
-            preserve_root=False,
-        ):
-            return False
+            cleanup_file_patterns = merge_exclusion_patterns(
+                [".active", "*.lock"],
+                default_patterns=DEFAULT_FILE_EXCLUSION_PATTERNS,
+            )
+            if not remove_dir_if_effectively_empty(
+                album_folder_path,
+                exclusion_folders=DEFAULT_FOLDER_EXCLUSION_PATTERNS,
+                exclusion_files=cleanup_file_patterns,
+                preserve_root=False,
+            ):
+                return False
 
         processed_albums.add(album_name)
         counters['total_pushed_albums'] += 1
@@ -1915,6 +1919,54 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             for asset_id in add_result.get("confirmed_asset_ids", set())
                             if str(asset_id).strip()
                         })
+                        response_text = " ".join([
+                            str(add_result.get("response_body", "") or ""),
+                            " ".join(str(value) for value in (add_result.get("real_failures") or [])),
+                        ]).casefold()
+                        album_missing = (
+                            bool(add_result.get("request_failed"))
+                            and "album not found" in response_text
+                        )
+                        if album_missing:
+                            special_folder_hint = ""
+                            if any(marker in str(album_name or "").casefold() for marker in ("carpeta privada", "locked folder", "protected folder")):
+                                special_folder_hint = (
+                                    " The source album appears to be a protected/special folder; "
+                                    "verify that Immich exposes a writable destination album."
+                                )
+                            LOGGER.warning(
+                                f"Album Association Retry: Immich no longer recognizes destination album "
+                                f"'{album_name}' (ID={album_id_dest}). Invalidating its cached ID and resolving it again."
+                                f"{special_folder_hint}"
+                            )
+                            with album_creation_lock:
+                                if created_albums.get(album_name) == album_id_dest:
+                                    created_albums.pop(album_name, None)
+                                _remove_target_existing_album(target_existing_albums, album_id_dest)
+                                with target_album_asset_ids_lock:
+                                    target_album_asset_ids_cache.pop(str(album_id_dest), None)
+                                if hasattr(target_client, "albums_owned_by_user"):
+                                    target_client.albums_owned_by_user.pop(album_name, None)
+                            refreshed_album_id, refreshed_album_name = _ensure_target_album_ready(
+                                album_name=album_name,
+                                log_level=log_level,
+                            )
+                            if refreshed_album_id:
+                                album_id_dest = refreshed_album_id
+                                album_name = refreshed_album_name
+                                add_result = target_client.add_assets_to_album(
+                                    album_id=album_id_dest,
+                                    asset_ids=ids_to_add,
+                                    album_name=album_name,
+                                    log_level=log_level,
+                                    return_details=True,
+                                )
+                                immich_request_failed = bool((add_result or {}).get("request_failed"))
+                                confirmed_ids.update({
+                                    str(asset_id).strip()
+                                    for asset_id in (add_result or {}).get("confirmed_asset_ids", set())
+                                    if str(asset_id).strip()
+                                })
                 else:
                     target_client.add_assets_to_album(
                         album_id=album_id_dest,
@@ -2283,9 +2335,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             with processed_albums_lock:
                 if album_name in processed_albums:
                     return False
-
-            if not os.path.isdir(album_folder_path):
-                return False
 
             active_file = os.path.join(album_folder_path, ".active")
             if os.path.exists(active_file):

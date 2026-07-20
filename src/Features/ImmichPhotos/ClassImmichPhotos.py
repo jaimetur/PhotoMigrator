@@ -1204,6 +1204,8 @@ class ClassImmichPhotos(BaseMediaClient):
                         "failed_asset_ids": set(),
                         "real_failures": [],
                         "request_failed": False,
+                        "status_code": None,
+                        "response_body": "",
                     }
                 return 0
             asset_ids = convert_to_list(asset_ids)
@@ -1259,6 +1261,8 @@ class ClassImmichPhotos(BaseMediaClient):
                         "failed_asset_ids": failed_asset_ids,
                         "real_failures": real_failures,
                         "request_failed": False,
+                        "status_code": int(getattr(resp, "status_code", 0) or 0) or None,
+                        "response_body": "",
                     }
                 return confirmed_count
             except Exception as e:
@@ -1279,6 +1283,8 @@ class ClassImmichPhotos(BaseMediaClient):
                         "failed_asset_ids": {str(asset_id).strip() for asset_id in asset_ids if str(asset_id).strip()},
                         "real_failures": [str(e)],
                         "request_failed": True,
+                        "status_code": getattr(response, "status_code", None),
+                        "response_body": str(getattr(response, "text", "") or "").strip(),
                     }
                 return 0
 
