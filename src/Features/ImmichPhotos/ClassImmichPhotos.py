@@ -27,6 +27,7 @@ from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
 from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
 from Utils.StandaloneUtils import change_working_dir
+from Features.GoogleTakeout.PeopleMetadata import build_people_map, load_people_map
 
 """
 --------------------
@@ -86,6 +87,9 @@ class ClassImmichPhotos(BaseMediaClient):
         self.ALLOWED_IMMICH_EXTENSIONS = []
         self.IMMICH_MEDIA_TYPES_CACHE = None
         self.CURRENT_USER_PROFILE = None
+        self._takeout_people_map = {}
+        self._takeout_people_import_lock = threading.Lock()
+        self._takeout_people_ids = {}
 
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
@@ -410,7 +414,84 @@ class ClassImmichPhotos(BaseMediaClient):
                     return None
             except Exception as e:
                 LOGGER.error(f"Cannot find ID for person '{name}': {e}")
-                return None
+
+    def configure_people_import(self, input_folder, log_level=None):
+        """Enable Takeout-label import only when explicitly requested and mapped."""
+        if not ARGS.get("import-people", False):
+            return False
+        self._takeout_people_map = load_people_map(input_folder)
+        if not self._takeout_people_map:
+            # Local folders can retain original Google sidecars without having run GPTH.
+            self._takeout_people_map = build_people_map(input_folder)
+        if self._takeout_people_map:
+            LOGGER.info(f"Google Takeout people map loaded ({len(self._takeout_people_map)} assets).")
+            return True
+        LOGGER.warning("--import-people was enabled but no takeout_people_metadata.json was found in the input folder.")
+        return False
+
+    def _get_or_create_takeout_person_id(self, name):
+        cached = self._takeout_people_ids.get(name)
+        if cached:
+            return cached
+        person_id = self.get_person_id(name, log_level=logging.ERROR)
+        if not person_id:
+            response = requests.post(
+                f"{self.IMMICH_URL}/api/people",
+                headers=self.HEADERS_WITH_CREDENTIALS,
+                json={"name": name},
+                verify=False,
+            )
+            response.raise_for_status()
+            person_id = (response.json() or {}).get("id")
+        if person_id:
+            self._takeout_people_ids[name] = str(person_id)
+        return person_id
+
+    def import_takeout_people_for_asset(self, file_path, asset_id, log_level=None):
+        """Assign labels only when Immich detected exactly the same number of faces.
+
+        Google Takeout sidecars expose person names but no face rectangles. Assigning a
+        different number of faces would be speculative, so that case is left untouched.
+        """
+        if not asset_id or not self._takeout_people_map:
+            return False
+        entry = self._takeout_people_map.get(os.path.basename(file_path))
+        if not isinstance(entry, dict):
+            return False
+        names = [str(name).strip() for name in entry.get("people", []) if str(name).strip()]
+        if not names:
+            return False
+        with self._takeout_people_import_lock:
+            try:
+                response = requests.get(
+                    f"{self.IMMICH_URL}/api/assets/{asset_id}", headers=self.HEADERS_WITH_CREDENTIALS, verify=False
+                )
+                response.raise_for_status()
+                asset = response.json() or {}
+                faces = asset.get("unassignedFaces") or []
+                if len(faces) != len(names):
+                    LOGGER.info(
+                        f"Takeout people skipped for '{os.path.basename(file_path)}': "
+                        f"{len(names)} label(s), {len(faces)} unassigned Immich face(s)."
+                    )
+                    return False
+                for name, face in zip(names, faces):
+                    person_id = self._get_or_create_takeout_person_id(name)
+                    face_id = (face or {}).get("id")
+                    if not person_id or not face_id:
+                        return False
+                    update = requests.put(
+                        f"{self.IMMICH_URL}/api/faces/{face_id}",
+                        headers=self.HEADERS_WITH_CREDENTIALS,
+                        json={"personId": person_id},
+                        verify=False,
+                    )
+                    update.raise_for_status()
+                LOGGER.info(f"Imported {len(names)} Takeout person label(s) for '{os.path.basename(file_path)}'.")
+                return True
+            except Exception as error:
+                LOGGER.warning(f"Unable to import Takeout people for '{os.path.basename(file_path)}': {error}")
+                return False
 
     ###########################################################################
     #                           ALBUMS FUNCTIONS                              #
@@ -1936,6 +2017,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     return None, None
                 if asset_id:
                     self._remember_uploaded_asset_id(file_path, asset_id)
+                    self.import_takeout_people_for_asset(file_path, asset_id, log_level=log_level)
                     if is_duplicated:
                         LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Existing asset_id={asset_id}")
                     else:

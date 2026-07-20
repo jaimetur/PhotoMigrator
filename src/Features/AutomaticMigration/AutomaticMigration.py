@@ -1093,6 +1093,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 source_client_name = source_client.get_client_name()
                 SHARED_DATA.info.update({"source_client_name": source_client_name})
 
+            if isinstance(source_client, ClassTakeoutFolder) and isinstance(target_client, ClassImmichPhotos):
+                target_client.configure_people_import(source_client.output_folder, log_level=log_level)
+            elif isinstance(source_client, ClassLocalFolder) and isinstance(target_client, ClassImmichPhotos):
+                target_client.configure_people_import(source_client.base_folder, log_level=log_level)
+
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
                     LOGGER.info(f"🔢 Target Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")

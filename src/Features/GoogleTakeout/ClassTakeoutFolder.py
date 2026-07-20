@@ -29,6 +29,7 @@ from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, TAKEOUT_SPECIAL_FOLDER_NAMES, \
     PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL, GOOGLE_PHOTOS_CONTAINER_NAMES, TAKEOUT_YEAR_FOLDER_PATTERNS
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
+from Features.GoogleTakeout.PeopleMetadata import build_people_map, PEOPLE_MAP_FILENAME
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
@@ -1886,9 +1887,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if output_folder:
                 self.output_folder = output_folder
             # Determine the output_folder if it has not been given in the call to process() method
-            output_folder = self.get_output_folder()
             # Determine the input_folder depending on if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
+            output_folder = self.get_output_folder()
+            # GPTH removes JSON sidecars, so retain person labels before processing starts.
+            self.takeout_people_map = build_people_map(input_folder) if self.ARGS.get("google-process-people", True) else None
             # Determine where the Albums will be located
             albums_folder = self.get_albums_folder()
             gpth_input_folder = input_folder
@@ -2676,6 +2679,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
         LOGGER.info(f"{self.step}.{self.substep}. FINAL CLEANING... ")
         LOGGER.info(f"================================================================================================================================================")
         LOGGER.info(f"")
+        # Preserve Google person labels before final cleanup removes JSON sidecars.
+        if self.ARGS.get("google-process-people", True):
+            try:
+                people_map_path = Path(output_folder) / PEOPLE_MAP_FILENAME
+                people_map_path.write_text(
+                    json.dumps({"version": 1, "assets": getattr(self, "takeout_people_map", {}) or {}}, ensure_ascii=False, indent=2, sort_keys=True),
+                    encoding="utf-8",
+                )
+                LOGGER.info(f"{step_name}Google Takeout people map saved: '{people_map_path}' ({len(getattr(self, 'takeout_people_map', {}) or {})} assets).")
+            except Exception as error:
+                LOGGER.warning(f"{step_name}Unable to save Google Takeout people map: {error}")
+        else:
+            LOGGER.info(f"{step_name}Google Takeout people processing disabled; no people map was generated.")
         # Save the final output_dates_metadata.json
         self.final_filedates_json = self.output_folder_analyzer.save_to_json(f"takeout_output_dates_metadata_final.json", step_name=step_name)
         # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder

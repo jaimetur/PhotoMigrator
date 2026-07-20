@@ -2298,6 +2298,7 @@
         if (dest === "icloud-takeout" || dest === "icloud-output-folder-suffix") return "takeout";
         if (dest === "google-albums-folders-structure" || dest === "google-no-albums-folders-structure") return "structure";
         if (dest === "icloud-albums-folders-structure" || dest === "icloud-no-albums-folders-structure") return "structure";
+        if (dest === "google-process-people") return "flags";
         if (dest === "show-gpth-info" || dest === "show-gpth-errors" || dest === "gpth-no-log") return "runtime";
         if (field.kind === "flag") return "flags";
         return "advanced";
@@ -2359,6 +2360,10 @@
             const groupKey = takeoutGroupForField(field);
             groups[groupKey].items.push(field);
         });
+        const peopleProcessingIndex = groups.flags.items.findIndex((field) => field.dest === "google-process-people");
+        if (peopleProcessingIndex >= 0) {
+            groups.flags.items.push(groups.flags.items.splice(peopleProcessingIndex, 1)[0]);
+        }
 
         ["takeout", "structure", "flags", "runtime", "advanced"].forEach((key) => {
             const group = groups[key];
@@ -3062,7 +3067,9 @@
         const left = document.createElement("div");
         left.className = "migration-main";
         const otpField = byDest["one-time-password"];
+        const peopleField = byDest["import-people"];
         let otpRow = null;
+        let peopleRow = null;
 
         const parseMigrationEndpoint = (rawValue, fallbackKind) => {
             const text = String(rawValue || "").trim();
@@ -3097,6 +3104,7 @@
         const updateAutomaticMigrationOtpVisibility = () => {
             if (!otpRow) return;
             otpRow.classList.toggle("hidden", !automaticMigrationNeedsOtp());
+            if (peopleRow) peopleRow.classList.toggle("hidden", migrationEndpointsState.target?.kind !== "immich");
         };
 
         const createMigrationEndpointRow = (dest, required = false) => {
@@ -3228,6 +3236,11 @@
             flagsCard.appendChild(otpRow);
             updateAutomaticMigrationOtpVisibility();
         }
+        if (peopleField) {
+            peopleRow = createArgumentRow(peopleField);
+            flagsCard.appendChild(peopleRow);
+            updateAutomaticMigrationOtpVisibility();
+        }
 
         left.appendChild(flagsCard);
 
@@ -3286,6 +3299,7 @@
             byDest["parallel-migration"],
             byDest["prefer-canonical-album-names"],
             byDest["consolidate-similar-albums"],
+            migrationEndpointsState.target?.kind === "immich" ? peopleField : null,
             otpField,
             getFieldByDest("filter-by-type"),
             getFieldByDest("filter-from-date"),

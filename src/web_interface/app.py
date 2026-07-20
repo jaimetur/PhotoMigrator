@@ -119,6 +119,7 @@ BOOL_VALUE_DESTS = {
     "parallel-migration",
     "show-gpth-info",
     "show-gpth-errors",
+    "google-process-people",
 }
 
 AUTOMATION_DESTS = {
@@ -147,6 +148,7 @@ GOOGLE_DESTS = {
     "google-skip-preprocess",
     "google-skip-postprocess",
     "google-keep-takeout-folder",
+    "google-process-people",
     "show-gpth-info",
     "show-gpth-errors",
     "gpth-no-log",

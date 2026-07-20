@@ -189,7 +189,7 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
             "google-remove-duplicates-files", "google-rename-albums-folders", "google-skip-extras-files",
             "google-skip-move-albums", "google-skip-gpth-tool", "google-skip-preprocess",
             "google-skip-postprocess", "google-keep-takeout-folder", "show-gpth-info", "show-gpth-errors",
-            "gpth-no-log",
+            "gpth-no-log", "google-process-people",
         ]
     if feature_name == "iCloud Takeout Processor":
         return common_dests + [
@@ -572,6 +572,7 @@ def pre_parse_args():
                     "--google-skip-preprocess": ("Skip pre-processing step (not recommended)", tk.BooleanVar()),
                     "--google-skip-postprocess": ("Skip post-processing step (not recommended)", tk.BooleanVar()),
                     "--google-keep-takeout-folder": ("Keep untouched Takeout copy (uses double disk space)", tk.BooleanVar()),
+                    "--google-process-people": ("Process people labels from Google JSON sidecars", tk.BooleanVar(value=True)),
                 }
 
                 tk.Label(master, text="Flags:").pack(anchor="w", pady=(8, 0))
@@ -652,6 +653,8 @@ def pre_parse_args():
                 for flag, (desc, var) in self.flags.items():
                     if var.get():
                         sys.argv.append(flag)
+                if self.flags["--google-process-people"][1].get() is False:
+                    sys.argv += ["--google-process-people", "false"]
 
                 # Only add info/error options if not default (default is True)
                 if self.show_info.get() is False:
@@ -788,6 +791,15 @@ def pre_parse_args():
             answer = ask_bool(flag=flag, description=desc, default="no", icon="❓").lower()
             if answer in ["y", "yes", "true"]:
                 sys.argv.append(flag)
+
+        answer = ask_bool(
+            flag="--google-process-people",
+            description="Process people labels from Google JSON sidecars",
+            default="yes",
+            icon="❓",
+        ).lower()
+        if answer in ["n", "no", "false"]:
+            sys.argv += ["--google-process-people", "false"]
 
         # -------- Boolean options --------
         answer = ask_bool(flag="--show-gpth-info", description="Show GPTH progress messages", default="yes", icon="❓").lower()

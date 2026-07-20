@@ -79,6 +79,7 @@ UI_FIELD_LABELS = {
     "preview-album-actions": "Preview Album Actions",
     "prefer-canonical-album-names": "Prefer Canonical Album Names",
     "consolidate-similar-albums": "Consolidate Similar Albums",
+    "import-people": "Import People",
 }
 MIGRATION_FILTER_DESTS = (
     "filter-by-type",
@@ -141,6 +142,7 @@ BOOL_VALUE_DESTS = {
     "parallel-migration",
     "show-gpth-info",
     "show-gpth-errors",
+    "google-process-people",
 }
 AUTOMATION_DESTS = {
     "source",
@@ -151,6 +153,7 @@ AUTOMATION_DESTS = {
     "prefer-canonical-album-names",
     "consolidate-similar-albums",
     "one-time-password",
+    "import-people",
 }
 GOOGLE_DESTS = {
     "google-takeout",
@@ -167,6 +170,7 @@ GOOGLE_DESTS = {
     "google-skip-preprocess",
     "google-skip-postprocess",
     "google-keep-takeout-folder",
+    "google-process-people",
     "show-gpth-info",
     "show-gpth-errors",
     "gpth-no-log",
@@ -311,8 +315,8 @@ MODULE_ACTION_ARGUMENTS = {
         "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "immich_photos": {
-        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
-        "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
+        "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
@@ -815,6 +819,12 @@ def automatic_migration_needs_otp(values: Dict[str, Any] | None = None, endpoint
         if kind == "synology":
             return True
     return False
+
+
+def automatic_migration_target_is_immich(values: Dict[str, Any] | None = None, endpoints_state: Dict[str, Dict[str, Any]] | None = None) -> bool:
+    persisted = dict((endpoints_state or {}).get("target") or {})
+    parsed = parse_migration_endpoint((values or {}).get("target", ""), "immich")
+    return str(persisted.get("kind") or parsed.get("kind") or "").strip().lower() == "immich"
 
 
 def parse_find_duplicates_value(raw_value: Any) -> Dict[str, Any]:

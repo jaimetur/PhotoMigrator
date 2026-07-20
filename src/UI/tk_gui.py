@@ -1370,7 +1370,7 @@ class PhotoMigratorTkGUI:
             regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
             toggle_fields = [
                 field for field in fields
-                if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") != "one-time-password"
+                if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") not in {"one-time-password", "import-people"}
             ]
             migration_filter_fields = build_automatic_migration_filter_fields(self.schema)
             if regular_fields:
@@ -1386,6 +1386,9 @@ class PhotoMigratorTkGUI:
                 otp_field = get_field_by_dest(self.schema, "one-time-password")
                 if otp_field and automatic_migration_needs_otp(self.state_values, self.migration_endpoints_state):
                     self.build_field_widgets(parent, otp_field, required=False, context=tab_key)
+                people_field = get_field_by_dest(self.schema, "import-people")
+                if people_field and self.migration_endpoints_state.get("target", {}).get("kind") == "immich":
+                    self.build_field_widgets(parent, people_field, required=False, context=tab_key)
             if migration_filter_fields:
                 self._section_label(parent, "Migration Filters", accent=True)
                 self._empty_label(parent, "If empty, value from General Arguments will be used.").pack(anchor="w", padx=8, pady=(0, 4))

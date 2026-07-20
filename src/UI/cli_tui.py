@@ -2330,7 +2330,7 @@ if TEXTUAL_AVAILABLE:
                 regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
                 toggle_fields = [
                     field for field in fields
-                    if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") != "one-time-password"
+                    if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") not in {"one-time-password", "import-people"}
                 ]
                 migration_filter_fields = build_automatic_migration_filter_fields(self.schema)
 
@@ -2348,6 +2348,9 @@ if TEXTUAL_AVAILABLE:
                     otp_field = get_field_by_dest(self.schema, "one-time-password")
                     if otp_field and automatic_migration_needs_otp(self.state_values, self.migration_endpoints_state):
                         widgets.extend(self.build_field_widgets(otp_field, context=tab_key))
+                    people_field = get_field_by_dest(self.schema, "import-people")
+                    if people_field and self.migration_endpoints_state.get("target", {}).get("kind") == "immich":
+                        widgets.extend(self.build_field_widgets(people_field, context=tab_key))
 
                 if migration_filter_fields:
                     widgets.append(Static("Migration Filters", classes="section-title feature-section-title feature-section-title--spaced"))

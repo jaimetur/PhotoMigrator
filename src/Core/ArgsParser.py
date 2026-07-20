@@ -224,6 +224,10 @@ def parse_arguments():
                              "This argument only applies if both '--source' and '--target' arguments are given.\n"
                              "(default: True).")
 
+    PARSER.add_argument("-iPeople", "--import-people", action="store_true", default=False,
+                        help="Import Google Takeout person labels into Immich when a Takeout people map is available. "
+                             "Only applies to an Immich destination or Immich Upload All/Upload Albums.")
+
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------
     PARSER.add_argument("-gTakeout", "--google-takeout", metavar="<TAKEOUT_FOLDER>", default="",
@@ -301,7 +305,16 @@ def parse_arguments():
 
     PARSER.add_argument("-gKeepTakeout", "--google-keep-takeout-folder", action="store_true",
                         help="Keep an untouched copy of original Takeout (requires double space).\n"
-                             "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway.")
+                            "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway.")
+
+    PARSER.add_argument("-gPeople", "--google-process-people",
+                        metavar="= [true,false]",
+                        nargs="?",
+                        const=True,
+                        default=True,
+                        type=str2bool,
+                        help="Read Google Takeout person labels from JSON sidecars and save the people map in the processed output. "
+                             "(default: True).")
 
     PARSER.add_argument("-gpthInfo", "--show-gpth-info",
                         metavar="= [true,false]",

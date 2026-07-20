@@ -388,6 +388,8 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         sys.exit(0)
 
     cloud_client_obj = _build_cloud_client_obj(client)
+    if isinstance(cloud_client_obj, ClassImmichPhotos):
+        cloud_client_obj.configure_people_import(input_folder, log_level=logging.WARNING)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
@@ -482,6 +484,8 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         sys.exit(0)
 
     cloud_client_obj = _build_cloud_client_obj(client)
+    if isinstance(cloud_client_obj, ClassImmichPhotos):
+        cloud_client_obj.configure_people_import(input_folder, log_level=logging.WARNING)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"{client} Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
