@@ -65,7 +65,8 @@ Below you can see the different steps of this feature:
 #### 3. 🔢 Calculate statistics of your original Takeout
 
 #### 4. 🧠 Process steps 
-  - 4.1. 🧠 GPTH Processing (Core of this Module) which includes the following sub-steps:  
+  - 4.1. 👥 Capture people metadata from Google Takeout JSON sidecars before GPTH removes them. When `--google-process-people=true` (default), PhotoMigrator keeps the person labels and capture dates in memory and writes `takeout_people_metadata.json` to the processed output during Final Cleaning. This step can be disabled with `--google-process-people=false`.
+  - 4.2. 🧠 GPTH Processing (Core of this Module) which includes the following sub-steps:
           `(default=enabled. Can be disabled using flag 'gSkipGpth, --google-skip-gpth-tool')`
     - ✂️ Fix Extensions
     - 🔍 Discovering Media
@@ -77,9 +78,9 @@ Below you can see the different steps of this feature:
        `(default=enabled. Can be disabled using flag '-gnsa, --google-no-symbolic-albums')`
     - 📁 Move Files
     - 🕒 Update Creation Time
-  - 4.2. ➡️ <span style="color:grey">Copy/Move files to Output folder manually.   
-         `(default=disabled. It is automatically enabled if detect that Step 4.1 has been skipped)`</span>
-  - 4.3. 🧩 Recover orphan album assets from source JSON sidecars when Google Takeout exported an album entry only as `.json` metadata and the real media exists under `ALL_PHOTOS` / the corresponding year folder. PhotoMigrator reads the original album-side `.json`, extracts the asset title and timestamp, locates the real media in the processed output, and recreates the album entry as a symbolic link/hardlink or as a physical copy depending on `--google-no-symbolic-albums`.
+  - 4.3. ➡️ <span style="color:grey">Copy/Move files to Output folder manually.
+         `(default=disabled. It is automatically enabled if detect that Step 4.2 has been skipped)`</span>
+  - 4.4. 🧩 Recover orphan album assets from source JSON sidecars when Google Takeout exported an album entry only as `.json` metadata and the real media exists under `ALL_PHOTOS` / the corresponding year folder. PhotoMigrator reads the original album-side `.json`, extracts the asset title and timestamp, locates the real media in the processed output, and recreates the album entry as a symbolic link/hardlink or as a physical copy depending on `--google-no-symbolic-albums`.
 
 #### 5. 🔢 Calculate statistics of your Final processed Media Library
 
@@ -115,13 +116,13 @@ Below you can see the different steps of this feature:
   - 7.2. ❔ Show Files Without Dates.
 
 > [!NOTE]
-> Step 4.2 is disabled by default, but It is automatically enabled if detect that Step 4.1 has been skipped.
+> Step 4.3 is disabled by default, but It is automatically enabled if detect that Step 4.2 has been skipped.
 > 
 > Step 6.5 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
 >
 > Step 6.6 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
 >
-> Step 4.3 is enabled by default and is especially important for Takeouts where some album folders contain only `.json` sidecars and no physical media files.
+> Step 4.4 is enabled by default and is especially important for Takeouts where some album folders contain only `.json` sidecars and no physical media files.
 
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (423807 files zipped, 220224 photos/video files, 900 albums) and moved it into Synology Photos.  
@@ -143,9 +144,10 @@ Below you can see the different steps of this feature:
 > STEP 3    : 🔢 [PRE]-[Analyze Takeout]                   :  0:24:55  
 > 
 > STEP 4    : 🧠 [PROCESS]-[TOTAL DURATION]                :  7:34:13  
-> Step 4.1  : 🧠 [PROCESS]-[Metadata Processing]           :  7:34:13  
-> Step 4.2  : 📁 [PROCESS]-[Copy/Move]                     :  Skipped  
-> Step 4.3  : 🧩 [PROCESS]-[Recover Orphan Album Assets]   :  0:00:01  
+> Step 4.1  : 👥 [PROCESS]-[People Metadata Capture]       :  0:00:02
+> Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]           :  7:34:13
+> Step 4.3  : 📁 [PROCESS]-[Copy/Move]                     :  Skipped
+> Step 4.4  : 🧩 [PROCESS]-[Recover Orphan Album Assets]   :  0:00:01
 > 
 > STEP 5    : 🔢 [POST]-[Analyze Output]                   :  0:22:21  
 > 

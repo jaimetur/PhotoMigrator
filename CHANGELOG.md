@@ -24,7 +24,7 @@
   - Fixed Automatic Migration desktop GUI flag alignment: conditional `--import-people` and `--one-time-password` controls are now added to the shared three-column flags grid and use the remaining slot in the preceding row when available.
 
 #### 📚 Documentation:
-  - Documented Google Takeout people-map processing, Immich `--import-people` uploads, and the corresponding Automatic Migration behavior and limitations.
+  - Documented Google Takeout people-map processing, including its dedicated pre-GPTH `Step 4.1` capture phase, Immich `--import-people` uploads, and the corresponding Automatic Migration behavior and limitations.
   - Documented the Google Takeout people-processing flag, Immich-only people-import visibility, and Synology-only OTP visibility in the relevant interface and feature guides.
   - Documented `Remove Duplicate Assets` in the cloud-feature matrix and all cloud-service guides, including keeper selection, confirmation, backend-specific metadata limitations, and deletion safeguards.
   - Updated documentation with all changes.

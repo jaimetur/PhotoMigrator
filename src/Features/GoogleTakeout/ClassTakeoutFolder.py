@@ -1890,19 +1890,39 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Determine the input_folder depending on if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
             output_folder = self.get_output_folder()
-            # GPTH removes JSON sidecars, so retain person labels before processing starts.
-            self.takeout_people_map = build_people_map(input_folder) if self.ARGS.get("google-process-people", True) else None
+            # Sub-Step 4.1: Capture person labels before GPTH removes JSON sidecars.
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '👥 [PROCESS]-[People Metadata Capture] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            step_start_time = datetime.now()
+            sub_step_start_time = datetime.now()
+            self.substep += 1
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}.{self.substep}. CAPTURING PEOPLE METADATA FROM GOOGLE TAKEOUT JSON SIDECARS...")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            if self.ARGS.get("google-process-people", True):
+                LOGGER.info(f"{step_name}Capturing Google Takeout person labels before GPTH processing.")
+                self.takeout_people_map = build_people_map(input_folder)
+                LOGGER.info(f"{step_name}Captured person labels for {len(self.takeout_people_map)} assets; the map will be written during Final Cleaning.")
+                formatted_duration = str(timedelta(seconds=round((datetime.now() - sub_step_start_time).total_seconds())))
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            else:
+                self.takeout_people_map = None
+                formatted_duration = "Skipped"
+                LOGGER.info(f"{step_name}Step Skipped: people metadata capture disabled by --google-process-people=false.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
             # Determine where the Albums will be located
             albums_folder = self.get_albums_folder()
             gpth_input_folder = input_folder
             gpth_filedates_json = self.initial_filedates_json
 
-            # Sub-Step 4.1: Process photos with GPTH tool
+            # Sub-Step 4.2: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧠 [PROCESS]-[Metadata Processing] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             self.substep += 1
-            step_start_time = datetime.now()
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"================================================================================================================================================")
@@ -1998,7 +2018,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
                 self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Sub-Step 4.2: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
+            # Sub-Step 4.3: [OPTIONAL] [Disabled by Default] - Copy/Move files to output folder manually
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '📁 [PROCESS]-[Copy/Move] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2032,7 +2052,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[') + 1: step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Sub-Step 4.3: Recover orphan album assets from JSON-only source entries
+            # Sub-Step 4.4: Recover orphan album assets from JSON-only source entries
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧩 [PROCESS]-[Recover Orphan Album Assets] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2679,7 +2699,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         LOGGER.info(f"{self.step}.{self.substep}. FINAL CLEANING... ")
         LOGGER.info(f"================================================================================================================================================")
         LOGGER.info(f"")
-        # Preserve Google person labels before final cleanup removes JSON sidecars.
+        # Persist the map captured before GPTH, after all output-folder processing finishes.
         if self.ARGS.get("google-process-people", True):
             try:
                 people_map_path = Path(output_folder) / PEOPLE_MAP_FILENAME
