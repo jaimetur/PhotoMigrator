@@ -1024,6 +1024,11 @@ def build_argument_specs(schema: Dict[str, Any], tab_key: str, selected_field: D
         if dep_dest:
             push_spec(dep_dest, bool((item or {}).get("required")), True)
 
+    # Synology 2FA can be required by every cloud action, including actions
+    # without other action-specific arguments.
+    if tab_key == "synology_photos":
+        push_spec("one-time-password", False, True)
+
     for dest in parse_required_from_help(str((selected_field or {}).get("help") or ""), {action_dest}):
         push_spec(dest, True, True)
     return specs
@@ -1507,7 +1512,7 @@ def _allowed_dests_for_tab(schema: Dict[str, Any], tab: str, selected_action_des
                     allowed_dests.add(dest)
         else:
             allowed_dests.update(available_actions)
-        if "one-time-password" in tab_dests:
+        if tab == "synology_photos" and "one-time-password" in tab_dests:
             allowed_dests.add("one-time-password")
     elif tab == "standalone_features":
         if selected_action_dest:

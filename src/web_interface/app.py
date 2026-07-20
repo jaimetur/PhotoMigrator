@@ -3081,7 +3081,7 @@ def _allowed_dests_for_tab(tab: str, selected_action_dest: str | None = None) ->
         else:
             # Backward-compatible fallback for older UI payloads.
             allowed_dests.update(available_actions)
-        if "one-time-password" in tab_dests:
+        if tab == "synology_photos" and "one-time-password" in tab_dests:
             allowed_dests.add("one-time-password")
     elif tab == "standalone_features":
         if selected_action_dest:

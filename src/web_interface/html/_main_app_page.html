@@ -610,8 +610,8 @@
         },
         immich_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
-            "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
-            "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
+            "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}],
+            "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-duplicates-assets": [{dest: "duplicate-asset-keeper", required: true}],
@@ -2207,6 +2207,7 @@
 
         const mapped = (MODULE_DEPENDENCIES[tabKey] || {})[selectedField?.dest || ""] || [];
         mapped.forEach((item) => pushSpec(item.dest, item.required === true, true));
+        if (tabKey === "synology_photos") pushSpec("one-time-password", false, true);
         parseRequiredFromHelp(selectedField?.help || "", {ignoreDests: [selectedField?.dest]}).forEach((dest) => pushSpec(dest, true, true));
         return specs;
     }
@@ -2525,8 +2526,6 @@
                 argSpecs.splice(insertAt, 0, {field: normalizedAccountField, required: false});
             }
         }
-        const otpIndex = argSpecs.findIndex((s) => s.field.dest === "one-time-password");
-        if (otpIndex >= 0) argSpecs.splice(otpIndex, 1);
         const isRenameAlbumsSelected = selected && selected.dest === "rename-albums";
         const renderArgSpecs = isRenameAlbumsSelected
             ? argSpecs.filter((spec) => spec.field.dest !== "rename-albums" && spec.field.dest !== "replacement-pattern")
@@ -2615,9 +2614,6 @@
                 left.appendChild(createArgumentRow(spec.field, spec.required));
             });
         }
-        if (otpField && (tabKey === "synology_photos" || tabKey === "immich_photos")) {
-            left.appendChild(createArgumentRow(normalizeFieldForContext(otpField, tabKey)));
-        }
 
         const right = document.createElement("div");
         right.className = "desc-card";
@@ -2630,9 +2626,6 @@
         const optionalFieldsForDescription = renderArgSpecs
             .filter((spec) => !spec.required)
             .map((spec) => spec.field);
-        if (otpField && (tabKey === "synology_photos" || tabKey === "immich_photos")) {
-            optionalFieldsForDescription.push(normalizeFieldForContext(otpField, tabKey));
-        }
         rightHelp.innerHTML = formatDescriptionHtml(selected, optionalFieldsForDescription, {
             requiredFields: requiredFieldsForDescription,
             clientName: tabKey === "google_photos" ? "Google Photos" : (tabKey === "synology_photos" ? "Synology" : (tabKey === "immich_photos" ? "Immich" : (tabKey === "nextcloud_photos" ? "NextCloud" : "")))
@@ -3068,8 +3061,6 @@
         left.className = "migration-main";
         const otpField = byDest["one-time-password"];
         const peopleField = byDest["import-people"];
-        let otpRow = null;
-        let peopleRow = null;
 
         const parseMigrationEndpoint = (rawValue, fallbackKind) => {
             const text = String(rawValue || "").trim();
@@ -3095,16 +3086,6 @@
             if (state.kind === "nextcloud") return `nextcloud-photos-${state.account || "1"}`;
             if (state.kind === "google") return `google-photos-${state.account || "1"}`;
             return "";
-        };
-
-        const automaticMigrationNeedsOtp = () => (
-            ["source", "target"].some((dest) => migrationEndpointsState[dest]?.kind === "synology")
-        );
-
-        const updateAutomaticMigrationOtpVisibility = () => {
-            if (!otpRow) return;
-            otpRow.classList.toggle("hidden", !automaticMigrationNeedsOtp());
-            if (peopleRow) peopleRow.classList.toggle("hidden", migrationEndpointsState.target?.kind !== "immich");
         };
 
         const createMigrationEndpointRow = (dest, required = false) => {
@@ -3157,7 +3138,6 @@
                     queueSaveState();
                     queueCommandPreview();
                 }
-                updateAutomaticMigrationOtpVisibility();
             };
 
             const renderSecondary = () => {
@@ -3206,6 +3186,7 @@
                 migrationEndpointsState[dest].kind = typeSelect.value || defaultKind;
                 renderSecondary();
                 updateComposedValue();
+                renderMigrationPanel();
             });
 
             controls.appendChild(typeSelect);
@@ -3231,15 +3212,11 @@
             if (!byDest[dest]) return;
             flagsCard.appendChild(createArgumentRow(byDest[dest]));
         });
-        if (otpField) {
-            otpRow = createArgumentRow(otpField);
-            flagsCard.appendChild(otpRow);
-            updateAutomaticMigrationOtpVisibility();
-        }
-        if (peopleField) {
-            peopleRow = createArgumentRow(peopleField);
-            flagsCard.appendChild(peopleRow);
-            updateAutomaticMigrationOtpVisibility();
+        const migrationHasSynologyEndpoint = ["source", "target"]
+            .some((dest) => migrationEndpointsState[dest]?.kind === "synology");
+        if (otpField && migrationHasSynologyEndpoint) flagsCard.appendChild(createArgumentRow(otpField));
+        if (peopleField && migrationEndpointsState.target?.kind === "immich") {
+            flagsCard.appendChild(createArgumentRow(peopleField));
         }
 
         left.appendChild(flagsCard);

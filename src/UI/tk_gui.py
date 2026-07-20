@@ -1372,6 +1372,12 @@ class PhotoMigratorTkGUI:
                 field for field in fields
                 if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") not in {"one-time-password", "import-people"}
             ]
+            otp_field = get_field_by_dest(self.schema, "one-time-password")
+            if otp_field and automatic_migration_needs_otp(self.state_values, self.migration_endpoints_state):
+                toggle_fields.append(otp_field)
+            people_field = get_field_by_dest(self.schema, "import-people")
+            if people_field and self.migration_endpoints_state.get("target", {}).get("kind") == "immich":
+                toggle_fields.append(people_field)
             migration_filter_fields = build_automatic_migration_filter_fields(self.schema)
             if regular_fields:
                 self._section_label(parent, "Module Fields", accent=True)
@@ -1383,12 +1389,6 @@ class PhotoMigratorTkGUI:
             if toggle_fields:
                 self._section_label(parent, "Flags", accent=True)
                 self.build_flags_grid(parent, toggle_fields, tab_key)
-                otp_field = get_field_by_dest(self.schema, "one-time-password")
-                if otp_field and automatic_migration_needs_otp(self.state_values, self.migration_endpoints_state):
-                    self.build_field_widgets(parent, otp_field, required=False, context=tab_key)
-                people_field = get_field_by_dest(self.schema, "import-people")
-                if people_field and self.migration_endpoints_state.get("target", {}).get("kind") == "immich":
-                    self.build_field_widgets(parent, people_field, required=False, context=tab_key)
             if migration_filter_fields:
                 self._section_label(parent, "Migration Filters", accent=True)
                 self._empty_label(parent, "If empty, value from General Arguments will be used.").pack(anchor="w", padx=8, pady=(0, 4))
@@ -1688,10 +1688,6 @@ class PhotoMigratorTkGUI:
         else:
             for spec in specs:
                 self.build_field_widgets(parent, spec["field"], required=spec["required"], context=self.active_module)
-        otp_field = get_field_by_dest(self.schema, "one-time-password")
-        if otp_field and self.active_module in {"synology_photos", "immich_photos", "nextcloud_photos", "google_photos"}:
-            self._section_label(parent, "Optional", accent=True)
-            self.build_field_widgets(parent, otp_field, required=False, context=self.active_module)
 
     def build_standalone_widgets(self, parent: Any) -> None:
         actions = list(self.schema["tabs"]["standalone_features"])

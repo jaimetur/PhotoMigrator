@@ -2491,10 +2491,6 @@ if TEXTUAL_AVAILABLE:
             else:
                 for spec in specs:
                     widgets.extend(self.build_field_widgets(spec["field"], required=spec["required"], context=self.active_module))
-            otp_field = get_field_by_dest(self.schema, "one-time-password")
-            if otp_field and self.active_module in {"synology_photos", "immich_photos", "nextcloud_photos", "google_photos"}:
-                widgets.append(Static("Optional", classes="section-title feature-section-title feature-section-title--spaced"))
-                widgets.extend(self.build_field_widgets(otp_field, required=False, context=self.active_module))
             return widgets
 
         def build_standalone_widgets(self) -> List[Any]:

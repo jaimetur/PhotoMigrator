@@ -11,15 +11,21 @@
 
 #### 🌟 New Features:
   - Added opt-in Google Takeout people-label import for Immich. Google Takeout processing now preserves `takeout_people_metadata.json` in the processed output, keyed by asset filename with its person labels and capture date. `--google-process-people=true|false` controls this Takeout-side processing and defaults to enabled; disabled runs ignore people sidecars and do not generate the map. `--import-people` is available for Immich `Upload All`, `Upload Albums`, and Automatic Migration when its destination is Immich. The importer creates/reuses Immich people and only assigns labels when Immich has detected exactly the same number of unassigned faces, avoiding speculative face assignments.
+  - Added `--google-process-people=true|false` to the Google Takeout `Processing Flags` section in the Web Interface, GUI, and TUI. It defaults to enabled and controls whether Google Takeout JSON person metadata is processed and whether the reusable people map is generated.
   - Extended `Remove Duplicate Assets` to the cloud-service modules for Synology Photos, Immich Photos, and NextCloud Photos. All cloud interfaces now expose the required `--duplicate-asset-keeper oldest|newest` selector (default: `newest`). Google Photos also exposes the module and selector consistently, but reports that no deletion can be performed because its public Library API has no media-item deletion operation.
   - Added the Immich metadata-preserving implementation of `Remove Duplicate Assets` (`--remove-duplicates-assets`). It performs one paginated asset inventory, groups exact filename-and-size matches, retains either the oldest or newest uploaded asset through `--duplicate-asset-keeper oldest|newest` (default: `newest`), displays every detected group and proposed keeper, and requests confirmation before any deletion when confirmations are enabled. It merges available albums, tags, favorites, descriptions, and ratings into the keeper before permanently deleting redundant assets. Groups with face/person metadata are deliberately skipped because copying face geometry is not safe through the stable API.
 
 #### 🚀 Enhancements:
+  - Made people import controls contextual in every interactive interface. `--import-people` is shown for Immich `Upload All` and `Upload Albums`, and in Automatic Migration only when the selected target is Immich. The control remains available to CLI users as an optional argument.
+  - Scoped `--one-time-password` to Synology Photos throughout the Web Interface, GUI, and TUI. It is now available as an optional argument for every Synology module and in Automatic Migration only when either endpoint is Synology.
 
 #### 🐛 Bug fixes:
+  - Fixed the Web Interface discarding the `--one-time-password` field after building Synology module arguments, which prevented the optional 2FA control from being displayed.
+  - Fixed Automatic Migration desktop GUI flag alignment: conditional `--import-people` and `--one-time-password` controls are now added to the shared three-column flags grid and use the remaining slot in the preceding row when available.
 
 #### 📚 Documentation:
   - Documented Google Takeout people-map processing, Immich `--import-people` uploads, and the corresponding Automatic Migration behavior and limitations.
+  - Documented the Google Takeout people-processing flag, Immich-only people-import visibility, and Synology-only OTP visibility in the relevant interface and feature guides.
   - Documented `Remove Duplicate Assets` in the cloud-feature matrix and all cloud-service guides, including keeper selection, confirmation, backend-specific metadata limitations, and deletion safeguards.
   - Updated documentation with all changes.
 
