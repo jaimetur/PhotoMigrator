@@ -622,24 +622,6 @@ def _mark_album_pushed_if_ready(
         processed_albums.add(album_name)
         counters['total_pushed_albums'] += 1
 
-        album_summary = ""
-        if album_stats_by_name is not None and album_stats_lock is not None:
-            with album_stats_lock:
-                album_stats = dict((album_stats_by_name or {}).get(album_name) or {})
-            total_assets = max(0, int(album_stats.get("total_assets", 0) or 0))
-            pushed_assets = max(0, int(album_stats.get("pushed_assets", 0) or 0))
-            duplicated_assets = max(0, int(album_stats.get("duplicated_assets", 0) or 0))
-            failed_assets = max(0, int(album_stats.get("failed_assets", 0) or 0))
-            summary_parts = [
-                f"Total Assets: {total_assets}",
-                f"Pushed: {pushed_assets}",
-                f"Duplicates: {duplicated_assets}",
-            ]
-            if failed_assets > 0:
-                summary_parts.append(f"Failed: {failed_assets}")
-            album_summary = f" ({' | '.join(summary_parts)})"
-
-        logger.info(f"Album Pushed    : '{album_name}'{album_summary}")
         return True
 
 
@@ -1729,6 +1711,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 for asset in keeper_assets
                                 if str(asset.get("filename", "")).strip()
                             )
+                            keeper_asset_ids = {
+                                str(asset.get("id", "")).strip()
+                                for asset in keeper_assets
+                                if str(asset.get("id", "")).strip()
+                            }
+                            _set_cached_target_album_asset_ids(keeper_id, keeper_asset_ids)
                             redundant_name_counts = Counter(
                                 str(asset.get("filename", "")).strip()
                                 for asset in redundant_assets
@@ -1759,20 +1747,25 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 keeper_asset_ids = set(confirmed_ids)
                             added_count = max(0, len(set(confirmed_ids) - previously_confirmed_ids))
                             reassigned_count = sum(1 for asset_id in duplicate_asset_ids if asset_id in keeper_asset_ids)
-                        LOGGER.info(
+                        LOGGER.debug(
                             f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
                             f"Requested={total_redundant_assets}, Confirmed={reassigned_count}, "
                             f"AddedNow={added_count if isinstance(added_count, int) else 0}."
                         )
                         should_remove_redundant = reassigned_count == total_redundant_assets
                     else:
-                        LOGGER.info(
+                        LOGGER.debug(
                             f"Album Reassignment: '{redundant_name}' -> '{keeper_name}'. "
                             f"Requested=0, Confirmed=0, AddedNow=0."
                         )
                         should_remove_redundant = True
 
                     if should_remove_redundant:
+                        final_keeper_assets = len(_get_cached_target_album_asset_ids(
+                            album_id=keeper_id,
+                            album_name=keeper_name,
+                            log_level=log_level,
+                        ))
                         if target_client.remove_album(redundant_id, redundant_name, log_level=log_level):
                             _record_unique_counter(
                                 SHARED_DATA.counters,
@@ -1781,8 +1774,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 redundant_id,
                             )
                             LOGGER.info(
-                                f"Album Consolidated: moved reusable/similar album '{redundant_name}' into '{keeper_name}' "
-                                f"and removed the redundant album after consolidating {reassigned_count}/{total_redundant_assets} assets."
+                                f"Album Consolidated: '{redundant_name}' -> '{keeper_name}' "
+                                f"(Original Assets: {total_redundant_assets} | Final Assets: {final_keeper_assets})."
                             )
                             _remove_target_existing_album(target_existing_albums, redundant_id)
                         elif isinstance(target_client, ClassGooglePhotos):
@@ -1793,9 +1786,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 redundant_id or redundant_name,
                             )
                             LOGGER.info(
-                                f"Album Consolidated: moved reusable/similar album '{redundant_name}' into '{keeper_name}'. "
-                                f"All {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album, "
-                                f"but the redundant album was kept because Google Photos does not support album deletion."
+                                f"Album Consolidated: '{redundant_name}' -> '{keeper_name}' "
+                                f"(Original Assets: {total_redundant_assets} | Final Assets: {final_keeper_assets}; "
+                                f"original kept because Google Photos does not support album deletion)."
                             )
                     else:
                         LOGGER.warning(
@@ -2151,6 +2144,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 log_level=log_level,
             )
 
+        final_keeper_assets = len(_get_cached_target_album_asset_ids(
+            album_id=keeper_id,
+            album_name=preferred_album_name,
+            log_level=log_level,
+        ))
+
         if isinstance(target_client, ClassGooglePhotos):
             _record_unique_counter(
                 SHARED_DATA.counters,
@@ -2159,8 +2158,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 source_album_id or album_name,
             )
             LOGGER.info(
-                f"Album Canonicalization: copied assets from '{album_name}' into canonical album "
-                f"'{preferred_album_name}'. The original album is kept because Google Photos cannot delete albums."
+                f"Album Canonicalized: '{album_name}' -> '{preferred_album_name}' "
+                f"(Original Assets: {len(source_asset_ids)} | Final Assets: {final_keeper_assets}; "
+                f"original kept because Google Photos does not support album deletion)."
             )
         else:
             removed = target_client.remove_album(source_album_id, album_name, log_level=log_level)
@@ -2172,8 +2172,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     source_album_id or album_name,
                 )
                 LOGGER.info(
-                    f"Album Canonicalization: moved assets from '{album_name}' into canonical album "
-                    f"'{preferred_album_name}' and removed the original album."
+                    f"Album Canonicalized: '{album_name}' -> '{preferred_album_name}' "
+                    f"(Original Assets: {len(source_asset_ids)} | Final Assets: {final_keeper_assets})."
                 )
                 if target_existing_albums is not None:
                     _remove_target_existing_album(target_existing_albums, source_album_id)
@@ -2973,7 +2973,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     continue
                 processed_albums.add(album_name)
                 SHARED_DATA.counters['total_pushed_albums'] += 1
-            LOGGER.info(f"Album Pushed    : '{album_name}' (all assets reached a terminal outcome)")
 
     def _get_push_queue_priority(item):
         if not push_queue_priority_enabled:
