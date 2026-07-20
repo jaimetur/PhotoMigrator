@@ -2104,6 +2104,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     resolved_target_asset_id=asset_id,
                 )
             if not scheduled_retry:
+                # Even when association retries are disabled, this asset has
+                # entered the association workflow and belongs in its total.
+                _record_queue_admission(
+                    asset,
+                    'total_album_assoc_queue_assets',
+                    '_album_assoc_queue_counted',
+                )
                 SHARED_DATA.counters['total_album_assoc_failed_assets'] += _physical_file_count(asset=asset)
                 cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                     _finalize_album_association_failed_asset,
@@ -2139,6 +2146,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 resolved_target_asset_id=asset_id,
             )
             if not scheduled_retry:
+                _record_queue_admission(
+                    asset,
+                    'total_album_assoc_queue_assets',
+                    '_album_assoc_queue_counted',
+                )
                 SHARED_DATA.counters['total_album_assoc_failed_assets'] += _physical_file_count(asset=asset)
                 cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                     _finalize_album_association_failed_asset,
