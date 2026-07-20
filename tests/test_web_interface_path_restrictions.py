@@ -115,6 +115,13 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
                 self.assertNotIn("prefer-canonical-album-names", tab_dests)
                 self.assertNotIn("consolidate-similar-albums", tab_dests)
 
+    def test_google_takeout_binary_controls_are_boolean_fields(self):
+        fields_by_dest = self.web_app.PARSER_SCHEMA["fields_by_dest"]
+
+        for dest in ("show-gpth-info", "show-gpth-errors", "google-process-people"):
+            with self.subTest(dest=dest):
+                self.assertEqual(fields_by_dest[dest]["kind"], "bool")
+
     def test_optional_output_folder_also_rejects_direct_user_root(self):
         takeout_subfolder = self.allowed_roots[0] / "TakeoutInput"
         takeout_subfolder.mkdir(parents=True, exist_ok=True)

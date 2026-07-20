@@ -558,6 +558,13 @@
         return persisted === undefined ? false : uiBooleanValue(persisted);
     }
 
+    function uiCheckboxValueForField(field, persisted) {
+        if (persisted === undefined && field?.kind === "bool") {
+            return uiBooleanValue(field.default);
+        }
+        return uiCheckboxValueForDest(field?.dest, persisted);
+    }
+
     function stateValueFromUiCheckbox(dest, checked) {
         // Store backend/CLI semantics in state: no-request-user-confirmation=true disables prompts.
         if (dest === "no-request-user-confirmation") return !Boolean(checked);
@@ -1845,15 +1852,12 @@
             input = document.createElement("input");
             input.type = "checkbox";
             input.className = "field__check";
-            input.checked = uiCheckboxValueForDest(field.dest, persisted);
+            input.checked = uiCheckboxValueForField(field, persisted);
         } else if (field.kind === "bool") {
-            input = document.createElement("select");
-            input.className = "field__input";
-            input.add(new Option("true", "true"));
-            input.add(new Option("false", "false"));
-            input.value = persisted === undefined
-                ? (String(field.default).toLowerCase() === "false" ? "false" : "true")
-                : (String(persisted).toLowerCase() === "false" ? "false" : "true");
+            input = document.createElement("input");
+            input.type = "checkbox";
+            input.className = "field__check";
+            input.checked = uiCheckboxValueForField(field, persisted);
         } else if (field.kind === "select") {
             input = document.createElement("select");
             input.className = "field__input";
@@ -1967,7 +1971,7 @@
         badge.textContent = isRequired ? "Required" : "Optional";
         label.appendChild(badge);
 
-        if (field.kind === "flag") {
+        if (field.kind === "flag" || field.kind === "bool") {
             const checkWrap = document.createElement("label");
             checkWrap.className = "otp-wrap";
             const check = document.createElement("input");
@@ -1975,7 +1979,7 @@
             check.className = "field__check";
             check.dataset.dest = field.dest;
             const persisted = stateValues[field.dest];
-            check.checked = uiCheckboxValueForDest(field.dest, persisted);
+            check.checked = uiCheckboxValueForField(field, persisted);
             const syncFlagState = () => {
                 updateStateValueForElement(check);
                 queueSaveState();
