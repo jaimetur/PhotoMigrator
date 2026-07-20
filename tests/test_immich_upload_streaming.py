@@ -119,6 +119,14 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertEqual([asset["id"] for asset in redundant], ["new"])
         manager.remove_assets.assert_called_once_with(["new"], log_level=None)
 
+    def test_duplicate_asset_size_prefers_immich_file_size_in_byte(self):
+        manager = self._build_manager()
+
+        self.assertEqual(
+            manager._duplicate_asset_size({"exifInfo": {"fileSizeInByte": "12345"}}),
+            12345,
+        )
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     def test_merge_duplicate_metadata_skips_groups_with_people(self, _mock_logger):
         manager = self._build_manager()

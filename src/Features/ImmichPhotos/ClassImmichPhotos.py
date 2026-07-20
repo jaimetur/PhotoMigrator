@@ -1711,12 +1711,20 @@ class ClassImmichPhotos(BaseMediaClient):
 
     @staticmethod
     def _duplicate_asset_size(asset):
-        """Return the original file size supplied by Immich, when available."""
-        size = (asset.get("exifInfo") or {}).get("fileSize")
-        try:
-            return int(size) if size is not None else None
-        except (TypeError, ValueError):
-            return None
+        """Return the original file size across supported Immich response variants."""
+        asset = asset or {}
+        exif_info = asset.get("exifInfo") or {}
+        for size in (
+            exif_info.get("fileSizeInByte"),  # Immich AssetResponseDto field.
+            exif_info.get("fileSize"),         # Older/compatibility response field.
+            asset.get("fileSize"),
+        ):
+            try:
+                if size is not None:
+                    return int(size)
+            except (TypeError, ValueError):
+                continue
+        return None
 
     @staticmethod
     def _duplicate_asset_timestamp(asset):
@@ -1819,10 +1827,14 @@ class ClassImmichPhotos(BaseMediaClient):
             LOGGER.info("Retrieving Immich assets for duplicate analysis (paginated)...")
             assets = self._get_all_assets_unfiltered(log_level=log_level)
             groups = {}
+            assets_missing_size = 0
             for asset in assets:
                 asset_id = str(asset.get("id") or "").strip()
                 filename = str(asset.get("originalFileName") or "").strip()
                 size = self._duplicate_asset_size(asset)
+                if asset_id and filename and size is None:
+                    assets_missing_size += 1
+                    continue
                 if asset_id and filename and size is not None:
                     groups.setdefault((filename.casefold(), size), []).append(asset)
             duplicate_groups = [group for group in groups.values() if len(group) > 1]
@@ -1830,6 +1842,11 @@ class ClassImmichPhotos(BaseMediaClient):
                 f"Found {len(duplicate_groups)} duplicate group(s) by exact filename and file size "
                 f"across {len(assets)} assets."
             )
+            if assets_missing_size:
+                LOGGER.warning(
+                    f"Skipped {assets_missing_size} Immich asset(s) without a usable file-size field "
+                    "during duplicate analysis."
+                )
             return duplicate_groups
 
     def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
@@ -1991,11 +2008,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     candidate_time = datetime.fromisoformat(str(item.get("fileCreatedAt", "")).replace("Z", "+00:00")).astimezone(timezone.utc)
                 except Exception:
                     candidate_time = None
-                candidate_size = item.get("exifInfo", {}).get("fileSize")
-                try:
-                    candidate_size = int(candidate_size) if candidate_size is not None else None
-                except Exception:
-                    candidate_size = None
+                candidate_size = self._duplicate_asset_size(item)
                 time_delta = abs((candidate_time - target_time).total_seconds()) if candidate_time and target_time else float("inf")
                 size_delta = abs(candidate_size - target_size) if candidate_size is not None and target_size is not None else float("inf")
                 score = (
@@ -2148,7 +2161,7 @@ class ClassImmichPhotos(BaseMediaClient):
                         return None, None
                 if asset_id:
                     self._remember_uploaded_asset_id(file_path, asset_id)
-                    if ARGS.get("import-people", False):
+                    if (ARGS or {}).get("import-people", False):
                         # Automatic Migration normally suppresses upload chatter at ERROR.
                         # Person import outcomes are operationally significant, so keep them visible.
                         with set_log_level(LOGGER, logging.INFO):
