@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import mimetypes
+import piexif
 import requests
 import urllib3
 from dateutil import parser
@@ -89,7 +90,8 @@ class ClassImmichPhotos(BaseMediaClient):
         self.CURRENT_USER_PROFILE = None
         self._takeout_people_map = {}
         self._takeout_people_import_lock = threading.Lock()
-        self._takeout_people_ids = {}
+        self._takeout_people_tag_ids = {}
+        self._takeout_people_resolution_cache = {}
 
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
@@ -420,6 +422,7 @@ class ClassImmichPhotos(BaseMediaClient):
         if not ARGS.get("import-people", False):
             return False
         self._takeout_people_map = load_people_map(input_folder)
+        self._takeout_people_resolution_cache = {}
         if not self._takeout_people_map:
             # Local folders can retain original Google sidecars without having run GPTH.
             self._takeout_people_map = build_people_map(input_folder)
@@ -431,38 +434,155 @@ class ClassImmichPhotos(BaseMediaClient):
 
     def get_takeout_people_count_for_asset(self, file_path):
         """Return the number of Takeout person labels associated with a local asset."""
-        entry = self._takeout_people_map.get(os.path.basename(file_path))
+        entry = self._get_takeout_people_entry_for_asset(file_path)
         if not isinstance(entry, dict):
             return 0
         return len([name for name in entry.get("people", []) if str(name).strip()])
 
-    def _get_or_create_takeout_person_id(self, name):
-        cached = self._takeout_people_ids.get(name)
+    @staticmethod
+    def _parse_takeout_taken_at(value):
+        text = str(value or "").strip()
+        if not text:
+            return None
+        try:
+            if text.isdigit():
+                return datetime.fromtimestamp(int(text), tz=timezone.utc)
+            parsed = getattr(parser, "isoparse", parser.parse)(text)
+            if not isinstance(parsed, datetime):
+                return None
+            return parsed.replace(tzinfo=parsed.tzinfo or timezone.utc).astimezone(timezone.utc)
+        except (OverflowError, TypeError, ValueError):
+            return None
+
+    def _get_takeout_people_entry_for_asset(self, file_path):
+        """Resolve a filename collision using the Takeout capture date.
+
+        Compare the processed media's EXIF and filesystem dates with all three
+        Takeout dates (taken, created, and modified). The nearest candidate
+        wins; equal nearest candidates deliberately contribute all labels.
+        """
+        normalized_name = os.path.basename(file_path).casefold()
+        mapped_entries = self._takeout_people_map.get(normalized_name)
+        if mapped_entries is None:
+            # Backward-compatible support for version 1 maps that retained case.
+            mapped_entries = self._takeout_people_map.get(os.path.basename(file_path))
+        if isinstance(mapped_entries, dict):
+            # Version 1 maps contain one entry per name; retain compatibility.
+            mapped_entries = [mapped_entries]
+        if not isinstance(mapped_entries, list) or not mapped_entries:
+            return None
+        candidates = [entry for entry in mapped_entries if isinstance(entry, dict)]
+        if len(candidates) == 1:
+            return candidates[0]
+        try:
+            stat = os.stat(file_path)
+        except OSError:
+            return None
+        cache_key = (os.path.abspath(file_path), stat.st_mtime, stat.st_size)
+        resolution_cache = getattr(self, "_takeout_people_resolution_cache", None)
+        if resolution_cache is None:
+            resolution_cache = {}
+            self._takeout_people_resolution_cache = resolution_cache
+        cached = resolution_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        asset_dates = [datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)]
+        try:
+            exif_dict = piexif.load(file_path)
+            for value in (
+                exif_dict.get("Exif", {}).get(piexif.ExifIFD.DateTimeOriginal),
+                exif_dict.get("Exif", {}).get(piexif.ExifIFD.DateTimeDigitized),
+                exif_dict.get("0th", {}).get(piexif.ImageIFD.DateTime),
+            ):
+                if isinstance(value, bytes):
+                    value = value.decode("utf-8", errors="ignore")
+                try:
+                    exif_date = datetime.strptime(str(value or ""), "%Y:%m:%d %H:%M:%S")
+                    asset_dates.append(exif_date.replace(tzinfo=timezone.utc))
+                    break
+                except ValueError:
+                    continue
+        except Exception:
+            pass
+
+        scored_candidates = []
+        for entry in candidates:
+            takeout_dates = [
+                parsed for key in ("taken_at", "created_at", "modified_at")
+                if (parsed := self._parse_takeout_taken_at(entry.get(key)))
+            ]
+            if takeout_dates:
+                score = min(
+                    abs((asset_date - takeout_date).total_seconds())
+                    for asset_date in asset_dates
+                    for takeout_date in takeout_dates
+                )
+                scored_candidates.append((score, entry))
+        if not scored_candidates:
+            LOGGER.warning(
+                f"No dated Google Takeout people metadata for '{os.path.basename(file_path)}'. "
+                "People import skipped."
+            )
+            return None
+
+        best_distance = min(score for score, _ in scored_candidates)
+        matched = [entry for score, entry in scored_candidates if score == best_distance]
+        people = list(dict.fromkeys(
+            person
+            for entry in matched
+            for person in entry.get("people", [])
+            if str(person).strip()
+        ))
+        resolved = {"people": people, "taken_at": matched[0].get("taken_at", "")}
+        resolution_cache[cache_key] = resolved
+        LOGGER.info(
+            f"Google Takeout people metadata resolved for '{os.path.basename(file_path)}': "
+            f"{len(candidates)} same-name candidate(s), nearest date distance {best_distance:.0f}s, "
+            f"{len(matched)} selected."
+        )
+        if len(matched) > 1:
+            LOGGER.warning(
+                f"Google Takeout people metadata tie for '{os.path.basename(file_path)}': "
+                f"merged labels from {len(matched)} equally close candidates."
+            )
+        return resolved
+
+    def _get_or_create_takeout_people_tag_id(self, name):
+        tag_value = f"people/{name}"
+        cached = self._takeout_people_tag_ids.get(tag_value)
         if cached:
             return cached
-        person_id = self.get_person_id(name, log_level=logging.ERROR)
-        if not person_id:
-            response = requests.post(
-                f"{self.IMMICH_URL}/api/people",
-                headers=self.HEADERS_WITH_CREDENTIALS,
-                json={"name": name},
-                verify=False,
+        response = requests.put(
+            f"{self.IMMICH_URL}/api/tags",
+            headers=self.HEADERS_WITH_CREDENTIALS,
+            json={"tags": [tag_value]},
+            verify=False,
+        )
+        response.raise_for_status()
+        tags = response.json() or []
+        tag_id = next(
+            (
+                str(tag.get("id"))
+                for tag in tags
+                if isinstance(tag, dict) and str(tag.get("value") or "") == tag_value and tag.get("id")
+            ),
+            None,
+        )
+        if not tag_id:
+            tag_id = next(
+                (str(tag.get("id")) for tag in tags if isinstance(tag, dict) and tag.get("id")),
+                None,
             )
-            response.raise_for_status()
-            person_id = (response.json() or {}).get("id")
-        if person_id:
-            self._takeout_people_ids[name] = str(person_id)
-        return person_id
+        if tag_id:
+            self._takeout_people_tag_ids[tag_value] = tag_id
+        return tag_id
 
     def import_takeout_people_for_asset(self, file_path, asset_id, log_level=None):
-        """Assign labels only when Immich detected exactly the same number of faces.
-
-        Google Takeout sidecars expose person names but no face rectangles. Assigning a
-        different number of faces would be speculative, so that case is left untouched.
-        """
+        """Replicate immich-go's people-tag import using ``people/<name>`` tags."""
         if not asset_id or not self._takeout_people_map:
             return False
-        entry = self._takeout_people_map.get(os.path.basename(file_path))
+        entry = self._get_takeout_people_entry_for_asset(file_path)
         if not isinstance(entry, dict):
             return False
         names = [str(name).strip() for name in entry.get("people", []) if str(name).strip()]
@@ -470,34 +590,29 @@ class ClassImmichPhotos(BaseMediaClient):
             return False
         with self._takeout_people_import_lock:
             try:
-                response = requests.get(
-                    f"{self.IMMICH_URL}/api/assets/{asset_id}", headers=self.HEADERS_WITH_CREDENTIALS, verify=False
-                )
-                response.raise_for_status()
-                asset = response.json() or {}
-                faces = asset.get("unassignedFaces") or []
-                if len(faces) != len(names):
-                    LOGGER.info(
-                        f"Takeout people skipped for '{os.path.basename(file_path)}': "
-                        f"{len(names)} label(s), {len(faces)} unassigned Immich face(s)."
-                    )
-                    return False
-                for name, face in zip(names, faces):
-                    person_id = self._get_or_create_takeout_person_id(name)
-                    face_id = (face or {}).get("id")
-                    if not person_id or not face_id:
-                        return False
-                    update = requests.put(
-                        f"{self.IMMICH_URL}/api/faces/{face_id}",
+                tagged_count = 0
+                for name in names:
+                    tag_id = self._get_or_create_takeout_people_tag_id(name)
+                    if not tag_id:
+                        continue
+                    response = requests.put(
+                        f"{self.IMMICH_URL}/api/tags/{tag_id}/assets",
                         headers=self.HEADERS_WITH_CREDENTIALS,
-                        json={"personId": person_id},
+                        json={"ids": [asset_id]},
                         verify=False,
                     )
-                    update.raise_for_status()
-                LOGGER.info(f"Imported {len(names)} Takeout person label(s) for '{os.path.basename(file_path)}'.")
-                return True
+                    response.raise_for_status()
+                    tagged_count += 1
+                if tagged_count:
+                    LOGGER.info(
+                        f"Imported {tagged_count} Takeout people tag(s) for "
+                        f"'{os.path.basename(file_path)}'."
+                    )
+                    return True
+                LOGGER.warning(f"Unable to create any Takeout people tag for '{os.path.basename(file_path)}'.")
+                return False
             except Exception as error:
-                LOGGER.warning(f"Unable to import Takeout people for '{os.path.basename(file_path)}': {error}")
+                LOGGER.warning(f"Unable to import Takeout people tags for '{os.path.basename(file_path)}': {error}")
                 return False
 
     ###########################################################################

@@ -1,3 +1,4 @@
+import os
 import sys
 import tempfile
 import types
@@ -84,6 +85,25 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.manager.IMMICH_URL = "http://immich.local"
         self.manager.HEADERS_WITH_CREDENTIALS = {"x-api-key": "test-key"}
         self.manager.login = lambda log_level=None: True
+
+    def test_takeout_people_resolution_uses_nearest_date_for_same_filename(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            asset_path = Path(temp_dir) / "IMG_0001.jpg"
+            asset_path.touch()
+            taken_at = datetime(2024, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
+            os.utime(asset_path, (taken_at.timestamp(), taken_at.timestamp()))
+            self.manager._takeout_people_map = {
+                "img_0001.jpg": [
+                    {"people": ["Ana"], "taken_at": "1577836800"},
+                    {"people": ["Luis"], "created_at": "1704164648"},
+                ]
+            }
+            self.manager._takeout_people_resolution_cache = {}
+
+            with patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock):
+                entry = self.manager._get_takeout_people_entry_for_asset(str(asset_path))
+
+        self.assertEqual(entry["people"], ["Luis"])
 
     def test_filter_assets_by_type_supports_aliases(self):
         assets = [

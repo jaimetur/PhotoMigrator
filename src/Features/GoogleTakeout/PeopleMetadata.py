@@ -19,8 +19,8 @@ def _people_from_sidecar(payload):
     return names
 
 
-def _taken_at_from_sidecar(payload):
-    value = payload.get("photoTakenTime") or payload.get("creationTime") or {}
+def _timestamp_from_sidecar(payload, field_name):
+    value = payload.get(field_name) or {}
     if isinstance(value, dict):
         value = value.get("timestamp") or value.get("formatted")
     text = str(value or "").strip()
@@ -29,8 +29,21 @@ def _taken_at_from_sidecar(payload):
     return text
 
 
+def _asset_name_from_sidecar(payload, json_path):
+    asset_name = str(payload.get("title") or json_path.stem).strip()
+    # Google commonly emits IMG.jpg.json; the title is authoritative when present.
+    if asset_name.lower().endswith(".json"):
+        asset_name = asset_name[:-5]
+    return asset_name.casefold()
+
+
 def build_people_map(takeout_root):
-    """Collect Google sidecars keyed by media filename, retaining labels and date."""
+    """Collect Google sidecars by filename, retaining distinct capture-date entries.
+
+    Google Takeout can contain different assets with the same filename.  Their
+    labels must not be merged: consumers use ``taken_at`` to select the one
+    belonging to the physical file being uploaded.
+    """
     entries = {}
     for json_path in Path(takeout_root).rglob("*.json"):
         if json_path.name == PEOPLE_MAP_FILENAME:
@@ -42,25 +55,36 @@ def build_people_map(takeout_root):
         names = _people_from_sidecar(payload) if isinstance(payload, dict) else []
         if not names:
             continue
-        asset_name = str(payload.get("title") or json_path.stem).strip()
-        # Google commonly emits IMG.jpg.json; the title is authoritative when present.
-        if asset_name.lower().endswith(".json"):
-            asset_name = asset_name[:-5]
+        asset_name = _asset_name_from_sidecar(payload, json_path)
         if not asset_name:
             continue
-        entry = {"people": names, "taken_at": _taken_at_from_sidecar(payload)}
-        existing = entries.get(asset_name)
+        entry = {
+            "people": names,
+            "taken_at": _timestamp_from_sidecar(payload, "photoTakenTime"),
+            "created_at": _timestamp_from_sidecar(payload, "creationTime"),
+            "modified_at": _timestamp_from_sidecar(payload, "modificationTime"),
+        }
+        candidates = entries.setdefault(asset_name, [])
+        # The same asset may have one sidecar in an album and another in a
+        # year folder. Merge only entries that identify that exact capture.
+        existing = next(
+            (
+                item for item in candidates
+                if all(item.get(key, "") == entry[key] for key in ("taken_at", "created_at", "modified_at"))
+            ),
+            None,
+        )
         if existing:
-            entry["people"] = list(dict.fromkeys(existing.get("people", []) + names))
-            entry["taken_at"] = entry["taken_at"] or existing.get("taken_at", "")
-        entries[asset_name] = entry
+            existing["people"] = list(dict.fromkeys(existing.get("people", []) + names))
+        else:
+            candidates.append(entry)
     return entries
 
 
 def save_people_map(takeout_root, output_folder):
     entries = build_people_map(takeout_root)
     output_path = Path(output_folder) / PEOPLE_MAP_FILENAME
-    payload = {"version": 1, "assets": entries}
+    payload = {"version": 2, "assets": entries}
     output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
     return output_path, len(entries)
 
