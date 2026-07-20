@@ -477,6 +477,136 @@ class ClassSynologyPhotos(BaseMediaClient):
         for variant in variants:
             yield variant
 
+    @staticmethod
+    def _merge_assets_by_id(*asset_sets):
+        """Merge Synology item payloads while preserving their first response."""
+        merged_by_id = {}
+        assets_without_id = []
+        for assets in asset_sets:
+            for asset in assets or []:
+                if not isinstance(asset, dict):
+                    continue
+                asset_id = str(asset.get("id") or "").strip()
+                if not asset_id:
+                    assets_without_id.append(asset)
+                elif asset_id not in merged_by_id:
+                    merged_by_id[asset_id] = asset
+        return list(merged_by_id.values()) + assets_without_id
+
+    def _get_assets_from_folder_inventory(self, log_level=None):
+        """
+        Recover assets exposed by the Synology folder namespace.
+
+        In Shared Space installations the global timeline request can expose only
+        the personal namespace even though album-scoped calls work correctly.
+        The folder inventory uses the same Photos APIs, but lists each folder by
+        ``folder_id`` so those assets remain discoverable without inventing an
+        album context.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = dict(self.SYNO_TOKEN_HEADER or {})
+            root_params = {
+                "api": "SYNO.Foto.Browse.Folder",
+                "method": "get",
+                "version": "2",
+            }
+            try:
+                root_response = self._request_entry_api(url, root_params, headers=headers, prefer_post=True)
+                root_data = root_response.json()
+                root = (root_data.get("data") or {}).get("folder") or {}
+                root_id = root.get("id")
+            except Exception as error:
+                LOGGER.debug(f"Unable to retrieve Synology folder inventory root: {error}")
+                return []
+
+            if root_id is None:
+                LOGGER.debug("Synology folder inventory root is unavailable.")
+                return []
+
+            pending_folder_ids = [str(root_id)]
+            visited_folder_ids = set()
+            discovered_assets = []
+            limit = 5000
+
+            while pending_folder_ids:
+                folder_id = pending_folder_ids.pop()
+                if folder_id in visited_folder_ids:
+                    continue
+                visited_folder_ids.add(folder_id)
+
+                offset = 0
+                while True:
+                    params = {
+                        "api": "SYNO.Foto.Browse.Folder",
+                        "method": "list",
+                        "version": "2",
+                        "id": folder_id,
+                        "offset": offset,
+                        "limit": limit,
+                    }
+                    try:
+                        response = self._request_entry_api(url, params, headers=headers, prefer_post=True)
+                        data = response.json()
+                    except Exception as error:
+                        LOGGER.debug(f"Unable to list Synology folder ID={folder_id}: {error}")
+                        break
+                    if not data.get("success"):
+                        LOGGER.debug(f"Unable to list Synology folder ID={folder_id}: {data}")
+                        break
+                    folders = list((data.get("data") or {}).get("list") or [])
+                    pending_folder_ids.extend(
+                        str(folder["id"])
+                        for folder in folders
+                        if isinstance(folder, dict) and folder.get("id") is not None
+                    )
+                    if len(folders) < limit:
+                        break
+                    offset += limit
+
+                offset = 0
+                while True:
+                    params = {
+                        "api": "SYNO.Foto.Browse.Item",
+                        "method": "list",
+                        "version": "4",
+                        "folder_id": folder_id,
+                        "offset": offset,
+                        "limit": limit,
+                        "additional": '["thumbnail","resolution","orientation","video_convert","video_meta","address","provider_user_id"]',
+                    }
+                    try:
+                        response = self._request_entry_api(url, params, headers=headers, prefer_post=True)
+                        data = response.json()
+                    except Exception as error:
+                        LOGGER.debug(f"Unable to list Synology items in folder ID={folder_id}: {error}")
+                        break
+                    if not data.get("success"):
+                        LOGGER.debug(f"Unable to list Synology items in folder ID={folder_id}: {data}")
+                        break
+                    items = list((data.get("data") or {}).get("list") or [])
+                    discovered_assets.extend(items)
+                    if len(items) < limit:
+                        break
+                    offset += limit
+
+            discovered_assets = self._merge_assets_by_id(discovered_assets)
+            filtered_assets = self.filter_assets_old(discovered_assets, log_level=log_level)
+            LOGGER.debug(
+                "Synology folder inventory summary: "
+                + json.dumps(
+                    {
+                        "folders": len(visited_folder_ids),
+                        "unfiltered": self._summarize_assets_debug(discovered_assets),
+                        "filtered": self._summarize_assets_debug(filtered_assets),
+                    },
+                    ensure_ascii=True,
+                    default=str,
+                )
+            )
+            return filtered_assets
+
     def _fetch_album_details(self, album_id, log_level=None):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
@@ -1888,6 +2018,10 @@ class ClassSynologyPhotos(BaseMediaClient):
                 self.login(log_level=log_level)
                 all_assets = self.get_assets_by_filters(log_level=logging.INFO)
                 album_assets = self.get_all_assets_from_all_albums(log_level=logging.INFO)
+                if getattr(self, "_has_owned_shared_space_albums", False):
+                    folder_assets = self._get_assets_from_folder_inventory(log_level=log_level)
+                    if folder_assets:
+                        all_assets = self._merge_assets_by_id(all_assets, folder_assets)
                 # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
                 assets_without_albums = get_unique_items(all_assets, album_assets, key='id')
                 LOGGER.debug(
@@ -1934,11 +2068,15 @@ class ClassSynologyPhotos(BaseMediaClient):
                 combined_assets = []
                 if not all_albums:
                     self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
+                    self._has_owned_shared_space_albums = False
                     return []
+                self._has_owned_shared_space_albums = False
                 for album in all_albums:
                     album = self.ensure_shared_album_access(album, log_level=log_level)
                     album = self._hydrate_album_payload(album)
                     album = self._ensure_album_runtime_details(album, log_level=log_level)
+                    if album.get("_synology_album_scope") == "owned_shared_space":
+                        self._has_owned_shared_space_albums = True
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
                     if self.is_shared_with_me_album(album):

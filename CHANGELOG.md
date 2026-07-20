@@ -31,6 +31,7 @@
   - Fixed Automatic Migration desktop GUI flag alignment: conditional `--import-people` and `--one-time-password` controls are now added to the shared three-column flags grid and use the remaining slot in the preceding row when available.
   - Fixed the Web Interface discarding the `--one-time-password` field after building Synology module arguments, which prevented the optional 2FA control from being displayed.
   - Fixed Immich `Remove Duplicate Assets` detection to use the current `exifInfo.fileSizeInByte` response field, with fallback support for older size fields. Duplicate groups are no longer silently discarded when the legacy `fileSize` field is absent, and the analysis now reports assets that genuinely lack a usable size.
+  - Fixed `Synology Photos` `Shared Space` assets without albums being omitted from `Download All` and `Automatic Migration` when asset filters were active (issue `#1173`). When Shared Space albums are detected, PhotoMigrator now supplements the personal-space global inventory with a paginated `folder_id` inventory from the Synology Photos folder API, applies the configured filters to that recovered inventory, merges assets by their stable Synology ID, and only then excludes assets already represented by albums. This keeps the existing album APIs as the primary source for album contents while recovering the `ALL_PHOTOS` assets that Synology's global timeline request does not expose in Shared Space.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
