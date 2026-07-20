@@ -2096,7 +2096,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.warning(
                 f"Album association was not confirmed by target for asset "
                 f"'{os.path.basename(asset.get('asset_file_path', ''))}' into album '{album_name}'. "
-                f"The asset may already belong to that album or the target may have rejected it."
+                f"The asset may already belong to that album or the target may have rejected it. "
+                f"With Immich, a common cause is that the asset is in Locked Folder and the current API session has not unlocked it."
             )
             scheduled_retry = False
             if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
@@ -2727,7 +2728,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 f"Album Association Failed: '{os.path.basename(item.get('asset_file_path', ''))}' "
                 f"could not be associated with album '{album_name}' after "
                 f"{item.get('album_assoc_retry_attempt', 0)}/{max_album_assoc_retries} retry attempt(s); "
-                f"reason={reason}; it remains in {AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER}."
+                f"reason={reason}; it remains in {AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER}. "
+                f"For Immich, verify whether the asset is in Locked Folder and unlock it for the API session."
             )
 
         album_is_shared = any(bool(item.get("album_is_shared")) for item in batch_items)
@@ -2855,7 +2857,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 else:
                     LOGGER.warning(
                         f"Album association was not confirmed by target for asset '{os.path.basename(item.get('asset_file_path', ''))}' "
-                        f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it."
+                        f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it. "
+                        f"With Immich, a common cause is that the asset is in Locked Folder and the current API session has not unlocked it."
                     )
                     if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
                         scheduled_retry = _schedule_album_association_retry(
