@@ -4244,6 +4244,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     count_push_stats = asset.get('count_push_stats', True)
                     physical_stats = dict(asset.get('physical_stats') or _build_physical_transfer_stats(asset_type))
                     live_photo_video_path = asset.get('live_photo_video_path', None)
+                    takeout_people_count = (
+                        target_client.get_takeout_people_count_for_asset(asset_file_path)
+                        if isinstance(target_client, ClassImmichPhotos)
+                        else 0
+                    )
+                    people_context = f" (People found: {takeout_people_count})" if takeout_people_count else ""
                     retry_attempt = int(asset.get('retry_attempt', 0) or 0)
                     association_retry_attempt = int(asset.get('album_assoc_retry_attempt', 0) or 0)
                     enqueued_at_monotonic = asset.get('enqueued_at_monotonic')
@@ -4302,13 +4308,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     photo_file_path=asset_file_path,
                                     live_photo_video_path=live_photo_video_path,
                                     log_level=logging.ERROR,
-                                    resolve_duplicate_id=False,
+                                    resolve_duplicate_id=bool(takeout_people_count),
                                 )
                             elif isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos, ClassGooglePhotos)):
                                 asset_id, isDuplicated = target_client.push_asset(
                                     file_path=asset_file_path,
                                     log_level=logging.ERROR,
-                                    resolve_duplicate_id=False,
+                                    resolve_duplicate_id=bool(takeout_people_count) if isinstance(target_client, ClassImmichPhotos) else False,
                                 )
                             else:
                                 asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
@@ -4335,7 +4341,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if isDuplicated:
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped"
-                                        f"{_format_album_pending_context(album_name, asset_file_path)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path)}{people_context}"
                                     )
                                     if count_push_stats:
                                         _increment_push_duplicate_counters(SHARED_DATA.counters, asset_type, physical_stats)
@@ -4363,7 +4369,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         )
                                     LOGGER.info(
                                         f"Asset Pushed    : '{os.path.basename(asset_file_path)}'"
-                                        f"{_format_album_pending_context(album_name, asset_file_path)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path)}{people_context}"
                                     )
                                     if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
                                         try:
@@ -4384,7 +4390,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if isDuplicated:
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped"
-                                        f"{_format_album_pending_context(album_name, asset_file_path)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path)}{people_context}"
                                     )
                                     treat_as_consumed = True
                                     if count_push_stats and not album_name:

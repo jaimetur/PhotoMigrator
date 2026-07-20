@@ -22,6 +22,7 @@
 #### 🐛 Bug fixes:
   - Fixed the Web Interface discarding the `--one-time-password` field after building Synology module arguments, which prevented the optional 2FA control from being displayed.
   - Fixed Automatic Migration desktop GUI flag alignment: conditional `--import-people` and `--one-time-password` controls are now added to the shared three-column flags grid and use the remaining slot in the preceding row when available.
+  - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
 
 #### 📚 Documentation:
   - Documented Google Takeout people-map processing, including its dedicated pre-GPTH `Step 4.1` capture phase, Immich `--import-people` uploads, and the corresponding Automatic Migration behavior and limitations.

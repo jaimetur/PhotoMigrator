@@ -33,6 +33,8 @@ When the destination is Immich, you can include **`--import-people`** to import 
 
 Google Takeout provides person names and capture dates, but not face rectangles. PhotoMigrator creates or reuses the named people in Immich and only reassigns labels when Immich reports the same number of unassigned detected faces as Takeout labels. If the counts differ or face detection is not yet available, the asset is left unchanged and the reason is logged.
 
+When enabled, the migration log reports `Google Takeout people map loaded (N assets)`. Each `Asset Pushed` or `Asset Duplicated` line for a mapped asset includes `People found: N`. For such duplicates, PhotoMigrator resolves the existing Immich asset ID before attempting the person import, so a rerun can also apply labels to assets that Immich had already stored.
+
 Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **`--parallel-migration=false`**, so first, all the assets will be pulled from `<SOURCE>` and when finish, they will be pushed into `<TARGET>`, but take into account that in this case, you will need enough disk space to store all your assets pulled from `<SOURCE>` service.
 
 By default, destination albums are only reused when the existing target album name matches exactly, and newly created albums keep the original source name.

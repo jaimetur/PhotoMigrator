@@ -429,6 +429,13 @@ class ClassImmichPhotos(BaseMediaClient):
         LOGGER.warning("--import-people was enabled but no takeout_people_metadata.json was found in the input folder.")
         return False
 
+    def get_takeout_people_count_for_asset(self, file_path):
+        """Return the number of Takeout person labels associated with a local asset."""
+        entry = self._takeout_people_map.get(os.path.basename(file_path))
+        if not isinstance(entry, dict):
+            return 0
+        return len([name for name in entry.get("people", []) if str(name).strip()])
+
     def _get_or_create_takeout_person_id(self, name):
         cached = self._takeout_people_ids.get(name)
         if cached:
@@ -2009,15 +2016,19 @@ class ClassImmichPhotos(BaseMediaClient):
                             f"Immich duplicate response without asset id for '{os.path.basename(file_path)}'. "
                             f"Resolved existing asset_id={resolved_asset_id}."
                         )
-                        return resolved_asset_id, True
-                    LOGGER.error(
-                        f"Immich returned duplicate status without existing asset id for '{os.path.basename(file_path)}'. "
-                        f"Response payload: {new_asset}"
-                    )
-                    return None, None
+                        asset_id = resolved_asset_id
+                    else:
+                        LOGGER.error(
+                            f"Immich returned duplicate status without existing asset id for '{os.path.basename(file_path)}'. "
+                            f"Response payload: {new_asset}"
+                        )
+                        return None, None
                 if asset_id:
                     self._remember_uploaded_asset_id(file_path, asset_id)
-                    self.import_takeout_people_for_asset(file_path, asset_id, log_level=log_level)
+                    # Automatic Migration normally suppresses upload chatter at ERROR.
+                    # Person import outcomes are operationally significant, so keep them visible.
+                    with set_log_level(LOGGER, logging.INFO):
+                        self.import_takeout_people_for_asset(file_path, asset_id, log_level=logging.INFO)
                     if is_duplicated:
                         LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Existing asset_id={asset_id}")
                     else:

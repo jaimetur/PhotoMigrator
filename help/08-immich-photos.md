@@ -91,6 +91,7 @@ Immich `Upload Albums` and `Upload All` support `--import-people` when the selec
 - This option is only available for Immich uploads.
 - A raw local folder with Google JSON sidecars is also supported; PhotoMigrator builds the same in-memory map when no generated map is present.
 - Google Takeout does not provide face rectangles. Therefore, PhotoMigrator only reassigns labels when Immich exposes the same number of unassigned detected faces as Takeout labels. Other cases are logged and left unchanged rather than guessing face identity.
+- The log reports the loaded map size and `People found: N` alongside each mapped upload or duplicate. Mapped duplicates resolve their existing Immich asset ID so the person import is also attempted on reruns.
 - The Immich account/API key must have permission to create people and reassign faces.
 
 Examples:
