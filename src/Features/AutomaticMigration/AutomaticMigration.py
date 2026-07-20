@@ -1181,7 +1181,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     album_assoc_retry_delays_seconds = [2, 5, 10]
     max_album_assoc_retries = min(
         len(album_assoc_retry_delays_seconds),
-        max(0, int(ARGS.get("album-association-retries", 0) or 0)),
+        max(0, int(ARGS.get("album-association-retries", 1) or 1)),
     )
     default_album_assoc_batch_size = 10 if isinstance(target_client, ClassImmichPhotos) else 100
     album_assoc_batch_size = max(5, int(ARGS.get("album-association-batch-size", default_album_assoc_batch_size) or default_album_assoc_batch_size))
@@ -2104,13 +2104,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     resolved_target_asset_id=asset_id,
                 )
             if not scheduled_retry:
-                # Even when association retries are disabled, this asset has
-                # entered the association workflow and belongs in its total.
-                _record_queue_admission(
-                    asset,
-                    'total_album_assoc_queue_assets',
-                    '_album_assoc_queue_counted',
-                )
                 SHARED_DATA.counters['total_album_assoc_failed_assets'] += _physical_file_count(asset=asset)
                 cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                     _finalize_album_association_failed_asset,
@@ -2146,11 +2139,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 resolved_target_asset_id=asset_id,
             )
             if not scheduled_retry:
-                _record_queue_admission(
-                    asset,
-                    'total_album_assoc_queue_assets',
-                    '_album_assoc_queue_counted',
-                )
                 SHARED_DATA.counters['total_album_assoc_failed_assets'] += _physical_file_count(asset=asset)
                 cleanup_elapsed_ms = _finalize_album_assoc_failed_asset_safely(
                     _finalize_album_association_failed_asset,
@@ -2603,7 +2591,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     def _schedule_album_association_retry(asset, reason, resolved_target_asset_id):
         is_pending_duplicate_resolution = bool((asset or {}).get('_pending_duplicate_resolution'))
-        if (not resolved_target_asset_id and not is_pending_duplicate_resolution) or max_album_assoc_retries <= 0:
+        # This queue resolves duplicate assets whose target ID was not returned
+        # by the push API. Known IDs are associated in the hot path only.
+        if not is_pending_duplicate_resolution or max_album_assoc_retries <= 0:
             return False
 
         current_attempt = int((asset or {}).get('album_assoc_retry_attempt', 0) or 0)
@@ -2704,14 +2694,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
         def _finalize_unconfirmed(item, target_asset_id, reason):
             _count_duplicate_outcome(item)
-            # A terminal first-attempt failure bypasses the physical queue when
-            # association retries are disabled, but it still belongs to the
-            # association workflow and must contribute once to its total.
-            _record_queue_admission(
-                item,
-                'total_album_assoc_queue_assets',
-                '_album_assoc_queue_counted',
-            )
             SHARED_DATA.counters['total_album_assoc_failed_assets'] += _physical_file_count(asset=item)
             _finalize_album_assoc_failed_asset_safely(
                 _finalize_album_association_failed_asset,
