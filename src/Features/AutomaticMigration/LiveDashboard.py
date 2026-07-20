@@ -269,7 +269,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 Layout(name="empty_line_1", size=1),  # Línea vacía
                 Layout(name="header_panel", size=8),
                 Layout(name="title_panel", size=3),
-                Layout(name="content_panel", size=16),
+                Layout(name="content_panel", size=15),
                 Layout(name="logs_panel", ratio=1),
                 Layout(name="background_progress_panel", size=7),
                 Layout(name="empty_line_2", size=1),  # Línea vacía
