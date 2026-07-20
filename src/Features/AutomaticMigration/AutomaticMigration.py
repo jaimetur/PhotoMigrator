@@ -33,7 +33,7 @@ from Utils.StandaloneUtils import change_working_dir, resolve_external_path
 terminal_width = shutil.get_terminal_size().columns
 WEB_DASHBOARD_SNAPSHOT_PREFIX = "__PHOTOMIGRATOR_DASHBOARD__\t"
 AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER = "Push_Queue"
-AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER = "Delayed_Queue"
+AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER = "Push_Delayed_Queue"
 AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER = "Push_Failed"
 AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER = "Pull_Failed"
 AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER = "Album_Association_Queue"

@@ -390,7 +390,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 {"asset_file_path": str(queued_photo)},
                 automatic_module.AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
             )
-            expected_delayed = temp_root / "Delayed_Queue" / "Albums" / "MiAlbum" / "IMG_0001.JPG"
+            expected_delayed = temp_root / "Push_Delayed_Queue" / "Albums" / "MiAlbum" / "IMG_0001.JPG"
 
             self.assertEqual(delayed_asset["asset_file_path"], str(expected_delayed))
             self.assertFalse(queued_photo.exists())
