@@ -567,7 +567,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertTrue(counted)
         self.assertEqual(counters["total_pushed_albums"], 1)
         self.assertEqual(processed_albums, {"Album A"})
-        logger.info.assert_not_called()
+        logger.info.assert_called_once_with("Album Pushed    : 'Album A'")
 
     def test_mark_album_pushed_if_ready_ignores_excluded_housekeeping_entries(self):
         with tempfile.TemporaryDirectory() as tmpdir:

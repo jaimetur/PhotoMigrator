@@ -622,6 +622,24 @@ def _mark_album_pushed_if_ready(
         processed_albums.add(album_name)
         counters['total_pushed_albums'] += 1
 
+        album_summary = ""
+        if album_stats_by_name is not None and album_stats_lock is not None:
+            with album_stats_lock:
+                album_stats = dict((album_stats_by_name or {}).get(album_name) or {})
+            total_assets = max(0, int(album_stats.get("total_assets", 0) or 0))
+            pushed_assets = max(0, int(album_stats.get("pushed_assets", 0) or 0))
+            duplicated_assets = max(0, int(album_stats.get("duplicated_assets", 0) or 0))
+            failed_assets = max(0, int(album_stats.get("failed_assets", 0) or 0))
+            summary_parts = [
+                f"Total Assets: {total_assets}",
+                f"Pushed: {pushed_assets}",
+                f"Duplicates: {duplicated_assets}",
+            ]
+            if failed_assets > 0:
+                summary_parts.append(f"Failed: {failed_assets}")
+            album_summary = f" ({' | '.join(summary_parts)})"
+
+        logger.info(f"Album Pushed    : '{album_name}'{album_summary}")
         return True
 
 
@@ -3464,7 +3482,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             pull_threads = [
                 threading.Thread(
                     target=puller_worker,
-                    kwargs={"parallel": parallel, "log_level": log_level},
+                    kwargs={
+                        "parallel": parallel,
+                        "log_level": log_level,
+                        "processed_albums": processed_albums,
+                        "processed_albums_lock": processed_albums_lock,
+                    },
                     daemon=True,
                 )
                 for _ in range(num_pull_threads)
@@ -3624,7 +3647,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # --------------------------------------------------------------------------------
     # 1) PULLER: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
-    def puller_worker(parallel=None, log_level=logging.INFO, album_stats_by_name_ref=album_stats_by_name, album_stats_lock_ref=album_stats_lock):
+    def puller_worker(
+        parallel=None,
+        log_level=logging.INFO,
+        album_stats_by_name_ref=album_stats_by_name,
+        album_stats_lock_ref=album_stats_lock,
+        processed_albums=None,
+        processed_albums_lock=None,
+    ):
         # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
         # from Core.GlobalVariables import LOGGER as GV_LOGGER
         # thread_id = threading.get_ident()
@@ -3919,6 +3949,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         "_album_done": True,
                     })
                 LOGGER.info(f"Album Pulled    : '{album_name}'")
+                _maybe_finalize_album(
+                    album_name=album_name,
+                    processed_albums=processed_albums,
+                    processed_albums_lock=processed_albums_lock,
+                    worker_id=0,
+                    logger=LOGGER,
+                    log_level=log_level,
+                )
 
             # 1.2) Descarga de assets sin álbum
             assets_no_album = []
