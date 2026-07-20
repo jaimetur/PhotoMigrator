@@ -37,6 +37,7 @@ AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER = "Delayed_Queue"
 AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER = "Push_Failed"
 AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER = "Pull_Failed"
 AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER = "Album_Association_Queue"
+AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER = "Album_Association_Failed"
 
 
 class SharedData:
@@ -369,6 +370,7 @@ def _relative_staged_asset_path(temp_folder, asset_file_path):
         Path(temp_folder) / AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER,
         Path(temp_folder) / AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
         Path(temp_folder) / AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+        Path(temp_folder) / AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER,
         Path(temp_folder) / AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER,
         Path(temp_folder) / AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER,
     ]
@@ -396,6 +398,7 @@ def _prune_empty_staging_queue_parents(temp_folder, asset_file_path):
         AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER,
         AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
         AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+        AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER,
         AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER,
         AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER,
     )
@@ -496,8 +499,8 @@ def _move_to_album_association_failed_folder(temp_folder, album_name, asset_file
     if not temp_folder or not album_name:
         return {}
 
-    association_queue_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER)
-    os.makedirs(association_queue_folder, exist_ok=True)
+    association_failed_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER)
+    os.makedirs(association_failed_folder, exist_ok=True)
     moved_paths = {}
     logger = LOGGER if hasattr(LOGGER, "warning") else None
 
@@ -522,16 +525,16 @@ def _move_to_album_association_failed_folder(temp_folder, album_name, asset_file
         resolved = _resolve_existing_local_path(path)
         if not resolved or not os.path.exists(resolved):
             return None
-        if os.path.commonpath([os.path.abspath(resolved), os.path.abspath(association_queue_folder)]) == os.path.abspath(association_queue_folder):
+        if os.path.commonpath([os.path.abspath(resolved), os.path.abspath(association_failed_folder)]) == os.path.abspath(association_failed_folder):
             return resolved
         relative_path = _relative_staged_asset_path(temp_folder, resolved)
-        candidate = _dedupe_destination_path(Path(association_queue_folder) / relative_path)
+        candidate = _dedupe_destination_path(Path(association_failed_folder) / relative_path)
         os.makedirs(os.path.dirname(candidate), exist_ok=True)
         shutil.move(resolved, candidate)
         _prune_empty_staging_queue_parents(temp_folder, resolved)
         if logger is not None:
-            logger.warning(
-                f"Album Association Queued: '{os.path.basename(resolved)}' preserved at '{candidate}' "
+            logger.debug(
+                f"Album Association Failed: '{os.path.basename(resolved)}' preserved at '{candidate}' "
                 f"because the upload succeeded but album '{album_name}' was not confirmed."
             )
         moved_paths[label] = str(candidate)
@@ -1178,7 +1181,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     album_assoc_retry_delays_seconds = [2, 5, 10]
     max_album_assoc_retries = min(
         len(album_assoc_retry_delays_seconds),
-        max(0, int(ARGS.get("album-association-retries", 3) or 3)),
+        max(0, int(ARGS.get("album-association-retries", 0) or 0)),
     )
     default_album_assoc_batch_size = 10 if isinstance(target_client, ClassImmichPhotos) else 100
     album_assoc_batch_size = max(5, int(ARGS.get("album-association-batch-size", default_album_assoc_batch_size) or default_album_assoc_batch_size))
@@ -1566,13 +1569,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             live_photo_video_path=live_photo_video_path,
             log_level=log_level,
         )
-        if moved_paths:
-            # This path enters Album_Association_Queue directly instead of via
-            # _schedule_album_association_retry, so account for its physical files
-            # in both queue-admission metrics.
-            admitted_files = len(moved_paths)
-            SHARED_DATA.counters['total_album_assoc_queue_assets'] += admitted_files
-            SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets'] += admitted_files
         if retry_attempt > 0:
             SHARED_DATA.counters['total_push_retry_recovered_assets'] += _physical_file_count(
                 asset_type=asset_type,
@@ -2093,12 +2089,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 )
                 return True, assoc_elapsed_ms, cleanup_elapsed_ms, False
 
-            LOGGER.warning(
-                f"Album association was not confirmed by target for asset "
-                f"'{os.path.basename(asset.get('asset_file_path', ''))}' into album '{album_name}'. "
-                f"The asset may already belong to that album or the target may have rejected it. "
-                f"With Immich, a common cause is that the asset is in Locked Folder and the current API session has not unlocked it."
-            )
+            if not int(asset.get("album_assoc_retry_attempt", 0) or 0):
+                LOGGER.warning(
+                    f"Album association was not confirmed by target for asset "
+                    f"'{os.path.basename(asset.get('asset_file_path', ''))}' into album '{album_name}'. "
+                    f"The asset may already belong to that album or the target may have rejected it. "
+                    f"With Immich, a common cause is that the asset is in Locked Folder and the current API session has not unlocked it."
+                )
             scheduled_retry = False
             if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
                 scheduled_retry = _schedule_album_association_retry(
@@ -2600,10 +2597,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         current_attempt = int((asset or {}).get('album_assoc_retry_attempt', 0) or 0)
         next_attempt = current_attempt + 1
         if next_attempt > max_album_assoc_retries:
-            LOGGER.error(
-                f"Album Association Unconfirmed: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
-                f"exhausted {max_album_assoc_retries} verification attempt(s). Reason: {reason}"
-            )
             return False
 
         retry_asset = dict(asset or {})
@@ -2623,7 +2616,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         retry_asset['album_assoc_enqueued_at_monotonic'] = time.perf_counter()
         album_assoc_queue.put(retry_asset)
 
-        LOGGER.warning(
+        LOGGER.debug(
             f"Album Association Retry Queued: '{os.path.basename((asset or {}).get('asset_file_path', ''))}' "
             f"attempt {next_attempt}/{max_album_assoc_retries} queued for an album-association worker. Reason: {reason}"
         )
@@ -2727,8 +2720,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.error(
                 f"Album Association Failed: '{os.path.basename(item.get('asset_file_path', ''))}' "
                 f"could not be associated with album '{album_name}' after "
-                f"{item.get('album_assoc_retry_attempt', 0)}/{max_album_assoc_retries} retry attempt(s); "
-                f"reason={reason}; it remains in {AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER}. "
+                f"{int(item.get('album_assoc_retry_attempt', 0) or 0) + 1} attempt(s); "
+                f"reason={reason}; it was moved to {AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER}. "
                 f"For Immich, verify whether the asset is in Locked Folder and unlock it for the API session."
             )
 
@@ -2855,11 +2848,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         f"associated with album '{album_name}' (worker={worker_id}, batch={len(normalized_items)})."
                     )
                 else:
-                    LOGGER.warning(
-                        f"Album association was not confirmed by target for asset '{os.path.basename(item.get('asset_file_path', ''))}' "
-                        f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it. "
-                        f"With Immich, a common cause is that the asset is in Locked Folder and the current API session has not unlocked it."
-                    )
+                    if not int(item.get("album_assoc_retry_attempt", 0) or 0):
+                        LOGGER.warning(
+                            f"Album association was not confirmed by target for asset '{os.path.basename(item.get('asset_file_path', ''))}' "
+                            f"into album '{album_name}'. The asset may already belong to that album or the target may have rejected it. "
+                            f"With Immich, a common cause is that the asset is in Locked Folder and the current API session has not unlocked it."
+                        )
                     if isinstance(target_client, (ClassImmichPhotos, ClassSynologyPhotos)):
                         scheduled_retry = _schedule_album_association_retry(
                             asset=item,
@@ -3684,11 +3678,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Album Assoc Retry Recovered : {SHARED_DATA.counters['total_album_assoc_retry_recovered_assets']}")
             LOGGER.info(f"Album Assoc Unconfirmed     : {SHARED_DATA.counters['total_album_assoc_unconfirmed_assets']}")
             if consolidate_similar_albums:
-                LOGGER.info(f"Consolidated Albums        : {SHARED_DATA.counters['total_consolidated_albums']}")
+                LOGGER.info(f"Consolidated Albums         : {SHARED_DATA.counters['total_consolidated_albums']}")
             if prefer_canonical_album_names and not consolidate_similar_albums:
                 LOGGER.info(f"Canonicalized Albums       : {SHARED_DATA.counters['total_canonicalized_albums']}")
             if SHARED_DATA.counters['total_target_empty_albums_removed'] > 0:
-                LOGGER.info(f"Target Empty Albums Removed: {SHARED_DATA.counters['total_target_empty_albums_removed']}")
+                LOGGER.info(f"Target Empty Albums Removed : {SHARED_DATA.counters['total_target_empty_albums_removed']}")
             LOGGER.info(f"")
             LOGGER.info(f"Migration Job completed in  : {migration_formatted_duration}")
             LOGGER.info(f"Total Elapsed Time          : {total_formatted_duration}")
@@ -4635,7 +4629,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     delayed_queue_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER)
     push_failed_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER)
     album_association_queue_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER)
-    for queue_folder in (push_queue_folder, delayed_queue_folder, push_failed_folder, album_association_queue_folder):
+    album_association_failed_folder = os.path.join(temp_folder, AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER)
+    for queue_folder in (
+        push_queue_folder,
+        delayed_queue_folder,
+        push_failed_folder,
+        album_association_queue_folder,
+        album_association_failed_folder,
+    ):
         os.makedirs(queue_folder, exist_ok=True)
 
     # Listas de posibles etiquetas para los distintos tipos de archivos en los diferentes clientes

@@ -347,7 +347,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(counters["total_push_duplicates_photos"], 1)
         self.assertEqual(counters["total_push_duplicates_videos"], 1)
 
-    def test_move_to_album_association_queue_preserves_relative_folder_structure(self):
+    def test_move_to_album_association_failed_preserves_relative_folder_structure(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             temp_root = Path(tmpdir)
             album_folder = temp_root / automatic_module.AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER / "Albums" / "Fotos Javi"
@@ -365,7 +365,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
                 log_level=logging.INFO,
             )
 
-            failed_album_folder = temp_root / automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER / "Albums" / "Fotos Javi"
+            failed_album_folder = temp_root / automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER / "Albums" / "Fotos Javi"
             self.assertEqual(
                 moved,
                 {
