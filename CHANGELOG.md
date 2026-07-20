@@ -19,6 +19,7 @@
 #### 🐛 Bug fixes:
 
 #### 📚 Documentation:
+  - Documented Google Takeout people-map processing, Immich `--import-people` uploads, and the corresponding Automatic Migration behavior and limitations.
   - Documented `Remove Duplicate Assets` in the cloud-feature matrix and all cloud-service guides, including keeper selection, confirmation, backend-specific metadata limitations, and deletion safeguards.
   - Updated documentation with all changes.
 

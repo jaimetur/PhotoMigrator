@@ -175,6 +175,21 @@ The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by def
 The final `<OUTPUT_FOLDER>` will include:
 - `Albums` subfolder with all the Albums without year/month structure (by default).
 - `<NO_ALBUMS_FOLDER>` subfolder with all the photos with year/month structure (by default).
+- `takeout_people_metadata.json`, when people processing is enabled. This map is keyed by media filename and preserves the Google Takeout person labels and capture date after GPTH removes the original JSON sidecars.
+
+### Google Takeout people map
+
+Google Takeout sidecars can include the people labels that Google Photos stored for an asset. PhotoMigrator reads those labels before GPTH processing and writes them to `takeout_people_metadata.json` in the processed output folder.
+
+- `--google-process-people=true|false` controls this step and defaults to `true`.
+- With `--google-process-people=false`, PhotoMigrator ignores people fields in the JSON sidecars and does not create the map.
+- The map is intended for a later Immich upload or an Automatic Migration whose target is Immich. Enable `--import-people` in that destination workflow to consume it.
+
+Example:
+
+```bash
+./PhotoMigrator.bin --google-takeout ./MyTakeout --google-process-people=true
+```
 
 ### Complete list of Flags/Arguments admitted:
 - [Arguments](02-arguments-description.md)
