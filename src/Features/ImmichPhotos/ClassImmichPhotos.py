@@ -1930,38 +1930,35 @@ class ClassImmichPhotos(BaseMediaClient):
             url = f"{self.IMMICH_URL}/api/search/metadata"
             all_assets = []
             next_page = 1
-            page_count = 0
-            total_assets = None
             LOGGER.info(
                 f"Downloading the Immich asset inventory in pages of up to "
                 f"{self.IMMICH_ASSET_INVENTORY_PAGE_SIZE} assets..."
             )
-            while True:
-                payload = json.dumps({
-                    "page": int(next_page),
-                    "size": self.IMMICH_ASSET_INVENTORY_PAGE_SIZE,
-                    "order": "desc",
-                    "withExif": True,
-                    "withPeople": True,
-                })
-                resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
-                resp.raise_for_status()
-                data = resp.json()
-                assets_page = data.get("assets", {})
-                items = assets_page.get("items", [])
-                all_assets.extend(items)
-                page_count += 1
-                if total_assets is None:
-                    total_assets = assets_page.get("total")
-                if page_count == 1 or page_count % 10 == 0:
-                    total_suffix = f"/{total_assets}" if total_assets is not None else ""
-                    LOGGER.info(
-                        f"Immich asset inventory progress: page {page_count}, "
-                        f"received {len(all_assets)}{total_suffix} assets."
-                    )
-                next_page = assets_page.get("nextPage", None)
-                if next_page is None:
-                    break
+            # Immich's response total is the current page size on some server versions,
+            # so use an indeterminate progress bar instead of reporting a false maximum.
+            with tqdm(
+                total=None,
+                desc=f"{MSG_TAGS['INFO']}Retrieving Immich asset inventory",
+                unit=" assets",
+            ) as progress_bar:
+                while True:
+                    payload = json.dumps({
+                        "page": int(next_page),
+                        "size": self.IMMICH_ASSET_INVENTORY_PAGE_SIZE,
+                        "order": "desc",
+                        "withExif": True,
+                        "withPeople": True,
+                    })
+                    resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    assets_page = data.get("assets", {})
+                    items = assets_page.get("items", [])
+                    all_assets.extend(items)
+                    progress_bar.update(len(items))
+                    next_page = assets_page.get("nextPage", None)
+                    if next_page is None:
+                        break
             self._all_assets_unfiltered_cache = all_assets
             return all_assets
 
