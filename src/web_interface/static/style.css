@@ -257,7 +257,7 @@ body {
     gap: 8px;
     flex-wrap: wrap;
     position: absolute;
-    right: 18px;
+    right: 68px;
     top: 12px;
     max-width: min(60%, 700px);
     z-index: 2;
@@ -794,9 +794,9 @@ body {
     display: none;
 }
 
-.hero__collapse-btn {
-    top: 12px;
-    right: 12px;
+.hero .hero__collapse-btn {
+    top: 20px;
+    right: 20px;
 }
 
 .hero__doc-btn {

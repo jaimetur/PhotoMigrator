@@ -64,6 +64,7 @@
   - Scoped `--remove-albums-assets` to `Remove Albums` and `Remove All Albums` for the cloud services that implement asset deletion (Synology Photos, Immich Photos, and NextCloud Photos). It no longer appears in General Arguments in Web, GUI, or TUI.
   - Refined Google Takeout people-map collision matching for Immich imports. Album copies sharing a capture timestamp are consolidated, while remaining same-name candidates are ranked only by equivalent date types: EXIF-to-capture time and filesystem-to-modification time. Creation time remains informational and unrelated date types are never compared. Resolution logs now report the selected distance as `dd days hh:mm:ss`.
   - Made the Web Interface header collapsible. Its title and version remain available in the compact state, while session controls, documentation actions, and the logo can be restored through the persisted header collapse control.
+  - Aligned the Web Interface header collapse control with the padded positioning of the other panel controls and reserved its corner space for the Admin and Logout session row.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
