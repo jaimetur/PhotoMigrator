@@ -1016,6 +1016,9 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 LOGGER.info("No duplicate assets were found.")
                 return
             if normalized_client == "immich":
+                metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
+                    log_level=logging.INFO,
+                )
                 LOGGER.info(
                     "Loading complete metadata for each duplicate candidate before confirmation. "
                     "This can take time, but the review list will show the metadata that is preserved."
@@ -1029,10 +1032,6 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                         "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
                     )
                     return
-                metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
-                    duplicate_groups,
-                    log_level=logging.INFO,
-                )
             else:
                 metadata_display_names = {}
             LOGGER.info("Duplicate asset groups found:")

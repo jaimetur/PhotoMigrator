@@ -309,8 +309,9 @@ class TestImmichStreamingUpload(unittest.TestCase):
             verify=False,
         )
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
-    def test_duplicate_metadata_display_names_resolves_album_tag_and_person_names(self, mock_get):
+    def test_duplicate_metadata_display_names_resolves_album_tag_and_person_names(self, mock_get, _mock_logger):
         manager = self._build_manager()
 
         def response(records):
@@ -322,8 +323,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
         mock_get.side_effect = [
             response([{"id": "album-1", "albumName": "Summer 2003"}]),
             response([{"id": "tag-1", "value": "family/yoli"}]),
-            response({"people": []}),
-            response({"id": "person-1", "name": "Yoli"}),
+            response({"people": [{"id": "person-1", "name": "Yoli"}], "hasNextPage": False}),
         ]
         names = manager.get_duplicate_metadata_display_names([[
             {
@@ -336,7 +336,8 @@ class TestImmichStreamingUpload(unittest.TestCase):
             names,
             {"albums": {"album-1": "Summer 2003"}, "tags": {"tag-1": "family/yoli"}, "people": {"person-1": "Yoli"}},
         )
-        self.assertEqual(mock_get.call_count, 4)
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(mock_get.call_args_list[2].kwargs["params"], {"page": 1})
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")

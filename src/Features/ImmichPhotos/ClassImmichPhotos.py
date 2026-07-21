@@ -2247,53 +2247,56 @@ class ClassImmichPhotos(BaseMediaClient):
                     )
         return [group for group in hydrated_groups if all(asset is not None for asset in group)]
 
-    def get_duplicate_metadata_display_names(self, duplicate_groups, log_level=None):
-        """Resolve preview-only album, tag, and person IDs with three cached requests."""
-        requested_ids = {"albums": set(), "tags": set(), "people": set()}
-        for group in duplicate_groups:
-            for asset in group:
-                for key in requested_ids:
-                    requested_ids[key].update(self._asset_reference_ids(asset, key))
-
+    def get_duplicate_metadata_display_names(self, duplicate_groups=None, log_level=None):
+        """Preload immutable album, tag, and person ID-to-name dictionaries for review."""
         endpoint_fields = {
             "albums": ("albums", "albumName"),
             "tags": ("tags", "value"),
             "people": ("people", "name"),
         }
-        resolved_names = {key: {} for key in requested_ids}
-        for key, ids in requested_ids.items():
-            if not ids:
-                continue
-            endpoint, name_field = endpoint_fields[key]
+        resolved_names = {key: {} for key in endpoint_fields}
+        LOGGER.info("Preloading Immich album, tag, and person names for duplicate review...")
+        for key, (endpoint, name_field) in endpoint_fields.items():
             try:
-                response = requests.get(
-                    f"{self.IMMICH_URL}/api/{endpoint}",
-                    headers=self.HEADERS_WITH_CREDENTIALS,
-                    verify=False,
-                )
-                response.raise_for_status()
-                records = response.json()
-                if isinstance(records, dict):
-                    records = records.get(key) or records.get("items") or []
-                if not isinstance(records, list):
-                    raise ValueError("unexpected list response")
-                resolved_names[key] = {
-                    str(record.get("id") or "").strip(): str(record.get(name_field) or record.get("name") or "").strip()
-                    for record in records if isinstance(record, dict)
-                    and str(record.get("id") or "").strip() in ids
-                    and str(record.get(name_field) or record.get("name") or "").strip()
-                }
                 if key == "people":
-                    for person_id in ids - set(resolved_names[key]):
-                        person_response = requests.get(
-                            f"{self.IMMICH_URL}/api/people/{person_id}",
+                    page = 1
+                    while True:
+                        response = requests.get(
+                            f"{self.IMMICH_URL}/api/{endpoint}",
                             headers=self.HEADERS_WITH_CREDENTIALS,
+                            params={"page": page},
                             verify=False,
                         )
-                        person_response.raise_for_status()
-                        person = person_response.json()
-                        if isinstance(person, dict) and str(person.get("name") or "").strip():
-                            resolved_names[key][person_id] = str(person["name"]).strip()
+                        response.raise_for_status()
+                        payload = response.json()
+                        records = payload.get("people") if isinstance(payload, dict) else payload
+                        if not isinstance(records, list):
+                            raise ValueError("unexpected people list response")
+                        before_count = len(resolved_names[key])
+                        resolved_names[key].update({
+                            str(record.get("id") or "").strip(): str(record.get("name") or "").strip()
+                            for record in records if isinstance(record, dict)
+                            and str(record.get("id") or "").strip() and str(record.get("name") or "").strip()
+                        })
+                        if not isinstance(payload, dict) or not payload.get("hasNextPage") or len(resolved_names[key]) == before_count:
+                            break
+                        page += 1
+                else:
+                    response = requests.get(
+                        f"{self.IMMICH_URL}/api/{endpoint}",
+                        headers=self.HEADERS_WITH_CREDENTIALS,
+                        verify=False,
+                    )
+                    response.raise_for_status()
+                    records = response.json()
+                    if not isinstance(records, list):
+                        raise ValueError("unexpected list response")
+                    resolved_names[key] = {
+                        str(record.get("id") or "").strip(): str(record.get(name_field) or record.get("name") or "").strip()
+                        for record in records if isinstance(record, dict)
+                        and str(record.get("id") or "").strip()
+                        and str(record.get(name_field) or record.get("name") or "").strip()
+                    }
             except (requests.RequestException, ValueError) as error:
                 LOGGER.warning(
                     f"Could not resolve duplicate-preview {key} names: {error}. "

@@ -37,6 +37,7 @@
   - Linked the Immich duplicate-resolution controls across CLI, Web, TUI, and GUI: disabling `--immich-duplicates-algorithm` now disables `--immich-duplicates-deletion` and selects PhotoMigrator's manual flow; enabling native detection defaults the native-deletion control back to enabled.
   - Hardened the CLI dependency between the Immich duplicate flags: `--immich-duplicates-deletion` now defaults to `true` with native detection, but an explicitly supplied deletion flag is rejected when `--immich-duplicates-algorithm=false`.
   - Reworked Immich duplicate-review metadata hydration into a bounded 24-worker asset-level pool. Candidate asset and album reads now complete out of order through `as_completed`, so the progress bar reports real completed assets instead of being blocked behind an early slow group while the final preview still preserves group order.
+  - Preloaded complete Immich album, tag, and paginated person ID-to-name dictionaries once before duplicate metadata review, removing per-person fallback requests while keeping human-readable preview metadata.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
