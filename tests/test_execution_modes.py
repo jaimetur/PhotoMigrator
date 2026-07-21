@@ -222,8 +222,9 @@ class TestExecutionModes(unittest.TestCase):
         cloud_client.logout.assert_called_once_with(log_level=execution_modes.logging.WARNING)
         preview_lines = [str(call.args[0]) for call in mock_logger.info.call_args_list]
         self.assertIn("  [1] IMG_0001.JPG (42 bytes, 2 candidate asset(s))", preview_lines)
-        self.assertTrue(any("Field" in line and "Keeper" in line and "Remove 1" in line for line in preview_lines))
+        self.assertTrue(any("Field" in line and "Keeper (newest)" in line and "Remove 1" in line for line in preview_lines))
         self.assertTrue(any("ID" in line and "newer" in line and "older" in line for line in preview_lines))
+        self.assertTrue(any("Size" in line and "42 bytes" in line for line in preview_lines))
         self.assertTrue(any("Tags" in line for line in preview_lines))
         self.assertTrue(any("tag-1" in line for line in preview_lines))
         self.assertTrue(any("Favorite" in line for line in preview_lines))
@@ -314,45 +315,6 @@ class TestExecutionModes(unittest.TestCase):
         )
         cloud_client.remove_duplicates_assets_by_name_and_size.assert_not_called()
 
-    def test_large_immich_duplicate_review_stops_after_temporary_preview_limit(self):
-        args = _base_args()
-        args.update({
-            "remove-duplicates-assets": True,
-            "immich-duplicates-algorithm": True,
-            "immich-duplicates-deletion": True,
-            "duplicate-asset-keeper": "better-quality",
-        })
-        duplicate_groups = [
-            [
-                {"id": f"asset-{index}-a", "originalFileName": f"IMG-{index}.JPG", "createdAt": "2020-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}},
-                {"id": f"asset-{index}-b", "originalFileName": f"IMG-{index}.JPG", "createdAt": "2021-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}},
-            ]
-            for index in range(101)
-        ]
-        preview_groups = duplicate_groups[:25]
-        cloud_client = MagicMock()
-        cloud_client.find_duplicate_assets_by_immich_detection.return_value = duplicate_groups
-        cloud_client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
-        cloud_client.hydrate_duplicate_groups_metadata.return_value = preview_groups
-        cloud_client._select_duplicate_asset_keeper.side_effect = lambda group, strategy: group[0]
-        cloud_client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
-
-        with (
-            patch.object(execution_modes, "ARGS", args),
-            patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
-            patch.object(execution_modes, "confirm_continue") as mock_confirm,
-            patch.object(execution_modes, "LOGGER", MagicMock()),
-        ):
-            execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
-
-        cloud_client.hydrate_duplicate_groups_metadata.assert_called_once_with(
-            preview_groups,
-            log_level=execution_modes.logging.INFO,
-            include_albums=True,
-        )
-        mock_confirm.assert_not_called()
-        cloud_client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
-
     def test_native_deletion_is_disabled_when_native_detection_is_disabled(self):
         args = _base_args()
         args.update({
@@ -384,42 +346,6 @@ class TestExecutionModes(unittest.TestCase):
         cloud_client.find_duplicate_assets_by_name_and_size.assert_called_once_with(log_level=execution_modes.logging.INFO)
         cloud_client.find_duplicate_assets_by_immich_detection.assert_not_called()
         cloud_client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
-
-    def test_manual_immich_duplicate_review_limit_truncates_an_oversized_exact_group(self):
-        args = _base_args()
-        args.update({
-            "remove-duplicates-assets": True,
-            "immich-duplicates-algorithm": False,
-            "immich-duplicates-deletion": False,
-            "duplicate-asset-keeper": "newest",
-        })
-        oversized_group = [
-            {"id": f"asset-{index}", "originalFileName": "IMG.JPG", "createdAt": "2021-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}}
-            for index in range(60)
-        ]
-        preview_group = oversized_group[:execution_modes.TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT]
-        cloud_client = MagicMock()
-        cloud_client.find_duplicate_assets_by_name_and_size.return_value = [oversized_group]
-        cloud_client.hydrate_duplicate_groups_metadata.return_value = [preview_group]
-        cloud_client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
-        cloud_client._duplicate_asset_timestamp.side_effect = lambda asset: asset["createdAt"]
-        cloud_client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
-
-        with (
-            patch.object(execution_modes, "ARGS", args),
-            patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
-            patch.object(execution_modes, "confirm_continue") as mock_confirm,
-            patch.object(execution_modes, "LOGGER", MagicMock()),
-        ):
-            execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
-
-        cloud_client.hydrate_duplicate_groups_metadata.assert_called_once_with(
-            [preview_group],
-            log_level=execution_modes.logging.INFO,
-            include_albums=True,
-        )
-        mock_confirm.assert_not_called()
-        cloud_client.remove_duplicates_assets_by_name_and_size.assert_not_called()
 
     def test_duplicate_metadata_preview_uses_resolved_names(self):
         preview = execution_modes._duplicate_asset_merge_metadata_preview(

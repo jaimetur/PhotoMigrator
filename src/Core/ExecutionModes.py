@@ -158,7 +158,20 @@ def _format_duplicate_preview_value(key, value):
     return str(value)
 
 
-def _duplicate_group_preview_table(ordered_assets, display_names=None):
+def _duplicate_preview_asset_size(asset):
+    """Return the Immich asset size for the duplicate-review comparison table."""
+    asset = asset if isinstance(asset, dict) else {}
+    exif_info = asset.get("exifInfo") or {}
+    for value in (exif_info.get("fileSizeInByte"), exif_info.get("fileSize"), asset.get("fileSize")):
+        try:
+            if value is not None:
+                return int(value)
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _duplicate_group_preview_table(ordered_assets, display_names=None, keeper_strategy=None):
     """Return an ASCII table that compares duplicate candidates column by column."""
     ordered_assets = [asset for asset in ordered_assets if isinstance(asset, dict)]
     if not ordered_assets:
@@ -181,9 +194,19 @@ def _duplicate_group_preview_table(ordered_assets, display_names=None):
         key for key in metadata_keys
         if any(key in metadata for metadata in source_metadata_by_asset)
     ]
-    headers = ["Field", "Keeper", *[f"Remove {index}" for index in range(1, len(ordered_assets))]]
+    keeper_label = "Keeper"
+    if str(keeper_strategy or "").strip():
+        keeper_label = f"Keeper ({keeper_strategy})"
+    headers = ["Field", keeper_label, *[f"Remove {index}" for index in range(1, len(ordered_assets))]]
     rows = [
         ("ID", [str(asset.get("id") or "") for asset in ordered_assets]),
+        (
+            "Size",
+            [
+                f"{size:,} bytes" if (size := _duplicate_preview_asset_size(asset)) is not None else "-"
+                for asset in ordered_assets
+            ],
+        ),
         ("Uploaded", [str(asset.get("createdAt") or "") for asset in ordered_assets]),
         *[
             (
@@ -234,11 +257,6 @@ def _duplicate_group_preview_table(ordered_assets, display_names=None):
         table_lines.extend(render([label, *values]))
         table_lines.append(border())
     return table_lines
-
-
-# Temporary diagnostic cap for validating duplicate-review metadata rendering.
-# Remove this once the review output has been confirmed against the target library.
-TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT = 50
 
 
 def _build_cloud_client_obj(client_name: str):
@@ -1143,31 +1161,6 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
             if not duplicate_groups:
                 LOGGER.info("No duplicate assets were found.")
                 return
-            temporary_review_limited = False
-            if normalized_client == "immich":
-                total_candidates = sum(len(group) for group in duplicate_groups)
-                if total_candidates > TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT:
-                    limited_groups = []
-                    limited_candidates = 0
-                    for group in duplicate_groups:
-                        remaining_candidates = (
-                            TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT - limited_candidates
-                        )
-                        if remaining_candidates < 2:
-                            break
-                        preview_group = group[:remaining_candidates]
-                        if len(preview_group) < 2:
-                            continue
-                        limited_groups.append(preview_group)
-                        limited_candidates += len(preview_group)
-                        if limited_candidates >= TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT:
-                            break
-                    duplicate_groups = limited_groups
-                    temporary_review_limited = True
-                    LOGGER.warning(
-                        f"Temporary duplicate-review limit enabled: loading the first {limited_candidates} "
-                        f"complete candidate asset(s) out of {total_candidates}. No assets will be deleted."
-                    )
             if normalized_client == "immich":
                 metadata_display_names = {}
                 if not use_immich_deletion:
@@ -1209,18 +1202,17 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                     f"  [{group_index}] {filename} ({size} bytes, {len(ordered)} candidate asset(s))"
                 )
                 if normalized_client == "immich":
-                    for line in _duplicate_group_preview_table(ordered, metadata_display_names):
+                    for line in _duplicate_group_preview_table(
+                        ordered,
+                        metadata_display_names,
+                        keeper_strategy=keeper_strategy,
+                    ):
                         LOGGER.info(f"      {line}")
                 else:
                     for asset_index, item in enumerate(ordered):
                         role = "Keeper" if asset_index == 0 else f"Remove {asset_index}"
                         LOGGER.info(f"      {role:<8} ID: {item.get('id')}")
                         LOGGER.info(f"               Uploaded: {item.get('createdAt')}")
-            if temporary_review_limited:
-                LOGGER.warning(
-                    "Temporary duplicate-review limit reached. Stopping after preview before confirmation or deletion."
-                )
-                return
             if user_confirmation and not confirm_continue():
                 LOGGER.info("Exiting program without deleting duplicate assets.")
                 return
