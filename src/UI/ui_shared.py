@@ -1588,7 +1588,10 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
         kind = field["kind"]
         long_option = field["long_option"]
         default = field["default"]
-        if kind == "bool" and raw_value is None and dest in required_action_dests:
+        if kind == "bool" and raw_value is None:
+            # Missing interactive values inherit the parser default.  Treating
+            # None as false leaks an explicit false option for true-by-default
+            # fields such as request-user-confirmation.
             raw_value = default
         if kind == "flag":
             if bool_from_value(raw_value):

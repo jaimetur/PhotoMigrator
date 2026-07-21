@@ -66,6 +66,7 @@
   - Fixed the cloud upload contextual help for `--prefer-canonical-album-names` to describe uploaded albums consistently in the Web Interface, GUI, and TUI.
   - Fixed the Web Interface `Immich Remove Duplicate Assets` controls so `--immich-duplicates-algorithm` and `--immich-duplicates-deletion` are rendered as required selections, while an explicit `false` value is accepted and emitted instead of being mistaken for a missing argument.
   - Fixed `--request-user-confirmation` rendering as a boolean toggle in Web, GUI, and TUI. The `foldername-*` fields now render as plain text with their effective default names and no longer expose folder-picker controls.
+  - Fixed GUI/TUI command generation for omitted boolean values with a `true` default. They now inherit the parser default instead of incorrectly emitting an explicit `false` option, preventing unrelated modules from receiving `--request-user-confirmation false`.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
