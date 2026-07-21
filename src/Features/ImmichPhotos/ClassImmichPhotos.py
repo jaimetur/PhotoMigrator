@@ -2607,6 +2607,9 @@ class ClassImmichPhotos(BaseMediaClient):
         removed_assets = 0
         failed_resolution_groups = 0
         inaccessible_group_ids = []
+        stale_group_ids = []
+        resolution_error_groups = []
+        access_split_logged = False
         with tqdm(
             total=len(groups_payload),
             desc=(
@@ -2615,78 +2618,63 @@ class ClassImmichPhotos(BaseMediaClient):
             ),
             unit=" groups",
         ) as progress_bar:
+            def record_response(batch, response_payload):
+                nonlocal removed_assets, failed_resolution_groups
+
+                removed_count, failures = record_batch_result(batch, response_payload)
+                removed_assets += removed_count
+                failed_resolution_groups += len(failures)
+                for duplicate_id, reason in failures:
+                    if str(reason).strip().lower() == "not_found":
+                        stale_group_ids.append(duplicate_id)
+                    else:
+                        resolution_error_groups.append((duplicate_id, reason))
+                progress_bar.update(len(batch))
+
+            def resolve_batch_with_isolation(batch):
+                nonlocal failed_resolution_groups, access_split_logged
+
+                response_payload, error_detail = submit_batch(batch)
+                if response_payload is not None:
+                    record_response(batch, response_payload)
+                    return
+
+                if is_duplicate_delete_access_error(error_detail):
+                    if not access_split_logged:
+                        LOGGER.warning(
+                            "Immich rejected at least one duplicate-resolution batch because it contains an "
+                            "inaccessible or stale group. PhotoMigrator is isolating only the affected groups "
+                            "and will continue resolving the remaining groups in batches."
+                        )
+                        access_split_logged = True
+                    if len(batch) > 1:
+                        midpoint = len(batch) // 2
+                        resolve_batch_with_isolation(batch[:midpoint])
+                        resolve_batch_with_isolation(batch[midpoint:])
+                        return
+
+                    failed_resolution_groups += 1
+                    inaccessible_group_ids.append(batch[0]["duplicateId"])
+                    progress_bar.update(1)
+                    return
+
+                if len(batch) > 1:
+                    LOGGER.warning(
+                        "Immich rejected a duplicate-resolution batch for a reason other than group access; "
+                        "retrying its groups individually. "
+                        f"Server response: {error_detail}"
+                    )
+                    for item in batch:
+                        resolve_batch_with_isolation([item])
+                    return
+
+                failed_resolution_groups += 1
+                resolution_error_groups.append((batch[0]["duplicateId"], error_detail))
+                progress_bar.update(1)
+
             for batch_start in range(0, len(groups_payload), self.IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE):
                 batch = groups_payload[batch_start:batch_start + self.IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE]
-                response_payload, error_detail = submit_batch(batch)
-                if response_payload is None and is_duplicate_delete_access_error(error_detail):
-                    LOGGER.warning(
-                        f"Immich rejected duplicate-resolution batch {batch_start + 1}-"
-                        f"{batch_start + len(batch)} because at least one duplicate group is inaccessible or "
-                        "no longer exists. Retrying its groups individually; inaccessible groups will be "
-                        f"summarized at the end. Server response: {error_detail}"
-                    )
-                    for item in batch:
-                        single_response, single_error = submit_batch([item])
-                        if single_response is None:
-                            failed_resolution_groups += 1
-                            if is_duplicate_delete_access_error(single_error):
-                                inaccessible_group_ids.append(item["duplicateId"])
-                            else:
-                                LOGGER.error(
-                                    f"Immich native duplicate resolution failed for group "
-                                    f"{item['duplicateId']}: {single_error}"
-                                )
-                        else:
-                            removed_count, failures = record_batch_result([item], single_response)
-                            removed_assets += removed_count
-                            if failures:
-                                failed_resolution_groups += 1
-                                LOGGER.warning(
-                                    f"Immich did not resolve duplicate group {item['duplicateId']}: "
-                                    f"{failures[0][1]}."
-                                )
-                        progress_bar.update(1)
-                    continue
-                if response_payload is None and len(batch) > 1:
-                    LOGGER.warning(
-                        f"Immich rejected duplicate-resolution batch {batch_start + 1}-"
-                        f"{batch_start + len(batch)}: {error_detail}. Retrying its groups individually."
-                    )
-                    for item in batch:
-                        single_response, single_error = submit_batch([item])
-                        if single_response is None:
-                            failed_resolution_groups += 1
-                            LOGGER.error(
-                                f"Immich native duplicate resolution failed for group "
-                                f"{item['duplicateId']}: {single_error}"
-                            )
-                        else:
-                            removed_count, failures = record_batch_result([item], single_response)
-                            removed_assets += removed_count
-                            if failures:
-                                failed_resolution_groups += 1
-                                LOGGER.warning(
-                                    f"Immich did not resolve duplicate group {item['duplicateId']}: "
-                                    f"{failures[0][1]}."
-                                )
-                        progress_bar.update(1)
-                    continue
-                if response_payload is None:
-                    failed_resolution_groups += len(batch)
-                    LOGGER.error(
-                        f"Immich native duplicate resolution failed for batch {batch_start + 1}-"
-                        f"{batch_start + len(batch)}: {error_detail}"
-                    )
-                else:
-                    removed_count, failures = record_batch_result(batch, response_payload)
-                    removed_assets += removed_count
-                    failed_resolution_groups += len(failures)
-                    if failures:
-                        LOGGER.warning(
-                            f"Immich did not resolve {len(failures)} duplicate group(s) in batch "
-                            f"{batch_start + 1}-{batch_start + len(batch)}."
-                        )
-                progress_bar.update(len(batch))
+                resolve_batch_with_isolation(batch)
         if inaccessible_group_ids:
             example_ids = ", ".join(inaccessible_group_ids[:10])
             remaining_count = len(inaccessible_group_ids) - len(inaccessible_group_ids[:10])
@@ -2695,6 +2683,24 @@ class ClassImmichPhotos(BaseMediaClient):
                 f"Immich skipped {len(inaccessible_group_ids)} duplicate group(s) because they were "
                 f"inaccessible or no longer existed: {example_ids}{suffix}. This run used "
                 f"IMMICH_API_KEY_USER_{self.ACCOUNT_ID}."
+            )
+        if stale_group_ids:
+            example_ids = ", ".join(stale_group_ids[:10])
+            remaining_count = len(stale_group_ids) - len(stale_group_ids[:10])
+            suffix = f" (+{remaining_count} more)" if remaining_count else ""
+            LOGGER.warning(
+                f"Immich skipped {len(stale_group_ids)} duplicate group(s) that no longer existed when "
+                f"they were resolved: {example_ids}{suffix}."
+            )
+        if resolution_error_groups:
+            example_errors = "; ".join(
+                f"{duplicate_id}: {reason}" for duplicate_id, reason in resolution_error_groups[:10]
+            )
+            remaining_count = len(resolution_error_groups) - len(resolution_error_groups[:10])
+            suffix = f" (+{remaining_count} more)" if remaining_count else ""
+            LOGGER.warning(
+                f"Immich could not resolve {len(resolution_error_groups)} duplicate group(s): "
+                f"{example_errors}{suffix}."
             )
         LOGGER.info(
             f"Immich native duplicate resolution completed: groups={len(groups_payload)}, "
