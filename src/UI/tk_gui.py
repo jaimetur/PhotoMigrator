@@ -265,6 +265,10 @@ class PhotoMigratorTkGUI:
         self.field_help_map: Dict[str, str] = {}
         self.config_widget_map: Dict[str, tuple[str, str]] = {}
         self.running_process: subprocess.Popen[str] | None = None
+        self.run_started_at: float | None = None
+        self.run_finished_at: float | None = None
+        self.run_last_updated_at: float | None = None
+        self.run_module = ""
         self.external_dashboard_active = False
         self.external_dashboard_status_file: Path | None = None
         self.external_dashboard_launcher_file: Path | None = None
@@ -507,6 +511,9 @@ class PhotoMigratorTkGUI:
         self.status_var = tk.StringVar(value="Ready.")
         self.status_text = self.tk.Label(self.status_body, textvariable=self.status_var, anchor="w", justify="left", padx=0, pady=0)
         self.status_text.pack(fill="x")
+        self.run_meta_var = tk.StringVar(value="Elapsed Time: 00:00:00    Last Updated: -")
+        self.run_meta_text = self.tk.Label(self.status_body, textvariable=self.run_meta_var, anchor="w", justify="left", padx=0, pady=0)
+        self.run_meta_text.pack(fill="x", pady=(2, 0))
         self.status_body.bind("<Configure>", lambda event: self._sync_wrapped_label_width(self.status_text, event.width), add="+")
 
         self.input_panel, self.input_header, self.input_title_label, self.input_toggle_spacer, self.input_row = self._create_panel_shell(self.bottom, "Process Input", "status")
@@ -999,6 +1006,7 @@ class PhotoMigratorTkGUI:
         self.refresh_top_tabs()
         self.rebuild_content()
         self.update_command_preview()
+        self.refresh_run_metadata()
 
     def select_general_tab(self, tab_key: str) -> None:
         self.active_general_tab = tab_key
@@ -1322,18 +1330,15 @@ class PhotoMigratorTkGUI:
         widgets: List[Any] = []
         if self.active_module == "upload_folder":
             self._empty_label(parent, "Upload to Server is only available in the Web Interface.").pack(anchor="w", padx=8, pady=8)
-            return widgets
-        if self.active_module == "automatic_migration":
+        elif self.active_module == "automatic_migration":
             self.build_module_only_fields(parent, "automatic_migration", self.schema["tabs"]["automatic_migration"])
-            return widgets
-        if self.active_module in {"google_takeout", "icloud_takeout"}:
+        elif self.active_module in {"google_takeout", "icloud_takeout"}:
             self.build_module_only_fields(parent, self.active_module, self.schema["tabs"][self.active_module])
-            return widgets
-        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
             self.build_cloud_widgets(parent)
-            return widgets
-        if self.active_module == "standalone_features":
+        elif self.active_module == "standalone_features":
             self.build_standalone_widgets(parent)
+        self.ttk.Button(parent, text="Restore Default", command=self.restore_feature_defaults, style="PM.ToolbarLoad.TButton").pack(anchor="w", padx=6, pady=(12, 4))
         return widgets
 
     def build_general_arguments_widgets(self, parent: Any) -> List[Any]:
@@ -1387,6 +1392,43 @@ class PhotoMigratorTkGUI:
         self.persist_ui_state()
         self.rebuild_content()
         self.update_command_preview()
+
+    def restore_feature_defaults(self) -> None:
+        """Restore only the current feature's parameters and local overrides."""
+        if self.active_module in {"google_takeout", "icloud_takeout", "automatic_migration"}:
+            fields = self.schema["tabs"][self.active_module]
+        elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            selected = next((field for field in self.schema["tabs"][self.active_module] if field["dest"] == self.cloud_action_dest.get(self.active_module)), None)
+            fields = [spec["field"] for spec in build_argument_specs(self.schema, self.active_module, selected, True)]
+            account_field = get_field_by_dest(self.schema, "account-id")
+            if account_field:
+                fields.append(account_field)
+        elif self.active_module == "standalone_features":
+            selected = next((field for field in self.schema["tabs"]["standalone_features"] if field["dest"] == self.standalone_action_dest), None)
+            fields = [spec["field"] for spec in build_argument_specs(self.schema, "standalone_features", selected, True)]
+        else:
+            fields = []
+        for field in fields:
+            default_value = field.get("default")
+            self.state_values[field["dest"]] = list(default_value) if isinstance(default_value, list) else default_value
+        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and selected and selected.get("dest") == "rename-albums":
+            self.state_values["rename-pattern"] = ""
+            self.state_values["replacement-pattern"] = ""
+        if self.active_module == "automatic_migration":
+            self.migration_endpoints_state.pop("source", None)
+            self.migration_endpoints_state.pop("target", None)
+            for field in build_automatic_migration_filter_fields(self.schema):
+                self.state_values.pop(f"am-{field['dest']}", None)
+        if self.active_module == "standalone_features":
+            if selected and selected.get("dest") == "find-duplicates":
+                self.state_values["find-duplicates-action"] = "list"
+                self.state_values["find-duplicates-folders"] = []
+            for dest in ("date-separator", "range-separator"):
+                self.state_values.pop(f"sfrcb-{dest}", None)
+        self.persist_ui_state()
+        self.rebuild_content()
+        self.update_command_preview()
+        self.update_status("Feature arguments restored to defaults.")
 
     def build_module_only_fields(self, parent: Any, tab_key: str, fields: List[Dict[str, Any]]) -> None:
         if tab_key == "automatic_migration":
@@ -2050,8 +2092,24 @@ class PhotoMigratorTkGUI:
         self._set_readonly_text(self.log_text, self.log_buffer.render_text(include_partial=True))
         self.log_text.see("end")
 
+    def refresh_run_metadata(self) -> None:
+        if self.active_module == "automatic_migration" or self.run_module == "automatic_migration":
+            self.run_meta_text.pack_forget()
+            return
+        if not self.run_meta_text.winfo_manager():
+            self.run_meta_text.pack(fill="x", pady=(2, 0))
+        elapsed_until = self.run_finished_at if self.run_finished_at is not None else time.time()
+        elapsed_seconds = max(0, int(elapsed_until - self.run_started_at)) if self.run_started_at is not None else 0
+        hours, remainder = divmod(elapsed_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        last_updated = time.strftime("%H:%M:%S", time.localtime(self.run_last_updated_at)) if self.run_last_updated_at else "-"
+        self.run_meta_var.set(f"Elapsed Time: {hours:02d}:{minutes:02d}:{seconds:02d}    Last Updated: {last_updated}")
+
     def consume_log_output(self, text: str) -> None:
         update = self.log_buffer.append_text(text)
+        if text:
+            self.run_last_updated_at = time.time()
+        self.refresh_run_metadata()
         if update.replaced_progress or update.partial_changed or update.appended_lines:
             self.refresh_log_view()
 
@@ -2063,6 +2121,9 @@ class PhotoMigratorTkGUI:
                 break
             if isinstance(item, tuple) and item and item[0] == "finished":
                 self.running_process = None
+                self.run_finished_at = time.time()
+                self.run_last_updated_at = self.run_finished_at
+                self.refresh_run_metadata()
                 self.update_status(f"Job finished with exit code {item[1]}")
                 self.sync_content_panel_for_run_state(False)
                 self.refresh_action_buttons()
@@ -2072,6 +2133,9 @@ class PhotoMigratorTkGUI:
                 self.external_dashboard_launcher_file = None
                 self.external_dashboard_pid_file = None
                 self.append_log(f"[internal] Live Dashboard finished with exit code {item[1]}")
+                self.run_finished_at = time.time()
+                self.run_last_updated_at = self.run_finished_at
+                self.refresh_run_metadata()
                 self.update_status(f"Job finished with exit code {item[1]}")
                 self.sync_content_panel_for_run_state(False)
                 self.refresh_action_buttons()
@@ -2171,6 +2235,11 @@ class PhotoMigratorTkGUI:
             self.append_log(f"[internal] Unable to start job: {exc}")
             return
         self.running_process = process
+        self.run_module = self.active_module
+        self.run_started_at = time.time()
+        self.run_finished_at = None
+        self.run_last_updated_at = self.run_started_at
+        self.refresh_run_metadata()
         self.update_status("Job running...")
         self.sync_content_panel_for_run_state(True)
         self.refresh_action_buttons()

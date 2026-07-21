@@ -1945,6 +1945,10 @@ if TEXTUAL_AVAILABLE:
             self.remember_state = bool(self.ui_state.get("remember_state", True))
             self.launch_cwd = Path.cwd().resolve()
             self.running_process: subprocess.Popen[str] | None = None
+            self.run_started_at: float | None = None
+            self.run_finished_at: float | None = None
+            self.run_last_updated_at: float | None = None
+            self.run_module = ""
             self.running_command: List[str] = []
             self.log_buffer = CompactLogBuffer()
             self.log_history: List[str] = []
@@ -2058,6 +2062,7 @@ if TEXTUAL_AVAILABLE:
                                 yield Static("", classes="panel-topbar-spacer")
                                 yield Button("−", id="toggle-status-panel", classes="panel-toggle")
                             yield Static("Ready.", id="status-line")
+                            yield Static("Elapsed Time: 00:00:00    Last Updated: -", id="run-meta")
                         with Vertical(id="job-input-panel", classes="panel-shell"):
                             yield Static("", classes="panel-topbar-spacer")
                             with Horizontal(id="job-input-row"):
@@ -2104,6 +2109,7 @@ if TEXTUAL_AVAILABLE:
             self.apply_panel_states()
             self.refresh_runtime_layout()
             self.set_interval(0.15, self.sync_field_description_from_focus)
+            self.set_interval(1.0, self.refresh_run_metadata)
             self.set_timer(0.05, self._focus_default_widget)
 
         async def rebuild_content(self) -> None:
@@ -2186,6 +2192,11 @@ if TEXTUAL_AVAILABLE:
                     widget.styles.display = "none" if self.panel_collapsed.get(panel_key, False) else "block"
                 except Exception:
                     pass
+            try:
+                run_meta = self.query_one("#run-meta", Static)
+                run_meta.styles.display = "none" if self.panel_collapsed.get("status", False) else "block"
+            except Exception:
+                pass
             for panel_key, shell_id in shell_map.items():
                 try:
                     shell = self.query_one(f"#{shell_id}")
@@ -2295,20 +2306,16 @@ if TEXTUAL_AVAILABLE:
             widgets: List[Any] = []
             if self.active_module == "upload_folder":
                 widgets.append(Static("Upload to Server is only available in the Web Interface.", classes="empty-note"))
-                return widgets
-
-            if self.active_module == "automatic_migration":
+            elif self.active_module == "automatic_migration":
                 widgets.extend(self.build_module_only_fields("automatic_migration", self.schema["tabs"]["automatic_migration"]))
-                return widgets
-            if self.active_module in {"google_takeout", "icloud_takeout"}:
+            elif self.active_module in {"google_takeout", "icloud_takeout"}:
                 widgets.extend(self.build_module_only_fields(self.active_module, self.schema["tabs"][self.active_module]))
-                return widgets
-            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
                 widgets.extend(self.build_cloud_widgets())
-                return widgets
-            if self.active_module == "standalone_features":
+            elif self.active_module == "standalone_features":
                 widgets.extend(self.build_standalone_widgets())
-                return widgets
+            widgets.append(Button("Restore Default", id="restore-feature-defaults-btn", classes="general-restore-btn"))
+            return widgets
             return widgets
 
         def build_general_arguments_widgets(self) -> List[Any]:
@@ -3596,6 +3603,22 @@ if TEXTUAL_AVAILABLE:
             self.current_status_text = str(text or "")
             self.query_one("#status-line", Static).update(self.current_status_text)
 
+        def refresh_run_metadata(self) -> None:
+            try:
+                meta = self.query_one("#run-meta", Static)
+            except Exception:
+                return
+            if self.panel_collapsed.get("status", False) or self.active_module == "automatic_migration" or self.run_module == "automatic_migration":
+                meta.styles.display = "none"
+                return
+            meta.styles.display = "block"
+            elapsed_until = self.run_finished_at if self.run_finished_at is not None else time.time()
+            elapsed_seconds = max(0, int(elapsed_until - self.run_started_at)) if self.run_started_at is not None else 0
+            hours, remainder = divmod(elapsed_seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            last_updated = time.strftime("%H:%M:%S", time.localtime(self.run_last_updated_at)) if self.run_last_updated_at else "-"
+            meta.update(f"Elapsed Time: {hours:02d}:{minutes:02d}:{seconds:02d}    Last Updated: {last_updated}")
+
         def update_command_preview(self) -> None:
             if self.active_module == "upload_folder":
                 self.current_command_preview_text = "Upload to Server is only available in the Web Interface."
@@ -3654,6 +3677,42 @@ if TEXTUAL_AVAILABLE:
                     event.stop()
                 return
 
+        async def restore_feature_defaults(self) -> None:
+            if self.active_module in {"google_takeout", "icloud_takeout", "automatic_migration"}:
+                fields = self.schema["tabs"][self.active_module]
+            elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+                selected = next((field for field in self.schema["tabs"][self.active_module] if field["dest"] == self.cloud_action_dest.get(self.active_module)), None)
+                fields = [spec["field"] for spec in build_argument_specs(self.schema, self.active_module, selected, True)]
+                account_field = get_field_by_dest(self.schema, "account-id")
+                if account_field:
+                    fields.append(account_field)
+            elif self.active_module == "standalone_features":
+                selected = next((field for field in self.schema["tabs"]["standalone_features"] if field["dest"] == self.standalone_action_dest), None)
+                fields = [spec["field"] for spec in build_argument_specs(self.schema, "standalone_features", selected, True)]
+            else:
+                fields = []
+            for field in fields:
+                default_value = field.get("default")
+                self.state_values[field["dest"]] = list(default_value) if isinstance(default_value, list) else default_value
+            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and selected and selected.get("dest") == "rename-albums":
+                self.state_values["rename-pattern"] = ""
+                self.state_values["replacement-pattern"] = ""
+            if self.active_module == "automatic_migration":
+                self.migration_endpoints_state.pop("source", None)
+                self.migration_endpoints_state.pop("target", None)
+                for field in build_automatic_migration_filter_fields(self.schema):
+                    self.state_values.pop(f"am-{field['dest']}", None)
+            if self.active_module == "standalone_features":
+                if selected and selected.get("dest") == "find-duplicates":
+                    self.state_values["find-duplicates-action"] = "list"
+                    self.state_values["find-duplicates-folders"] = []
+                for dest in ("date-separator", "range-separator"):
+                    self.state_values.pop(f"sfrcb-{dest}", None)
+            self.persist_ui_state()
+            await self.rebuild_content()
+            self.update_command_preview()
+            self.update_status("Feature arguments restored to defaults.")
+
         async def on_button_pressed(self, event: Button.Pressed) -> None:
             button_id = event.button.id or ""
             if button_id == "restore-general-defaults-btn":
@@ -3664,6 +3723,9 @@ if TEXTUAL_AVAILABLE:
                 await self.rebuild_content()
                 self.update_command_preview()
                 self.update_status("General arguments restored to defaults.")
+                return
+            if button_id == "restore-feature-defaults-btn":
+                await self.restore_feature_defaults()
                 return
             if button_id.startswith("bool-"):
                 payload = button_id.replace("bool-", "", 1)
@@ -3696,6 +3758,7 @@ if TEXTUAL_AVAILABLE:
                 self.refresh_tab_styles()
                 await self.rebuild_content()
                 self.update_command_preview()
+                self.refresh_run_metadata()
                 return
             if button_id.startswith("general-tab-"):
                 self.active_general_tab = button_id.replace("general-tab-", "", 1)
@@ -3978,6 +4041,9 @@ if TEXTUAL_AVAILABLE:
 
         def consume_log_output(self, text: str) -> None:
             update = self.log_buffer.append_text(text)
+            if text:
+                self.run_last_updated_at = time.time()
+            self.refresh_run_metadata()
             if update.replaced_progress or update.partial_changed:
                 self.refresh_log_view()
                 return
@@ -3990,6 +4056,9 @@ if TEXTUAL_AVAILABLE:
 
         def on_job_finished(self, return_code: int) -> None:
             self.job_starting = False
+            self.run_finished_at = time.time()
+            self.run_last_updated_at = self.run_finished_at
+            self.refresh_run_metadata()
             self.update_status(f"Job finished with exit code {return_code}")
             self.running_process = None
             self.sync_content_panel_for_run_state(False)
@@ -4024,6 +4093,11 @@ if TEXTUAL_AVAILABLE:
                 return
             self.running_process = process
             self.job_starting = False
+            self.run_module = self.active_module
+            self.run_started_at = time.time()
+            self.run_finished_at = None
+            self.run_last_updated_at = self.run_started_at
+            self.refresh_run_metadata()
             self.update_status("Job running...")
             self.refresh_action_buttons()
             threading.Thread(target=self._job_output_worker, args=(process,), daemon=True).start()
