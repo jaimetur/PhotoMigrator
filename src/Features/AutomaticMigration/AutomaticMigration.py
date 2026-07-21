@@ -58,6 +58,8 @@ def _ensure_album_stats_entry(album_stats_by_name, album_stats_lock, album_name)
                 "pushed_assets": 0,
                 "duplicated_assets": 0,
                 "failed_assets": 0,
+                "people_found": 0,
+                "people_assigned": 0,
             },
         )
 
@@ -73,6 +75,8 @@ def _increment_album_stat_counter(album_stats_by_name, album_stats_lock, album_n
                 "pushed_assets": 0,
                 "duplicated_assets": 0,
                 "failed_assets": 0,
+                "people_found": 0,
+                "people_assigned": 0,
             },
         )
         stats[field_name] = max(0, int(stats.get(field_name, 0) or 0) + int(amount or 0))
@@ -623,11 +627,15 @@ def _mark_album_pushed_if_ready(
             pushed_assets = max(0, int(album_stats.get("pushed_assets", 0) or 0))
             duplicated_assets = max(0, int(album_stats.get("duplicated_assets", 0) or 0))
             failed_assets = max(0, int(album_stats.get("failed_assets", 0) or 0))
+            people_found = max(0, int(album_stats.get("people_found", 0) or 0))
+            people_assigned = max(0, int(album_stats.get("people_assigned", 0) or 0))
             summary_parts = [
                 f"Total Assets: {total_assets}",
                 f"Pushed: {pushed_assets}",
                 f"Duplicates: {duplicated_assets}",
             ]
+            if people_found > 0:
+                summary_parts.append(f"People: found: {people_found} | assigned: {people_assigned}")
             if failed_assets > 0:
                 summary_parts.append(f"Failed: {failed_assets}")
             album_summary = f" ({' | '.join(summary_parts)})"
@@ -2293,7 +2301,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     ):
         people_label = (
             f"{{People: found: {people_count} | assigned: {people_assigned_count}}}"
-            if show_people_count else ""
+            if show_people_count and people_count > 0 else ""
         )
         if not album_name:
             return f" [{people_label}]" if people_label else ""
@@ -2338,6 +2346,31 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         if assigned_count:
             return assigned_count
         return int(target_client.import_takeout_people_for_asset(file_path, asset_id, log_level=logging.INFO) or 0)
+
+    def _record_album_people_import(asset, people_found, people_assigned, album_stats_by_name_ref, album_stats_lock_ref):
+        """Accumulate Takeout labels once per album asset, including duplicate retries."""
+        if (
+            not asset
+            or not asset.get("album_name")
+            or int(people_found or 0) <= 0
+            or asset.get("_takeout_people_album_stats_recorded")
+        ):
+            return
+        _increment_album_stat_counter(
+            album_stats_by_name_ref,
+            album_stats_lock_ref,
+            asset["album_name"],
+            "people_found",
+            int(people_found or 0),
+        )
+        _increment_album_stat_counter(
+            album_stats_by_name_ref,
+            album_stats_lock_ref,
+            asset["album_name"],
+            "people_assigned",
+            int(people_assigned or 0),
+        )
+        asset["_takeout_people_album_stats_recorded"] = True
 
     def _maybe_finalize_album(album_name, removed_source_asset_ids=None, processed_albums=None, processed_albums_lock=None, worker_id=1, logger=LOGGER, log_level=logging.ERROR):
         if not album_name:
@@ -2782,7 +2815,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             )
                 if not target_asset_id:
                     continue
-                _import_takeout_people_for_resolved_asset(item.get("asset_file_path"), target_asset_id)
+                people_assigned_count = _import_takeout_people_for_resolved_asset(
+                    item.get("asset_file_path"),
+                    target_asset_id,
+                )
+                people_found_count = int(item.get("_takeout_people_count", 0) or 0)
+                if not people_found_count and ARGS.get('import-people', False) and isinstance(target_client, ClassImmichPhotos):
+                    people_found_count = target_client.get_takeout_people_count_for_asset(item.get("asset_file_path"))
+                    item["_takeout_people_count"] = people_found_count
+                _record_album_people_import(
+                    item,
+                    people_found_count,
+                    people_assigned_count,
+                    album_stats_by_name_ref,
+                    album_stats_lock_ref,
+                )
                 normalized_items.append((item, target_asset_id))
 
             if not normalized_items:
@@ -4269,6 +4316,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if show_takeout_people_count
                         else 0
                     )
+                    asset["_takeout_people_count"] = takeout_people_count
                     takeout_people_assigned_count = 0
                     retry_attempt = int(asset.get('retry_attempt', 0) or 0)
                     association_retry_attempt = int(asset.get('album_assoc_retry_attempt', 0) or 0)
@@ -4361,6 +4409,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 takeout_people_assigned_count = _import_takeout_people_for_resolved_asset(
                                     asset_file_path,
                                     asset_id,
+                                )
+                                _record_album_people_import(
+                                    asset,
+                                    takeout_people_count,
+                                    takeout_people_assigned_count,
+                                    album_stats_by_name_ref,
+                                    album_stats_lock_ref,
                                 )
                                 if isDuplicated:
                                     LOGGER.info(

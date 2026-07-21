@@ -68,6 +68,8 @@
   - Redirected the Web Interface to Output whenever the current user opens or reloads Features or Configuration while one of their jobs is running or stopping, while preserving direct navigation through the page tabs.
   - Improved Automatic Migration Immich asset logs for `--import-people`: pushed and duplicate assets now report the labels found and successfully assigned, together with structured album and queue context. Album-association retries now also queue assets with already-known target IDs instead of finalizing them immediately.
   - Added `Start Time` to the Web Interface Output Panel run metadata, displaying the local `HH:MM:SS` at which the current execution began before its elapsed-time and last-update indicators.
+  - Added `Start Time` to the Web Interface Output Panel run metadata, displaying the local `HH:MM:SS` at which the current execution began before its elapsed-time and last-update indicators.
+  - Refined Google Takeout people import during Immich Automatic Migration. Same-name map entries that cannot be distinguished because their dates are identical or unavailable now merge their labels instead of skipping import; asset logs show only non-empty found/assigned people context; and `Album Pushed` summaries accumulate the labels found and confirmed assigned across all assets in that album, including duplicate assets resolved through the album-association queue.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

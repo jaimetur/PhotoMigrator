@@ -572,6 +572,41 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(processed_albums, {"Album A"})
         logger.info.assert_called_once_with("Album Pushed    : 'Album A'")
 
+    def test_mark_album_pushed_if_ready_includes_people_summary_when_present(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            album_folder = Path(tmpdir) / "Album A"
+            album_folder.mkdir()
+            counters = {"total_pushed_albums": 0}
+            processed_albums = set()
+            lock = threading.Lock()
+            stats_lock = threading.Lock()
+            logger = unittest.mock.Mock()
+
+            counted = automatic_module._mark_album_pushed_if_ready(
+                album_name="Album A",
+                album_folder_path=str(album_folder),
+                processed_albums=processed_albums,
+                processed_albums_lock=lock,
+                counters=counters,
+                logger=logger,
+                album_stats_by_name={
+                    "Album A": {
+                        "total_assets": 3,
+                        "pushed_assets": 1,
+                        "duplicated_assets": 2,
+                        "people_found": 4,
+                        "people_assigned": 3,
+                    }
+                },
+                album_stats_lock=stats_lock,
+            )
+
+        self.assertTrue(counted)
+        logger.info.assert_called_once_with(
+            "Album Pushed    : 'Album A' "
+            "(Total Assets: 3 | Pushed: 1 | Duplicates: 2 | People: found: 4 | assigned: 3)"
+        )
+
     def test_mark_album_pushed_if_ready_ignores_excluded_housekeeping_entries(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             album_folder = Path(tmpdir) / "Album A"
