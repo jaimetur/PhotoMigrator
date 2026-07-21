@@ -336,6 +336,32 @@ class TestImmichStreamingUpload(unittest.TestCase):
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    def test_immich_native_duplicate_resolution_uses_selected_keeper(self, mock_post, _mock_logger):
+        manager = self._build_manager()
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        mock_post.return_value = response
+        duplicate_groups = [[
+            {"id": "small", "_immich_duplicate_id": "group-1", "exifInfo": {"fileSize": 1}},
+            {"id": "large", "_immich_duplicate_id": "group-1", "exifInfo": {"fileSize": 2}},
+        ]]
+
+        removed, found, skipped = manager.resolve_duplicate_asset_groups_with_immich(
+            duplicate_groups, keeper_strategy="better-quality",
+        )
+
+        self.assertEqual((removed, found, skipped), (1, 1, 0))
+        mock_post.assert_called_once_with(
+            "http://immich.local/api/duplicates/resolve",
+            headers=manager.HEADERS_WITH_CREDENTIALS,
+            data=json.dumps({"groups": [{
+                "duplicateId": "group-1", "keepAssetIds": ["large"], "trashAssetIds": ["small"],
+            }]}),
+            verify=False,
+        )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     def test_push_asset_uses_streaming_multipart_without_files_arg(
         self, mock_post, _mock_logger
     ):

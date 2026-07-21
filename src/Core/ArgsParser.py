@@ -484,6 +484,17 @@ def parse_arguments():
                              "this is useful for repeated uploads of the same processed Takeout on different dates "
                              "when an EXIF tag value prevented Immich from rejecting the later upload (default: True).")
 
+    PARSER.add_argument("-immichDupDel", "--immich-duplicates-deletion",
+                        metavar="= [true,false]",
+                        nargs="?",
+                        const=True,
+                        default=False,
+                        type=str2bool,
+                        help="For Immich Remove Duplicate Assets, let Immich resolve each native duplicate group, "
+                             "merge its supported metadata, and trash redundant assets. This uses Immich's Alpha "
+                             "duplicate-resolution API. When disabled, PhotoMigrator performs its guarded metadata "
+                             "merge and permanent deletion flow (default: False).")
+
     PARSER.add_argument("-dupKeeper", "--duplicate-asset-keeper", choices=["better-quality", "oldest", "newest"], default="better-quality",
                         help="Choose the retained asset for '--remove-duplicates-assets'. 'better-quality' uses Immich's "
                              "native suggestion; 'oldest' and 'newest' use upload date (default: better-quality for Immich).")

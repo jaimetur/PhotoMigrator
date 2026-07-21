@@ -142,6 +142,7 @@ BOOL_VALUE_DESTS = {
     "show-gpth-errors",
     "google-process-people",
     "immich-duplicates-algorithm",
+    "immich-duplicates-deletion",
 }
 AUTOMATION_DESTS = {
     "source",
@@ -196,6 +197,7 @@ CLOUD_DESTS = {
     "remove-duplicates-albums",
     "remove-duplicates-assets",
     "immich-duplicates-algorithm",
+    "immich-duplicates-deletion",
     "merge-duplicates-albums",
     # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
@@ -323,6 +325,7 @@ MODULE_ACTION_ARGUMENTS = {
         ],
         "remove-duplicates-assets": [
             {"dest": "immich-duplicates-algorithm", "required": False},
+            {"dest": "immich-duplicates-deletion", "required": False},
             {"dest": "duplicate-asset-keeper", "required": True},
         ],
     },

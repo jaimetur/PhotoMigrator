@@ -183,6 +183,7 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
         ]
         if feature_name == "Immich Photos":
             cloud_dests.append("immich-duplicates-algorithm")
+            cloud_dests.append("immich-duplicates-deletion")
         return common_dests + cloud_dests
     if feature_name == "Google Takeout Processor":
         return common_dests + [

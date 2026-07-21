@@ -450,6 +450,10 @@ If more than one optional arguments are detected, only the first one will be exe
                When false, PhotoMigrator groups same filename and size; useful when the same processed Takeout
                was uploaded on different dates and an EXIF tag difference prevented Immich from rejecting it.
                Default: true.
+-immichDupDel ; --immich-duplicates-deletion=[true,false]
+               Immich only: resolve native duplicate groups through Immich's server-side resolver.
+               Immich merges its supported metadata and moves redundant assets to trash. This uses an Alpha API;
+               false keeps PhotoMigrator's guarded metadata merge and permanent deletion flow. Default: false.
 -dupKeeper   ; --duplicate-asset-keeper {better-quality,oldest,newest}
                Select the asset retained by '--remove-duplicates-assets'. 'better-quality' uses Immich's
                suggestion; 'oldest' and 'newest' use the upload timestamp.

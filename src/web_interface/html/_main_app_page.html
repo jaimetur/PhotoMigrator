@@ -621,7 +621,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
-            "remove-duplicates-assets": [{dest: "immich-duplicates-algorithm", required: false}, {dest: "duplicate-asset-keeper", required: true}],
+            "remove-duplicates-assets": [{dest: "immich-duplicates-algorithm", required: false}, {dest: "immich-duplicates-deletion", required: false}, {dest: "duplicate-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -826,6 +826,8 @@
                 ? "Synology Photos"
                 : (payload.tab === "immich_photos" ? "Immich Photos" : (payload.tab === "nextcloud_photos" ? "NextCloud Photos" : "Google Photos"));
             const removeAlbumAssets = uiBooleanValue(payload?.values?.["remove-albums-assets"]);
+            const useImmichDuplicateDeletion = payload.tab === "immich_photos"
+                && uiBooleanValue(payload?.values?.["immich-duplicates-deletion"]);
             let message = "";
             if (action === "rename-albums") {
                 message = `This module will rename albums in ${clientLabel} whose names match your pattern, using the replacement pattern.`;
@@ -846,7 +848,9 @@
             } else if (action === "remove-duplicates-albums") {
                 message = `This module will delete duplicated albums in ${clientLabel} (same name and size).`;
             } else if (action === "remove-duplicates-assets") {
-                message = `This module will keep the selected oldest/newest asset for every same-name/same-size group and permanently delete redundant assets when the selected cloud API supports deletion.`;
+                message = useImmichDuplicateDeletion
+                    ? `This module will send the selected keeper and redundant native duplicate assets to Immich's Alpha duplicate resolver. Immich will merge its supported metadata and move redundant assets to trash.`
+                    : `This module will keep the selected oldest/newest asset for every same-name/same-size group and permanently delete redundant assets when the selected cloud API supports deletion.`;
             } else if (action === "merge-duplicates-albums") {
                 message = `This module will merge duplicated albums in ${clientLabel} by moving assets into the most relevant album and removing duplicates.`;
             }

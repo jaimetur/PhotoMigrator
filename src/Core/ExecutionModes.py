@@ -960,6 +960,16 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
 
     native_detection_value = ARGS.get("immich-duplicates-algorithm", True)
     use_immich_detection = str(native_detection_value).strip().lower() not in {"false", "0", "no", "off"}
+    native_deletion_value = ARGS.get("immich-duplicates-deletion", False)
+    use_immich_deletion = str(native_deletion_value).strip().lower() in {"true", "1", "yes", "on"}
+    if normalized_client != "immich":
+        use_immich_deletion = False
+    if use_immich_deletion and not use_immich_detection:
+        LOGGER.warning(
+            "Immich native duplicate deletion requires native duplicate groups; "
+            "enabling Immich duplicate detection for this run."
+        )
+        use_immich_detection = True
     keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "better-quality").lower()
     if normalized_client != "immich" and keeper_strategy == "better-quality":
         keeper_strategy = "newest"
@@ -978,6 +988,11 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
         else:
             LOGGER.warning(
                 "Immich native duplicate detection is disabled: assets are grouped by exact filename and file size."
+            )
+        if use_immich_deletion:
+            LOGGER.warning(
+                "Immich native duplicate deletion is enabled. Immich's Alpha resolver will merge its supported "
+                "metadata and move redundant assets to trash; PhotoMigrator's manual metadata merge is bypassed."
             )
     else:
         LOGGER.warning(
@@ -1049,11 +1064,18 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
             if user_confirmation and not confirm_continue():
                 LOGGER.info("Exiting program without deleting duplicate assets.")
                 return
-            removed, groups_found, groups_skipped = cloud_client_obj.remove_duplicates_assets_by_name_and_size(
-                keeper_strategy=keeper_strategy,
-                duplicate_groups=duplicate_groups,
-                log_level=logging.INFO,
-            )
+            if use_immich_deletion:
+                removed, groups_found, groups_skipped = cloud_client_obj.resolve_duplicate_asset_groups_with_immich(
+                    duplicate_groups=duplicate_groups,
+                    keeper_strategy=keeper_strategy,
+                    log_level=logging.INFO,
+                )
+            else:
+                removed, groups_found, groups_skipped = cloud_client_obj.remove_duplicates_assets_by_name_and_size(
+                    keeper_strategy=keeper_strategy,
+                    duplicate_groups=duplicate_groups,
+                    log_level=logging.INFO,
+                )
         finally:
             cloud_client_obj.logout(log_level=logging.WARNING)
 

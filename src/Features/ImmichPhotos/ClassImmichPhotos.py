@@ -2331,6 +2331,57 @@ class ClassImmichPhotos(BaseMediaClient):
             reverse=(strategy == "newest"),
         )[0]
 
+    def resolve_duplicate_asset_groups_with_immich(self, duplicate_groups, keeper_strategy="better-quality", log_level=None):
+        """Resolve native duplicate groups through Immich's server-side resolver."""
+        groups_payload = []
+        skipped_groups = 0
+        removed_assets = 0
+        for group in duplicate_groups:
+            duplicate_id = next(
+                (
+                    str(asset.get("_immich_duplicate_id") or "").strip()
+                    for asset in group if str(asset.get("_immich_duplicate_id") or "").strip()
+                ),
+                "",
+            )
+            keeper = self._select_duplicate_asset_keeper(group, keeper_strategy)
+            keeper_id = str(keeper.get("id") or "").strip()
+            redundant_ids = [
+                str(asset.get("id") or "").strip()
+                for asset in group if asset is not keeper and str(asset.get("id") or "").strip()
+            ]
+            if not duplicate_id or not keeper_id or not redundant_ids:
+                skipped_groups += 1
+                LOGGER.warning(
+                    f"Skipping an Immich duplicate group without a usable duplicate ID or asset selection."
+                )
+                continue
+            groups_payload.append({
+                "duplicateId": duplicate_id,
+                "keepAssetIds": [keeper_id],
+                "trashAssetIds": redundant_ids,
+            })
+            removed_assets += len(redundant_ids)
+
+        if not groups_payload:
+            return 0, len(duplicate_groups), skipped_groups
+        try:
+            response = requests.post(
+                f"{self.IMMICH_URL}/api/duplicates/resolve",
+                headers=self.HEADERS_WITH_CREDENTIALS,
+                data=json.dumps({"groups": groups_payload}),
+                verify=False,
+            )
+            response.raise_for_status()
+        except requests.RequestException as error:
+            LOGGER.error(f"Immich native duplicate resolution failed: {error}")
+            return 0, len(duplicate_groups), skipped_groups + len(groups_payload)
+        LOGGER.info(
+            f"Immich native duplicate resolution completed: groups={len(groups_payload)}, "
+            f"assets sent to trash={removed_assets}."
+        )
+        return removed_assets, len(duplicate_groups), skipped_groups
+
     def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
         """Remove duplicate assets while preserving metadata on one selected keeper."""
         strategy = str(keeper_strategy or "newest").strip().lower()
