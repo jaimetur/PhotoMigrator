@@ -2180,6 +2180,47 @@ class ClassImmichPhotos(BaseMediaClient):
             hydrated_groups.append(hydrated_group)
         return hydrated_groups
 
+    def get_duplicate_metadata_display_names(self, duplicate_groups, log_level=None):
+        """Resolve preview-only album, tag, and person IDs with three cached requests."""
+        requested_ids = {"albums": set(), "tags": set(), "people": set()}
+        for group in duplicate_groups:
+            for asset in group:
+                for key in requested_ids:
+                    requested_ids[key].update(self._asset_reference_ids(asset, key))
+
+        endpoint_fields = {
+            "albums": ("albums", "albumName"),
+            "tags": ("tags", "value"),
+            "people": ("people", "name"),
+        }
+        resolved_names = {key: {} for key in requested_ids}
+        for key, ids in requested_ids.items():
+            if not ids:
+                continue
+            endpoint, name_field = endpoint_fields[key]
+            try:
+                response = requests.get(
+                    f"{self.IMMICH_URL}/api/{endpoint}",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    verify=False,
+                )
+                response.raise_for_status()
+                records = response.json()
+                if not isinstance(records, list):
+                    raise ValueError("unexpected list response")
+                resolved_names[key] = {
+                    str(record.get("id") or "").strip(): str(record.get(name_field) or record.get("name") or "").strip()
+                    for record in records if isinstance(record, dict)
+                    and str(record.get("id") or "").strip() in ids
+                    and str(record.get(name_field) or record.get("name") or "").strip()
+                }
+            except (requests.RequestException, ValueError) as error:
+                LOGGER.warning(
+                    f"Could not resolve duplicate-preview {key} names: {error}. "
+                    "Their IDs will be shown instead."
+                )
+        return resolved_names
+
     def find_duplicate_assets_by_name_and_size(self, log_level=None):
         """Return same-name/same-size duplicate groups from one paginated inventory."""
         with set_log_level(LOGGER, log_level):

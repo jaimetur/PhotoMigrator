@@ -309,6 +309,31 @@ class TestImmichStreamingUpload(unittest.TestCase):
             verify=False,
         )
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_duplicate_metadata_display_names_resolves_album_tag_and_person_names(self, mock_get):
+        manager = self._build_manager()
+
+        def response(records):
+            result = MagicMock()
+            result.raise_for_status.return_value = None
+            result.json.return_value = records
+            return result
+
+        mock_get.side_effect = [
+            response([{"id": "album-1", "albumName": "Summer 2003"}]),
+            response([{"id": "tag-1", "value": "family/yoli"}]),
+            response([{"id": "person-1", "name": "Yoli"}]),
+        ]
+        names = manager.get_duplicate_metadata_display_names([[
+            {"albums": [{"id": "album-1"}], "tags": [{"id": "tag-1"}], "people": [{"id": "person-1"}]},
+        ]])
+
+        self.assertEqual(
+            names,
+            {"albums": {"album-1": "Summer 2003"}, "tags": {"tag-1": "family/yoli"}, "people": {"person-1": "Yoli"}},
+        )
+        self.assertEqual(mock_get.call_count, 3)
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     def test_push_asset_uses_streaming_multipart_without_files_arg(

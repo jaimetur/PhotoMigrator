@@ -32,6 +32,7 @@
   - Added a runtime notice before Immich native duplicate detection explaining that retrieval time depends on library size and the number of duplicate groups found.
   - Renamed the Immich native duplicate-detection flag to `--immich-duplicates-algorithm`.
   - Expanded Immich `Remove Duplicate Assets` metadata preservation and its pre-deletion review. The preview now hydrates every candidate and reports visibility/archived state, capture date, coordinates, stack membership, and face references. Before deletion, the selected keeper preserves the most restrictive visibility (including archived assets), fills missing capture date and geolocation, and reconstructs affected stacks around the keeper; groups whose stack or metadata operations cannot be completed are skipped rather than deleted.
+  - Improved the Immich `Remove Duplicate Assets` review log by resolving album, tag, and person UUIDs to their names with one cached lookup per metadata type, retaining UUIDs only when Immich cannot resolve a name.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

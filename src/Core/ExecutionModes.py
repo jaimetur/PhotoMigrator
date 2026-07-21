@@ -43,19 +43,22 @@ def _normalize_merge_duplicates_result(result):
     return 0, 0
 
 
-def _duplicate_asset_merge_metadata_preview(asset):
+def _duplicate_asset_merge_metadata_preview(asset, display_names=None):
     """Return the merge-relevant Immich metadata shown before deletion."""
     asset = asset if isinstance(asset, dict) else {}
+    display_names = display_names if isinstance(display_names, dict) else {}
 
     def reference_ids(key):
         values = asset.get(key) or []
         if not isinstance(values, list):
             return []
-        return sorted({
+        ids = {
             str(item.get("id") if isinstance(item, dict) else item or "").strip()
             for item in values
             if str(item.get("id") if isinstance(item, dict) else item or "").strip()
-        })
+        }
+        names = display_names.get(key) if isinstance(display_names.get(key), dict) else {}
+        return sorted(names.get(item_id, item_id) for item_id in ids)
 
     metadata = {}
     album_ids = reference_ids("albums")
@@ -1005,6 +1008,12 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                         "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
                     )
                     return
+                metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
+                    duplicate_groups,
+                    log_level=logging.INFO,
+                )
+            else:
+                metadata_display_names = {}
             LOGGER.info("Duplicate asset groups found:")
             for group_index, group in enumerate(duplicate_groups, start=1):
                 if normalized_client == "immich" and use_immich_detection:
@@ -1025,7 +1034,9 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 ]
                 merge_metadata = (
                     {
-                        str(item.get("id") or ""): _duplicate_asset_merge_metadata_preview(item)
+                        str(item.get("id") or ""): _duplicate_asset_merge_metadata_preview(
+                            item, metadata_display_names,
+                        )
                         for item in ordered
                     }
                     if normalized_client == "immich" else {}

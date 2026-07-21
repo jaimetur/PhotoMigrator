@@ -199,6 +199,7 @@ class TestExecutionModes(unittest.TestCase):
         cloud_client = MagicMock()
         cloud_client.find_duplicate_assets_by_name_and_size.return_value = duplicate_groups
         cloud_client.hydrate_duplicate_groups_metadata.return_value = duplicate_groups
+        cloud_client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
         cloud_client._duplicate_asset_timestamp.side_effect = lambda asset: asset["createdAt"]
         cloud_client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
         cloud_client.remove_duplicates_assets_by_name_and_size.return_value = (1, 1, 0)
@@ -241,6 +242,7 @@ class TestExecutionModes(unittest.TestCase):
         cloud_client = MagicMock()
         cloud_client.find_duplicate_assets_by_immich_detection.return_value = duplicate_groups
         cloud_client.hydrate_duplicate_groups_metadata.return_value = duplicate_groups
+        cloud_client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
         cloud_client._select_duplicate_asset_keeper.return_value = duplicate_groups[0][1]
         cloud_client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
         cloud_client.remove_duplicates_assets_by_name_and_size.return_value = (1, 1, 0)
@@ -259,6 +261,25 @@ class TestExecutionModes(unittest.TestCase):
             keeper_strategy="better-quality",
             duplicate_groups=duplicate_groups,
             log_level=execution_modes.logging.INFO,
+        )
+
+    def test_duplicate_metadata_preview_uses_resolved_names(self):
+        preview = execution_modes._duplicate_asset_merge_metadata_preview(
+            {
+                "albums": [{"id": "album-1"}],
+                "tags": [{"id": "tag-1"}],
+                "people": [{"id": "person-1"}],
+            },
+            {
+                "albums": {"album-1": "Summer 2003"},
+                "tags": {"tag-1": "family/yoli"},
+                "people": {"person-1": "Yoli"},
+            },
+        )
+
+        self.assertEqual(
+            preview,
+            {"albums": ["Summer 2003"], "tags": ["family/yoli"], "people": ["Yoli"]},
         )
 
     def test_detect_and_run_execution_mode_dispatches_organize_local_folder_by_date(self):
