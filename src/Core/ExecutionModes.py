@@ -59,7 +59,14 @@ def _duplicate_asset_merge_metadata_preview(asset, display_names=None):
             if key == "people":
                 person = item.get("person")
                 person = person if isinstance(person, dict) else {}
-                return str(item.get("personId") or person.get("id") or item.get("id") or "").strip()
+                return str(
+                    person.get("name") or item.get("name") or item.get("personName")
+                    or item.get("personId") or person.get("id") or item.get("id") or ""
+                ).strip()
+            if key == "tags":
+                return str(item.get("value") or item.get("name") or item.get("id") or "").strip()
+            if key == "albums":
+                return str(item.get("albumName") or item.get("name") or item.get("id") or "").strip()
             return str(item.get("id") or "").strip()
 
         ids = {
@@ -1016,14 +1023,12 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 LOGGER.info("No duplicate assets were found.")
                 return
             if normalized_client == "immich":
-                metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
-                    log_level=logging.INFO,
-                )
+                metadata_display_names = {}
                 if use_immich_deletion:
                     LOGGER.info(
                         "Using the metadata returned by Immich duplicate detection for the confirmation preview. "
-                        "Complete per-asset and per-album hydration is skipped because Immich's native resolver "
-                        "performs the merge, avoiding two extra API requests for every duplicate candidate."
+                        "Complete per-asset and per-album hydration, plus global name-map loading, is skipped "
+                        "because Immich's native resolver performs the merge."
                     )
                 else:
                     LOGGER.info(

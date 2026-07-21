@@ -293,6 +293,7 @@ class TestExecutionModes(unittest.TestCase):
             execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
 
         cloud_client.find_duplicate_assets_by_immich_detection.assert_called_once_with(log_level=execution_modes.logging.INFO)
+        cloud_client.get_duplicate_metadata_display_names.assert_not_called()
         cloud_client.hydrate_duplicate_groups_metadata.assert_not_called()
         cloud_client.resolve_duplicate_asset_groups_with_immich.assert_called_once_with(
             duplicate_groups=duplicate_groups,
@@ -351,6 +352,16 @@ class TestExecutionModes(unittest.TestCase):
             preview,
             {"albums": ["Summer 2003"], "tags": ["family/yoli"], "people": ["Yoli"]},
         )
+
+    def test_duplicate_metadata_preview_uses_names_embedded_in_immich_assets(self):
+        preview = execution_modes._duplicate_asset_merge_metadata_preview(
+            {
+                "tags": [{"id": "tag-1", "value": "family/yoli"}],
+                "people": [{"id": "person-1", "name": "Yoli"}],
+            },
+        )
+
+        self.assertEqual(preview, {"tags": ["family/yoli"], "people": ["Yoli"]})
 
     def test_detect_and_run_execution_mode_dispatches_organize_local_folder_by_date(self):
         args = _base_args()
