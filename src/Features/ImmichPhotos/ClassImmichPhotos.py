@@ -2194,24 +2194,25 @@ class ClassImmichPhotos(BaseMediaClient):
             hydrated_assets.append(metadata)
         return hydrated_assets
 
-    def _hydrate_duplicate_asset_metadata(self, asset, log_level=None):
+    def _hydrate_duplicate_asset_metadata(self, asset, log_level=None, include_albums=True):
         """Load one review candidate and retain native duplicate-selection hints."""
         if asset.get("_photomigrator_duplicate_metadata_hydrated"):
             return asset
         metadata = self._get_duplicate_asset_metadata(asset.get("id"), log_level=log_level)
         if metadata is None:
             return None
-        albums = self._get_duplicate_asset_albums(metadata.get("id") or asset.get("id"), log_level=log_level)
-        if albums is None:
-            return None
-        metadata["albums"] = albums
+        if include_albums:
+            albums = self._get_duplicate_asset_albums(metadata.get("id") or asset.get("id"), log_level=log_level)
+            if albums is None:
+                return None
+            metadata["albums"] = albums
         for key in ("_immich_duplicate_id", "_immich_suggested_keep_asset_ids"):
             if key in asset:
                 metadata[key] = asset[key]
         metadata["_photomigrator_duplicate_metadata_hydrated"] = True
         return metadata
 
-    def hydrate_duplicate_groups_metadata(self, duplicate_groups, log_level=None):
+    def hydrate_duplicate_groups_metadata(self, duplicate_groups, log_level=None, include_albums=True):
         """Hydrate candidate assets concurrently before confirmation for an auditable preview."""
         indexed_assets = [
             (group_index, asset_index, asset)
@@ -2222,13 +2223,19 @@ class ClassImmichPhotos(BaseMediaClient):
             return []
         hydrated_groups = [[None] * len(group) for group in duplicate_groups]
         workers = min(self.DUPLICATE_METADATA_REVIEW_WORKERS, len(indexed_assets))
+        metadata_scope = "asset and album" if include_albums else "asset"
         LOGGER.info(
-            f"Loading duplicate metadata for review with {workers} parallel asset worker(s) "
+            f"Loading complete {metadata_scope} metadata for review with {workers} parallel asset worker(s) "
             f"({len(indexed_assets)} assets across {len(duplicate_groups)} groups)."
         )
         with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = {
-                executor.submit(self._hydrate_duplicate_asset_metadata, asset, log_level): (group_index, asset_index)
+                executor.submit(
+                    self._hydrate_duplicate_asset_metadata,
+                    asset,
+                    log_level,
+                    include_albums,
+                ): (group_index, asset_index)
                 for group_index, asset_index, asset in indexed_assets
             }
             for future in tqdm(

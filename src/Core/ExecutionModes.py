@@ -1026,9 +1026,14 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 metadata_display_names = {}
                 if use_immich_deletion:
                     LOGGER.info(
-                        "Using the metadata returned by Immich duplicate detection for the confirmation preview. "
-                        "Complete per-asset and per-album hydration, plus global name-map loading, is skipped "
-                        "because Immich's native resolver performs the merge."
+                        "Loading complete asset metadata for the confirmation preview. Album memberships are "
+                        "not requested because Immich does not return them in bulk and its native resolver "
+                        "preserves them, avoiding one extra API request for every duplicate candidate."
+                    )
+                    duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
+                        duplicate_groups,
+                        log_level=logging.INFO,
+                        include_albums=False,
                     )
                 else:
                     LOGGER.info(
@@ -1039,11 +1044,11 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                         duplicate_groups,
                         log_level=logging.INFO,
                     )
-                    if not duplicate_groups:
-                        LOGGER.warning(
-                            "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
-                        )
-                        return
+                if not duplicate_groups:
+                    LOGGER.warning(
+                        "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
+                    )
+                    return
             else:
                 metadata_display_names = {}
             LOGGER.info("Duplicate asset groups found:")
