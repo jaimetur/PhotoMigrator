@@ -1318,6 +1318,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     processed_albums_lock = threading.Lock()
     album_stats_by_name = {}
     album_stats_lock = threading.Lock()
+    takeout_people_asset_ids_found = set()
+    takeout_people_asset_ids_assigned = set()
+    takeout_people_asset_ids_lock = threading.Lock()
     source_album_paths_by_name = {}
     source_album_paths_lock = threading.Lock()
     target_album_asset_ids_cache = {}
@@ -2347,6 +2350,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             return assigned_count
         return int(target_client.import_takeout_people_for_asset(file_path, asset_id, log_level=logging.INFO) or 0)
 
+    def _record_takeout_people_asset_summary(asset_id, people_found, people_assigned):
+        """Track distinct destination assets with discovered and assigned Takeout labels."""
+        asset_id = str(asset_id or "").strip()
+        if not asset_id:
+            return
+        with takeout_people_asset_ids_lock:
+            if int(people_found or 0) > 0:
+                takeout_people_asset_ids_found.add(asset_id)
+            if int(people_assigned or 0) > 0:
+                takeout_people_asset_ids_assigned.add(asset_id)
+
     def _record_album_people_import(asset, people_found, people_assigned, album_stats_by_name_ref, album_stats_lock_ref):
         """Accumulate Takeout labels once per album asset, including duplicate retries."""
         if (
@@ -2823,6 +2837,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 if not people_found_count and ARGS.get('import-people', False) and isinstance(target_client, ClassImmichPhotos):
                     people_found_count = target_client.get_takeout_people_count_for_asset(item.get("asset_file_path"))
                     item["_takeout_people_count"] = people_found_count
+                _record_takeout_people_asset_summary(
+                    target_asset_id,
+                    people_found_count,
+                    people_assigned_count,
+                )
                 _record_album_people_import(
                     item,
                     people_found_count,
@@ -3739,7 +3758,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Pushed Assets               : {SHARED_DATA.counters['total_pushed_assets']} (Photos: {SHARED_DATA.counters['total_pushed_photos']}, Videos: {SHARED_DATA.counters['total_pushed_videos']})")
             LOGGER.info(f"Push Duplicates (skipped)   : {SHARED_DATA.counters['total_push_duplicates_assets']}")
             if ARGS.get('import-people', False) and isinstance(target_client, ClassImmichPhotos):
-                LOGGER.info(f"Takeout People Assigned     : {target_client.get_imported_takeout_people_count()} (unique)")
+                with takeout_people_asset_ids_lock:
+                    assets_with_people_found = len(takeout_people_asset_ids_found)
+                    assets_with_people_assigned = len(takeout_people_asset_ids_assigned)
+                LOGGER.info(f"Assets with People Found    : {assets_with_people_found}")
+                LOGGER.info(f"Assets with People Assigned : {assets_with_people_assigned}")
+                LOGGER.info(f"Total People Assigned       : {target_client.get_imported_takeout_people_count()} (unique)")
             LOGGER.info(f"Pull Failed Assets          : {SHARED_DATA.counters['total_pull_failed_assets']}")
             LOGGER.info(f"Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
             LOGGER.info(f"Push Retry Scheduled        : {SHARED_DATA.counters['total_push_retry_scheduled_assets']}")
@@ -4409,6 +4433,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 takeout_people_assigned_count = _import_takeout_people_for_resolved_asset(
                                     asset_file_path,
                                     asset_id,
+                                )
+                                _record_takeout_people_asset_summary(
+                                    asset_id,
+                                    takeout_people_count,
+                                    takeout_people_assigned_count,
                                 )
                                 _record_album_people_import(
                                     asset,
