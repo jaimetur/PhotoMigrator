@@ -194,7 +194,10 @@ class ClassImmichPhotos(BaseMediaClient):
                     masked_admin_api = '*' * len(self.IMMICH_API_KEY_ADMIN)
                     masked_user_api = '*' * len(self.IMMICH_USER_API_KEY)
                     LOGGER.info(f"IMMICH_ADMIN_API_KEY  : {masked_admin_api}")
-                    LOGGER.info(f"IMMICH_USER_API_KEY   : {masked_user_api}")
+                    LOGGER.info(
+                        f"IMMICH_USER_API_KEY   : {masked_user_api} "
+                        f"(account-id={self.ACCOUNT_ID}; source=IMMICH_API_KEY_USER_{self.ACCOUNT_ID})"
+                    )
                 else:
                     LOGGER.info(f"IMMICH_USERNAME       : {self.IMMICH_USERNAME}")
                     masked_password = '*' * len(self.IMMICH_PASSWORD)
@@ -2618,9 +2621,11 @@ class ClassImmichPhotos(BaseMediaClient):
                     remaining_groups = len(groups_payload) - batch_start
                     failed_resolution_groups += remaining_groups
                     LOGGER.error(
-                        "Immich denied the API key permission 'duplicate.delete'. Native duplicate resolution "
-                        "cannot continue. Grant Duplicate Delete permission to the Immich user API key selected "
-                        f"for this account, then run the module again. Server response: {error_detail}"
+                        "Immich rejected native duplicate resolution because the selected user API key either "
+                        "lacks 'duplicate.delete' access or cannot access one or more returned duplicate groups. "
+                        f"This run uses IMMICH_API_KEY_USER_{self.ACCOUNT_ID}, not IMMICH_ADMIN_API_KEY. "
+                        "Verify that this account's API key has Duplicate Delete permission and access to the "
+                        f"duplicate groups, then run the module again. Server response: {error_detail}"
                     )
                     progress_bar.update(remaining_groups)
                     break

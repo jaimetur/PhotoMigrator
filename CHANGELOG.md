@@ -56,7 +56,7 @@
   - Fixed Web Interface log Auto Scroll so large incremental output batches and delayed browser layout scroll events cannot disable it. It now changes to manual review only after an upward vertical wheel or touch scroll, while scrolling down toward the newest log lines keeps it enabled and re-enables it at the tail.
   - Hardened Immich native duplicate deletion by resolving groups in bounded batches with real group-level progress. A rejected batch now exposes Immich's response and is retried group-by-group, so one malformed group or request-size limit no longer prevents the remaining duplicate groups from being resolved. Final summaries now distinguish skipped or failed groups from successful removals.
   - Added a blank log line before every `Remove Duplicate Assets` preview group header, improving separation between consecutive asset comparison tables.
-  - Added fail-fast permission handling for Immich native duplicate resolution. When the selected user API key lacks `duplicate.delete`, PhotoMigrator now reports the required permission once and stops the remaining native-resolution requests instead of retrying every group and flooding the log.
+  - Added fail-fast access handling for Immich native duplicate resolution. When Immich reports `Not found or no duplicate.delete access`, PhotoMigrator identifies the effective `IMMICH_API_KEY_USER_<account-id>` source, explains that the response can mean either missing `duplicate.delete` access or inaccessible duplicate groups, and stops the remaining native-resolution requests instead of retrying every group and flooding the log.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
@@ -79,6 +79,7 @@
   - Added `Remove Duplicate Assets` and `--duplicate-asset-keeper {oldest, newest}` to the CLI syntax, full/short arguments references, and Automatic Migration guide, including its independent-module scope.
   - Added the Google Takeout people-processing and Immich people-import flags to the CLI syntax and both full/short argument references, and updated the Automatic Migration guide with their scope, map lifecycle, duplicate-resolution behavior, and logging details.
   - Updated CLI, cloud-feature, and Docker deployment documentation for `--request-user-confirmation=true|false`.
+  - Documented the Immich API-key permissions required by native duplicate detection and native duplicate resolution, including the additional album/tag permissions needed for complete server-side metadata merging.
 
 ---
 
