@@ -2284,16 +2284,25 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 remaining_files.append(os.path.join(root, entry))
         return remaining_files
 
-    def _format_album_pending_context(album_name, current_asset_file_path=None, people_count=0, show_people_count=False):
-        people_label = f"People found: {people_count}" if show_people_count else ""
+    def _format_album_pending_context(
+        album_name,
+        current_asset_file_path=None,
+        people_count=0,
+        people_assigned_count=0,
+        show_people_count=False,
+    ):
+        people_label = (
+            f"{{People: found: {people_count} | assigned: {people_assigned_count}}}"
+            if show_people_count else ""
+        )
         if not album_name:
-            return f" ({people_label})" if people_label else ""
+            return f" [{people_label}]" if people_label else ""
         album_folder_path = _get_album_staging_folder(album_name)
         if not os.path.isdir(album_folder_path):
-            details = [f"Album: '{album_name}'"]
+            details = [f"{{Album: '{album_name}'}}"]
             if people_label:
                 details.append(people_label)
-            return f" ({' - '.join(details)})"
+            return f" [{' - '.join(details)}]"
 
         remaining_files = _list_album_remaining_files(album_folder_path)
         pending_duplicate_keys = _get_pending_duplicate_file_keys(album_name)
@@ -2309,15 +2318,26 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             pending_count += 1
 
         if pending_count > 0:
-            details = [f"Album: '{album_name}'"]
+            details = [f"{{Album: '{album_name}'}}"]
             if people_label:
                 details.append(people_label)
-            details.append(f"{pending_count} pending file(s) in queue")
-            return f" ({' - '.join(details)})"
-        details = [f"Album: '{album_name}'"]
+            details.append(f"{{Album Queue: {pending_count} pending file(s)}}")
+            return f" [{' - '.join(details)}]"
+        details = [f"{{Album: '{album_name}'}}"]
         if people_label:
             details.append(people_label)
-        return f" ({' - '.join(details)})"
+        return f" [{' - '.join(details)}]"
+
+    def _import_takeout_people_for_resolved_asset(file_path, asset_id):
+        if not (ARGS.get('import-people', False) and isinstance(target_client, ClassImmichPhotos)):
+            return 0
+        asset_id = str(asset_id or "").strip()
+        if not asset_id:
+            return 0
+        assigned_count = target_client.get_takeout_people_assigned_count_for_asset(file_path, asset_id)
+        if assigned_count:
+            return assigned_count
+        return int(target_client.import_takeout_people_for_asset(file_path, asset_id, log_level=logging.INFO) or 0)
 
     def _maybe_finalize_album(album_name, removed_source_asset_ids=None, processed_albums=None, processed_albums_lock=None, worker_id=1, logger=LOGGER, log_level=logging.ERROR):
         if not album_name:
@@ -2592,10 +2612,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         return True
 
     def _schedule_album_association_retry(asset, reason, resolved_target_asset_id):
-        is_pending_duplicate_resolution = bool((asset or {}).get('_pending_duplicate_resolution'))
-        # This queue resolves duplicate assets whose target ID was not returned
-        # by the push API. Known IDs are associated in the hot path only.
-        if not is_pending_duplicate_resolution or max_album_assoc_retries <= 0:
+        if max_album_assoc_retries <= 0:
             return False
 
         current_attempt = int((asset or {}).get('album_assoc_retry_attempt', 0) or 0)
@@ -2765,6 +2782,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             )
                 if not target_asset_id:
                     continue
+                _import_takeout_people_for_resolved_asset(item.get("asset_file_path"), target_asset_id)
                 normalized_items.append((item, target_asset_id))
 
             if not normalized_items:
@@ -4251,6 +4269,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if show_takeout_people_count
                         else 0
                     )
+                    takeout_people_assigned_count = 0
                     retry_attempt = int(asset.get('retry_attempt', 0) or 0)
                     association_retry_attempt = int(asset.get('album_assoc_retry_attempt', 0) or 0)
                     enqueued_at_monotonic = asset.get('enqueued_at_monotonic')
@@ -4339,10 +4358,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             if asset_id:
                                 asset_pushed = True
                                 treat_as_consumed = True
+                                takeout_people_assigned_count = _import_takeout_people_for_resolved_asset(
+                                    asset_file_path,
+                                    asset_id,
+                                )
                                 if isDuplicated:
                                     LOGGER.info(
-                                        f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, show_takeout_people_count)}"
+                                        f"Asset Duplicated: '{os.path.basename(asset_file_path)}' -> Skipped -"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count)}"
                                     )
                                     if count_push_stats:
                                         _increment_push_duplicate_counters(SHARED_DATA.counters, asset_type, physical_stats)
@@ -4370,7 +4393,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         )
                                     LOGGER.info(
                                         f"Asset Pushed    : '{os.path.basename(asset_file_path)}'"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, show_takeout_people_count)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count)}"
                                     )
                                     if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
                                         try:
@@ -4390,8 +4413,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 set_log_level(LOGGER, orig_level)
                                 if isDuplicated:
                                     LOGGER.info(
-                                        f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, show_takeout_people_count)}"
+                                        f"Asset Duplicated: '{os.path.basename(asset_file_path)}' -> Skipped -"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count)}"
                                     )
                                     treat_as_consumed = True
                                     if count_push_stats and not album_name:

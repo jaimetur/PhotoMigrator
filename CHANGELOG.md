@@ -66,6 +66,7 @@
   - Made the Web Interface header collapsible. Its title and version remain available in the compact state, while session controls, documentation actions, and the logo can be restored through the persisted header collapse control.
   - Aligned the Web Interface header collapse control with the padded positioning of the other panel controls and reserved its corner space for the Admin and Logout session row.
   - Redirected the Web Interface to Output whenever the current user opens or reloads Features or Configuration while one of their jobs is running or stopping, while preserving direct navigation through the page tabs.
+  - Improved Automatic Migration Immich asset logs for `--import-people`: pushed and duplicate assets now report the labels found and successfully assigned, together with structured album and queue context. Album-association retries now also queue assets with already-known target IDs instead of finalizing them immediately.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

@@ -110,6 +110,7 @@ class ClassImmichPhotos(BaseMediaClient):
         self._takeout_people_tag_ids = {}
         self._takeout_people_resolution_cache = {}
         self._takeout_people_imported_names = set()
+        self._takeout_people_assignment_counts = {}
 
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_owned_by_user()
         self.albums_owned_by_user = {}
@@ -465,6 +466,7 @@ class ClassImmichPhotos(BaseMediaClient):
         self._takeout_people_map = load_people_map(input_folder)
         self._takeout_people_resolution_cache = {}
         self._takeout_people_imported_names = set()
+        self._takeout_people_assignment_counts = {}
         if not self._takeout_people_map:
             # Local folders can retain original Google sidecars without having run GPTH.
             self._takeout_people_map = build_people_map(input_folder)
@@ -485,6 +487,19 @@ class ClassImmichPhotos(BaseMediaClient):
         """Return the unique Takeout people successfully associated with an asset."""
         with self._takeout_people_import_lock:
             return len(self._takeout_people_imported_names)
+
+    @staticmethod
+    def _takeout_people_assignment_key(file_path, asset_id):
+        return (os.path.abspath(str(file_path or "")), str(asset_id or "").strip())
+
+    def get_takeout_people_assigned_count_for_asset(self, file_path, asset_id):
+        """Return the labels successfully attached to this Immich asset upload."""
+        key = self._takeout_people_assignment_key(file_path, asset_id)
+        lock = getattr(self, "_takeout_people_import_lock", None)
+        if lock is None:
+            return int(getattr(self, "_takeout_people_assignment_counts", {}).get(key, 0) or 0)
+        with lock:
+            return int(getattr(self, "_takeout_people_assignment_counts", {}).get(key, 0) or 0)
 
     @staticmethod
     def _parse_takeout_taken_at(value):
@@ -514,7 +529,8 @@ class ClassImmichPhotos(BaseMediaClient):
 
         Compare only semantically equivalent dates: processed-media EXIF to
         Takeout capture time, then filesystem mtime to Takeout modification
-        time. Equal candidates deliberately contribute all labels.
+        time. Equal or non-comparable candidates deliberately contribute all
+        labels so no Takeout people metadata is discarded.
         """
         normalized_name = os.path.basename(file_path).casefold()
         mapped_entries = self._takeout_people_map.get(normalized_name)
@@ -578,11 +594,21 @@ class ClassImmichPhotos(BaseMediaClient):
                 score = (exif_taken_distance, mtime_modified_distance)
                 scored_candidates.append((score, entry))
         if not scored_candidates:
+            people = list(dict.fromkeys(
+                person
+                for entry in candidates
+                for person in entry.get("people", [])
+                if str(person).strip()
+            ))
+            resolved = {"people": people, "taken_at": candidates[0].get("taken_at", "")}
+            resolution_cache[cache_key] = resolved
             LOGGER.warning(
-                f"No comparable Google Takeout people dates for '{os.path.basename(file_path)}'. "
-                "People import skipped."
+                f"Google Takeout people metadata could not disambiguate "
+                f"{len(candidates)} same-name candidate(s) for '{os.path.basename(file_path)}' "
+                "because their dates are identical or not comparable; merged labels from all candidates "
+                "will be assigned."
             )
-            return None
+            return resolved
 
         best_score = min(score for score, _ in scored_candidates)
         matched = [entry for score, entry in scored_candidates if score == best_score]
@@ -645,14 +671,16 @@ class ClassImmichPhotos(BaseMediaClient):
     def import_takeout_people_for_asset(self, file_path, asset_id, log_level=None):
         """Replicate immich-go's people-tag import using ``people/<name>`` tags."""
         if not asset_id or not getattr(self, "_takeout_people_map", None):
-            return False
+            return 0
         entry = self._get_takeout_people_entry_for_asset(file_path)
         if not isinstance(entry, dict):
-            return False
+            return 0
         names = [str(name).strip() for name in entry.get("people", []) if str(name).strip()]
         if not names:
-            return False
+            return 0
+        assignment_key = self._takeout_people_assignment_key(file_path, asset_id)
         with self._takeout_people_import_lock:
+            self._takeout_people_assignment_counts[assignment_key] = 0
             try:
                 tagged_count = 0
                 for name in names:
@@ -668,17 +696,19 @@ class ClassImmichPhotos(BaseMediaClient):
                     response.raise_for_status()
                     tagged_count += 1
                     self._takeout_people_imported_names.add(name.casefold())
+                self._takeout_people_assignment_counts[assignment_key] = tagged_count
                 if tagged_count:
                     LOGGER.info(
                         f"Imported {tagged_count} Takeout people tag(s) for "
                         f"'{os.path.basename(file_path)}'."
                     )
-                    return True
+                    return tagged_count
                 LOGGER.warning(f"Unable to create any Takeout people tag for '{os.path.basename(file_path)}'.")
-                return False
+                return 0
             except Exception as error:
+                self._takeout_people_assignment_counts[assignment_key] = 0
                 LOGGER.warning(f"Unable to import Takeout people tags for '{os.path.basename(file_path)}': {error}")
-                return False
+                return 0
 
     ###########################################################################
     #                           ALBUMS FUNCTIONS                              #

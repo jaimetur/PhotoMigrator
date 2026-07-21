@@ -1,6 +1,7 @@
 import os
 import sys
 import tempfile
+import threading
 import types
 import unittest
 from datetime import datetime, timezone
@@ -106,6 +107,68 @@ class TestImmichPhotosUnit(unittest.TestCase):
                 entry = self.manager._get_takeout_people_entry_for_asset(str(asset_path))
 
         self.assertEqual(entry["people"], ["Luis"])
+
+    def test_takeout_people_resolution_uses_single_same_name_candidate_without_dates(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            asset_path = Path(temp_dir) / "MOVIE.mp4"
+            asset_path.touch()
+            self.manager._takeout_people_map = {
+                "movie.mp4": [{"people": ["Ana"]}],
+            }
+
+            entry = self.manager._get_takeout_people_entry_for_asset(str(asset_path))
+
+        self.assertEqual(entry["people"], ["Ana"])
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    def test_takeout_people_resolution_merges_same_name_candidates_without_comparable_dates(self, mock_logger):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            asset_path = Path(temp_dir) / "MOVIE.mp4"
+            asset_path.touch()
+            self.manager._takeout_people_map = {
+                "movie.mp4": [
+                    {"people": ["Ana"], "taken_at": ""},
+                    {"people": ["Luis"], "created_at": "2024-01-01T00:00:00Z"},
+                ],
+            }
+            self.manager._takeout_people_resolution_cache = {}
+
+            entry = self.manager._get_takeout_people_entry_for_asset(str(asset_path))
+
+        self.assertEqual(entry["people"], ["Ana", "Luis"])
+        self.assertIn("could not disambiguate", mock_logger.warning.call_args.args[0])
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.put")
+    def test_takeout_people_import_records_confirmed_assignment_count(self, mock_put, _mock_logger):
+        self.manager._takeout_people_map = {"photo.jpg": [{"people": ["Ana", "Luis"]}]}
+        self.manager._takeout_people_import_lock = threading.Lock()
+        self.manager._takeout_people_tag_ids = {}
+        self.manager._takeout_people_imported_names = set()
+        self.manager._takeout_people_assignment_counts = {}
+
+        def make_response(payload):
+            response = MagicMock()
+            response.raise_for_status.return_value = None
+            response.json.return_value = payload
+            return response
+
+        mock_put.side_effect = [
+            make_response([{"id": "tag-ana", "value": "people/Ana"}]),
+            make_response([]),
+            make_response([{"id": "tag-luis", "value": "people/Luis"}]),
+            make_response([]),
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            asset_path = Path(temp_dir) / "photo.jpg"
+            asset_path.write_bytes(b"photo")
+            assigned = self.manager.import_takeout_people_for_asset(str(asset_path), "asset-1")
+            recorded = self.manager.get_takeout_people_assigned_count_for_asset(str(asset_path), "asset-1")
+
+        self.assertEqual(assigned, 2)
+        self.assertEqual(recorded, 2)
+        self.assertEqual(mock_put.call_count, 4)
 
     def test_filter_assets_by_type_supports_aliases(self):
         assets = [
