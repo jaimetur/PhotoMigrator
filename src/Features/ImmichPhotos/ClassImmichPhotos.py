@@ -10,7 +10,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import ExitStack
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 
 import mimetypes
@@ -2717,63 +2717,108 @@ class ClassImmichPhotos(BaseMediaClient):
 
         with set_log_level(LOGGER, log_level):
             duplicate_groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)
+            if not self.login(log_level=log_level):
+                LOGGER.error("Cannot remove duplicate assets because Immich authentication is unavailable.")
+                return 0, len(duplicate_groups), len(duplicate_groups)
             removed_assets = 0
             skipped_groups = 0
-            delete_failed_assets = 0
+            delete_failed_assets = []
             pending_delete_ids = []
+            metadata_merge_seconds = 0.0
+            delete_seconds = 0.0
+
+            def submit_delete_request(asset_ids):
+                nonlocal delete_seconds
+
+                started_at = time.perf_counter()
+                try:
+                    response = requests.delete(
+                        f"{self.IMMICH_URL}/api/assets",
+                        headers=self.HEADERS_WITH_CREDENTIALS,
+                        data=json.dumps({"force": True, "ids": asset_ids}),
+                        verify=False,
+                    )
+                    response.raise_for_status()
+                    return True, ""
+                except requests.RequestException as error:
+                    response_text = str(getattr(getattr(error, "response", None), "text", "") or "").strip()
+                    detail = f" Response: {response_text[:500]}" if response_text else ""
+                    return False, f"{error}{detail}"
+                finally:
+                    delete_seconds += time.perf_counter() - started_at
+
+            def delete_batch_with_isolation(asset_ids):
+                nonlocal removed_assets
+                if not asset_ids:
+                    return
+                deleted, error_detail = submit_delete_request(asset_ids)
+                if deleted:
+                    removed_assets += len(asset_ids)
+                    return
+                if len(asset_ids) == 1:
+                    delete_failed_assets.append((asset_ids[0], error_detail))
+                    return
+                midpoint = len(asset_ids) // 2
+                delete_batch_with_isolation(asset_ids[:midpoint])
+                delete_batch_with_isolation(asset_ids[midpoint:])
 
             def flush_pending_deletions():
-                nonlocal removed_assets, delete_failed_assets, pending_delete_ids
+                nonlocal pending_delete_ids
                 if not pending_delete_ids:
                     return
-                deleted_count = self.remove_assets(pending_delete_ids, log_level=log_level)
-                removed_assets += deleted_count
-                if deleted_count != len(pending_delete_ids):
-                    delete_failed_assets += len(pending_delete_ids) - deleted_count
-                    LOGGER.warning(
-                        f"Immich did not confirm deletion of {len(pending_delete_ids) - deleted_count}/"
-                        f"{len(pending_delete_ids)} duplicate asset(s) in a manual cleanup batch."
-                    )
+                delete_batch_with_isolation(pending_delete_ids)
                 pending_delete_ids = []
 
             for group in tqdm(duplicate_groups, desc=f"{MSG_TAGS['INFO']}Resolving duplicate asset groups", unit=" groups"):
+                merge_started_at = time.perf_counter()
                 keeper_candidate = self._select_duplicate_asset_keeper(group, strategy)
                 ordered = [keeper_candidate, *[asset for asset in group if asset is not keeper_candidate]]
                 hydrated_group = self._hydrate_duplicate_group_metadata(ordered, log_level=log_level)
                 if hydrated_group is None:
                     skipped_groups += 1
+                    metadata_merge_seconds += time.perf_counter() - merge_started_at
                     continue
                 keeper_id = str(keeper_candidate.get("id") or "").strip()
                 ordered = sorted(hydrated_group, key=lambda item: str(item.get("id") or "") != keeper_id)
                 keeper, redundant = ordered[0], ordered[1:]
                 if not self._merge_duplicate_asset_metadata(keeper, redundant, log_level=log_level):
                     skipped_groups += 1
+                    metadata_merge_seconds += time.perf_counter() - merge_started_at
                     continue
                 redundant_ids = [str(asset.get("id") or "").strip() for asset in redundant]
                 redundant_ids = [asset_id for asset_id in redundant_ids if asset_id]
                 if not redundant_ids:
+                    metadata_merge_seconds += time.perf_counter() - merge_started_at
                     continue
+                metadata_merge_seconds += time.perf_counter() - merge_started_at
                 pending_delete_ids.extend(redundant_ids)
                 while len(pending_delete_ids) >= self.IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE:
                     delete_batch = pending_delete_ids[:self.IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE]
                     pending_delete_ids = pending_delete_ids[self.IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE:]
-                    deleted_count = self.remove_assets(delete_batch, log_level=log_level)
-                    removed_assets += deleted_count
-                    if deleted_count != len(delete_batch):
-                        delete_failed_assets += len(delete_batch) - deleted_count
-                        LOGGER.warning(
-                            f"Immich did not confirm deletion of {len(delete_batch) - deleted_count}/"
-                            f"{len(delete_batch)} duplicate asset(s) in a manual cleanup batch."
-                        )
+                    delete_batch_with_isolation(delete_batch)
                 LOGGER.debug(
                     f"Duplicate assets queued for batch deletion: keeper='{keeper.get('originalFileName', '')}' "
                     f"ID={keeper.get('id')} queued={len(redundant_ids)} strategy={strategy}."
                 )
             flush_pending_deletions()
+            if delete_failed_assets:
+                examples = "; ".join(
+                    f"{asset_id}: {error}" for asset_id, error in delete_failed_assets[:10]
+                )
+                remaining_count = len(delete_failed_assets) - len(delete_failed_assets[:10])
+                suffix = f" (+{remaining_count} more)" if remaining_count else ""
+                LOGGER.warning(
+                    f"Immich rejected deletion of {len(delete_failed_assets)} duplicate asset(s): "
+                    f"{examples}{suffix}."
+                )
             LOGGER.info(
                 f"Duplicate asset cleanup finished: removed={removed_assets}, "
                 f"groups_skipped_for_metadata_safety={skipped_groups}, "
-                f"assets_not_confirmed_deleted={delete_failed_assets}."
+                f"assets_not_confirmed_deleted={len(delete_failed_assets)}."
+            )
+            LOGGER.info(
+                f"Duplicate asset cleanup timing: metadata_merge={timedelta(seconds=round(metadata_merge_seconds))}, "
+                f"batched_deletion={timedelta(seconds=round(delete_seconds))}."
             )
             return removed_assets, len(duplicate_groups), skipped_groups
 
