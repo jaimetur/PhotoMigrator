@@ -2725,6 +2725,10 @@ class ClassSynologyPhotos(BaseMediaClient):
                     request_variants.append(personal_fallback)
                 if album_passphrase:
                     request_with_passphrase = dict(params)
+                    # Shared-album downloads accept either the album context
+                    # or the passphrase. DSM rejects the combination with
+                    # error 120, so the passphrase fallback must be contextless.
+                    request_with_passphrase.pop("album_id", None)
                     request_with_passphrase['passphrase'] = f'"{album_passphrase}"'
                     request_variants.append(request_with_passphrase)
 

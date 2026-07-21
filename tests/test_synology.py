@@ -949,6 +949,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertEqual(first_params["album_id"], "43")
         self.assertNotIn("passphrase", first_params)
         self.assertEqual(second_params["passphrase"], '"shared-passphrase"')
+        self.assertNotIn("album_id", second_params)
 
     def test_get_albums_including_shared_with_user_prefers_owned_album_scope(self):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
