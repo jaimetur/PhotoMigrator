@@ -66,7 +66,7 @@ Following general arguments have different purposes depending on the Execution M
 | `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini` (default: `1`)                                    |
 | `-from`,<br>`--filter-from-date`          | Filter assets from this date                                                         |
 | `-to`,<br>`--filter-to-date`              | Filter assets up to this date                                                        |
-| `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`                                       |
+| `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all` (default: `all`)                      |
 | `-country`,<br>`--filter-by-country`      | Filter assets by country                                                             |
 | `-city`,<br>`--filter-by-city`            | Filter assets by city                                                                |
 | `-person`,<br>`--filter-by-person`        | Filter assets by person                                                              |

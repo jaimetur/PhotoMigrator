@@ -47,6 +47,8 @@
   - Marked `--immich-duplicates-algorithm` and `--immich-duplicates-deletion` as required selections for Immich `Remove Duplicate Assets` in Web, GUI, and TUI. Active native-detection commands now include both values explicitly; native deletion remains unavailable when detection is disabled.
   - Reclassified startup configuration logging: `Optional Flags Provided` now lists every effective optional flag owned by the selected feature/module, while the former `Optional Flags Default` section is now `General Arguments` and contains the tool-wide shared arguments.
   - Added `--remove-albums-assets` to the startup `General Arguments` listing, while keeping `--albums-folders` scoped to `Upload All` and `--preview-album-actions` scoped to its supported album modules.
+  - Added a red `Restore Default` action below the `General Arguments` cards in Web, GUI, and TUI. It restores all visible general fields to their defaults, persists the reset state where enabled, and refreshes the command preview without changing feature-specific values.
+  - Set the real default for `--filter-by-type` to `all`, aligning CLI parsing, General Arguments restoration, and interactive selectors with the documented behavior.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

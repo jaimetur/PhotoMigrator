@@ -2177,6 +2177,25 @@
         wrap.appendChild(groupsGrid);
         wrap.appendChild(desc);
         panel.appendChild(wrap);
+
+        const actions = document.createElement("div");
+        actions.className = "config-actions general-actions";
+        const restoreButton = document.createElement("button");
+        restoreButton.type = "button";
+        restoreButton.className = "run-btn run-btn--danger";
+        restoreButton.textContent = "Restore Default";
+        restoreButton.addEventListener("click", () => {
+            fields.forEach((field) => {
+                const defaultValue = field.default;
+                stateValues[field.dest] = Array.isArray(defaultValue) ? [...defaultValue] : defaultValue;
+            });
+            queueSaveState();
+            renderBulkArgumentPanel(panelId, fields);
+            bindStateForInputs();
+            queueCommandPreview();
+        });
+        actions.appendChild(restoreButton);
+        panel.appendChild(actions);
     }
 
     function getAllFields() {

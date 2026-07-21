@@ -1791,6 +1791,19 @@ if TEXTUAL_AVAILABLE:
             color: #451515;
             border: heavy #9c5c5c;
         }
+        .general-restore-btn {
+            margin-top: 1;
+            background: #8f3434;
+            color: #ffffff;
+            border: round #bd6c6c;
+        }
+        .general-restore-btn:focus,
+        .general-restore-btn.is-focused {
+            background: #b34b4b;
+            color: #ffffff;
+            border: heavy #d98686;
+            text-style: bold;
+        }
         #picker-up:focus,
         #picker-home:focus,
         #picker-up.is-focused,
@@ -2301,6 +2314,7 @@ if TEXTUAL_AVAILABLE:
             groups_grid = self.build_general_groups_grid()
             return [
                 groups_grid,
+                Button("Restore Default", id="restore-general-defaults-btn", classes="general-restore-btn"),
             ]
 
         def build_general_groups_grid(self) -> Grid:
@@ -3636,6 +3650,15 @@ if TEXTUAL_AVAILABLE:
 
         async def on_button_pressed(self, event: Button.Pressed) -> None:
             button_id = event.button.id or ""
+            if button_id == "restore-general-defaults-btn":
+                for field in self.schema["general_tabs"]["general"]:
+                    default_value = field.get("default")
+                    self.state_values[field["dest"]] = list(default_value) if isinstance(default_value, list) else default_value
+                self.persist_ui_state()
+                await self.rebuild_content()
+                self.update_command_preview()
+                self.update_status("General arguments restored to defaults.")
+                return
             if button_id.startswith("bool-"):
                 payload = button_id.replace("bool-", "", 1)
                 if payload.endswith("-toggle"):

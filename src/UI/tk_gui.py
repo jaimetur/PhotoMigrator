@@ -1363,7 +1363,29 @@ class PhotoMigratorTkGUI:
             group_blocks.append(card)
         for index, card in enumerate(group_blocks):
             card.grid(row=index // 2, column=index % 2, sticky="nsew", padx=(0 if index % 2 == 0 else 6, 6 if index % 2 == 0 else 0), pady=2)
+        restore_button = self.ttk.Button(
+            container,
+            text="Restore Default",
+            command=self.restore_general_arguments_defaults,
+            style="PM.ToolbarLoad.TButton",
+        )
+        restore_button.grid(
+            row=(len(group_blocks) + 1) // 2,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=(12, 0),
+        )
         return []
+
+    def restore_general_arguments_defaults(self) -> None:
+        """Restore the currently visible general arguments without touching feature state."""
+        for field in self.schema["general_tabs"]["general"]:
+            default_value = field.get("default")
+            self.state_values[field["dest"]] = list(default_value) if isinstance(default_value, list) else default_value
+        self.persist_ui_state()
+        self.rebuild_content()
+        self.update_command_preview()
 
     def build_module_only_fields(self, parent: Any, tab_key: str, fields: List[Dict[str, Any]]) -> None:
         if tab_key == "automatic_migration":

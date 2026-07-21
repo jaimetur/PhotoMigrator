@@ -2109,6 +2109,10 @@ body[data-theme="dark"] .theme-card__name {
     margin-top: 0;
 }
 
+.general-actions {
+    margin-top: 16px;
+}
+
 .output .command {
     border-radius: 10px;
     background: #0d1a1f;
