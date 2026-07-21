@@ -61,7 +61,7 @@ class ClassImmichPhotos(BaseMediaClient):
     into a single class that uses a global LOGGER from GlobalVariables.
     """
     IMMICH_ASSET_INVENTORY_PAGE_SIZE = 1000
-    DUPLICATE_METADATA_REVIEW_WORKERS = 24
+    DUPLICATE_METADATA_REVIEW_WORKERS = 48
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
     DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
@@ -2096,18 +2096,20 @@ class ClassImmichPhotos(BaseMediaClient):
         keeper_longitude = self._first_duplicate_metadata_value(
             [keeper], ("longitude",), ("exifInfo", "longitude"),
         )
-        if keeper_latitude is None or keeper_longitude is None:
-            for asset in group_assets:
-                latitude = self._first_duplicate_metadata_value(
-                    [asset], ("latitude",), ("exifInfo", "latitude"),
-                )
-                longitude = self._first_duplicate_metadata_value(
-                    [asset], ("longitude",), ("exifInfo", "longitude"),
-                )
-                if latitude is not None and longitude is not None:
-                    payload["latitude"] = latitude
-                    payload["longitude"] = longitude
-                    break
+        locations = set()
+        for asset in group_assets:
+            latitude = self._first_duplicate_metadata_value(
+                [asset], ("latitude",), ("exifInfo", "latitude"),
+            )
+            longitude = self._first_duplicate_metadata_value(
+                [asset], ("longitude",), ("exifInfo", "longitude"),
+            )
+            if latitude is not None and longitude is not None:
+                locations.add((latitude, longitude))
+        # Match Immich's native resolver: only propagate a location when every
+        # geotagged member agrees on the same coordinate pair.
+        if (keeper_latitude is None or keeper_longitude is None) and len(locations) == 1:
+            payload["latitude"], payload["longitude"] = next(iter(locations))
         try:
             if len(payload) > 1:
                 response = requests.put(

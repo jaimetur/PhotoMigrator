@@ -281,6 +281,27 @@ class TestImmichStreamingUpload(unittest.TestCase):
         )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.put")
+    def test_merge_duplicate_metadata_does_not_copy_conflicting_location(
+        self, mock_put, _mock_logger
+    ):
+        manager = self._build_manager()
+        manager._merge_duplicate_asset_faces = MagicMock(return_value=True)
+        manager._merge_duplicate_asset_stacks = MagicMock(return_value=True)
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        mock_put.return_value = response
+        keeper = {"id": "keeper", "originalFileName": "IMG.JPG"}
+        duplicates = [
+            {"id": "duplicate-1", "exifInfo": {"latitude": 40.4168, "longitude": -3.7038}},
+            {"id": "duplicate-2", "exifInfo": {"latitude": 41.3874, "longitude": 2.1686}},
+        ]
+
+        self.assertTrue(manager._merge_duplicate_asset_metadata(keeper, duplicates))
+
+        self.assertFalse(mock_put.called)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_merge_duplicate_stacks_recreates_stack_with_keeper_and_survivors(
