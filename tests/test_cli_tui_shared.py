@@ -308,13 +308,13 @@ class TestCliTuiShared(unittest.TestCase):
             {
                 "account-id": "1",
                 "remove-duplicates-assets": True,
-                "use-immich-duplicates-detection": False,
+                "immich-duplicates-algorithm": False,
                 "duplicate-asset-keeper": "newest",
             },
             "remove-duplicates-assets",
         )
 
-        self.assertIn("--use-immich-duplicates-detection", args)
+        self.assertIn("--immich-duplicates-algorithm", args)
         self.assertIn("false", args)
         self.assertIn("--duplicate-asset-keeper", args)
 

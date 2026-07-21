@@ -104,7 +104,7 @@ def _base_args():
         "remove-empty-albums": False,
         "remove-duplicates-albums": False,
         "remove-duplicates-assets": False,
-        "use-immich-duplicates-detection": False,
+        "immich-duplicates-algorithm": False,
         "duplicate-asset-keeper": "newest",
         "merge-duplicates-albums": False,
         "remove-all-albums": "",
@@ -230,7 +230,7 @@ class TestExecutionModes(unittest.TestCase):
         args = _base_args()
         args.update({
             "remove-duplicates-assets": True,
-            "use-immich-duplicates-detection": True,
+            "immich-duplicates-algorithm": True,
             "duplicate-asset-keeper": "better-quality",
         })
         duplicate_groups = [[

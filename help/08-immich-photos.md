@@ -321,12 +321,12 @@ Examples:
 - **Usage:**
   - Set Immich as the client using _**`--client=immich`**_.
   - Use _**`--remove-duplicates-assets`**_.
-  - By default, _**`--use-immich-duplicates-detection=true`**_ retrieves Immich's native groups of visually similar assets, including different encodes or file sizes of the same image.
+  - By default, _**`--immich-duplicates-algorithm=true`**_ retrieves Immich's native groups of visually similar assets, including different encodes or file sizes of the same image.
   - Select the keeper with _**`--duplicate-asset-keeper better-quality|newest|oldest`**_. With native detection enabled, `better-quality` is the default and follows Immich's quality suggestion; `newest` and `oldest` use upload date.
 - **Pre-Requisites:**
   - Configure `Config.ini` with an Immich account that can update assets, add assets to albums and tags, and delete assets.
 - **Explanation:**
-  - The Tool retrieves duplicate groups directly from Immich's stable detection API by default. Its detector is based on visual similarity, not filename or size. Set _**`--use-immich-duplicates-detection=false`**_ to use the previous paginated same-filename-and-size grouping instead; this is useful when the same processed Takeout was uploaded on different dates and an EXIF tag difference prevented Immich from rejecting the later upload.
+  - The Tool retrieves duplicate groups directly from Immich's stable detection API by default. Its detector is based on visual similarity, not filename or size. Set _**`--immich-duplicates-algorithm=false`**_ to use the previous paginated same-filename-and-size grouping instead; this is useful when the same processed Takeout was uploaded on different dates and an EXIF tag difference prevented Immich from rejecting the later upload.
   - For every group, it lists the proposed keeper and the redundant asset IDs before making any change. With normal confirmation enabled, it waits for confirmation after this preview. Add _**`--no-request-user-confirmation`**_ only for unattended executions.
   - Before deleting redundant assets, it merges available album memberships, tags, favorite state, description, ratings, and missing assigned faces into the keeper. Face transfer requires identical checksums; groups with unassigned, malformed, incomplete, unreadable, or non-identical face data are left unchanged.
   - This action permanently deletes the redundant assets. Immich is the backend that additionally merges the supported asset metadata before deletion.
@@ -335,7 +335,7 @@ Examples:
   ./PhotoMigrator.bin --client=immich --remove-duplicates-assets
   ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicate-asset-keeper better-quality
   ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicate-asset-keeper oldest
-  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --use-immich-duplicates-detection=false --duplicate-asset-keeper newest
+  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --immich-duplicates-algorithm=false --duplicate-asset-keeper newest
   ```
 
 > [!CAUTION]

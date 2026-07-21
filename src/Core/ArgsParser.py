@@ -472,7 +472,7 @@ def parse_arguments():
                              "Google Photos cannot delete library media through its public API.\n"
                              "Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest")
 
-    PARSER.add_argument("-useImmichDupDet", "--use-immich-duplicates-detection",
+    PARSER.add_argument("-immichDupAlgo", "--immich-duplicates-algorithm",
                         metavar="= [true,false]",
                         nargs="?",
                         const=True,

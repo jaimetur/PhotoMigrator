@@ -928,7 +928,7 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
         )
         return
 
-    native_detection_value = ARGS.get("use-immich-duplicates-detection", True)
+    native_detection_value = ARGS.get("immich-duplicates-algorithm", True)
     use_immich_detection = str(native_detection_value).strip().lower() not in {"false", "0", "no", "off"}
     keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "better-quality").lower()
     if normalized_client != "immich" and keeper_strategy == "better-quality":

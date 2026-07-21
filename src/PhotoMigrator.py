@@ -182,7 +182,7 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
             "consolidate-similar-albums", "duplicate-asset-keeper", "one-time-password",
         ]
         if feature_name == "Immich Photos":
-            cloud_dests.append("use-immich-duplicates-detection")
+            cloud_dests.append("immich-duplicates-algorithm")
         return common_dests + cloud_dests
     if feature_name == "Google Takeout Processor":
         return common_dests + [
