@@ -90,6 +90,7 @@
   - Fixed Automatic Migration Push dashboard denominators in Web and terminal interfaces. Push Assets, Photos, and Videos now use the same physical totals as Pull instead of the current queued count, so their progress bars no longer appear nearly complete while source assets are still being pulled.
   - Hardened Immich duplicate-inventory retrieval against transient connection closures. Each metadata page now has bounded timeouts and retries only connection, timeout, rate-limit, and gateway failures with exponential backoff.
   - Fixed Immich duplicate cleanup safety: duplicate-review metadata must now return the requested asset ID, and groups with missing or repeated asset IDs are skipped before preview, native resolution, or deletion.
+  - Fixed the Web Interface Output Panel run metadata for Automatic Migration. `Elapsed Time` and `Last Updated` above the Live Dashboard now refresh throughout the running job instead of remaining at their initial values.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

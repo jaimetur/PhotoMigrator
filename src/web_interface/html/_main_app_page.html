@@ -3794,17 +3794,15 @@
     function updateOutputRunMeta(jobData = {}) {
         const meta = document.getElementById("output-run-meta");
         if (!meta) return;
-        const tab = String(jobData.tab || currentJobTab || activeModuleTab || "");
-        const isAutomaticMigration = tab === "automatic_migration";
-        meta.classList.toggle("hidden", isAutomaticMigration);
-        if (isAutomaticMigration) return;
+        meta.classList.remove("hidden");
 
         const startedAt = jobData.started_at || currentJobStartedAt;
         const startedMs = startedAt ? Date.parse(startedAt) : NaN;
         const finishedMs = jobData.finished_at ? Date.parse(jobData.finished_at) : NaN;
         const elapsedUntil = Number.isFinite(finishedMs) ? finishedMs : Date.now();
         const elapsed = Number.isFinite(startedMs) ? formatDuration(Math.max(0, elapsedUntil - startedMs)) : "00:00:00";
-        const lastUpdated = jobData.last_updated_at || jobData.finished_at || startedAt;
+        const isRunning = jobData.status === "running" || jobData.status === "stopping";
+        const lastUpdated = jobData.last_updated_at || jobData.finished_at || (isRunning ? new Date().toISOString() : startedAt);
 
         document.getElementById("output-elapsed").textContent = `Elapsed Time: ${elapsed}`;
         document.getElementById("output-last-updated").textContent = `Last Updated: ${formatTimeOfDay(lastUpdated)}`;
