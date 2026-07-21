@@ -2606,6 +2606,7 @@ class ClassImmichPhotos(BaseMediaClient):
 
         removed_assets = 0
         failed_resolution_groups = 0
+        inaccessible_group_ids = []
         with tqdm(
             total=len(groups_payload),
             desc=(
@@ -2618,17 +2619,34 @@ class ClassImmichPhotos(BaseMediaClient):
                 batch = groups_payload[batch_start:batch_start + self.IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE]
                 response_payload, error_detail = submit_batch(batch)
                 if response_payload is None and is_duplicate_delete_access_error(error_detail):
-                    remaining_groups = len(groups_payload) - batch_start
-                    failed_resolution_groups += remaining_groups
-                    LOGGER.error(
-                        "Immich rejected native duplicate resolution because the selected user API key either "
-                        "lacks 'duplicate.delete' access or cannot access one or more returned duplicate groups. "
-                        f"This run uses IMMICH_API_KEY_USER_{self.ACCOUNT_ID}, not IMMICH_ADMIN_API_KEY. "
-                        "Verify that this account's API key has Duplicate Delete permission and access to the "
-                        f"duplicate groups, then run the module again. Server response: {error_detail}"
+                    LOGGER.warning(
+                        f"Immich rejected duplicate-resolution batch {batch_start + 1}-"
+                        f"{batch_start + len(batch)} because at least one duplicate group is inaccessible or "
+                        "no longer exists. Retrying its groups individually; inaccessible groups will be "
+                        f"summarized at the end. Server response: {error_detail}"
                     )
-                    progress_bar.update(remaining_groups)
-                    break
+                    for item in batch:
+                        single_response, single_error = submit_batch([item])
+                        if single_response is None:
+                            failed_resolution_groups += 1
+                            if is_duplicate_delete_access_error(single_error):
+                                inaccessible_group_ids.append(item["duplicateId"])
+                            else:
+                                LOGGER.error(
+                                    f"Immich native duplicate resolution failed for group "
+                                    f"{item['duplicateId']}: {single_error}"
+                                )
+                        else:
+                            removed_count, failures = record_batch_result([item], single_response)
+                            removed_assets += removed_count
+                            if failures:
+                                failed_resolution_groups += 1
+                                LOGGER.warning(
+                                    f"Immich did not resolve duplicate group {item['duplicateId']}: "
+                                    f"{failures[0][1]}."
+                                )
+                        progress_bar.update(1)
+                    continue
                 if response_payload is None and len(batch) > 1:
                     LOGGER.warning(
                         f"Immich rejected duplicate-resolution batch {batch_start + 1}-"
@@ -2669,6 +2687,15 @@ class ClassImmichPhotos(BaseMediaClient):
                             f"{batch_start + 1}-{batch_start + len(batch)}."
                         )
                 progress_bar.update(len(batch))
+        if inaccessible_group_ids:
+            example_ids = ", ".join(inaccessible_group_ids[:10])
+            remaining_count = len(inaccessible_group_ids) - len(inaccessible_group_ids[:10])
+            suffix = f" (+{remaining_count} more)" if remaining_count else ""
+            LOGGER.warning(
+                f"Immich skipped {len(inaccessible_group_ids)} duplicate group(s) because they were "
+                f"inaccessible or no longer existed: {example_ids}{suffix}. This run used "
+                f"IMMICH_API_KEY_USER_{self.ACCOUNT_ID}."
+            )
         LOGGER.info(
             f"Immich native duplicate resolution completed: groups={len(groups_payload)}, "
             f"groups_failed={failed_resolution_groups}, assets sent to trash={removed_assets}."
