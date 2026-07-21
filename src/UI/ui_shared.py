@@ -985,7 +985,7 @@ def normalize_field_for_context(field: Dict[str, Any] | None, tab_key: str) -> D
             )
         elif tab_key in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
             normalized["help"] = (
-                "When an uploaded album must be created, use the canonical form of its source name. "
+                "When uploaded albums must be created, use the canonical form of each source name. "
                 "It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
                 if is_canonical else
                 "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. "
