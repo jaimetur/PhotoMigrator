@@ -94,6 +94,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             "type": "http",
             "method": "GET",
             "path": "/features",
+            "query_string": b"",
             "headers": [],
         })
 
@@ -102,6 +103,25 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.headers["location"], "/output")
+
+    def test_features_allows_manual_navigation_for_current_users_active_job(self):
+        self.web_app.JOBS["active-job"] = SimpleNamespace(status="running", owner_user_id=self.current_user["id"])
+        request = self.web_app.Request({
+            "type": "http",
+            "method": "GET",
+            "path": "/features",
+            "query_string": b"manual_navigation=1",
+            "headers": [],
+        })
+
+        with patch.object(self.web_app, "_user_from_session_token", return_value=self.current_user), patch.object(
+            self.web_app.templates,
+            "TemplateResponse",
+            return_value=self.web_app.HTMLResponse("features"),
+        ):
+            response = self.web_app.features_page(request, session_token="session-token")
+
+        self.assertEqual(response.status_code, 200)
 
     def test_icloud_takeout_rejects_direct_user_root(self):
         values = {"icloud-takeout": str(self.allowed_roots[0])}

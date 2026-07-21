@@ -3774,7 +3774,8 @@ def _user_has_active_job(user_id: int) -> bool:
 
 
 def _render_main_page(request: Request, current_user: Dict[str, Any], template_name: str) -> Response:
-    if template_name != "output.html" and _user_has_active_job(int(current_user["id"])):
+    manual_navigation = request.query_params.get("manual_navigation") == "1"
+    if template_name != "output.html" and not manual_navigation and _user_has_active_job(int(current_user["id"])):
         return RedirectResponse(url="/output", status_code=302)
     response = templates.TemplateResponse(
         template_name,

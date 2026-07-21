@@ -49,13 +49,13 @@
 
     <div class="panel-shell{% if active_page != 'configuration' %} page-panel-hidden{% endif %}">
         <div class="page-nav" aria-label="Main page navigation">
-            <a href="/features" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
+            <a href="/features?manual_navigation=1" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
                 🧩 Features
             </a>
-            <a href="/output" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
+            <a href="/output?manual_navigation=1" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
                 📟 Output
             </a>
-            <a href="/configuration" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
+            <a href="/configuration?manual_navigation=1" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
                 ⚙️ Configuration
             </a>
         </div>
@@ -107,13 +107,13 @@
 
     <div class="panel-shell{% if active_page != 'features' %} page-panel-hidden{% endif %}">
         <div class="page-nav" aria-label="Main page navigation">
-            <a href="/features" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
+            <a href="/features?manual_navigation=1" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
                 🧩 Features
             </a>
-            <a href="/output" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
+            <a href="/output?manual_navigation=1" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
                 📟 Output
             </a>
-            <a href="/configuration" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
+            <a href="/configuration?manual_navigation=1" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
                 ⚙️ Configuration
             </a>
         </div>
@@ -148,13 +148,13 @@
 
     <div class="panel-shell{% if active_page != 'output' %} page-panel-hidden{% endif %}">
         <div class="page-nav" aria-label="Main page navigation">
-            <a href="/features" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
+            <a href="/features?manual_navigation=1" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
                 🧩 Features
             </a>
-            <a href="/output" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
+            <a href="/output?manual_navigation=1" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
                 📟 Output
             </a>
-            <a href="/configuration" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
+            <a href="/configuration?manual_navigation=1" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
                 ⚙️ Configuration
             </a>
         </div>
@@ -738,6 +738,9 @@
     ];
 
     const CURRENT_PAGE = "{{ active_page }}";
+    if (new URLSearchParams(window.location.search).get("manual_navigation") === "1") {
+        window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
+    }
     let stateValues = {};
     let uiState = {collapsed_panels: {}};
     let saveStateTimer = null;
