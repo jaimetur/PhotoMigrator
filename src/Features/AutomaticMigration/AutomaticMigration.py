@@ -91,16 +91,6 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
             int(counters.get(pulled_key, 0) or 0) + int(counters.get(failed_key, 0) or 0),
         )
 
-    def _physical_push_total(total_key, pulled_key, failed_key, queued_key):
-        pulled = int(counters.get(pulled_key, 0) or 0)
-        failed = int(counters.get(failed_key, 0) or 0)
-        queued = int(counters.get(queued_key, 0) or 0)
-        # Once pulling has started, only successfully pulled physical files can
-        # enter Push_Queue; pull failures must not inflate the Push maximum.
-        if pulled or failed:
-            return max(pulled, queued)
-        return int(info.get(total_key, 0) or 0)
-
     physical_total_assets = _physical_pull_total(
         "total_assets", "total_pulled_assets", "total_pull_failed_assets",
     )
@@ -118,15 +108,11 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "totalAssets": physical_total_assets,
         "totalPhotos": physical_total_photos,
         "totalVideos": physical_total_videos,
-        "pushTotalAssets": _physical_push_total(
-            "total_assets", "total_pulled_assets", "total_pull_failed_assets", "total_push_queued_assets",
-        ),
-        "pushTotalPhotos": _physical_push_total(
-            "total_photos", "total_pulled_photos", "total_pull_failed_photos", "total_push_queued_photos",
-        ),
-        "pushTotalVideos": _physical_push_total(
-            "total_videos", "total_pulled_videos", "total_pull_failed_videos", "total_push_queued_videos",
-        ),
+        # Push tracks the same physical source inventory as Pull. Do not use
+        # the current queue size as a maximum or Push appears nearly complete.
+        "pushTotalAssets": physical_total_assets,
+        "pushTotalPhotos": physical_total_photos,
+        "pushTotalVideos": physical_total_videos,
         "totalAlbums": int(info.get("total_albums", 0) or 0),
         "totalMetadata": int(info.get("total_metadata", 0) or 0),
         "totalSidecar": int(info.get("total_sidecar", 0) or 0),

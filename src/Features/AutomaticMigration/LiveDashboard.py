@@ -343,12 +343,14 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     )
                 if completed_label in push_sources:
                     total_label, pulled_label, failed_label = push_sources[completed_label]
-                    pulled = int(SHARED_DATA.counters.get(pulled_label, 0) or 0)
-                    failed = int(SHARED_DATA.counters.get(failed_label, 0) or 0)
-                    queued = int(SHARED_DATA.counters.get(completed_label, 0) or 0)
-                    if pulled or failed:
-                        return max(pulled, queued)
-                    return int(SHARED_DATA.info.get(total_label, 0) or 0)
+                    # Push and Pull describe the same physical source files.
+                    # Keeping this denominator independent of queue depth
+                    # prevents a nearly full Push bar while Pull is ongoing.
+                    return max(
+                        int(SHARED_DATA.info.get(total_label, 0) or 0),
+                        int(SHARED_DATA.counters.get(pulled_label, 0) or 0)
+                        + int(SHARED_DATA.counters.get(failed_label, 0) or 0),
+                    )
                 return int(SHARED_DATA.info.get(configured_total_label, 0) or 0)
 
             # ─────────────────────────────────────────────────────────────────────────

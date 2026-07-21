@@ -168,7 +168,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["albumAssocRetryRecovered"], 5)
         self.assertEqual(snapshot["albumAssocUnconfirmed"], 1)
 
-    def test_web_dashboard_snapshot_uses_physical_pull_and_push_totals(self):
+    def test_web_dashboard_snapshot_uses_the_same_physical_totals_for_pull_and_push(self):
         shared_data = automatic_module.SharedData(
             info={
                 "total_assets": 10,
@@ -196,8 +196,8 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["totalAssets"], 13)
         self.assertEqual(snapshot["totalPhotos"], 8)
         self.assertEqual(snapshot["totalVideos"], 5)
-        self.assertEqual(snapshot["pushTotalAssets"], 12)
-        self.assertEqual(snapshot["pushTotalPhotos"], 7)
+        self.assertEqual(snapshot["pushTotalAssets"], 13)
+        self.assertEqual(snapshot["pushTotalPhotos"], 8)
         self.assertEqual(snapshot["pushTotalVideos"], 5)
 
     def test_compute_dashboard_estimated_time_returns_estimate_from_processed_and_pending_assets(self):

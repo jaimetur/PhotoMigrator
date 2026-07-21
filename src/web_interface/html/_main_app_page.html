@@ -1774,9 +1774,11 @@
         const totalVideosForPull = resolveTotal(stats.totalVideos, stats.pulledVideos, stats.pullFailedVideos);
         const totalAlbumsForPull = resolveTotal(stats.totalAlbums, stats.pulledAlbums, stats.pullFailedAlbums);
 
-        const totalAssetsForPush = resolveTotal(stats.pushTotalAssets, stats.pushQueuedAssets);
-        const totalPhotosForPush = resolveTotal(stats.pushTotalPhotos, stats.pushQueuedPhotos);
-        const totalVideosForPush = resolveTotal(stats.pushTotalVideos, stats.pushQueuedVideos);
+        // Push processes the same source inventory as Pull. Reuse its totals
+        // so queue depth cannot make the Push bars look almost complete.
+        const totalAssetsForPush = totalAssetsForPull;
+        const totalPhotosForPush = totalPhotosForPull;
+        const totalVideosForPush = totalVideosForPull;
         const totalAlbumsForPush = resolveTotal(stats.totalAlbums, stats.pushedAlbums, stats.pushFailedAlbums);
 
         setProgressRow("bar-pulled-assets", "bar-pulled-assets-count", stats.pulledAssets, totalAssetsForPull);

@@ -84,6 +84,7 @@
   - Removed the redundant `Enable selected action` label beside Web Interface feature checkboxes.
   - Fixed the Web Interface `Automatic Migration` Live Dashboard so its `Elapsed Time` and `Last Updated` counters refresh every second throughout execution, including periods with no new log or progress snapshot.
   - Fixed Google Takeout people-map collision handling for existing maps. Repeated album sidecars with the same `taken_at` are now consolidated when the map is loaded as well as when it is created, preventing redundant zero-distance candidates; date-resolution logs now identify the comparison source and display distances as `dd days hh:mm:ss`.
+  - Fixed Automatic Migration Push dashboard denominators in Web and terminal interfaces. Push Assets, Photos, and Videos now use the same physical totals as Pull instead of the current queued count, so their progress bars no longer appear nearly complete while source assets are still being pulled.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
