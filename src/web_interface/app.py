@@ -3037,6 +3037,7 @@ def _load_parser_schema() -> Dict[str, Any]:
         by_dest[dest] = field
 
     cloud_common = [field for field in fields if field["tab"] == "cloud_common"]
+    otp_field = by_dest.get("one-time-password")
     merged_general = [
         field
         for field in fields
@@ -3054,7 +3055,9 @@ def _load_parser_schema() -> Dict[str, Any]:
             "google_takeout": [field for field in fields if field["tab"] == "google_takeout"],
             "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"],
             "google_photos": cloud_common,
-            "synology_photos": cloud_common,
+            # OTP is also needed by every Synology cloud module. Its primary
+            # category remains Automatic Migration so that workflow retains it.
+            "synology_photos": [*cloud_common, *([otp_field] if otp_field else [])],
             "immich_photos": cloud_common,
             "nextcloud_photos": cloud_common,
             "standalone_features": [field for field in fields if field["tab"] == "standalone_features"],

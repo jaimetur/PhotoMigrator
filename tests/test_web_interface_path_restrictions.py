@@ -368,6 +368,25 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         general_dests = {str(field.get("dest") or "") for field in self.web_app.PARSER_SCHEMA["general_tabs"]["general"]}
         self.assertNotIn("configuration-file", general_dests)
 
+    def test_synology_download_all_includes_enabled_otp_flag(self):
+        synology_dests = {
+            str(field.get("dest") or "")
+            for field in self.web_app.PARSER_SCHEMA["tabs"]["synology_photos"]
+        }
+        self.assertIn("one-time-password", synology_dests)
+
+        args = self.web_app._build_cli_args(
+            "synology_photos",
+            {
+                "account-id": 2,
+                "download-all": "/tmp/Synology",
+                "one-time-password": True,
+            },
+            "download-all",
+        )
+
+        self.assertIn("--one-time-password", args)
+
     def test_icloud_include_memories_defaults_to_true_in_ui_and_appends_existing_flag(self):
         field = self.web_app.PARSER_FIELDS_BY_DEST["icloud-include-memories"]
 
