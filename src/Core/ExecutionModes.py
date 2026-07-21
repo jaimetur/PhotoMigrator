@@ -1186,6 +1186,7 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 metadata_display_names = {}
             LOGGER.info("Duplicate asset groups found:")
             for group_index, group in enumerate(duplicate_groups, start=1):
+                LOGGER.info("")
                 if normalized_client == "immich" and use_immich_detection:
                     keeper = cloud_client_obj._select_duplicate_asset_keeper(group, keeper_strategy)
                     ordered = [keeper, *[asset for asset in group if asset is not keeper]]
