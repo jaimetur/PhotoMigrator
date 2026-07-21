@@ -66,6 +66,7 @@ class ClassImmichPhotos(BaseMediaClient):
     IMMICH_AUTH_TIMEOUT = (10, 30)
     IMMICH_DUPLICATES_TIMEOUT = (10, 300)
     IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE = 100
+    IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE = 250
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
     DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
@@ -2718,6 +2719,23 @@ class ClassImmichPhotos(BaseMediaClient):
             duplicate_groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)
             removed_assets = 0
             skipped_groups = 0
+            delete_failed_assets = 0
+            pending_delete_ids = []
+
+            def flush_pending_deletions():
+                nonlocal removed_assets, delete_failed_assets, pending_delete_ids
+                if not pending_delete_ids:
+                    return
+                deleted_count = self.remove_assets(pending_delete_ids, log_level=log_level)
+                removed_assets += deleted_count
+                if deleted_count != len(pending_delete_ids):
+                    delete_failed_assets += len(pending_delete_ids) - deleted_count
+                    LOGGER.warning(
+                        f"Immich did not confirm deletion of {len(pending_delete_ids) - deleted_count}/"
+                        f"{len(pending_delete_ids)} duplicate asset(s) in a manual cleanup batch."
+                    )
+                pending_delete_ids = []
+
             for group in tqdm(duplicate_groups, desc=f"{MSG_TAGS['INFO']}Resolving duplicate asset groups", unit=" groups"):
                 keeper_candidate = self._select_duplicate_asset_keeper(group, strategy)
                 ordered = [keeper_candidate, *[asset for asset in group if asset is not keeper_candidate]]
@@ -2735,14 +2753,27 @@ class ClassImmichPhotos(BaseMediaClient):
                 redundant_ids = [asset_id for asset_id in redundant_ids if asset_id]
                 if not redundant_ids:
                     continue
-                removed_assets += self.remove_assets(redundant_ids, log_level=log_level)
-                LOGGER.info(
-                    f"Duplicate assets removed: keeper='{keeper.get('originalFileName', '')}' "
-                    f"ID={keeper.get('id')} removed={len(redundant_ids)} strategy={strategy}."
+                pending_delete_ids.extend(redundant_ids)
+                while len(pending_delete_ids) >= self.IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE:
+                    delete_batch = pending_delete_ids[:self.IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE]
+                    pending_delete_ids = pending_delete_ids[self.IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE:]
+                    deleted_count = self.remove_assets(delete_batch, log_level=log_level)
+                    removed_assets += deleted_count
+                    if deleted_count != len(delete_batch):
+                        delete_failed_assets += len(delete_batch) - deleted_count
+                        LOGGER.warning(
+                            f"Immich did not confirm deletion of {len(delete_batch) - deleted_count}/"
+                            f"{len(delete_batch)} duplicate asset(s) in a manual cleanup batch."
+                        )
+                LOGGER.debug(
+                    f"Duplicate assets queued for batch deletion: keeper='{keeper.get('originalFileName', '')}' "
+                    f"ID={keeper.get('id')} queued={len(redundant_ids)} strategy={strategy}."
                 )
+            flush_pending_deletions()
             LOGGER.info(
                 f"Duplicate asset cleanup finished: removed={removed_assets}, "
-                f"groups_skipped_for_metadata_safety={skipped_groups}."
+                f"groups_skipped_for_metadata_safety={skipped_groups}, "
+                f"assets_not_confirmed_deleted={delete_failed_assets}."
             )
             return removed_assets, len(duplicate_groups), skipped_groups
 

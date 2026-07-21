@@ -124,6 +124,31 @@ class TestImmichStreamingUpload(unittest.TestCase):
         manager.remove_assets.assert_called_once_with(["new"], log_level=None)
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.tqdm", side_effect=lambda iterable, **kwargs: iterable)
+    def test_manual_duplicate_cleanup_batches_deletions_across_groups(self, _mock_tqdm, _mock_logger):
+        manager = self._build_manager()
+        manager._hydrate_duplicate_group_metadata = MagicMock(side_effect=lambda group, log_level=None: group)
+        manager._merge_duplicate_asset_metadata = MagicMock(return_value=True)
+        manager.remove_assets = MagicMock(side_effect=lambda ids, log_level=None: len(ids))
+        duplicate_groups = [
+            [
+                {"id": "old-1", "createdAt": "2020-01-01T00:00:00.000Z"},
+                {"id": "new-1", "createdAt": "2021-01-01T00:00:00.000Z"},
+            ],
+            [
+                {"id": "old-2", "createdAt": "2020-01-01T00:00:00.000Z"},
+                {"id": "new-2", "createdAt": "2021-01-01T00:00:00.000Z"},
+            ],
+        ]
+
+        removed, groups_found, groups_skipped = manager.remove_duplicates_assets_by_name_and_size(
+            "oldest", duplicate_groups=duplicate_groups,
+        )
+
+        self.assertEqual((removed, groups_found, groups_skipped), (2, 2, 0))
+        manager.remove_assets.assert_called_once_with(["new-1", "new-2"], log_level=None)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_duplicate_group_metadata_is_loaded_only_for_candidates(self, mock_get, _mock_logger):
         manager = self._build_manager()
