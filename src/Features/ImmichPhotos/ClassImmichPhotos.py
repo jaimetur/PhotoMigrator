@@ -61,7 +61,7 @@ class ClassImmichPhotos(BaseMediaClient):
     into a single class that uses a global LOGGER from GlobalVariables.
     """
     IMMICH_ASSET_INVENTORY_PAGE_SIZE = 1000
-    DUPLICATE_METADATA_REVIEW_WORKERS = 48
+    DUPLICATE_METADATA_REVIEW_WORKERS = 100
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
     DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
