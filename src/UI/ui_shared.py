@@ -98,7 +98,7 @@ GENERAL_GROUPS = [
         "key": "execution",
         "title": "Execution",
         "dests": [
-            "no-request-user-confirmation",
+            "request-user-confirmation",
             "exec-gpth-tool",
             "exec-exif-tool",
             "configuration-file",
@@ -273,7 +273,7 @@ GENERAL_CORE_DESTS = {
 }
 GENERAL_OPTIONAL_DESTS = {
     "configuration-file",
-    "no-request-user-confirmation",
+    "request-user-confirmation",
     "no-log-file",
     "log-level",
     "log-format",

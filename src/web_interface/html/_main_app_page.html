@@ -503,7 +503,7 @@
         "albums-folders": "Albums Folders",
         "exclude-folders": "Exclude Folders",
         "exclude-files": "Exclude Files",
-        "no-request-user-confirmation": "request-user-confirmation",
+        "request-user-confirmation": "Request User Confirmation",
         "remove-albums-assets": "remove-album-assets",
         "one-time-password": "one-time-password",
         "account-id": "account-id",
@@ -550,11 +550,6 @@
     }
 
     function uiCheckboxValueForDest(dest, persisted) {
-        // Invert only in web UI: checked means "Request confirmation" (default unchecked).
-        if (dest === "no-request-user-confirmation") {
-            if (persisted === undefined) return false;
-            return !uiBooleanValue(persisted);
-        }
         return persisted === undefined ? false : uiBooleanValue(persisted);
     }
 
@@ -566,8 +561,6 @@
     }
 
     function stateValueFromUiCheckbox(dest, checked) {
-        // Store backend/CLI semantics in state: no-request-user-confirmation=true disables prompts.
-        if (dest === "no-request-user-confirmation") return !Boolean(checked);
         return Boolean(checked);
     }
 
@@ -599,7 +592,7 @@
 
     const GENERAL_GROUPS = [
         { key: "logs", title: "Logs", dests: ["no-log-file", "log-level", "log-format", "foldername-logs"] },
-        { key: "execution", title: "Execution", dests: ["no-request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets"] },
+        { key: "execution", title: "Execution", dests: ["request-user-confirmation", "exec-gpth-tool", "exec-exif-tool", "configuration-file", "remove-albums-assets"] },
         { key: "naming", title: "Naming & Folders", dests: ["date-separator", "range-separator", "albums-folders", "foldername-albums", "foldername-no-albums", "foldername-duplicates-output", "foldername-extracted-dates"] },
         { key: "filters", title: "Filters", dests: ["filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country", "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files"] }
     ];
@@ -803,7 +796,6 @@
 
     function uiOptionName(field) {
         if (!field) return "";
-        if (field.dest === "no-request-user-confirmation") return "request-user-confirmation";
         return field.long_option.replace(/^--/, "");
     }
 
@@ -902,10 +894,7 @@
                     : "During upload, treat equivalent existing album names as one family and merge their assets into the canonical keeper. Redundant albums are removed only when the service supports album deletion.";
             }
         }
-        if (field?.dest === "no-request-user-confirmation") {
-            return "Request user confirmation before executing any feature.";
-        }
-        const raw = (field?.help || "").replaceAll("--no-request-user-confirmation", "--request-user-confirmation");
+        const raw = field?.help || "";
         const lines = String(raw).replace(/\r\n/g, "\n").split("\n");
         const cleaned = [];
 
@@ -2034,11 +2023,7 @@
             checkWrap.addEventListener("click", syncFlagStateDeferred);
             checkWrap.appendChild(check);
             const txt = document.createElement("span");
-            if (field.dest === "no-request-user-confirmation") {
-                txt.textContent = "Enable";
-            } else {
-                txt.textContent = isRequired ? "Enable selected action" : "Enable";
-            }
+            txt.textContent = isRequired ? "Enable selected action" : "Enable";
             checkWrap.appendChild(txt);
             row.appendChild(checkWrap);
         } else {

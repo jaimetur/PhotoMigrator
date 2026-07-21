@@ -8,6 +8,7 @@
 ### Release Date: 2026-07-21
   
 #### 🚨 Breaking Changes:
+  - Replaced `--no-request-user-confirmation` with `--request-user-confirmation=true|false`. Confirmation remains enabled by default; unattended runs must now use `--request-user-confirmation=false`.
 
 #### 🌟 New Features:
   - Extended `Remove Duplicate Assets` to the cloud-service modules for Synology Photos, Immich Photos, and NextCloud Photos. All cloud interfaces now expose the required `--duplicate-asset-keeper {oldest, newest}` selector (default: `newest`). Google Photos also exposes the module and selector consistently, but reports that no deletion can be performed because its public Library API has no media-item deletion operation.
@@ -45,6 +46,7 @@
   - Disabled per-candidate album-membership reads during the Immich duplicate-review preview to reduce review latency. The `Albums` row is omitted from that preview; PhotoMigrator's manual deletion flow still loads and merges album memberships before deletion, while Immich's native resolver preserves them server-side.
   - Marked `--immich-duplicates-algorithm` and `--immich-duplicates-deletion` as required selections for Immich `Remove Duplicate Assets` in Web, GUI, and TUI. Active native-detection commands now include both values explicitly; native deletion remains unavailable when detection is disabled.
   - Reclassified startup configuration logging: `Optional Flags Provided` now lists every effective optional flag owned by the selected feature/module, while the former `Optional Flags Default` section is now `General Arguments` and contains the tool-wide shared arguments.
+  - Added `--albums-folders`, `--remove-albums-assets`, and `--preview-album-actions` to the startup `General Arguments` listing.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
@@ -64,6 +66,7 @@
   - Documented Google Takeout people-map processing, including its dedicated pre-GPTH `Step 4.1` capture phase, Immich `--import-people` uploads, and the corresponding Automatic Migration behavior and limitations.
   - Added `Remove Duplicate Assets` and `--duplicate-asset-keeper {oldest, newest}` to the CLI syntax, full/short arguments references, and Automatic Migration guide, including its independent-module scope.
   - Added the Google Takeout people-processing and Immich people-import flags to the CLI syntax and both full/short argument references, and updated the Automatic Migration guide with their scope, map lifecycle, duplicate-resolution behavior, and logging details.
+  - Updated CLI, cloud-feature, and Docker deployment documentation for `--request-user-confirmation=true|false`.
 
 ---
 

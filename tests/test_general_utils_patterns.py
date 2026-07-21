@@ -119,18 +119,18 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertEqual(plan["preferred_album_name"], "Huelva")
         self.assertTrue(plan["should_create_preferred_album"])
 
-    def test_confirm_continue_honors_no_confirm_by_default(self):
+    def test_confirm_continue_skips_prompt_when_confirmation_is_disabled(self):
         with (
-            patch.object(GV, "ARGS", {"no-request-user-confirmation": True}),
+            patch.object(GV, "ARGS", {"request-user-confirmation": False}),
             patch.object(GV, "LOGGER", MagicMock()),
         ):
             self.assertTrue(confirm_continue())
 
-    def test_confirm_continue_force_prompt_overrides_no_confirm_flag(self):
+    def test_confirm_continue_force_prompt_overrides_disabled_confirmation(self):
         fake_stdin = MagicMock()
         fake_stdin.isatty.return_value = True
         with (
-            patch.object(GV, "ARGS", {"no-request-user-confirmation": True}),
+            patch.object(GV, "ARGS", {"request-user-confirmation": False}),
             patch.object(GV, "LOGGER", MagicMock()),
             patch("Utils.GeneralUtils.sys.stdin", fake_stdin),
             patch("builtins.input", return_value="yes"),

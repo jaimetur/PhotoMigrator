@@ -57,8 +57,13 @@ def parse_arguments():
     PARSER.add_argument("-config", "--configuration-file", metavar="<CONFIGURATION_FILE>", default="",
                         help="Specify the file that contains the Configuration to connect to the different Photo Cloud Services.")
 
-    PARSER.add_argument("-noConfirm", "--no-request-user-confirmation", action="store_true",
-                        help="Do not request user confirmation before executing any feature.")
+    PARSER.add_argument("-confirm", "--request-user-confirmation",
+                        metavar="= [true,false]",
+                        nargs="?",
+                        const=True,
+                        default=True,
+                        type=str2bool,
+                        help="Request user confirmation before executing a feature (default: True).")
 
     PARSER.add_argument("-noLog", "--no-log-file", action="store_true",
                         help="Skip saving output messages to execution log file.")

@@ -31,22 +31,22 @@ Notes:
 
 ## 🧩 Core Arguments
 
-| Argument                                           | Description                                                                                        |
-|----------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| `-h`,<br>`--help`                                  | Show help and exit                                                                                 |
-| `-v`,<br>`--version`                               | Show tool version and exit                                                                         |
-| `-config`,<br>`--configuration-file`               | Config file path for CLI and for GUI/TUI startup                                                   |
-| `-noConfirm`,<br>`--no-request-user-confirmation`  | No Request User Confirmation before to execute any Feature.                                        |
-| `-noLog`,<br>`--no-log-file`                       | Disable log file creation                                                                          |
-| `-logLevel`,<br>`--log-level`                      | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`                                     |
-| `-logFormat`,<br>`--log-format`                    | Sets log file format: `LOG`, `TXT`, `ALL`                                                          |
-| `-fnAlbums`,<br>`--foldername-albums`              | Specify the folder name to store all your processed photos associated to any Album.                |
-| `-fnNoAlbums`,<br>`--foldername-no-albums`         | Specify the folder name to store all your processed photos (including those associated to Albums). |
-| `-fnLogs`,<br>`--foldername-logs`                  | Specify the folder name to save the execution Logs.                                                |
-| `-fnDuplicat`,<br>`--foldername-duplicates-output` | Specify the folder name to save the outputs of 'Find Duplicates' Feature.                          |
-| `-fnExtDates`,<br>`--foldername-extracted-dates`   | Specify the folder name to save the Metadata outputs of 'Extracted Dates'.                         |
-| `-exeGpthTool`,<br>`--exec-gpth-tool`              | Specify an external version of GPTH Tool binary.                                                   |
-| `-exeExifTool`,<br>`--exec-exif-tool`              | Specify an external version of GPTH Tool binary.                                                   |
+| Argument                                           | Description                                                                                         |
+|----------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `-h`,<br>`--help`                                  | Show help and exit                                                                                  |
+| `-v`,<br>`--version`                               | Show tool version and exit                                                                          |
+| `-config`,<br>`--configuration-file`               | Config file path for CLI and for GUI/TUI startup                                                    |
+| `-confirm`,<br>`--request-user-confirmation`       | Request confirmation before executing a feature (default: `true`; use `false` for unattended runs). |
+| `-noLog`,<br>`--no-log-file`                       | Disable log file creation                                                                           |
+| `-logLevel`,<br>`--log-level`                      | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`                                      |
+| `-logFormat`,<br>`--log-format`                    | Sets log file format: `LOG`, `TXT`, `ALL`                                                           |
+| `-fnAlbums`,<br>`--foldername-albums`              | Specify the folder name to store all your processed photos associated to any Album.                 |
+| `-fnNoAlbums`,<br>`--foldername-no-albums`         | Specify the folder name to store all your processed photos (including those associated to Albums).  |
+| `-fnLogs`,<br>`--foldername-logs`                  | Specify the folder name to save the execution Logs.                                                 |
+| `-fnDuplicat`,<br>`--foldername-duplicates-output` | Specify the folder name to save the outputs of 'Find Duplicates' Feature.                           |
+| `-fnExtDates`,<br>`--foldername-extracted-dates`   | Specify the folder name to save the Metadata outputs of 'Extracted Dates'.                          |
+| `-exeGpthTool`,<br>`--exec-gpth-tool`              | Specify an external version of GPTH Tool binary.                                                    |
+| `-exeExifTool`,<br>`--exec-exif-tool`              | Specify an external version of GPTH Tool binary.                                                    |
 
 #### 🧪 Examples:
 ```bash

@@ -227,7 +227,7 @@ For non-interactive commands such as `-h`, do not allocate a TTY. For commands t
 If you do not want interactive confirmations:
 
 ```bash
-docker run --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/photomigrator-linux:latest-stable --no-request-user-confirmation [OPTIONS]
+docker run --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/photomigrator-linux:latest-stable --request-user-confirmation=false [OPTIONS]
 ```
 
 > [!IMPORTANT]

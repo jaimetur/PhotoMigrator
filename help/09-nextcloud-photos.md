@@ -297,7 +297,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 - **Explanation:**
   - The Tool scans the configured NextCloud photos root through WebDAV. It uses each physical file's exact filename and WebDAV content length to form duplicate groups.
   - `newest` and `oldest` use the WebDAV last-modified timestamp. A missing or invalid timestamp is treated as older than a valid timestamp.
-  - For each group, the Tool logs the proposed keeper and redundant file paths before requesting confirmation. Use _**`--no-request-user-confirmation`**_ only for unattended executions.
+  - For each group, the Tool logs the proposed keeper and redundant file paths before requesting confirmation. Use _**`--request-user-confirmation=false`**_ only for unattended executions.
   - This module operates on physical files in the configured photos root. WebDAV does not provide a portable asset-metadata merge for albums, faces, tags, favorites, descriptions, or ratings, so none of those are merged before deletion.
 - **Examples:**
   ```

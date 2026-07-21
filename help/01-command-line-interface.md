@@ -114,8 +114,8 @@ options:
                Show the Tool name, version, and date, then exit.
 -config      ; --configuration-file <CONFIGURATION_FILE>
                Specify the file that contains the Configuration to connect to the different Photo Cloud Services.
--noConfirm   ; --no-request-user-confirmation
-               Do not request user confirmation before executing any feature.
+-confirm     ; --request-user-confirmation =[true,false]
+               Request user confirmation before executing a feature (default: true).
 -noLog       ; --no-log-file
                Skip saving output messages to execution log file.
 -logLevel    ; --log-level =[VERBOSE, DEBUG, INFO, WARNING, ERROR]

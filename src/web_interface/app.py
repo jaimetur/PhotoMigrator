@@ -260,7 +260,7 @@ GENERAL_CORE_DESTS = {
 
 GENERAL_OPTIONAL_DESTS = {
     "configuration-file",
-    "no-request-user-confirmation",
+    "request-user-confirmation",
     "no-log-file",
     "log-level",
     "log-format",
@@ -1690,7 +1690,7 @@ GENERAL_PANEL_DEST_ORDER = [
     "log-level",
     "log-format",
     "foldername-logs",
-    "no-request-user-confirmation",
+    "request-user-confirmation",
     "exec-gpth-tool",
     "exec-exif-tool",
     "remove-albums-assets",

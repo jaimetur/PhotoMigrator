@@ -308,7 +308,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 - **Explanation:**
   - The Tool retrieves the Synology library in paginated requests and groups physical assets with the same exact filename and file size.
   - `newest` and `oldest` use the timestamp returned by Synology for the asset. If an asset has no usable timestamp, it is treated as older than assets with a valid timestamp.
-  - Before deleting anything, the Tool logs every duplicate group, its proposed keeper, and the IDs selected for deletion. With normal confirmation enabled, it waits for confirmation after this preview. Use _**`--no-request-user-confirmation`**_ only for unattended executions.
+  - Before deleting anything, the Tool logs every duplicate group, its proposed keeper, and the IDs selected for deletion. With normal confirmation enabled, it waits for confirmation after this preview. Use _**`--request-user-confirmation=false`**_ only for unattended executions.
   - Synology does not expose a portable metadata-merge operation for this flow. Album membership, people, labels, favorites, ratings, descriptions, and other server metadata are not merged; the module deletes only the redundant physical assets after confirmation.
 - **Examples:**
   ```

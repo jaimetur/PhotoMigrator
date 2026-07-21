@@ -142,11 +142,12 @@ def _format_startup_value(value) -> str:
 def _general_argument_dests() -> list[str]:
     """Return arguments shared by the tool rather than owned by one feature."""
     return [
-        "configuration-file", "no-request-user-confirmation", "no-log-file", "log-level", "log-format",
+        "configuration-file", "request-user-confirmation", "no-log-file", "log-level", "log-format",
         "date-separator", "range-separator", "foldername-albums", "foldername-no-albums", "foldername-logs",
         "foldername-duplicates-output", "foldername-extracted-dates", "exec-gpth-tool", "exec-exif-tool",
         "filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country",
-        "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files",
+        "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files", "albums-folders",
+        "remove-albums-assets", "preview-album-actions",
     ]
 
 
