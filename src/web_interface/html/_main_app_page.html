@@ -181,6 +181,7 @@
                 </div>
             </div>
             <div id="output-run-meta" class="output-run-meta" aria-live="polite">
+                <span id="output-start-time">Start Time: -</span>
                 <span id="output-elapsed">Elapsed Time: 00:00:00</span>
                 <span id="output-last-updated">Last Updated: -</span>
             </div>
@@ -3814,6 +3815,7 @@
         const isRunning = jobData.status === "running" || jobData.status === "stopping";
         const lastUpdated = jobData.last_updated_at || jobData.finished_at || (isRunning ? new Date().toISOString() : startedAt);
 
+        document.getElementById("output-start-time").textContent = `Start Time: ${formatTimeOfDay(startedAt)}`;
         document.getElementById("output-elapsed").textContent = `Elapsed Time: ${elapsed}`;
         document.getElementById("output-last-updated").textContent = `Last Updated: ${formatTimeOfDay(lastUpdated)}`;
     }
