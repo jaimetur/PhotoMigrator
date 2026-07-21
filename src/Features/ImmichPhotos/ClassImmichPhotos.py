@@ -2598,6 +2598,9 @@ class ClassImmichPhotos(BaseMediaClient):
                     failed_groups.append((duplicate_id, result.get("errorMessage") or result.get("error") or "no result"))
             return successful_assets, failed_groups
 
+        def is_duplicate_delete_access_error(error_detail):
+            return "duplicate.delete access" in str(error_detail or "").lower()
+
         removed_assets = 0
         failed_resolution_groups = 0
         with tqdm(
@@ -2611,6 +2614,16 @@ class ClassImmichPhotos(BaseMediaClient):
             for batch_start in range(0, len(groups_payload), self.IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE):
                 batch = groups_payload[batch_start:batch_start + self.IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE]
                 response_payload, error_detail = submit_batch(batch)
+                if response_payload is None and is_duplicate_delete_access_error(error_detail):
+                    remaining_groups = len(groups_payload) - batch_start
+                    failed_resolution_groups += remaining_groups
+                    LOGGER.error(
+                        "Immich denied the API key permission 'duplicate.delete'. Native duplicate resolution "
+                        "cannot continue. Grant Duplicate Delete permission to the Immich user API key selected "
+                        f"for this account, then run the module again. Server response: {error_detail}"
+                    )
+                    progress_bar.update(remaining_groups)
+                    break
                 if response_payload is None and len(batch) > 1:
                     LOGGER.warning(
                         f"Immich rejected duplicate-resolution batch {batch_start + 1}-"

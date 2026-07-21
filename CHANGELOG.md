@@ -56,6 +56,7 @@
   - Fixed Web Interface log Auto Scroll so large incremental output batches and delayed browser layout scroll events cannot disable it. It now changes to manual review only after an explicit vertical wheel or touch scroll, and re-enables when the user returns to the log tail.
   - Hardened Immich native duplicate deletion by resolving groups in bounded batches with real group-level progress. A rejected batch now exposes Immich's response and is retried group-by-group, so one malformed group or request-size limit no longer prevents the remaining duplicate groups from being resolved. Final summaries now distinguish skipped or failed groups from successful removals.
   - Added a blank log line before every `Remove Duplicate Assets` preview group header, improving separation between consecutive asset comparison tables.
+  - Added fail-fast permission handling for Immich native duplicate resolution. When the selected user API key lacks `duplicate.delete`, PhotoMigrator now reports the required permission once and stops the remaining native-resolution requests instead of retrying every group and flooding the log.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
