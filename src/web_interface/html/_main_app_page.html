@@ -128,6 +128,7 @@
             <div id="migration-panel" class="module-special hidden"></div>
 
             <form id="module-form" class="form-grid module-grid"></form>
+            <div id="feature-restore-actions" class="config-actions general-actions feature-restore-actions"></div>
             <div class="command-preview-panel">
                 <h3>Command Preview:</h3>
                 <div id="command-preview-inline" class="command"></div>
@@ -171,6 +172,10 @@
                     </label>
                     <button id="copy-log-btn" type="button" class="ghost-btn">Copy log</button>
                 </div>
+            </div>
+            <div id="output-run-meta" class="output-run-meta" aria-live="polite">
+                <span id="output-elapsed">Elapsed Time: 00:00:00</span>
+                <span id="output-last-updated">Last Updated: -</span>
             </div>
             <section id="web-dashboard" class="web-dashboard hidden" aria-live="polite">
                 <div class="web-dashboard__header">
@@ -1581,6 +1586,13 @@
         const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
         const s = String(totalSeconds % 60).padStart(2, "0");
         return `${h}:${m}:${s}`;
+    }
+
+    function formatTimeOfDay(value) {
+        const timestamp = Date.parse(String(value || ""));
+        if (!Number.isFinite(timestamp)) return "-";
+        const date = new Date(timestamp);
+        return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
     }
 
     function computeEstimatedRemainingDuration({elapsedMs = 0, totalAssets = 0, pulledAssets = 0}) {
@@ -3439,7 +3451,9 @@
             renderFields(moduleForm, schema.tabs[activeModuleTab]);
         }
         bindStateForInputs();
+        renderFeatureRestoreActions();
         queueCommandPreview();
+        updateOutputRunMeta(currentJob ? webDashboardState.jobData : {tab: activeModuleTab});
         renderWebDashboard(webDashboardState.rawOutput, webDashboardState.status, webDashboardState.jobData);
         if (currentJob || restoreLastVisibleJobSeq > 0) {
             restoreLastVisibleJobForCurrentContext();
@@ -3741,6 +3755,25 @@
         statusEl.classList.toggle("status--error", Boolean(isError));
     }
 
+    function updateOutputRunMeta(jobData = {}) {
+        const meta = document.getElementById("output-run-meta");
+        if (!meta) return;
+        const tab = String(jobData.tab || currentJobTab || activeModuleTab || "");
+        const isAutomaticMigration = tab === "automatic_migration";
+        meta.classList.toggle("hidden", isAutomaticMigration);
+        if (isAutomaticMigration) return;
+
+        const startedAt = jobData.started_at || currentJobStartedAt;
+        const startedMs = startedAt ? Date.parse(startedAt) : NaN;
+        const finishedMs = jobData.finished_at ? Date.parse(jobData.finished_at) : NaN;
+        const elapsedUntil = Number.isFinite(finishedMs) ? finishedMs : Date.now();
+        const elapsed = Number.isFinite(startedMs) ? formatDuration(Math.max(0, elapsedUntil - startedMs)) : "00:00:00";
+        const lastUpdated = jobData.last_updated_at || jobData.finished_at || startedAt;
+
+        document.getElementById("output-elapsed").textContent = `Elapsed Time: ${elapsed}`;
+        document.getElementById("output-last-updated").textContent = `Last Updated: ${formatTimeOfDay(lastUpdated)}`;
+    }
+
     function updateRunStopButtons(status = "idle") {
         const runButtons = [
             document.getElementById("run-btn"),
@@ -3823,6 +3856,56 @@
         titleEl.innerHTML = `Output Panel: <span class="feature-panel-title__badge">${escapeHtml(featureName)}</span>`;
     }
 
+    function getVisibleFeatureFieldDests() {
+        const selectors = [
+            "#module-form:not(.hidden) [data-dest]",
+            "#cloud-action-panel:not(.hidden) [data-dest]",
+            "#standalone-action-panel:not(.hidden) [data-dest]",
+            "#upload-folder-panel:not(.hidden) [data-dest]",
+            "#migration-panel:not(.hidden) [data-dest]"
+        ];
+        return [...new Set([...document.querySelectorAll(selectors.join(", "))]
+            .map((element) => String(element.dataset.dest || "").trim())
+            .filter(Boolean))];
+    }
+
+    function restoreFeatureDefaults() {
+        getVisibleFeatureFieldDests().forEach((dest) => {
+            if (dest.startsWith("am-") || dest.startsWith("sfrcb-")) {
+                delete stateValues[dest];
+                return;
+            }
+            const field = getFieldByDest(dest);
+            if (field) {
+                const defaultValue = field.default;
+                stateValues[dest] = Array.isArray(defaultValue) ? [...defaultValue] : defaultValue;
+                if (dest === "account-id" && isCloudTab(activeModuleTab)) {
+                    setScopedCloudAccountId(activeModuleTab, defaultValue, false);
+                }
+                if ((dest === "source" || dest === "target") && uiState.migration_endpoints) {
+                    delete uiState.migration_endpoints[dest];
+                }
+                return;
+            }
+            if (dest === "upload-folder-target-path") stateValues[dest] = "";
+            if (dest === "upload-folder-extract-zips") stateValues[dest] = "no";
+        });
+        queueSaveState();
+        renderAll();
+    }
+
+    function renderFeatureRestoreActions() {
+        const actions = document.getElementById("feature-restore-actions");
+        if (!actions) return;
+        actions.innerHTML = "";
+        const restoreButton = document.createElement("button");
+        restoreButton.type = "button";
+        restoreButton.className = "run-btn run-btn--danger";
+        restoreButton.textContent = "Restore Default";
+        restoreButton.addEventListener("click", restoreFeatureDefaults);
+        actions.appendChild(restoreButton);
+    }
+
     function setActiveJobInUiState(jobId, tab = null) {
         if (!uiState) uiState = {};
         if (jobId) {
@@ -3857,6 +3940,7 @@
         setStatus("Status: idle", false);
         updateRunStopButtons("idle");
         setJobInputControlsState(false, false);
+        updateOutputRunMeta({tab: activeModuleTab});
         renderWebDashboard("", "idle", {});
     }
 
@@ -3898,6 +3982,7 @@
             setStatus(`Status: ${data.status}`, false);
             updateRunStopButtons(data.status || "idle");
             setJobInputControlsState(Boolean(data.can_send_input), Boolean(data.awaiting_confirmation));
+            updateOutputRunMeta(data);
             renderWebDashboard(displayedRawOutput, data.status || "idle", data);
             if (uiState.auto_scroll !== false) {
                 scrollOutputToBottomSettled(document.getElementById("output"));
@@ -3941,6 +4026,7 @@
             updateOutputPanelTitle();
             setStatus(`Status: ${data.status}`, false);
             updateRunStopButtons(data.status || "idle");
+            updateOutputRunMeta(data);
 
             const nextOutputVersion = Number(data.output_version || 0);
             const shouldRenderOutput = nextOutputVersion !== lastOutputVersion;
@@ -4094,6 +4180,7 @@
         currentJob = data.job_id;
         currentJobTab = payload.tab;
         currentJobSelectedActionDest = String(payload.selected_action_dest || "").trim();
+        updateOutputRunMeta({tab: payload.tab});
         setActiveJobInUiState(currentJob, payload.tab);
         await saveStateNow();
         updateOutputPanelTitle();

@@ -2152,6 +2152,19 @@ body[data-theme="dark"] .theme-card__name {
     padding: 7px 12px;
 }
 
+.feature-restore-actions {
+    margin: 10px 0 0;
+}
+
+.output-run-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 6px 0 10px;
+    color: #76909d;
+    font-size: 0.84rem;
+}
+
 .web-dashboard {
     margin-bottom: 10px;
     border: 1px solid #34525e;

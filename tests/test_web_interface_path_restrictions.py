@@ -546,6 +546,20 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(snapshot["entries"][0]["line_id"], ops[0]["line_id"])
         self.assertEqual(snapshot["cursor"], ops[0]["seq"])
 
+    def test_web_job_output_updates_last_updated_timestamp(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="icloud_takeout", owner_user_id=1)
+        try:
+            job.last_updated_at = "2000-01-01T00:00:00+00:00"
+            self.web_app._append_job_output(job, "INFO    : Processing asset\n")
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertNotEqual(job.last_updated_at, "2000-01-01T00:00:00+00:00")
+
     def test_web_job_exposes_otp_prompt_before_a_newline_is_written(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")

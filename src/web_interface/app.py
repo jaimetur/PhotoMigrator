@@ -506,6 +506,7 @@ class JobData:
         self.return_code: int | None = None
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.finished_at: str | None = None
+        self.last_updated_at = self.started_at
         self.dashboard_context: Dict[str, Any] = dict(dashboard_context or {})
         self.dashboard_snapshot: Dict[str, Any] = {}
         self.dashboard_snapshot_from_events = False
@@ -2564,6 +2565,7 @@ def _append_job_output(job: JobData, text: str) -> None:
             del job.progress_lines[removed.progress_key]
     if output_changed:
         job.output_version += 1
+        job.last_updated_at = _utc_now_iso()
     if perf_started_at is not None:
         _debug_perf_log(
             "web.append_job_output",
@@ -3604,6 +3606,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
                 job.status = "success" if rc == 0 else "failed"
             _append_job_summary(job, job.status, rc)
             job.finished_at = datetime.now(timezone.utc).isoformat()
+            job.last_updated_at = job.finished_at
             job.awaiting_confirmation = False
             job.process = None
             _close_job_output_file(job)
@@ -3619,6 +3622,7 @@ def _run_job(job_id: str, process: subprocess.Popen[str]) -> None:
                 job.status = "failed"
             _append_job_summary(job, job.status, job.return_code)
             job.finished_at = datetime.now(timezone.utc).isoformat()
+            job.last_updated_at = job.finished_at
             job.awaiting_confirmation = False
             job.process = None
             _close_job_output_file(job)
@@ -4437,6 +4441,7 @@ def get_job(
             "return_code": job.return_code,
             "started_at": job.started_at,
             "finished_at": job.finished_at,
+            "last_updated_at": job.last_updated_at,
             "command": job.command_string,
             "can_send_input": can_send_input,
             "can_stop": can_stop,
@@ -4516,6 +4521,7 @@ def send_job_input(job_id: str, payload: JobInputRequest, current_user: Dict[str
             process.stdin.write(text + "\n")
             process.stdin.flush()
             job.awaiting_confirmation = False
+            job.last_updated_at = _utc_now_iso()
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f"Unable to send input: {exc}")
     return {"sent": True}
@@ -4535,6 +4541,7 @@ def stop_job(job_id: str, current_user: Dict[str, Any] = Depends(_require_user))
         job.stop_requested = True
         job.status = "stopping"
         job.awaiting_confirmation = False
+        job.last_updated_at = _utc_now_iso()
 
     try:
         process.terminate()

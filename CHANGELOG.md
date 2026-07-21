@@ -59,6 +59,7 @@
   - Added bounded retry handling for transient Immich stack-merge connection failures during manual duplicate cleanup. A reset or timeout retries the stack read/write with short backoff before the duplicate group is skipped.
   - Scoped `--albums-folders` to `Upload All` in the Web Interface and TUI for Google Photos, Synology Photos, Immich Photos, and NextCloud Photos. It is no longer displayed as a general argument because the runtime only consumes it in that module.
   - Reorganized Google Takeout and iCloud Takeout desktop GUI and TUI fields into separate `Module Fields` and `Folder Structure` sections. `ALL_PHOTOS Folder Name` now appears immediately before the corresponding album-folder structure controls, matching the Web Interface layout.
+  - Enhanced the Web Interface Output panel for every non-Automatic Migration module with live `Elapsed Time` and `Last Updated` metadata beneath status. Automatic Migration continues to show those values only in its Live Dashboard. Added a contextual red `Restore Default` action beneath every feature panel; it resets only the visible feature parameters, including module-specific overrides, without changing General Arguments.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
