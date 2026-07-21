@@ -385,8 +385,33 @@ class TestCliTuiShared(unittest.TestCase):
 
         self.assertIn("--upload-all", args)
         self.assertIn("/photos/library", args)
+        self.assertIn("--albums-folders", args)
+        self.assertIn("Albums", args)
         self.assertIn("--prefer-canonical-album-names", args)
         self.assertIn("--consolidate-similar-albums", args)
+
+    def test_albums_folders_is_scoped_to_upload_all_for_every_cloud_tab(self):
+        schema = build_parser_schema()
+        general_dests = {field["dest"] for field in schema["general_tabs"]["general"]}
+        self.assertNotIn("albums-folders", general_dests)
+
+        for tab in ("google_photos", "synology_photos", "immich_photos", "nextcloud_photos"):
+            with self.subTest(tab=tab):
+                upload_all_args = build_cli_args(
+                    schema,
+                    tab,
+                    {"account-id": "1", "upload-all": "/photos/library", "albums-folders": ["Extra Albums"]},
+                    "upload-all",
+                )
+                upload_albums_args = build_cli_args(
+                    schema,
+                    tab,
+                    {"account-id": "1", "upload-albums": "/photos/albums", "albums-folders": ["Extra Albums"]},
+                    "upload-albums",
+                )
+
+                self.assertIn("--albums-folders", upload_all_args)
+                self.assertNotIn("--albums-folders", upload_albums_args)
 
     def test_build_cli_args_includes_album_name_flags_for_automatic_migration(self):
         schema = build_parser_schema()

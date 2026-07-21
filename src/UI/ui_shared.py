@@ -112,7 +112,6 @@ GENERAL_GROUPS = [
         "dests": [
             "date-separator",
             "range-separator",
-            "albums-folders",
             "foldername-albums",
             "foldername-no-albums",
             "foldername-duplicates-output",
@@ -280,7 +279,6 @@ GENERAL_CORE_DESTS = {
     "filter-by-person",
     "exclude-folders",
     "exclude-files",
-    "albums-folders",
     "remove-albums-assets",
 }
 GENERAL_OPTIONAL_DESTS = {
@@ -309,7 +307,7 @@ MODULE_DEPENDENCIES_REQUIRED = {
 MODULE_ACTION_ARGUMENTS = {
     "google_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
-        "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [{"dest": "preview-album-actions", "required": False}],
@@ -317,7 +315,7 @@ MODULE_ACTION_ARGUMENTS = {
     },
     "synology_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
-        "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
@@ -328,7 +326,7 @@ MODULE_ACTION_ARGUMENTS = {
     },
     "immich_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
-        "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
+        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
@@ -343,7 +341,7 @@ MODULE_ACTION_ARGUMENTS = {
     },
     "nextcloud_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
-        "upload-all": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
