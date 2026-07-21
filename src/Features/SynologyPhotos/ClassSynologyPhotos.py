@@ -1677,7 +1677,20 @@ class ClassSynologyPhotos(BaseMediaClient):
                     if variant_assets is None:
                         continue
 
-                    if variant.get("apply_local_filters"):
+                    # Synology's list variants do not interpret every filter
+                    # parameter consistently. In particular, the v7 personal
+                    # fallback can ignore the legacy `time` shape and return
+                    # out-of-range personal assets. Reapply the configured
+                    # criteria to every variant before they are merged.
+                    has_local_filters = bool(
+                        self.from_date
+                        or self.to_date
+                        or (self.type and str(self.type).lower() != "all")
+                        or self.country
+                        or self.city
+                        or self.person
+                    )
+                    if has_local_filters:
                         variant_assets = self.filter_assets_old(variant_assets, log_level=log_level)
 
                     if variant.get("endpoint_api") == "SYNO.FotoTeam.Browse.Item":

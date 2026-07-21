@@ -218,6 +218,35 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertEqual(team_variant["params"]["item_type"], "[0]")
 
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_global_inventory_reapplies_date_filter_to_v7_personal_variant(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.all_assets_filtered = None
+        manager.from_date = 1754697600  # 2025-08-09 00:00:00 UTC
+        manager.to_date = 1755388799  # 2025-08-16 23:59:59 UTC
+        manager.type = "all"
+        manager.country = None
+        manager.city = None
+        manager.person = None
+        manager.login = lambda log_level=None: True
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager._iter_global_item_request_variants = lambda _params: [{
+            "label": "experimental_v7_shared_space_style",
+            "params": {"api": "SYNO.Foto.Browse.Item", "version": "7", "method": "list"},
+        }]
+
+        response = MagicMock()
+        response.json.return_value = {"success": True, "data": {"list": [
+            {"id": "old", "filename": "2022.jpg", "time": 1651363200, "type": "PHOTO"},
+            {"id": "in-range", "filename": "2025.jpg", "time": 1755000000, "type": "PHOTO"},
+        ]}}
+        manager._request_entry_api = MagicMock(return_value=response)
+
+        assets = manager.get_assets_by_filters(log_level=logging.INFO)
+
+        self.assertEqual([asset["id"] for asset in assets], ["in-range"])
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
     def test_get_all_assets_without_albums_uses_id_diff_instead_of_filename(self, _mock_logger):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
         manager.assets_without_albums_filtered = None
