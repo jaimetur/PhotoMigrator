@@ -322,7 +322,8 @@ class TestImmichStreamingUpload(unittest.TestCase):
         mock_get.side_effect = [
             response([{"id": "album-1", "albumName": "Summer 2003"}]),
             response([{"id": "tag-1", "value": "family/yoli"}]),
-            response({"people": [{"id": "person-1", "name": "Yoli"}]}),
+            response({"people": []}),
+            response({"id": "person-1", "name": "Yoli"}),
         ]
         names = manager.get_duplicate_metadata_display_names([[
             {
@@ -335,7 +336,30 @@ class TestImmichStreamingUpload(unittest.TestCase):
             names,
             {"albums": {"album-1": "Summer 2003"}, "tags": {"tag-1": "family/yoli"}, "people": {"person-1": "Yoli"}},
         )
-        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(mock_get.call_count, 4)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_duplicate_metadata_hydration_loads_album_memberships(self, mock_get, _mock_logger):
+        manager = self._build_manager()
+
+        def response(data):
+            result = MagicMock()
+            result.raise_for_status.return_value = None
+            result.json.return_value = data
+            return result
+
+        mock_get.side_effect = [
+            response({"id": "asset-1", "originalFileName": "IMG.JPG"}),
+            response([{"id": "album-1", "albumName": "Summer 2003"}]),
+        ]
+
+        hydrated = manager._hydrate_duplicate_group_metadata([{"id": "asset-1"}])
+
+        self.assertEqual(hydrated[0]["albums"], [{"id": "album-1", "albumName": "Summer 2003"}])
+        self.assertEqual(
+            mock_get.call_args_list[1].kwargs["params"], {"assetId": "asset-1"},
+        )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")

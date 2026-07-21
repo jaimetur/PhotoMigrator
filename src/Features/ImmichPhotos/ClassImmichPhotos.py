@@ -2161,6 +2161,27 @@ class ClassImmichPhotos(BaseMediaClient):
             )
             return None
 
+    def _get_duplicate_asset_albums(self, asset_id, log_level=None):
+        """Fetch album memberships omitted from Immich's AssetResponseDto."""
+        try:
+            response = requests.get(
+                f"{self.IMMICH_URL}/api/albums",
+                headers=self.HEADERS_WITH_CREDENTIALS,
+                params={"assetId": asset_id},
+                verify=False,
+            )
+            response.raise_for_status()
+            albums = response.json()
+            if not isinstance(albums, list):
+                raise ValueError("unexpected album list response")
+            return albums
+        except (requests.RequestException, ValueError) as error:
+            LOGGER.warning(
+                f"Could not retrieve album memberships for duplicate asset ID={asset_id}; "
+                f"its duplicate group was left unchanged: {error}"
+            )
+            return None
+
     def _hydrate_duplicate_group_metadata(self, group, log_level=None):
         """Load complete metadata for a duplicate group while keeping native hints."""
         hydrated_assets = []
@@ -2171,6 +2192,10 @@ class ClassImmichPhotos(BaseMediaClient):
             metadata = self._get_duplicate_asset_metadata(asset.get("id"), log_level=log_level)
             if metadata is None:
                 return None
+            albums = self._get_duplicate_asset_albums(metadata.get("id") or asset.get("id"), log_level=log_level)
+            if albums is None:
+                return None
+            metadata["albums"] = albums
             for key in ("_immich_duplicate_id", "_immich_suggested_keep_asset_ids"):
                 if key in asset:
                     metadata[key] = asset[key]
@@ -2228,6 +2253,17 @@ class ClassImmichPhotos(BaseMediaClient):
                     and str(record.get("id") or "").strip() in ids
                     and str(record.get(name_field) or record.get("name") or "").strip()
                 }
+                if key == "people":
+                    for person_id in ids - set(resolved_names[key]):
+                        person_response = requests.get(
+                            f"{self.IMMICH_URL}/api/people/{person_id}",
+                            headers=self.HEADERS_WITH_CREDENTIALS,
+                            verify=False,
+                        )
+                        person_response.raise_for_status()
+                        person = person_response.json()
+                        if isinstance(person, dict) and str(person.get("name") or "").strip():
+                            resolved_names[key][person_id] = str(person["name"]).strip()
             except (requests.RequestException, ValueError) as error:
                 LOGGER.warning(
                     f"Could not resolve duplicate-preview {key} names: {error}. "
