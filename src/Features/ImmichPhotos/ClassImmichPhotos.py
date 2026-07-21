@@ -2084,7 +2084,11 @@ class ClassImmichPhotos(BaseMediaClient):
         """Return the duplicate groups produced by Immich's native detector."""
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.info("Retrieving duplicate groups from Immich native duplicate detection...")
+            LOGGER.info(
+                "Retrieving duplicate groups from Immich native duplicate detection. "
+                "This operation can take some time depending on the size of the Immich library "
+                "and the number of duplicate groups detected..."
+            )
             try:
                 response = requests.get(
                     f"{self.IMMICH_URL}/api/duplicates",
