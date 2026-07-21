@@ -220,14 +220,18 @@ class TestExecutionModes(unittest.TestCase):
             log_level=execution_modes.logging.INFO,
         )
         cloud_client.logout.assert_called_once_with(log_level=execution_modes.logging.WARNING)
-        preview = next(
-            str(call.args[0])
-            for call in mock_logger.info.call_args_list
-            if "merge_metadata=" in str(call.args[0])
-        )
-        self.assertIn('remove=[{"id": "older", "uploaded": "2020-01-01T00:00:00Z"}]', preview)
-        self.assertIn('"keeper": {"tags": ["tag-1"], "favorite": true}', preview)
-        self.assertIn('"remove_1": {"albums": ["album-1"], "description": "Older description", "rating": 3}', preview)
+        preview_lines = [str(call.args[0]) for call in mock_logger.info.call_args_list]
+        self.assertIn("  [1] IMG_0001.JPG (42 bytes, 2 candidate asset(s))", preview_lines)
+        self.assertTrue(any("Field" in line and "Keeper" in line and "Remove 1" in line for line in preview_lines))
+        self.assertTrue(any("ID" in line and "newer" in line and "older" in line for line in preview_lines))
+        self.assertTrue(any("Tags" in line for line in preview_lines))
+        self.assertTrue(any("tag-1" in line for line in preview_lines))
+        self.assertTrue(any("Favorite" in line for line in preview_lines))
+        self.assertTrue(any("Albums" in line for line in preview_lines))
+        self.assertTrue(any("album-1" in line for line in preview_lines))
+        self.assertTrue(any("Description" in line for line in preview_lines))
+        self.assertTrue(any("Older description" in line for line in preview_lines))
+        self.assertTrue(any("Rating" in line for line in preview_lines))
 
     def test_remove_duplicate_assets_uses_immich_native_groups_by_default(self):
         args = _base_args()

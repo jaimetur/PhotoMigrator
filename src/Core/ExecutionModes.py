@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import sys
+import textwrap
 from datetime import datetime, timedelta
 
 from Core.CustomLogger import set_log_level
@@ -123,6 +124,116 @@ def _duplicate_asset_merge_metadata_preview(asset, display_names=None):
     if asset.get("unassignedFaces"):
         metadata["unassigned_faces"] = len(asset.get("unassignedFaces") or [])
     return metadata
+
+
+_DUPLICATE_PREVIEW_METADATA_LABELS = {
+    "albums": "Albums",
+    "tags": "Tags",
+    "favorite": "Favorite",
+    "description": "Description",
+    "rating": "Rating",
+    "visibility": "Visibility",
+    "archived": "Archived",
+    "date_time_original": "Date/time original",
+    "location": "Location",
+    "stack": "Stack",
+    "people": "People",
+    "unassigned_faces": "Unassigned faces",
+}
+
+
+def _format_duplicate_preview_value(key, value):
+    """Render one metadata value compactly inside a duplicate-review table cell."""
+    if value in (None, ""):
+        return "-"
+    if isinstance(value, list):
+        if key in {"albums", "tags", "people"}:
+            label = {"albums": "album(s)", "tags": "tag(s)", "people": "person(s)"}[key]
+            return f"{len(value)} {label}\n" + "\n".join(str(item) for item in value)
+        return "\n".join(str(item) for item in value)
+    if isinstance(value, dict):
+        return json.dumps(value, ensure_ascii=False)
+    if key in {"favorite", "archived"}:
+        return "Yes" if value else "No"
+    return str(value)
+
+
+def _duplicate_group_preview_table(ordered_assets, display_names=None):
+    """Return an ASCII table that compares duplicate candidates column by column."""
+    ordered_assets = [asset for asset in ordered_assets if isinstance(asset, dict)]
+    if not ordered_assets:
+        return []
+
+    source_metadata_by_asset = [
+        _duplicate_asset_merge_metadata_preview(asset, display_names)
+        for asset in ordered_assets
+    ]
+    metadata_by_asset = []
+    for asset, source_metadata in zip(ordered_assets, source_metadata_by_asset):
+        metadata = dict(source_metadata)
+        # The table always shows both states, without changing the compact
+        # metadata dictionary used by the merge implementation and its tests.
+        metadata["favorite"] = bool(asset.get("isFavorite"))
+        metadata["archived"] = bool(asset.get("isArchived"))
+        metadata_by_asset.append(metadata)
+    metadata_keys = list(_DUPLICATE_PREVIEW_METADATA_LABELS)
+    metadata_keys = [
+        key for key in metadata_keys
+        if any(key in metadata for metadata in source_metadata_by_asset)
+    ]
+    headers = ["Field", "Keeper", *[f"Remove {index}" for index in range(1, len(ordered_assets))]]
+    rows = [
+        ("ID", [str(asset.get("id") or "") for asset in ordered_assets]),
+        ("Uploaded", [str(asset.get("createdAt") or "") for asset in ordered_assets]),
+        *[
+            (
+                _DUPLICATE_PREVIEW_METADATA_LABELS[key],
+                [_format_duplicate_preview_value(key, metadata.get(key)) for metadata in metadata_by_asset],
+            )
+            for key in metadata_keys
+        ],
+    ]
+
+    field_width = 20
+    # Four 42-character asset columns plus the field column fit in the normal
+    # dashboard terminal and keep UUIDs/timestamps on one line. Wider groups
+    # can overflow horizontally rather than becoming unreadably narrow.
+    candidate_width = 42
+    widths = [field_width, *([candidate_width] * len(ordered_assets))]
+
+    def border():
+        return "+" + "+".join("-" * (width + 2) for width in widths) + "+"
+
+    def wrapped(value, width):
+        lines = []
+        for source_line in str(value).splitlines() or [""]:
+            lines.extend(
+                textwrap.wrap(
+                    source_line,
+                    width=width,
+                    break_long_words=True,
+                    break_on_hyphens=True,
+                ) or [""]
+            )
+        return lines
+
+    def render(cells):
+        wrapped_cells = [wrapped(value, width) for value, width in zip(cells, widths)]
+        height = max(len(cell) for cell in wrapped_cells)
+        return [
+            "| " + " | ".join(
+                wrapped_cells[column][line].ljust(widths[column])
+                if line < len(wrapped_cells[column]) else " " * widths[column]
+                for column in range(len(widths))
+            ) + " |"
+            for line in range(height)
+        ]
+
+    table_lines = [border(), *render(headers), border()]
+    for label, values in rows:
+        table_lines.extend(render([label, *values]))
+        table_lines.append(border())
+    return table_lines
 
 
 # Temporary diagnostic cap for validating duplicate-review metadata rendering.
@@ -1051,21 +1162,16 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                     )
             if normalized_client == "immich":
                 metadata_display_names = {}
-                if use_immich_deletion:
-                    duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
-                        duplicate_groups,
-                        log_level=logging.INFO,
-                        include_albums=True,
-                    )
-                else:
+                if not use_immich_deletion:
                     LOGGER.info(
                         "Loading complete metadata for each duplicate candidate before confirmation. "
                         "This can take time, but the review list will show the metadata that is preserved."
                     )
-                    duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
-                        duplicate_groups,
-                        log_level=logging.INFO,
-                    )
+                duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
+                    duplicate_groups,
+                    log_level=logging.INFO,
+                    include_albums=True,
+                )
                 if not duplicate_groups:
                     LOGGER.warning(
                         "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
@@ -1091,24 +1197,17 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 keeper, redundant = ordered[0], ordered[1:]
                 filename = str(keeper.get("originalFileName") or "")
                 size = cloud_client_obj._duplicate_asset_size(keeper)
-                removal_details = [
-                    {"id": str(item.get("id") or ""), "uploaded": item.get("createdAt")}
-                    for item in redundant
-                ]
-                merge_metadata = (
-                    {
-                        "keeper" if index == 0 else f"remove_{index}": _duplicate_asset_merge_metadata_preview(
-                            item, metadata_display_names,
-                        )
-                        for index, item in enumerate(ordered)
-                    }
-                    if normalized_client == "immich" else {}
-                )
                 LOGGER.info(
-                    f"  [{group_index}] {filename} ({size} bytes): keep ID={keeper.get('id')} "
-                    f"uploaded={keeper.get('createdAt')}; remove={json.dumps(removal_details, ensure_ascii=False)}; "
-                    f"merge_metadata={json.dumps(merge_metadata, ensure_ascii=False)}"
+                    f"  [{group_index}] {filename} ({size} bytes, {len(ordered)} candidate asset(s))"
                 )
+                if normalized_client == "immich":
+                    for line in _duplicate_group_preview_table(ordered, metadata_display_names):
+                        LOGGER.info(f"      {line}")
+                else:
+                    for asset_index, item in enumerate(ordered):
+                        role = "Keeper" if asset_index == 0 else f"Remove {asset_index}"
+                        LOGGER.info(f"      {role:<8} ID: {item.get('id')}")
+                        LOGGER.info(f"               Uploaded: {item.get('createdAt')}")
             if temporary_review_limited:
                 LOGGER.warning(
                     "Temporary duplicate-review limit reached. Stopping after preview before confirmation or deletion."

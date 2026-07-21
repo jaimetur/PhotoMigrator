@@ -45,6 +45,19 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 checkArgs(args, parser)
 
+    def test_check_args_allows_disabled_native_deletion_with_disabled_detection(self):
+        argv = [
+            "photomigrator",
+            "--immich-duplicates-algorithm=false",
+            "--immich-duplicates-deletion=false",
+        ]
+        with patch.object(sys, "argv", argv):
+            args, parser = parse_arguments()
+            checked = checkArgs(args, parser)
+
+        self.assertFalse(checked["immich-duplicates-algorithm"])
+        self.assertFalse(checked["immich-duplicates-deletion"])
+
     def test_check_args_parses_single_comma_separated_rename_albums_value_for_dashdash_replacement(self):
         argv = [
             "photomigrator",

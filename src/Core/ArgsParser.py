@@ -699,7 +699,9 @@ def checkArgs(ARGS, PARSER):
         or argument.startswith("--immich-duplicates-deletion=")
         for argument in sys.argv[1:]
     )
-    if native_deletion_provided and not ARGS.get('immich-duplicates-algorithm', True):
+    native_deletion_enabled = bool(ARGS.get('immich-duplicates-deletion', True))
+    native_detection_enabled = bool(ARGS.get('immich-duplicates-algorithm', True))
+    if native_deletion_provided and native_deletion_enabled and not native_detection_enabled:
         PARSER.error(
             f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
             "Argument '--immich-duplicates-deletion' requires "

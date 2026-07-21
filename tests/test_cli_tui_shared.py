@@ -318,6 +318,23 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("false", args)
         self.assertIn("--duplicate-asset-keeper", args)
 
+    def test_immich_manual_duplicate_flow_omits_disabled_native_deletion_option(self):
+        schema = build_parser_schema()
+        args = build_cli_args(
+            schema,
+            "immich_photos",
+            {
+                "account-id": "1",
+                "remove-duplicates-assets": True,
+                "immich-duplicates-algorithm": False,
+                "immich-duplicates-deletion": False,
+                "duplicate-asset-keeper": "newest",
+            },
+            "remove-duplicates-assets",
+        )
+
+        self.assertNotIn("--immich-duplicates-deletion", args)
+
     def test_duplicate_asset_keeper_is_available_for_every_cloud_tab(self):
         schema = build_parser_schema()
         for tab in ("google_photos", "synology_photos", "immich_photos", "nextcloud_photos"):

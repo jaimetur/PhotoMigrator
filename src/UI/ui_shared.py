@@ -1492,6 +1492,15 @@ def normalize_organize_local_folder_ui_state(values: Dict[str, Any] | None, sche
 
 def prepare_values_for_command(values: Dict[str, Any], tab: str, selected_action_dest: str | None) -> Dict[str, Any]:
     prepared = dict(values or {})
+    if (
+        tab == "immich_photos"
+        and selected_action_dest == "remove-duplicates-assets"
+        and not bool_from_value(prepared.get("immich-duplicates-algorithm", True))
+    ):
+        # The native deletion switch is unavailable without native detection.
+        # Keep its parser default here so command generation does not emit an
+        # explicit, unusable ``--immich-duplicates-deletion=false`` option.
+        prepared["immich-duplicates-deletion"] = True
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and selected_action_dest == "rename-albums":
         prepared["rename-albums"] = compose_rename_albums_value(prepared.get("rename-pattern", ""), prepared.get("replacement-pattern", ""))
     if tab == "standalone_features" and selected_action_dest == "find-duplicates":

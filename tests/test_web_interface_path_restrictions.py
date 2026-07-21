@@ -471,6 +471,21 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("--duplicate-asset-keeper", args)
         self.assertIn("newest", args)
 
+    def test_immich_manual_duplicate_flow_omits_disabled_native_deletion_option(self):
+        args = self.web_app._build_cli_args(
+            "immich_photos",
+            {
+                "account-id": 2,
+                "remove-duplicates-assets": True,
+                "immich-duplicates-algorithm": False,
+                "immich-duplicates-deletion": False,
+                "duplicate-asset-keeper": "newest",
+            },
+            "remove-duplicates-assets",
+        )
+
+        self.assertNotIn("--immich-duplicates-deletion", args)
+
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")

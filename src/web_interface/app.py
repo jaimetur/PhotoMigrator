@@ -3129,6 +3129,15 @@ def _build_cli_args(
     include_default_dests: set[str] | None = None,
     include_empty_selected_action: bool = False,
 ) -> List[str]:
+    values = dict(values or {})
+    if (
+        tab == "immich_photos"
+        and selected_action_dest == "remove-duplicates-assets"
+        and not _bool_from_value(values.get("immich-duplicates-algorithm", True))
+    ):
+        # The disabled UI control must not leak an explicit false option into
+        # the subprocess command; native deletion is inapplicable in this mode.
+        values["immich-duplicates-deletion"] = True
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     include_default_dests = set(include_default_dests or set())
     include_default_dests.update(

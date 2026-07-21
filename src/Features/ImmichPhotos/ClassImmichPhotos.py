@@ -2208,15 +2208,16 @@ class ClassImmichPhotos(BaseMediaClient):
             return None
         people = metadata.get("people") or []
         people_without_names = any(
-            isinstance(person, dict)
-            and not str(
+            not isinstance(person, dict)
+            or not str(
                 ((person.get("person") or {}).get("name") if isinstance(person.get("person"), dict) else "")
                 or person.get("name") or ""
             ).strip()
             for person in people
         )
         if people_without_names:
-            # AssetResponseDto can expose only person IDs on some Immich versions.
+            # AssetResponseDto can expose person IDs as scalars or unnamed
+            # relationship objects on some Immich versions.
             # Faces returns the associated PersonResponseDto, including its display name.
             faces = self._get_asset_faces(metadata.get("id") or asset.get("id"), log_level=log_level)
             if isinstance(faces, list):
@@ -2304,7 +2305,18 @@ class ClassImmichPhotos(BaseMediaClient):
                             params={"page": page, "size": 1000, "withHidden": True},
                             verify=False,
                         )
-                        response.raise_for_status()
+                        try:
+                            response.raise_for_status()
+                        except requests.RequestException:
+                            # Older Immich servers expose the same endpoint but
+                            # reject the newer size/withHidden query parameters.
+                            response = requests.get(
+                                f"{self.IMMICH_URL}/api/{endpoint}",
+                                headers=self.HEADERS_WITH_CREDENTIALS,
+                                params={"page": page},
+                                verify=False,
+                            )
+                            response.raise_for_status()
                         payload = response.json()
                         records = payload.get("people") if isinstance(payload, dict) else payload
                         if not isinstance(records, list):
