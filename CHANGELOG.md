@@ -46,6 +46,7 @@
   - Expanded the `--immich-duplicates-deletion` parser and interface help with the exact metadata merged by Immich's native resolver and the additional capture-date, stack, and safe face/person handling provided by PhotoMigrator's manual fallback.
   - Reduced the temporary Immich duplicate-review diagnostic cap from 200 to 50 candidate assets. Person labels now include hidden people and resolve any remaining candidate `personId` values directly, preventing face association UUIDs from appearing in the review preview when Immich exposes a person name.
   - Corrected Immich duplicate-review person labels for server versions whose asset details expose only person IDs: PhotoMigrator now reads the associated `PersonResponseDto` through the Faces API before rendering the preview, so assigned people use their Immich display names.
+  - Changed PhotoMigrator's manual Immich duplicate merge to continue deleting a group when assigned-face transfer is unsafe or unavailable, logging the potential loss of those face/person associations instead of skipping the entire duplicate group.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

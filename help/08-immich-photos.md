@@ -334,7 +334,7 @@ Examples:
     | Setting | Merge performed | Redundant assets |
     |---|---|---|
     | `true` (default with native detection) | Immich's Alpha resolver merges album memberships, favorite state, highest rating, combined descriptions, most restrictive visibility, location only when all geotagged assets agree, and all tags. Face/person assignments, stacks, and capture-date recovery are not documented as part of this resolver. | Moved to Immich trash. |
-    | `false` | PhotoMigrator manually merges album memberships, tags, favorite state, highest rating, combined descriptions, most restrictive visibility, matching locations, and missing capture date. It also reconstructs affected stacks and conservatively transfers missing assigned faces/persons. Face transfer requires identical checksums; groups with unassigned, malformed, incomplete, unreadable, or non-identical face data are left unchanged. | Permanently deleted only after every guarded merge succeeds. |
+    | `false` | PhotoMigrator manually merges album memberships, tags, favorite state, highest rating, combined descriptions, most restrictive visibility, matching locations, and missing capture date. It also reconstructs affected stacks and conservatively transfers missing assigned faces/persons. Face transfer requires identical checksums; when faces are unassigned, malformed, incomplete, unreadable, or non-identical, their associations can be lost but do not stop the group. | Permanently deleted after the remaining guarded merges succeed. |
 - **Examples:**
   ```
   ./PhotoMigrator.bin --client=immich --remove-duplicates-assets

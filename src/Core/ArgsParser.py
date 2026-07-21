@@ -495,7 +495,8 @@ def parse_arguments():
                              "visibility, matching locations, and tags, then trash redundant assets. This uses "
                              "Immich's Alpha duplicate-resolution API. When disabled, PhotoMigrator merges those "
                              "fields plus missing capture date, stacks, and safely transferable assigned faces/persons, "
-                             "then permanently deletes redundant assets. It is disabled whenever native detection "
+                             "then permanently deletes redundant assets; unsafe face transfers are omitted without "
+                             "blocking the group. It is disabled whenever native detection "
                              "is disabled (default: True with native detection).")
 
     PARSER.add_argument("-dupKeeper", "--duplicate-asset-keeper", choices=["better-quality", "oldest", "newest"], default="better-quality",

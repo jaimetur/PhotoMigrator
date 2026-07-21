@@ -1859,8 +1859,8 @@ class ClassImmichPhotos(BaseMediaClient):
         """Copy missing assigned faces to the keeper before duplicate deletion.
 
         Unassigned faces cannot be recreated because Immich's stable create-face API
-        requires a person ID. Any unreadable or malformed face data therefore keeps
-        the whole group unchanged rather than risk losing a face association.
+        requires a person ID. Returning ``False`` tells the caller that face transfer
+        was incomplete, while the caller can still finish the remaining merge.
         """
         group_assets = [keeper, *duplicates]
         if not any(
@@ -1870,14 +1870,14 @@ class ClassImmichPhotos(BaseMediaClient):
             return True
         if any(asset.get("unassignedFaces") for asset in group_assets):
             LOGGER.warning(
-                f"Skipping duplicate group for '{keeper.get('originalFileName', '')}': "
+                f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
                 "it contains unassigned faces that cannot be safely recreated."
             )
             return False
         checksums = {str(asset.get("checksum") or "").strip() for asset in group_assets}
         if not checksums or "" in checksums or len(checksums) != 1:
             LOGGER.warning(
-                f"Skipping duplicate group for '{keeper.get('originalFileName', '')}': "
+                f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
                 "face transfer requires an identical Immich checksum for every asset."
             )
             return False
@@ -1895,7 +1895,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 normalised_face = self._normalise_asset_face(face, asset)
                 if normalised_face is None:
                     LOGGER.warning(
-                        f"Skipping duplicate group for '{keeper.get('originalFileName', '')}': "
+                        f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
                         f"asset ID={asset_id} has an unassigned or malformed face."
                     )
                     return False
@@ -1904,7 +1904,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 {face["person_id"] for face in normalised_faces}
             ):
                 LOGGER.warning(
-                    f"Skipping duplicate group for '{keeper.get('originalFileName', '')}': "
+                    f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
                     f"face data for asset ID={asset_id} is incomplete."
                 )
                 return False
@@ -1924,7 +1924,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     continue
                 if keeper_dimensions is None:
                     LOGGER.warning(
-                        f"Skipping duplicate group for '{keeper.get('originalFileName', '')}': "
+                        f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
                         "the keeper image dimensions are unavailable for face transfer."
                     )
                     return False
@@ -1952,7 +1952,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 except requests.RequestException as error:
                     LOGGER.warning(
                         f"Could not copy faces into duplicate keeper '{keeper_id}': {error}. "
-                        "The duplicate group was left unchanged."
+                        "Face associations will not be transferred."
                     )
                     return False
                 keeper_faces.append(normalised_face)
@@ -2045,7 +2045,10 @@ class ClassImmichPhotos(BaseMediaClient):
             return False
 
         if not self._merge_duplicate_asset_faces(keeper, duplicates, log_level=log_level):
-            return False
+            LOGGER.warning(
+                f"Proceeding with duplicate keeper '{keeper_id}' without transferring all face associations. "
+                "The selected face merge could not be completed safely."
+            )
 
         group_assets = [keeper, *duplicates]
         if not self._merge_duplicate_asset_stacks(keeper, duplicates, log_level=log_level):

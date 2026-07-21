@@ -176,12 +176,12 @@ class TestImmichStreamingUpload(unittest.TestCase):
         )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
-    def test_merge_duplicate_metadata_skips_groups_with_unassigned_faces(self, _mock_logger):
+    def test_merge_duplicate_metadata_proceeds_when_unassigned_faces_cannot_be_transferred(self, _mock_logger):
         manager = self._build_manager()
         keeper = {"id": "keeper", "originalFileName": "IMG.JPG", "unassignedFaces": [{"id": "face-1"}]}
         duplicate = {"id": "duplicate", "originalFileName": "IMG.JPG"}
 
-        self.assertFalse(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
+        self.assertTrue(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")

@@ -455,8 +455,9 @@ If more than one optional arguments are detected, only the first one will be exe
                true (Alpha API): Immich merges albums, favorites, highest rating, combined descriptions, most
                restrictive visibility, matching locations, and tags, then moves redundant assets to trash.
                false: PhotoMigrator merges those fields plus missing capture date, stacks, and conservatively
-               transferable assigned faces/persons, then permanently deletes redundant assets. It cannot be used
-               when '--immich-duplicates-algorithm=false'. Default: true while native detection is enabled.
+               transferable assigned faces/persons, then permanently deletes redundant assets. If a face transfer
+               is unsafe, its associations can be lost but do not block the group. It cannot be used when
+               '--immich-duplicates-algorithm=false'. Default: true while native detection is enabled.
 -dupKeeper   ; --duplicate-asset-keeper {better-quality,oldest,newest}
                Select the asset retained by '--remove-duplicates-assets'. 'better-quality' uses Immich's
                suggestion; 'oldest' and 'newest' use the upload timestamp.
