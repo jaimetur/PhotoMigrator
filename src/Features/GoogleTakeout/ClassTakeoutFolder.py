@@ -26,7 +26,7 @@ from packaging.version import Version
 from Core.CustomLogger import set_log_level
 from Core.CustomLogger import suppress_console_output_temporarily
 from Core.FolderAnalyzer import FolderAnalyzer
-from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, TAKEOUT_SPECIAL_FOLDER_NAMES, \
+from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_ALL_PHOTOS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, TAKEOUT_SPECIAL_FOLDER_NAMES, \
     PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL, GOOGLE_PHOTOS_CONTAINER_NAMES, TAKEOUT_YEAR_FOLDER_PATTERNS
 from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.PeopleMetadata import build_people_map, PEOPLE_MAP_FILENAME
@@ -176,7 +176,7 @@ def _relocate_misclassified_special_folders(base_root, step_name="", log_level=N
                 if not child.is_dir():
                     continue
                 if child.name in {
-                    FOLDERNAME_NO_ALBUMS,
+                    FOLDERNAME_ALL_PHOTOS,
                     FOLDERNAME_ALBUMS,
                     f"{FOLDERNAME_ALBUMS}-shared",
                     "Special Folders",
@@ -302,7 +302,7 @@ def _iter_google_takeout_album_dirs(input_folder):
         for album_dir in sorted(container_dir.iterdir(), key=lambda p: p.name.casefold()):
             if not album_dir.is_dir():
                 continue
-            if album_dir.name in {"@eaDir", FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALBUMS, "Takeout"}:
+            if album_dir.name in {"@eaDir", FOLDERNAME_ALL_PHOTOS, FOLDERNAME_ALBUMS, "Takeout"}:
                 continue
             if _is_takeout_year_folder(album_dir.name):
                 continue
@@ -443,7 +443,7 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
     with set_log_level(LOGGER, log_level):
         input_root = Path(input_folder)
         albums_root = Path(albums_folder)
-        no_albums_root = Path(output_folder) / FOLDERNAME_NO_ALBUMS
+        no_albums_root = Path(output_folder) / FOLDERNAME_ALL_PHOTOS
 
         summary = {
             "orphan_json_detected": 0,
@@ -457,7 +457,7 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
             LOGGER.warning(f"{step_name}Skipping orphan album JSON recovery because input folder does not exist: '{input_root}'")
             return summary
         if not no_albums_root.exists() or not no_albums_root.is_dir():
-            LOGGER.warning(f"{step_name}Skipping orphan album JSON recovery because '{FOLDERNAME_NO_ALBUMS}' folder does not exist in output: '{no_albums_root}'")
+            LOGGER.warning(f"{step_name}Skipping orphan album JSON recovery because '{FOLDERNAME_ALL_PHOTOS}' folder does not exist in output: '{no_albums_root}'")
             return summary
 
         candidate_index = _build_non_album_candidate_index(no_albums_root)
@@ -677,7 +677,7 @@ def inspect_takeout_structure(input_folder, step_name="", log_level=None):
             for album_dir in sorted(album_dirs, key=lambda p: p.name.casefold()):
                 if _is_takeout_year_folder(album_dir.name):
                     continue
-                if album_dir.name in {"@eaDir", FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS, "Takeout"}:
+                if album_dir.name in {"@eaDir", FOLDERNAME_ALBUMS, FOLDERNAME_ALL_PHOTOS, "Takeout"}:
                     continue
                 try:
                     has_json = any(
@@ -1228,7 +1228,7 @@ def relocate_gpth_fix_outputs(fix_root, output_folder, step_name="", log_level=N
 
         output_root.mkdir(parents=True, exist_ok=True)
         artifact_names = [
-            FOLDERNAME_NO_ALBUMS,
+            FOLDERNAME_ALL_PHOTOS,
             FOLDERNAME_ALBUMS,
             "Special Folders",
             "Special_Folders",
@@ -1315,7 +1315,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         else:
             self.albums_folder = self.base_folder
         self.shared_albums_folder = self.base_folder / f"{FOLDERNAME_ALBUMS}-shared"
-        self.no_albums_folder = self.base_folder / FOLDERNAME_NO_ALBUMS
+        self.no_albums_folder = self.base_folder / FOLDERNAME_ALL_PHOTOS
 
     def __init__(self, takeout_folder):
         """
@@ -2472,7 +2472,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if not self.ARGS['google-skip-move-albums'] and need_to_move_albums:
                 LOGGER.info(f"{step_name}Moving All your albums into '{FOLDERNAME_ALBUMS}' subfolder for a better organization...")
 
-                replacements1 = move_albums(input_folder=albums_input_folder, albums_subfolder=FOLDERNAME_ALBUMS, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                replacements1 = move_albums(input_folder=albums_input_folder, albums_subfolder=FOLDERNAME_ALBUMS, exclude_subfolder=[FOLDERNAME_ALL_PHOTOS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 # Now modify the object analyzer with all the files changed during this step
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements1, step_name=step_name)
                 # Finally Move Albums to Albums root folder
@@ -2508,7 +2508,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{self.step}.{self.substep}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
             LOGGER.info(f"================================================================================================================================================")
             albums_structure = self.ARGS['google-albums-folders-structure'].lower()
-            no_albums_structure = self.ARGS['google-no-albums-folders-structure'].lower()
+            no_albums_structure = self.ARGS['google-all-photos-folders-structure'].lower()
             if albums_structure != 'flatten' or no_albums_structure != 'flatten' or (albums_structure == 'flatten' and no_albums_structure == 'flatten'):
                 # For Albums
                 if albums_structure != 'flatten':
@@ -2519,7 +2519,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     else:
                         basedir = os.path.join(output_folder, FOLDERNAME_ALBUMS)
 
-                    exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
+                    exclude_subfolders = [FOLDERNAME_ALL_PHOTOS]
                     # replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=albums_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     replacements = organize_files_by_date(input_folder=basedir, type=albums_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
                     # Now modify the object analyzer with all the files changed during this step
@@ -2527,8 +2527,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # For No-Albums
                 if no_albums_structure != 'flatten':
                     LOGGER.info(f"")
-                    LOGGER.info(f"{step_name}Creating Folder structure '{no_albums_structure}' for '{FOLDERNAME_NO_ALBUMS}' folder...")
-                    basedir = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
+                    LOGGER.info(f"{step_name}Creating Folder structure '{no_albums_structure}' for '{FOLDERNAME_ALL_PHOTOS}' folder...")
+                    basedir = os.path.join(output_folder, FOLDERNAME_ALL_PHOTOS)
 
                     exclude_subfolders = []
                     # replacements = profile_and_print(organize_files_by_date, input_folder=basedir, type=no_albums_structure, exclude_subfolders=exclude_subfolders, folder_analyzer=self.output_folder_analyzer, step_name=step_name, log_level=LOG_LEVEL)
@@ -2538,7 +2538,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # If flatten
                 if albums_structure == 'flatten' and no_albums_structure == 'flatten':
                     LOGGER.info(f"")
-                    LOGGER.warning(f"{step_name}No argument '-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure' detected. All photos and videos will be flattened in their folders.")
+                    LOGGER.warning(f"{step_name}No argument '-gafs, --google-albums-folders-structure' and '-gaps, --google-all-photos-folders-structure' detected. All photos and videos will be flattened in their folders.")
 
                 if albums_structure != 'flatten' or no_albums_structure != 'flatten':
                     # Step 4.6.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
@@ -2571,7 +2571,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             if self.ARGS['google-rename-albums-folders']:
                 LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
-                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], date_dict=self.output_folder_analyzer.extracted_dates, step_name=step_name, log_level=LOG_LEVEL)
+                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_ALL_PHOTOS, '@eaDir'], date_dict=self.output_folder_analyzer.extracted_dates, step_name=step_name, log_level=LOG_LEVEL)
                 # Extrae la lista de tuplas (old_path, new_path)
                 replacements = rename_output['replacements']
                 # Now modify the object analyzer with all the files changed during this step
@@ -2607,12 +2607,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
             if self.ARGS['google-remove-duplicates-files']:
-                # 1) Remove Duplicates from OUTPUT_TAKEOUT_FOLDER (excluding '<NO_ALBUMS_FOLDER>' folder)
-                LOGGER.info(f"{step_name}1. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>', excluding '<NO_ALBUMS_FOLDER>' folder...")
+                # 1) Remove duplicates outside the Takeout master library.
+                LOGGER.info(f"{step_name}1. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>', excluding '<ALL_PHOTOS_FOLDER>'...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
                     duplicates_folders=output_folder,
-                    exclusion_folders=[FOLDERNAME_NO_ALBUMS],    # Exclude '<NO_ALBUMS_FOLDER>' folder since it will contain duplicates of all the assets within 'Albums' subfolders.
+                    exclusion_folders=[FOLDERNAME_ALL_PHOTOS],   # Exclude the master library, which contains assets represented by albums.
                     deprioritize_folders_patterns=self.DEPRIORITIZE_FOLDERS_PATTERNS,
                     timestamp=self.TIMESTAMP,
                     step_name=step_name,
@@ -2621,11 +2621,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.result['duplicates_found'] += duplicates_found
                 self.result['removed_empty_folders'] += removed_empty_folders
 
-                # 2) Remove Duplicates from <OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER> (excluding any other folder outside it).
-                LOGGER.info(f"{step_name}2. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER>', excluding any other folders outside it...")
+                # 2) Remove duplicates within the Takeout master library.
+                LOGGER.info(f"{step_name}2. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>/<ALL_PHOTOS_FOLDER>', excluding any other folders outside it...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
-                    duplicates_folders=os.path.join(output_folder, FOLDERNAME_NO_ALBUMS),
+                    duplicates_folders=os.path.join(output_folder, FOLDERNAME_ALL_PHOTOS),
                     deprioritize_folders_patterns=self.DEPRIORITIZE_FOLDERS_PATTERNS,
                     timestamp=self.TIMESTAMP,
                     step_name=step_name,
@@ -2656,7 +2656,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             # Count the Albums in output Folder
             if os.path.isdir(albums_folder):
-                excluded_folders = [FOLDERNAME_NO_ALBUMS, "ALL_PHOTOS"]
+                excluded_folders = [FOLDERNAME_ALL_PHOTOS]
                 # self.result['valid_albums_found'] = count_valid_albums(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
                 self.result['valid_albums_found'] = count_valid_albums_in_first_level(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
             LOGGER.info(f"{step_name}Valid Albums Found {self.result['valid_albums_found']}.")
@@ -4160,7 +4160,7 @@ def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_s
 
         subfolders = [
             sub for sub in os.listdir(input_folder)
-            if sub not in ('@eaDir', FOLDERNAME_NO_ALBUMS)
+            if sub not in ('@eaDir', FOLDERNAME_ALL_PHOTOS)
         ]
 
         for subfolder in tqdm(

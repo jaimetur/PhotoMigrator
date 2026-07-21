@@ -74,7 +74,7 @@ Below you can find the list of all commands that the Tool can receive to execute
 usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noLog]
                      [-logLevel =[VERBOSE, DEBUG, INFO, WARNING, ERROR]] [-logFormat =[LOG, TXT, ALL]]
                      [-dateSep <DATE_SEPARATOR>] [-rangeSep <RANGE_OF_DATES_SEPARATOR>] [-fnAlbums <ALBUMS_FOLDER>]
-                     [-fnNoAlbums <NO_ALBUMS_FOLDER>] [-fnLogs <LOG_FOLDER>] [-fnDuplicat <DUPLICATES_OUTPUT_FOLDER>]
+                     [-fnNoAlbums <NO_ALBUMS_FOLDER>] [-fnAllPhotos <ALL_PHOTOS_FOLDER>] [-fnLogs <LOG_FOLDER>] [-fnDuplicat <DUPLICATES_OUTPUT_FOLDER>]
                      [-fnExtDates <EXTRACTED_DATES_FOLDER>] [-exeGpthTool <GPTH_PATH>] [-exeExifTool <EXIFTOOL_PATH>]
                      [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                      [-client = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']]
@@ -129,7 +129,9 @@ options:
 -fnAlbums    ; --foldername-albums <ALBUMS_FOLDER>
                Specify the folder name to store all your processed photos associated to any Album.
 -fnNoAlbums  ; --foldername-no-albums <NO_ALBUMS_FOLDER>
-               Specify the folder name to store all your processed photos (including those associated to Albums).
+               Specify the cloud/local-library folder name for assets without album association (default: No_Albums).
+-fnAllPhotos ; --foldername-all-photos <ALL_PHOTOS_FOLDER>
+               Specify the Takeout master-library folder name containing all assets (default: ALL_PHOTOS).
 -fnLogs      ; --foldername-logs <LOG_FOLDER>
                Specify the folder name to save the execution Logs.
 -fnDuplicat  ; --foldername-duplicates-output <DUPLICATES_OUTPUT_FOLDER>
@@ -252,13 +254,13 @@ for the rest of the arguments for this extra mode.
                timestamp.
 -gafs        ; --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
                Specify the folder structure type for each Album folder (Default: 'flatten').
--gnas        ; --google-no-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
-               Specify the folder structure type for '<NO_ALBUMS_FOLDER>' folders (Default: 'year/month').
+-gaps        ; --google-all-photos-folders-structure ['flatten', 'year', 'year/month', 'year-month']
+               Specify the folder structure type for the Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month').
 -gics        ; --google-ignore-check-structure
                Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc.), and fix all
                files found on <TAKEOUT_FOLDER> trying to guess timestamps.
 -gnsa        ; --google-no-symbolic-albums
-               Duplicate album assets instead of creating symlinks to the original asset within <NO_ALBUMS_FOLDER>.
+               Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>.
                (Makes your output portable but requires more HDD space).
                IMPORTANT: This can considerably increase output size, especially if you have many albums.
                Example: if one asset belongs to 3 albums, you will end up with 4 copies (original + 3).
@@ -324,14 +326,14 @@ default values for the rest of the arguments for this extra mode.
                Specify the suffix for the iCloud processed output folder. Default: 'processed'.
 -iafs        ; --icloud-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
                Specify the folder structure type for each reconstructed iCloud Album folder (Default: 'flatten').
--inas        ; --icloud-no-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
-               Specify the folder structure type for '<NO_ALBUMS_FOLDER>' folders generated from iCloud exports
+-iaps        ; --icloud-all-photos-folders-structure ['flatten', 'year', 'year/month', 'year-month']
+               Specify the folder structure type for the iCloud Takeout '<ALL_PHOTOS_FOLDER>' master library
                (Default: 'year/month').
 -insa        ; --icloud-no-symbolic-albums
                Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within
-               <NO_ALBUMS_FOLDER>.
+               <ALL_PHOTOS_FOLDER>.
                By default, Albums and Memories are reconstructed as symlinks pointing to the assets stored in
-               <NO_ALBUMS_FOLDER>.
+               <ALL_PHOTOS_FOLDER>.
 -iMem        ; --icloud-include-memories
                Also reconstruct iCloud 'Memories' CSV collections as folders.
 -iNExif      ; --icloud-prefer-native-exif-writer

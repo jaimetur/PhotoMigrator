@@ -22,7 +22,7 @@ from Core.GlobalVariables import (
     ARGS,
     FOLDERNAME_ALBUMS,
     FOLDERNAME_EXIFTOOL,
-    FOLDERNAME_NO_ALBUMS,
+    FOLDERNAME_ALL_PHOTOS,
     LOGGER,
     LOG_LEVEL,
     PHOTO_EXT,
@@ -243,7 +243,7 @@ class ClassICloudTakeoutFolder:
         self.needs_unzip = self.takeout_folder.is_dir() and contains_zip_files(self.takeout_folder, log_level=logging.WARNING)
         self.input_folder = self.takeout_folder
         self.output_folder = self._build_output_folder()
-        self.no_albums_folder = self.output_folder / FOLDERNAME_NO_ALBUMS
+        self.no_albums_folder = self.output_folder / FOLDERNAME_ALL_PHOTOS
         self.albums_folder = self.output_folder / FOLDERNAME_ALBUMS
         self.memories_folder = self.output_folder / "Memories"
         self.result = init_process_results()
@@ -850,7 +850,7 @@ class ClassICloudTakeoutFolder:
     def _organize_originals(self, source_records, extracted_dates, step_name="", log_level=None):
         with set_log_level(LOGGER, log_level):
             self.local_analyzer = FolderAnalyzer(extracted_dates=extracted_dates, logger=LOGGER)
-            structure = self.ARGS.get("icloud-no-albums-folders-structure", "year/month")
+            structure = self.ARGS.get("icloud-all-photos-folders-structure", "year/month")
             replacements = organize_files_by_date(
                 input_folder=str(self.no_albums_folder),
                 type=structure,
@@ -1112,7 +1112,7 @@ class ClassICloudTakeoutFolder:
                 LOGGER.info(f"Input iCloud Takeout folder  : '{self.input_folder}'")
                 LOGGER.info(f"Output processed folder      : '{self.output_folder}'")
                 LOGGER.info(f"Albums structure             : '{self.ARGS.get('icloud-albums-folders-structure', 'flatten')}'")
-                LOGGER.info(f"ALL_PHOTOS structure         : '{self.ARGS.get('icloud-no-albums-folders-structure', 'year/month')}'")
+                LOGGER.info(f"ALL_PHOTOS structure         : '{self.ARGS.get('icloud-all-photos-folders-structure', 'year/month')}'")
                 LOGGER.info(f"Use copies for albums        : '{self.ARGS.get('icloud-no-symbolic-albums', False)}'")
                 LOGGER.info(f"Include Memories             : '{self.ARGS.get('icloud-include-memories', False)}'")
                 LOGGER.info(f"Prefer Native EXIF writer    : '{self.ARGS.get('icloud-prefer-native-exif-writer', False)}'")

@@ -80,6 +80,7 @@ UI_FIELD_LABELS = {
     "prefer-canonical-album-names": "Prefer Canonical Album Names",
     "consolidate-similar-albums": "Consolidate Similar Albums",
     "import-people": "Import People",
+    "foldername-all-photos": "ALL_PHOTOS Folder Name",
 }
 MIGRATION_FILTER_DESTS = (
     "filter-by-type",
@@ -147,7 +148,8 @@ BOOL_VALUE_DESTS = {
 }
 UI_FOLDERNAME_DEFAULTS = {
     "foldername-albums": "Albums",
-    "foldername-no-albums": "ALL_PHOTOS",
+    "foldername-no-albums": "No_Albums",
+    "foldername-all-photos": "ALL_PHOTOS",
     "foldername-logs": "Logs",
     "foldername-duplicates-output": "Duplicates_outputs",
     "foldername-extracted-dates": "Extracted_Dates",
@@ -167,7 +169,8 @@ GOOGLE_DESTS = {
     "google-takeout",
     "google-output-folder-suffix",
     "google-albums-folders-structure",
-    "google-no-albums-folders-structure",
+    "foldername-all-photos",
+    "google-all-photos-folders-structure",
     "google-ignore-check-structure",
     "google-no-symbolic-albums",
     "google-remove-duplicates-files",
@@ -187,7 +190,8 @@ ICLOUD_DESTS = {
     "icloud-takeout",
     "icloud-output-folder-suffix",
     "icloud-albums-folders-structure",
-    "icloud-no-albums-folders-structure",
+    "foldername-all-photos",
+    "icloud-all-photos-folders-structure",
     "icloud-no-symbolic-albums",
     "icloud-include-memories",
     "icloud-prefer-native-exif-writer",
@@ -927,13 +931,14 @@ def build_parser_schema(
         by_dest[dest] = field
 
     cloud_common = [field for field in fields if field["tab"] == "cloud_common"]
+    takeout_all_photos_field = by_dest.get("foldername-all-photos")
     merged_general = [field for field in fields if field["dest"] in (GENERAL_CORE_DESTS | GENERAL_OPTIONAL_DESTS)]
     schema = {
         "general_tabs": {"general": merged_general},
         "feature_scoped": [field for field in fields if field["dest"] in FEATURE_SCOPED_DESTS],
         "tabs": {
-            "google_takeout": [field for field in fields if field["tab"] == "google_takeout"],
-            "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"],
+            "google_takeout": [*([takeout_all_photos_field] if takeout_all_photos_field else []), *[field for field in fields if field["tab"] == "google_takeout" and field["dest"] != "foldername-all-photos"]],
+            "icloud_takeout": [*([takeout_all_photos_field] if takeout_all_photos_field else []), *[field for field in fields if field["tab"] == "icloud_takeout"]],
             "google_photos": cloud_common,
             "synology_photos": cloud_common,
             "immich_photos": cloud_common,

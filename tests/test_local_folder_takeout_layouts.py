@@ -321,6 +321,18 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         no_album_filenames = sorted(asset["filename"] for asset in no_album_assets)
         self.assertEqual(no_album_filenames, ["root-photo.jpg", "root-video.mp4"])
 
+    def test_takeout_master_library_without_albums_is_a_managed_non_album_root(self):
+        takeout_root = self.root / "takeout-without-albums"
+        all_photos_file = takeout_root / "ALL_PHOTOS" / "2024" / "01" / "takeout-only.jpg"
+        all_photos_file.parent.mkdir(parents=True, exist_ok=True)
+        all_photos_file.write_text("data", encoding="utf-8")
+
+        local_folder = ClassLocalFolder(base_folder=takeout_root)
+
+        self.assertTrue(local_folder._uses_managed_layout())
+        no_album_assets = local_folder.get_all_assets_without_albums(log_level=logging.INFO)
+        self.assertEqual([asset["filename"] for asset in no_album_assets], ["takeout-only.jpg"])
+
     def test_plain_local_folder_treats_memories_subfolders_as_album_collections(self):
         plain_root = self.root / "plain-memories-source"
         plain_root.mkdir(parents=True, exist_ok=True)

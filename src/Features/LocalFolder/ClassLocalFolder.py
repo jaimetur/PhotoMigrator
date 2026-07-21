@@ -13,7 +13,7 @@ from pathlib import Path
 
 from Core.CustomLogger import set_log_level
 from Core.FolderAnalyzer import FolderAnalyzer
-from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS, PHOTO_EXT
+from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALL_PHOTOS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS, PHOTO_EXT
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm
@@ -53,6 +53,7 @@ class ClassLocalFolder(BaseMediaClient):
         self.memories_folder = self.base_folder / "Memories"
         self.shared_albums_folder = self.base_folder / f"{FOLDERNAME_ALBUMS}-shared"
         self.no_albums_folder = self.base_folder / FOLDERNAME_NO_ALBUMS
+        self.all_photos_folder = self.base_folder / FOLDERNAME_ALL_PHOTOS
 
         # Ensure the base folder exists, but do not eagerly create managed-layout
         # folders when reading a plain local source for automatic migration.
@@ -152,6 +153,9 @@ class ClassLocalFolder(BaseMediaClient):
     def _get_partner_shared_no_albums_folder(self):
         return self._get_partner_shared_root() / FOLDERNAME_NO_ALBUMS
 
+    def _get_partner_shared_all_photos_folder(self):
+        return self._get_partner_shared_root() / FOLDERNAME_ALL_PHOTOS
+
     def _get_special_folders_root(self):
         return self.base_folder / "Special Folders"
 
@@ -164,6 +168,7 @@ class ClassLocalFolder(BaseMediaClient):
             self.albums_folder,
             self.shared_albums_folder,
             self.no_albums_folder,
+            self.all_photos_folder,
             self._get_partner_shared_root(),
             self._get_special_folders_root(),
         )
@@ -327,9 +332,14 @@ class ClassLocalFolder(BaseMediaClient):
         roots = []
         if self.no_albums_folder.exists() and self.no_albums_folder.is_dir():
             roots.append(self.no_albums_folder.resolve())
+        if self.all_photos_folder.exists() and self.all_photos_folder.is_dir():
+            roots.append(self.all_photos_folder.resolve())
         partner_shared_no_albums = self._get_partner_shared_no_albums_folder()
         if partner_shared_no_albums.exists() and partner_shared_no_albums.is_dir():
             roots.append(partner_shared_no_albums.resolve())
+        partner_shared_all_photos = self._get_partner_shared_all_photos_folder()
+        if partner_shared_all_photos.exists() and partner_shared_all_photos.is_dir():
+            roots.append(partner_shared_all_photos.resolve())
         return roots
 
     def _select_manifest_backed_asset_path(self, expected_filename, sel_ext_local=None):

@@ -500,6 +500,7 @@
         "move-original-files": "Move Original Files",
         "fix-symlinks-broken": "FOLDER_TO_FIX",
         "configuration-file": "Configuration File",
+        "foldername-all-photos": "ALL_PHOTOS Folder Name",
         "albums-folders": "Albums Folders",
         "exclude-folders": "Exclude Folders",
         "exclude-files": "Exclude Files",
@@ -2368,8 +2369,8 @@
         const dest = field.dest;
         if (dest === "google-takeout" || dest === "google-output-folder-suffix") return "takeout";
         if (dest === "icloud-takeout" || dest === "icloud-output-folder-suffix") return "takeout";
-        if (dest === "google-albums-folders-structure" || dest === "google-no-albums-folders-structure") return "structure";
-        if (dest === "icloud-albums-folders-structure" || dest === "icloud-no-albums-folders-structure") return "structure";
+        if (dest === "foldername-all-photos" || dest === "google-albums-folders-structure" || dest === "google-all-photos-folders-structure") return "structure";
+        if (dest === "foldername-all-photos" || dest === "icloud-albums-folders-structure" || dest === "icloud-all-photos-folders-structure") return "structure";
         if (dest === "google-process-people") return "flags";
         if (dest === "show-gpth-info" || dest === "show-gpth-errors" || dest === "gpth-no-log") return "runtime";
         if (field.kind === "flag") return "flags";

@@ -90,7 +90,7 @@ Below you can see the different steps of this feature:
   - 6.2. 🎞️ Repair conflicting Video XMP dates left by GPTH so the final metadata matches the intended capture date.
   - 6.3. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
   - 6.4. 📁 Organize your assets in a year/month structure for a better organization. 
-    - Can be customized using the flags: `-gafs, --google-albums-folders-structure` and `-gnas, --google-no-albums-folders-structure`  
+    - Can be customized using the flags: `-gafs, --google-albums-folders-structure` and `-gaps, --google-all-photos-folders-structure`. The master folder name is controlled by `--foldername-all-photos`.
     - `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
   - 6.5. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates.</span>  
          `(default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders')`
@@ -176,7 +176,7 @@ The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by def
 
 The final `<OUTPUT_FOLDER>` will include:
 - `Albums` subfolder with all the Albums without year/month structure (by default).
-- `<NO_ALBUMS_FOLDER>` subfolder with all the photos with year/month structure (by default).
+- `<ALL_PHOTOS_FOLDER>` master-library subfolder with all photos and videos, with year/month structure by default.
 - `takeout_people_metadata.json`, when people processing is enabled. This map is keyed by normalized media filename and preserves the Google Takeout person labels plus its taken, creation, and modification dates after GPTH removes the original JSON sidecars. When several assets share a filename, it stores separate entries; consumers compare the processed file's EXIF and filesystem dates and select the nearest source entry. Equal nearest candidates contribute all their people labels.
 
 ### Google Takeout people map
@@ -212,7 +212,7 @@ Example:
  
 In this example, the tool will do the Takeout Processing with the following steps:
 1. Process you Takeout Files found in folder `./MyTakeout` (Unzipping them if needed) and fix all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos. 
-2. Create a folder structure based on year/month for the folder `<OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER>` (by default).  
+2. Create a folder structure based on year/month for the master library `<OUTPUT_TAKEOUT_FOLDER>/<ALL_PHOTOS_FOLDER>` (by default).
 3. Create a flatten folder structure for each Album subfolder found in `<OUTPUT_TAKEOUT_FOLDER>/Albums` (by default).    
 4. Move the files will into `./MyTakeout_processed_timestamp` folder where timestamp is the timestamp of the execution.
 5. Remove any duplicates files found in `./MyTakeout_processed_timestamp` folder
@@ -224,8 +224,8 @@ In this example, the tool will do the Takeout Processing with the following step
 ```
  
 In this example, the tool will do the Takeout Processing with the following steps:
-1. Process you Takeout Files found in folder `./MyTakeout` (Unzipping them if needed) and fix all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos to create symbolic links for each asset in any Album to the original file stored in `<NO_ALBUMS_FOLDER>` subfolder.  
-2. Create a folder structure based on year/month for the folder `<OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER>` (by default).  
+1. Process you Takeout Files found in folder `./MyTakeout` (Unzipping them if needed) and fix all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos to create symbolic links for each asset in any Album to the original file stored in `<ALL_PHOTOS_FOLDER>` subfolder.
+2. Create a folder structure based on year/month for the master library `<OUTPUT_TAKEOUT_FOLDER>/<ALL_PHOTOS_FOLDER>` (by default).
 3. Create a flatten folder structure for each Album subfolder found in `<OUTPUT_TAKEOUT_FOLDER>/<ALBUMS_FOLDER>` (by default).    
 4. Move the files will into `./MyTakeout_processed_timestamp` folder where timestamp is the timestamp of the execution.
 5. Remove any duplicates files found in `./MyTakeout_processed_timestamp` folder

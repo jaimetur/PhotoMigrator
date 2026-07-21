@@ -29,7 +29,7 @@ def _args(output_folder):
         "output-folder": str(output_folder),
         "icloud-output-folder-suffix": "processed",
         "icloud-albums-folders-structure": "flatten",
-        "icloud-no-albums-folders-structure": "flatten",
+        "icloud-all-photos-folders-structure": "flatten",
         "icloud-no-symbolic-albums": True,
         "icloud-include-memories": True,
         "icloud-prefer-native-exif-writer": False,

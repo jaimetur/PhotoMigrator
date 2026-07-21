@@ -41,7 +41,8 @@ Notes:
 | `-logLevel`,<br>`--log-level`                      | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`                                      |
 | `-logFormat`,<br>`--log-format`                    | Sets log file format: `LOG`, `TXT`, `ALL`                                                           |
 | `-fnAlbums`,<br>`--foldername-albums`              | Specify the folder name to store all your processed photos associated to any Album.                 |
-| `-fnNoAlbums`,<br>`--foldername-no-albums`         | Specify the folder name to store all your processed photos (including those associated to Albums).  |
+| `-fnNoAlbums`,<br>`--foldername-no-albums`         | Cloud/local-library folder for assets without albums (default: `No_Albums`).                        |
+| `-fnAllPhotos`,<br>`--foldername-all-photos`       | Takeout master-library folder containing all assets (default: `ALL_PHOTOS`).                        |
 | `-fnLogs`,<br>`--foldername-logs`                  | Specify the folder name to save the execution Logs.                                                 |
 | `-fnDuplicat`,<br>`--foldername-duplicates-output` | Specify the folder name to save the outputs of 'Find Duplicates' Feature.                           |
 | `-fnExtDates`,<br>`--foldername-extracted-dates`   | Specify the folder name to save the Metadata outputs of 'Extracted Dates'.                          |
@@ -108,26 +109,26 @@ If only the argument `-gTakeout, --google-takeout <TAKEOUT_FOLDER>` is detected,
 
 Following arguments allow you to interact with Google Photos Takeout Folder.  
 
-| Argument                                           | Description                                                                                                            |
-|----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `-gTakeout`,<br>`--google-takeout`                 | Path to Takeout folder (mandatory for this mode)                                                                       |
-| `-gofs`,<br>`--google-output-folder-suffix`        | Suffix for output folder (default: `processed`)                                                                        |
-| `-gafs`,<br>`--google-albums-folders-structure`    | Album folder structure: `flatten`, `year`, `year/month`, `year-month`                                                  |
-| `-gnas`,<br>`--google-no-albums-folders-structure` | No-Album folder structure (same values as above; default: `year/month`)                                                |
-| `-gics`,<br>`--google-ignore-check-structure`      | Ignore Takeout structure validations                                                                                   |
-| `-gnsa`,<br>`--google-no-symbolic-albums`          | Duplicates Albums assets instead of create symlinks to original asset in <NO_ALBUMS_FOLDER>. (requires more HDD space) |
-| `-grdf`,<br>`--google-remove-duplicates-files`     | Removes duplicate files in the output folder.                                                                          |
-| `-graf`,<br>`--google-rename-albums-folders`       | Renames albums folders based on content dates.                                                                         |
-| `-gsef`,<br>`--google-skip-extras-files`           | Skips extra Google photos like edited/effects.                                                                         |
-| `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                                                                                |
-| `-gSkipGpth`,<br>`--google-skip-gpth-tool`         | Skip processing with GPTH Tool (not recommended)                                                                       |
-| `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).                                                             |
-| `-gSkipPost`,<br>`--google-skip-postprocess`       | Skips Post-process Google Takeout folder (not recommended).                                                            |
-| `-gKeepTakeout`,<br>`--google-keep-takeout-folder` | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
-| `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true).                                                                           |
-| `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true).                                                                              |
-| `-gpthNoLog`,<br>`--gpth-no-log`                   | Skip Save GPTH log messages into output folder.                                                                        |
-| `-gPeople`,<br>`--google-process-people` `<bool>`  | Process Google JSON people labels and write `takeout_people_metadata.json` (default: `true`). Set `false` to skip it.  |
+| Argument                                            | Description                                                                                                            |
+|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| `-gTakeout`,<br>`--google-takeout`                  | Path to Takeout folder (mandatory for this mode)                                                                       |
+| `-gofs`,<br>`--google-output-folder-suffix`         | Suffix for output folder (default: `processed`)                                                                        |
+| `-gafs`,<br>`--google-albums-folders-structure`     | Album folder structure: `flatten`, `year`, `year/month`, `year-month`                                                  |
+| `-gaps`,<br>`--google-all-photos-folders-structure` | Google Takeout `ALL_PHOTOS` master-library structure (same values as above; default: `year/month`)                     |
+| `-gics`,<br>`--google-ignore-check-structure`       | Ignore Takeout structure validations                                                                                   |
+| `-gnsa`,<br>`--google-no-symbolic-albums`           | Duplicates Albums assets instead of creating symlinks to originals in `<ALL_PHOTOS_FOLDER>`. (requires more HDD space) |
+| `-grdf`,<br>`--google-remove-duplicates-files`      | Removes duplicate files in the output folder.                                                                          |
+| `-graf`,<br>`--google-rename-albums-folders`        | Renames albums folders based on content dates.                                                                         |
+| `-gsef`,<br>`--google-skip-extras-files`            | Skips extra Google photos like edited/effects.                                                                         |
+| `-gsma`,<br>`--google-skip-move-albums`             | Skip moving albums to `<ALBUMS_FOLDER>`                                                                                |
+| `-gSkipGpth`,<br>`--google-skip-gpth-tool`          | Skip processing with GPTH Tool (not recommended)                                                                       |
+| `-gSkipPrep`,<br>`--google-skip-preprocess`         | Skips Pre-process Google Takeout folder (not recommended).                                                             |
+| `-gSkipPost`,<br>`--google-skip-postprocess`        | Skips Post-process Google Takeout folder (not recommended).                                                            |
+| `-gKeepTakeout`,<br>`--google-keep-takeout-folder`  | Keeps a untouched copy of your original Takeout folder. (requires double HDD space).                                   |
+| `-gpthInfo`,<br>`--show-gpth-info`                  | Show GPTH progress messages (default: true).                                                                           |
+| `-gpthError`,<br>`--show-gpth-errors`               | Show GPTH error messages (default: true).                                                                              |
+| `-gpthNoLog`,<br>`--gpth-no-log`                    | Skip Save GPTH log messages into output folder.                                                                        |
+| `-gPeople`,<br>`--google-process-people` `<bool>`   | Process Google JSON people labels and write `takeout_people_metadata.json` (default: `true`). Set `false` to skip it.  |
 
 #### 🧪 Examples:
 ```bash
@@ -148,15 +149,15 @@ If only the argument `-iTakeout, --icloud-takeout <ICLOUD_EXPORT_FOLDER>` is det
 
 Following arguments allow you to interact with Apple iCloud Photos export folders.
 
-| Argument                                           | Description                                                                                                          |
-|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| `-iTakeout`,<br>`--icloud-takeout`                 | Path to the iCloud export folder (mandatory for this mode)                                                           |
-| `-iofs`,<br>`--icloud-output-folder-suffix`        | Suffix for the iCloud processed output folder (default: `processed`)                                                 |
-| `-iafs`,<br>`--icloud-albums-folders-structure`    | Reconstructed album folder structure: `flatten`, `year`, `year/month`, `year-month`                                  |
-| `-inas`,<br>`--icloud-no-albums-folders-structure` | No-Album folder structure (same values as above; default: `year/month`)                                              |
-| `-insa`,<br>`--icloud-no-symbolic-albums`          | Duplicate reconstructed iCloud album assets instead of creating symlinks in `<NO_ALBUMS_FOLDER>` (default: symlinks) |
-| `-iMem`,<br>`--icloud-include-memories`            | Also reconstruct iCloud `Memories` CSV collections as folders. Pre-selected by default in Web/TUI/GUI                |
-| `-iNExif`,<br>`--icloud-prefer-native-exif-writer` | Prefer the native EXIF writer when possible. Pre-selected by default in Web/TUI/GUI                                  |
+| Argument                                            | Description                                                                                                           |
+|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| `-iTakeout`,<br>`--icloud-takeout`                  | Path to the iCloud export folder (mandatory for this mode)                                                            |
+| `-iofs`,<br>`--icloud-output-folder-suffix`         | Suffix for the iCloud processed output folder (default: `processed`)                                                  |
+| `-iafs`,<br>`--icloud-albums-folders-structure`     | Reconstructed album folder structure: `flatten`, `year`, `year/month`, `year-month`                                   |
+| `-iaps`,<br>`--icloud-all-photos-folders-structure` | iCloud Takeout `ALL_PHOTOS` master-library structure (same values as above; default: `year/month`)                    |
+| `-insa`,<br>`--icloud-no-symbolic-albums`           | Duplicate reconstructed iCloud album assets instead of creating symlinks in `<ALL_PHOTOS_FOLDER>` (default: symlinks) |
+| `-iMem`,<br>`--icloud-include-memories`             | Also reconstruct iCloud `Memories` CSV collections as folders. Pre-selected by default in Web/TUI/GUI                 |
+| `-iNExif`,<br>`--icloud-prefer-native-exif-writer`  | Prefer the native EXIF writer when possible. Pre-selected by default in Web/TUI/GUI                                   |
 
 #### 🧪 Examples:
 ```bash

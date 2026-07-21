@@ -396,7 +396,7 @@ class TestExecutionModes(unittest.TestCase):
             "google-output-folder-suffix": "processed",
             "google-input-zip-folder": "",
             "google-albums-folders-structure": "flatten",
-            "google-no-albums-folders-structure": "year/month",
+            "google-all-photos-folders-structure": "year/month",
             "google-skip-gpth-tool": False,
             "google-skip-extras-files": False,
             "google-skip-move-albums": False,

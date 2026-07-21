@@ -185,8 +185,8 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
         return result
     if feature_name == "Google Takeout Processor":
         return [
-            "output-folder", "google-output-folder-suffix", "google-albums-folders-structure",
-            "google-no-albums-folders-structure", "google-ignore-check-structure", "google-no-symbolic-albums",
+            "output-folder", "google-output-folder-suffix", "foldername-all-photos", "google-albums-folders-structure",
+            "google-all-photos-folders-structure", "google-ignore-check-structure", "google-no-symbolic-albums",
             "google-remove-duplicates-files", "google-rename-albums-folders", "google-skip-extras-files",
             "google-skip-move-albums", "google-skip-gpth-tool", "google-skip-preprocess",
             "google-skip-postprocess", "google-keep-takeout-folder", "show-gpth-info", "show-gpth-errors",
@@ -194,8 +194,8 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
         ]
     if feature_name == "iCloud Takeout Processor":
         return [
-            "output-folder", "icloud-output-folder-suffix", "icloud-albums-folders-structure",
-            "icloud-no-albums-folders-structure", "icloud-no-symbolic-albums", "icloud-include-memories",
+            "output-folder", "icloud-output-folder-suffix", "foldername-all-photos", "icloud-albums-folders-structure",
+            "icloud-all-photos-folders-structure", "icloud-no-symbolic-albums", "icloud-include-memories",
             "icloud-prefer-native-exif-writer",
         ]
     if feature_name == "Other Features" and module_name == "Organize Local Folder By Date":
@@ -211,6 +211,7 @@ def _startup_flag_value(dest: str, args: dict):
         "range-separator": GV.RANGE_OF_DATES_SEPARATOR,
         "foldername-albums": GV.FOLDERNAME_ALBUMS,
         "foldername-no-albums": GV.FOLDERNAME_NO_ALBUMS,
+        "foldername-all-photos": GV.FOLDERNAME_ALL_PHOTOS,
         "foldername-logs": GV.FOLDERNAME_LOGS,
         "foldername-duplicates-output": GV.FOLDERNAME_DUPLICATES_OUTPUT,
         "foldername-extracted-dates": GV.FOLDERNAME_EXTRACTED_DATES,
@@ -543,9 +544,16 @@ def pre_parse_args():
                 # -------- Dropdowns for Folder Structures --------
                 options = ["flatten", "year", "year/month", "year-month"]
                 self.albums_structure = tk.StringVar(value="flatten")
-                self.no_albums_structure = tk.StringVar(value="year/month")
+                self.all_photos_structure = tk.StringVar(value="year/month")
                 structure_frame = tk.Frame(master)
                 structure_frame.pack(anchor="w", pady=(10, 4), padx=20)
+                self.all_photos_folder_name = tk.StringVar(value=GV.FOLDERNAME_ALL_PHOTOS)
+                row0 = tk.Frame(structure_frame)
+                row0.pack(anchor="w", pady=2)
+                tk.Label(row0, text="ALL_PHOTOS folder name:", width=28, anchor="w").pack(side="left")
+                tk.Entry(row0, textvariable=self.all_photos_folder_name, width=21).pack(side="left")
+                tk.Label(row0, text=" " * 2, font=("Courier", 10)).pack(side="left")
+                tk.Label(row0, text="Takeout master library folder", anchor="w", font=("Courier", 10)).pack(side="left", padx=2)
                 row1 = tk.Frame(structure_frame)
                 row1.pack(anchor="w", pady=2)
                 tk.Label(row1, text="Albums folder structure:", width=28, anchor="w").pack(side="left")
@@ -555,10 +563,10 @@ def pre_parse_args():
 
                 row2 = tk.Frame(structure_frame)
                 row2.pack(anchor="w", pady=2)
-                tk.Label(row2, text="No-albums folder structure:", width=28, anchor="w").pack(side="left")
-                ttk.Combobox(row2, textvariable=self.no_albums_structure, values=options, state="readonly", width=18).pack(side="left")
+                tk.Label(row2, text="ALL_PHOTOS folder structure:", width=28, anchor="w").pack(side="left")
+                ttk.Combobox(row2, textvariable=self.all_photos_structure, values=options, state="readonly", width=18).pack(side="left")
                 tk.Label(row2, text=" " * 2, font=("Courier", 10)).pack(side="left")  # fine-tune alignment
-                tk.Label(row2, text="Structure for no-albums folder", anchor="w", font=("Courier", 10)).pack(side="left", padx=2)
+                tk.Label(row2, text="Structure for Takeout master library", anchor="w", font=("Courier", 10)).pack(side="left", padx=2)
 
                 # -------- Flags with Descriptions --------
                 self.flags = {
@@ -644,10 +652,13 @@ def pre_parse_args():
                     sys.argv += ["--google-output-folder-suffix", suffix]
 
                 # Only add structure options if not default
+                all_photos_folder_name = self.all_photos_folder_name.get().strip()
+                if all_photos_folder_name and all_photos_folder_name != GV.FOLDERNAME_ALL_PHOTOS:
+                    sys.argv += ["--foldername-all-photos", all_photos_folder_name]
                 if self.albums_structure.get() != "flatten":
                     sys.argv += ["--google-albums-folders-structure", self.albums_structure.get()]
-                if self.no_albums_structure.get() != "year/month":
-                    sys.argv += ["--google-no-albums-folders-structure", self.no_albums_structure.get()]
+                if self.all_photos_structure.get() != "year/month":
+                    sys.argv += ["--google-all-photos-folders-structure", self.all_photos_structure.get()]
 
                 # Add flags if selected
                 for flag, (desc, var) in self.flags.items():
@@ -765,13 +776,23 @@ def pre_parse_args():
             sys.argv += ["--google-output-folder-suffix", suffix]
 
         # -------- Folder structure options --------
+        all_photos_folder_name = ask_input(
+            "ALL_PHOTOS folder name",
+            description="Takeout master library folder",
+            default=GV.FOLDERNAME_ALL_PHOTOS,
+            icon="📁",
+        )
+        if all_photos_folder_name and all_photos_folder_name != GV.FOLDERNAME_ALL_PHOTOS:
+            sys.argv += ["--foldername-all-photos", all_photos_folder_name]
+
+        all_photos_structure = ask_structure("ALL_PHOTOS master folder", default="year/month", icon="📂")
+        if all_photos_structure != "year/month":
+            sys.argv += ["--google-all-photos-folders-structure", all_photos_structure]
+
         albums_structure = ask_structure("Albums folder", default="flatten", icon="📂")
         if albums_structure != "flatten":
             sys.argv += ["--google-albums-folders-structure", albums_structure]
 
-        no_albums_structure = ask_structure("No-albums folder", default="year/month", icon="📂")
-        if no_albums_structure != "year/month":
-            sys.argv += ["--google-no-albums-folders-structure", no_albums_structure]
 
         # -------- Flags --------
         flag_questions = {

@@ -92,7 +92,10 @@ def parse_arguments():
                         help="Specify the folder name to store all your processed photos associated to any Album.")
 
     PARSER.add_argument("-fnNoAlbums", "--foldername-no-albums", metavar="<NO_ALBUMS_FOLDER>", default="",
-                        help="Specify the folder name to store all your processed photos (including those associated to Albums).")
+                        help="Specify the folder name used by cloud and local-library workflows for assets not associated to an album.")
+
+    PARSER.add_argument("-fnAllPhotos", "--foldername-all-photos", metavar="<ALL_PHOTOS_FOLDER>", default="",
+                        help="Specify the Takeout master-library folder name containing all assets. Default: 'ALL_PHOTOS'.")
 
     PARSER.add_argument("-fnLogs", "--foldername-logs", metavar="<LOG_FOLDER>", default="",
                         help="Specify the folder name to save the execution Logs.")
@@ -253,10 +256,10 @@ def parse_arguments():
                         type=lambda s: s.lower(),
                         choices=choices_for_folder_structure)
 
-    PARSER.add_argument("-gnas", "--google-no-albums-folders-structure",
+    PARSER.add_argument("-gaps", "--google-all-photos-folders-structure",
                         metavar=f"{choices_for_folder_structure}",
                         default="year/month",
-                        help="Specify the folder structure type for '<NO_ALBUMS_FOLDER>' folders (Default: 'year/month').",
+                        help="Specify the folder structure type for the Google Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month').",
                         type=lambda s: s.lower(),
                         choices=choices_for_folder_structure)
 
@@ -265,7 +268,7 @@ def parse_arguments():
                              "and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamps.")
 
     PARSER.add_argument("-gnsa", "--google-no-symbolic-albums", action="store_true",
-                        help="Duplicate album assets instead of creating symlinks to the original asset within <NO_ALBUMS_FOLDER>.\n"
+                        help="Duplicate album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>.\n"
                              "(Makes your output portable but requires more HDD space).\n"
                              "IMPORTANT: This can considerably increase output size, especially if you have many albums.\n"
                              "Example: if one asset belongs to 3 albums, you will end up with 4 copies (original + 3).")
@@ -359,15 +362,15 @@ def parse_arguments():
                         type=lambda s: s.lower(),
                         choices=choices_for_folder_structure)
 
-    PARSER.add_argument("-inas", "--icloud-no-albums-folders-structure",
+    PARSER.add_argument("-iaps", "--icloud-all-photos-folders-structure",
                         metavar=f"{choices_for_folder_structure}",
                         default="year/month",
-                        help="Specify the folder structure type for '<NO_ALBUMS_FOLDER>' folders generated from iCloud exports (Default: 'year/month').",
+                        help="Specify the folder structure type for the iCloud Takeout '<ALL_PHOTOS_FOLDER>' master library (Default: 'year/month').",
                         type=lambda s: s.lower(),
                         choices=choices_for_folder_structure)
 
     PARSER.add_argument("-insa", "--icloud-no-symbolic-albums", action="store_true",
-                        help="Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within <NO_ALBUMS_FOLDER>.")
+                        help="Duplicate reconstructed iCloud album assets instead of creating symlinks to the original asset within <ALL_PHOTOS_FOLDER>.")
 
     PARSER.add_argument("-iMem", "--icloud-include-memories", action="store_true",
                         help="Also reconstruct iCloud 'Memories' CSV collections as folders.")

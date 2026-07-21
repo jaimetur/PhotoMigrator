@@ -49,6 +49,7 @@ def set_GLOBAL_VARIABLES():
     GV.RANGE_OF_DATES_SEPARATOR         = GV.ARGS.get('range-separator')                                                                                or GV.RANGE_OF_DATES_SEPARATOR
     GV.FOLDERNAME_ALBUMS                = GV.ARGS.get('foldername-albums')                                                                              or GV.FOLDERNAME_ALBUMS
     GV.FOLDERNAME_NO_ALBUMS             = GV.ARGS.get('foldername-no-albums')                                                                           or GV.FOLDERNAME_NO_ALBUMS
+    GV.FOLDERNAME_ALL_PHOTOS            = GV.ARGS.get('foldername-all-photos')                                                                          or GV.FOLDERNAME_ALL_PHOTOS
     GV.CONFIGURATION_FILE               = resolve_external_path(GV.ARGS.get('configuration-file')                                                       or GV.CONFIGURATION_FILE)
 
     # Now resolve GV.FOLDERNAME_GPTH and GV.FOLDERNAME_EXIFTOOL depending on if the user passed them as argument or not. If not we need to resolve using resolve_internal_path to find it within the binary file.
@@ -126,4 +127,3 @@ def set_LOGGER(level_str=None):
 
 def set_HELP_TEXTS():
     GV.HELP_TEXTS  = set_help_texts()
-

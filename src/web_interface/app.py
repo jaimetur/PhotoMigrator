@@ -126,7 +126,8 @@ BOOL_VALUE_DESTS = {
 }
 WEB_FOLDERNAME_DEFAULTS = {
     "foldername-albums": "Albums",
-    "foldername-no-albums": "ALL_PHOTOS",
+    "foldername-no-albums": "No_Albums",
+    "foldername-all-photos": "ALL_PHOTOS",
     "foldername-logs": "Logs",
     "foldername-duplicates-output": "Duplicates_outputs",
     "foldername-extracted-dates": "Extracted_Dates",
@@ -148,7 +149,8 @@ GOOGLE_DESTS = {
     "google-takeout",
     "google-output-folder-suffix",
     "google-albums-folders-structure",
-    "google-no-albums-folders-structure",
+    "foldername-all-photos",
+    "google-all-photos-folders-structure",
     "google-ignore-check-structure",
     "google-no-symbolic-albums",
     "google-remove-duplicates-files",
@@ -169,7 +171,8 @@ ICLOUD_DESTS = {
     "icloud-takeout",
     "icloud-output-folder-suffix",
     "icloud-albums-folders-structure",
-    "icloud-no-albums-folders-structure",
+    "foldername-all-photos",
+    "icloud-all-photos-folders-structure",
     "icloud-no-symbolic-albums",
     "icloud-include-memories",
     "icloud-prefer-native-exif-writer",
@@ -3048,6 +3051,7 @@ def _load_parser_schema() -> Dict[str, Any]:
 
     cloud_common = [field for field in fields if field["tab"] == "cloud_common"]
     otp_field = by_dest.get("one-time-password")
+    takeout_all_photos_field = by_dest.get("foldername-all-photos")
     merged_general = [
         field
         for field in fields
@@ -3062,8 +3066,8 @@ def _load_parser_schema() -> Dict[str, Any]:
         "feature_scoped": [field for field in fields if field["dest"] in FEATURE_SCOPED_DESTS],
         "fields_by_dest": by_dest,
         "tabs": {
-            "google_takeout": [field for field in fields if field["tab"] == "google_takeout"],
-            "icloud_takeout": [field for field in fields if field["tab"] == "icloud_takeout"],
+            "google_takeout": [*([takeout_all_photos_field] if takeout_all_photos_field else []), *[field for field in fields if field["tab"] == "google_takeout" and field["dest"] != "foldername-all-photos"]],
+            "icloud_takeout": [*([takeout_all_photos_field] if takeout_all_photos_field else []), *[field for field in fields if field["tab"] == "icloud_takeout"]],
             "google_photos": cloud_common,
             # OTP is also needed by every Synology cloud module. Its primary
             # category remains Automatic Migration so that workflow retains it.

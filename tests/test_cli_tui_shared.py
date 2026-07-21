@@ -87,6 +87,20 @@ class TestCliTuiShared(unittest.TestCase):
                 self.assertNotIn("prefer-canonical-album-names", tab_dests)
                 self.assertNotIn("consolidate-similar-albums", tab_dests)
 
+    def test_takeout_tabs_use_the_dedicated_all_photos_folder_options(self):
+        schema = build_parser_schema()
+        google_dests = {field["dest"] for field in schema["tabs"]["google_takeout"]}
+        icloud_dests = {field["dest"] for field in schema["tabs"]["icloud_takeout"]}
+
+        self.assertIn("foldername-all-photos", google_dests)
+        self.assertIn("google-all-photos-folders-structure", google_dests)
+        self.assertNotIn("google-no-albums-folders-structure", google_dests)
+        self.assertIn("foldername-all-photos", icloud_dests)
+        self.assertIn("icloud-all-photos-folders-structure", icloud_dests)
+        self.assertNotIn("icloud-no-albums-folders-structure", icloud_dests)
+        self.assertEqual(schema["fields_by_dest"]["foldername-no-albums"]["default"], "No_Albums")
+        self.assertEqual(schema["fields_by_dest"]["foldername-all-photos"]["default"], "ALL_PHOTOS")
+
     def test_album_naming_help_is_specific_to_each_feature_context(self):
         schema = build_parser_schema()
         field = schema["fields_by_dest"]["prefer-canonical-album-names"]

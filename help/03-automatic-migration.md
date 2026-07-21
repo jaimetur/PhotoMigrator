@@ -310,6 +310,8 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 In this example, the Tool will first detect that `/homes/iCloudExport` is a raw Apple iCloud Takeout export, preprocess it automatically, and then migrate the resulting `ALL_PHOTOS`, `Albums`, and `Memories` collections into your Immich Photos account 1. When iCloud preprocessing is triggered automatically from `Automatic Migration`, `Memories` are enabled by default even if the CLI call did not explicitly pass `--icloud-include-memories`. If the local source contains ZIP files, the Tool unpacks them first and only then decides whether the extracted folder is a Google Takeout, an iCloud Takeout, or a normal local folder.
 
+`ALL_PHOTOS` is explicitly recognised as a Takeout master-library root, independently of the cloud/local `No_Albums` folder name. This also applies to Takeouts with no `Albums` folder: every asset under `ALL_PHOTOS` is migrated as an unassociated source asset, while Takeouts with albums use those same canonical files when recreating album membership.
+
 
 - **Example 6**:
 ```

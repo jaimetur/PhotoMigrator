@@ -461,7 +461,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
     LOGGER.info(f"-------------------------------------------")
     LOGGER.info(f"Using Suffix                              : '{ARGS['google-output-folder-suffix']}'")
     LOGGER.info(f"Albums Folder Structure                   : '{ARGS['google-albums-folders-structure']}'")
-    LOGGER.info(f"No Albums Folder Structure                : '{ARGS['google-no-albums-folders-structure']}'")
+    LOGGER.info(f"ALL_PHOTOS Folder Structure               : '{ARGS['google-all-photos-folders-structure']}'")
     LOGGER.info(f"No Creates symbolic links for Albums      : '{ARGS['google-no-symbolic-albums']}'")
     LOGGER.info(f"Ignore Check Google Takeout Structure     : '{ARGS['google-ignore-check-structure']}'")
     LOGGER.info(f"Keep Original Takeout Folder              : '{ARGS['google-keep-takeout-folder']}'")
@@ -487,8 +487,8 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if ARGS['google-albums-folders-structure'].lower()!='flatten':
             LOGGER.warning(f"Flag detected '-gafs, --google-albums-folders-structure'. Folder structure '{ARGS['google-albums-folders-structure']}' will be applied on each Album folder...")
-        if ARGS['google-no-albums-folders-structure'].lower()!='year/month':
-            LOGGER.warning(f"Flag detected '-gnaf, --google-no-albums-folders-structure'. Folder structure '{ARGS['google-no-albums-folders-structure']}' will be applied on '<NO_ALBUMS_FOLDER>' (Photos without Albums)...")
+        if ARGS['google-all-photos-folders-structure'].lower()!='year/month':
+            LOGGER.warning(f"Flag detected '-gaps, --google-all-photos-folders-structure'. Folder structure '{ARGS['google-all-photos-folders-structure']}' will be applied on the Takeout '<ALL_PHOTOS_FOLDER>' master library...")
         if ARGS['google-skip-gpth-tool']:
             LOGGER.warning(f"Flag detected '-gSkipGpth, --google-skip-gpth-tool'. Skipping Processing photos with GPTH Tool...")
         if ARGS['google-skip-extras-files']:
@@ -550,7 +550,7 @@ def mode_icloud_takeout(user_confirmation=True, log_level=None):
     LOGGER.info(f"-------------------------------------------")
     LOGGER.info(f"Using Suffix                              : '{ARGS['icloud-output-folder-suffix']}'")
     LOGGER.info(f"Albums Folder Structure                   : '{ARGS['icloud-albums-folders-structure']}'")
-    LOGGER.info(f"No Albums Folder Structure                : '{ARGS['icloud-no-albums-folders-structure']}'")
+    LOGGER.info(f"ALL_PHOTOS Folder Structure               : '{ARGS['icloud-all-photos-folders-structure']}'")
     LOGGER.info(f"Duplicate album assets instead of symlink : '{ARGS['icloud-no-symbolic-albums']}'")
     LOGGER.info(f"Include Memories CSV collections          : '{ARGS['icloud-include-memories']}'")
     LOGGER.info(f"Prefer Native EXIF writer when possible   : '{ARGS['icloud-prefer-native-exif-writer']}'")

@@ -164,7 +164,7 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
     - Manage Duplicates assets
     - Organize any local folder by capture date into `year`, `year/month`, `year-month`, or `flatten`
     - Splitting of assets with and without associated albums
-    - Folder Structure (customizable) for 'Albums' and 'No Albums' folders
+    - Folder structure (customizable) for `Albums`, cloud `No_Albums`, and Takeout `ALL_PHOTOS` master libraries
   - **Symbolic Links Support** for Albums folders
     - Fix Symbolic Links Broken
   - **Homogenize Albums folder's name based on content**

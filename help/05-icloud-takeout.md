@@ -105,7 +105,7 @@ Customize output structures:
 ./PhotoMigrator.bin \
   --icloud-takeout /path/to/iCloudExport \
   --icloud-albums-folders-structure flatten \
-  --icloud-no-albums-folders-structure year/month
+  --icloud-all-photos-folders-structure year/month
 ```
 
 ## Web Interface
@@ -117,7 +117,8 @@ Main fields:
 - `--output-folder`: optional explicit output folder
 - `--icloud-output-folder-suffix`: suffix used when `--output-folder` is not provided
 - `--icloud-albums-folders-structure`: structure for album folders
-- `--icloud-no-albums-folders-structure`: structure for `ALL_PHOTOS`
+- `--foldername-all-photos`: name of the Takeout master library (default: `ALL_PHOTOS`)
+- `--icloud-all-photos-folders-structure`: structure for `ALL_PHOTOS`
 - `--icloud-no-symbolic-albums`: copy files instead of creating symlinks in albums
 - `--icloud-include-memories`: also build folders from `Memories/*.csv`
 - `--icloud-prefer-native-exif-writer`: prefer the native EXIF writer for supported photo files and fall back to `ExifTool` otherwise
