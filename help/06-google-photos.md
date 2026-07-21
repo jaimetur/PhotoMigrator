@@ -309,7 +309,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 - **Usage:**
   - Set Google Photos as the client using _**`--client=google-photos`**_.
   - Use _**`--remove-duplicates-assets`**_.
-  - The required module selector is _**`--duplicate-asset-keeper newest|oldest`**_; its default is `newest`.
+  - The required module selector supports `more-people/tags-then-oldest`, `more-people/tags-then-newest`, `newest`, and `oldest`. The people/tags-first variants use the greatest available person count, then tag count, then their chronological tie breaker; the default remains `newest`.
 - **Pre-Requisites:**
   - Configure OAuth credentials in `Config.ini`.
 - **Current API limitation:**

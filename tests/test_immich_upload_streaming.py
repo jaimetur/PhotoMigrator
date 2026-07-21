@@ -218,6 +218,25 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertEqual([asset["id"] for asset in assets], ["asset-1", "asset-2", "asset-3"])
         self.assertEqual(mock_post.call_count, 3)
 
+    def test_people_first_quality_keeper_limits_immich_suggestion_to_people_rich_assets(self):
+        manager = self._build_manager()
+        group = [
+            {
+                "id": "suggested", "createdAt": "2024-01-01T00:00:00Z",
+                "_immich_suggested_keep_asset_ids": ["suggested"], "people": [],
+                "exifInfo": {"fileSizeInByte": 100},
+            },
+            {
+                "id": "people", "createdAt": "2020-01-01T00:00:00Z",
+                "people": [{"personId": "ana"}, {"personId": "luis"}],
+                "exifInfo": {"fileSizeInByte": 10},
+            },
+        ]
+
+        keeper = manager._select_duplicate_asset_keeper(group, "more-people/tags-then-better-quality")
+
+        self.assertEqual(keeper["id"], "people")
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_native_duplicate_detection_preserves_immich_quality_suggestion(self, mock_get, _mock_logger):

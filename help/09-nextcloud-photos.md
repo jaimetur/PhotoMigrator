@@ -290,7 +290,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 - **Usage:**
   - Set NextCloud as the client using _**`--client=nextcloud`**_.
   - Use _**`--remove-duplicates-assets`**_.
-  - Select the file to retain with the required module selector _**`--duplicate-asset-keeper newest|oldest`**_. The default is `newest`.
+  - Select the file to retain with `more-people/tags-then-oldest`, `more-people/tags-then-newest`, `newest`, or `oldest`. The people/tags-first variants prefer the largest available distinct-person count, then distinct tag count, then use their named chronological tie breaker. The default is `newest`.
 - **Pre-Requisites:**
   - Configure `Config.ini` with valid NextCloud credentials and a writable configured photos root.
   - The account must have WebDAV permission to list and delete files in that root.

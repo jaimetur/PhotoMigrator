@@ -444,8 +444,9 @@ If more than one optional arguments are detected, only the first one will be exe
 -rDupAst     ; --remove-duplicates-assets
                Remove Duplicates Assets. Immich uses its native visually similar duplicate groups by default;
                other cloud services use exact filename and file size.
-               Requires '--client' and '--duplicate-asset-keeper {better-quality, oldest, newest}'.
-               For Immich, the default keeper is 'better-quality'; other services use 'newest'.
+               Requires '--client' and '--duplicate-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'.
+               The three more-people/tags strategies retain the asset with the most people, then tags. For Immich,
+               native detection defaults to 'better-quality'; disabling it defaults to 'more-people/tags-then-newest'.
                Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest
 -immichDupAlgo ; --immich-duplicates-algorithm=[true,false]
                Immich only: native detection compares visual similarity rather than filename or size.
@@ -460,8 +461,9 @@ If more than one optional arguments are detected, only the first one will be exe
                transferable assigned faces/persons, then permanently deletes redundant assets. If a face transfer
                is unsafe, its associations can be lost but do not block the group. It cannot be used when
                '--immich-duplicates-algorithm=false'. Default: true while native detection is enabled.
--dupKeeper   ; --duplicate-asset-keeper {better-quality,oldest,newest}
-               Select the asset retained by '--remove-duplicates-assets'. 'better-quality' uses Immich's
+-dupKeeper   ; --duplicate-asset-keeper {more-people/tags-then-better-quality,more-people/tags-then-oldest,more-people/tags-then-newest,better-quality,oldest,newest}
+               Select the asset retained by '--remove-duplicates-assets'. The more-people/tags strategies first
+               retain the asset with the largest distinct people count, then tag count, then use their named tie breaker. 'better-quality' uses Immich's
                suggestion; 'oldest' and 'newest' use the upload timestamp.
 -mDupAlb     ; --merge-duplicates-albums
                Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.

@@ -33,6 +33,7 @@ from Features.BaseMediaClient import BaseMediaClient
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
 from Utils.DateUtils import guess_date_from_filename
 from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
+from Utils.DuplicateUtils import select_people_then_chronology_keeper
 
 
 class ClassNextCloudPhotos(BaseMediaClient):
@@ -1113,17 +1114,14 @@ class ClassNextCloudPhotos(BaseMediaClient):
     def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
         with set_log_level(LOGGER, log_level):
             strategy = str(keeper_strategy or "newest").strip().lower()
-            if strategy not in {"oldest", "newest"}:
-                raise ValueError("keeper_strategy must be 'oldest' or 'newest'")
+            if strategy not in {"oldest", "newest", "more-people/tags-then-oldest", "more-people/tags-then-newest"}:
+                raise ValueError("keeper_strategy must be an oldest/newest strategy")
             groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)
             removed = 0
             skipped = 0
             for group in tqdm(groups, desc=f"{MSG_TAGS['INFO']}Resolving NextCloud duplicate asset groups", unit=" groups"):
-                ordered = sorted(
-                    group,
-                    key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
-                    reverse=(strategy == "newest"),
-                )
+                keeper = select_people_then_chronology_keeper(group, strategy, self._duplicate_asset_timestamp)
+                ordered = [keeper, *[asset for asset in group if asset is not keeper]]
                 redundant_ids = [str(item.get("id") or "").strip() for item in ordered[1:]]
                 redundant_ids = [asset_id for asset_id in redundant_ids if asset_id]
                 if not redundant_ids:

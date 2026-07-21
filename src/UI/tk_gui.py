@@ -1926,7 +1926,11 @@ class PhotoMigratorTkGUI:
             self.state_values[dest] = value
         if dest == "immich-duplicates-algorithm":
             self.state_values["immich-duplicates-deletion"] = bool(value)
+            self.state_values["duplicate-asset-keeper"] = (
+                "better-quality" if value else "more-people/tags-then-newest"
+            )
             self.refresh_boolean_toggle("immich-duplicates-deletion", bool(value))
+            self.rebuild_content()
         self.refresh_boolean_toggle(dest, value)
         self.update_command_preview()
 
@@ -2015,7 +2019,15 @@ class PhotoMigratorTkGUI:
             self.build_boolean_toggle_row(parent, f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text)
             return
         if kind == "select":
-            options = [(str(choice), str(choice)) for choice in (field.get("choices") or [])]
+            choices = list(field.get("choices") or [])
+            if dest == "duplicate-asset-keeper" and not (
+                self.active_module == "immich_photos" and bool(self.state_values.get("immich-duplicates-algorithm", True))
+            ):
+                choices = [choice for choice in choices if choice not in {"better-quality", "more-people/tags-then-better-quality"}]
+                if value not in choices:
+                    value = "more-people/tags-then-newest"
+                    self.state_values[dest] = value
+            options = [(str(choice), str(choice)) for choice in choices]
             self.build_select_row(parent, f"{label}{' *' if required else ''}", f"field-{dest}", options, value, help_text=help_text)
             return
         if kind == "list":

@@ -21,6 +21,7 @@ from Features.StandAloneFeatures.OrganizeLocalFolderByDate import organize_local
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 from Utils.FileUtils import build_generated_output_folder, dir_exists, contains_zip_files
 from Utils.GeneralUtils import confirm_continue, capitalize_first_letter, profile_and_print
+from Utils.DuplicateUtils import select_people_then_chronology_keeper
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -1120,8 +1121,12 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "better-quality").lower()
     if normalized_client != "immich" and keeper_strategy == "better-quality":
         keeper_strategy = "newest"
+    if normalized_client != "immich" and keeper_strategy == "more-people/tags-then-better-quality":
+        keeper_strategy = "more-people/tags-then-newest"
     if normalized_client == "immich" and not use_immich_detection and keeper_strategy == "better-quality":
-        keeper_strategy = "newest"
+        keeper_strategy = "more-people/tags-then-newest"
+    if normalized_client == "immich" and not use_immich_detection and keeper_strategy == "more-people/tags-then-better-quality":
+        keeper_strategy = "more-people/tags-then-newest"
     client_label = capitalize_first_letter(normalized_client.replace("-photos", ""))
     LOGGER.info(f"{client_label} Photos: 'Remove Duplicates Assets' Mode detected. Only this module will be run!!!")
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")
@@ -1191,11 +1196,10 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                     keeper = cloud_client_obj._select_duplicate_asset_keeper(group, keeper_strategy)
                     ordered = [keeper, *[asset for asset in group if asset is not keeper]]
                 else:
-                    ordered = sorted(
-                        group,
-                        key=lambda item: (cloud_client_obj._duplicate_asset_timestamp(item), str(item.get("id") or "")),
-                        reverse=(keeper_strategy == "newest"),
+                    keeper = select_people_then_chronology_keeper(
+                        group, keeper_strategy, cloud_client_obj._duplicate_asset_timestamp,
                     )
+                    ordered = [keeper, *[asset for asset in group if asset is not keeper]]
                 keeper, redundant = ordered[0], ordered[1:]
                 filename = str(keeper.get("originalFileName") or "")
                 size = cloud_client_obj._duplicate_asset_size(keeper)

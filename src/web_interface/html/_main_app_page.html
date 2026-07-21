@@ -1844,7 +1844,7 @@
                 stateValues["immich-duplicates-algorithm"],
             );
         return field.dest === "duplicate-asset-keeper" && !isImmichNativeDetectionEnabled
-            ? field.choices.filter((choice) => choice !== "better-quality")
+            ? field.choices.filter((choice) => !["better-quality", "more-people/tags-then-better-quality"].includes(choice))
             : field.choices;
     }
 
@@ -1856,9 +1856,9 @@
         const selectedValue = keeperInput.value;
         keeperInput.replaceChildren(new Option("(default)", ""));
         duplicateAssetKeeperChoices(keeperField).forEach((choice) => keeperInput.add(new Option(choice, choice)));
-        const nextValue = selectedValue === "better-quality" && !Array.from(keeperInput.options)
+        const nextValue = ["better-quality", "more-people/tags-then-better-quality"].includes(selectedValue) && !Array.from(keeperInput.options)
             .some((option) => option.value === selectedValue)
-            ? "newest"
+            ? "more-people/tags-then-newest"
             : selectedValue;
         keeperInput.value = nextValue;
         stateValues["duplicate-asset-keeper"] = nextValue;
@@ -1923,10 +1923,10 @@
                 ? "better-quality"
                 : "";
             const selectedValue = persisted === undefined ? defaultValue : String(persisted);
-            const betterQualityUnavailable = selectedValue === "better-quality"
-                && !choices.includes("better-quality");
-            input.value = betterQualityUnavailable ? "newest" : selectedValue;
-            if (betterQualityUnavailable) stateValues[field.dest] = "newest";
+            const nativeQualityUnavailable = ["better-quality", "more-people/tags-then-better-quality"].includes(selectedValue)
+                && !choices.includes(selectedValue);
+            input.value = nativeQualityUnavailable ? "more-people/tags-then-newest" : selectedValue;
+            if (nativeQualityUnavailable) stateValues[field.dest] = "more-people/tags-then-newest";
         } else if (field.kind === "list") {
             if (field.dest === "albums-folders") {
                 input = document.createElement("input");
@@ -2059,6 +2059,10 @@
                         stateValues["duplicate-asset-keeper"] = "better-quality";
                         const keeperInput = document.querySelector('[data-dest="duplicate-asset-keeper"]');
                         if (keeperInput) keeperInput.value = "better-quality";
+                    } else {
+                        stateValues["duplicate-asset-keeper"] = "more-people/tags-then-newest";
+                        const keeperInput = document.querySelector('[data-dest="duplicate-asset-keeper"]');
+                        if (keeperInput) keeperInput.value = "more-people/tags-then-newest";
                     }
                     syncDuplicateAssetKeeperChoices();
                     const deletionInput = document.querySelector('[data-dest="immich-duplicates-deletion"]');

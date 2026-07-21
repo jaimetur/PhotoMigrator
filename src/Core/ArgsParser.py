@@ -475,7 +475,7 @@ def parse_arguments():
     PARSER.add_argument("-rDupAst", "--remove-duplicates-assets", action="store_true", default="",
                         help="Remove duplicate assets while preserving available metadata and people on the selected keeper asset.\n"
                              "Requires '--client'.\n"
-                             "Also requires module selector '--duplicate-asset-keeper {better-quality, oldest, newest}'.\n"
+                             "Also requires module selector '--duplicate-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'.\n"
                              "For Immich, native duplicate detection is enabled by default and the selector defaults to 'better-quality'. "
                              "Google Photos cannot delete library media through its public API.\n"
                              "Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest")
@@ -507,9 +507,10 @@ def parse_arguments():
                              "blocking the group. It is disabled whenever native detection "
                              "is disabled (default: True with native detection).")
 
-    PARSER.add_argument("-dupKeeper", "--duplicate-asset-keeper", choices=["better-quality", "oldest", "newest"], default="better-quality",
-                        help="Choose the retained asset for '--remove-duplicates-assets'. 'better-quality' uses Immich's "
-                             "native suggestion; 'oldest' and 'newest' use upload date (default: better-quality for Immich).")
+    PARSER.add_argument("-dupKeeper", "--duplicate-asset-keeper", choices=["more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest", "better-quality", "oldest", "newest"], default="better-quality",
+                        help="Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain "
+                             "the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' "
+                             "uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: better-quality for Immich).")
 
     PARSER.add_argument("-mDupAlb", "--merge-duplicates-albums", action="store_true", default="",
                         help="Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.\n"

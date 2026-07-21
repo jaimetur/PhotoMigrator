@@ -29,6 +29,7 @@ from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
 from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
 from Utils.StandaloneUtils import change_working_dir
+from Utils.DuplicateUtils import duplicate_asset_people_count, duplicate_asset_tag_count, select_people_then_chronology_keeper
 from Features.GoogleTakeout.PeopleMetadata import build_people_map, load_people_map
 
 """
@@ -2544,7 +2545,16 @@ class ClassImmichPhotos(BaseMediaClient):
     def _select_duplicate_asset_keeper(self, group, strategy):
         """Select one keeper from a group using native quality or upload chronology."""
         strategy = str(strategy or "newest").strip().lower()
-        if strategy == "better-quality":
+        people_first = strategy.startswith("more-people/tags-then-")
+        tie_breaker = strategy.removeprefix("more-people/tags-then-") if people_first else strategy
+        if people_first:
+            if tie_breaker not in {"better-quality", "oldest", "newest"}:
+                raise ValueError("invalid more-people/tags keeper strategy")
+            max_people = max(duplicate_asset_people_count(asset) for asset in group)
+            group = [asset for asset in group if duplicate_asset_people_count(asset) == max_people]
+            max_tags = max(duplicate_asset_tag_count(asset) for asset in group)
+            group = [asset for asset in group if duplicate_asset_tag_count(asset) == max_tags]
+        if tie_breaker == "better-quality":
             suggested_ids = {
                 suggested_id
                 for asset in group
@@ -2560,13 +2570,9 @@ class ClassImmichPhotos(BaseMediaClient):
                     str(item.get("id") or ""),
                 ),
             )
-        if strategy not in {"oldest", "newest"}:
-            raise ValueError("keeper_strategy must be 'better-quality', 'oldest', or 'newest'")
-        return sorted(
-            group,
-            key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
-            reverse=(strategy == "newest"),
-        )[0]
+        if tie_breaker not in {"oldest", "newest"}:
+            raise ValueError("invalid keeper strategy")
+        return select_people_then_chronology_keeper(group, tie_breaker, self._duplicate_asset_timestamp)
 
     def resolve_duplicate_asset_groups_with_immich(self, duplicate_groups, keeper_strategy="better-quality", log_level=None):
         """Resolve native duplicate groups through Immich's server-side resolver."""
@@ -2762,8 +2768,8 @@ class ClassImmichPhotos(BaseMediaClient):
     def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
         """Remove duplicate assets while preserving metadata on one selected keeper."""
         strategy = str(keeper_strategy or "newest").strip().lower()
-        if strategy not in {"better-quality", "oldest", "newest"}:
-            raise ValueError("keeper_strategy must be 'better-quality', 'oldest', or 'newest'")
+        if strategy not in {"better-quality", "oldest", "newest", "more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest"}:
+            raise ValueError("invalid keeper_strategy")
 
         with set_log_level(LOGGER, log_level):
             duplicate_groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)

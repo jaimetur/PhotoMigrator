@@ -301,7 +301,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 - **Usage:**
   - Set Synology as the client using _**`--client=synology`**_.
   - Use _**`--remove-duplicates-assets`**_.
-  - Select the asset to retain with the required module selector _**`--duplicate-asset-keeper newest|oldest`**_. The default is `newest`.
+  - Select the asset to retain with `more-people/tags-then-oldest`, `more-people/tags-then-newest`, `newest`, or `oldest`. The people/tags-first variants prefer the largest available distinct-person count, then distinct tag count, then use their named chronological tie breaker. The default is `newest`.
 - **Pre-Requisites:**
   - Configure `Config.ini` with a Synology account that can list and delete assets.
   - Check that the account has access to the Photo Library that will be scanned.
