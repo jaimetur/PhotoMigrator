@@ -751,6 +751,9 @@
     let lastDashboardSnapshotUpdatedAt = "";
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
+    let outputRenderInProgress = false;
+    let outputProgrammaticScrollInFlight = false;
+    let outputProgrammaticScrollToken = 0;
     const OUTPUT_BLOCK_SIZE = 400;
     const JOB_POLL_ACTIVE_INTERVAL_MS = 25;
     const JOB_POLL_IDLE_INTERVAL_MS = 250;
@@ -1454,31 +1457,36 @@
         const previousScrollTop = outputEl.scrollTop;
         const previousScrollLeft = outputEl.scrollLeft;
 
-        if (payload.output_reset) {
-            initializeOutputFromSnapshot(
-                payload.output_entries || [],
-                payload.dropped_output_notice || "",
-                payload.visible_partial_output_line || "",
-            );
-        } else {
-            applyOutputDelta(
-                payload.output_ops || [],
-                payload.dropped_output_notice || "",
-                payload.visible_partial_output_line || "",
-            );
-        }
+        outputRenderInProgress = true;
+        try {
+            if (payload.output_reset) {
+                initializeOutputFromSnapshot(
+                    payload.output_entries || [],
+                    payload.dropped_output_notice || "",
+                    payload.visible_partial_output_line || "",
+                );
+            } else {
+                applyOutputDelta(
+                    payload.output_ops || [],
+                    payload.dropped_output_notice || "",
+                    payload.visible_partial_output_line || "",
+                );
+            }
 
-        if (options.preserveScrollAnchor) {
-            outputEl.scrollTop = previousScrollTop;
-        } else if (options.force || autoScrollEnabled) {
-            // If auto-scroll is enabled, always follow the tail after rendering.
-            // Relying on a "near bottom before render" heuristic is fragile when
-            // scrollHeight changes abruptly because of progress/log block updates.
-            scrollOutputToBottom(outputEl);
-        } else {
-            outputEl.scrollTop = previousScrollTop;
+            if (options.preserveScrollAnchor) {
+                outputEl.scrollTop = previousScrollTop;
+            } else if (options.force || autoScrollEnabled) {
+                // If auto-scroll is enabled, always follow the tail after rendering.
+                // Relying on a "near bottom before render" heuristic is fragile when
+                // scrollHeight changes abruptly because of progress/log block updates.
+                scrollOutputToBottom(outputEl);
+            } else {
+                outputEl.scrollTop = previousScrollTop;
+            }
+            outputEl.scrollLeft = previousScrollLeft;
+        } finally {
+            outputRenderInProgress = false;
         }
-        outputEl.scrollLeft = previousScrollLeft;
 
         pendingOutputRenderPayload = null;
     }
@@ -1508,12 +1516,24 @@
 
     function scrollOutputToBottom(outputEl) {
         if (!outputEl) return;
+        const scrollToken = ++outputProgrammaticScrollToken;
+        outputProgrammaticScrollInFlight = true;
+        const releaseProgrammaticScroll = () => {
+            if (scrollToken === outputProgrammaticScrollToken) {
+                outputProgrammaticScrollInFlight = false;
+            }
+        };
         const applyBottomScroll = () => {
             outputEl.scrollTop = outputEl.scrollHeight;
         };
         applyBottomScroll();
         if (typeof window.requestAnimationFrame === "function") {
-            window.requestAnimationFrame(applyBottomScroll);
+            window.requestAnimationFrame(() => {
+                applyBottomScroll();
+                window.requestAnimationFrame(releaseProgrammaticScroll);
+            });
+        } else {
+            window.setTimeout(releaseProgrammaticScroll, 0);
         }
     }
 
@@ -5751,13 +5771,21 @@
         });
         const outputEl = document.getElementById("output");
         outputEl.addEventListener("wheel", (event) => {
-            if (!event.shiftKey) return;
+            if (!event.shiftKey) {
+                if ((event.deltaY || event.deltaX) && uiState.auto_scroll !== false) {
+                    uiState.auto_scroll = false;
+                    autoScrollCheck.checked = false;
+                    queueSaveState();
+                }
+                return;
+            }
             const horizontalDelta = Math.abs(event.deltaX) > 0 ? event.deltaX : event.deltaY;
             if (!horizontalDelta) return;
             event.preventDefault();
             outputEl.scrollLeft += horizontalDelta;
         }, {passive: false});
         outputEl.addEventListener("scroll", () => {
+            if (outputRenderInProgress || outputProgrammaticScrollInFlight) return;
             const nearBottom = (
                 outputEl.scrollTop
                 + (outputEl.clientHeight || 0)
