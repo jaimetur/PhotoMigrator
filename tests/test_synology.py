@@ -813,6 +813,79 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.update_metadata", lambda *args, **kwargs: None)
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_pull_asset_from_shared_space_timeline_uses_team_download_api(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.SESSION = MagicMock()
+        manager.login = lambda log_level=None: True
+        manager.ALLOWED_MEDIA_EXTENSIONS = [".jpg", ".jpeg", ".mp4", ".mov", ".heic"]
+        manager._synology_download_api_by_asset_id = {"6083": "SYNO.FotoTeam.Download"}
+
+        response = MagicMock()
+        response.status_code = 200
+        response.headers = {"Content-Type": "image/jpeg"}
+        response.iter_content = lambda chunk_size=8192: [b"jpg-data"]
+        manager.SESSION.post.return_value = response
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            downloaded = manager.pull_asset("6083", "photo.jpg", 0, download_folder=tmpdir, log_level=logging.INFO)
+
+        self.assertEqual(downloaded, 1)
+        self.assertEqual(manager.SESSION.post.call_args.kwargs["data"]["api"], "SYNO.FotoTeam.Download")
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.update_metadata", lambda *args, **kwargs: None)
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_pull_asset_from_shared_space_timeline_falls_back_after_team_json_error(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.SESSION = MagicMock()
+        manager.login = lambda log_level=None: True
+        manager.ALLOWED_MEDIA_EXTENSIONS = [".jpg", ".jpeg", ".mp4", ".mov", ".heic"]
+        manager._synology_download_api_by_asset_id = {"6083": "SYNO.FotoTeam.Download"}
+
+        team_response = MagicMock()
+        team_response.status_code = 200
+        team_response.headers = {"Content-Type": "application/json"}
+        personal_response = MagicMock()
+        personal_response.status_code = 200
+        personal_response.headers = {"Content-Type": "image/jpeg"}
+        personal_response.iter_content = lambda chunk_size=8192: [b"jpg-data"]
+        manager.SESSION.post.return_value = team_response
+        manager.SESSION.get.return_value = personal_response
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            downloaded = manager.pull_asset("6083", "photo.jpg", 0, download_folder=tmpdir, log_level=logging.INFO)
+
+        self.assertEqual(downloaded, 1)
+        self.assertEqual(manager.SESSION.post.call_args.kwargs["data"]["api"], "SYNO.FotoTeam.Download")
+        self.assertEqual(manager.SESSION.get.call_args.kwargs["params"]["api"], "SYNO.Foto.Download")
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_pull_asset_rejects_success_status_json_error_payload(self, mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.SESSION = MagicMock()
+        manager.login = lambda log_level=None: True
+        manager.ALLOWED_MEDIA_EXTENSIONS = [".jpg", ".jpeg", ".mp4", ".mov", ".heic"]
+
+        response = MagicMock()
+        response.status_code = 200
+        response.headers = {"Content-Type": "application/json"}
+        response.iter_content = lambda chunk_size=8192: [b'{"error":{"code":609},"success":false}']
+        manager.SESSION.get.return_value = response
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            downloaded = manager.pull_asset("6083", "photo.jpg", 0, download_folder=tmpdir, log_level=logging.INFO)
+            self.assertFalse(os.path.exists(os.path.join(tmpdir, "photo.jpg")))
+
+        self.assertEqual(downloaded, 0)
+        self.assertTrue(mock_logger.error.called)
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.update_metadata", lambda *args, **kwargs: None)
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
     def test_pull_asset_from_true_shared_album_can_fallback_to_passphrase(self, _mock_logger):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
         manager.SYNOLOGY_URL = "http://synology.local"

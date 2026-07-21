@@ -1680,6 +1680,11 @@ class ClassSynologyPhotos(BaseMediaClient):
                     if variant.get("apply_local_filters"):
                         variant_assets = self.filter_assets_old(variant_assets, log_level=log_level)
 
+                    if variant.get("endpoint_api") == "SYNO.FotoTeam.Browse.Item":
+                        for asset in variant_assets:
+                            if isinstance(asset, dict):
+                                asset["_synology_download_api"] = "SYNO.FotoTeam.Download"
+
                     summary = self._summarize_assets_debug(variant_assets)
                     LOGGER.debug(
                         f"Synology global assets variant '{variant['label']}' summary: "
@@ -1711,6 +1716,11 @@ class ClassSynologyPhotos(BaseMediaClient):
                             merge_sources[asset_id].append(label)
 
                 all_filtered_assets = list(merged_assets_by_id.values()) + merged_assets_without_id
+                self._synology_download_api_by_asset_id = {
+                    str(asset.get("id")): str(asset.get("_synology_download_api"))
+                    for asset in all_filtered_assets
+                    if isinstance(asset, dict) and asset.get("id") and asset.get("_synology_download_api")
+                }
                 merged_summary = self._summarize_assets_debug(all_filtered_assets)
                 LOGGER.debug(
                     "Synology global assets merged summary: "
@@ -2629,7 +2639,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 return None, None
             
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, album_id=None, album_scope=None, log_level=None):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, album_id=None, album_scope=None, download_api=None, log_level=None):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
@@ -2648,6 +2658,9 @@ class ClassSynologyPhotos(BaseMediaClient):
             album_scope (str): Normalized album scope. For Shared Space albums
                 discovered in issue #1173 we must include `album_id` even when
                 the album is owned by the current user and no passphrase is used.
+            download_api (str): Synology download namespace captured while
+                listing an asset. Shared Space timeline assets require
+                `SYNO.FotoTeam.Download`; personal assets use `SYNO.Foto.Download`.
             download_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
 
@@ -2677,8 +2690,12 @@ class ClassSynologyPhotos(BaseMediaClient):
                 if self.SYNO_TOKEN_HEADER:
                     headers.update(self.SYNO_TOKEN_HEADER)
 
+                if not download_api:
+                    download_api = getattr(self, "_synology_download_api_by_asset_id", {}).get(str(asset_id))
+                download_api = str(download_api or "SYNO.Foto.Download")
+
                 params = {
-                    'api': 'SYNO.Foto.Download',
+                    'api': download_api,
                     'version': '2',
                     'method': 'download',
                     'force_download': 'true',
@@ -2689,6 +2706,10 @@ class ClassSynologyPhotos(BaseMediaClient):
                     params["album_id"] = str(album_id)
 
                 request_variants = [dict(params)]
+                if download_api == "SYNO.FotoTeam.Download":
+                    personal_fallback = dict(params)
+                    personal_fallback["api"] = "SYNO.Foto.Download"
+                    request_variants.append(personal_fallback)
                 if album_passphrase:
                     request_with_passphrase = dict(params)
                     request_with_passphrase['passphrase'] = f'"{album_passphrase}"'
@@ -2699,8 +2720,10 @@ class ClassSynologyPhotos(BaseMediaClient):
                 # still require passphrase, so we try the browser-like context
                 # first and only then fall back to the passphrase variant.
                 resp = None
+                selected_download_api = download_api
                 for request_params in request_variants:
-                    prefer_post = album_scope in {"owned_shared_space", "shared_with_me"}
+                    request_download_api = str(request_params.get("api") or download_api)
+                    prefer_post = request_download_api == "SYNO.FotoTeam.Download" or album_scope in {"owned_shared_space", "shared_with_me"}
                     resp = self._request_entry_api(
                         url,
                         request_params,
@@ -2708,12 +2731,16 @@ class ClassSynologyPhotos(BaseMediaClient):
                         prefer_post=prefer_post,
                         stream=True,
                     )
-                    if resp.status_code == 200:
+                    response_content_type = str(resp.headers.get("Content-Type", "")).lower()
+                    if resp.status_code == 200 and "json" not in response_content_type and "text/html" not in response_content_type:
+                        selected_download_api = request_download_api
                         break
                 if resp.status_code != 200:
                     LOGGER.error(f"")
                     LOGGER.error(f"Failed to download asset '{asset_filename}' with ID [{asset_id}]. Status code: {resp.status_code}")
                     return 0
+
+                download_api = selected_download_api
 
                 content_type = str(resp.headers.get("Content-Type", "")).lower()
                 content_disp = str(resp.headers.get("Content-Disposition", "")).lower()
@@ -2737,6 +2764,21 @@ class ClassSynologyPhotos(BaseMediaClient):
 
                 if bytes_written <= 0:
                     LOGGER.error(f"Downloaded empty payload for asset '{asset_filename}' (ID [{asset_id}]).")
+                    return 0
+
+                payload_prefix = first_bytes.lstrip()
+                is_error_payload = (
+                    "json" in content_type
+                    or "text/html" in content_type
+                    or payload_prefix.startswith((b"{", b"[", b"<"))
+                )
+                if is_error_payload:
+                    with open(download_tmp_path, "rb") as f:
+                        response_preview = f.read(1024).decode("utf-8", errors="replace").strip()
+                    LOGGER.error(
+                        f"Synology returned a non-media payload for asset '{asset_filename}' (ID [{asset_id}], "
+                        f"api={download_api}, content_type={content_type or 'unknown'}): {response_preview}"
+                    )
                     return 0
 
                 is_zip_payload = zip_by_headers or first_bytes.startswith(b"PK\x03\x04")
@@ -3643,6 +3685,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                     asset_id = asset.get('id')
                     asset_filename = asset.get('filename')
                     asset_time = asset.get('time')
+                    download_api = asset.get("_synology_download_api")
 
                     if not asset_id:
                         continue
@@ -3659,7 +3702,14 @@ class ClassSynologyPhotos(BaseMediaClient):
                     os.makedirs(target_folder, exist_ok=True)
 
 
-                    total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=logging.INFO)
+                    total_assets_downloaded += self.pull_asset(
+                        asset_id=asset_id,
+                        asset_filename=asset_filename,
+                        asset_time=asset_time,
+                        download_folder=target_folder,
+                        download_api=download_api,
+                        log_level=logging.INFO,
+                    )
 
                 LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{output_folder}'")
                 # self.logout(log_level=log_level)
