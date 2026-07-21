@@ -294,7 +294,10 @@ class TestExecutionModes(unittest.TestCase):
             execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
 
         cloud_client.find_duplicate_assets_by_immich_detection.assert_called_once_with(log_level=execution_modes.logging.INFO)
-        cloud_client.get_duplicate_metadata_display_names.assert_called_once_with(log_level=execution_modes.logging.INFO)
+        cloud_client.get_duplicate_metadata_display_names.assert_called_once_with(
+            duplicate_groups,
+            log_level=execution_modes.logging.INFO,
+        )
         cloud_client.hydrate_duplicate_groups_metadata.assert_called_once_with(
             duplicate_groups,
             log_level=execution_modes.logging.INFO,
@@ -322,7 +325,7 @@ class TestExecutionModes(unittest.TestCase):
             ]
             for index in range(101)
         ]
-        preview_groups = duplicate_groups[:100]
+        preview_groups = duplicate_groups[:25]
         cloud_client = MagicMock()
         cloud_client.find_duplicate_assets_by_immich_detection.return_value = duplicate_groups
         cloud_client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}

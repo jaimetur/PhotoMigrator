@@ -358,7 +358,34 @@ class TestImmichStreamingUpload(unittest.TestCase):
             {"albums": {"album-1": "Summer 2003"}, "tags": {"tag-1": "family/yoli"}, "people": {"person-1": "Yoli"}},
         )
         self.assertEqual(mock_get.call_count, 3)
-        self.assertEqual(mock_get.call_args_list[2].kwargs["params"], {"page": 1})
+        self.assertEqual(
+            mock_get.call_args_list[2].kwargs["params"],
+            {"page": 1, "size": 1000, "withHidden": True},
+        )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_duplicate_metadata_display_names_falls_back_to_candidate_person_lookup(self, mock_get, _mock_logger):
+        manager = self._build_manager()
+
+        def response(records):
+            result = MagicMock()
+            result.raise_for_status.return_value = None
+            result.json.return_value = records
+            return result
+
+        mock_get.side_effect = [
+            response([]),
+            response([]),
+            response({"people": [], "hasNextPage": False}),
+            response({"id": "person-1", "name": "Yoli"}),
+        ]
+        names = manager.get_duplicate_metadata_display_names([[
+            {"people": [{"personId": "person-1"}]},
+        ]])
+
+        self.assertEqual(names["people"], {"person-1": "Yoli"})
+        self.assertEqual(mock_get.call_args_list[3].args[0], "http://immich.local/api/people/person-1")
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
@@ -382,6 +409,29 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertEqual(
             mock_get.call_args_list[1].kwargs["params"], {"assetId": "asset-1"},
         )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_duplicate_metadata_hydration_resolves_people_through_faces(self, mock_get, _mock_logger):
+        manager = self._build_manager()
+
+        def response(data):
+            result = MagicMock()
+            result.raise_for_status.return_value = None
+            result.json.return_value = data
+            return result
+
+        mock_get.side_effect = [
+            response({"id": "asset-1", "people": [{"id": "person-1"}]}),
+            response([{"id": "face-1", "person": {"id": "person-1", "name": "Yoli"}}]),
+            response([]),
+        ]
+
+        hydrated = manager._hydrate_duplicate_asset_metadata({"id": "asset-1"})
+
+        self.assertEqual(hydrated["people"], [{"id": "person-1", "name": "Yoli"}])
+        self.assertEqual(mock_get.call_args_list[1].args[0], "http://immich.local/api/faces")
+        self.assertEqual(mock_get.call_args_list[1].kwargs["params"], {"id": "asset-1"})
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")

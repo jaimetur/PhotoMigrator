@@ -2203,6 +2203,31 @@ class ClassImmichPhotos(BaseMediaClient):
         metadata = self._get_duplicate_asset_metadata(asset.get("id"), log_level=log_level)
         if metadata is None:
             return None
+        people = metadata.get("people") or []
+        people_without_names = any(
+            isinstance(person, dict)
+            and not str(
+                ((person.get("person") or {}).get("name") if isinstance(person.get("person"), dict) else "")
+                or person.get("name") or ""
+            ).strip()
+            for person in people
+        )
+        if people_without_names:
+            # AssetResponseDto can expose only person IDs on some Immich versions.
+            # Faces returns the associated PersonResponseDto, including its display name.
+            faces = self._get_asset_faces(metadata.get("id") or asset.get("id"), log_level=log_level)
+            if isinstance(faces, list):
+                resolved_people = []
+                seen_people = set()
+                for face in faces:
+                    person = face.get("person") if isinstance(face, dict) else None
+                    person = person if isinstance(person, dict) else {}
+                    person_id = str(person.get("id") or "").strip()
+                    if person_id and person_id not in seen_people:
+                        resolved_people.append(person)
+                        seen_people.add(person_id)
+                if resolved_people:
+                    metadata["people"] = resolved_people
         if include_albums:
             albums = self._get_duplicate_asset_albums(metadata.get("id") or asset.get("id"), log_level=log_level)
             if albums is None:
@@ -2273,7 +2298,7 @@ class ClassImmichPhotos(BaseMediaClient):
                         response = requests.get(
                             f"{self.IMMICH_URL}/api/{endpoint}",
                             headers=self.HEADERS_WITH_CREDENTIALS,
-                            params={"page": page},
+                            params={"page": page, "size": 1000, "withHidden": True},
                             verify=False,
                         )
                         response.raise_for_status()
@@ -2281,13 +2306,12 @@ class ClassImmichPhotos(BaseMediaClient):
                         records = payload.get("people") if isinstance(payload, dict) else payload
                         if not isinstance(records, list):
                             raise ValueError("unexpected people list response")
-                        before_count = len(resolved_names[key])
                         resolved_names[key].update({
                             str(record.get("id") or "").strip(): str(record.get("name") or "").strip()
                             for record in records if isinstance(record, dict)
                             and str(record.get("id") or "").strip() and str(record.get("name") or "").strip()
                         })
-                        if not isinstance(payload, dict) or not payload.get("hasNextPage") or len(resolved_names[key]) == before_count:
+                        if not isinstance(payload, dict) or not payload.get("hasNextPage"):
                             break
                         page += 1
                 else:
@@ -2310,6 +2334,31 @@ class ClassImmichPhotos(BaseMediaClient):
                 LOGGER.warning(
                     f"Could not resolve duplicate-preview {key} names: {error}. "
                     "Their IDs will be shown instead."
+                )
+        candidate_people = {
+            person_id
+            for group in (duplicate_groups or []) if isinstance(group, list)
+            for asset in group if isinstance(asset, dict)
+            for person_id in self._asset_reference_ids(asset, "people")
+            if person_id and person_id not in resolved_names["people"]
+        }
+        for person_id in sorted(candidate_people):
+            try:
+                response = requests.get(
+                    f"{self.IMMICH_URL}/api/people/{person_id}",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    verify=False,
+                )
+                response.raise_for_status()
+                person = response.json()
+                person = person.get("person", person) if isinstance(person, dict) else {}
+                name = str(person.get("name") or "").strip()
+                if name:
+                    resolved_names["people"][person_id] = name
+            except requests.RequestException as error:
+                LOGGER.warning(
+                    f"Could not resolve duplicate-preview person ID={person_id}: {error}. "
+                    "Its ID will be shown instead."
                 )
         return resolved_names
 

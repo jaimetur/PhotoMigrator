@@ -127,7 +127,7 @@ def _duplicate_asset_merge_metadata_preview(asset, display_names=None):
 
 # Temporary diagnostic cap for validating duplicate-review metadata rendering.
 # Remove this once the review output has been confirmed against the target library.
-TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT = 200
+TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT = 50
 
 
 def _build_cloud_client_obj(client_name: str):
@@ -1050,9 +1050,7 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                         f"complete candidate asset(s) out of {total_candidates}. No assets will be deleted."
                     )
             if normalized_client == "immich":
-                metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
-                    log_level=logging.INFO,
-                )
+                metadata_display_names = {}
                 if use_immich_deletion:
                     duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
                         duplicate_groups,
@@ -1073,6 +1071,10 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                         "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
                     )
                     return
+                metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
+                    duplicate_groups,
+                    log_level=logging.INFO,
+                )
             else:
                 metadata_display_names = {}
             LOGGER.info("Duplicate asset groups found:")
