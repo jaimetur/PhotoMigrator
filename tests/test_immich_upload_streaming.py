@@ -533,6 +533,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
                 "duplicateId": "group-1", "keepAssetIds": ["large"], "trashAssetIds": ["small"],
             }]}),
             verify=False,
+            timeout=manager.IMMICH_DUPLICATES_TIMEOUT,
         )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)

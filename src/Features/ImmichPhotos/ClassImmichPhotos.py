@@ -2518,7 +2518,11 @@ class ClassImmichPhotos(BaseMediaClient):
         groups_payload = []
         skipped_groups = 0
         removed_assets = 0
-        for group in duplicate_groups:
+        for group in tqdm(
+            duplicate_groups,
+            desc=f"{MSG_TAGS['INFO']}Preparing Immich duplicate resolution",
+            unit=" groups",
+        ):
             duplicate_id = next(
                 (
                     str(asset.get("_immich_duplicate_id") or "").strip()
@@ -2547,17 +2551,27 @@ class ClassImmichPhotos(BaseMediaClient):
 
         if not groups_payload:
             return 0, len(duplicate_groups), skipped_groups
-        try:
-            response = requests.post(
-                f"{self.IMMICH_URL}/api/duplicates/resolve",
-                headers=self.HEADERS_WITH_CREDENTIALS,
-                data=json.dumps({"groups": groups_payload}),
-                verify=False,
-            )
-            response.raise_for_status()
-        except requests.RequestException as error:
-            LOGGER.error(f"Immich native duplicate resolution failed: {error}")
-            return 0, len(duplicate_groups), skipped_groups + len(groups_payload)
+        with tqdm(
+            total=1,
+            desc=(
+                f"{MSG_TAGS['INFO']}Immich resolving {len(groups_payload)} duplicate group(s) "
+                "server-side"
+            ),
+            unit=" batch",
+        ) as progress_bar:
+            try:
+                response = requests.post(
+                    f"{self.IMMICH_URL}/api/duplicates/resolve",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    data=json.dumps({"groups": groups_payload}),
+                    verify=False,
+                    timeout=self.IMMICH_DUPLICATES_TIMEOUT,
+                )
+                response.raise_for_status()
+            except requests.RequestException as error:
+                LOGGER.error(f"Immich native duplicate resolution failed: {error}")
+                return 0, len(duplicate_groups), skipped_groups + len(groups_payload)
+            progress_bar.update(1)
         LOGGER.info(
             f"Immich native duplicate resolution completed: groups={len(groups_payload)}, "
             f"assets sent to trash={removed_assets}."
