@@ -362,7 +362,7 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("false", args)
         self.assertIn("--duplicate-asset-keeper", args)
 
-    def test_immich_manual_duplicate_flow_omits_disabled_native_deletion_option(self):
+    def test_immich_manual_duplicate_flow_forces_native_deletion_false(self):
         schema = build_parser_schema()
         args = build_cli_args(
             schema,
@@ -377,7 +377,8 @@ class TestCliTuiShared(unittest.TestCase):
             "remove-duplicates-assets",
         )
 
-        self.assertNotIn("--immich-duplicates-deletion", args)
+        deletion_index = args.index("--immich-duplicates-deletion")
+        self.assertEqual(args[deletion_index + 1], "false")
 
     def test_duplicate_asset_keeper_is_available_for_every_cloud_tab(self):
         schema = build_parser_schema()

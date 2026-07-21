@@ -3163,14 +3163,10 @@ def _build_cli_args(
         and selected_action_dest == "remove-duplicates-assets"
         and not _bool_from_value(values.get("immich-duplicates-algorithm", True))
     ):
-        # The disabled UI control must not leak an explicit false option into
-        # the subprocess command; native deletion is inapplicable in this mode.
-        values["immich-duplicates-deletion"] = True
-    native_deletion_unavailable = (
-        tab == "immich_photos"
-        and selected_action_dest == "remove-duplicates-assets"
-        and not _bool_from_value(values.get("immich-duplicates-algorithm", True))
-    )
+        # Native deletion requires Immich's duplicate algorithm. Keep the
+        # effective value explicit so previews, startup logs, and execution
+        # all describe the same configuration.
+        values["immich-duplicates-deletion"] = False
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     include_default_dests = set(include_default_dests or set())
     include_default_dests.update(
@@ -3206,8 +3202,6 @@ def _build_cli_args(
             continue
 
         if kind == "bool":
-            if dest == "immich-duplicates-deletion" and native_deletion_unavailable:
-                continue
             current = _bool_from_value(raw_value)
             default_bool = _bool_from_value(default)
             if current != default_bool or dest in include_default_dests:

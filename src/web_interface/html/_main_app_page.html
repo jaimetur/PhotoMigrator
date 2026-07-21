@@ -755,6 +755,7 @@
     let pollRequestInFlight = false;
     let lastOutputVersion = -1;
     let lastDashboardSnapshotUpdatedAt = "";
+    let lastDashboardClockRenderedAt = 0;
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
     const OUTPUT_BLOCK_SIZE = 400;
@@ -779,6 +780,7 @@
         outputRenderDeferredBySelection = false;
         lastOutputVersion = -1;
         lastDashboardSnapshotUpdatedAt = "";
+        lastDashboardClockRenderedAt = 0;
     }
 
     function stopPolling() {
@@ -1827,6 +1829,33 @@
         }
     }
 
+    function duplicateAssetKeeperChoices(field) {
+        const isImmichNativeDetectionEnabled = activeModuleTab === "immich_photos"
+            && uiCheckboxValueForField(
+                getFieldByDest("immich-duplicates-algorithm") || {},
+                stateValues["immich-duplicates-algorithm"],
+            );
+        return field.dest === "duplicate-asset-keeper" && !isImmichNativeDetectionEnabled
+            ? field.choices.filter((choice) => choice !== "better-quality")
+            : field.choices;
+    }
+
+    function syncDuplicateAssetKeeperChoices() {
+        const keeperInput = document.querySelector('[data-dest="duplicate-asset-keeper"]');
+        const keeperField = getFieldByDest("duplicate-asset-keeper");
+        if (!keeperInput || !keeperField) return;
+
+        const selectedValue = keeperInput.value;
+        keeperInput.replaceChildren(new Option("(default)", ""));
+        duplicateAssetKeeperChoices(keeperField).forEach((choice) => keeperInput.add(new Option(choice, choice)));
+        const nextValue = selectedValue === "better-quality" && !Array.from(keeperInput.options)
+            .some((option) => option.value === selectedValue)
+            ? "newest"
+            : selectedValue;
+        keeperInput.value = nextValue;
+        stateValues["duplicate-asset-keeper"] = nextValue;
+    }
+
     function createInput(field) {
         const wrapper = document.createElement("div");
         wrapper.className = "input-row";
@@ -1877,9 +1906,7 @@
             input = document.createElement("select");
             input.className = "field__input";
             input.add(new Option("(default)", ""));
-            const choices = field.dest === "duplicate-asset-keeper" && activeModuleTab !== "immich_photos"
-                ? field.choices.filter((choice) => choice !== "better-quality")
-                : field.choices;
+            const choices = duplicateAssetKeeperChoices(field);
             for (const choice of choices) {
                 input.add(new Option(choice, choice));
             }
@@ -1887,7 +1914,11 @@
                 && uiCheckboxValueForField(getFieldByDest("immich-duplicates-algorithm") || {}, stateValues["immich-duplicates-algorithm"])
                 ? "better-quality"
                 : "";
-            input.value = persisted === undefined ? defaultValue : String(persisted);
+            const selectedValue = persisted === undefined ? defaultValue : String(persisted);
+            const betterQualityUnavailable = selectedValue === "better-quality"
+                && !choices.includes("better-quality");
+            input.value = betterQualityUnavailable ? "newest" : selectedValue;
+            if (betterQualityUnavailable) stateValues[field.dest] = "newest";
         } else if (field.kind === "list") {
             if (field.dest === "albums-folders") {
                 input = document.createElement("input");
@@ -2016,16 +2047,12 @@
             const syncFlagState = () => {
                 updateStateValueForElement(check);
                 if (field.dest === "immich-duplicates-algorithm") {
-                    const keeperInput = document.querySelector('[data-dest="duplicate-asset-keeper"]');
-                    if (keeperInput) {
-                        if (check.checked) {
-                            keeperInput.value = "better-quality";
-                            stateValues["duplicate-asset-keeper"] = "better-quality";
-                        } else if (keeperInput.value === "better-quality") {
-                            keeperInput.value = "newest";
-                            stateValues["duplicate-asset-keeper"] = "newest";
-                        }
+                    if (check.checked) {
+                        stateValues["duplicate-asset-keeper"] = "better-quality";
+                        const keeperInput = document.querySelector('[data-dest="duplicate-asset-keeper"]');
+                        if (keeperInput) keeperInput.value = "better-quality";
                     }
+                    syncDuplicateAssetKeeperChoices();
                     const deletionInput = document.querySelector('[data-dest="immich-duplicates-deletion"]');
                     if (deletionInput) {
                         deletionInput.disabled = !check.checked;
@@ -2044,9 +2071,6 @@
             check.addEventListener("click", syncFlagStateDeferred);
             checkWrap.addEventListener("click", syncFlagStateDeferred);
             checkWrap.appendChild(check);
-            const txt = document.createElement("span");
-            txt.textContent = isRequired ? "Enable selected action" : "Enable";
-            checkWrap.appendChild(txt);
             row.appendChild(checkWrap);
         } else {
             row.appendChild(createInput(field));
@@ -4045,7 +4069,9 @@
             }
 
             let dashboardElapsedMs = 0;
-            const shouldRenderDashboard = (
+            const shouldRefreshDashboardClock = currentJobIsAutomatic
+                && Date.now() - lastDashboardClockRenderedAt >= 1000;
+            const shouldRenderDashboard = shouldRefreshDashboardClock || (
                 data.dashboard_snapshot_updated_at !== lastDashboardSnapshotUpdatedAt
                 || data.status !== webDashboardState.status
             );
@@ -4056,6 +4082,7 @@
                     dashboardElapsedMs = performance.now() - dashboardStarted;
                 }
                 lastDashboardSnapshotUpdatedAt = String(data.dashboard_snapshot_updated_at || "");
+                lastDashboardClockRenderedAt = Date.now();
             }
 
             const canSendInput = Boolean(data.can_send_input);
