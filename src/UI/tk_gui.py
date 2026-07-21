@@ -316,6 +316,7 @@ class PhotoMigratorTkGUI:
         self.update_command_preview()
         self.apply_panel_states()
         self.apply_runtime_layout()
+        self.refresh_run_metadata()
         self.root.after(0, self._restore_gui_focus)
         self.root.after(250, self._restore_gui_focus)
         self.root.after(120, self.poll_process_queue)
@@ -2144,6 +2145,7 @@ class PhotoMigratorTkGUI:
                 self.consume_log_output(str(item[1]))
             else:
                 self.append_log(str(item))
+        self.refresh_run_metadata()
         self.root.after(120, self.poll_process_queue)
 
     def _job_output_worker(self, process: subprocess.Popen[str]) -> None:

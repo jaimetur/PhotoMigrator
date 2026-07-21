@@ -2108,6 +2108,7 @@ if TEXTUAL_AVAILABLE:
             self.refresh_action_buttons()
             self.apply_panel_states()
             self.refresh_runtime_layout()
+            self.refresh_run_metadata()
             self.set_interval(0.15, self.sync_field_description_from_focus)
             self.set_interval(1.0, self.refresh_run_metadata)
             self.set_timer(0.05, self._focus_default_widget)
