@@ -199,9 +199,10 @@ class TestImmichStreamingUpload(unittest.TestCase):
         progress_bar = MagicMock()
         mock_tqdm.return_value.__enter__.return_value = progress_bar
 
-        def metadata_page_response(_url, headers, data, verify):
+        def metadata_page_response(_url, headers, data, verify, timeout):
             self.assertEqual(headers, manager.HEADERS_WITH_CREDENTIALS)
             self.assertFalse(verify)
+            self.assertEqual(timeout, manager.IMMICH_ASSET_INVENTORY_TIMEOUT)
             page_number = json.loads(data)["page"]
             response = MagicMock()
             response.raise_for_status.return_value = None

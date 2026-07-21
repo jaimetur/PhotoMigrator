@@ -62,6 +62,8 @@ class ClassImmichPhotos(BaseMediaClient):
     """
     IMMICH_ASSET_INVENTORY_PAGE_SIZE = 1000
     IMMICH_ASSET_INVENTORY_WORKERS = 100
+    IMMICH_ASSET_INVENTORY_TIMEOUT = (10, 120)
+    IMMICH_ASSET_INVENTORY_RETRIES = 5
     DUPLICATE_METADATA_REVIEW_WORKERS = 100
     IMMICH_AUTH_TIMEOUT = (10, 30)
     IMMICH_DUPLICATES_TIMEOUT = (10, 300)
@@ -2910,6 +2912,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 headers=self.HEADERS_WITH_CREDENTIALS,
                 data=json.dumps({}),
                 verify=False,
+                timeout=self.IMMICH_ASSET_INVENTORY_TIMEOUT,
             )
             response.raise_for_status()
             total = int((response.json() or {}).get("total"))
@@ -2937,16 +2940,40 @@ class ClassImmichPhotos(BaseMediaClient):
                     "order": "desc",
                     "withExif": True,
                 })
-                response = requests.post(
-                    url,
-                    headers=self.HEADERS_WITH_CREDENTIALS,
-                    data=payload,
-                    verify=False,
-                )
-                response.raise_for_status()
-                data = response.json()
-                assets_page = data.get("assets", {})
-                return assets_page.get("items", []), assets_page.get("nextPage")
+                last_error = None
+                for attempt in range(1, self.IMMICH_ASSET_INVENTORY_RETRIES + 1):
+                    try:
+                        response = requests.post(
+                            url,
+                            headers=self.HEADERS_WITH_CREDENTIALS,
+                            data=payload,
+                            verify=False,
+                            timeout=self.IMMICH_ASSET_INVENTORY_TIMEOUT,
+                        )
+                        response.raise_for_status()
+                        data = response.json()
+                        assets_page = data.get("assets", {})
+                        return assets_page.get("items", []), assets_page.get("nextPage")
+                    except requests.HTTPError as error:
+                        status_code = getattr(error.response, "status_code", None)
+                        if status_code not in {429, 502, 503, 504}:
+                            raise
+                        last_error = error
+                    except (requests.ConnectionError, requests.Timeout) as error:
+                        last_error = error
+
+                    if attempt == self.IMMICH_ASSET_INVENTORY_RETRIES:
+                        break
+                    delay = 2 ** (attempt - 1)
+                    LOGGER.warning(
+                        f"Immich asset inventory page {page_number} failed on attempt "
+                        f"{attempt}/{self.IMMICH_ASSET_INVENTORY_RETRIES}; retrying in {delay}s: {last_error}"
+                    )
+                    time.sleep(delay)
+                raise RuntimeError(
+                    f"Immich asset inventory page {page_number} failed after "
+                    f"{self.IMMICH_ASSET_INVENTORY_RETRIES} attempts: {last_error}"
+                ) from last_error
 
             with ExitStack() as stack:
                 total_assets = None

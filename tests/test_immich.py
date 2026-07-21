@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import requests
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -238,6 +240,27 @@ class TestImmichPhotosUnit(unittest.TestCase):
             unit=" assets",
         )
         progress_bar.update.assert_called_once_with(1)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.time.sleep")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    def test_unfiltered_asset_inventory_retries_a_closed_connection(self, _mock_logger, mock_post, mock_sleep):
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "assets": {
+                "items": [{"id": "a1"}],
+                "nextPage": None,
+            }
+        }
+        mock_post.side_effect = [requests.ConnectionError("Connection closed"), response]
+
+        assets = self.manager._get_all_assets_unfiltered()
+
+        self.assertEqual(assets, [{"id": "a1"}])
+        self.assertEqual(mock_post.call_count, 2)
+        self.assertEqual(mock_post.call_args.kwargs["timeout"], self.manager.IMMICH_ASSET_INVENTORY_TIMEOUT)
+        mock_sleep.assert_called_once_with(1)
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.has_any_filter", return_value=False)
     @patch.object(ClassImmichPhotos, "_get_album_assets_via_search")
