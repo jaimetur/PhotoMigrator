@@ -146,7 +146,7 @@ def _general_argument_dests() -> list[str]:
         "date-separator", "range-separator", "foldername-albums", "foldername-no-albums", "foldername-logs",
         "foldername-duplicates-output", "foldername-extracted-dates", "exec-gpth-tool", "exec-exif-tool",
         "filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country",
-        "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files", "remove-albums-assets",
+        "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files",
     ]
 
 
@@ -173,8 +173,9 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
                 result.append("import-people")
         elif module_name in {"Rename Albums", "Consolidate Album Names"}:
             result.append("preview-album-actions")
-        elif module_name == "Remove Albums":
-            result.append("preview-album-actions")
+        elif module_name in {"Remove Albums", "Remove All Albums"}:
+            if module_name == "Remove Albums":
+                result.append("preview-album-actions")
             if feature_name in {"Synology Photos", "Immich Photos", "NextCloud Photos"}:
                 result.append("remove-albums-assets")
         elif module_name == "Remove Duplicate Assets":
