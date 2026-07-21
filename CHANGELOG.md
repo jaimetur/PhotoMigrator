@@ -51,6 +51,7 @@
   - Set the real default for `--filter-by-type` to `all`, aligning CLI parsing, General Arguments restoration, and interactive selectors with the documented behavior.
   - Hardened Immich authentication diagnostics with explicit API-key/password and supported-media-type progress messages plus 10-second connection and 30-second read timeouts. Native duplicate-group retrieval now fails explicitly after a 10-second connection or five-minute response timeout instead of waiting indefinitely on an unreported request.
   - Prevented the Web Interface from starting a second module for the same user while another job is running or stopping, avoiding concurrent runs that can interleave output and contend for the same target APIs.
+  - Reordered startup global settings so `Generated Log File Location` is emitted immediately after `Project Root`.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

@@ -369,10 +369,10 @@ def PhotoMigrator():
     _log_feature_and_optional_flags(include_feature=False)
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
     GV.LOGGER.info(f"  - Project Root                  : {GV.PROJECT_ROOT}")
-    GV.LOGGER.info(f"  - GPTH TOOL Version             : {GV.GPTH_VERSION}")
-    GV.LOGGER.info(f"  - EXIF TOOL Version             : {GV.EXIFTOOL_VERSION}")
     if not GV.ARGS['no-log-file']:
         GV.LOGGER.info(f"  - Generated Log File Location   : {GV.LOG_FILENAME + '.log'}")
+    GV.LOGGER.info(f"  - GPTH TOOL Version             : {GV.GPTH_VERSION}")
+    GV.LOGGER.info(f"  - EXIF TOOL Version             : {GV.EXIFTOOL_VERSION}")
     GV.LOGGER.info(f"")
 
     # Get the execution mode and run it.
