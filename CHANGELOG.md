@@ -42,6 +42,7 @@
   - Parallelized the known-page Immich inventory scan used by duplicate analysis with up to 100 concurrent 1,000-asset metadata requests while preserving page order in the resulting inventory. Servers that cannot provide an inventory total keep the existing sequential pagination fallback.
   - Added a per-candidate `Size` row below `ID` in the Immich duplicate-review comparison table, so keeper and redundant asset file sizes can be compared directly.
   - Added the effective keeper criterion, such as `newest`, `oldest`, or `better-quality`, to the Immich duplicate-review table's keeper-column header.
+  - Disabled per-candidate album-membership reads during the Immich duplicate-review preview to reduce review latency. The `Albums` row is omitted from that preview; PhotoMigrator's manual deletion flow still loads and merges album memberships before deletion, while Immich's native resolver preserves them server-side.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

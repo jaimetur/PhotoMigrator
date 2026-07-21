@@ -306,7 +306,7 @@ class TestExecutionModes(unittest.TestCase):
         cloud_client.hydrate_duplicate_groups_metadata.assert_called_once_with(
             duplicate_groups,
             log_level=execution_modes.logging.INFO,
-            include_albums=True,
+            include_albums=False,
         )
         cloud_client.resolve_duplicate_asset_groups_with_immich.assert_called_once_with(
             duplicate_groups=duplicate_groups,

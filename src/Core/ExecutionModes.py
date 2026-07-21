@@ -1171,7 +1171,7 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
                     duplicate_groups,
                     log_level=logging.INFO,
-                    include_albums=True,
+                    include_albums=False,
                 )
                 if not duplicate_groups:
                     LOGGER.warning(
