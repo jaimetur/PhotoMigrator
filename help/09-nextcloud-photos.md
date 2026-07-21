@@ -302,7 +302,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 - **Examples:**
   ```
   ./PhotoMigrator.bin --client=nextcloud --remove-duplicates-assets
-  ./PhotoMigrator.bin --client=nextcloud --remove-duplicates-assets --duplicates-asset-keeper oldest
+  ./PhotoMigrator.bin --client=nextcloud --remove-duplicates-assets --dup-asset-keeper oldest
   ```
 
 > [!CAUTION]

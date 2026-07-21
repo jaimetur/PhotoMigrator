@@ -616,7 +616,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
-            "remove-duplicates-assets": [{dest: "duplicates-asset-keeper", required: true}],
+            "remove-duplicates-assets": [{dest: "dup-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -626,7 +626,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
-            "remove-duplicates-assets": [{dest: "duplicates-immich-native-algorithm", required: true}, {dest: "duplicates-immich-native-deletion", required: true}, {dest: "duplicates-asset-keeper", required: true}],
+            "remove-duplicates-assets": [{dest: "dup-immich-native-algorithm", required: true}, {dest: "dup-immich-native-deletion", required: true}, {dest: "dup-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -636,7 +636,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
-            "remove-duplicates-assets": [{dest: "duplicates-asset-keeper", required: true}],
+            "remove-duplicates-assets": [{dest: "dup-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -646,7 +646,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
-            "remove-duplicates-assets": [{dest: "duplicates-asset-keeper", required: true}],
+            "remove-duplicates-assets": [{dest: "dup-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -833,7 +833,7 @@
                 : (payload.tab === "immich_photos" ? "Immich Photos" : (payload.tab === "nextcloud_photos" ? "NextCloud Photos" : "Google Photos"));
             const removeAlbumAssets = uiBooleanValue(payload?.values?.["remove-albums-assets"]);
             const useImmichDuplicateDeletion = payload.tab === "immich_photos"
-                && uiBooleanValue(payload?.values?.["duplicates-immich-native-deletion"]);
+                && uiBooleanValue(payload?.values?.["dup-immich-native-deletion"]);
             let message = "";
             if (action === "rename-albums") {
                 message = `This module will rename albums in ${clientLabel} whose names match your pattern, using the replacement pattern.`;
@@ -1840,17 +1840,17 @@
     function duplicateAssetKeeperChoices(field) {
         const isImmichNativeDetectionEnabled = activeModuleTab === "immich_photos"
             && uiCheckboxValueForField(
-                getFieldByDest("duplicates-immich-native-algorithm") || {},
-                stateValues["duplicates-immich-native-algorithm"],
+                getFieldByDest("dup-immich-native-algorithm") || {},
+                stateValues["dup-immich-native-algorithm"],
             );
-        return field.dest === "duplicates-asset-keeper" && !isImmichNativeDetectionEnabled
+        return field.dest === "dup-asset-keeper" && !isImmichNativeDetectionEnabled
             ? field.choices.filter((choice) => !["better-quality", "more-people/tags-then-better-quality"].includes(choice))
             : field.choices;
     }
 
     function syncDuplicateAssetKeeperChoices() {
-        const keeperInput = document.querySelector('[data-dest="duplicates-asset-keeper"]');
-        const keeperField = getFieldByDest("duplicates-asset-keeper");
+        const keeperInput = document.querySelector('[data-dest="dup-asset-keeper"]');
+        const keeperField = getFieldByDest("dup-asset-keeper");
         if (!keeperInput || !keeperField) return;
 
         const selectedValue = keeperInput.value;
@@ -1861,7 +1861,7 @@
             ? "more-people/tags-then-newest"
             : selectedValue;
         keeperInput.value = nextValue;
-        stateValues["duplicates-asset-keeper"] = nextValue;
+        stateValues["dup-asset-keeper"] = nextValue;
     }
 
     function createInput(field) {
@@ -1918,8 +1918,8 @@
             for (const choice of choices) {
                 input.add(new Option(choice, choice));
             }
-            const defaultValue = field.dest === "duplicates-asset-keeper" && activeModuleTab === "immich_photos"
-                && uiCheckboxValueForField(getFieldByDest("duplicates-immich-native-algorithm") || {}, stateValues["duplicates-immich-native-algorithm"])
+            const defaultValue = field.dest === "dup-asset-keeper" && activeModuleTab === "immich_photos"
+                && uiCheckboxValueForField(getFieldByDest("dup-immich-native-algorithm") || {}, stateValues["dup-immich-native-algorithm"])
                 ? "better-quality"
                 : "";
             const selectedValue = persisted === undefined ? defaultValue : String(persisted);
@@ -2041,36 +2041,36 @@
             check.dataset.dest = field.dest;
             const persisted = stateValues[field.dest];
             check.checked = uiCheckboxValueForField(field, persisted);
-            if (field.dest === "duplicates-immich-native-deletion") {
-                const algorithmField = getFieldByDest("duplicates-immich-native-algorithm") || {};
+            if (field.dest === "dup-immich-native-deletion") {
+                const algorithmField = getFieldByDest("dup-immich-native-algorithm") || {};
                 const algorithmEnabled = uiCheckboxValueForField(
-                    algorithmField, stateValues["duplicates-immich-native-algorithm"],
+                    algorithmField, stateValues["dup-immich-native-algorithm"],
                 );
                 check.disabled = !algorithmEnabled;
                 if (!algorithmEnabled) {
                     check.checked = false;
-                    stateValues["duplicates-immich-native-deletion"] = false;
+                    stateValues["dup-immich-native-deletion"] = false;
                 }
             }
             const syncFlagState = () => {
                 updateStateValueForElement(check);
-                if (field.dest === "duplicates-immich-native-algorithm") {
+                if (field.dest === "dup-immich-native-algorithm") {
                     if (check.checked) {
-                        stateValues["duplicates-asset-keeper"] = "better-quality";
-                        const keeperInput = document.querySelector('[data-dest="duplicates-asset-keeper"]');
+                        stateValues["dup-asset-keeper"] = "better-quality";
+                        const keeperInput = document.querySelector('[data-dest="dup-asset-keeper"]');
                         if (keeperInput) keeperInput.value = "better-quality";
                     } else {
-                        stateValues["duplicates-asset-keeper"] = "more-people/tags-then-newest";
-                        const keeperInput = document.querySelector('[data-dest="duplicates-asset-keeper"]');
+                        stateValues["dup-asset-keeper"] = "more-people/tags-then-newest";
+                        const keeperInput = document.querySelector('[data-dest="dup-asset-keeper"]');
                         if (keeperInput) keeperInput.value = "more-people/tags-then-newest";
                     }
                     syncDuplicateAssetKeeperChoices();
-                    const deletionInput = document.querySelector('[data-dest="duplicates-immich-native-deletion"]');
+                    const deletionInput = document.querySelector('[data-dest="dup-immich-native-deletion"]');
                     if (deletionInput) {
                         deletionInput.disabled = !check.checked;
                         deletionInput.checked = check.checked;
                     }
-                    stateValues["duplicates-immich-native-deletion"] = check.checked;
+                    stateValues["dup-immich-native-deletion"] = check.checked;
                 }
                 queueSaveState();
                 queueCommandPreview();

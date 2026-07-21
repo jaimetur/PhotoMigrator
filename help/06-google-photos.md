@@ -319,7 +319,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 - **Examples:**
   ```
   ./PhotoMigrator.bin --client=google-photos --remove-duplicates-assets
-  ./PhotoMigrator.bin --client=google-photos --remove-duplicates-assets --duplicates-asset-keeper oldest
+  ./PhotoMigrator.bin --client=google-photos --remove-duplicates-assets --dup-asset-keeper oldest
   ```
 
 > [!WARNING]

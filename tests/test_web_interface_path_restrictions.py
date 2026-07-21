@@ -481,13 +481,13 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             {
                 "account-id": 1,
                 "remove-duplicates-assets": True,
-                "duplicates-asset-keeper": "newest",
+                "dup-asset-keeper": "newest",
             },
             "remove-duplicates-assets",
         )
 
         self.assertIn("--remove-duplicates-assets", args)
-        self.assertIn("--duplicates-asset-keeper", args)
+        self.assertIn("--dup-asset-keeper", args)
         self.assertIn("newest", args)
 
     def test_immich_manual_duplicate_flow_forces_native_deletion_false(self):
@@ -496,14 +496,14 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
             {
                 "account-id": 2,
                 "remove-duplicates-assets": True,
-                "duplicates-immich-native-algorithm": False,
-                "duplicates-immich-native-deletion": False,
-                "duplicates-asset-keeper": "newest",
+                "dup-immich-native-algorithm": False,
+                "dup-immich-native-deletion": False,
+                "dup-asset-keeper": "newest",
             },
             "remove-duplicates-assets",
         )
 
-        deletion_index = args.index("--duplicates-immich-native-deletion")
+        deletion_index = args.index("--dup-immich-native-deletion")
         self.assertEqual(args[deletion_index + 1], "false")
 
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):

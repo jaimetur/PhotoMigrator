@@ -475,12 +475,12 @@ def parse_arguments():
     PARSER.add_argument("-rDupAst", "--remove-duplicates-assets", action="store_true", default="",
                         help="Remove duplicate assets while preserving available metadata and people on the selected keeper asset.\n"
                              "Requires '--client'.\n"
-                             "Also requires module selector '--duplicates-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'.\n"
+                             "Also requires module selector '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'.\n"
                              "For Immich, native duplicate detection is enabled by default and the selector defaults to 'better-quality'. "
                              "Google Photos cannot delete library media through its public API.\n"
-                             "Example: --client=immich --remove-duplicates-assets --duplicates-asset-keeper newest")
+                             "Example: --client=immich --remove-duplicates-assets --dup-asset-keeper newest")
 
-    PARSER.add_argument("-immichDupAlgo", "--duplicates-immich-native-algorithm",
+    PARSER.add_argument("-immichDupAlgo", "--dup-immich-native-algorithm",
                         metavar="= [true,false]",
                         nargs="?",
                         const=True,
@@ -492,7 +492,7 @@ def parse_arguments():
                              "this is useful for repeated uploads of the same processed Takeout on different dates "
                              "when an EXIF tag value prevented Immich from rejecting the later upload (default: True).")
 
-    PARSER.add_argument("-immichDupDel", "--duplicates-immich-native-deletion",
+    PARSER.add_argument("-immichDupDel", "--dup-immich-native-deletion",
                         metavar="= [true,false]",
                         nargs="?",
                         const=True,
@@ -507,7 +507,7 @@ def parse_arguments():
                              "blocking the group. It is disabled whenever native detection "
                              "is disabled (default: True with native detection).")
 
-    PARSER.add_argument("-dupKeeper", "--duplicates-asset-keeper", choices=["more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest", "better-quality", "oldest", "newest"], default="better-quality",
+    PARSER.add_argument("-dupKeeper", "--dup-asset-keeper", choices=["more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest", "better-quality", "oldest", "newest"], default="better-quality",
                         help="Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain "
                              "the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' "
                              "uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: better-quality for Immich native  duplicates algorithm or more-people/tags-then-newest for PhotoMigrator duplicates algorithm).")
@@ -704,17 +704,17 @@ def checkArgs(ARGS, PARSER):
     native_deletion_provided = any(
         argument == "-immichDupDel"
         or argument.startswith("-immichDupDel=")
-        or argument == "--duplicates-immich-native-deletion"
-        or argument.startswith("--duplicates-immich-native-deletion=")
+        or argument == "--dup-immich-native-deletion"
+        or argument.startswith("--dup-immich-native-deletion=")
         for argument in sys.argv[1:]
     )
-    native_deletion_enabled = bool(ARGS.get('duplicates-immich-native-deletion', True))
-    native_detection_enabled = bool(ARGS.get('duplicates-immich-native-algorithm', True))
+    native_deletion_enabled = bool(ARGS.get('dup-immich-native-deletion', True))
+    native_detection_enabled = bool(ARGS.get('dup-immich-native-algorithm', True))
     if native_deletion_provided and native_deletion_enabled and not native_detection_enabled:
         PARSER.error(
             f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
-            "Argument '--duplicates-immich-native-deletion' requires "
-            "'--duplicates-immich-native-algorithm=true'.\n"
+            "Argument '--dup-immich-native-deletion' requires "
+            "'--dup-immich-native-algorithm=true'.\n"
             f"{Style.RESET_ALL}"
         )
         exit(1)

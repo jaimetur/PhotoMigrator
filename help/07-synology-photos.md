@@ -313,7 +313,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 - **Examples:**
   ```
   ./PhotoMigrator.bin --client=synology --remove-duplicates-assets
-  ./PhotoMigrator.bin --client=synology --remove-duplicates-assets --duplicates-asset-keeper oldest
+  ./PhotoMigrator.bin --client=synology --remove-duplicates-assets --dup-asset-keeper oldest
   ```
 
 > [!CAUTION]
