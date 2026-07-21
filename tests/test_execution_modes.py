@@ -263,6 +263,7 @@ class TestExecutionModes(unittest.TestCase):
             duplicate_groups=duplicate_groups,
             log_level=execution_modes.logging.INFO,
         )
+        cloud_client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
 
     def test_remove_duplicate_assets_can_delegate_resolution_to_immich(self):
         args = _base_args()

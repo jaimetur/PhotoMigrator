@@ -322,16 +322,19 @@ Examples:
   - Set Immich as the client using _**`--client=immich`**_.
   - Use _**`--remove-duplicates-assets`**_.
   - By default, _**`--immich-duplicates-algorithm=true`**_ retrieves Immich's native groups of visually similar assets, including different encodes or file sizes of the same image.
-  - _**`--immich-duplicates-deletion=true`**_ delegates metadata merging and redundant-asset removal to Immich's native duplicate resolver. It defaults to enabled whenever native detection is enabled, but cannot be supplied with _**`--immich-duplicates-algorithm=false`**_ because exact filename-and-size groups do not have Immich duplicate IDs. Its redundant assets are moved to trash rather than permanently deleted.
+  - _**`--immich-duplicates-deletion=true`**_ delegates metadata merging and redundant-asset removal to Immich's native duplicate resolver. It defaults to enabled whenever native detection is enabled, but cannot be supplied with _**`--immich-duplicates-algorithm=false`**_ because exact filename-and-size groups do not have Immich duplicate IDs. Its redundant assets are moved to trash rather than permanently deleted. Set it to `false` to use PhotoMigrator's guarded manual merge and permanent deletion flow.
   - Select the keeper with _**`--duplicate-asset-keeper better-quality|newest|oldest`**_. With native detection enabled, `better-quality` is the default and follows Immich's quality suggestion; `newest` and `oldest` use upload date.
 - **Pre-Requisites:**
   - Configure `Config.ini` with an Immich account that can update assets, add assets to albums and tags, and delete assets.
 - **Explanation:**
   - The Tool retrieves duplicate groups directly from Immich's stable detection API by default. Its detector is based on visual similarity, not filename or size. Set _**`--immich-duplicates-algorithm=false`**_ to use the previous paginated same-filename-and-size grouping instead; this is useful when the same processed Takeout was uploaded on different dates and an EXIF tag difference prevented Immich from rejecting the later upload.
   - For every group, it lists the proposed keeper and the redundant asset IDs before making any change. With normal confirmation enabled, it waits for confirmation after this preview. Add _**`--no-request-user-confirmation`**_ only for unattended executions.
-  - Before deleting redundant assets, it merges available album memberships, tags, favorite state, description, ratings, and missing assigned faces into the keeper. Face transfer requires identical checksums; groups with unassigned, malformed, incomplete, unreadable, or non-identical face data are left unchanged.
-  - When _**`--immich-duplicates-deletion=true`**_ is selected, the proposed keeper and redundant IDs are instead sent to Immich's native resolver. Immich performs its own supported metadata merge and moves the redundant assets to trash; PhotoMigrator's manual face, stack, and metadata transfer safeguards are not applied in this mode.
-  - This action permanently deletes the redundant assets. Immich is the backend that additionally merges the supported asset metadata before deletion.
+  - The merge and deletion method is selected by _**`--immich-duplicates-deletion`**_:
+
+    | Setting | Merge performed | Redundant assets |
+    |---|---|---|
+    | `true` (default with native detection) | Immich's Alpha resolver merges album memberships, favorite state, highest rating, combined descriptions, most restrictive visibility, location only when all geotagged assets agree, and all tags. Face/person assignments, stacks, and capture-date recovery are not documented as part of this resolver. | Moved to Immich trash. |
+    | `false` | PhotoMigrator manually merges album memberships, tags, favorite state, highest rating, combined descriptions, most restrictive visibility, matching locations, and missing capture date. It also reconstructs affected stacks and conservatively transfers missing assigned faces/persons. Face transfer requires identical checksums; groups with unassigned, malformed, incomplete, unreadable, or non-identical face data are left unchanged. | Permanently deleted only after every guarded merge succeeds. |
 - **Examples:**
   ```
   ./PhotoMigrator.bin --client=immich --remove-duplicates-assets

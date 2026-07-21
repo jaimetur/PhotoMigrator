@@ -452,9 +452,11 @@ If more than one optional arguments are detected, only the first one will be exe
                Default: true.
 -immichDupDel ; --immich-duplicates-deletion=[true,false]
                Immich only: resolve native duplicate groups through Immich's server-side resolver.
-               Immich merges its supported metadata and moves redundant assets to trash. This uses an Alpha API;
-               false keeps PhotoMigrator's guarded metadata merge and permanent deletion flow. It cannot be used when
-               '--immich-duplicates-algorithm=false'. Default: true while native detection is enabled.
+               true (Alpha API): Immich merges albums, favorites, highest rating, combined descriptions, most
+               restrictive visibility, matching locations, and tags, then moves redundant assets to trash.
+               false: PhotoMigrator merges those fields plus missing capture date, stacks, and conservatively
+               transferable assigned faces/persons, then permanently deletes redundant assets. It cannot be used
+               when '--immich-duplicates-algorithm=false'. Default: true while native detection is enabled.
 -dupKeeper   ; --duplicate-asset-keeper {better-quality,oldest,newest}
                Select the asset retained by '--remove-duplicates-assets'. 'better-quality' uses Immich's
                suggestion; 'oldest' and 'newest' use the upload timestamp.

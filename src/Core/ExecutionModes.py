@@ -1007,6 +1007,11 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 "Immich native duplicate deletion is enabled. Immich's Alpha resolver will merge its supported "
                 "metadata and move redundant assets to trash; PhotoMigrator's manual metadata merge is bypassed."
             )
+        else:
+            LOGGER.info(
+                "Immich native duplicate deletion is disabled. PhotoMigrator's guarded manual metadata merge "
+                "will run before permanently deleting redundant assets."
+            )
     else:
         LOGGER.warning(
             "Assets are grouped by exact filename and file size. The selected backend does not expose "
