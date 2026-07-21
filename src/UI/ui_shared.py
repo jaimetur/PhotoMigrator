@@ -110,7 +110,6 @@ GENERAL_GROUPS = [
             "exec-gpth-tool",
             "exec-exif-tool",
             "configuration-file",
-            "remove-albums-assets",
         ],
     },
     {
@@ -286,7 +285,6 @@ GENERAL_CORE_DESTS = {
     "filter-by-person",
     "exclude-folders",
     "exclude-files",
-    "remove-albums-assets",
 }
 GENERAL_OPTIONAL_DESTS = {
     "configuration-file",
@@ -329,6 +327,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
+        "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
         "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "immich_photos": {
@@ -340,6 +339,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
+        "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
         "remove-duplicates-assets": [
             {"dest": "immich-duplicates-algorithm", "required": True},
             {"dest": "immich-duplicates-deletion", "required": True},
@@ -355,6 +355,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
+        "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
         "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
     },
     "standalone_features": {

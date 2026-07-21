@@ -312,6 +312,17 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--preview-album-actions", args)
         self.assertIn("--remove-albums-assets", args)
 
+    def test_remove_albums_assets_is_scoped_to_supported_cloud_album_removal_modules(self):
+        schema = build_parser_schema()
+        general_dests = {field["dest"] for field in schema["general_tabs"]["general"]}
+
+        self.assertNotIn("remove-albums-assets", general_dests)
+        for tab in ("synology_photos", "immich_photos", "nextcloud_photos"):
+            for action, action_value in (("remove-albums", "*"), ("remove-all-albums", True)):
+                with self.subTest(tab=tab, action=action):
+                    args = build_cli_args(schema, tab, {"account-id": "1", action: action_value, "remove-albums-assets": True}, action)
+                    self.assertIn("--remove-albums-assets", args)
+
     def test_build_cli_args_includes_immich_duplicate_asset_keeper(self):
         schema = build_parser_schema()
         args = build_cli_args(
