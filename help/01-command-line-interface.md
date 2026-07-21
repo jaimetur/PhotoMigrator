@@ -446,7 +446,9 @@ If more than one optional arguments are detected, only the first one will be exe
                For Immich, the default keeper is 'better-quality'; other services use 'newest'.
                Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest
 -useImmichDupDet ; --use-immich-duplicates-detection=[true,false]
-               Immich only: use native visual duplicate detection instead of exact filename/size grouping.
+               Immich only: native detection compares visual similarity rather than filename or size.
+               When false, PhotoMigrator groups same filename and size; useful when the same processed Takeout
+               was uploaded on different dates and an EXIF tag difference prevented Immich from rejecting it.
                Default: true.
 -dupKeeper   ; --duplicate-asset-keeper {better-quality,oldest,newest}
                Select the asset retained by '--remove-duplicates-assets'. 'better-quality' uses Immich's

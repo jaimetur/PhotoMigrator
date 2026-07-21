@@ -2558,8 +2558,11 @@
                 const normalizedAccountField = normalizeFieldForContext(accountField, tabKey);
                 const accountIndex = argSpecs.findIndex((s) => s.field.dest === "account-id");
                 if (accountIndex >= 0) argSpecs.splice(accountIndex, 1);
+                const isImmichDuplicateAssets = tabKey === "immich_photos" && selected && selected.dest === "remove-duplicates-assets";
                 const firstOptionalIndex = argSpecs.findIndex((s) => !s.required);
-                const insertAt = firstOptionalIndex >= 0 ? firstOptionalIndex : argSpecs.length;
+                const insertAt = isImmichDuplicateAssets
+                    ? argSpecs.length
+                    : (firstOptionalIndex >= 0 ? firstOptionalIndex : argSpecs.length);
                 argSpecs.splice(insertAt, 0, {field: normalizedAccountField, required: false});
             }
         }

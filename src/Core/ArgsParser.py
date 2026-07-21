@@ -479,7 +479,10 @@ def parse_arguments():
                         default=True,
                         type=str2bool,
                         help="For Immich Remove Duplicate Assets, use Immich's native visual duplicate groups instead of "
-                             "same-filename-and-size grouping (default: True).")
+                             "same-filename-and-size grouping. Native detection is based on asset similarity rather "
+                             "than file size. When disabled, PhotoMigrator groups exact filename-and-size matches; "
+                             "this is useful for repeated uploads of the same processed Takeout on different dates "
+                             "when an EXIF tag value prevented Immich from rejecting the later upload (default: True).")
 
     PARSER.add_argument("-dupKeeper", "--duplicate-asset-keeper", choices=["better-quality", "oldest", "newest"], default="better-quality",
                         help="Choose the retained asset for '--remove-duplicates-assets'. 'better-quality' uses Immich's "

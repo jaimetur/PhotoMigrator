@@ -195,7 +195,7 @@ Following arguments allow you to interact with Google Photos, Synology, Immich, 
 | `-rEmpAlb`,<br>`--remove-empty-albums`             | Delete empty albums                                                                                       |
 | `-rDupAlb`,<br>`--remove-duplicates-albums`        | Delete duplicate albums                                                                                   |
 | `-rDupAst`,<br>`--remove-duplicates-assets`        | Delete duplicate assets; Immich uses native visual groups by default                                       |
-| `-useImmichDupDet`,<br>`--use-immich-duplicates-detection` | Immich only: use native visual duplicate detection (default: `true`)                              |
+| `-useImmichDupDet`,<br>`--use-immich-duplicates-detection` | Immich only: similarity detection; disable for exact filename/size Takeout re-upload checks (default: `true`) |
 | `-dupKeeper`,<br>`--duplicate-asset-keeper`        | Keeper: `better-quality`, `oldest`, or `newest` (`better-quality` is the Immich default)                 |
 | `-mDupAlb`,<br>`--merge-duplicates-albums`         | Merge duplicate albums                                                                                    |
 | `-rAll`,<br>`--remove-all-assets`                  | Delete all assets and albums (DANGER!)                                                                    |

@@ -1671,7 +1671,10 @@ class PhotoMigratorTkGUI:
         if account_field:
             normalized = normalize_field_for_context(account_field, self.active_module)
             specs = [spec for spec in specs if spec["field"]["dest"] != "account-id"]
-            insert_at = next((idx for idx, spec in enumerate(specs) if not spec["required"]), len(specs))
+            is_immich_duplicate_assets = self.active_module == "immich_photos" and selected and selected.get("dest") == "remove-duplicates-assets"
+            insert_at = len(specs) if is_immich_duplicate_assets else next(
+                (idx for idx, spec in enumerate(specs) if not spec["required"]), len(specs)
+            )
             specs.insert(insert_at, {"field": normalized, "required": False})
         self._section_label(parent, "Action Arguments", accent=True)
         if selected and selected.get("dest") == "rename-albums":
