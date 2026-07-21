@@ -1744,10 +1744,22 @@ class ClassImmichPhotos(BaseMediaClient):
         values = asset.get(key) or []
         if not isinstance(values, list):
             return set()
+
+        def reference_id(item):
+            if not isinstance(item, dict):
+                return str(item or "").strip()
+            if key == "people":
+                # AssetResponseDto.people can contain face relationships. Their
+                # ``id`` is the face ID; use the associated person ID instead.
+                person = item.get("person")
+                person = person if isinstance(person, dict) else {}
+                return str(item.get("personId") or person.get("id") or item.get("id") or "").strip()
+            return str(item.get("id") or "").strip()
+
         return {
-            str(item.get("id") if isinstance(item, dict) else item or "").strip()
+            reference_id(item)
             for item in values
-            if str(item.get("id") if isinstance(item, dict) else item or "").strip()
+            if reference_id(item)
         }
 
     @staticmethod
@@ -2206,6 +2218,8 @@ class ClassImmichPhotos(BaseMediaClient):
                 )
                 response.raise_for_status()
                 records = response.json()
+                if isinstance(records, dict):
+                    records = records.get(key) or records.get("items") or []
                 if not isinstance(records, list):
                     raise ValueError("unexpected list response")
                 resolved_names[key] = {

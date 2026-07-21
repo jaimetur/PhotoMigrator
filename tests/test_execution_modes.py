@@ -226,8 +226,8 @@ class TestExecutionModes(unittest.TestCase):
             if "merge_metadata=" in str(call.args[0])
         )
         self.assertIn('remove=[{"id": "older", "uploaded": "2020-01-01T00:00:00Z"}]', preview)
-        self.assertIn('"newer": {"tags": ["tag-1"], "favorite": true}', preview)
-        self.assertIn('"older": {"albums": ["album-1"], "description": "Older description", "rating": 3}', preview)
+        self.assertIn('"keeper": {"tags": ["tag-1"], "favorite": true}', preview)
+        self.assertIn('"remove_1": {"albums": ["album-1"], "description": "Older description", "rating": 3}', preview)
 
     def test_remove_duplicate_assets_uses_immich_native_groups_by_default(self):
         args = _base_args()

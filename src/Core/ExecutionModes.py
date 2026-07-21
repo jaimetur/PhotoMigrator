@@ -52,10 +52,20 @@ def _duplicate_asset_merge_metadata_preview(asset, display_names=None):
         values = asset.get(key) or []
         if not isinstance(values, list):
             return []
+
+        def reference_id(item):
+            if not isinstance(item, dict):
+                return str(item or "").strip()
+            if key == "people":
+                person = item.get("person")
+                person = person if isinstance(person, dict) else {}
+                return str(item.get("personId") or person.get("id") or item.get("id") or "").strip()
+            return str(item.get("id") or "").strip()
+
         ids = {
-            str(item.get("id") if isinstance(item, dict) else item or "").strip()
+            reference_id(item)
             for item in values
-            if str(item.get("id") if isinstance(item, dict) else item or "").strip()
+            if reference_id(item)
         }
         names = display_names.get(key) if isinstance(display_names.get(key), dict) else {}
         return sorted(names.get(item_id, item_id) for item_id in ids)
@@ -1049,10 +1059,10 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 ]
                 merge_metadata = (
                     {
-                        str(item.get("id") or ""): _duplicate_asset_merge_metadata_preview(
+                        "keeper" if index == 0 else f"remove_{index}": _duplicate_asset_merge_metadata_preview(
                             item, metadata_display_names,
                         )
-                        for item in ordered
+                        for index, item in enumerate(ordered)
                     }
                     if normalized_client == "immich" else {}
                 )

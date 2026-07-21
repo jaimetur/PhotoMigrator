@@ -322,10 +322,13 @@ class TestImmichStreamingUpload(unittest.TestCase):
         mock_get.side_effect = [
             response([{"id": "album-1", "albumName": "Summer 2003"}]),
             response([{"id": "tag-1", "value": "family/yoli"}]),
-            response([{"id": "person-1", "name": "Yoli"}]),
+            response({"people": [{"id": "person-1", "name": "Yoli"}]}),
         ]
         names = manager.get_duplicate_metadata_display_names([[
-            {"albums": [{"id": "album-1"}], "tags": [{"id": "tag-1"}], "people": [{"id": "person-1"}]},
+            {
+                "albums": [{"id": "album-1"}], "tags": [{"id": "tag-1"}],
+                "people": [{"id": "face-1", "person": {"id": "person-1"}}],
+            },
         ]])
 
         self.assertEqual(
