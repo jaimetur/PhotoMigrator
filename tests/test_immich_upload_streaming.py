@@ -1,4 +1,5 @@
 import os
+import json
 import sys
 import tempfile
 import types
@@ -147,12 +148,74 @@ class TestImmichStreamingUpload(unittest.TestCase):
         )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
-    def test_merge_duplicate_metadata_skips_groups_with_people(self, _mock_logger):
+    def test_merge_duplicate_metadata_skips_groups_with_unassigned_faces(self, _mock_logger):
         manager = self._build_manager()
-        keeper = {"id": "keeper", "originalFileName": "IMG.JPG", "people": [{"id": "person-1"}]}
+        keeper = {"id": "keeper", "originalFileName": "IMG.JPG", "unassignedFaces": [{"id": "face-1"}]}
         duplicate = {"id": "duplicate", "originalFileName": "IMG.JPG"}
 
         self.assertFalse(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_merge_duplicate_metadata_copies_only_missing_assigned_faces(
+        self, mock_get, mock_post, _mock_logger
+    ):
+        manager = self._build_manager()
+        keeper = {
+            "id": "keeper", "originalFileName": "IMG.JPG", "width": 1000, "height": 500,
+            "checksum": "same-content", "people": [{"id": "person-1"}],
+        }
+        duplicate = {
+            "id": "duplicate", "originalFileName": "IMG.JPG", "width": 1000, "height": 500,
+            "checksum": "same-content", "people": [{"id": "person-1"}, {"id": "person-2"}],
+        }
+
+        def face_response(faces):
+            response = MagicMock()
+            response.raise_for_status.return_value = None
+            response.json.return_value = faces
+            return response
+
+        mock_get.side_effect = [
+            face_response([{
+                "person": {"id": "person-1"}, "imageWidth": 1000, "imageHeight": 500,
+                "boundingBoxX1": 0, "boundingBoxY1": 0,
+                "boundingBoxX2": 100, "boundingBoxY2": 100,
+            }]),
+            face_response([
+                {
+                    "person": {"id": "person-1"}, "imageWidth": 1000, "imageHeight": 500,
+                    "boundingBoxX1": 1, "boundingBoxY1": 1,
+                    "boundingBoxX2": 101, "boundingBoxY2": 101,
+                },
+                {
+                    "person": {"id": "person-2"}, "imageWidth": 1000, "imageHeight": 500,
+                    "boundingBoxX1": 500, "boundingBoxY1": 100,
+                    "boundingBoxX2": 700, "boundingBoxY2": 400,
+                },
+            ]),
+        ]
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        mock_post.return_value = response
+
+        self.assertTrue(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
+
+        self.assertEqual(
+            [call.kwargs["params"] for call in mock_get.call_args_list],
+            [{"id": "keeper"}, {"id": "duplicate"}],
+        )
+        mock_post.assert_called_once()
+        self.assertEqual(mock_post.call_args.args[0], "http://immich.local/api/faces")
+        self.assertEqual(
+            json.loads(mock_post.call_args.kwargs["data"]),
+            {
+                "assetId": "keeper", "personId": "person-2", "imageWidth": 1000,
+                "imageHeight": 500, "x": 500, "y": 100,
+                "width": 200, "height": 300,
+            },
+        )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
