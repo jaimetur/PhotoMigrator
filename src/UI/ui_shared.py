@@ -324,8 +324,8 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "preview-album-actions", "required": False},
         ],
         "remove-duplicates-assets": [
-            {"dest": "immich-duplicates-algorithm", "required": False},
-            {"dest": "immich-duplicates-deletion", "required": False},
+            {"dest": "immich-duplicates-algorithm", "required": True},
+            {"dest": "immich-duplicates-deletion", "required": True},
             {"dest": "duplicate-asset-keeper", "required": True},
         ],
     },
@@ -1578,14 +1578,23 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
         kind = field["kind"]
         long_option = field["long_option"]
         default = field["default"]
+        if kind == "bool" and raw_value is None and dest in required_action_dests:
+            raw_value = default
         if kind == "flag":
             if bool_from_value(raw_value):
                 args.append(long_option)
             continue
         if kind == "bool":
+            if (
+                dest == "immich-duplicates-deletion"
+                and tab == "immich_photos"
+                and selected_action_dest == "remove-duplicates-assets"
+                and not bool_from_value(prepared.get("immich-duplicates-algorithm", True))
+            ):
+                continue
             current = bool_from_value(raw_value)
             default_bool = bool_from_value(default)
-            if current != default_bool:
+            if current != default_bool or dest in required_action_dests:
                 false_option = str(field.get("false_option") or "").strip()
                 if false_option:
                     args.append(long_option if current else false_option)

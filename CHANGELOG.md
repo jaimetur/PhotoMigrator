@@ -43,6 +43,8 @@
   - Added a per-candidate `Size` row below `ID` in the Immich duplicate-review comparison table, so keeper and redundant asset file sizes can be compared directly.
   - Added the effective keeper criterion, such as `newest`, `oldest`, or `better-quality`, to the Immich duplicate-review table's keeper-column header.
   - Disabled per-candidate album-membership reads during the Immich duplicate-review preview to reduce review latency. The `Albums` row is omitted from that preview; PhotoMigrator's manual deletion flow still loads and merges album memberships before deletion, while Immich's native resolver preserves them server-side.
+  - Marked `--immich-duplicates-algorithm` and `--immich-duplicates-deletion` as required selections for Immich `Remove Duplicate Assets` in Web, GUI, and TUI. Active native-detection commands now include both values explicitly; native deletion remains unavailable when detection is disabled.
+  - Reclassified startup configuration logging: `Optional Flags Provided` now lists every effective optional flag owned by the selected feature/module, while the former `Optional Flags Default` section is now `General Arguments` and contains the tool-wide shared arguments.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
@@ -53,6 +55,7 @@
   - Fixed Immich duplicate-review metadata names for face associations. The preview now resolves the associated person ID rather than the face-record ID and accepts the wrapped `/people` response used by current Immich versions, so named people are shown instead of unresolved UUIDs. Its metadata dictionary now uses `keeper` and `remove_N` labels instead of repeating asset UUIDs already displayed in the proposed deletion list.
   - Fixed Immich duplicate-review completeness by loading each candidate's album memberships through the stable `GET /albums?assetId=...` API, which is not included in `AssetResponseDto`. The review now also falls back to `GET /people/{id}` when the paginated people list omits a referenced person, so album and person names remain visible and the guarded manual merge receives the full album set.
   - Fixed the cloud upload contextual help for `--prefer-canonical-album-names` to describe uploaded albums consistently in the Web Interface, GUI, and TUI.
+  - Fixed the Web Interface `Immich Remove Duplicate Assets` controls so `--immich-duplicates-algorithm` and `--immich-duplicates-deletion` are rendered as required selections, while an explicit `false` value is accepted and emitted instead of being mistaken for a missing argument.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

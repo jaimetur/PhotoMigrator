@@ -299,6 +299,10 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--remove-duplicates-assets", args)
         self.assertIn("--duplicate-asset-keeper", args)
         self.assertIn("newest", args)
+        self.assertIn("--immich-duplicates-algorithm", args)
+        self.assertIn("--immich-duplicates-deletion", args)
+        self.assertEqual(args[args.index("--immich-duplicates-algorithm") + 1], "true")
+        self.assertEqual(args[args.index("--immich-duplicates-deletion") + 1], "true")
 
     def test_immich_native_duplicate_detection_is_contextual_and_can_be_disabled(self):
         schema = build_parser_schema()

@@ -131,23 +131,6 @@ def _parser_option_details(parser) -> dict[str, tuple[str, str]]:
     return details
 
 
-def _explicit_argument_dests(parser, argv: list[str]) -> set[str]:
-    """Find only options written explicitly by the caller, not parser defaults."""
-    option_to_dest = {}
-    for action in getattr(parser, "_actions", []):
-        normalized_dest = str(getattr(action, "dest", "") or "").replace("_", "-")
-        for option in getattr(action, "option_strings", []) or []:
-            option_to_dest[option] = normalized_dest
-
-    explicit_dests = set()
-    for token in argv:
-        option = str(token).split("=", 1)[0]
-        dest = option_to_dest.get(option)
-        if dest:
-            explicit_dests.add(dest)
-    return explicit_dests
-
-
 def _format_startup_value(value) -> str:
     if isinstance(value, bool):
         return str(value).lower()
@@ -156,19 +139,21 @@ def _format_startup_value(value) -> str:
     return str(value)
 
 
-def _feature_optional_dests(feature_name: str, module_name: str | None, args: dict) -> list[str]:
-    """Return optional flags relevant to the selected feature and module."""
-    common_dests = [
+def _general_argument_dests() -> list[str]:
+    """Return arguments shared by the tool rather than owned by one feature."""
+    return [
         "configuration-file", "no-request-user-confirmation", "no-log-file", "log-level", "log-format",
         "date-separator", "range-separator", "foldername-albums", "foldername-no-albums", "foldername-logs",
         "foldername-duplicates-output", "foldername-extracted-dates", "exec-gpth-tool", "exec-exif-tool",
-    ]
-    filter_dests = [
-        "account-id", "filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country",
+        "filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country",
         "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files",
     ]
+
+
+def _feature_optional_dests(feature_name: str, module_name: str | None, args: dict) -> list[str]:
+    """Return optional flags owned by the selected feature/module."""
     if feature_name == "Automatic Migration":
-        result = common_dests + filter_dests + [
+        result = [
             "move-assets", "dashboard", "parallel-migration", "prefer-canonical-album-names",
             "consolidate-similar-albums",
         ]
@@ -177,16 +162,26 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
             result.append("one-time-password")
         return result
     if feature_name in {"Google Photos", "Synology Photos", "Immich Photos", "NextCloud Photos"}:
-        cloud_dests = filter_dests + [
-            "albums-folders", "remove-albums-assets", "preview-album-actions", "prefer-canonical-album-names",
-            "consolidate-similar-albums", "duplicate-asset-keeper", "one-time-password",
-        ]
-        if feature_name == "Immich Photos":
-            cloud_dests.append("immich-duplicates-algorithm")
-            cloud_dests.append("immich-duplicates-deletion")
-        return common_dests + cloud_dests
+        result = ["account-id"]
+        if feature_name == "Synology Photos":
+            result.append("one-time-password")
+        if module_name in {"Upload Albums", "Upload All"}:
+            result.extend(["prefer-canonical-album-names", "consolidate-similar-albums"])
+            if feature_name == "Immich Photos":
+                result.append("import-people")
+        elif module_name in {"Rename Albums", "Consolidate Album Names"}:
+            result.append("preview-album-actions")
+        elif module_name == "Remove Albums":
+            result.append("preview-album-actions")
+            if feature_name in {"Synology Photos", "Immich Photos", "NextCloud Photos"}:
+                result.append("remove-albums-assets")
+        elif module_name == "Remove Duplicate Assets":
+            if feature_name == "Immich Photos":
+                result.extend(["immich-duplicates-algorithm", "immich-duplicates-deletion"])
+            result.append("duplicate-asset-keeper")
+        return result
     if feature_name == "Google Takeout Processor":
-        return common_dests + [
+        return [
             "output-folder", "google-output-folder-suffix", "google-albums-folders-structure",
             "google-no-albums-folders-structure", "google-ignore-check-structure", "google-no-symbolic-albums",
             "google-remove-duplicates-files", "google-rename-albums-folders", "google-skip-extras-files",
@@ -195,14 +190,14 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
             "gpth-no-log", "google-process-people",
         ]
     if feature_name == "iCloud Takeout Processor":
-        return common_dests + [
+        return [
             "output-folder", "icloud-output-folder-suffix", "icloud-albums-folders-structure",
             "icloud-no-albums-folders-structure", "icloud-no-symbolic-albums", "icloud-include-memories",
             "icloud-prefer-native-exif-writer",
         ]
     if feature_name == "Other Features" and module_name == "Organize Local Folder By Date":
-        return common_dests + ["output-folder", "organize-output-folder-suffix", "organize-folder-structure", "move-original-files"]
-    return common_dests
+        return ["output-folder", "organize-output-folder-suffix", "organize-folder-structure", "move-original-files"]
+    return []
 
 
 def _startup_flag_value(dest: str, args: dict):
@@ -229,7 +224,7 @@ def _startup_flag_value(dest: str, args: dict):
 
 
 def _log_feature_and_optional_flags(*, include_feature: bool = True, include_optional: bool = True) -> None:
-    """Log the selected feature, its required values, and explicitly supplied optional flags."""
+    """Log the selected feature, its effective options, and shared arguments."""
     args = GV.ARGS or {}
     option_details = _parser_option_details(GV.PARSER)
     feature_name, module_name, required_dests = _selected_feature_details(args)
@@ -249,8 +244,10 @@ def _log_feature_and_optional_flags(*, include_feature: bool = True, include_opt
         GV.LOGGER.info("")
 
     if include_optional:
-        explicit_dests = _explicit_argument_dests(GV.PARSER, sys.argv[1:])
-        optional_dests = sorted(explicit_dests - set(required_dests))
+        optional_dests = [
+            dest for dest in _feature_optional_dests(feature_name, module_name, args)
+            if dest not in required_dests
+        ]
         GV.LOGGER.info("Optional Flags Provided:")
         if optional_dests:
             for dest in optional_dests:
@@ -260,13 +257,10 @@ def _log_feature_and_optional_flags(*, include_feature: bool = True, include_opt
             GV.LOGGER.info("  - None")
         GV.LOGGER.info("")
 
-        default_dests = [
-            dest for dest in _feature_optional_dests(feature_name, module_name, args)
-            if dest not in explicit_dests and dest not in required_dests
-        ]
-        GV.LOGGER.info("Optional Flags Default:")
-        if default_dests:
-            for dest in default_dests:
+        general_dests = _general_argument_dests()
+        GV.LOGGER.info("General Arguments:")
+        if general_dests:
+            for dest in general_dests:
                 option, _ = option_details.get(dest, (f"--{dest}", dest.replace("-", "_")))
                 GV.LOGGER.info(f"  {option:<32}: {_format_startup_value(_startup_flag_value(dest, args))}")
         else:

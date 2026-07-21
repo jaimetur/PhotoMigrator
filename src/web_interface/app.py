@@ -333,8 +333,8 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "preview-album-actions", "required": False},
         ],
         "remove-duplicates-assets": [
-            {"dest": "immich-duplicates-algorithm", "required": False},
-            {"dest": "immich-duplicates-deletion", "required": False},
+            {"dest": "immich-duplicates-algorithm", "required": True},
+            {"dest": "immich-duplicates-deletion", "required": True},
             {"dest": "duplicate-asset-keeper", "required": True},
         ],
     },
@@ -3138,6 +3138,11 @@ def _build_cli_args(
         # The disabled UI control must not leak an explicit false option into
         # the subprocess command; native deletion is inapplicable in this mode.
         values["immich-duplicates-deletion"] = True
+    native_deletion_unavailable = (
+        tab == "immich_photos"
+        and selected_action_dest == "remove-duplicates-assets"
+        and not _bool_from_value(values.get("immich-duplicates-algorithm", True))
+    )
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     include_default_dests = set(include_default_dests or set())
     include_default_dests.update(
@@ -3163,6 +3168,8 @@ def _build_cli_args(
         kind = field["kind"]
         long_option = field["long_option"]
         default = field["default"]
+        if kind == "bool" and raw_value is None and dest in include_default_dests:
+            raw_value = default
 
         if kind == "flag":
             if _bool_from_value(raw_value):
@@ -3171,9 +3178,11 @@ def _build_cli_args(
             continue
 
         if kind == "bool":
+            if dest == "immich-duplicates-deletion" and native_deletion_unavailable:
+                continue
             current = _bool_from_value(raw_value)
             default_bool = _bool_from_value(default)
-            if current != default_bool:
+            if current != default_bool or dest in include_default_dests:
                 false_option = str(field.get("false_option") or "").strip()
                 if false_option:
                     args_unordered.append(long_option if current else false_option)
@@ -3292,6 +3301,8 @@ def _value_is_provided(dest: str, values: Dict[str, Any]) -> bool:
     kind = field.get("kind")
     if kind == "flag":
         return _bool_from_value(raw_value)
+    if kind == "bool":
+        return dest in values
     if kind == "list":
         return len(_to_list(raw_value)) > 0
     return str(raw_value or "").strip() != ""
@@ -4284,6 +4295,10 @@ def run_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_require
     scope = _path_validation_scope_for_payload(payload.tab, payload.selected_action_dest, normalized_values)
     normalized_values = _sanitize_payload_paths_for_user(normalized_values, current_user, path_scope=scope)
     required_dests = _required_dests_for_payload(payload.tab, payload.selected_action_dest)
+    for dest in required_dests:
+        field = PARSER_FIELDS_BY_DEST.get(dest, {})
+        if field.get("kind") == "bool" and dest not in normalized_values:
+            normalized_values[dest] = field.get("default")
     missing = [dest for dest in sorted(required_dests) if not _value_is_provided(dest, normalized_values)]
     if missing:
         joined = ", ".join(f"'--{dest}'" for dest in missing)

@@ -621,7 +621,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
-            "remove-duplicates-assets": [{dest: "immich-duplicates-algorithm", required: false}, {dest: "immich-duplicates-deletion", required: false}, {dest: "duplicate-asset-keeper", required: true}],
+            "remove-duplicates-assets": [{dest: "immich-duplicates-algorithm", required: true}, {dest: "immich-duplicates-deletion", required: true}, {dest: "duplicate-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -3486,6 +3486,13 @@
                 }
             });
         }
+        const moduleArguments = (MODULE_DEPENDENCIES[activeModuleTab] || {})[selectedActionDest || ""] || [];
+        moduleArguments.filter((item) => item.required === true).forEach((item) => {
+            const field = getFieldByDest(item.dest);
+            if (field?.kind === "bool" && values[item.dest] === undefined) {
+                values[item.dest] = uiBooleanValue(field.default);
+            }
+        });
         return { tab: activeModuleTab, values, selected_action_dest: selectedActionDest };
     }
 
@@ -3494,6 +3501,7 @@
         const raw = values ? values[dest] : undefined;
         if (!field) return String(raw || "").trim() !== "";
         if (field.kind === "flag") return uiBooleanValue(raw);
+        if (field.kind === "bool") return Object.prototype.hasOwnProperty.call(values || {}, dest);
         if (field.kind === "list") {
             if (Array.isArray(raw)) return raw.some((v) => String(v || "").trim() !== "");
             const text = String(raw || "").replaceAll(",", "\n");
