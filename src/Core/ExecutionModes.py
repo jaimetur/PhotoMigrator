@@ -1030,11 +1030,6 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
             if normalized_client == "immich":
                 metadata_display_names = {}
                 if use_immich_deletion:
-                    LOGGER.info(
-                        "Loading complete asset metadata for the confirmation preview. Album memberships are "
-                        "not requested because Immich does not return them in bulk and its native resolver "
-                        "preserves them, avoiding one extra API request for every duplicate candidate."
-                    )
                     duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
                         duplicate_groups,
                         log_level=logging.INFO,
