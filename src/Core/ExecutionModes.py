@@ -44,7 +44,7 @@ def _normalize_merge_duplicates_result(result):
 
 
 def _duplicate_asset_merge_metadata_preview(asset):
-    """Return only the metadata fields that Immich can merge into a keeper."""
+    """Return the merge-relevant Immich metadata shown before deletion."""
     asset = asset if isinstance(asset, dict) else {}
 
     def reference_ids(key):
@@ -75,6 +75,33 @@ def _duplicate_asset_merge_metadata_preview(asset):
             metadata["rating"] = int(rating)
     except (TypeError, ValueError):
         pass
+    visibility = str(asset.get("visibility") or "").strip().upper()
+    if visibility:
+        metadata["visibility"] = visibility
+    if asset.get("isArchived"):
+        metadata["archived"] = True
+    date_time_original = asset.get("dateTimeOriginal") or (asset.get("exifInfo") or {}).get("dateTimeOriginal")
+    if date_time_original:
+        metadata["date_time_original"] = date_time_original
+    latitude = asset.get("latitude")
+    longitude = asset.get("longitude")
+    if latitude is None:
+        latitude = (asset.get("exifInfo") or {}).get("latitude")
+    if longitude is None:
+        longitude = (asset.get("exifInfo") or {}).get("longitude")
+    if latitude is not None and longitude is not None:
+        metadata["location"] = {"latitude": latitude, "longitude": longitude}
+    stack = asset.get("stack")
+    if isinstance(stack, dict) and stack.get("id"):
+        metadata["stack"] = {
+            "id": stack.get("id"),
+            "primary_asset_id": stack.get("primaryAssetId"),
+        }
+    people = reference_ids("people")
+    if people:
+        metadata["people"] = people
+    if asset.get("unassignedFaces"):
+        metadata["unassigned_faces"] = len(asset.get("unassignedFaces") or [])
     return metadata
 
 
@@ -964,6 +991,20 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
             if not duplicate_groups:
                 LOGGER.info("No duplicate assets were found.")
                 return
+            if normalized_client == "immich":
+                LOGGER.info(
+                    "Loading complete metadata for each duplicate candidate before confirmation. "
+                    "This can take time, but the review list will show the metadata that is preserved."
+                )
+                duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
+                    duplicate_groups,
+                    log_level=logging.INFO,
+                )
+                if not duplicate_groups:
+                    LOGGER.warning(
+                        "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
+                    )
+                    return
             LOGGER.info("Duplicate asset groups found:")
             for group_index, group in enumerate(duplicate_groups, start=1):
                 if normalized_client == "immich" and use_immich_detection:

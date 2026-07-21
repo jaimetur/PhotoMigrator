@@ -1949,6 +1949,81 @@ class ClassImmichPhotos(BaseMediaClient):
             )
         return True
 
+    @staticmethod
+    def _first_duplicate_metadata_value(assets, *paths):
+        """Return the first meaningful metadata value, preferring the keeper."""
+        for asset in assets:
+            for path in paths:
+                value = asset
+                for key in path:
+                    value = value.get(key) if isinstance(value, dict) else None
+                if value not in (None, ""):
+                    return value
+        return None
+
+    @staticmethod
+    def _duplicate_visibility_priority(asset):
+        """Prefer the most restrictive visibility so no protected state is lost."""
+        visibility = str(asset.get("visibility") or "").strip().upper()
+        if not visibility and asset.get("isArchived"):
+            visibility = "ARCHIVE"
+        priorities = {"TIMELINE": 0, "ARCHIVE": 1, "HIDDEN": 2, "LOCKED": 3}
+        return priorities.get(visibility, 0), visibility or "TIMELINE"
+
+    def _merge_duplicate_asset_stacks(self, keeper, duplicates, log_level=None):
+        """Keep non-duplicate stack members reachable through the selected keeper.
+
+        An Immich asset can only belong to one stack. Recreating each stack occupied
+        by a redundant asset with the keeper first makes it the primary asset and
+        lets Immich merge its surviving members. A read or write failure prevents
+        deletion of the duplicate group.
+        """
+        keeper_id = str(keeper.get("id") or "").strip()
+        redundant_ids = {
+            str(asset.get("id") or "").strip() for asset in duplicates
+            if str(asset.get("id") or "").strip()
+        }
+        stack_ids = {
+            str((asset.get("stack") or {}).get("id") or "").strip()
+            for asset in duplicates
+            if isinstance(asset.get("stack"), dict)
+        }
+        stack_ids.discard("")
+        for stack_id in stack_ids:
+            try:
+                response = requests.get(
+                    f"{self.IMMICH_URL}/api/stacks/{stack_id}",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    verify=False,
+                )
+                response.raise_for_status()
+                stack_data = response.json()
+                stack_assets = stack_data.get("assets") if isinstance(stack_data, dict) else None
+                if not isinstance(stack_assets, list):
+                    raise ValueError("missing stack asset list")
+                survivor_ids = [
+                    str(asset.get("id") or "").strip()
+                    for asset in stack_assets if isinstance(asset, dict)
+                    and str(asset.get("id") or "").strip() not in redundant_ids
+                ]
+                asset_ids = [keeper_id, *[asset_id for asset_id in survivor_ids if asset_id != keeper_id]]
+                if len(asset_ids) < 2:
+                    continue
+                response = requests.post(
+                    f"{self.IMMICH_URL}/api/stacks",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    data=json.dumps({"assetIds": asset_ids}),
+                    verify=False,
+                )
+                response.raise_for_status()
+            except (requests.RequestException, ValueError) as error:
+                LOGGER.warning(
+                    f"Could not merge stack '{stack_id}' into duplicate keeper '{keeper_id}': {error}. "
+                    "The duplicate group was not deleted."
+                )
+                return False
+        return True
+
     def _merge_duplicate_asset_metadata(self, keeper, duplicates, log_level=None):
         """Merge metadata and assigned faces into the keeper before deletion."""
         keeper_id = str(keeper.get("id") or "").strip()
@@ -1959,6 +2034,8 @@ class ClassImmichPhotos(BaseMediaClient):
             return False
 
         group_assets = [keeper, *duplicates]
+        if not self._merge_duplicate_asset_stacks(keeper, duplicates, log_level=log_level):
+            return False
         album_ids = set().union(*(self._asset_reference_ids(asset, "albums") for asset in group_assets))
         tag_ids = set().union(*(self._asset_reference_ids(asset, "tags") for asset in group_assets))
         descriptions = []
@@ -1982,6 +2059,41 @@ class ClassImmichPhotos(BaseMediaClient):
             payload["description"] = "\n\n".join(descriptions)
         if ratings:
             payload["rating"] = max(ratings)
+        visibility = max(
+            (self._duplicate_visibility_priority(asset) for asset in group_assets),
+            key=lambda value: value[0],
+        )[1]
+        if visibility != str(keeper.get("visibility") or "TIMELINE").strip().upper():
+            payload["visibility"] = visibility
+
+        # Immich accepts one capture date and one coordinate pair per asset. Keep
+        # the selected keeper's values when available; otherwise retain the first
+        # complete value found in the duplicate group.
+        date_time_original = self._first_duplicate_metadata_value(
+            group_assets, ("dateTimeOriginal",), ("exifInfo", "dateTimeOriginal"),
+        )
+        if date_time_original and not self._first_duplicate_metadata_value(
+            [keeper], ("dateTimeOriginal",), ("exifInfo", "dateTimeOriginal"),
+        ):
+            payload["dateTimeOriginal"] = date_time_original
+        keeper_latitude = self._first_duplicate_metadata_value(
+            [keeper], ("latitude",), ("exifInfo", "latitude"),
+        )
+        keeper_longitude = self._first_duplicate_metadata_value(
+            [keeper], ("longitude",), ("exifInfo", "longitude"),
+        )
+        if keeper_latitude is None or keeper_longitude is None:
+            for asset in group_assets:
+                latitude = self._first_duplicate_metadata_value(
+                    [asset], ("latitude",), ("exifInfo", "latitude"),
+                )
+                longitude = self._first_duplicate_metadata_value(
+                    [asset], ("longitude",), ("exifInfo", "longitude"),
+                )
+                if latitude is not None and longitude is not None:
+                    payload["latitude"] = latitude
+                    payload["longitude"] = longitude
+                    break
         try:
             if len(payload) > 1:
                 response = requests.put(
@@ -2038,14 +2150,35 @@ class ClassImmichPhotos(BaseMediaClient):
             return None
 
     def _hydrate_duplicate_group_metadata(self, group, log_level=None):
-        """Load relationship metadata after confirmation, not for the whole library scan."""
+        """Load complete metadata for a duplicate group while keeping native hints."""
         hydrated_assets = []
         for asset in group:
+            if asset.get("_photomigrator_duplicate_metadata_hydrated"):
+                hydrated_assets.append(asset)
+                continue
             metadata = self._get_duplicate_asset_metadata(asset.get("id"), log_level=log_level)
             if metadata is None:
                 return None
+            for key in ("_immich_duplicate_id", "_immich_suggested_keep_asset_ids"):
+                if key in asset:
+                    metadata[key] = asset[key]
+            metadata["_photomigrator_duplicate_metadata_hydrated"] = True
             hydrated_assets.append(metadata)
         return hydrated_assets
+
+    def hydrate_duplicate_groups_metadata(self, duplicate_groups, log_level=None):
+        """Hydrate candidate groups before confirmation so the preview is auditable."""
+        hydrated_groups = []
+        for group in tqdm(
+            duplicate_groups,
+            desc=f"{MSG_TAGS['INFO']}Loading duplicate metadata for review",
+            unit=" groups",
+        ):
+            hydrated_group = self._hydrate_duplicate_group_metadata(group, log_level=log_level)
+            if hydrated_group is None:
+                continue
+            hydrated_groups.append(hydrated_group)
+        return hydrated_groups
 
     def find_duplicate_assets_by_name_and_size(self, log_level=None):
         """Return same-name/same-size duplicate groups from one paginated inventory."""

@@ -246,6 +246,70 @@ class TestImmichStreamingUpload(unittest.TestCase):
         )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.put")
+    def test_merge_duplicate_metadata_preserves_visibility_date_and_location(
+        self, mock_put, _mock_logger
+    ):
+        manager = self._build_manager()
+        manager._merge_duplicate_asset_faces = MagicMock(return_value=True)
+        manager._merge_duplicate_asset_stacks = MagicMock(return_value=True)
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        mock_put.return_value = response
+        keeper = {
+            "id": "keeper", "originalFileName": "IMG.JPG", "visibility": "TIMELINE",
+        }
+        duplicate = {
+            "id": "duplicate", "originalFileName": "IMG.JPG", "isArchived": True,
+            "visibility": "ARCHIVE",
+            "exifInfo": {
+                "dateTimeOriginal": "2020-01-02T03:04:05.000Z",
+                "latitude": 40.4168, "longitude": -3.7038,
+            },
+        }
+
+        self.assertTrue(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
+
+        self.assertEqual(mock_put.call_args.args[0], "http://immich.local/api/assets")
+        self.assertEqual(
+            json.loads(mock_put.call_args.kwargs["data"]),
+            {
+                "ids": ["keeper"], "visibility": "ARCHIVE",
+                "dateTimeOriginal": "2020-01-02T03:04:05.000Z",
+                "latitude": 40.4168, "longitude": -3.7038,
+            },
+        )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_merge_duplicate_stacks_recreates_stack_with_keeper_and_survivors(
+        self, mock_get, mock_post, _mock_logger
+    ):
+        manager = self._build_manager()
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"assets": [{"id": "duplicate"}, {"id": "other"}]}
+        mock_get.return_value = response
+        mock_post.return_value = response
+        keeper = {"id": "keeper", "stack": None}
+        duplicate = {"id": "duplicate", "stack": {"id": "stack-1"}}
+
+        self.assertTrue(manager._merge_duplicate_asset_stacks(keeper, [duplicate]))
+
+        mock_get.assert_called_once_with(
+            "http://immich.local/api/stacks/stack-1",
+            headers=manager.HEADERS_WITH_CREDENTIALS,
+            verify=False,
+        )
+        mock_post.assert_called_once_with(
+            "http://immich.local/api/stacks",
+            headers=manager.HEADERS_WITH_CREDENTIALS,
+            data=json.dumps({"assetIds": ["keeper", "other"]}),
+            verify=False,
+        )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     def test_push_asset_uses_streaming_multipart_without_files_arg(
         self, mock_post, _mock_logger
