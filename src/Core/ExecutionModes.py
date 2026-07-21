@@ -913,7 +913,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
 
 
 def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log_level=None):
-    """Remove same-name/same-size assets while retaining the selected upload."""
+    """Remove duplicate assets while retaining the requested keeper."""
     normalized_client = str(client or "").strip().lower()
     if normalized_client not in {"google-photos", "synology", "immich", "nextcloud"}:
         LOGGER.error(
@@ -928,17 +928,27 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
         )
         return
 
-    keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "newest").lower()
+    native_detection_value = ARGS.get("use-immich-duplicates-detection", True)
+    use_immich_detection = str(native_detection_value).strip().lower() not in {"false", "0", "no", "off"}
+    keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "better-quality").lower()
+    if normalized_client != "immich" and keeper_strategy == "better-quality":
+        keeper_strategy = "newest"
+    if normalized_client == "immich" and not use_immich_detection and keeper_strategy == "better-quality":
+        keeper_strategy = "newest"
     client_label = capitalize_first_letter(normalized_client.replace("-photos", ""))
     LOGGER.info(f"{client_label} Photos: 'Remove Duplicate Assets' Mode detected. Only this module will be run!!!")
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")
-    LOGGER.info(f"Keeper strategy: {keeper_strategy} upload date.")
+    LOGGER.info(f"Keeper strategy: {keeper_strategy}.")
     if normalized_client == "immich":
-        LOGGER.warning(
-            "Assets are grouped by exact filename and file size. Albums, tags, favorites, descriptions, "
-            "and ratings are merged into the keeper before redundant assets are deleted. Groups with "
-            "any face/person associations are left unchanged."
-        )
+        if use_immich_detection:
+            LOGGER.warning(
+                "Immich native duplicate detection is enabled. Its visually similar groups are used, while "
+                "PhotoMigrator retains the selected keeper strategy and merges metadata before deletion."
+            )
+        else:
+            LOGGER.warning(
+                "Immich native duplicate detection is disabled: assets are grouped by exact filename and file size."
+            )
     else:
         LOGGER.warning(
             "Assets are grouped by exact filename and file size. The selected backend does not expose "
@@ -947,17 +957,24 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     cloud_client_obj = _build_cloud_client_obj(normalized_client)
     with set_log_level(LOGGER, log_level):
         try:
-            duplicate_groups = cloud_client_obj.find_duplicate_assets_by_name_and_size(log_level=logging.INFO)
+            if normalized_client == "immich" and use_immich_detection:
+                duplicate_groups = cloud_client_obj.find_duplicate_assets_by_immich_detection(log_level=logging.INFO)
+            else:
+                duplicate_groups = cloud_client_obj.find_duplicate_assets_by_name_and_size(log_level=logging.INFO)
             if not duplicate_groups:
                 LOGGER.info("No duplicate assets were found.")
                 return
             LOGGER.info("Duplicate asset groups found:")
             for group_index, group in enumerate(duplicate_groups, start=1):
-                ordered = sorted(
-                    group,
-                    key=lambda item: (cloud_client_obj._duplicate_asset_timestamp(item), str(item.get("id") or "")),
-                    reverse=(keeper_strategy == "newest"),
-                )
+                if normalized_client == "immich" and use_immich_detection:
+                    keeper = cloud_client_obj._select_duplicate_asset_keeper(group, keeper_strategy)
+                    ordered = [keeper, *[asset for asset in group if asset is not keeper]]
+                else:
+                    ordered = sorted(
+                        group,
+                        key=lambda item: (cloud_client_obj._duplicate_asset_timestamp(item), str(item.get("id") or "")),
+                        reverse=(keeper_strategy == "newest"),
+                    )
                 keeper, redundant = ordered[0], ordered[1:]
                 filename = str(keeper.get("originalFileName") or "")
                 size = cloud_client_obj._duplicate_asset_size(keeper)

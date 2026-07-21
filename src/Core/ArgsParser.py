@@ -465,14 +465,25 @@ def parse_arguments():
                              "Example: --client=synology --remove-duplicates-albums")
 
     PARSER.add_argument("-rDupAst", "--remove-duplicates-assets", action="store_true", default="",
-                        help="Remove duplicate assets with the same filename and size, preserving all available metadata and people from duplicated assets on the selected keeper assetr.\n"
+                        help="Remove duplicate assets while preserving available metadata and people on the selected keeper asset.\n"
                              "Requires '--client'.\n"
-                             "Also requires module selector '--duplicate-asset-keeper {oldest, newest}'.\n"
-                             "The selector defaults to 'newest'. Google Photos cannot delete library media through its public API.\n"
+                             "Also requires module selector '--duplicate-asset-keeper {better-quality, oldest, newest}'.\n"
+                             "For Immich, native duplicate detection is enabled by default and the selector defaults to 'better-quality'. "
+                             "Google Photos cannot delete library media through its public API.\n"
                              "Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest")
 
-    PARSER.add_argument("-dupKeeper", "--duplicate-asset-keeper", choices=["oldest", "newest"], default="newest",
-                        help="Choose the retained asset for '--remove-duplicates-assets' based on upload date (default: newest).")
+    PARSER.add_argument("-useImmichDupDet", "--use-immich-duplicates-detection",
+                        metavar="= [true,false]",
+                        nargs="?",
+                        const=True,
+                        default=True,
+                        type=str2bool,
+                        help="For Immich Remove Duplicate Assets, use Immich's native visual duplicate groups instead of "
+                             "same-filename-and-size grouping (default: True).")
+
+    PARSER.add_argument("-dupKeeper", "--duplicate-asset-keeper", choices=["better-quality", "oldest", "newest"], default="better-quality",
+                        help="Choose the retained asset for '--remove-duplicates-assets'. 'better-quality' uses Immich's "
+                             "native suggestion; 'oldest' and 'newest' use upload date (default: better-quality for Immich).")
 
     PARSER.add_argument("-mDupAlb", "--merge-duplicates-albums", action="store_true", default="",
                         help="Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.\n"

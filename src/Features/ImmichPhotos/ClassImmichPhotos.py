@@ -2080,31 +2080,98 @@ class ClassImmichPhotos(BaseMediaClient):
                 )
             return duplicate_groups
 
-    def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
-        """Remove same-name/same-size assets while preserving metadata on one keeper."""
-        strategy = str(keeper_strategy or "newest").strip().lower()
+    def find_duplicate_assets_by_immich_detection(self, log_level=None):
+        """Return the duplicate groups produced by Immich's native detector."""
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            LOGGER.info("Retrieving duplicate groups from Immich native duplicate detection...")
+            try:
+                response = requests.get(
+                    f"{self.IMMICH_URL}/api/duplicates",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    verify=False,
+                )
+                response.raise_for_status()
+                detected_groups = response.json()
+            except requests.RequestException as error:
+                LOGGER.error(f"Could not retrieve Immich native duplicate groups: {error}")
+                return []
+            if not isinstance(detected_groups, list):
+                LOGGER.error("Immich returned an unexpected native duplicate-groups response.")
+                return []
+
+            duplicate_groups = []
+            for detected_group in detected_groups:
+                if not isinstance(detected_group, dict):
+                    continue
+                assets = detected_group.get("assets")
+                if not isinstance(assets, list) or len(assets) < 2:
+                    continue
+                duplicate_id = str(detected_group.get("duplicateId") or "").strip()
+                suggested_keep_ids = [
+                    str(asset_id).strip()
+                    for asset_id in (detected_group.get("suggestedKeepAssetIds") or [])
+                    if str(asset_id).strip()
+                ]
+                group = []
+                for asset in assets:
+                    if not isinstance(asset, dict) or not str(asset.get("id") or "").strip():
+                        continue
+                    annotated_asset = dict(asset)
+                    annotated_asset["_immich_duplicate_id"] = duplicate_id
+                    annotated_asset["_immich_suggested_keep_asset_ids"] = suggested_keep_ids
+                    group.append(annotated_asset)
+                if len(group) > 1:
+                    duplicate_groups.append(group)
+            LOGGER.info(f"Found {len(duplicate_groups)} duplicate group(s) from Immich native detection.")
+            return duplicate_groups
+
+    def _select_duplicate_asset_keeper(self, group, strategy):
+        """Select one keeper from a group using native quality or upload chronology."""
+        strategy = str(strategy or "newest").strip().lower()
+        if strategy == "better-quality":
+            suggested_ids = {
+                suggested_id
+                for asset in group
+                for suggested_id in (asset.get("_immich_suggested_keep_asset_ids") or [])
+            }
+            suggested_assets = [asset for asset in group if str(asset.get("id") or "") in suggested_ids]
+            candidates = suggested_assets or list(group)
+            return max(
+                candidates,
+                key=lambda item: (
+                    self._duplicate_asset_size(item) if self._duplicate_asset_size(item) is not None else -1,
+                    self._duplicate_asset_timestamp(item),
+                    str(item.get("id") or ""),
+                ),
+            )
         if strategy not in {"oldest", "newest"}:
-            raise ValueError("keeper_strategy must be 'oldest' or 'newest'")
+            raise ValueError("keeper_strategy must be 'better-quality', 'oldest', or 'newest'")
+        return sorted(
+            group,
+            key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
+            reverse=(strategy == "newest"),
+        )[0]
+
+    def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
+        """Remove duplicate assets while preserving metadata on one selected keeper."""
+        strategy = str(keeper_strategy or "newest").strip().lower()
+        if strategy not in {"better-quality", "oldest", "newest"}:
+            raise ValueError("keeper_strategy must be 'better-quality', 'oldest', or 'newest'")
 
         with set_log_level(LOGGER, log_level):
             duplicate_groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)
             removed_assets = 0
             skipped_groups = 0
             for group in tqdm(duplicate_groups, desc=f"{MSG_TAGS['INFO']}Resolving duplicate asset groups", unit=" groups"):
-                ordered = sorted(
-                    group,
-                    key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
-                    reverse=(strategy == "newest"),
-                )
+                keeper_candidate = self._select_duplicate_asset_keeper(group, strategy)
+                ordered = [keeper_candidate, *[asset for asset in group if asset is not keeper_candidate]]
                 hydrated_group = self._hydrate_duplicate_group_metadata(ordered, log_level=log_level)
                 if hydrated_group is None:
                     skipped_groups += 1
                     continue
-                ordered = sorted(
-                    hydrated_group,
-                    key=lambda item: (self._duplicate_asset_timestamp(item), str(item.get("id") or "")),
-                    reverse=(strategy == "newest"),
-                )
+                keeper_id = str(keeper_candidate.get("id") or "").strip()
+                ordered = sorted(hydrated_group, key=lambda item: str(item.get("id") or "") != keeper_id)
                 keeper, redundant = ordered[0], ordered[1:]
                 if not self._merge_duplicate_asset_metadata(keeper, redundant, log_level=log_level):
                     skipped_groups += 1

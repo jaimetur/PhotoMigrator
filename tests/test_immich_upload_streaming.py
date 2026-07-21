@@ -148,6 +148,34 @@ class TestImmichStreamingUpload(unittest.TestCase):
         )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_native_duplicate_detection_preserves_immich_quality_suggestion(self, mock_get, _mock_logger):
+        manager = self._build_manager()
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [{
+            "duplicateId": "duplicate-group-1",
+            "suggestedKeepAssetIds": ["large"],
+            "assets": [
+                {"id": "small", "originalFileName": "IMG.JPG", "exifInfo": {"fileSizeInByte": 10}},
+                {"id": "large", "originalFileName": "IMG-copy.JPG", "exifInfo": {"fileSizeInByte": 20}},
+            ],
+        }]
+        mock_get.return_value = response
+
+        groups = manager.find_duplicate_assets_by_immich_detection()
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0][0]["_immich_duplicate_id"], "duplicate-group-1")
+        self.assertEqual(groups[0][0]["_immich_suggested_keep_asset_ids"], ["large"])
+        self.assertEqual(manager._select_duplicate_asset_keeper(groups[0], "better-quality")["id"], "large")
+        mock_get.assert_called_once_with(
+            "http://immich.local/api/duplicates",
+            headers=manager.HEADERS_WITH_CREDENTIALS,
+            verify=False,
+        )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     def test_merge_duplicate_metadata_skips_groups_with_unassigned_faces(self, _mock_logger):
         manager = self._build_manager()
         keeper = {"id": "keeper", "originalFileName": "IMG.JPG", "unassignedFaces": [{"id": "face-1"}]}

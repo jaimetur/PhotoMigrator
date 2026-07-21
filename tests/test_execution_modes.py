@@ -104,6 +104,7 @@ def _base_args():
         "remove-empty-albums": False,
         "remove-duplicates-albums": False,
         "remove-duplicates-assets": False,
+        "use-immich-duplicates-detection": False,
         "duplicate-asset-keeper": "newest",
         "merge-duplicates-albums": False,
         "remove-all-albums": "",
@@ -224,6 +225,39 @@ class TestExecutionModes(unittest.TestCase):
         self.assertIn('remove=[{"id": "older", "uploaded": "2020-01-01T00:00:00Z"}]', preview)
         self.assertIn('"newer": {"tags": ["tag-1"], "favorite": true}', preview)
         self.assertIn('"older": {"albums": ["album-1"], "description": "Older description", "rating": 3}', preview)
+
+    def test_remove_duplicate_assets_uses_immich_native_groups_by_default(self):
+        args = _base_args()
+        args.update({
+            "remove-duplicates-assets": True,
+            "use-immich-duplicates-detection": True,
+            "duplicate-asset-keeper": "better-quality",
+        })
+        duplicate_groups = [[
+            {"id": "small", "originalFileName": "IMG.JPG", "createdAt": "2020-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}},
+            {"id": "large", "originalFileName": "IMG-copy.JPG", "createdAt": "2021-01-01T00:00:00Z", "exifInfo": {"fileSize": 84}},
+        ]]
+        cloud_client = MagicMock()
+        cloud_client.find_duplicate_assets_by_immich_detection.return_value = duplicate_groups
+        cloud_client._select_duplicate_asset_keeper.return_value = duplicate_groups[0][1]
+        cloud_client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
+        cloud_client.remove_duplicates_assets_by_name_and_size.return_value = (1, 1, 0)
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
+            patch.object(execution_modes, "confirm_continue", return_value=True),
+            patch.object(execution_modes, "LOGGER", MagicMock()),
+        ):
+            execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
+
+        cloud_client.find_duplicate_assets_by_immich_detection.assert_called_once_with(log_level=execution_modes.logging.INFO)
+        cloud_client.find_duplicate_assets_by_name_and_size.assert_not_called()
+        cloud_client.remove_duplicates_assets_by_name_and_size.assert_called_once_with(
+            keeper_strategy="better-quality",
+            duplicate_groups=duplicate_groups,
+            log_level=execution_modes.logging.INFO,
+        )
 
     def test_detect_and_run_execution_mode_dispatches_organize_local_folder_by_date(self):
         args = _base_args()

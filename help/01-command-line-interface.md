@@ -440,14 +440,17 @@ If more than one optional arguments are detected, only the first one will be exe
                Requires '--client'.
                Example: --client=synology --remove-duplicates-albums
 -rDupAst     ; --remove-duplicates-assets
-               Remove duplicate assets with the same exact filename and file size.
-               Requires '--client' and '--duplicate-asset-keeper {oldest, newest}'.
-               The keeper selector defaults to 'newest'. Google Photos reports that deletion is unavailable through
-               its public API and makes no changes.
+               Remove duplicate assets. Immich uses its native visually similar duplicate groups by default;
+               other cloud services use exact filename and file size.
+               Requires '--client' and '--duplicate-asset-keeper {better-quality, oldest, newest}'.
+               For Immich, the default keeper is 'better-quality'; other services use 'newest'.
                Example: --client=immich --remove-duplicates-assets --duplicate-asset-keeper newest
--dupKeeper   ; --duplicate-asset-keeper {oldest,newest}
-               Select the asset retained by '--remove-duplicates-assets' using the cloud timestamp.
-               Default: newest.
+-useImmichDupDet ; --use-immich-duplicates-detection=[true,false]
+               Immich only: use native visual duplicate detection instead of exact filename/size grouping.
+               Default: true.
+-dupKeeper   ; --duplicate-asset-keeper {better-quality,oldest,newest}
+               Select the asset retained by '--remove-duplicates-assets'. 'better-quality' uses Immich's
+               suggestion; 'oldest' and 'newest' use the upload timestamp.
 -mDupAlb     ; --merge-duplicates-albums
                Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.
                Requires '--client'.

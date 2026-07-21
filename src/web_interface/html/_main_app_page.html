@@ -621,7 +621,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
-            "remove-duplicates-assets": [{dest: "duplicate-asset-keeper", required: true}],
+            "remove-duplicates-assets": [{dest: "use-immich-duplicates-detection", required: false}, {dest: "duplicate-asset-keeper", required: true}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -1862,10 +1862,17 @@
             input = document.createElement("select");
             input.className = "field__input";
             input.add(new Option("(default)", ""));
-            for (const choice of field.choices) {
+            const choices = field.dest === "duplicate-asset-keeper" && activeModuleTab !== "immich_photos"
+                ? field.choices.filter((choice) => choice !== "better-quality")
+                : field.choices;
+            for (const choice of choices) {
                 input.add(new Option(choice, choice));
             }
-            input.value = persisted === undefined ? "" : String(persisted);
+            const defaultValue = field.dest === "duplicate-asset-keeper" && activeModuleTab === "immich_photos"
+                && uiCheckboxValueForField(getFieldByDest("use-immich-duplicates-detection") || {}, stateValues["use-immich-duplicates-detection"])
+                ? "better-quality"
+                : "";
+            input.value = persisted === undefined ? defaultValue : String(persisted);
         } else if (field.kind === "list") {
             if (field.dest === "albums-folders") {
                 input = document.createElement("input");
@@ -1982,6 +1989,18 @@
             check.checked = uiCheckboxValueForField(field, persisted);
             const syncFlagState = () => {
                 updateStateValueForElement(check);
+                if (field.dest === "use-immich-duplicates-detection") {
+                    const keeperInput = document.querySelector('[data-dest="duplicate-asset-keeper"]');
+                    if (keeperInput) {
+                        if (check.checked) {
+                            keeperInput.value = "better-quality";
+                            stateValues["duplicate-asset-keeper"] = "better-quality";
+                        } else if (keeperInput.value === "better-quality") {
+                            keeperInput.value = "newest";
+                            stateValues["duplicate-asset-keeper"] = "newest";
+                        }
+                    }
+                }
                 queueSaveState();
                 queueCommandPreview();
             };

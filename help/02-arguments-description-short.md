@@ -194,8 +194,9 @@ Following arguments allow you to interact with Google Photos, Synology, Immich, 
 | `-prevAlbAct`,<br>`--preview-album-actions`        | Preview rename/remove/consolidation matches and confirm                                                   |
 | `-rEmpAlb`,<br>`--remove-empty-albums`             | Delete empty albums                                                                                       |
 | `-rDupAlb`,<br>`--remove-duplicates-albums`        | Delete duplicate albums                                                                                   |
-| `-rDupAst`,<br>`--remove-duplicates-assets`        | Delete same-name/same-size duplicate assets; requires `--duplicate-asset-keeper`                          |
-| `-dupKeeper`,<br>`--duplicate-asset-keeper`        | Required keeper selector: `oldest` or `newest` (default: `newest`)                                        |
+| `-rDupAst`,<br>`--remove-duplicates-assets`        | Delete duplicate assets; Immich uses native visual groups by default                                       |
+| `-useImmichDupDet`,<br>`--use-immich-duplicates-detection` | Immich only: use native visual duplicate detection (default: `true`)                              |
+| `-dupKeeper`,<br>`--duplicate-asset-keeper`        | Keeper: `better-quality`, `oldest`, or `newest` (`better-quality` is the Immich default)                 |
 | `-mDupAlb`,<br>`--merge-duplicates-albums`         | Merge duplicate albums                                                                                    |
 | `-rAll`,<br>`--remove-all-assets`                  | Delete all assets and albums (DANGER!)                                                                    |
 | `-rAllAlb`,<br>`--remove-all-albums`               | Delete all albums (assets optional)                                                                       |

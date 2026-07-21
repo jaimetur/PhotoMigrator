@@ -120,6 +120,7 @@ BOOL_VALUE_DESTS = {
     "show-gpth-info",
     "show-gpth-errors",
     "google-process-people",
+    "use-immich-duplicates-detection",
 }
 
 AUTOMATION_DESTS = {
@@ -177,6 +178,7 @@ CLOUD_DESTS = {
     "remove-empty-albums",
     "remove-duplicates-albums",
     "remove-duplicates-assets",
+    "use-immich-duplicates-detection",
     "merge-duplicates-albums",
     # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
@@ -328,7 +330,10 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "remove-albums-assets", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
-        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
+        "remove-duplicates-assets": [
+            {"dest": "use-immich-duplicates-detection", "required": False},
+            {"dest": "duplicate-asset-keeper", "required": True},
+        ],
     },
     "nextcloud_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
