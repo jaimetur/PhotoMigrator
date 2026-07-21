@@ -783,6 +783,22 @@ body {
     flex-wrap: wrap;
 }
 
+.hero.panel--collapsed {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 14px 22px;
+}
+
+.hero.panel--collapsed .hero__collapse-content,
+.hero.panel--collapsed .hero__logo {
+    display: none;
+}
+
+.hero__collapse-btn {
+    top: 12px;
+    right: 12px;
+}
+
 .hero__doc-btn {
     border-color: var(--hero-doc-border);
     background: var(--hero-doc-bg);

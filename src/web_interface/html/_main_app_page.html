@@ -9,37 +9,42 @@
 </head>
 <body>
 <main class="page">
-    <header class="hero">
+    <header class="hero" data-panel-id="header-panel">
         <div class="hero__content">
             <div class="hero__heading">
                 <h1 class="hero__title">PhotoMigrator</h1>
                 <div class="hero__badge">{{ tool_version }} ({{ tool_date }})</div>
             </div>
-            <h2 class="hero__subtitle">Web Interface for CLI Execution</h2>
-            <p>Migrate your photos between different cloud services. Process your Google Photos Takeout to fix metadata. Manage your photo library.</p>
-            <div class="hero__session">
-                <span id="session-user-label" class="hero__session-user">User: {{ username }} ({{ role }})</span>
-                {% if is_admin %}
-                <a id="admin-link" href="/admin" target="_blank" rel="noopener noreferrer" class="ghost-btn hero__doc-btn hero__session-btn hero__session-btn--admin">Admin Panel</a>
-                {% endif %}
-                <button type="button" id="logout-btn" class="ghost-btn hero__doc-btn hero__session-btn hero__session-btn--logout">Logout</button>
-            </div>
-            <div class="hero__docs">
-                <button type="button" id="open-readme-btn" class="ghost-btn hero__doc-btn" title="Open Readme">
-                    📝 Readme
-                </button>
-                <button type="button" id="open-changelog-btn" class="ghost-btn hero__doc-btn" title="Open Release Notes">
-                    📜 Release Notes
-                </button>
-                <button type="button" id="open-roadmap-btn" class="ghost-btn hero__doc-btn" title="Open Roadmap">
-                    🗺️ Roadmap
-                </button>
-                <button type="button" id="open-help-btn" class="ghost-btn hero__doc-btn" title="Open Help">
-                    📚 Help
-                </button>
+            <div class="hero__collapse-content">
+                <h2 class="hero__subtitle">Web Interface for CLI Execution</h2>
+                <p>Migrate your photos between different cloud services. Process your Google Photos Takeout to fix metadata. Manage your photo library.</p>
+                <div class="hero__session">
+                    <span id="session-user-label" class="hero__session-user">User: {{ username }} ({{ role }})</span>
+                    {% if is_admin %}
+                    <a id="admin-link" href="/admin" target="_blank" rel="noopener noreferrer" class="ghost-btn hero__doc-btn hero__session-btn hero__session-btn--admin">Admin Panel</a>
+                    {% endif %}
+                    <button type="button" id="logout-btn" class="ghost-btn hero__doc-btn hero__session-btn hero__session-btn--logout">Logout</button>
+                </div>
+                <div class="hero__docs">
+                    <button type="button" id="open-readme-btn" class="ghost-btn hero__doc-btn" title="Open Readme">
+                        📝 Readme
+                    </button>
+                    <button type="button" id="open-changelog-btn" class="ghost-btn hero__doc-btn" title="Open Release Notes">
+                        📜 Release Notes
+                    </button>
+                    <button type="button" id="open-roadmap-btn" class="ghost-btn hero__doc-btn" title="Open Roadmap">
+                        🗺️ Roadmap
+                    </button>
+                    <button type="button" id="open-help-btn" class="ghost-btn hero__doc-btn" title="Open Help">
+                        📚 Help
+                    </button>
+                </div>
             </div>
         </div>
         <img class="hero__logo" src="/assets/logos/logo_17_1024x1024.png" alt="PhotoMigrator logo">
+        <button type="button" class="collapse-btn hero__collapse-btn" data-collapse-target="header-panel" aria-label="Collapse header">
+            <span class="collapse-btn__icon">▲</span>
+        </button>
     </header>
 
     <div class="panel-shell{% if active_page != 'configuration' %} page-panel-hidden{% endif %}">
@@ -3742,7 +3747,7 @@
     }
 
     function applyPanelCollapseState() {
-        document.querySelectorAll(".panel[data-panel-id]").forEach((panel) => {
+        document.querySelectorAll("[data-panel-id]").forEach((panel) => {
             const panelId = panel.dataset.panelId;
             const collapsed = Boolean(uiState?.collapsed_panels?.[panelId]);
             panel.classList.toggle("panel--collapsed", collapsed);
