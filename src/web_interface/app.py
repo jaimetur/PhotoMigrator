@@ -2249,6 +2249,7 @@ PROGRESS_THEN_INNER_STEP_RE = re.compile(
     r"^(.*?\d+/\d+\s+\d+(?:\.\d+)?%)\s+(\[\s*[A-Z]+\s*\]\s*\[Step\s+\d+/\d+\].*)$",
     re.IGNORECASE,
 )
+INPUT_PROMPT_RE = re.compile(r"(?:do you want to continue\?|enter\s+[^\r\n:]+:\s*)$", re.IGNORECASE)
 
 
 def _create_job_output_file() -> Path:
@@ -2309,7 +2310,7 @@ def _extract_progress_key(line: str) -> str | None:
 
 
 def _extract_orphan_log_level_prefix(line: str) -> str:
-    stripped = str(line or "").strip()
+    stripped = _strip_ansi(line).strip()
     if not stripped:
         return ""
     match = ORPHAN_LOG_LEVEL_LINE_RE.fullmatch(stripped)
@@ -2317,14 +2318,14 @@ def _extract_orphan_log_level_prefix(line: str) -> str:
 
 
 def _extract_leading_log_level_prefix(line: str) -> str:
-    match = LOG_LEVEL_PREFIX_RE.match(str(line or "").lstrip())
+    match = LOG_LEVEL_PREFIX_RE.match(_strip_ansi(line).lstrip())
     if not match:
         return ""
     return f"{match.group(1).upper():<8}: "
 
 
 def _strip_leading_log_level_prefix(line: str) -> str:
-    return LOG_LEVEL_PREFIX_RE.sub("", str(line or "").lstrip(), count=1)
+    return LOG_LEVEL_PREFIX_RE.sub("", _strip_ansi(line).lstrip(), count=1)
 
 
 def _extract_structured_context_prefix(line: str) -> str:
@@ -2343,7 +2344,7 @@ def _starts_with_inner_step_info(line: str) -> bool:
 
 
 def _has_log_level_prefix(line: str) -> bool:
-    return bool(LOG_LEVEL_PREFIX_RE.match(str(line or "").lstrip()))
+    return bool(LOG_LEVEL_PREFIX_RE.match(_strip_ansi(line).lstrip()))
 
 
 def _looks_like_progress_or_progress_followup(line: str) -> bool:
@@ -2371,6 +2372,10 @@ def _looks_like_progress_or_progress_followup(line: str) -> bool:
     if "Pending before final flush" in candidate:
         return True
     return False
+
+
+def _looks_like_input_prompt(line: str) -> bool:
+    return bool(INPUT_PROMPT_RE.search(_strip_ansi(str(line or "")).rstrip()))
 
 
 def _split_trailing_orphan_level_prefix_from_progress_line(line: str) -> tuple[str, str]:
@@ -2447,6 +2452,9 @@ def _append_job_output(job: JobData, text: str) -> None:
             current += ch
     job.partial_line = current
     output_changed = (job.partial_line != previous_partial)
+    if _looks_like_input_prompt(job.partial_line):
+        job.awaiting_confirmation = True
+        output_changed = True
 
     persisted_chunks: List[str] = []
     for line in completed:
@@ -2655,6 +2663,8 @@ def _resolve_visible_partial_output_line(job: JobData) -> str:
     partial = partial.rstrip("\n")
     if not partial.strip():
         return ""
+    if _looks_like_input_prompt(partial):
+        return partial
     if not _looks_like_progress_or_progress_followup(partial):
         return ""
     if _extract_orphan_log_level_prefix(partial):
@@ -2672,7 +2682,7 @@ def _resolve_visible_partial_output_line(job: JobData) -> str:
 
 
 def _should_persist_visible_output_line(raw_line: str) -> bool:
-    line = str(raw_line or "")
+    line = _strip_ansi(raw_line)
     visible = line.rstrip("\n").strip()
     if not visible:
         return False

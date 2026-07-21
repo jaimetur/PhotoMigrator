@@ -279,6 +279,14 @@ class ClassSynologyPhotos(BaseMediaClient):
         if owner_user_id and current_owner_user_id and owner_user_id == current_owner_user_id:
             return "owned_shared_space" if "share_with_me" in category else "owned_personal"
 
+        if "share_with_me" in category:
+            # An album returned by NormalAlbum.list can lack sharing metadata.
+            # Once Album.get identifies its explicit shared namespace, do not
+            # let that earlier provisional owned scope mask the true context.
+            if fallback_scope == "shared_with_me" and permission_role == "full":
+                return "owned_shared_space"
+            return "shared_with_me"
+
         if fallback_scope in {"owned", "owned_personal"}:
             return "owned_personal"
         if fallback_scope == "owned_shared_space":
@@ -294,13 +302,15 @@ class ClassSynologyPhotos(BaseMediaClient):
         if fallback_scope == "shared_with_me":
             return "shared_with_me"
 
-        if "share_with_me" in category:
-            return "shared_with_me"
         return "owned_personal"
 
     def _hydrate_album_payload(self, album, fallback_scope=None):
         normalized_album = self.normalize_album_payload(album)
-        scope = self._infer_album_scope(normalized_album, fallback_scope=fallback_scope)
+        inherited_scope = normalized_album.get("_synology_album_scope")
+        scope = self._infer_album_scope(
+            normalized_album,
+            fallback_scope=fallback_scope or inherited_scope,
+        )
         normalized_album["_synology_album_scope"] = scope
         owner_user_id = self._extract_album_owner_user_id(normalized_album)
         if owner_user_id is not None:
@@ -604,8 +614,6 @@ class ClassSynologyPhotos(BaseMediaClient):
             if not isinstance(album, dict):
                 return album
             album = self._hydrate_album_payload(album)
-            if not self.is_shared_with_me_album(album):
-                return album
             if str(album.get("passphrase") or "").strip():
                 return album
 
@@ -625,7 +633,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 candidate_album = self._fetch_album_details(album_id=album_id, log_level=log_level)
                 if isinstance(candidate_album, dict):
                     album.update(candidate_album)
-                    album = self._hydrate_album_payload(album, fallback_scope="shared_with_me")
+                    album = self._hydrate_album_payload(album, fallback_scope=album.get("_synology_album_scope"))
 
                 resolved_passphrase = self._extract_passphrase_from_album_payload(candidate_album or {})
                 if resolved_passphrase:
@@ -789,7 +797,9 @@ class ClassSynologyPhotos(BaseMediaClient):
                 if use_OTP:
                     LOGGER.warning(f"SYNOLOGY OTP TOKEN required (flag -OTP, --one-time-password detected). OTP Token will be requested on screen...")
                     OTP = input(f"{MSG_TAGS['INFO']}Enter SYNOLOGY OTP Token: ")
-                    params.update({"otp_code": {OTP}})
+                    if os.environ.get("PHOTOMIGRATOR_WEB_MODE"):
+                        print()
+                    params.update({"otp_code": OTP})
                     params.update({"enable_device_token": "yes"})
                     params.update({"device_name": "PhotoMigrator"})
 
@@ -1174,8 +1184,17 @@ class ClassSynologyPhotos(BaseMediaClient):
                     deduped_albums[album_id] = album
                     ordered_ids.append(album_id)
                     continue
-                if self.is_album_owned_by_user(album) and not self.is_album_owned_by_user(existing):
-                    deduped_albums[album_id] = album
+                # The NormalAlbum response and normal_share_with_me response
+                # can represent the same album. The latter carries the
+                # passphrase and sharing metadata required to list a true
+                # shared album, so merge the payloads instead of dropping it.
+                merged_album = dict(existing)
+                merged_album.update(album)
+                existing_additional = dict(existing.get("additional") or {})
+                existing_additional.update(album.get("additional") or {})
+                if existing_additional:
+                    merged_album["additional"] = existing_additional
+                deduped_albums[album_id] = self._hydrate_album_payload(merged_album)
 
             albums_filtered = []
             for album_id in ordered_ids:
@@ -1728,9 +1747,18 @@ class ClassSynologyPhotos(BaseMediaClient):
         common_v4 = '["thumbnail","resolution","orientation","video_convert","video_meta","address"]'
         common_v7 = '["thumbnail","resolution","orientation","video_convert","video_meta","provider_user_id"]'
         variants = []
-
-        if album_scope in {"owned_shared_space", "shared_with_me"}:
-            variants.append({
+        browser_passphrase = json.dumps(str(album_passphrase).strip().strip('"')) if album_passphrase else ""
+        shared_space_variants = [
+            {
+                "api": "SYNO.FotoTeam.Browse.Item",
+                "endpoint_api": "SYNO.FotoTeam.Browse.Item",
+                "prefer_post": True,
+                "version": "7",
+                "method": "list",
+                "album_id": album_id,
+                "additional": '["thumbnail","resolution","orientation","video_convert","video_meta","address","favorite"]',
+            },
+            {
                 "api": "SYNO.Foto.Browse.Item",
                 "version": "7",
                 "method": "list",
@@ -1738,7 +1766,24 @@ class ClassSynologyPhotos(BaseMediaClient):
                 "sort_by": "takentime",
                 "sort_direction": "asc",
                 "additional": common_v7,
-            })
+            },
+        ]
+
+        is_shared_scope = album_scope in {"owned_shared_space", "shared_with_me"}
+        if is_shared_scope:
+            if album_scope == "shared_with_me" and browser_passphrase:
+                # True shared albums are listed by the browser through their
+                # passphrase alone, without an album_id context.
+                variants.append({
+                    "api": "SYNO.Foto.Browse.Item",
+                    "version": "7",
+                    "method": "list",
+                    "passphrase": browser_passphrase,
+                    "sort_by": "takentime",
+                    "sort_direction": "asc",
+                    "additional": common_v7,
+                })
+            variants.extend(shared_space_variants)
 
         variants.append({
             "api": "SYNO.Foto.Browse.Item",
@@ -1747,6 +1792,12 @@ class ClassSynologyPhotos(BaseMediaClient):
             "album_id": album_id,
             "additional": common_v4,
         })
+
+        # Some DSM responses omit the sharing category even for an album
+        # received from another account. Retry its Shared Space APIs after the
+        # legacy personal endpoint rejects that ambiguous album with code 609.
+        if not is_shared_scope:
+            variants.extend(shared_space_variants)
 
         if album_scope == "shared_with_me" and album_passphrase:
             variants.append({
@@ -1797,8 +1848,10 @@ class ClassSynologyPhotos(BaseMediaClient):
                     params["offset"] = offset
                     params["limit"] = limit
                     try:
-                        prefer_post = album_scope in {"owned_shared_space", "shared_with_me"}
-                        resp = self._request_entry_api(url, params, headers=headers, prefer_post=prefer_post)
+                        prefer_post = bool(params.pop("prefer_post", False)) or album_scope in {"owned_shared_space", "shared_with_me"}
+                        endpoint_api = params.pop("endpoint_api", None)
+                        request_url = f"{url}/{endpoint_api}" if endpoint_api else url
+                        resp = self._request_entry_api(request_url, params, headers=headers, prefer_post=prefer_post)
                         data = resp.json()
                         if not data.get("success"):
                             failure_messages.append(f"variant={params.get('version')}/{params.get('method')} response={data}")
@@ -1845,7 +1898,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             else:
                 LOGGER.error(f"Failed to list photos in the album ID={album_id}")
             if failure_messages:
-                LOGGER.debug("Album list variants tried: " + " | ".join(failure_messages))
+                LOGGER.error("Album list variants tried: " + " | ".join(failure_messages))
             return []
 
     def get_all_assets_from_album(self, album_id, album_name=None, type="all", album_scope="owned_personal", album_expected_count=None, log_level=None):

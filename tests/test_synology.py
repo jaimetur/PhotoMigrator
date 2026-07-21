@@ -472,6 +472,7 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
         self.assertEqual(hydrated["_synology_album_scope"], "owned_shared_space")
         self.assertFalse(ClassSynologyPhotos.is_shared_album(hydrated))
+        self.assertEqual(manager.CURRENT_OWNER_USER_ID, "1")
         self.assertTrue(ClassSynologyPhotos.is_album_owned_by_user(hydrated))
 
     def test_hydrate_album_payload_reclassifies_shared_space_album_with_top_level_sharing_info(self):
@@ -491,7 +492,20 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
         self.assertEqual(hydrated["_synology_album_scope"], "owned_shared_space")
         self.assertFalse(ClassSynologyPhotos.is_shared_album(hydrated))
-        self.assertEqual(manager.CURRENT_OWNER_USER_ID, "1")
+
+    def test_hydrate_album_payload_preserves_explicit_shared_scope_without_category(self):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.CURRENT_OWNER_USER_ID = None
+
+        hydrated = manager._hydrate_album_payload({
+            "id": "2314",
+            "albumName": "Shared from another user",
+            "passphrase": "LnCMKrSlq",
+            "_synology_album_scope": "shared_with_me",
+        })
+
+        self.assertEqual(hydrated["_synology_album_scope"], "shared_with_me")
+        self.assertTrue(ClassSynologyPhotos.is_shared_with_me_album(hydrated))
 
     def test_hydrate_album_payload_learns_current_owner_from_full_shared_space_album(self):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
@@ -564,7 +578,29 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertEqual(enriched.get("passphrase"), "shared-passphrase")
 
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
-    def test_get_all_assets_from_album_shared_scopes_listing_by_album_id(self, _mock_logger):
+    def test_ensure_shared_album_access_reclassifies_ambiguous_normal_album_from_details(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.CURRENT_OWNER_USER_ID = None
+        manager.shared_album_access_cache = {}
+        manager._fetch_album_details = MagicMock(return_value={
+            "id": "shared-1",
+            "category": "normal_share_with_me",
+            "passphrase": "shared-passphrase",
+            "sharing_info": {"permission": [{"role": "editor"}]},
+        })
+
+        album = {
+            "id": "shared-1",
+            "albumName": "Album initially returned as normal",
+            "_synology_album_scope": "owned_personal",
+        }
+        enriched = manager.ensure_shared_album_access(album, log_level=logging.INFO)
+
+        self.assertEqual(enriched["_synology_album_scope"], "shared_with_me")
+        self.assertEqual(enriched["passphrase"], "shared-passphrase")
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_get_all_assets_from_album_shared_uses_browser_passphrase_context(self, _mock_logger):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
         manager.SYNOLOGY_URL = "http://synology.local"
         manager.SYNO_TOKEN_HEADER = {}
@@ -593,11 +629,12 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
         self.assertEqual([asset["id"] for asset in assets], ["asset-1"])
         params = manager.SESSION.post.call_args.kwargs["data"]
-        self.assertEqual(params["album_id"], "album-shared-1")
-        self.assertIn(params["version"], {"4", "7"})
+        self.assertEqual(params["version"], "7")
+        self.assertEqual(params["passphrase"], '"shared-passphrase"')
+        self.assertNotIn("album_id", params)
 
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
-    def test_get_all_assets_from_album_uses_browser_like_shared_space_variant_first(self, _mock_logger):
+    def test_get_all_assets_from_album_uses_team_shared_space_variant_first(self, _mock_logger):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
         manager.SYNOLOGY_URL = "http://synology.local"
         manager.SYNO_TOKEN_HEADER = {}
@@ -623,7 +660,12 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         )
 
         self.assertEqual([asset["id"] for asset in assets], ["6083"])
+        self.assertEqual(
+            manager.SESSION.post.call_args.args[0],
+            "http://synology.local/webapi/entry.cgi/SYNO.FotoTeam.Browse.Item",
+        )
         params = manager.SESSION.post.call_args.kwargs["data"]
+        self.assertEqual(params["api"], "SYNO.FotoTeam.Browse.Item")
         self.assertEqual(params["version"], "7")
         self.assertEqual(params["album_id"], "43")
         self.assertNotIn("passphrase", params)
@@ -658,8 +700,45 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertEqual(manager.SESSION.post.call_count, 2)
         first_params = manager.SESSION.post.call_args_list[0].kwargs["data"]
         second_params = manager.SESSION.post.call_args_list[1].kwargs["data"]
+        self.assertEqual(first_params["api"], "SYNO.FotoTeam.Browse.Item")
+        self.assertEqual(second_params["api"], "SYNO.Foto.Browse.Item")
         self.assertEqual(first_params["version"], "7")
-        self.assertEqual(second_params["version"], "4")
+        self.assertEqual(second_params["version"], "7")
+
+    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
+    def test_get_all_assets_from_ambiguous_album_retries_team_endpoint_after_error_609(self, _mock_logger):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.SYNOLOGY_URL = "http://synology.local"
+        manager.SYNO_TOKEN_HEADER = {}
+        manager.SESSION = MagicMock()
+        manager.login = lambda log_level=None: True
+        manager.filter_assets = lambda assets, log_level=None: assets
+
+        rejected_response = MagicMock()
+        rejected_response.json.return_value = {"success": False, "error": {"code": 609}}
+        team_response = MagicMock()
+        team_response.json.return_value = {
+            "success": True,
+            "data": {"list": [{"id": "shared-asset", "filename": "shared.jpg", "type": "PHOTO"}]},
+        }
+        manager.SESSION.get.return_value = rejected_response
+        manager.SESSION.post.return_value = team_response
+
+        assets = manager.get_all_assets_from_album(
+            album_id="ambiguous-43",
+            album_name="Shared from another account",
+            album_scope="owned_personal",
+            album_expected_count=1,
+            log_level=logging.INFO,
+        )
+
+        self.assertEqual([asset["id"] for asset in assets], ["shared-asset"])
+        self.assertEqual(manager.SESSION.get.call_args.kwargs["params"]["version"], "4")
+        self.assertEqual(
+            manager.SESSION.post.call_args.args[0],
+            "http://synology.local/webapi/entry.cgi/SYNO.FotoTeam.Browse.Item",
+        )
+        self.assertEqual(manager.SESSION.post.call_args.kwargs["data"]["api"], "SYNO.FotoTeam.Browse.Item")
 
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
     def test_ensure_album_runtime_details_populates_missing_item_count_from_album_get(self, _mock_logger):
@@ -771,10 +850,12 @@ class TestSynologyPhotosUnit(unittest.TestCase):
 
     def test_get_albums_including_shared_with_user_prefers_owned_album_scope(self):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.CURRENT_OWNER_USER_ID = "1"
         manager.get_albums_owned_by_user = MagicMock(return_value=[
             {
                 "id": "album-1",
                 "albumName": "Summer",
+                "owner_user_id": 1,
                 "additional": {"sharing_info": {"permission": [{"role": "view"}]}},
                 "_synology_album_scope": "owned",
             }
@@ -808,6 +889,36 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         self.assertEqual(owned_call.args[0], "album-1")
         shared_call = manager.get_all_assets_from_album_shared.call_args
         self.assertEqual(shared_call.args[0], "album-2")
+
+    def test_get_albums_including_shared_with_user_preserves_shared_passphrase_on_duplicate_id(self):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.CURRENT_OWNER_USER_ID = "1"
+        manager.get_albums_owned_by_user = MagicMock(return_value=[
+            {"id": "album-shared", "albumName": "Shared", "_synology_album_scope": "owned_personal"},
+        ])
+        manager._list_shared_with_me_albums = MagicMock(return_value=[
+            {
+                "id": "album-shared",
+                "albumName": "Shared",
+                "category": "normal_share_with_me",
+                "owner_user_id": 3,
+                "passphrase": "LnCMKrSlq",
+                "_synology_album_scope": "shared_with_me",
+            },
+        ])
+        manager.ensure_shared_album_access = lambda album, log_level=None: album
+        manager._ensure_album_runtime_details = lambda album, log_level=None: album
+        manager.get_all_assets_from_album = MagicMock(return_value=[])
+        manager.get_all_assets_from_album_shared = MagicMock(return_value=[{"id": "shared-asset"}])
+
+        with patch("Features.SynologyPhotos.ClassSynologyPhotos.has_any_filter", return_value=True):
+            albums = manager.get_albums_including_shared_with_user(filter_assets=True, log_level=logging.INFO)
+
+        self.assertEqual([album["id"] for album in albums], ["album-shared"])
+        manager.get_all_assets_from_album.assert_not_called()
+        shared_call = manager.get_all_assets_from_album_shared.call_args
+        self.assertEqual(shared_call.kwargs["album_passphrase"], "LnCMKrSlq")
+        self.assertEqual(shared_call.kwargs["album_scope"], "shared_with_me")
 
 
 if __name__ == "__main__":

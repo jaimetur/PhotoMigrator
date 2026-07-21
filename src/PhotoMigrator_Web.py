@@ -6,7 +6,7 @@ import uvicorn
 
 
 THIS_FILE = Path(__file__).resolve()
-SRC_ROOT = THIS_FILE.parents[1]
+SRC_ROOT = THIS_FILE.parent
 PROJECT_ROOT = SRC_ROOT.parent
 LOCAL_WEB_ROOT = PROJECT_ROOT / ".web-dev"
 LOCAL_CONFIG_DIR = LOCAL_WEB_ROOT / "config"

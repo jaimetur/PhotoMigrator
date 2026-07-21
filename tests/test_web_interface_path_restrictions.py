@@ -546,6 +546,22 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(snapshot["entries"][0]["line_id"], ops[0]["line_id"])
         self.assertEqual(snapshot["cursor"], ops[0]["seq"])
 
+    def test_web_job_exposes_otp_prompt_before_a_newline_is_written(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = Mock()
+        fake_process.stdin.closed = False
+        fake_process.returncode = None
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="synology_photos", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(job, "INFO    : Enter SYNOLOGY OTP Token: ")
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertTrue(job.awaiting_confirmation)
+        self.assertEqual(lines, ["INFO    : Enter SYNOLOGY OTP Token: "])
+
     def test_web_job_output_records_incremental_replace_ops_for_progress_updates(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")
@@ -615,7 +631,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
         try:
             job.partial_line = f"{self.web_app.WEB_DASHBOARD_SNAPSHOT_PREFIX}{{\"pulledAssets\":321"
-            lines = self.web_app._read_job_output_lines_for_api(job)
+            lines = [self.web_app._strip_ansi(line) for line in self.web_app._read_job_output_lines_for_api(job)]
         finally:
             self.web_app._close_job_output_file(job)
 
@@ -747,6 +763,48 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
 
         self.assertEqual(lines, ["WARNING : Real warning message"])
         self.assertEqual(persisted, "WARNING : Real warning message\n")
+
+    def test_ansi_colored_orphan_info_prefix_is_dropped(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="automatic_migration", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(job, "\x1b[97mINFO    : \x1b[0m\nINFO    : Downloading Albums: 100%|##########| 1/1\n")
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(lines, ["INFO    : Downloading Albums: 100%|##########| 1/1"])
+
+    def test_ansi_colored_nested_progress_replaces_each_progress_line(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="synology_photos", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : Downloading Albums:   0%|          | 0/2 [00:00<?, ? albums/s]\n"
+                "INFO    :    Downloading 'Jaime' Assets:   0%|          | 0/1 [00:00<?, ? assets/s]\n"
+                "\x1b[97mINFO    : \x1b[0m\n"
+                "\x1b[97mINFO    :    Downloading 'Jaime' Assets: 100%|##########| 1/1 [00:00<00:00, 9.86 assets/s]\x1b[0m\n"
+                "\x1b[97mINFO    : \x1b[0m\n"
+                "\x1b[97mINFO    : Downloading Albums: 100%|##########| 2/2 [00:01<00:00, 1.73 albums/s]\x1b[0m\n",
+            )
+            lines = [self.web_app._strip_ansi(line) for line in self.web_app._read_job_output_lines_for_api(job)]
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            [
+                "INFO    : Downloading Albums: 100%|##########| 2/2 [00:01<00:00, 1.73 albums/s]",
+                "INFO    :    Downloading 'Jaime' Assets: 100%|##########| 1/1 [00:00<00:00, 9.86 assets/s]",
+            ],
+        )
 
     def test_progress_line_is_split_before_following_info_prefix(self):
         fake_process = Mock()
