@@ -65,6 +65,7 @@ class ClassImmichPhotos(BaseMediaClient):
     DUPLICATE_METADATA_REVIEW_WORKERS = 100
     IMMICH_AUTH_TIMEOUT = (10, 30)
     IMMICH_DUPLICATES_TIMEOUT = (10, 300)
+    IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE = 100
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
     DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
@@ -2517,7 +2518,6 @@ class ClassImmichPhotos(BaseMediaClient):
         """Resolve native duplicate groups through Immich's server-side resolver."""
         groups_payload = []
         skipped_groups = 0
-        removed_assets = 0
         for group in tqdm(
             duplicate_groups,
             desc=f"{MSG_TAGS['INFO']}Preparing Immich duplicate resolution",
@@ -2546,37 +2546,116 @@ class ClassImmichPhotos(BaseMediaClient):
                 "duplicateId": duplicate_id,
                 "keepAssetIds": [keeper_id],
                 "trashAssetIds": redundant_ids,
+                "_redundant_count": len(redundant_ids),
             })
-            removed_assets += len(redundant_ids)
 
         if not groups_payload:
             return 0, len(duplicate_groups), skipped_groups
-        with tqdm(
-            total=1,
-            desc=(
-                f"{MSG_TAGS['INFO']}Immich resolving {len(groups_payload)} duplicate group(s) "
-                "server-side"
-            ),
-            unit=" batch",
-        ) as progress_bar:
+
+        def submit_batch(batch):
+            request_groups = [
+                {
+                    "duplicateId": item["duplicateId"],
+                    "keepAssetIds": item["keepAssetIds"],
+                    "trashAssetIds": item["trashAssetIds"],
+                }
+                for item in batch
+            ]
             try:
                 response = requests.post(
                     f"{self.IMMICH_URL}/api/duplicates/resolve",
                     headers=self.HEADERS_WITH_CREDENTIALS,
-                    data=json.dumps({"groups": groups_payload}),
+                    data=json.dumps({"groups": request_groups}),
                     verify=False,
                     timeout=self.IMMICH_DUPLICATES_TIMEOUT,
                 )
                 response.raise_for_status()
+                response_payload = response.json()
             except requests.RequestException as error:
-                LOGGER.error(f"Immich native duplicate resolution failed: {error}")
-                return 0, len(duplicate_groups), skipped_groups + len(groups_payload)
-            progress_bar.update(1)
+                response_text = str(getattr(getattr(error, "response", None), "text", "") or "").strip()
+                detail = f" Response: {response_text[:1000]}" if response_text else ""
+                return None, f"{error}{detail}"
+            except ValueError as error:
+                return None, f"Immich returned invalid JSON: {error}"
+
+            if not isinstance(response_payload, list):
+                return None, "Immich returned an unexpected duplicate-resolution response."
+            return response_payload, ""
+
+        def record_batch_result(batch, response_payload):
+            response_by_id = {
+                str(item.get("id") or "").strip(): item
+                for item in response_payload if isinstance(item, dict)
+            }
+            successful_assets = 0
+            failed_groups = []
+            for item in batch:
+                duplicate_id = item["duplicateId"]
+                result = response_by_id.get(duplicate_id) or {}
+                if result.get("success") is True:
+                    successful_assets += int(item["_redundant_count"])
+                else:
+                    failed_groups.append((duplicate_id, result.get("errorMessage") or result.get("error") or "no result"))
+            return successful_assets, failed_groups
+
+        removed_assets = 0
+        failed_resolution_groups = 0
+        with tqdm(
+            total=len(groups_payload),
+            desc=(
+                f"{MSG_TAGS['INFO']}Immich resolving {len(groups_payload)} duplicate group(s) "
+                "server-side"
+            ),
+            unit=" groups",
+        ) as progress_bar:
+            for batch_start in range(0, len(groups_payload), self.IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE):
+                batch = groups_payload[batch_start:batch_start + self.IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE]
+                response_payload, error_detail = submit_batch(batch)
+                if response_payload is None and len(batch) > 1:
+                    LOGGER.warning(
+                        f"Immich rejected duplicate-resolution batch {batch_start + 1}-"
+                        f"{batch_start + len(batch)}: {error_detail}. Retrying its groups individually."
+                    )
+                    for item in batch:
+                        single_response, single_error = submit_batch([item])
+                        if single_response is None:
+                            failed_resolution_groups += 1
+                            LOGGER.error(
+                                f"Immich native duplicate resolution failed for group "
+                                f"{item['duplicateId']}: {single_error}"
+                            )
+                        else:
+                            removed_count, failures = record_batch_result([item], single_response)
+                            removed_assets += removed_count
+                            if failures:
+                                failed_resolution_groups += 1
+                                LOGGER.warning(
+                                    f"Immich did not resolve duplicate group {item['duplicateId']}: "
+                                    f"{failures[0][1]}."
+                                )
+                        progress_bar.update(1)
+                    continue
+                if response_payload is None:
+                    failed_resolution_groups += len(batch)
+                    LOGGER.error(
+                        f"Immich native duplicate resolution failed for batch {batch_start + 1}-"
+                        f"{batch_start + len(batch)}: {error_detail}"
+                    )
+                else:
+                    removed_count, failures = record_batch_result(batch, response_payload)
+                    removed_assets += removed_count
+                    failed_resolution_groups += len(failures)
+                    if failures:
+                        LOGGER.warning(
+                            f"Immich did not resolve {len(failures)} duplicate group(s) in batch "
+                            f"{batch_start + 1}-{batch_start + len(batch)}."
+                        )
+                progress_bar.update(len(batch))
         LOGGER.info(
             f"Immich native duplicate resolution completed: groups={len(groups_payload)}, "
-            f"assets sent to trash={removed_assets}."
+            f"groups_failed={failed_resolution_groups}, assets sent to trash={removed_assets}."
         )
-        return removed_assets, len(duplicate_groups), skipped_groups
+        return removed_assets, len(duplicate_groups), skipped_groups + failed_resolution_groups
 
     def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
         """Remove duplicate assets while preserving metadata on one selected keeper."""

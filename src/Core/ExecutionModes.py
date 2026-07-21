@@ -1236,7 +1236,7 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     LOGGER.info("                  FINAL SUMMARY:                  ")
     LOGGER.info("==================================================")
     LOGGER.info(f"Duplicate Groups Found                  : {groups_found}")
-    LOGGER.info(f"Duplicate Groups Skipped (metadata)    : {groups_skipped}")
+    LOGGER.info(f"Duplicate Groups Skipped / Failed       : {groups_skipped}")
     LOGGER.info(f"Duplicate Assets Removed                : {removed}")
     LOGGER.info(f"Total time elapsed                      : {elapsed}")
     LOGGER.info("==================================================")

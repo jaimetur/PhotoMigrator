@@ -515,6 +515,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
         manager = self._build_manager()
         response = MagicMock()
         response.raise_for_status.return_value = None
+        response.json.return_value = [{"id": "group-1", "success": True}]
         mock_post.return_value = response
         duplicate_groups = [[
             {"id": "small", "_immich_duplicate_id": "group-1", "exifInfo": {"fileSize": 1}},
