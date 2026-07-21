@@ -293,6 +293,7 @@ class TestExecutionModes(unittest.TestCase):
             execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
 
         cloud_client.find_duplicate_assets_by_immich_detection.assert_called_once_with(log_level=execution_modes.logging.INFO)
+        cloud_client.hydrate_duplicate_groups_metadata.assert_not_called()
         cloud_client.resolve_duplicate_asset_groups_with_immich.assert_called_once_with(
             duplicate_groups=duplicate_groups,
             keeper_strategy="better-quality",

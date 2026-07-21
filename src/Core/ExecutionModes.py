@@ -988,8 +988,8 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     if normalized_client == "immich":
         if use_immich_detection:
             LOGGER.warning(
-                "Immich native duplicate detection is enabled. Its visually similar groups are used, while "
-                "PhotoMigrator retains the selected keeper strategy and merges metadata before deletion."
+                "Immich native duplicate detection is enabled. Its visually similar groups are used while "
+                "PhotoMigrator retains the selected keeper strategy."
             )
         else:
             LOGGER.warning(
@@ -1019,19 +1019,26 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
                     log_level=logging.INFO,
                 )
-                LOGGER.info(
-                    "Loading complete metadata for each duplicate candidate before confirmation. "
-                    "This can take time, but the review list will show the metadata that is preserved."
-                )
-                duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
-                    duplicate_groups,
-                    log_level=logging.INFO,
-                )
-                if not duplicate_groups:
-                    LOGGER.warning(
-                        "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
+                if use_immich_deletion:
+                    LOGGER.info(
+                        "Using the metadata returned by Immich duplicate detection for the confirmation preview. "
+                        "Complete per-asset and per-album hydration is skipped because Immich's native resolver "
+                        "performs the merge, avoiding two extra API requests for every duplicate candidate."
                     )
-                    return
+                else:
+                    LOGGER.info(
+                        "Loading complete metadata for each duplicate candidate before confirmation. "
+                        "This can take time, but the review list will show the metadata that is preserved."
+                    )
+                    duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
+                        duplicate_groups,
+                        log_level=logging.INFO,
+                    )
+                    if not duplicate_groups:
+                        LOGGER.warning(
+                            "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
+                        )
+                        return
             else:
                 metadata_display_names = {}
             LOGGER.info("Duplicate asset groups found:")
