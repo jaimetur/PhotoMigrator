@@ -3160,8 +3160,8 @@ if TEXTUAL_AVAILABLE:
             if kind == "flag":
                 return [self.build_boolean_toggle_row(f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text)]
             if kind == "bool":
-                disabled = dest == "immich-duplicates-deletion" and not bool(
-                    self.state_values.get("immich-duplicates-algorithm", True)
+                disabled = dest == "duplicates-immich-native-deletion" and not bool(
+                    self.state_values.get("duplicates-immich-native-algorithm", True)
                 )
                 if disabled:
                     value = False
@@ -3171,8 +3171,8 @@ if TEXTUAL_AVAILABLE:
                 )]
             if kind == "select":
                 choices = list(field.get("choices") or [])
-                if dest == "duplicate-asset-keeper" and not (
-                    self.active_module == "immich_photos" and bool(self.state_values.get("immich-duplicates-algorithm", True))
+                if dest == "duplicates-asset-keeper" and not (
+                    self.active_module == "immich_photos" and bool(self.state_values.get("duplicates-immich-native-algorithm", True))
                 ):
                     choices = [choice for choice in choices if choice not in {"better-quality", "more-people/tags-then-better-quality"}]
                     if value not in choices:
@@ -3753,9 +3753,9 @@ if TEXTUAL_AVAILABLE:
                         self.remember_state = value
                     else:
                         self.state_values[dest] = value
-                    if dest == "immich-duplicates-algorithm":
-                        self.state_values["immich-duplicates-deletion"] = bool(value)
-                        self.state_values["duplicate-asset-keeper"] = (
+                    if dest == "duplicates-immich-native-algorithm":
+                        self.state_values["duplicates-immich-native-deletion"] = bool(value)
+                        self.state_values["duplicates-asset-keeper"] = (
                             "better-quality" if value else "more-people/tags-then-newest"
                         )
                         await self.rebuild_content()

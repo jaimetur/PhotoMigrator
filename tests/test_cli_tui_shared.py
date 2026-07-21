@@ -331,18 +331,18 @@ class TestCliTuiShared(unittest.TestCase):
             {
                 "account-id": "1",
                 "remove-duplicates-assets": True,
-                "duplicate-asset-keeper": "newest",
+                "duplicates-asset-keeper": "newest",
             },
             "remove-duplicates-assets",
         )
 
         self.assertIn("--remove-duplicates-assets", args)
-        self.assertIn("--duplicate-asset-keeper", args)
+        self.assertIn("--duplicates-asset-keeper", args)
         self.assertIn("newest", args)
-        self.assertIn("--immich-duplicates-algorithm", args)
-        self.assertIn("--immich-duplicates-deletion", args)
-        self.assertEqual(args[args.index("--immich-duplicates-algorithm") + 1], "true")
-        self.assertEqual(args[args.index("--immich-duplicates-deletion") + 1], "true")
+        self.assertIn("--duplicates-immich-native-algorithm", args)
+        self.assertIn("--duplicates-immich-native-deletion", args)
+        self.assertEqual(args[args.index("--duplicates-immich-native-algorithm") + 1], "true")
+        self.assertEqual(args[args.index("--duplicates-immich-native-deletion") + 1], "true")
 
     def test_immich_native_duplicate_detection_is_contextual_and_can_be_disabled(self):
         schema = build_parser_schema()
@@ -352,15 +352,15 @@ class TestCliTuiShared(unittest.TestCase):
             {
                 "account-id": "1",
                 "remove-duplicates-assets": True,
-                "immich-duplicates-algorithm": False,
-                "duplicate-asset-keeper": "newest",
+                "duplicates-immich-native-algorithm": False,
+                "duplicates-asset-keeper": "newest",
             },
             "remove-duplicates-assets",
         )
 
-        self.assertIn("--immich-duplicates-algorithm", args)
+        self.assertIn("--duplicates-immich-native-algorithm", args)
         self.assertIn("false", args)
-        self.assertIn("--duplicate-asset-keeper", args)
+        self.assertIn("--duplicates-asset-keeper", args)
 
     def test_immich_manual_duplicate_flow_forces_native_deletion_false(self):
         schema = build_parser_schema()
@@ -370,14 +370,14 @@ class TestCliTuiShared(unittest.TestCase):
             {
                 "account-id": "1",
                 "remove-duplicates-assets": True,
-                "immich-duplicates-algorithm": False,
-                "immich-duplicates-deletion": False,
-                "duplicate-asset-keeper": "newest",
+                "duplicates-immich-native-algorithm": False,
+                "duplicates-immich-native-deletion": False,
+                "duplicates-asset-keeper": "newest",
             },
             "remove-duplicates-assets",
         )
 
-        deletion_index = args.index("--immich-duplicates-deletion")
+        deletion_index = args.index("--duplicates-immich-native-deletion")
         self.assertEqual(args[deletion_index + 1], "false")
 
     def test_duplicate_asset_keeper_is_available_for_every_cloud_tab(self):
@@ -390,12 +390,12 @@ class TestCliTuiShared(unittest.TestCase):
                     {
                         "account-id": "1",
                         "remove-duplicates-assets": True,
-                        "duplicate-asset-keeper": "oldest",
+                        "duplicates-asset-keeper": "oldest",
                     },
                     "remove-duplicates-assets",
                 )
                 self.assertIn("--remove-duplicates-assets", args)
-                self.assertIn("--duplicate-asset-keeper", args)
+                self.assertIn("--duplicates-asset-keeper", args)
                 self.assertIn("oldest", args)
 
     def test_build_cli_args_includes_album_name_flags_for_cloud_upload(self):

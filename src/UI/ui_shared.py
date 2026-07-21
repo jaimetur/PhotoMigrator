@@ -148,8 +148,8 @@ BOOL_VALUE_DESTS = {
     "show-gpth-info",
     "show-gpth-errors",
     "google-process-people",
-    "immich-duplicates-algorithm",
-    "immich-duplicates-deletion",
+    "duplicates-immich-native-algorithm",
+    "duplicates-immich-native-deletion",
 }
 UI_FOLDERNAME_DEFAULTS = {
     "foldername-albums": "Albums",
@@ -213,8 +213,8 @@ CLOUD_DESTS = {
     "remove-empty-albums",
     "remove-duplicates-albums",
     "remove-duplicates-assets",
-    "immich-duplicates-algorithm",
-    "immich-duplicates-deletion",
+    "duplicates-immich-native-algorithm",
+    "duplicates-immich-native-deletion",
     "merge-duplicates-albums",
     # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
@@ -316,7 +316,7 @@ MODULE_ACTION_ARGUMENTS = {
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [{"dest": "preview-album-actions", "required": False}],
-        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
+        "remove-duplicates-assets": [{"dest": "duplicates-asset-keeper", "required": True}],
     },
     "synology_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
@@ -328,7 +328,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "preview-album-actions", "required": False},
         ],
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
-        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
+        "remove-duplicates-assets": [{"dest": "duplicates-asset-keeper", "required": True}],
     },
     "immich_photos": {
         "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
@@ -341,9 +341,9 @@ MODULE_ACTION_ARGUMENTS = {
         ],
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
         "remove-duplicates-assets": [
-            {"dest": "immich-duplicates-algorithm", "required": True},
-            {"dest": "immich-duplicates-deletion", "required": True},
-            {"dest": "duplicate-asset-keeper", "required": True},
+            {"dest": "duplicates-immich-native-algorithm", "required": True},
+            {"dest": "duplicates-immich-native-deletion", "required": True},
+            {"dest": "duplicates-asset-keeper", "required": True},
         ],
     },
     "nextcloud_photos": {
@@ -356,7 +356,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "preview-album-actions", "required": False},
         ],
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
-        "remove-duplicates-assets": [{"dest": "duplicate-asset-keeper", "required": True}],
+        "remove-duplicates-assets": [{"dest": "duplicates-asset-keeper", "required": True}],
     },
     "standalone_features": {
         "organize-local-folder-by-date": [
@@ -1525,11 +1525,11 @@ def prepare_values_for_command(values: Dict[str, Any], tab: str, selected_action
     if (
         tab == "immich_photos"
         and selected_action_dest == "remove-duplicates-assets"
-        and not bool_from_value(prepared.get("immich-duplicates-algorithm", True))
+        and not bool_from_value(prepared.get("duplicates-immich-native-algorithm", True))
     ):
         # Native deletion requires native detection. Keep the effective false
         # value explicit so previews and the startup log match execution.
-        prepared["immich-duplicates-deletion"] = False
+        prepared["duplicates-immich-native-deletion"] = False
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and selected_action_dest == "rename-albums":
         prepared["rename-albums"] = compose_rename_albums_value(prepared.get("rename-pattern", ""), prepared.get("replacement-pattern", ""))
     if tab == "standalone_features" and selected_action_dest == "find-duplicates":

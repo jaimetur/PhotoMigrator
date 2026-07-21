@@ -321,16 +321,16 @@ Examples:
 - **Usage:**
   - Set Immich as the client using _**`--client=immich`**_.
   - Use _**`--remove-duplicates-assets`**_.
-  - By default, _**`--immich-duplicates-algorithm=true`**_ retrieves Immich's native groups of visually similar assets, including different encodes or file sizes of the same image.
-  - _**`--immich-duplicates-deletion=true`**_ delegates metadata merging and redundant-asset removal to Immich's native duplicate resolver. It defaults to enabled whenever native detection is enabled, but cannot be supplied with _**`--immich-duplicates-algorithm=false`**_ because exact filename-and-size groups do not have Immich duplicate IDs. Its redundant assets are moved to trash rather than permanently deleted. Set it to `false` to use PhotoMigrator's guarded manual merge and permanent deletion flow.
+  - By default, _**`--duplicates-immich-native-algorithm=true`**_ retrieves Immich's native groups of visually similar assets, including different encodes or file sizes of the same image.
+  - _**`--duplicates-immich-native-deletion=true`**_ delegates metadata merging and redundant-asset removal to Immich's native duplicate resolver. It defaults to enabled whenever native detection is enabled, but cannot be supplied with _**`--duplicates-immich-native-algorithm=false`**_ because exact filename-and-size groups do not have Immich duplicate IDs. Its redundant assets are moved to trash rather than permanently deleted. Set it to `false` to use PhotoMigrator's guarded manual merge and permanent deletion flow.
   - Select the keeper with `more-people/tags-then-better-quality`, `more-people/tags-then-oldest`, `more-people/tags-then-newest`, `better-quality`, `newest`, or `oldest`. The people/tags-first variants retain the asset with the largest distinct-person count, then distinct tag count, before their tie breaker. `more-people/tags-then-better-quality` is available only with native detection. Native detection defaults to `better-quality`; disabling it defaults to `more-people/tags-then-newest`.
 - **Pre-Requisites:**
   - Configure `Config.ini` with an Immich account that can update assets, add assets to albums and tags, and delete assets.
-  - When both _**`--immich-duplicates-algorithm=true`**_ and _**`--immich-duplicates-deletion=true`**_ are used, the selected Immich user API key (`IMMICH_API_KEY_USER_<account-id>`, not the admin key) must include `duplicate.read`, `duplicate.delete`, and `asset.delete`, and must be able to access the returned duplicate groups. Immich reports both missing access and inaccessible groups as `Not found or no duplicate.delete access`. To preserve every album and tag through Immich's native resolver, also grant `albumAsset.create`, `asset.share`, and `tag.asset` to that API key.
+  - When both _**`--duplicates-immich-native-algorithm=true`**_ and _**`--duplicates-immich-native-deletion=true`**_ are used, the selected Immich user API key (`IMMICH_API_KEY_USER_<account-id>`, not the admin key) must include `duplicate.read`, `duplicate.delete`, and `asset.delete`, and must be able to access the returned duplicate groups. Immich reports both missing access and inaccessible groups as `Not found or no duplicate.delete access`. To preserve every album and tag through Immich's native resolver, also grant `albumAsset.create`, `asset.share`, and `tag.asset` to that API key.
 - **Explanation:**
-  - The Tool retrieves duplicate groups directly from Immich's stable detection API by default. Its detector is based on visual similarity, not filename or size. Set _**`--immich-duplicates-algorithm=false`**_ to use the previous paginated same-filename-and-size grouping instead; this is useful when the same processed Takeout was uploaded on different dates and an EXIF tag difference prevented Immich from rejecting the later upload.
+  - The Tool retrieves duplicate groups directly from Immich's stable detection API by default. Its detector is based on visual similarity, not filename or size. Set _**`--duplicates-immich-native-algorithm=false`**_ to use the previous paginated same-filename-and-size grouping instead; this is useful when the same processed Takeout was uploaded on different dates and an EXIF tag difference prevented Immich from rejecting the later upload.
   - For every group, it lists the proposed keeper and the redundant asset IDs before making any change. With normal confirmation enabled, it waits for confirmation after this preview. Add _**`--request-user-confirmation=false`**_ only for unattended executions.
-  - The merge and deletion method is selected by _**`--immich-duplicates-deletion`**_:
+  - The merge and deletion method is selected by _**`--duplicates-immich-native-deletion`**_:
 
     | Setting                                | Merge performed                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Redundant assets                                                |
     |----------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
@@ -339,10 +339,10 @@ Examples:
 - **Examples:**
   ```
   ./PhotoMigrator.bin --client=immich --remove-duplicates-assets
-  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicate-asset-keeper better-quality
-  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicate-asset-keeper oldest
-  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --immich-duplicates-deletion=true --duplicate-asset-keeper better-quality
-  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --immich-duplicates-algorithm=false --duplicate-asset-keeper newest
+  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicates-asset-keeper better-quality
+  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicates-asset-keeper oldest
+  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicates-immich-native-deletion=true --duplicates-asset-keeper better-quality
+  ./PhotoMigrator.bin --client=immich --remove-duplicates-assets --duplicates-immich-native-algorithm=false --duplicates-asset-keeper newest
   ```
 
 > [!CAUTION]

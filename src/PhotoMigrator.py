@@ -180,8 +180,8 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
                 result.append("remove-albums-assets")
         elif module_name == "Remove Duplicates Assets":
             if feature_name == "Immich Photos":
-                result.extend(["immich-duplicates-algorithm", "immich-duplicates-deletion"])
-            result.append("duplicate-asset-keeper")
+                result.extend(["duplicates-immich-native-algorithm", "duplicates-immich-native-deletion"])
+            result.append("duplicates-asset-keeper")
         return result
     if feature_name == "Google Takeout Processor":
         return [

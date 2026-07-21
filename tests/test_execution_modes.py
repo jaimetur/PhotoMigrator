@@ -104,9 +104,9 @@ def _base_args():
         "remove-empty-albums": False,
         "remove-duplicates-albums": False,
         "remove-duplicates-assets": False,
-        "immich-duplicates-algorithm": False,
-        "immich-duplicates-deletion": False,
-        "duplicate-asset-keeper": "newest",
+        "duplicates-immich-native-algorithm": False,
+        "duplicates-immich-native-deletion": False,
+        "duplicates-asset-keeper": "newest",
         "merge-duplicates-albums": False,
         "remove-all-albums": "",
         "remove-all-assets": "",
@@ -238,8 +238,8 @@ class TestExecutionModes(unittest.TestCase):
         args = _base_args()
         args.update({
             "remove-duplicates-assets": True,
-            "immich-duplicates-algorithm": True,
-            "duplicate-asset-keeper": "better-quality",
+            "duplicates-immich-native-algorithm": True,
+            "duplicates-asset-keeper": "better-quality",
         })
         duplicate_groups = [[
             {"id": "small", "originalFileName": "IMG.JPG", "createdAt": "2020-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}},
@@ -274,9 +274,9 @@ class TestExecutionModes(unittest.TestCase):
         args = _base_args()
         args.update({
             "remove-duplicates-assets": True,
-            "immich-duplicates-algorithm": True,
-            "immich-duplicates-deletion": True,
-            "duplicate-asset-keeper": "better-quality",
+            "duplicates-immich-native-algorithm": True,
+            "duplicates-immich-native-deletion": True,
+            "duplicates-asset-keeper": "better-quality",
         })
         duplicate_groups = [[
             {"id": "small", "originalFileName": "IMG.JPG", "createdAt": "2020-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}},
@@ -319,9 +319,9 @@ class TestExecutionModes(unittest.TestCase):
         args = _base_args()
         args.update({
             "remove-duplicates-assets": True,
-            "immich-duplicates-algorithm": False,
-            "immich-duplicates-deletion": True,
-            "duplicate-asset-keeper": "newest",
+            "duplicates-immich-native-algorithm": False,
+            "duplicates-immich-native-deletion": True,
+            "duplicates-asset-keeper": "newest",
         })
         duplicate_groups = [[
             {"id": "older", "originalFileName": "IMG.JPG", "createdAt": "2020-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}},
