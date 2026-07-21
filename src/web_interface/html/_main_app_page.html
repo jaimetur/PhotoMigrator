@@ -5761,7 +5761,9 @@
         const outputEl = document.getElementById("output");
         outputEl.addEventListener("wheel", (event) => {
             if (!event.shiftKey) {
-                if (event.deltaY || event.deltaX) disableOutputAutoScroll(autoScrollCheck);
+                // Only an upward gesture moves away from the tail. Scrolling
+                // down to inspect the newest lines must keep Auto Scroll on.
+                if (event.deltaY < 0) disableOutputAutoScroll(autoScrollCheck);
                 return;
             }
             const horizontalDelta = Math.abs(event.deltaX) > 0 ? event.deltaX : event.deltaY;
