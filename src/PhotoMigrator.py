@@ -237,8 +237,8 @@ def _log_feature_and_optional_flags(*, include_feature: bool = True, include_opt
         GV.LOGGER.info(f"Selected Feature:")
         GV.LOGGER.info(f"  - Feature                       : {feature_name}")
         if module_name:
-            GV.LOGGER.info(f"  - Module                        : {module_name}")
-        GV.LOGGER.info(f"  - Required Flags:")
+            GV.LOGGER.info(f"    - Module                      : {module_name}")
+        GV.LOGGER.info(f"Required Flags for Selected Feature/Module:")
         if required_dests:
             for dest in required_dests:
                 option, _ = option_details.get(dest, (f"--{dest}", dest.replace("-", "_")))
@@ -252,7 +252,7 @@ def _log_feature_and_optional_flags(*, include_feature: bool = True, include_opt
             dest for dest in _feature_optional_dests(feature_name, module_name, args)
             if dest not in required_dests
         ]
-        GV.LOGGER.info("Optional Flags Provided:")
+        GV.LOGGER.info("Optional Flags for Selected Feature/Module:")
         if optional_dests:
             for dest in optional_dests:
                 option, _ = option_details.get(dest, (f"--{dest}", dest.replace("-", "_")))
