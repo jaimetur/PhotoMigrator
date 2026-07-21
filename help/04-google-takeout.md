@@ -177,7 +177,7 @@ The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by def
 The final `<OUTPUT_FOLDER>` will include:
 - `Albums` subfolder with all the Albums without year/month structure (by default).
 - `<ALL_PHOTOS_FOLDER>` master-library subfolder with all photos and videos, with year/month structure by default.
-- `takeout_people_metadata.json`, when people processing is enabled. This map is keyed by normalized media filename and preserves the Google Takeout person labels plus its taken, creation, and modification dates after GPTH removes the original JSON sidecars. When several assets share a filename, it stores separate entries; consumers compare the processed file's EXIF and filesystem dates and select the nearest source entry. Equal nearest candidates contribute all their people labels.
+- `takeout_people_metadata.json`, when people processing is enabled. This map is keyed by normalized media filename and preserves the Google Takeout person labels plus its taken, creation, and modification dates after GPTH removes the original JSON sidecars. Album copies with the same capture time are consolidated. For other same-name entries, consumers compare EXIF with the Takeout capture time and filesystem `mtime` with the Takeout modification time. Creation time is retained for reference but is not matched to a different date type; equal results contribute all their people labels.
 
 ### Google Takeout people map
 

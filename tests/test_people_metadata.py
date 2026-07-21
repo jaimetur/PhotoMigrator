@@ -13,7 +13,7 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from Features.GoogleTakeout.PeopleMetadata import build_people_map
+from Features.GoogleTakeout.PeopleMetadata import build_people_map, load_people_map
 
 try:
     from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
@@ -43,6 +43,24 @@ class TestPeopleMetadata(unittest.TestCase):
         self.assertEqual(entries[0]["people"], ["Ana"])
         self.assertEqual(entries[1]["people"], ["Luis"])
 
+    def test_load_people_map_collapses_album_copies_with_same_capture_time(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            Path(temp_dir, "takeout_people_metadata.json").write_text(json.dumps({
+                "version": 2,
+                "assets": {
+                    "IMG_0001.jpg": [
+                        {"people": ["Ana"], "taken_at": "100", "created_at": "110"},
+                        {"people": ["Luis"], "taken_at": "100", "created_at": "120"},
+                    ]
+                },
+            }), encoding="utf-8")
+
+            people_map = load_people_map(temp_dir)
+
+        self.assertEqual(people_map["img_0001.jpg"], [{
+            "people": ["Ana", "Luis"], "taken_at": "100", "created_at": "110", "modified_at": ""
+        }])
+
     def test_resolves_same_filename_using_media_capture_time(self):
         if IMMICH_IMPORT_ERROR is not None:
             self.skipTest(f"Immich dependencies are not installed: {IMMICH_IMPORT_ERROR}")
@@ -55,7 +73,7 @@ class TestPeopleMetadata(unittest.TestCase):
             client._takeout_people_map = {
                 "IMG_0001.jpg": [
                     {"people": ["Ana"], "taken_at": "1577836800"},
-                    {"people": ["Luis"], "taken_at": "1704164645"},
+                    {"people": ["Luis"], "modified_at": "1704164645"},
                 ]
             }
 

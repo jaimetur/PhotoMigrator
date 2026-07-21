@@ -498,12 +498,20 @@ class ClassImmichPhotos(BaseMediaClient):
         except (OverflowError, TypeError, ValueError):
             return None
 
+    @staticmethod
+    def _format_takeout_people_date_distance(seconds):
+        total_seconds = max(0, int(round(seconds)))
+        days, remainder = divmod(total_seconds, 24 * 60 * 60)
+        hours, remainder = divmod(remainder, 60 * 60)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{days:02d} days {hours:02d}:{minutes:02d}:{seconds:02d}"
+
     def _get_takeout_people_entry_for_asset(self, file_path):
         """Resolve a filename collision using the Takeout capture date.
 
-        Compare the processed media's EXIF and filesystem dates with all three
-        Takeout dates (taken, created, and modified). The nearest candidate
-        wins; equal nearest candidates deliberately contribute all labels.
+        Compare only semantically equivalent dates: processed-media EXIF to
+        Takeout capture time, then filesystem mtime to Takeout modification
+        time. Equal candidates deliberately contribute all labels.
         """
         normalized_name = os.path.basename(file_path).casefold()
         mapped_entries = self._takeout_people_map.get(normalized_name)
@@ -531,7 +539,8 @@ class ClassImmichPhotos(BaseMediaClient):
         if cached is not None:
             return cached
 
-        asset_dates = [datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)]
+        asset_mtime = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
+        asset_exif_date = None
         try:
             exif_dict = piexif.load(file_path)
             for value in (
@@ -543,7 +552,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     value = value.decode("utf-8", errors="ignore")
                 try:
                     exif_date = datetime.strptime(str(value or ""), "%Y:%m:%d %H:%M:%S")
-                    asset_dates.append(exif_date.replace(tzinfo=timezone.utc))
+                    asset_exif_date = exif_date.replace(tzinfo=timezone.utc)
                     break
                 except ValueError:
                     continue
@@ -552,26 +561,33 @@ class ClassImmichPhotos(BaseMediaClient):
 
         scored_candidates = []
         for entry in candidates:
-            takeout_dates = [
-                parsed for key in ("taken_at", "created_at", "modified_at")
-                if (parsed := self._parse_takeout_taken_at(entry.get(key)))
-            ]
-            if takeout_dates:
-                score = min(
-                    abs((asset_date - takeout_date).total_seconds())
-                    for asset_date in asset_dates
-                    for takeout_date in takeout_dates
-                )
+            taken_at = self._parse_takeout_taken_at(entry.get("taken_at"))
+            modified_at = self._parse_takeout_taken_at(entry.get("modified_at"))
+            exif_taken_distance = (
+                abs((asset_exif_date - taken_at).total_seconds())
+                if asset_exif_date and taken_at else float("inf")
+            )
+            mtime_modified_distance = (
+                abs((asset_mtime - modified_at).total_seconds())
+                if modified_at else float("inf")
+            )
+            if exif_taken_distance != float("inf") or mtime_modified_distance != float("inf"):
+                score = (exif_taken_distance, mtime_modified_distance)
                 scored_candidates.append((score, entry))
         if not scored_candidates:
             LOGGER.warning(
-                f"No dated Google Takeout people metadata for '{os.path.basename(file_path)}'. "
+                f"No comparable Google Takeout people dates for '{os.path.basename(file_path)}'. "
                 "People import skipped."
             )
             return None
 
-        best_distance = min(score for score, _ in scored_candidates)
-        matched = [entry for score, entry in scored_candidates if score == best_distance]
+        best_score = min(score for score, _ in scored_candidates)
+        matched = [entry for score, entry in scored_candidates if score == best_score]
+        match_distance = next(distance for distance in best_score if distance != float("inf"))
+        match_basis = (
+            "EXIF/photoTakenTime" if best_score[0] != float("inf")
+            else "mtime/modificationTime"
+        )
         people = list(dict.fromkeys(
             person
             for entry in matched
@@ -582,7 +598,8 @@ class ClassImmichPhotos(BaseMediaClient):
         resolution_cache[cache_key] = resolved
         LOGGER.info(
             f"Google Takeout people metadata resolved for '{os.path.basename(file_path)}': "
-            f"{len(candidates)} same-name candidate(s), nearest date distance {best_distance:.0f}s, "
+            f"{len(candidates)} same-name candidate(s), {match_basis} distance "
+            f"{self._format_takeout_people_date_distance(match_distance)}, "
             f"{len(matched)} selected."
         )
         if len(matched) > 1:

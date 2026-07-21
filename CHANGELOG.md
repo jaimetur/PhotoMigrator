@@ -59,6 +59,7 @@
   - Scoped `--one-time-password` to Synology Photos throughout the Web Interface, GUI, and TUI. It is now available as an optional argument for every Synology module and in Automatic Migration only when either endpoint is Synology.
   - Scoped `--albums-folders` to `Upload All` in the Web Interface and TUI for Google Photos, Synology Photos, Immich Photos, and NextCloud Photos. It is no longer displayed as a general argument because the runtime only consumes it in that module.
   - Scoped `--remove-albums-assets` to `Remove Albums` and `Remove All Albums` for the cloud services that implement asset deletion (Synology Photos, Immich Photos, and NextCloud Photos). It no longer appears in General Arguments in Web, GUI, or TUI.
+  - Refined Google Takeout people-map collision matching for Immich imports. Album copies sharing a capture timestamp are consolidated, while remaining same-name candidates are ranked only by equivalent date types: EXIF-to-capture time and filesystem-to-modification time. Creation time remains informational and unrelated date types are never compared. Resolution logs now report the selected distance as `dd days hh:mm:ss`.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
@@ -82,6 +83,7 @@
   - Fixed the Web Interface Immich duplicate-keeper selector so `better-quality` is unavailable when native duplicate detection is disabled, persisted invalid selections are normalized to `newest`, and enabling native detection resets the editable selection to Immich's recommended `better-quality` keeper.
   - Removed the redundant `Enable selected action` label beside Web Interface feature checkboxes.
   - Fixed the Web Interface `Automatic Migration` Live Dashboard so its `Elapsed Time` and `Last Updated` counters refresh every second throughout execution, including periods with no new log or progress snapshot.
+  - Fixed Google Takeout people-map collision handling for existing maps. Repeated album sidecars with the same `taken_at` are now consolidated when the map is loaded as well as when it is created, preventing redundant zero-distance candidates; date-resolution logs now identify the comparison source and display distances as `dd days hh:mm:ss`.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

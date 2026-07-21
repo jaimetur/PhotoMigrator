@@ -67,13 +67,24 @@ def build_people_map(takeout_root):
         candidates = entries.setdefault(asset_name, [])
         # The same asset may have one sidecar in an album and another in a
         # year folder. Merge only entries that identify that exact capture.
+        # Album sidecars for the same physical asset can differ in their
+        # creation/modification metadata. A shared capture timestamp identifies
+        # the asset more reliably and prevents duplicate matching candidates.
         existing = next(
             (
                 item for item in candidates
-                if all(item.get(key, "") == entry[key] for key in ("taken_at", "created_at", "modified_at"))
+                if entry["taken_at"] and item.get("taken_at", "") == entry["taken_at"]
             ),
             None,
         )
+        if existing is None:
+            existing = next(
+                (
+                    item for item in candidates
+                    if all(item.get(key, "") == entry[key] for key in ("taken_at", "created_at", "modified_at"))
+                ),
+                None,
+            )
         if existing:
             existing["people"] = list(dict.fromkeys(existing.get("people", []) + names))
         else:
@@ -89,6 +100,48 @@ def save_people_map(takeout_root, output_folder):
     return output_path, len(entries)
 
 
+def _normalize_loaded_people_map(assets):
+    """Normalize legacy maps and collapse album copies with one capture time."""
+    normalized = {}
+    for asset_name, raw_entries in (assets or {}).items():
+        if isinstance(raw_entries, dict):
+            raw_entries = [raw_entries]
+        if not isinstance(raw_entries, list):
+            continue
+        candidates = normalized.setdefault(str(asset_name or "").casefold(), [])
+        for raw_entry in raw_entries:
+            if not isinstance(raw_entry, dict):
+                continue
+            entry = {
+                "people": list(dict.fromkeys(
+                    str(person).strip() for person in raw_entry.get("people", []) if str(person).strip()
+                )),
+                "taken_at": str(raw_entry.get("taken_at") or "").strip(),
+                "created_at": str(raw_entry.get("created_at") or "").strip(),
+                "modified_at": str(raw_entry.get("modified_at") or "").strip(),
+            }
+            existing = next(
+                (
+                    item for item in candidates
+                    if entry["taken_at"] and item.get("taken_at", "") == entry["taken_at"]
+                ),
+                None,
+            )
+            if existing is None:
+                existing = next(
+                    (
+                        item for item in candidates
+                        if all(item.get(key, "") == entry[key] for key in ("taken_at", "created_at", "modified_at"))
+                    ),
+                    None,
+                )
+            if existing:
+                existing["people"] = list(dict.fromkeys(existing["people"] + entry["people"]))
+            else:
+                candidates.append(entry)
+    return {asset_name: entries for asset_name, entries in normalized.items() if asset_name and entries}
+
+
 def load_people_map(input_folder):
     """Find the map in the input folder or one of its parents."""
     current = Path(input_folder).expanduser().resolve()
@@ -97,7 +150,8 @@ def load_people_map(input_folder):
         if candidate.is_file():
             try:
                 payload = json.loads(candidate.read_text(encoding="utf-8"))
-                return payload.get("assets", {}) if isinstance(payload, dict) else {}
+                assets = payload.get("assets", {}) if isinstance(payload, dict) else {}
+                return _normalize_loaded_people_map(assets)
             except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                 return {}
     return {}

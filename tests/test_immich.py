@@ -95,7 +95,7 @@ class TestImmichPhotosUnit(unittest.TestCase):
             self.manager._takeout_people_map = {
                 "img_0001.jpg": [
                     {"people": ["Ana"], "taken_at": "1577836800"},
-                    {"people": ["Luis"], "created_at": "1704164648"},
+                    {"people": ["Luis"], "modified_at": "1704164648"},
                 ]
             }
             self.manager._takeout_people_resolution_cache = {}
