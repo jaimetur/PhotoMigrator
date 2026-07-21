@@ -373,6 +373,21 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertFalse(mock_put.called)
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.put")
+    def test_merge_duplicate_metadata_does_not_send_invalid_zero_rating(
+        self, mock_put, _mock_logger
+    ):
+        manager = self._build_manager()
+        manager._merge_duplicate_asset_faces = MagicMock(return_value=True)
+        manager._merge_duplicate_asset_stacks = MagicMock(return_value=True)
+        keeper = {"id": "keeper", "exifInfo": {"rating": 0}}
+        duplicate = {"id": "duplicate", "exifInfo": {"rating": 0}}
+
+        self.assertTrue(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
+
+        mock_put.assert_not_called()
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_merge_duplicate_stacks_recreates_stack_with_keeper_and_survivors(

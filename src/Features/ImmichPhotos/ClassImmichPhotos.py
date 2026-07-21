@@ -2093,7 +2093,10 @@ class ClassImmichPhotos(BaseMediaClient):
             rating = (asset.get("exifInfo") or {}).get("rating", asset.get("rating"))
             try:
                 if rating is not None:
-                    ratings.append(int(rating))
+                    rating_value = int(rating)
+                    # Immich rejects zero: valid ratings are -1, 1..5, or null.
+                    if rating_value == -1 or 1 <= rating_value <= 5:
+                        ratings.append(rating_value)
             except (TypeError, ValueError):
                 continue
 
@@ -2168,8 +2171,11 @@ class ClassImmichPhotos(BaseMediaClient):
                 )
                 response.raise_for_status()
         except requests.RequestException as error:
+            response_text = str(getattr(getattr(error, "response", None), "text", "") or "").strip()
+            response_detail = f" Response: {response_text[:500]}" if response_text else ""
             LOGGER.warning(
                 f"Could not merge metadata into duplicate keeper '{keeper_id}': {error}. "
+                f"Asset update payload: {json.dumps(payload, ensure_ascii=False)}.{response_detail} "
                 "The duplicate group was left unchanged."
             )
             return False
