@@ -48,6 +48,7 @@ from UI.ui_shared import (
     resolve_ui_config_path,
     save_config_editor_values,
     save_json_file,
+    split_takeout_fields,
     to_list,
     ui_option_name,
     validate_ui_config_file,
@@ -1420,9 +1421,14 @@ class PhotoMigratorTkGUI:
         if tab_key in {"google_takeout", "icloud_takeout"}:
             regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
             toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
-            if regular_fields:
+            module_fields, structure_fields = split_takeout_fields(regular_fields)
+            if module_fields:
                 self._section_label(parent, "Module Fields", accent=True)
-                for field in regular_fields:
+                for field in module_fields:
+                    self.build_field_widgets(parent, field, context=tab_key)
+            if structure_fields:
+                self._section_label(parent, "Folder Structure", accent=True)
+                for field in structure_fields:
                     self.build_field_widgets(parent, field, context=tab_key)
             if toggle_fields:
                 self._section_label(parent, "Flags", accent=True)

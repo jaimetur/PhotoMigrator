@@ -44,6 +44,7 @@ from UI.ui_shared import (
     prepare_values_for_command,
     save_config_editor_values,
     save_json_file,
+    split_takeout_fields,
     resolve_ui_config_path,
     to_list,
     ui_option_name,
@@ -2375,9 +2376,14 @@ if TEXTUAL_AVAILABLE:
             if tab_key in {"google_takeout", "icloud_takeout"}:
                 regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
                 toggle_fields = [field for field in fields if str(field.get("kind") or "") in {"flag", "bool"}]
-                if regular_fields:
+                module_fields, structure_fields = split_takeout_fields(regular_fields)
+                if module_fields:
                     widgets.append(Static("Module Fields", classes="section-title feature-section-title"))
-                    for field in regular_fields:
+                    for field in module_fields:
+                        widgets.extend(self.build_field_widgets(field, context=tab_key))
+                if structure_fields:
+                    widgets.append(Static("Folder Structure", classes="section-title feature-section-title feature-section-title--spaced"))
+                    for field in structure_fields:
                         widgets.extend(self.build_field_widgets(field, context=tab_key))
                 if toggle_fields:
                     widgets.append(Static("Flags", classes="section-title feature-section-title feature-section-title--spaced"))

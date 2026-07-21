@@ -38,6 +38,7 @@ try:
         parse_template_to_form_schema,
         resolve_ui_config_path,
         save_config_editor_values,
+        split_takeout_fields,
         ui_runtime_launcher_executable,
     )
     SHARED_IMPORT_ERROR = None
@@ -100,6 +101,20 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertNotIn("icloud-no-albums-folders-structure", icloud_dests)
         self.assertEqual(schema["fields_by_dest"]["foldername-no-albums"]["default"], "No_Albums")
         self.assertEqual(schema["fields_by_dest"]["foldername-all-photos"]["default"], "ALL_PHOTOS")
+
+    def test_takeout_folder_structure_fields_are_separated_and_ordered(self):
+        schema = build_parser_schema()
+
+        for tab, expected_structure_dests in (
+            ("google_takeout", ["foldername-all-photos", "google-albums-folders-structure", "google-all-photos-folders-structure"]),
+            ("icloud_takeout", ["foldername-all-photos", "icloud-albums-folders-structure", "icloud-all-photos-folders-structure"]),
+        ):
+            with self.subTest(tab=tab):
+                fields = [field for field in schema["tabs"][tab] if field["kind"] not in {"flag", "bool"}]
+                module_fields, structure_fields = split_takeout_fields(fields)
+
+                self.assertEqual([field["dest"] for field in structure_fields], expected_structure_dests)
+                self.assertNotIn("foldername-all-photos", [field["dest"] for field in module_fields])
 
     def test_album_naming_help_is_specific_to_each_feature_context(self):
         schema = build_parser_schema()

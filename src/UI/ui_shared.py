@@ -82,6 +82,13 @@ UI_FIELD_LABELS = {
     "import-people": "Import People",
     "foldername-all-photos": "ALL_PHOTOS Folder Name",
 }
+TAKEOUT_FOLDER_STRUCTURE_DESTS = (
+    "foldername-all-photos",
+    "google-albums-folders-structure",
+    "google-all-photos-folders-structure",
+    "icloud-albums-folders-structure",
+    "icloud-all-photos-folders-structure",
+)
 MIGRATION_FILTER_DESTS = (
     "filter-by-type",
     "filter-from-date",
@@ -947,6 +954,15 @@ def build_parser_schema(
         "fields_by_dest": by_dest,
     }
     return schema
+
+
+def split_takeout_fields(fields: List[Dict[str, Any]]) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Return Takeout module fields and folder-structure fields in display order."""
+    fields_by_dest = {str(field.get("dest") or ""): field for field in fields}
+    structure_fields = [fields_by_dest[dest] for dest in TAKEOUT_FOLDER_STRUCTURE_DESTS if dest in fields_by_dest]
+    structure_dests = set(TAKEOUT_FOLDER_STRUCTURE_DESTS)
+    module_fields = [field for field in fields if str(field.get("dest") or "") not in structure_dests]
+    return module_fields, structure_fields
 
 
 def get_all_fields(schema: Dict[str, Any]) -> List[Dict[str, Any]]:
