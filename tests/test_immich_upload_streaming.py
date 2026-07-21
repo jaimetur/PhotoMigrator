@@ -590,6 +590,28 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertEqual(mock_get.call_args_list[1].kwargs["params"], {"id": "asset-1"})
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    def test_duplicate_metadata_hydration_rejects_an_unexpected_asset_id(self, _mock_logger):
+        manager = self._build_manager()
+        manager._get_duplicate_asset_metadata = MagicMock(return_value={"id": "different-asset"})
+
+        hydrated = manager._hydrate_duplicate_asset_metadata({"id": "asset-1"})
+
+        self.assertIsNone(hydrated)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.tqdm", side_effect=lambda iterable, **kwargs: iterable)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.delete")
+    def test_manual_duplicate_cleanup_skips_repeated_asset_ids(self, mock_delete, _mock_tqdm, _mock_logger):
+        manager = self._build_manager()
+
+        removed, found, skipped = manager.remove_duplicates_assets_by_name_and_size(
+            duplicate_groups=[[{"id": "same"}, {"id": "same"}]],
+        )
+
+        self.assertEqual((removed, found, skipped), (0, 1, 1))
+        mock_delete.assert_not_called()
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_duplicate_metadata_hydration_resolves_scalar_people_ids_through_faces(self, mock_get, _mock_logger):
         manager = self._build_manager()

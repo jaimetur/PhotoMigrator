@@ -1792,6 +1792,11 @@ class ClassImmichPhotos(BaseMediaClient):
             return datetime.min.replace(tzinfo=timezone.utc)
 
     @staticmethod
+    def _duplicate_group_has_unique_asset_ids(group):
+        asset_ids = [str((asset or {}).get("id") or "").strip() for asset in group or []]
+        return len(asset_ids) > 1 and all(asset_ids) and len(asset_ids) == len(set(asset_ids))
+
+    @staticmethod
     def _asset_reference_ids(asset, key):
         values = asset.get(key) or []
         if not isinstance(values, list):
@@ -2282,8 +2287,16 @@ class ClassImmichPhotos(BaseMediaClient):
         """Load one review candidate and retain native duplicate-selection hints."""
         if asset.get("_photomigrator_duplicate_metadata_hydrated"):
             return asset
-        metadata = self._get_duplicate_asset_metadata(asset.get("id"), log_level=log_level)
+        requested_asset_id = str(asset.get("id") or "").strip()
+        metadata = self._get_duplicate_asset_metadata(requested_asset_id, log_level=log_level)
         if metadata is None:
+            return None
+        returned_asset_id = str(metadata.get("id") or "").strip()
+        if not requested_asset_id or returned_asset_id != requested_asset_id:
+            LOGGER.warning(
+                f"Immich duplicate metadata ID mismatch: requested '{requested_asset_id}', "
+                f"received '{returned_asset_id}'. The duplicate group will be skipped."
+            )
             return None
         people = metadata.get("people") or []
         people_without_names = any(
@@ -2362,7 +2375,17 @@ class ClassImmichPhotos(BaseMediaClient):
                         f"Could not hydrate duplicate-review metadata: {error}. "
                         "The affected group will be skipped."
                     )
-        return [group for group in hydrated_groups if all(asset is not None for asset in group)]
+        valid_groups = []
+        for group in hydrated_groups:
+            if not all(asset is not None for asset in group):
+                continue
+            if not self._duplicate_group_has_unique_asset_ids(group):
+                LOGGER.warning(
+                    "Skipping duplicate group with missing or repeated Immich asset IDs during metadata review."
+                )
+                continue
+            valid_groups.append(group)
+        return valid_groups
 
     def get_duplicate_metadata_display_names(self, duplicate_groups=None, log_level=None):
         """Preload immutable album, tag, and person ID-to-name dictionaries for review."""
@@ -2583,6 +2606,10 @@ class ClassImmichPhotos(BaseMediaClient):
             desc=f"{MSG_TAGS['INFO']}Preparing Immich duplicate resolution",
             unit=" groups",
         ):
+            if not self._duplicate_group_has_unique_asset_ids(group):
+                skipped_groups += 1
+                LOGGER.warning("Skipping an Immich native duplicate group with missing or repeated asset IDs.")
+                continue
             duplicate_id = next(
                 (
                     str(asset.get("_immich_duplicate_id") or "").strip()
@@ -2827,6 +2854,11 @@ class ClassImmichPhotos(BaseMediaClient):
 
             for group in tqdm(duplicate_groups, desc=f"{MSG_TAGS['INFO']}Resolving duplicate asset groups", unit=" groups"):
                 merge_started_at = time.perf_counter()
+                if not self._duplicate_group_has_unique_asset_ids(group):
+                    skipped_groups += 1
+                    LOGGER.warning("Skipping duplicate group with missing or repeated Immich asset IDs.")
+                    metadata_merge_seconds += time.perf_counter() - merge_started_at
+                    continue
                 keeper_candidate = self._select_duplicate_asset_keeper(group, strategy)
                 ordered = [keeper_candidate, *[asset for asset in group if asset is not keeper_candidate]]
                 hydrated_group = self._hydrate_duplicate_group_metadata(ordered, log_level=log_level)
