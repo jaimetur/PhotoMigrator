@@ -46,7 +46,7 @@
   - Disabled per-candidate album-membership reads during the Immich duplicate-review preview to reduce review latency. The `Albums` row is omitted from that preview; PhotoMigrator's manual deletion flow still loads and merges album memberships before deletion, while Immich's native resolver preserves them server-side.
   - Marked `--immich-duplicates-algorithm` and `--immich-duplicates-deletion` as required selections for Immich `Remove Duplicate Assets` in Web, GUI, and TUI. Active native-detection commands now include both values explicitly; native deletion remains unavailable when detection is disabled.
   - Reclassified startup configuration logging: `Optional Flags Provided` now lists every effective optional flag owned by the selected feature/module, while the former `Optional Flags Default` section is now `General Arguments` and contains the tool-wide shared arguments.
-  - Added `--albums-folders`, `--remove-albums-assets`, and `--preview-album-actions` to the startup `General Arguments` listing.
+  - Added `--remove-albums-assets` to the startup `General Arguments` listing, while keeping `--albums-folders` scoped to `Upload All` and `--preview-album-actions` scoped to its supported album modules.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
@@ -58,6 +58,7 @@
   - Fixed Immich duplicate-review completeness by loading each candidate's album memberships through the stable `GET /albums?assetId=...` API, which is not included in `AssetResponseDto`. The review now also falls back to `GET /people/{id}` when the paginated people list omits a referenced person, so album and person names remain visible and the guarded manual merge receives the full album set.
   - Fixed the cloud upload contextual help for `--prefer-canonical-album-names` to describe uploaded albums consistently in the Web Interface, GUI, and TUI.
   - Fixed the Web Interface `Immich Remove Duplicate Assets` controls so `--immich-duplicates-algorithm` and `--immich-duplicates-deletion` are rendered as required selections, while an explicit `false` value is accepted and emitted instead of being mistaken for a missing argument.
+  - Fixed `--request-user-confirmation` rendering as a boolean toggle in Web, GUI, and TUI. The `foldername-*` fields now render as plain text with their effective default names and no longer expose folder-picker controls.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

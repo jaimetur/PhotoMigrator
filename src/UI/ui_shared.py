@@ -135,6 +135,7 @@ GENERAL_GROUPS = [
 ]
 
 BOOL_VALUE_DESTS = {
+    "request-user-confirmation",
     "move-assets",
     "dashboard",
     "parallel-migration",
@@ -143,6 +144,13 @@ BOOL_VALUE_DESTS = {
     "google-process-people",
     "immich-duplicates-algorithm",
     "immich-duplicates-deletion",
+}
+UI_FOLDERNAME_DEFAULTS = {
+    "foldername-albums": "Albums",
+    "foldername-no-albums": "ALL_PHOTOS",
+    "foldername-logs": "Logs",
+    "foldername-duplicates-output": "Duplicates_outputs",
+    "foldername-extracted-dates": "Extracted_Dates",
 }
 AUTOMATION_DESTS = {
     "source",
@@ -717,7 +725,7 @@ def _field_kind(action: argparse.Action, dest: str) -> str:
 
 def _path_hint(dest: str, metavar: Any) -> str:
     name = dest.lower()
-    if name in {"exclude-folders", "exclude-files"} or name.endswith("-suffix"):
+    if name in {"exclude-folders", "exclude-files", *UI_FOLDERNAME_DEFAULTS} or name.endswith("-suffix"):
         return ""
     metavar_text = str(metavar or "").lower()
     path_tokens = ("path", "folder", "file", "takeout", "source", "target")
@@ -913,6 +921,8 @@ def build_parser_schema(
             field["default"] = True
         if dest == "organize-output-folder-suffix":
             field["default"] = "processed"
+        if dest in UI_FOLDERNAME_DEFAULTS:
+            field["default"] = UI_FOLDERNAME_DEFAULTS[dest]
         fields.append(field)
         by_dest[dest] = field
 

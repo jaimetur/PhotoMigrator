@@ -146,8 +146,7 @@ def _general_argument_dests() -> list[str]:
         "date-separator", "range-separator", "foldername-albums", "foldername-no-albums", "foldername-logs",
         "foldername-duplicates-output", "foldername-extracted-dates", "exec-gpth-tool", "exec-exif-tool",
         "filter-from-date", "filter-to-date", "filter-by-type", "filter-by-country",
-        "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files", "albums-folders",
-        "remove-albums-assets", "preview-album-actions",
+        "filter-by-city", "filter-by-person", "exclude-folders", "exclude-files", "remove-albums-assets",
     ]
 
 
@@ -168,6 +167,8 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
             result.append("one-time-password")
         if module_name in {"Upload Albums", "Upload All"}:
             result.extend(["prefer-canonical-album-names", "consolidate-similar-albums"])
+            if module_name == "Upload All":
+                result.append("albums-folders")
             if feature_name == "Immich Photos":
                 result.append("import-people")
         elif module_name in {"Rename Albums", "Consolidate Album Names"}:
