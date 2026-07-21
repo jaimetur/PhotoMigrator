@@ -1098,7 +1098,7 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     normalized_client = str(client or "").strip().lower()
     if normalized_client not in {"google-photos", "synology", "immich", "nextcloud"}:
         LOGGER.error(
-            "Remove Duplicate Assets requires one of: '--client=google-photos', '--client=synology', "
+            "Remove Duplicates Assets requires one of: '--client=google-photos', '--client=synology', "
             "'--client=immich', or '--client=nextcloud'."
         )
         return
@@ -1123,7 +1123,7 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     if normalized_client == "immich" and not use_immich_detection and keeper_strategy == "better-quality":
         keeper_strategy = "newest"
     client_label = capitalize_first_letter(normalized_client.replace("-photos", ""))
-    LOGGER.info(f"{client_label} Photos: 'Remove Duplicate Assets' Mode detected. Only this module will be run!!!")
+    LOGGER.info(f"{client_label} Photos: 'Remove Duplicates Assets' Mode detected. Only this module will be run!!!")
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")
     LOGGER.info(f"Keeper strategy: {keeper_strategy}.")
     if normalized_client == "immich":

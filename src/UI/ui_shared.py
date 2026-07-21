@@ -65,7 +65,7 @@ FEATURE_LABELS = {
     "remove-all-assets": "Remove All Assets",
     "remove-empty-albums": "Remove Empty Albums",
     "remove-duplicates-albums": "Remove Duplicates Albums",
-    "remove-duplicates-assets": "Remove Duplicate Assets",
+    "remove-duplicates-assets": "Remove Duplicates Assets",
     "merge-duplicates-albums": "Merge Duplicates Albums",
     # "remove-orphan-assets": "Remove Orphan Assets",  # Discontinued for Immich; keep commented for future reuse.
     "fix-symlinks-broken": "Fix Broken Symlinks",

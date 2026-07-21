@@ -102,7 +102,7 @@ def _selected_feature_details(args: dict) -> tuple[str, str | None, list[str]]:
         (is_set("consolidate-albums-names"), cloud_feature_name, "Consolidate Album Names", ["client", "consolidate-albums-names"]),
         (is_set("remove-empty-albums"), cloud_feature_name, "Remove Empty Albums", ["client", "remove-empty-albums"]),
         (is_set("remove-duplicates-albums"), cloud_feature_name, "Remove Duplicate Albums", ["client", "remove-duplicates-albums"]),
-        (is_set("remove-duplicates-assets"), cloud_feature_name, "Remove Duplicate Assets", ["client", "remove-duplicates-assets"]),
+        (is_set("remove-duplicates-assets"), cloud_feature_name, "Remove Duplicates Assets", ["client", "remove-duplicates-assets"]),
         (is_set("merge-duplicates-albums"), cloud_feature_name, "Merge Duplicate Albums", ["client", "merge-duplicates-albums"]),
         (is_set("remove-all-albums"), cloud_feature_name, "Remove All Albums", ["client", "remove-all-albums"]),
         (is_set("remove-all-assets"), cloud_feature_name, "Remove All Assets", ["client", "remove-all-assets"]),
@@ -178,7 +178,7 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
                 result.append("preview-album-actions")
             if feature_name in {"Synology Photos", "Immich Photos", "NextCloud Photos"}:
                 result.append("remove-albums-assets")
-        elif module_name == "Remove Duplicate Assets":
+        elif module_name == "Remove Duplicates Assets":
             if feature_name == "Immich Photos":
                 result.extend(["immich-duplicates-algorithm", "immich-duplicates-deletion"])
             result.append("duplicate-asset-keeper")

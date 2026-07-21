@@ -442,7 +442,7 @@ If more than one optional arguments are detected, only the first one will be exe
                Requires '--client'.
                Example: --client=synology --remove-duplicates-albums
 -rDupAst     ; --remove-duplicates-assets
-               Remove duplicate assets. Immich uses its native visually similar duplicate groups by default;
+               Remove Duplicates Assets. Immich uses its native visually similar duplicate groups by default;
                other cloud services use exact filename and file size.
                Requires '--client' and '--duplicate-asset-keeper {better-quality, oldest, newest}'.
                For Immich, the default keeper is 'better-quality'; other services use 'newest'.

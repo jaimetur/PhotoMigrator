@@ -486,7 +486,7 @@ def parse_arguments():
                         const=True,
                         default=True,
                         type=str2bool,
-                        help="For Immich Remove Duplicate Assets, use Immich's native visual duplicate groups instead of "
+                        help="For Immich Remove Duplicates Assets, use Immich's native visual duplicate groups instead of "
                              "same-filename-and-size grouping. Native detection is based on asset similarity rather "
                              "than file size. When disabled, PhotoMigrator groups exact filename-and-size matches; "
                              "this is useful for repeated uploads of the same processed Takeout on different dates "
@@ -498,7 +498,7 @@ def parse_arguments():
                         const=True,
                         default=True,
                         type=str2bool,
-                        help="For Immich Remove Duplicate Assets, let Immich resolve each native duplicate group, "
+                        help="For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, "
                              "merge albums, favorites, highest rating, combined descriptions, most restrictive "
                              "visibility, matching locations, and tags, then trash redundant assets. This uses "
                              "Immich's Alpha duplicate-resolution API. When disabled, PhotoMigrator merges those "
