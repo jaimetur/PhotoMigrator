@@ -345,7 +345,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertEqual(
             json.loads(mock_put.call_args.kwargs["data"]),
             {
-                "ids": ["keeper"], "visibility": "ARCHIVE",
+                "ids": ["keeper"], "visibility": "archive",
                 "dateTimeOriginal": "2020-01-02T03:04:05.000Z",
                 "latitude": 40.4168, "longitude": -3.7038,
             },

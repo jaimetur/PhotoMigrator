@@ -68,7 +68,7 @@ class ClassImmichPhotos(BaseMediaClient):
     IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE = 100
     IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE = 250
     IMMICH_METADATA_MERGE_TIMEOUT = (10, 60)
-    IMMICH_METADATA_MERGE_RETRIES = 3
+    IMMICH_METADATA_MERGE_RETRIES = 5
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
     DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
@@ -2014,6 +2014,28 @@ class ClassImmichPhotos(BaseMediaClient):
         priorities = {"TIMELINE": 0, "ARCHIVE": 1, "HIDDEN": 2, "LOCKED": 3}
         return priorities.get(visibility, 0), visibility or "TIMELINE"
 
+    def _metadata_merge_request(self, method, url, **kwargs):
+        """Perform a metadata-merge request with retries for transient network errors only."""
+        last_error = None
+        for attempt in range(1, self.IMMICH_METADATA_MERGE_RETRIES + 1):
+            try:
+                response = method(url, timeout=self.IMMICH_METADATA_MERGE_TIMEOUT, **kwargs)
+                response.raise_for_status()
+                return response
+            except requests.HTTPError:
+                # Validation and permission responses are deterministic; do not retry them.
+                raise
+            except (requests.ConnectionError, requests.Timeout) as error:
+                last_error = error
+                if attempt == self.IMMICH_METADATA_MERGE_RETRIES:
+                    break
+                LOGGER.debug(
+                    f"Immich metadata merge request failed on attempt {attempt}/"
+                    f"{self.IMMICH_METADATA_MERGE_RETRIES}; retrying: {error}"
+                )
+                time.sleep(2 ** (attempt - 1))
+        raise last_error
+
     def _merge_duplicate_asset_stacks(self, keeper, duplicates, log_level=None):
         """Keep non-duplicate stack members reachable through the selected keeper.
 
@@ -2034,27 +2056,9 @@ class ClassImmichPhotos(BaseMediaClient):
         }
         stack_ids.discard("")
 
-        def stack_request(method, url, **kwargs):
-            last_error = None
-            for attempt in range(1, self.IMMICH_METADATA_MERGE_RETRIES + 1):
-                try:
-                    response = method(url, timeout=self.IMMICH_METADATA_MERGE_TIMEOUT, **kwargs)
-                    response.raise_for_status()
-                    return response
-                except requests.RequestException as error:
-                    last_error = error
-                    if attempt == self.IMMICH_METADATA_MERGE_RETRIES:
-                        break
-                    LOGGER.debug(
-                        f"Immich stack merge request failed on attempt {attempt}/"
-                        f"{self.IMMICH_METADATA_MERGE_RETRIES}; retrying: {error}"
-                    )
-                    time.sleep(attempt)
-            raise last_error
-
         for stack_id in stack_ids:
             try:
-                response = stack_request(
+                response = self._metadata_merge_request(
                     requests.get,
                     f"{self.IMMICH_URL}/api/stacks/{stack_id}",
                     headers=self.HEADERS_WITH_CREDENTIALS,
@@ -2072,7 +2076,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 asset_ids = [keeper_id, *[asset_id for asset_id in survivor_ids if asset_id != keeper_id]]
                 if len(asset_ids) < 2:
                     continue
-                stack_request(
+                self._metadata_merge_request(
                     requests.post,
                     f"{self.IMMICH_URL}/api/stacks",
                     headers=self.HEADERS_WITH_CREDENTIALS,
@@ -2133,7 +2137,7 @@ class ClassImmichPhotos(BaseMediaClient):
             key=lambda value: value[0],
         )[1]
         if visibility != str(keeper.get("visibility") or "TIMELINE").strip().upper():
-            payload["visibility"] = visibility
+            payload["visibility"] = visibility.lower()
 
         # Immich accepts one capture date and one coordinate pair per asset. Keep
         # the selected keeper's values when available; otherwise retain the first
@@ -2167,13 +2171,13 @@ class ClassImmichPhotos(BaseMediaClient):
             payload["latitude"], payload["longitude"] = next(iter(locations))
         try:
             if len(payload) > 1:
-                response = requests.put(
+                response = self._metadata_merge_request(
+                    requests.put,
                     f"{self.IMMICH_URL}/api/assets",
                     headers=self.HEADERS_WITH_CREDENTIALS,
                     data=json.dumps(payload),
                     verify=False,
                 )
-                response.raise_for_status()
             for album_id in album_ids:
                 details = self.add_assets_to_album(
                     album_id, [keeper_id], album_name=album_id,
@@ -2184,13 +2188,13 @@ class ClassImmichPhotos(BaseMediaClient):
                 LOGGER.warning(f"Could not merge album '{album_id}' into duplicate keeper '{keeper_id}'.")
                 return False
             for tag_id in tag_ids:
-                response = requests.put(
+                self._metadata_merge_request(
+                    requests.put,
                     f"{self.IMMICH_URL}/api/tags/{tag_id}/assets",
                     headers=self.HEADERS_WITH_CREDENTIALS,
                     data=json.dumps({"ids": [keeper_id]}),
                     verify=False,
                 )
-                response.raise_for_status()
         except requests.RequestException as error:
             response_text = str(getattr(getattr(error, "response", None), "text", "") or "").strip()
             response_detail = f" Response: {response_text[:500]}" if response_text else ""
