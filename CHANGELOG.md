@@ -94,6 +94,7 @@
   - Hardened Immich duplicate-inventory retrieval against transient connection closures. Each metadata page now has bounded timeouts and retries only connection, timeout, rate-limit, and gateway failures with exponential backoff.
   - Fixed Immich duplicate cleanup safety: duplicate-review metadata must now return the requested asset ID, and groups with missing or repeated asset IDs are skipped before preview, native resolution, or deletion.
   - Fixed the Web Interface Output Panel run metadata for Automatic Migration. `Elapsed Time` and `Last Updated` above the Live Dashboard now refresh throughout the running job instead of remaining at their initial values.
+  - Fixed the Web Interface theme flash when changing pages. The server now renders the saved user theme on the initial `<body>` element instead of briefly showing the default Emerald palette before client state is loaded.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

@@ -3773,6 +3773,17 @@ def _user_has_active_job(user_id: int) -> bool:
         )
 
 
+def _resolve_initial_web_theme(current_user: Dict[str, Any]) -> str:
+    config_values = _get_user_config_values(current_user)
+    theme = str(
+        config_values.get(WEB_INTERFACE_SECTION_NAME, {}).get(WEB_INTERFACE_THEME_KEY, "")
+    ).strip().lower()
+    if not theme:
+        state_payload = _read_user_state_payload(current_user)
+        theme = str((state_payload.get("ui_state") or {}).get("theme", "")).strip().lower()
+    return theme if theme in WEB_INTERFACE_THEME_CHOICES else WEB_INTERFACE_THEME_DEFAULT
+
+
 def _render_main_page(request: Request, current_user: Dict[str, Any], template_name: str) -> Response:
     manual_navigation = request.query_params.get("manual_navigation") == "1"
     if template_name != "output.html" and not manual_navigation and _user_has_active_job(int(current_user["id"])):
@@ -3788,6 +3799,7 @@ def _render_main_page(request: Request, current_user: Dict[str, Any], template_n
             "username": str(current_user.get("username") or ""),
             "role": str(current_user.get("role") or "user"),
             "is_admin": str(current_user.get("role") or "").strip().lower() == "admin",
+            "initial_theme": _resolve_initial_web_theme(current_user),
         },
     )
     return _html_no_store_response(response)

@@ -7,7 +7,7 @@
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
     <link rel="stylesheet" href="/static/style.css?v=20260721-header-collapse-spacing">
 </head>
-<body>
+<body data-theme="{{ initial_theme }}">
 <main class="page">
     <header class="hero" data-panel-id="header-panel">
         <div class="hero__content">
@@ -17,7 +17,7 @@
             </div>
             <div class="hero__collapse-content">
                 <h2 class="hero__subtitle">Web Interface for CLI Execution</h2>
-                <p>Migrate your photos between different cloud services. Process your Google Photos Takeout to fix metadata. Manage your photo library.</p>
+                <p>Migrate your photos between different cloud services. Process your Photo Libraries Takeout (from Google Photos or iCloud) to fix metadata. Manage your photo library.</p>
                 <div class="hero__session">
                     <span id="session-user-label" class="hero__session-user">User: {{ username }} ({{ role }})</span>
                     {% if is_admin %}

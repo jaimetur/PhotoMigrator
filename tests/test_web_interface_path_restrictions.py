@@ -123,6 +123,16 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_initial_web_theme_uses_the_saved_user_preference(self):
+        with patch.object(
+            self.web_app,
+            "_get_user_config_values",
+            return_value={"Web Interface": {"THEME": "dark"}},
+        ):
+            theme = self.web_app._resolve_initial_web_theme(self.current_user)
+
+        self.assertEqual(theme, "dark")
+
     def test_icloud_takeout_rejects_direct_user_root(self):
         values = {"icloud-takeout": str(self.allowed_roots[0])}
         scope = self.web_app._path_validation_scope_for_payload("icloud_takeout", None, values)
