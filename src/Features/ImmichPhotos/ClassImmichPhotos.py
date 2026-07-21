@@ -61,6 +61,7 @@ class ClassImmichPhotos(BaseMediaClient):
     into a single class that uses a global LOGGER from GlobalVariables.
     """
     IMMICH_ASSET_INVENTORY_PAGE_SIZE = 1000
+    IMMICH_ASSET_INVENTORY_WORKERS = 100
     DUPLICATE_METADATA_REVIEW_WORKERS = 100
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
@@ -2635,7 +2636,29 @@ class ClassImmichPhotos(BaseMediaClient):
             all_assets = []
             next_page = 1
             progress_bar = None
+
+            def get_assets_page(page_number):
+                payload = json.dumps({
+                    "page": int(page_number),
+                    "size": self.IMMICH_ASSET_INVENTORY_PAGE_SIZE,
+                    "order": "desc",
+                    "withExif": True,
+                })
+                response = requests.post(
+                    url,
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    data=payload,
+                    verify=False,
+                )
+                response.raise_for_status()
+                data = response.json()
+                assets_page = data.get("assets", {})
+                return assets_page.get("items", []), assets_page.get("nextPage")
+
             with ExitStack() as stack:
+                total_assets = None
+                total_pages = 0
+                workers = 0
                 if show_progress:
                     total_assets = self._get_unfiltered_asset_inventory_total()
                     LOGGER.info(
@@ -2644,6 +2667,14 @@ class ClassImmichPhotos(BaseMediaClient):
                     )
                     if total_assets is not None:
                         LOGGER.info(f"Found {total_assets} Immich asset(s) to analyze.")
+                        total_pages = (
+                            total_assets + self.IMMICH_ASSET_INVENTORY_PAGE_SIZE - 1
+                        ) // self.IMMICH_ASSET_INVENTORY_PAGE_SIZE
+                        if total_pages > 1:
+                            workers = min(self.IMMICH_ASSET_INVENTORY_WORKERS, total_pages)
+                            LOGGER.info(
+                                f"Retrieving the Immich asset inventory with up to {workers} parallel page request(s)."
+                            )
                     # Some Immich versions report the current page size as the
                     # metadata-search total, so use the statistics endpoint instead.
                     progress_bar = stack.enter_context(tqdm(
@@ -2651,22 +2682,31 @@ class ClassImmichPhotos(BaseMediaClient):
                         desc=f"{MSG_TAGS['INFO']}Retrieving Immich asset inventory",
                         unit=" assets",
                     ))
+
+                if total_assets is not None:
+                    if total_pages > 1:
+                        pages = {}
+                        with ThreadPoolExecutor(max_workers=workers) as executor:
+                            futures = {
+                                executor.submit(get_assets_page, page_number): page_number
+                                for page_number in range(1, total_pages + 1)
+                            }
+                            for future in as_completed(futures):
+                                page_number = futures[future]
+                                items, _ = future.result()
+                                pages[page_number] = items
+                                if progress_bar is not None:
+                                    progress_bar.update(len(items))
+                        for page_number in range(1, total_pages + 1):
+                            all_assets.extend(pages.get(page_number, []))
+                        self._all_assets_unfiltered_cache = all_assets
+                        return all_assets
+
                 while True:
-                    payload = json.dumps({
-                        "page": int(next_page),
-                        "size": self.IMMICH_ASSET_INVENTORY_PAGE_SIZE,
-                        "order": "desc",
-                        "withExif": True,
-                    })
-                    resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
-                    resp.raise_for_status()
-                    data = resp.json()
-                    assets_page = data.get("assets", {})
-                    items = assets_page.get("items", [])
+                    items, next_page = get_assets_page(next_page)
                     all_assets.extend(items)
                     if progress_bar is not None:
                         progress_bar.update(len(items))
-                    next_page = assets_page.get("nextPage", None)
                     if next_page is None:
                         break
             self._all_assets_unfiltered_cache = all_assets

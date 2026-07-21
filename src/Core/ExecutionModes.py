@@ -1150,10 +1150,18 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                     limited_groups = []
                     limited_candidates = 0
                     for group in duplicate_groups:
-                        if limited_candidates + len(group) > TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT:
+                        remaining_candidates = (
+                            TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT - limited_candidates
+                        )
+                        if remaining_candidates < 2:
                             break
-                        limited_groups.append(group)
-                        limited_candidates += len(group)
+                        preview_group = group[:remaining_candidates]
+                        if len(preview_group) < 2:
+                            continue
+                        limited_groups.append(preview_group)
+                        limited_candidates += len(preview_group)
+                        if limited_candidates >= TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT:
+                            break
                     duplicate_groups = limited_groups
                     temporary_review_limited = True
                     LOGGER.warning(

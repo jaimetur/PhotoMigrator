@@ -385,6 +385,42 @@ class TestExecutionModes(unittest.TestCase):
         cloud_client.find_duplicate_assets_by_immich_detection.assert_not_called()
         cloud_client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
 
+    def test_manual_immich_duplicate_review_limit_truncates_an_oversized_exact_group(self):
+        args = _base_args()
+        args.update({
+            "remove-duplicates-assets": True,
+            "immich-duplicates-algorithm": False,
+            "immich-duplicates-deletion": False,
+            "duplicate-asset-keeper": "newest",
+        })
+        oversized_group = [
+            {"id": f"asset-{index}", "originalFileName": "IMG.JPG", "createdAt": "2021-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}}
+            for index in range(60)
+        ]
+        preview_group = oversized_group[:execution_modes.TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT]
+        cloud_client = MagicMock()
+        cloud_client.find_duplicate_assets_by_name_and_size.return_value = [oversized_group]
+        cloud_client.hydrate_duplicate_groups_metadata.return_value = [preview_group]
+        cloud_client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
+        cloud_client._duplicate_asset_timestamp.side_effect = lambda asset: asset["createdAt"]
+        cloud_client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
+            patch.object(execution_modes, "confirm_continue") as mock_confirm,
+            patch.object(execution_modes, "LOGGER", MagicMock()),
+        ):
+            execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
+
+        cloud_client.hydrate_duplicate_groups_metadata.assert_called_once_with(
+            [preview_group],
+            log_level=execution_modes.logging.INFO,
+            include_albums=True,
+        )
+        mock_confirm.assert_not_called()
+        cloud_client.remove_duplicates_assets_by_name_and_size.assert_not_called()
+
     def test_duplicate_metadata_preview_uses_resolved_names(self):
         preview = execution_modes._duplicate_asset_merge_metadata_preview(
             {

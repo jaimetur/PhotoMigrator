@@ -149,6 +149,33 @@ class TestImmichStreamingUpload(unittest.TestCase):
             12345,
         )
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.tqdm")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    def test_unfiltered_inventory_fetches_known_pages_in_parallel(self, _mock_logger, mock_post, mock_tqdm):
+        manager = self._build_manager()
+        manager._get_unfiltered_asset_inventory_total = MagicMock(return_value=2500)
+        progress_bar = MagicMock()
+        mock_tqdm.return_value.__enter__.return_value = progress_bar
+
+        def metadata_page_response(_url, headers, data, verify):
+            self.assertEqual(headers, manager.HEADERS_WITH_CREDENTIALS)
+            self.assertFalse(verify)
+            page_number = json.loads(data)["page"]
+            response = MagicMock()
+            response.raise_for_status.return_value = None
+            response.json.return_value = {
+                "assets": {"items": [{"id": f"asset-{page_number}"}]},
+            }
+            return response
+
+        mock_post.side_effect = metadata_page_response
+
+        assets = manager._get_all_assets_unfiltered(show_progress=True)
+
+        self.assertEqual([asset["id"] for asset in assets], ["asset-1", "asset-2", "asset-3"])
+        self.assertEqual(mock_post.call_count, 3)
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_native_duplicate_detection_preserves_immich_quality_suggestion(self, mock_get, _mock_logger):
