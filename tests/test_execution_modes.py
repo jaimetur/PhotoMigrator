@@ -324,17 +324,13 @@ class TestExecutionModes(unittest.TestCase):
             patch.object(execution_modes, "ARGS", args),
             patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
             patch.object(execution_modes, "confirm_continue", return_value=True),
-            patch.object(execution_modes, "LOGGER", MagicMock()) as mock_logger,
+            patch.object(execution_modes, "LOGGER", MagicMock()),
         ):
             execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
 
         cloud_client.find_duplicate_assets_by_name_and_size.assert_called_once_with(log_level=execution_modes.logging.INFO)
         cloud_client.find_duplicate_assets_by_immich_detection.assert_not_called()
         cloud_client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
-        self.assertTrue(any(
-            "native duplicate deletion is disabled" in str(call.args[0]).lower()
-            for call in mock_logger.warning.call_args_list
-        ))
 
     def test_duplicate_metadata_preview_uses_resolved_names(self):
         preview = execution_modes._duplicate_asset_merge_metadata_preview(

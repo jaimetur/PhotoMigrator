@@ -689,6 +689,22 @@ def checkArgs(ARGS, PARSER):
     if ARGS['input-folder'] != '' and ARGS['google-takeout'] == '' and ARGS['icloud-takeout'] == '':
         ARGS['google-takeout'] = ARGS['input-folder']
 
+    native_deletion_provided = any(
+        argument == "-immichDupDel"
+        or argument.startswith("-immichDupDel=")
+        or argument == "--immich-duplicates-deletion"
+        or argument.startswith("--immich-duplicates-deletion=")
+        for argument in sys.argv[1:]
+    )
+    if native_deletion_provided and not ARGS.get('immich-duplicates-algorithm', True):
+        PARSER.error(
+            f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
+            "Argument '--immich-duplicates-deletion' requires "
+            "'--immich-duplicates-algorithm=true'.\n"
+            f"{Style.RESET_ALL}"
+        )
+        exit(1)
+
     # Remove last slash for all folder arguments:
     ARGS['foldername-albums']               = fix_path(ARGS['foldername-albums'])
     ARGS['foldername-no-albums']            = fix_path(ARGS['foldername-no-albums'])

@@ -322,7 +322,7 @@ Examples:
   - Set Immich as the client using _**`--client=immich`**_.
   - Use _**`--remove-duplicates-assets`**_.
   - By default, _**`--immich-duplicates-algorithm=true`**_ retrieves Immich's native groups of visually similar assets, including different encodes or file sizes of the same image.
-  - _**`--immich-duplicates-deletion=true`**_ delegates metadata merging and redundant-asset removal to Immich's native duplicate resolver. It defaults to enabled whenever native detection is enabled, but is disabled with _**`--immich-duplicates-algorithm=false`**_ because exact filename-and-size groups do not have Immich duplicate IDs. Its redundant assets are moved to trash rather than permanently deleted.
+  - _**`--immich-duplicates-deletion=true`**_ delegates metadata merging and redundant-asset removal to Immich's native duplicate resolver. It defaults to enabled whenever native detection is enabled, but cannot be supplied with _**`--immich-duplicates-algorithm=false`**_ because exact filename-and-size groups do not have Immich duplicate IDs. Its redundant assets are moved to trash rather than permanently deleted.
   - Select the keeper with _**`--duplicate-asset-keeper better-quality|newest|oldest`**_. With native detection enabled, `better-quality` is the default and follows Immich's quality suggestion; `newest` and `oldest` use upload date.
 - **Pre-Requisites:**
   - Configure `Config.ini` with an Immich account that can update assets, add assets to albums and tags, and delete assets.

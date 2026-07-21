@@ -975,9 +975,6 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     if normalized_client != "immich":
         use_immich_deletion = False
     if use_immich_deletion and not use_immich_detection:
-        LOGGER.warning(
-            "Immich native duplicate deletion is disabled because Immich native duplicate detection is disabled."
-        )
         use_immich_deletion = False
     keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "better-quality").lower()
     if normalized_client != "immich" and keeper_strategy == "better-quality":
