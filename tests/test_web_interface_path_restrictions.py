@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from collections import deque
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 
@@ -86,6 +87,21 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(context.exception.status_code, 400)
         self.assertIn("subfolder", str(context.exception.detail))
         self.assertIn(str(self.allowed_roots[0]), str(context.exception.detail))
+
+    def test_features_redirects_to_output_for_current_users_active_job(self):
+        self.web_app.JOBS["active-job"] = SimpleNamespace(status="running", owner_user_id=self.current_user["id"])
+        request = self.web_app.Request({
+            "type": "http",
+            "method": "GET",
+            "path": "/features",
+            "headers": [],
+        })
+
+        with patch.object(self.web_app, "_user_from_session_token", return_value=self.current_user):
+            response = self.web_app.features_page(request, session_token="session-token")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["location"], "/output")
 
     def test_icloud_takeout_rejects_direct_user_root(self):
         values = {"icloud-takeout": str(self.allowed_roots[0])}

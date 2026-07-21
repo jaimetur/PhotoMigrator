@@ -65,6 +65,7 @@
   - Refined Google Takeout people-map collision matching for Immich imports. Album copies sharing a capture timestamp are consolidated, while remaining same-name candidates are ranked only by equivalent date types: EXIF-to-capture time and filesystem-to-modification time. Creation time remains informational and unrelated date types are never compared. Resolution logs now report the selected distance as `dd days hh:mm:ss`.
   - Made the Web Interface header collapsible. Its title and version remain available in the compact state, while session controls, documentation actions, and the logo can be restored through the persisted header collapse control.
   - Aligned the Web Interface header collapse control with the padded positioning of the other panel controls and reserved its corner space for the Admin and Logout session row.
+  - Redirected the Web Interface to Output whenever the current user opens or reloads Features or Configuration while one of their jobs is running or stopping.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

@@ -3764,7 +3764,18 @@ def api_change_password(payload: ChangePasswordRequest, current_user: Dict[str, 
     return {"saved": True}
 
 
-def _render_main_page(request: Request, current_user: Dict[str, Any], template_name: str) -> HTMLResponse:
+def _user_has_active_job(user_id: int) -> bool:
+    with JOBS_LOCK:
+        return any(
+            job.status in {"running", "stopping"}
+            and int(job.owner_user_id or -1) == int(user_id)
+            for job in JOBS.values()
+        )
+
+
+def _render_main_page(request: Request, current_user: Dict[str, Any], template_name: str) -> Response:
+    if template_name != "output.html" and _user_has_active_job(int(current_user["id"])):
+        return RedirectResponse(url="/output", status_code=302)
     response = templates.TemplateResponse(
         template_name,
         {
