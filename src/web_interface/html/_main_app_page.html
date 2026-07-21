@@ -242,7 +242,13 @@
                 </div>
             </section>
             <div class="terminal-shell">
+                <div class="log-jump-zone log-jump-zone--top">
+                    <button id="log-scroll-top-btn" type="button" class="log-jump-btn" aria-label="Scroll log to the first line" title="Go to first line">↑</button>
+                </div>
                 <pre id="output" class="terminal"></pre>
+                <div class="log-jump-zone log-jump-zone--bottom">
+                    <button id="log-scroll-bottom-btn" type="button" class="log-jump-btn" aria-label="Scroll log to the last line" title="Go to last line">↓</button>
+                </div>
                 <div id="output-resize-handle" class="terminal-resize-handle" title="Drag from bottom edge or bottom corners to resize the log panel"></div>
             </div>
             <div id="job-input-controls" class="job-input-controls">
@@ -5876,6 +5882,20 @@
             }
         });
         const outputEl = document.getElementById("output");
+        document.getElementById("log-scroll-top-btn").addEventListener("click", () => {
+            disableOutputAutoScroll(autoScrollCheck);
+            outputEl.scrollTop = 0;
+        });
+        document.getElementById("log-scroll-bottom-btn").addEventListener("click", () => {
+            uiState.auto_scroll = true;
+            autoScrollCheck.checked = true;
+            queueSaveState();
+            if (pendingOutputRenderPayload) {
+                applyOutputPayload(pendingOutputRenderPayload, {force: true});
+            } else {
+                scrollOutputToBottom(outputEl);
+            }
+        });
         outputEl.addEventListener("wheel", (event) => {
             if (!event.shiftKey) {
                 // Only an upward gesture moves away from the tail. Scrolling

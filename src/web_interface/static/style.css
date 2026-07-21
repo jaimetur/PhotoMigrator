@@ -2442,6 +2442,68 @@ body[data-theme="dark"] .theme-card__name {
     max-width: 100%;
 }
 
+.log-jump-zone {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    width: 144px;
+    height: 58px;
+    transform: translateX(-50%);
+    display: grid;
+    place-items: center;
+}
+
+.log-jump-zone--top {
+    top: 0;
+}
+
+.log-jump-zone--bottom {
+    bottom: 14px;
+}
+
+.log-jump-btn {
+    width: 52px;
+    height: 52px;
+    border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent);
+    border-radius: 50%;
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--accent) 86%, transparent),
+        color-mix(in srgb, var(--accent) 58%, #11181c)
+    );
+    box-shadow: 0 5px 16px color-mix(in srgb, var(--accent) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    color: var(--accent-soft);
+    cursor: pointer;
+    font-size: 2.55rem;
+    font-weight: 700;
+    line-height: 1;
+    opacity: 0;
+    backdrop-filter: blur(6px);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: opacity 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+    user-select: none;
+}
+
+.log-jump-zone:hover .log-jump-btn,
+.log-jump-btn:focus-visible {
+    opacity: 1;
+}
+
+.log-jump-btn:hover {
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--accent) 96%, transparent),
+        color-mix(in srgb, var(--accent) 68%, #11181c)
+    );
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 42%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px) scale(1.06);
+}
+
+.log-jump-btn:focus-visible {
+    outline: 2px solid var(--accent-soft);
+    outline-offset: 2px;
+}
+
 .terminal {
     display: block;
     margin: 0;
