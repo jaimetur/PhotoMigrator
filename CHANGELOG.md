@@ -49,6 +49,8 @@
   - Kept feature-specific global modifiers out of unrelated startup summaries: `--albums-folders` appears only for `Upload All`, `--preview-album-actions` only for its supported album modules, and `--remove-albums-assets` only for supported `Remove Albums` / `Remove All Albums` modules.
   - Added a red `Restore Default` action below the `General Arguments` cards in Web, GUI, and TUI. It restores all visible general fields to their defaults, persists the reset state where enabled, and refreshes the command preview without changing feature-specific values.
   - Set the real default for `--filter-by-type` to `all`, aligning CLI parsing, General Arguments restoration, and interactive selectors with the documented behavior.
+  - Hardened Immich authentication diagnostics with explicit API-key/password and supported-media-type progress messages plus 10-second connection and 30-second read timeouts. Native duplicate-group retrieval now fails explicitly after a 10-second connection or five-minute response timeout instead of waiting indefinitely on an unreported request.
+  - Prevented the Web Interface from starting a second module for the same user while another job is running or stopping, avoiding concurrent runs that can interleave output and contend for the same target APIs.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

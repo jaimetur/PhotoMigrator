@@ -4322,21 +4322,35 @@ def run_cli(payload: RunRequest, current_user: Dict[str, Any] = Depends(_require
     child_env["PHOTOMIGRATOR_DOCKER_BASE_PATH"] = str(_ensure_user_roots_exist(current_user)[0])
     child_env["PHOTOMIGRATOR_CONFIG_PATH"] = str(config_path)
 
-    job_id = uuid.uuid4().hex
-    process = subprocess.Popen(
-        command,
-        cwd=str(PROJECT_ROOT),
-        env=child_env,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        bufsize=1,
-    )
-
     with JOBS_LOCK:
+        existing_job = next(
+            (
+                job
+                for job in JOBS.values()
+                if int(job.owner_user_id or -1) == int(current_user["id"])
+                and job.status in {"running", "stopping"}
+            ),
+            None,
+        )
+        if existing_job is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="A module is already running. Stop it or wait for it to finish before starting another one.",
+            )
+
+        job_id = uuid.uuid4().hex
+        process = subprocess.Popen(
+            command,
+            cwd=str(PROJECT_ROOT),
+            env=child_env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+        )
         JOBS[job_id] = JobData(
             command=command,
             process=process,

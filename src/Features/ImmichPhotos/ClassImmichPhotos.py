@@ -63,6 +63,8 @@ class ClassImmichPhotos(BaseMediaClient):
     IMMICH_ASSET_INVENTORY_PAGE_SIZE = 1000
     IMMICH_ASSET_INVENTORY_WORKERS = 100
     DUPLICATE_METADATA_REVIEW_WORKERS = 100
+    IMMICH_AUTH_TIMEOUT = (10, 30)
+    IMMICH_DUPLICATES_TIMEOUT = (10, 300)
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
     DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
@@ -226,19 +228,24 @@ class ClassImmichPhotos(BaseMediaClient):
             LOGGER.info(f"Authenticating on Immich Photos and getting Session...")
 
             if self.API_KEY_LOGIN:
-                # Using user API key from config
+                # Validate the configured API key before running the selected module.
                 url = f"{self.IMMICH_URL}/api/auth/validateToken"
                 headers = {
                     'Accept': 'application/json',
                     'x-api-key': self.IMMICH_USER_API_KEY
                 }
                 try:
-                    response = requests.post(url, headers=headers, data={})
+                    LOGGER.info("Validating Immich user API key...")
+                    response = requests.post(
+                        url,
+                        headers=headers,
+                        data={},
+                        timeout=self.IMMICH_AUTH_TIMEOUT,
+                    )
                     response.raise_for_status()
                 except Exception as e:
                     LOGGER.error(f"Exception occurred during Immich login: {str(e)}")
                     return False
-                
 
                 self.HEADERS_WITH_CREDENTIALS = {
                     'Content-Type': 'application/json',
@@ -258,7 +265,13 @@ class ClassImmichPhotos(BaseMediaClient):
                     'Accept': 'application/json'
                 }
                 try:
-                    response = requests.post(url, headers=headers, data=payload)
+                    LOGGER.info("Authenticating with Immich user/password...")
+                    response = requests.post(
+                        url,
+                        headers=headers,
+                        data=payload,
+                        timeout=self.IMMICH_AUTH_TIMEOUT,
+                    )
                     response.raise_for_status()
                 except Exception as e:
                     LOGGER.error(f"Exception occurred during Immich login: {str(e)}")
@@ -279,7 +292,12 @@ class ClassImmichPhotos(BaseMediaClient):
                 LOGGER.info(f"Authentication Successfully with user/password found in Config file.")
 
             # Now retrieve list of allowed media/sidecar extensions
+            LOGGER.info("Retrieving Immich supported media types...")
             media_types = self._get_media_types_payload(log_level=logging.WARNING) or {}
+            if not media_types:
+                LOGGER.warning("Immich supported media types could not be retrieved; uploads may reject unsupported extensions.")
+            else:
+                LOGGER.info("Immich supported media types retrieved.")
             self.ALLOWED_IMMICH_PHOTO_EXTENSIONS = media_types.get("image", []) or []
             self.ALLOWED_IMMICH_VIDEO_EXTENSIONS = media_types.get("video", []) or []
             self.ALLOWED_IMMICH_MEDIA_EXTENSIONS = (self.ALLOWED_IMMICH_PHOTO_EXTENSIONS or []) + (self.ALLOWED_IMMICH_VIDEO_EXTENSIONS or [])
@@ -343,7 +361,11 @@ class ClassImmichPhotos(BaseMediaClient):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/server/media-types"
             try:
-                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS)
+                resp = requests.get(
+                    url,
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    timeout=self.IMMICH_AUTH_TIMEOUT,
+                )
                 resp.raise_for_status()
                 data = resp.json() or {}
                 self.IMMICH_MEDIA_TYPES_CACHE = data if isinstance(data, dict) else {}
@@ -2414,7 +2436,9 @@ class ClassImmichPhotos(BaseMediaClient):
     def find_duplicate_assets_by_immich_detection(self, log_level=None):
         """Return the duplicate groups produced by Immich's native detector."""
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
+            if not self.login(log_level=log_level):
+                LOGGER.error("Cannot retrieve Immich native duplicate groups because authentication setup failed.")
+                return []
             LOGGER.info(
                 "Retrieving duplicate groups from Immich native duplicate detection. "
                 "This operation can take some time depending on the size of the Immich library "
@@ -2425,6 +2449,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     f"{self.IMMICH_URL}/api/duplicates",
                     headers=self.HEADERS_WITH_CREDENTIALS,
                     verify=False,
+                    timeout=self.IMMICH_DUPLICATES_TIMEOUT,
                 )
                 response.raise_for_status()
                 detected_groups = response.json()

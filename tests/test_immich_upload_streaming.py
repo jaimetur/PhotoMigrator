@@ -202,6 +202,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
             "http://immich.local/api/duplicates",
             headers=manager.HEADERS_WITH_CREDENTIALS,
             verify=False,
+            timeout=manager.IMMICH_DUPLICATES_TIMEOUT,
         )
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
