@@ -408,13 +408,38 @@ class TestImmichStreamingUpload(unittest.TestCase):
             "http://immich.local/api/stacks/stack-1",
             headers=manager.HEADERS_WITH_CREDENTIALS,
             verify=False,
+            timeout=manager.IMMICH_METADATA_MERGE_TIMEOUT,
         )
         mock_post.assert_called_once_with(
             "http://immich.local/api/stacks",
             headers=manager.HEADERS_WITH_CREDENTIALS,
             data=json.dumps({"assetIds": ["keeper", "other"]}),
             verify=False,
+            timeout=manager.IMMICH_METADATA_MERGE_TIMEOUT,
         )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.time.sleep")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_merge_duplicate_stacks_retries_transient_connection_reset(
+        self, mock_get, mock_post, mock_sleep, _mock_logger
+    ):
+        manager = self._build_manager()
+        stack_response = MagicMock()
+        stack_response.raise_for_status.return_value = None
+        stack_response.json.return_value = {"assets": [{"id": "duplicate"}, {"id": "other"}]}
+        post_response = MagicMock()
+        post_response.raise_for_status.return_value = None
+        mock_get.return_value = stack_response
+        mock_post.side_effect = [requests.ConnectionError("Connection reset by peer"), post_response]
+        keeper = {"id": "keeper", "stack": None}
+        duplicate = {"id": "duplicate", "stack": {"id": "stack-1"}}
+
+        self.assertTrue(manager._merge_duplicate_asset_stacks(keeper, [duplicate]))
+
+        self.assertEqual(mock_post.call_count, 2)
+        mock_sleep.assert_called_once_with(1)
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")

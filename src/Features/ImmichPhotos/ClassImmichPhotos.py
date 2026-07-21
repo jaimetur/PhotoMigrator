@@ -67,6 +67,8 @@ class ClassImmichPhotos(BaseMediaClient):
     IMMICH_DUPLICATES_TIMEOUT = (10, 300)
     IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE = 100
     IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE = 250
+    IMMICH_METADATA_MERGE_TIMEOUT = (10, 60)
+    IMMICH_METADATA_MERGE_RETRIES = 3
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
     DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
@@ -2031,14 +2033,33 @@ class ClassImmichPhotos(BaseMediaClient):
             if isinstance(asset.get("stack"), dict)
         }
         stack_ids.discard("")
+
+        def stack_request(method, url, **kwargs):
+            last_error = None
+            for attempt in range(1, self.IMMICH_METADATA_MERGE_RETRIES + 1):
+                try:
+                    response = method(url, timeout=self.IMMICH_METADATA_MERGE_TIMEOUT, **kwargs)
+                    response.raise_for_status()
+                    return response
+                except requests.RequestException as error:
+                    last_error = error
+                    if attempt == self.IMMICH_METADATA_MERGE_RETRIES:
+                        break
+                    LOGGER.debug(
+                        f"Immich stack merge request failed on attempt {attempt}/"
+                        f"{self.IMMICH_METADATA_MERGE_RETRIES}; retrying: {error}"
+                    )
+                    time.sleep(attempt)
+            raise last_error
+
         for stack_id in stack_ids:
             try:
-                response = requests.get(
+                response = stack_request(
+                    requests.get,
                     f"{self.IMMICH_URL}/api/stacks/{stack_id}",
                     headers=self.HEADERS_WITH_CREDENTIALS,
                     verify=False,
                 )
-                response.raise_for_status()
                 stack_data = response.json()
                 stack_assets = stack_data.get("assets") if isinstance(stack_data, dict) else None
                 if not isinstance(stack_assets, list):
@@ -2051,13 +2072,13 @@ class ClassImmichPhotos(BaseMediaClient):
                 asset_ids = [keeper_id, *[asset_id for asset_id in survivor_ids if asset_id != keeper_id]]
                 if len(asset_ids) < 2:
                     continue
-                response = requests.post(
+                stack_request(
+                    requests.post,
                     f"{self.IMMICH_URL}/api/stacks",
                     headers=self.HEADERS_WITH_CREDENTIALS,
                     data=json.dumps({"assetIds": asset_ids}),
                     verify=False,
                 )
-                response.raise_for_status()
             except (requests.RequestException, ValueError) as error:
                 LOGGER.warning(
                     f"Could not merge stack '{stack_id}' into duplicate keeper '{keeper_id}': {error}. "
