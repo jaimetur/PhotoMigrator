@@ -1847,10 +1847,15 @@ class PhotoMigratorTkGUI:
         self.refresh_boolean_toggle(dest, value)
 
     def set_boolean_toggle(self, dest: str, value: bool) -> None:
+        if dest == "immich-duplicates-deletion" and not bool(self.state_values.get("immich-duplicates-algorithm", True)):
+            value = False
         if dest == "remember-state":
             self.remember_state = value
         else:
             self.state_values[dest] = value
+        if dest == "immich-duplicates-algorithm":
+            self.state_values["immich-duplicates-deletion"] = bool(value)
+            self.refresh_boolean_toggle("immich-duplicates-deletion", bool(value))
         self.refresh_boolean_toggle(dest, value)
         self.update_command_preview()
 
@@ -1859,9 +1864,12 @@ class PhotoMigratorTkGUI:
         switch = self.bool_toggle_widgets.get(dest)
         if not switch:
             return
-        track_fill = "#35c759" if value else "#6b7481"
+        disabled = dest == "immich-duplicates-deletion" and not bool(
+            self.state_values.get("immich-duplicates-algorithm", True)
+        )
+        track_fill = "#35c759" if value and not disabled else "#6b7481"
         thumb_fill = "#f4f7fb"
-        switch.configure(bg=theme["panel_bg"])
+        switch.configure(bg=theme["panel_bg"], cursor="arrow" if disabled else "hand2")
         switch.delete("all")
         switch.create_oval(1, 3, 15, 17, fill=track_fill, outline=track_fill)
         switch.create_rectangle(8, 3, 32, 17, fill=track_fill, outline=track_fill)
@@ -1928,6 +1936,11 @@ class PhotoMigratorTkGUI:
         if dest == "process-duplicates":
             path_hint = "path"
         if kind in {"flag", "bool"}:
+            if dest == "immich-duplicates-deletion" and not bool(
+                self.state_values.get("immich-duplicates-algorithm", True)
+            ):
+                value = False
+                self.state_values[dest] = False
             self.build_boolean_toggle_row(parent, f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text)
             return
         if kind == "select":

@@ -268,7 +268,7 @@ class TestExecutionModes(unittest.TestCase):
         args = _base_args()
         args.update({
             "remove-duplicates-assets": True,
-            "immich-duplicates-algorithm": False,
+            "immich-duplicates-algorithm": True,
             "immich-duplicates-deletion": True,
             "duplicate-asset-keeper": "better-quality",
         })
@@ -299,6 +299,42 @@ class TestExecutionModes(unittest.TestCase):
             log_level=execution_modes.logging.INFO,
         )
         cloud_client.remove_duplicates_assets_by_name_and_size.assert_not_called()
+
+    def test_native_deletion_is_disabled_when_native_detection_is_disabled(self):
+        args = _base_args()
+        args.update({
+            "remove-duplicates-assets": True,
+            "immich-duplicates-algorithm": False,
+            "immich-duplicates-deletion": True,
+            "duplicate-asset-keeper": "newest",
+        })
+        duplicate_groups = [[
+            {"id": "older", "originalFileName": "IMG.JPG", "createdAt": "2020-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}},
+            {"id": "newer", "originalFileName": "IMG.JPG", "createdAt": "2021-01-01T00:00:00Z", "exifInfo": {"fileSize": 42}},
+        ]]
+        cloud_client = MagicMock()
+        cloud_client.find_duplicate_assets_by_name_and_size.return_value = duplicate_groups
+        cloud_client.hydrate_duplicate_groups_metadata.return_value = duplicate_groups
+        cloud_client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
+        cloud_client._duplicate_asset_timestamp.side_effect = lambda asset: asset["createdAt"]
+        cloud_client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
+        cloud_client.remove_duplicates_assets_by_name_and_size.return_value = (1, 1, 0)
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
+            patch.object(execution_modes, "confirm_continue", return_value=True),
+            patch.object(execution_modes, "LOGGER", MagicMock()) as mock_logger,
+        ):
+            execution_modes.mode_cloud_remove_duplicates_assets(client="immich")
+
+        cloud_client.find_duplicate_assets_by_name_and_size.assert_called_once_with(log_level=execution_modes.logging.INFO)
+        cloud_client.find_duplicate_assets_by_immich_detection.assert_not_called()
+        cloud_client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
+        self.assertTrue(any(
+            "native duplicate deletion is disabled" in str(call.args[0]).lower()
+            for call in mock_logger.warning.call_args_list
+        ))
 
     def test_duplicate_metadata_preview_uses_resolved_names(self):
         preview = execution_modes._duplicate_asset_merge_metadata_preview(

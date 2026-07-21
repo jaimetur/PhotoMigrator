@@ -970,16 +970,15 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
 
     native_detection_value = ARGS.get("immich-duplicates-algorithm", True)
     use_immich_detection = str(native_detection_value).strip().lower() not in {"false", "0", "no", "off"}
-    native_deletion_value = ARGS.get("immich-duplicates-deletion", False)
+    native_deletion_value = ARGS.get("immich-duplicates-deletion", True)
     use_immich_deletion = str(native_deletion_value).strip().lower() in {"true", "1", "yes", "on"}
     if normalized_client != "immich":
         use_immich_deletion = False
     if use_immich_deletion and not use_immich_detection:
         LOGGER.warning(
-            "Immich native duplicate deletion requires native duplicate groups; "
-            "enabling Immich duplicate detection for this run."
+            "Immich native duplicate deletion is disabled because Immich native duplicate detection is disabled."
         )
-        use_immich_detection = True
+        use_immich_deletion = False
     keeper_strategy = str(ARGS.get("duplicate-asset-keeper") or "better-quality").lower()
     if normalized_client != "immich" and keeper_strategy == "better-quality":
         keeper_strategy = "newest"

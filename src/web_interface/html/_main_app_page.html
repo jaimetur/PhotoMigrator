@@ -1991,6 +1991,17 @@
             check.dataset.dest = field.dest;
             const persisted = stateValues[field.dest];
             check.checked = uiCheckboxValueForField(field, persisted);
+            if (field.dest === "immich-duplicates-deletion") {
+                const algorithmField = getFieldByDest("immich-duplicates-algorithm") || {};
+                const algorithmEnabled = uiCheckboxValueForField(
+                    algorithmField, stateValues["immich-duplicates-algorithm"],
+                );
+                check.disabled = !algorithmEnabled;
+                if (!algorithmEnabled) {
+                    check.checked = false;
+                    stateValues["immich-duplicates-deletion"] = false;
+                }
+            }
             const syncFlagState = () => {
                 updateStateValueForElement(check);
                 if (field.dest === "immich-duplicates-algorithm") {
@@ -2004,6 +2015,12 @@
                             stateValues["duplicate-asset-keeper"] = "newest";
                         }
                     }
+                    const deletionInput = document.querySelector('[data-dest="immich-duplicates-deletion"]');
+                    if (deletionInput) {
+                        deletionInput.disabled = !check.checked;
+                        deletionInput.checked = check.checked;
+                    }
+                    stateValues["immich-duplicates-deletion"] = check.checked;
                 }
                 queueSaveState();
                 queueCommandPreview();

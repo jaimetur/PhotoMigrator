@@ -3085,10 +3085,11 @@ if TEXTUAL_AVAILABLE:
             self.register_field_help(widget_id, help_text)
             return Horizontal(Label(label, classes="field-label"), Checkbox(value=bool(value), id=widget_id), classes="field-row")
 
-        def build_boolean_toggle_row(self, label: str, dest: str, value: bool, help_text: str = "") -> Horizontal:
+        def build_boolean_toggle_row(self, label: str, dest: str, value: bool, help_text: str = "", disabled: bool = False) -> Horizontal:
             toggle_id = f"bool-{dest}-toggle"
             self.register_field_help(toggle_id, help_text)
             toggle_button = Button("", id=toggle_id, classes="bool-switch")
+            toggle_button.disabled = disabled
             self._set_boolean_toggle_visual(toggle_button, bool(value))
             return Horizontal(
                 Label(label, classes="field-label"),
@@ -3131,7 +3132,15 @@ if TEXTUAL_AVAILABLE:
             if kind == "flag":
                 return [self.build_boolean_toggle_row(f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text)]
             if kind == "bool":
-                return [self.build_boolean_toggle_row(f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text)]
+                disabled = dest == "immich-duplicates-deletion" and not bool(
+                    self.state_values.get("immich-duplicates-algorithm", True)
+                )
+                if disabled:
+                    value = False
+                    self.state_values[dest] = False
+                return [self.build_boolean_toggle_row(
+                    f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text, disabled=disabled,
+                )]
             if kind == "select":
                 options = [(str(choice), str(choice)) for choice in (field.get("choices") or [])]
                 return [self.build_select_row(f"{label}{' *' if required else ''}", f"field-{dest}", options, value, help_text=help_text)]
@@ -3644,6 +3653,9 @@ if TEXTUAL_AVAILABLE:
                         self.remember_state = value
                     else:
                         self.state_values[dest] = value
+                    if dest == "immich-duplicates-algorithm":
+                        self.state_values["immich-duplicates-deletion"] = bool(value)
+                        await self.rebuild_content()
                     self.refresh_boolean_toggle(dest, value)
                     self.update_command_preview()
                 return
