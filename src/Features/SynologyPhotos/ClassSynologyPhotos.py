@@ -2652,7 +2652,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 return None, None
             
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, album_id=None, album_scope=None, download_api=None, log_level=None):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, album_id=None, album_scope=None, log_level=None):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
@@ -2671,9 +2671,6 @@ class ClassSynologyPhotos(BaseMediaClient):
             album_scope (str): Normalized album scope. For Shared Space albums
                 discovered in issue #1173 we must include `album_id` even when
                 the album is owned by the current user and no passphrase is used.
-            download_api (str): Synology download namespace captured while
-                listing an asset. Shared Space timeline assets require
-                `SYNO.FotoTeam.Download`; personal assets use `SYNO.Foto.Download`.
             download_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
 
@@ -2703,8 +2700,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 if self.SYNO_TOKEN_HEADER:
                     headers.update(self.SYNO_TOKEN_HEADER)
 
-                if not download_api:
-                    download_api = getattr(self, "_synology_download_api_by_asset_id", {}).get(str(asset_id))
+                download_api = getattr(self, "_synology_download_api_by_asset_id", {}).get(str(asset_id))
                 download_api = str(download_api or "SYNO.Foto.Download")
 
                 params = {
@@ -3702,8 +3698,6 @@ class ClassSynologyPhotos(BaseMediaClient):
                     asset_id = asset.get('id')
                     asset_filename = asset.get('filename')
                     asset_time = asset.get('time')
-                    download_api = asset.get("_synology_download_api")
-
                     if not asset_id:
                         continue
 
@@ -3724,7 +3718,6 @@ class ClassSynologyPhotos(BaseMediaClient):
                         asset_filename=asset_filename,
                         asset_time=asset_time,
                         download_folder=target_folder,
-                        download_api=download_api,
                         log_level=logging.INFO,
                     )
 
