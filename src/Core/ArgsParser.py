@@ -491,10 +491,12 @@ def parse_arguments():
                         default=True,
                         type=str2bool,
                         help="For Immich Remove Duplicate Assets, let Immich resolve each native duplicate group, "
-                             "merge its supported metadata, and trash redundant assets. This uses Immich's Alpha "
-                             "duplicate-resolution API. When disabled, PhotoMigrator performs its guarded metadata "
-                             "merge and permanent deletion flow. It is disabled whenever native detection is "
-                             "disabled (default: True with native detection).")
+                             "merge albums, favorites, highest rating, combined descriptions, most restrictive "
+                             "visibility, matching locations, and tags, then trash redundant assets. This uses "
+                             "Immich's Alpha duplicate-resolution API. When disabled, PhotoMigrator merges those "
+                             "fields plus missing capture date, stacks, and safely transferable assigned faces/persons, "
+                             "then permanently deletes redundant assets. It is disabled whenever native detection "
+                             "is disabled (default: True with native detection).")
 
     PARSER.add_argument("-dupKeeper", "--duplicate-asset-keeper", choices=["better-quality", "oldest", "newest"], default="better-quality",
                         help="Choose the retained asset for '--remove-duplicates-assets'. 'better-quality' uses Immich's "

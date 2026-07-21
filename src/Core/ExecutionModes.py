@@ -125,6 +125,11 @@ def _duplicate_asset_merge_metadata_preview(asset, display_names=None):
     return metadata
 
 
+# Temporary diagnostic cap for validating duplicate-review metadata rendering.
+# Remove this once the review output has been confirmed against the target library.
+TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT = 200
+
+
 def _build_cloud_client_obj(client_name: str):
     normalized = str(client_name or "").strip().lower()
     if normalized == "immich":
@@ -1027,13 +1032,32 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
             if not duplicate_groups:
                 LOGGER.info("No duplicate assets were found.")
                 return
+            temporary_review_limited = False
             if normalized_client == "immich":
-                metadata_display_names = {}
+                total_candidates = sum(len(group) for group in duplicate_groups)
+                if total_candidates > TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT:
+                    limited_groups = []
+                    limited_candidates = 0
+                    for group in duplicate_groups:
+                        if limited_candidates + len(group) > TEMPORARY_IMMICH_DUPLICATE_REVIEW_ASSET_LIMIT:
+                            break
+                        limited_groups.append(group)
+                        limited_candidates += len(group)
+                    duplicate_groups = limited_groups
+                    temporary_review_limited = True
+                    LOGGER.warning(
+                        f"Temporary duplicate-review limit enabled: loading the first {limited_candidates} "
+                        f"complete candidate asset(s) out of {total_candidates}. No assets will be deleted."
+                    )
+            if normalized_client == "immich":
+                metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
+                    log_level=logging.INFO,
+                )
                 if use_immich_deletion:
                     duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
                         duplicate_groups,
                         log_level=logging.INFO,
-                        include_albums=False,
+                        include_albums=True,
                     )
                 else:
                     LOGGER.info(
@@ -1083,6 +1107,11 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                     f"uploaded={keeper.get('createdAt')}; remove={json.dumps(removal_details, ensure_ascii=False)}; "
                     f"merge_metadata={json.dumps(merge_metadata, ensure_ascii=False)}"
                 )
+            if temporary_review_limited:
+                LOGGER.warning(
+                    "Temporary duplicate-review limit reached. Stopping after preview before confirmation or deletion."
+                )
+                return
             if user_confirmation and not confirm_continue():
                 LOGGER.info("Exiting program without deleting duplicate assets.")
                 return
