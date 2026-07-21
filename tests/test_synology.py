@@ -183,12 +183,39 @@ class TestSynologyPhotosUnit(unittest.TestCase):
                 {"id": "2", "filename": "two.jpg", "owner_user_id": 0, "type": "PHOTO"},
                 {"id": "3", "filename": "three.jpg", "owner_user_id": 0, "type": "PHOTO"},
             ]}}),
+            MagicMock(json=lambda: {"success": True, "data": {"list": [
+                {"id": "3", "filename": "three.jpg", "owner_user_id": 0, "type": "PHOTO"},
+                {"id": "4", "filename": "four.jpg", "owner_user_id": 0, "type": "PHOTO"},
+            ]}}),
         ])
 
         assets = manager.get_assets_by_filters(log_level=logging.INFO)
 
-        self.assertEqual([asset["id"] for asset in assets], ["1", "2", "3"])
-        self.assertEqual(manager._request_entry_api.call_count, 2)
+        self.assertEqual([asset["id"] for asset in assets], ["1", "2", "3", "4"])
+        self.assertEqual(manager._request_entry_api.call_count, 3)
+        team_call = manager._request_entry_api.call_args_list[2]
+        self.assertEqual(
+            team_call.args[0],
+            "http://synology.local/webapi/entry.cgi/SYNO.FotoTeam.Browse.Item",
+        )
+        self.assertTrue(team_call.kwargs["prefer_post"])
+        self.assertEqual(team_call.args[1]["api"], "SYNO.FotoTeam.Browse.Item")
+        self.assertEqual(team_call.args[1]["version"], "7")
+        self.assertEqual(team_call.args[1]["method"], "list")
+
+    def test_shared_space_timeline_variant_uses_browser_date_parameters(self):
+        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
+        manager.from_date = 1759795200
+        manager.to_date = 1759881599
+
+        variants = list(manager._iter_global_item_request_variants({"item_type": "[0]"}))
+        team_variant = next(variant for variant in variants if variant["label"] == "shared_space_v7_timeline_items")
+
+        self.assertTrue(team_variant["prefer_post"])
+        self.assertEqual(team_variant["params"]["api"], "SYNO.FotoTeam.Browse.Item")
+        self.assertEqual(team_variant["params"]["start_time"], 1759795200)
+        self.assertEqual(team_variant["params"]["end_time"], 1759881599)
+        self.assertEqual(team_variant["params"]["item_type"], "[0]")
 
     @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
     def test_get_all_assets_without_albums_uses_id_diff_instead_of_filename(self, _mock_logger):
@@ -206,68 +233,6 @@ class TestSynologyPhotosUnit(unittest.TestCase):
         assets_without_albums = manager.get_all_assets_without_albums(log_level=logging.INFO)
 
         self.assertEqual([asset["id"] for asset in assets_without_albums], ["20"])
-
-    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
-    def test_shared_space_folder_inventory_lists_folder_items_and_applies_filters(self, _mock_logger):
-        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
-        manager.SYNOLOGY_URL = "http://synology.local"
-        manager.SYNO_TOKEN_HEADER = {}
-        manager.login = lambda log_level=None: True
-        manager.type = None
-        manager.from_date = 150
-        manager.to_date = 250
-        manager.country = None
-        manager.city = None
-        manager.person = None
-        manager._request_entry_api = MagicMock(side_effect=[
-            MagicMock(json=lambda: {"success": True, "data": {"folder": {"id": "0"}}}),
-            MagicMock(json=lambda: {"success": True, "data": {"list": [{"id": "10"}]}}),
-            MagicMock(json=lambda: {"success": True, "data": {"list": [
-                {"id": "root-old", "time": 100},
-                {"id": "root-inside", "time": 200},
-            ]}}),
-            MagicMock(json=lambda: {"success": True, "data": {"list": []}}),
-            MagicMock(json=lambda: {"success": True, "data": {"list": [
-                {"id": "child-inside", "time": 200},
-                {"id": "child-new", "time": 300},
-            ]}}),
-        ])
-
-        assets = manager._get_assets_from_folder_inventory(log_level=logging.INFO)
-
-        self.assertEqual([asset["id"] for asset in assets], ["root-inside", "child-inside"])
-        item_calls = [
-            call.args[1]
-            for call in manager._request_entry_api.call_args_list
-            if call.args[1].get("api") == "SYNO.Foto.Browse.Item"
-        ]
-        self.assertEqual([call["folder_id"] for call in item_calls], ["0", "10"])
-
-    @patch("Features.SynologyPhotos.ClassSynologyPhotos.LOGGER", new_callable=MagicMock)
-    def test_no_albums_merges_shared_space_folder_inventory_before_id_diff(self, _mock_logger):
-        manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
-        manager.assets_without_albums_filtered = None
-        manager._has_owned_shared_space_albums = True
-        manager.login = lambda log_level=None: True
-        manager.get_assets_by_filters = MagicMock(return_value=[
-            {"id": "personal", "filename": "personal.jpg", "type": "PHOTO"},
-        ])
-        manager.get_all_assets_from_all_albums = MagicMock(return_value=[
-            {"id": "album-shared", "filename": "album.jpg", "type": "PHOTO"},
-        ])
-        manager._get_assets_from_folder_inventory = MagicMock(return_value=[
-            {"id": "album-shared", "filename": "album.jpg", "type": "PHOTO"},
-            {"id": "shared-1", "filename": "shared-1.jpg", "type": "PHOTO"},
-            {"id": "shared-2", "filename": "shared-2.jpg", "type": "PHOTO"},
-        ])
-
-        assets_without_albums = manager.get_all_assets_without_albums(log_level=logging.INFO)
-
-        self.assertEqual(
-            [asset["id"] for asset in assets_without_albums],
-            ["personal", "shared-1", "shared-2"],
-        )
-        manager._get_assets_from_folder_inventory.assert_called_once()
 
     def _prepare_push_manager(self):
         manager = ClassSynologyPhotos.__new__(ClassSynologyPhotos)
