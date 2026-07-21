@@ -53,7 +53,7 @@
   - Prevented the Web Interface from starting a second module for the same user while another job is running or stopping, avoiding concurrent runs that can interleave output and contend for the same target APIs.
   - Reordered startup global settings so `Generated Log File Location` is emitted immediately after `Project Root`.
   - Added post-confirmation progress feedback to Immich `Remove Duplicate Assets`: manual cleanup reports group-by-group resolution, while native resolution reports duplicate-group payload preparation and keeps a timed server-side resolution progress indicator visible until Immich completes its atomic batch.
-  - Fixed Web Interface log Auto Scroll so large incremental output batches and their own programmatic scroll events no longer disable it. Deliberate vertical wheel scrolling still switches to manual review immediately.
+  - Fixed Web Interface log Auto Scroll so large incremental output batches and delayed browser layout scroll events cannot disable it. It now changes to manual review only after an explicit vertical wheel or touch scroll, and re-enables when the user returns to the log tail.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
