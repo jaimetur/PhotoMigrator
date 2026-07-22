@@ -265,6 +265,39 @@ class TestImmichPhotosUnit(unittest.TestCase):
             log_level=None,
         )
 
+    def test_auto_stack_bursts_groups_distinct_phone_filenames_by_capture_time(self):
+        self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".heic"]
+        self.manager._create_stack = MagicMock(return_value="stack-id")
+        records = [
+            {
+                "asset_id": "asset-1",
+                "file_path": "/photos/IMG_20250306_172108.HEIC",
+                "folder": "/photos",
+                "ext": ".heic",
+                "normalized_stem": "img_20250306_172108",
+                "capture_epoch": 100.0,
+                "file_size": 100,
+            },
+            {
+                "asset_id": "asset-2",
+                "file_path": "/photos/IMG_20250306_172109.HEIC",
+                "folder": "/photos",
+                "ext": ".heic",
+                "normalized_stem": "img_20250306_172109",
+                "capture_epoch": 101.5,
+                "file_size": 1_000,
+            },
+        ]
+
+        with patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock):
+            stacks_created = self.manager.auto_stack_bursts(records, context_label="test")
+
+        self.assertEqual(stacks_created, 1)
+        self.manager._create_stack.assert_called_once_with(
+            ["asset-2", "asset-1"],
+            log_level=None,
+        )
+
     def test_get_album_owner_id_prefers_owner_id_when_present(self):
         album = {
             "ownerId": "legacy-owner",

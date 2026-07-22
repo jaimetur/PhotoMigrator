@@ -3527,9 +3527,13 @@ class ClassImmichPhotos(BaseMediaClient):
                 LOGGER.info(f"{prefix}Burst auto-stack evaluated 0 photo candidate(s); created 0 stack group(s) in Immich.")
                 return 0
 
+            # Burst filenames from phones usually encode the capture timestamp, so
+            # consecutive burst frames do not share a normalized filename stem.
+            # Group by physical folder first; capture-time proximity below decides
+            # the actual burst clusters.
             groups = {}
             for rec in records:
-                key = (rec.get("folder"), rec.get("normalized_stem"))
+                key = rec.get("folder")
                 groups.setdefault(key, []).append(rec)
 
             stacks_created = 0
@@ -3558,13 +3562,6 @@ class ClassImmichPhotos(BaseMediaClient):
                     clusters.append(current_cluster)
 
                 for cluster in clusters:
-                    # Size ratio guard
-                    sizes = [max(1, int(c.get("file_size") or 1)) for c in cluster]
-                    min_size = min(sizes)
-                    max_size = max(sizes)
-                    if max_size / min_size > 1.8:
-                        continue
-
                     cluster_sorted = sorted(cluster, key=self._burst_primary_sort_key)
                     ordered_asset_ids = []
                     seen_ids = set()

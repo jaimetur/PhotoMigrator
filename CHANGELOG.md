@@ -111,6 +111,7 @@
   - Fixed local-folder to Immich Automatic Migration Live Photo handling. Same-stem HEIC/JPEG and MOV files are now paired deterministically from the source inventory and uploaded through Immich's Live Photo endpoint as one transfer job while all queue, album, and migration counters continue to count both physical files exactly once.
   - Fixed Immich burst auto-stacking in Automatic Migration to retain duplicate photo candidates. Existing Immich asset IDs are now resolved only after filename, capture-time, and size heuristics identify a qualifying burst group, preserving the fast duplicate path for unrelated assets. The final burst evaluation is logged even when it creates no stacks.
   - Fixed Immich stack summary logging: `Total Stacks Created` is now omitted from Automatic Migration, Upload Albums, and Upload All when `--create-stacks=false`.
+  - Fixed Immich burst auto-stacking to group same-folder photos by consecutive capture times rather than by matching filename stems or compressed file sizes. Timestamped phone filenames and variable image compression no longer prevent valid burst stacks.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
