@@ -77,6 +77,7 @@
   - Added `Total Stacks Created` to the final summaries of Immich Automatic Migration, Upload Albums, and Upload All. Upload All aggregates stacks created from both its album and no-album upload phases.
   - Improved Automatic Migration Live Photo logging: a queued MOV companion now reports the HEIC/JPEG it is waiting for and the same album or folder queue state as other pushed assets.
   - Styled Automatic Migration `Live Companion` log entries as a muted variant of `Asset Pushed` across the CLI, TUI, desktop dashboard, and Web Interface.
+  - Made the Web Interface Automatic Migration Live Dashboard responsive on mobile screens: transfer and queue bars now stack their label, progress bar, and counters vertically, while long panel context and outcome rows wrap inside their cards.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

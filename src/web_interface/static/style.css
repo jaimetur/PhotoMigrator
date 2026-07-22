@@ -3238,6 +3238,42 @@ body[data-theme="sunset"] .folder-item--select {
 }
 
 @media (max-width: 540px) {
+    .web-dashboard {
+        min-width: 0;
+        padding: 10px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .web-dashboard__header {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .web-dashboard__header > div:first-child,
+    .stats-columns,
+    .stats-card {
+        min-width: 0;
+    }
+
+    .web-dashboard__route {
+        overflow-wrap: anywhere;
+    }
+
+    .stats-card__title--with-context {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        white-space: normal;
+    }
+
+    .stats-card__title--with-context > span:first-child {
+        flex: 0 1 auto;
+    }
+
+    .stats-card__context-inline {
+        flex: 1 1 100%;
+    }
+
     .login-page,
     .admin-page {
         padding: 10px;
@@ -3273,9 +3309,35 @@ body[data-theme="sunset"] .folder-item--select {
         gap: 6px;
     }
 
+    .stats-card--transfer .bar-row,
+    .bar-row--queue {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .stats-card--transfer .progress-track,
+    .bar-row--queue .progress-track {
+        width: 100%;
+        min-width: 0;
+    }
+
     .bar-metrics {
         justify-content: flex-start;
         white-space: normal;
+    }
+
+    .stat-row {
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .stat-row--push-outcome,
+    .stat-row--pull-failure {
+        padding-left: 0;
+    }
+
+    .stat-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
     }
 
     .admin-wrapper {
