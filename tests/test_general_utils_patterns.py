@@ -36,6 +36,7 @@ try:
         normalize_album_name_for_matching,
         find_reusable_album_candidate,
         build_reusable_album_group,
+        scan_album_consolidation_groups,
     )
     GENERAL_UTILS_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -118,6 +119,80 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertIsNone(plan["matched_album"])
         self.assertEqual(plan["preferred_album_name"], "Huelva")
         self.assertTrue(plan["should_create_preferred_album"])
+
+    def test_scan_album_consolidation_groups_keeps_the_most_precise_compatible_date(self):
+        groups = scan_album_consolidation_groups([
+            {"id": "year", "albumName": "2020 - Album1"},
+            {"id": "month", "albumName": "2020.06 -- Album1"},
+            {"id": "other-year", "albumName": "2021-04 - Album1"},
+        ])
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["reason"], "date-prefix")
+        self.assertEqual(groups[0]["keeper_album"]["id"], "month")
+        self.assertEqual({album["id"] for album in groups[0]["similar_albums"]}, {"year", "month"})
+
+    def test_scan_album_consolidation_groups_does_not_bridge_conflicting_precise_dates(self):
+        groups = scan_album_consolidation_groups([
+            {"id": "year", "albumName": "2020 - Album1"},
+            {"id": "june", "albumName": "2020-06 - Album1"},
+            {"id": "july", "albumName": "2020-07 - Album1"},
+        ])
+
+        self.assertEqual(groups, [])
+
+    def test_scan_album_consolidation_groups_merges_truncated_names_for_same_dominant_year(self):
+        assets_by_id = {
+            "full": [{"fileCreatedAt": "2024-07-03T10:00:00Z"}, {"fileCreatedAt": "2024-07-04T10:00:00Z"}],
+            "cut": [{"fileCreatedAt": "2024-07-05T10:00:00Z"}, {"fileCreatedAt": "2024-08-01T10:00:00Z"}],
+        }
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "full", "albumName": "Viaje con María"},
+                {"id": "cut", "albumName": "Viaje con Ma"},
+            ],
+            asset_years_getter=lambda album: [int(asset["fileCreatedAt"][:4]) for asset in assets_by_id[album["id"]]],
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["reason"], "truncated-name")
+        self.assertEqual(groups[0]["keeper_album"]["id"], "full")
+
+    def test_scan_album_consolidation_groups_does_not_block_same_year_truncation_for_another_year(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "full", "albumName": "Viaje con María"},
+                {"id": "cut", "albumName": "Viaje con Ma"},
+                {"id": "other-year", "albumName": "Viaje con M"},
+            ],
+            asset_years_getter=lambda album: {"full": [2024, 2024], "cut": [2024], "other-year": [2023]}[album["id"]],
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual({album["id"] for album in groups[0]["similar_albums"]}, {"full", "cut"})
+
+    def test_scan_album_consolidation_groups_keeps_share_suffix_variants_separate_from_plain_name(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "plain", "albumName": "2024-07 - Vacaciones París, Londres, Noruega"},
+                {"id": "shared", "albumName": "2024-07 - Vacaciones París, Londres, Noruega (Shar"},
+            ],
+            asset_years_getter=lambda _album: [2024, 2024],
+        )
+
+        self.assertEqual(groups, [])
+
+    def test_scan_album_consolidation_groups_merges_truncated_share_suffix_variants(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "cut", "albumName": "2024-07 - Vacaciones París, Londres, Noruega (Shar"},
+                {"id": "full", "albumName": "2024-07 - Vacaciones París, Londres, Noruega (Shared)"},
+            ],
+            asset_years_getter=lambda _album: [2024, 2024],
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["keeper_album"]["id"], "full")
 
     def test_confirm_continue_skips_prompt_when_confirmation_is_disabled(self):
         with (

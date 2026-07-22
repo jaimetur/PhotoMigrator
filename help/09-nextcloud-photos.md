@@ -335,9 +335,11 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 - **Explanation:**
   - The Tool connects to NextCloud Photos and scans the albums that already exist in the cloud looking for equivalent album-name families.
   - It uses the same family-detection logic as `--consolidate-similar-albums`, so names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` are treated as the same family.
+  - Compatible date prefixes such as `2020 - Album` and `2020.06 -- Album` are merged with the most precise compatible date as keeper. Different years or conflicting month/day values remain separate.
+  - A truncated name is equivalent only when every candidate has the same dominant asset year. A plain name is never merged with a terminal `Shared`, `Share`, `Public`, `Público`, or truncated equivalent; two variants that both carry that suffix may be merged.
   - Assets from redundant variants are reassigned directly in NextCloud Photos to the preferred keeper album without uploading any new asset.
   - Once the reassignment is confirmed, the redundant album variants are removed.
-  - If `--preview-album-actions` is set, the detected album families are listed and the tool asks for confirmation before applying the changes.
+  - `--preview-album-actions` lists every keeper and its merge candidates. With `--request-user-confirmation=true` (the default), the list is shown and the tool asks for confirmation before applying changes.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=nextcloud --consolidate-albums-names --preview-album-actions

@@ -1347,7 +1347,201 @@ def build_reusable_album_group(album_name, albums, allow_similar=False, exact_ca
     )
 
 
-def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_getter=None, progress_desc=None, progress_unit="albums"):
+_ALBUM_DATE_PREFIX_RE = re.compile(
+    r"^\s*(?P<year>\d{4})"
+    r"(?:[._\-\u2010-\u2015]+(?P<month>0[1-9]|1[0-2]))?"
+    r"(?:[._\-\u2010-\u2015]+(?P<day>0[1-9]|[12]\d|3[01]))?"
+    r"\s*(?:[._\-\u2010-\u2015]{1,})\s*(?P<title>.+?)\s*$"
+)
+_ALBUM_SHARED_SUFFIX_RE = re.compile(
+    r"(?:\s|\()(?:(?:sh(?:a(?:r(?:e(?:d)?)?)?)?)|(?:pub(?:l(?:i(?:c(?:o)?)?)?)?)|p(?:u|\u00fa)(?:b(?:l(?:i(?:c(?:o)?)?)?)?)?)\)?\s*$",
+    re.IGNORECASE,
+)
+
+
+def _album_date_prefix(name):
+    """Return a normalized date prefix and title for date-led album names."""
+    match = _ALBUM_DATE_PREFIX_RE.match(str(name or ""))
+    if not match:
+        return None
+    year = int(match.group("year"))
+    month = int(match.group("month")) if match.group("month") else None
+    day = int(match.group("day")) if match.group("day") else None
+    title = str(match.group("title") or "").strip()
+    title_key = album_name_reuse_key(title) or title.casefold()
+    if not title_key:
+        return None
+    return {"year": year, "month": month, "day": day, "precision": 1 + int(month is not None) + int(day is not None), "title_key": title_key}
+
+
+def _dates_are_compatible(left, right):
+    """A less precise date contains a more precise date when known fields agree."""
+    return (
+        left["year"] == right["year"]
+        and (left["month"] is None or right["month"] is None or left["month"] == right["month"])
+        and (left["day"] is None or right["day"] is None or left["day"] == right["day"])
+    )
+
+
+def _album_truncation_key(name):
+    normalized = unicodedata.normalize("NFKD", str(name or ""))
+    normalized = "".join(char for char in normalized if not unicodedata.combining(char)).casefold().strip()
+    shared_suffix = bool(_ALBUM_SHARED_SUFFIX_RE.search(normalized))
+    if shared_suffix:
+        normalized = _ALBUM_SHARED_SUFFIX_RE.sub("", normalized).strip(" ()-_.")
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized, shared_suffix
+
+
+def _dominant_asset_year(asset_years):
+    years = [year for year in (asset_years or []) if isinstance(year, int) and 1000 <= year <= 9999]
+    if not years:
+        return None
+    counts = {}
+    for year in years:
+        counts[year] = counts.get(year, 0) + 1
+    year, count = max(counts.items(), key=lambda item: (item[1], item[0]))
+    return year if count > len(years) / 2 else None
+
+
+def extract_asset_capture_years(assets):
+    """Extract a best-effort capture year from cloud asset payloads."""
+    years = []
+    for asset in assets or []:
+        if not isinstance(asset, dict):
+            continue
+        metadata = asset.get("mediaMetadata") or {}
+        raw_value = (
+            asset.get("fileCreatedAt")
+            or asset.get("asset_datetime")
+            or asset.get("time")
+            or metadata.get("creationTime")
+        )
+        try:
+            if isinstance(raw_value, (int, float)) or (isinstance(raw_value, str) and raw_value.strip().isdigit()):
+                parsed = datetime.fromtimestamp(float(raw_value))
+            else:
+                parsed = datetime.fromisoformat(str(raw_value).replace("Z", "+00:00"))
+            years.append(parsed.year)
+        except (TypeError, ValueError, OSError, OverflowError):
+            continue
+    return years
+
+
+def _build_direct_consolidation_group(members, keeper_album, reason):
+    keeper_id = str((keeper_album or {}).get("id", "")).strip()
+    keeper_name = str((keeper_album or {}).get("albumName", "")).strip()
+    return {
+        "seed_album_name": keeper_name,
+        "preferred_album_name": keeper_name,
+        "keeper_album": keeper_album,
+        "should_create_preferred_album": False,
+        "redundant_albums": [
+            album for album in members
+            if str((album or {}).get("id", "")).strip() != keeper_id
+        ],
+        "similar_albums": list(members),
+        "similarity_key": f"{reason}:{keeper_id}",
+        "reason": reason,
+    }
+
+
+def _scan_date_prefix_consolidation_groups(albums, excluded_ids):
+    by_title = {}
+    for album in albums:
+        album_id = str((album or {}).get("id", "")).strip()
+        if not album_id or album_id in excluded_ids:
+            continue
+        parsed = _album_date_prefix((album or {}).get("albumName"))
+        if parsed:
+            by_title.setdefault(parsed["title_key"], []).append((album, parsed))
+
+    groups = []
+    for variants in by_title.values():
+        by_year = {}
+        for album, parsed in variants:
+            by_year.setdefault(parsed["year"], []).append((album, parsed))
+        for year_variants in by_year.values():
+            if len(year_variants) < 2:
+                continue
+            most_precise = max(parsed["precision"] for _, parsed in year_variants)
+            precise_variants = [(album, parsed) for album, parsed in year_variants if parsed["precision"] == most_precise]
+            compatible_precise = [
+                (album, parsed) for album, parsed in precise_variants
+                if all(_dates_are_compatible(parsed, other) for _, other in year_variants)
+            ]
+            if not compatible_precise:
+                # A generic year cannot safely bridge conflicting months/days.
+                continue
+            keeper_album, keeper_date = max(
+                compatible_precise,
+                key=lambda item: (item[1]["precision"], len(str((item[0] or {}).get("albumName", ""))), str((item[0] or {}).get("albumName", "")).casefold()),
+            )
+            members = [(album, parsed) for album, parsed in year_variants if _dates_are_compatible(parsed, keeper_date)]
+            member_albums = [album for album, _ in members]
+            if len(member_albums) > 1:
+                groups.append(_build_direct_consolidation_group(member_albums, keeper_album, "date-prefix"))
+    return groups
+
+
+def _scan_truncated_name_consolidation_groups(albums, excluded_ids, asset_years_getter=None):
+    if not callable(asset_years_getter):
+        return []
+    candidates = []
+    for album in albums:
+        album_id = str((album or {}).get("id", "")).strip()
+        name = str((album or {}).get("albumName", "")).strip()
+        if not album_id or album_id in excluded_ids or len(name) < 4:
+            continue
+        key, shared_suffix = _album_truncation_key(name)
+        if len(key) >= 4:
+            candidates.append((album, key, shared_suffix))
+
+    groups = []
+    used_ids = set()
+    for index, (album, key, shared_suffix) in enumerate(candidates):
+        album_id = str((album or {}).get("id", "")).strip()
+        if album_id in used_ids:
+            continue
+        matches = [album]
+        for other_album, other_key, other_shared_suffix in candidates[index + 1:]:
+            other_id = str((other_album or {}).get("id", "")).strip()
+            if other_id in used_ids or shared_suffix != other_shared_suffix:
+                continue
+            if min(len(key), len(other_key)) < 4 or not (key.startswith(other_key) or other_key.startswith(key)):
+                continue
+            matches.append(other_album)
+        if len(matches) < 2:
+            continue
+
+        dominant_years = {}
+        for candidate in matches:
+            candidate_id = str((candidate or {}).get("id", "")).strip()
+            try:
+                dominant_years[candidate_id] = _dominant_asset_year(asset_years_getter(candidate))
+            except Exception as exc:
+                if GV.LOGGER:
+                    GV.LOGGER.warning(f"Unable to inspect asset years for album '{(candidate or {}).get('albumName', '')}': {exc}")
+                dominant_years[candidate_id] = None
+        by_dominant_year = {}
+        for candidate in matches:
+            candidate_id = str((candidate or {}).get("id", "")).strip()
+            year = dominant_years.get(candidate_id)
+            if year is not None:
+                by_dominant_year.setdefault(year, []).append(candidate)
+        for same_year_matches in by_dominant_year.values():
+            if len(same_year_matches) < 2:
+                continue
+            keeper_album = max(
+                same_year_matches,
+                key=lambda item: (len(str((item or {}).get("albumName", ""))), str((item or {}).get("albumName", "")).casefold()),
+            )
+            groups.append(_build_direct_consolidation_group(same_year_matches, keeper_album, "truncated-name"))
+            used_ids.update(str((candidate or {}).get("id", "")).strip() for candidate in same_year_matches)
+    return groups
+
+
+def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_getter=None, progress_desc=None, progress_unit="albums", asset_years_getter=None):
     """
     Build consolidation groups for cloud album-name consolidation in one pass.
 
@@ -1408,7 +1602,25 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
                 )
             raise
 
-    return consolidation_groups
+    # Keep the established canonical-name groups untouched, then add only new
+    # date-prefix/truncation families that do not overlap an existing plan.
+    assigned_ids = {
+        str((album or {}).get("id", "")).strip()
+        for group in consolidation_groups
+        for album in (group.get("similar_albums") or [])
+    }
+    date_groups = _scan_date_prefix_consolidation_groups(eligible_albums, assigned_ids)
+    assigned_ids.update(
+        str((album or {}).get("id", "")).strip()
+        for group in date_groups
+        for album in (group.get("similar_albums") or [])
+    )
+    truncation_groups = _scan_truncated_name_consolidation_groups(
+        eligible_albums,
+        assigned_ids,
+        asset_years_getter=asset_years_getter,
+    )
+    return consolidation_groups + date_groups + truncation_groups
 
 
 def print_album_consolidation_preview(consolidation_groups):
@@ -1426,9 +1638,11 @@ def print_album_consolidation_preview(consolidation_groups):
             for album in (group.get("similar_albums") or [])
             if str((album or {}).get("albumName", "")).strip()
         ]
-        print(f"  Keeper: '{keeper_name}' | Preferred name: '{group.get('preferred_album_name')}'")
+        reason = str(group.get("reason") or "equivalent name")
+        print(f"  Keeper ({reason}): '{keeper_name}'")
         for candidate_name in group_album_names:
-            print(f"    - '{candidate_name}'")
+            if candidate_name != keeper_name:
+                print(f"    Merge into keeper: '{candidate_name}'")
 
 
 def find_reusable_album_candidate(album_name, albums, allow_similar=False, exact_case_sensitive=False):

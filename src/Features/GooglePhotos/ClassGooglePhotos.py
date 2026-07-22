@@ -21,7 +21,7 @@ from Core.GlobalVariables import (
 )
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
-from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview
+from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, update_metadata, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years
 
 
 class ClassGooglePhotos(BaseMediaClient):
@@ -608,10 +608,10 @@ class ClassGooglePhotos(BaseMediaClient):
         ]
         existing_albums.append({"id": album_id, "albumName": album_name})
 
-    def consolidate_reusable_album_group(self, album_name, existing_albums=None, log_level=None):
+    def consolidate_reusable_album_group(self, album_name, existing_albums=None, log_level=None, plan=None):
         with set_log_level(LOGGER, log_level):
             existing_albums = existing_albums if existing_albums is not None else (self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or [])
-            plan = build_reusable_album_group(
+            plan = plan or build_reusable_album_group(
                 album_name=album_name,
                 albums=existing_albums,
                 allow_similar=True,
@@ -687,7 +687,7 @@ class ClassGooglePhotos(BaseMediaClient):
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
 
-    def consolidate_album_namess(self, request_user_confirmation=True, log_level=logging.WARNING):
+    def consolidate_album_namess(self, request_user_confirmation=True, preview_album_actions=False, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) or []
@@ -700,16 +700,24 @@ class ClassGooglePhotos(BaseMediaClient):
                 exact_case_sensitive=False,
                 progress_desc=f"{MSG_TAGS['INFO']}Scanning albums families to consolidate",
                 progress_unit="albums",
+                asset_years_getter=lambda album: extract_asset_capture_years(
+                    self.get_all_assets_from_album(
+                        str((album or {}).get("id", "")).strip(),
+                        str((album or {}).get("albumName", "")).strip(),
+                        log_level=log_level,
+                    ) or []
+                ),
             )
 
             if not consolidation_groups:
                 LOGGER.info("No equivalent album families found to consolidate.")
                 return 0, 0
 
-            if request_user_confirmation:
+            if preview_album_actions or request_user_confirmation:
                 LOGGER.info("Album families to be consolidated:")
                 print_album_consolidation_preview(consolidation_groups)
-                if not confirm_continue(force_prompt=True):
+            if request_user_confirmation:
+                if not confirm_continue():
                     LOGGER.info("Exiting program.")
                     return 0, 0
 
@@ -720,6 +728,7 @@ class ClassGooglePhotos(BaseMediaClient):
                     album_name=group["seed_album_name"],
                     existing_albums=albums,
                     log_level=log_level,
+                    plan=group,
                 )
                 if keeper_album:
                     families_consolidated += 1

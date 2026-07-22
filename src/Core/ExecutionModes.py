@@ -1615,8 +1615,9 @@ def mode_cloud_consolidate_albums_names(client=None, user_confirmation=True, log
         LOGGER.info(f"")
         LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
-        families_consolidated, redundant_albums_detected = cloud_client_obj.consolidate_albums_names(
-            request_user_confirmation=preview_album_actions,
+        families_consolidated, redundant_albums_detected = cloud_client_obj.consolidate_album_namess(
+            request_user_confirmation=bool(ARGS.get('request-user-confirmation', True)),
+            preview_album_actions=preview_album_actions,
             log_level=logging.WARNING,
         )
         LOGGER.info(f"")

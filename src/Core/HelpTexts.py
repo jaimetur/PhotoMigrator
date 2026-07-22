@@ -126,9 +126,11 @@ def set_help_texts():
             CAUTION!!! The Tool will scan your existing cloud albums and consolidate equivalent album-name families directly in the cloud without uploading new assets.
             It uses the same family-detection rules as '--consolidate-similar-albums', so names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', or 'New_Album 1'
             are treated as the same album family.
+            It also detects compatible date-led names such as '2020 - Album' and '2020.06 -- Album', preserving the most precise compatible date as keeper; albums from a different year or conflicting month/day remain separate.
+            Truncated suffixes are consolidated only when every candidate has the same dominant asset year. Names whose terminal suffix is Shared, Share, Public, Público, or a truncated form of one of them are never merged with the equivalent plain name.
             On services that support album deletion (Immich, Synology, NextCloud), the redundant albums are removed after their assets are reassigned to the preferred keeper album.
             On Google Photos, the redundant variants remain because the public API does not allow deleting albums.
-            Use '--preview-album-actions' if you want to preview the detected album families and request confirmation before applying the action.
+            Use '--preview-album-actions' to preview the detected keeper and merge candidates. '--request-user-confirmation=true' shows that list and requests confirmation before any reassignment or deletion.
             """)
 
     ############################
