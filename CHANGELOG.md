@@ -93,6 +93,7 @@
   - Relaxed date-prefixed truncated album matching: a valid leading date now counts as one meaningful component, so one-word date-led names such as `2011-04 - Panamá` and `2011-04 - Panamá Videos` can consolidate after their dominant asset year is confirmed.
   - Extended protected terminal album suffixes for truncated-name consolidation with `Private`, `Privado`, and `Privada`, preventing private variants from merging into otherwise equivalent public/plain albums.
   - Added `Selection` and `Selección` to the protected terminal suffixes for truncated-name consolidation, preventing curated-selection albums from merging into their full albums.
+  - Refined protected truncated-name suffix matching to retain each suffix category. Albums marked `Público`/`Publico`, `Privado`, `Private`, `Selection`/`Selección`, `Shared`, or `X` now merge only with the same category, never with another protected category.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

@@ -1363,8 +1363,8 @@ _ALBUM_DATE_ONLY_RE = re.compile(
 _ALBUM_LEADING_DATE_RE = re.compile(
     r"^\d{4}(?:[._\-\u2010-\u2015\s]+\d{1,2}){0,2}\s*(?:[._\-\u2010-\u2015]+\s*)?"
 )
-_ALBUM_SHARED_SUFFIX_RE = re.compile(
-    r"(?:\s|\()(?:(?:sh(?:a(?:r(?:e(?:d)?)?)?)?)|(?:pub(?:l(?:i(?:c(?:o)?)?)?)?)|p(?:u|\u00fa)(?:b(?:l(?:i(?:c(?:o)?)?)?)?)|priv(?:a(?:d(?:o|a)?)?|at(?:e)?)?|selec(?:c(?:i(?:o(?:n)?)?)?)?|select(?:i(?:o(?:n)?)?)?|x)\)?\s*$",
+_ALBUM_SPECIAL_SUFFIX_RE = re.compile(
+    r"(?:\s|\()(?P<suffix>(?:sh(?:a(?:r(?:e(?:d)?)?)?)?)|(?:pub(?:l(?:i(?:c(?:o)?)?)?)?)|p(?:u|\u00fa)(?:b(?:l(?:i(?:c(?:o)?)?)?)?)|priv(?:a(?:d(?:o|a)?)?|at(?:e)?)?|selec(?:c(?:i(?:o(?:n)?)?)?)?|select(?:i(?:o(?:n)?)?)?|x)\)?\s*$",
     re.IGNORECASE,
 )
 _ALBUM_VIDEOS_SUFFIX_RE = re.compile(r"(?:^|[\s()_\-]+)videos\s*$", re.IGNORECASE)
@@ -1405,16 +1405,28 @@ def _dates_are_compatible(left, right):
 def _album_truncation_key(name):
     normalized = unicodedata.normalize("NFKD", str(name or ""))
     normalized = "".join(char for char in normalized if not unicodedata.combining(char)).casefold().strip()
-    shared_suffix = bool(_ALBUM_SHARED_SUFFIX_RE.search(normalized))
-    if shared_suffix:
-        normalized = _ALBUM_SHARED_SUFFIX_RE.sub("", normalized).strip(" ()-_.")
+    suffix_match = _ALBUM_SPECIAL_SUFFIX_RE.search(normalized)
+    special_suffix = ""
+    if suffix_match:
+        suffix_text = str(suffix_match.group("suffix") or "").casefold()
+        if suffix_text.startswith("sh"):
+            special_suffix = "shared"
+        elif suffix_text.startswith("pub") or suffix_text.startswith("p\u00fab"):
+            special_suffix = suffix_text
+        elif suffix_text.startswith("priv"):
+            special_suffix = suffix_text
+        elif suffix_text.startswith("selec") or suffix_text.startswith("select"):
+            special_suffix = suffix_text
+        else:
+            special_suffix = suffix_text
+        normalized = normalized[:suffix_match.start()].strip(" ()-_.")
     normalized = re.sub(r"\s+", " ", normalized)
     # A bare date (including a trailing separator) is not a truncated album
     # title. Otherwise an album named "2015" matches every 2015-prefixed
     # album and can collapse an entire year into one family.
     if _ALBUM_DATE_ONLY_RE.fullmatch(normalized.strip(" ()-_.")):
-        return "", shared_suffix
-    return normalized, shared_suffix
+        return "", special_suffix
+    return normalized, special_suffix
 
 
 def _has_meaningful_truncation_prefix(left_key, right_key):
@@ -1662,9 +1674,9 @@ def _scan_truncated_name_consolidation_groups(
         name = str((album or {}).get("albumName", "")).strip()
         if not album_id or album_id in excluded_ids or len(name) < 4:
             continue
-        key, shared_suffix = _album_truncation_key(name)
+        key, special_suffix = _album_truncation_key(name)
         if len(key) >= 4:
-            candidates.append((album, key, shared_suffix))
+            candidates.append((album, key, special_suffix))
 
     groups = []
     used_ids = set()
@@ -1672,14 +1684,14 @@ def _scan_truncated_name_consolidation_groups(
         tqdm(candidates, desc=progress_desc, unit=progress_unit)
         if progress_desc else candidates
     )
-    for index, (album, key, shared_suffix) in enumerate(candidates_iterable):
+    for index, (album, key, special_suffix) in enumerate(candidates_iterable):
         album_id = str((album or {}).get("id", "")).strip()
         if album_id in used_ids:
             continue
         matches = [album]
-        for other_album, other_key, other_shared_suffix in candidates[index + 1:]:
+        for other_album, other_key, other_special_suffix in candidates[index + 1:]:
             other_id = str((other_album or {}).get("id", "")).strip()
-            if other_id in used_ids or shared_suffix != other_shared_suffix:
+            if other_id in used_ids or special_suffix != other_special_suffix:
                 continue
             if min(len(key), len(other_key)) < 4 or not (key.startswith(other_key) or other_key.startswith(key)):
                 continue
