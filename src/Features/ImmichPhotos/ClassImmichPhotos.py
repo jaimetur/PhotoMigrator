@@ -72,6 +72,7 @@ class ClassImmichPhotos(BaseMediaClient):
     IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE = 250
     IMMICH_METADATA_MERGE_TIMEOUT = (10, 60)
     IMMICH_METADATA_MERGE_RETRIES = 5
+    IMMICH_BURST_STACK_TIMEOUT = (10, 30)
     # Face detection can differ by a few pixels between equivalent assets.
     # Compare coordinates in image-relative space to avoid duplicating a face.
     DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
@@ -3786,7 +3787,13 @@ class ClassImmichPhotos(BaseMediaClient):
                 payload = json.dumps({"assetIds": asset_ids})
                 headers = dict(self.HEADERS_WITH_CREDENTIALS)
                 headers["Content-Type"] = "application/json"
-                resp = requests.post(url, headers=headers, data=payload, verify=False)
+                resp = requests.post(
+                    url,
+                    headers=headers,
+                    data=payload,
+                    verify=False,
+                    timeout=self.IMMICH_BURST_STACK_TIMEOUT,
+                )
                 resp.raise_for_status()
                 data = resp.json()
                 return data.get("id")
@@ -3813,7 +3820,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     f"{self.IMMICH_URL}/api/assets/{asset_id}",
                     headers=self.HEADERS_WITH_CREDENTIALS,
                     verify=False,
-                    timeout=self.IMMICH_METADATA_MERGE_TIMEOUT,
+                    timeout=self.IMMICH_BURST_STACK_TIMEOUT,
                 )
                 response.raise_for_status()
                 data = response.json()
@@ -3862,10 +3869,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 key = rec.get("folder")
                 groups.setdefault(key, []).append(rec)
 
-            stacks_created = 0
-            repeated_candidate_groups = 0
-            existing_stack_groups = 0
-            attempted_group_signatures = set()
+            candidate_clusters = []
             for _, items in groups.items():
                 if len(items) < 2:
                     continue
@@ -3890,7 +3894,36 @@ class ClassImmichPhotos(BaseMediaClient):
                 if len(current_cluster) >= 2:
                     clusters.append(current_cluster)
 
-                for cluster in clusters:
+                candidate_clusters.extend(clusters)
+
+            if not candidate_clusters:
+                LOGGER.info(
+                    f"{prefix}Burst auto-stack found no consecutive photo groups "
+                    "captured within 2 seconds."
+                )
+                LOGGER.info(
+                    f"{prefix}Burst auto-stack evaluated {len(records)} photo candidate(s); "
+                    "created 0 stack group(s) in Immich."
+                )
+                return 0
+
+            LOGGER.info(
+                f"{prefix}Preparing burst auto-stacking for {len(records)} photo candidate(s) in "
+                f"{len(candidate_clusters)} consecutive-capture group(s) (<= 2 seconds). "
+                "Existing Immich stacks will be preserved."
+            )
+
+            stacks_created = 0
+            repeated_candidate_groups = 0
+            existing_stack_groups = 0
+            attempted_group_signatures = set()
+            with tqdm(
+                total=len(candidate_clusters),
+                smoothing=0.1,
+                desc=f"{MSG_TAGS['INFO']}Creating Immich burst stacks",
+                unit=" group",
+            ) as progress_bar:
+                for cluster in candidate_clusters:
                     cluster_sorted = sorted(cluster, key=self._burst_primary_sort_key)
                     ordered_asset_ids = []
                     seen_ids = set()
@@ -3909,6 +3942,7 @@ class ClassImmichPhotos(BaseMediaClient):
                             ordered_asset_ids.append(aid)
                             seen_ids.add(aid)
                     if len(ordered_asset_ids) < 2:
+                        progress_bar.update(1)
                         continue
 
                     # An asset can be discovered from more than one source album.
@@ -3916,6 +3950,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     group_signature = tuple(sorted(ordered_asset_ids))
                     if group_signature in attempted_group_signatures:
                         repeated_candidate_groups += 1
+                        progress_bar.update(1)
                         continue
                     attempted_group_signatures.add(group_signature)
 
@@ -3927,11 +3962,13 @@ class ClassImmichPhotos(BaseMediaClient):
                         # Do not disturb a pre-existing or partially overlapping
                         # stack. Immich rejects re-adding child assets with HTTP 400.
                         existing_stack_groups += 1
+                        progress_bar.update(1)
                         continue
 
                     stack_id = self._create_stack(ordered_asset_ids, log_level=log_level)
                     if stack_id:
                         stacks_created += 1
+                    progress_bar.update(1)
 
             skipped_details = []
             if repeated_candidate_groups:
