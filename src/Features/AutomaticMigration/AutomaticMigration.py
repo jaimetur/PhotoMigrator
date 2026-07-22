@@ -1372,6 +1372,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     target_album_asset_ids_lock = threading.Lock()
     album_assoc_locks = {}
     album_assoc_locks_lock = threading.Lock()
+    album_pending_context_locks = {}
+    album_pending_context_locks_lock = threading.Lock()
     pending_duplicate_resolution_by_album = {}
     pending_duplicate_resolution_lock = threading.Lock()
     album_assoc_completed_album_keys = set()
@@ -1509,6 +1511,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             if lock is None:
                 lock = threading.Lock()
                 album_assoc_locks[album_key] = lock
+            return lock
+
+    def _get_album_pending_context_lock(album_key):
+        album_key = str(album_key or "").strip() or "__default__"
+        with album_pending_context_locks_lock:
+            lock = album_pending_context_locks.get(album_key)
+            if lock is None:
+                lock = threading.Lock()
+                album_pending_context_locks[album_key] = lock
             return lock
 
     def _get_album_finalize_lock(album_key):
@@ -2340,12 +2351,49 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 remaining_files.append(os.path.join(root, entry))
         return remaining_files
 
+    def _claim_album_asset_and_snapshot_pending_count(
+        album_name,
+        asset_file_path,
+        live_photo_video_path=None,
+    ):
+        """Reserve an album asset before taking its log-only queue snapshot.
+
+        Pull workers can add files to an album staging folder while several push
+        workers consume it.  Serializing the reservation and directory scan per
+        album prevents two workers from reporting the same files as pending.
+        This intentionally does not affect any migration counters.
+        """
+        if not album_name:
+            _mark_asset_path_in_flight(asset_file_path)
+            _mark_asset_path_in_flight(live_photo_video_path)
+            return None
+
+        with _get_album_pending_context_lock(album_name):
+            _mark_asset_path_in_flight(asset_file_path)
+            _mark_asset_path_in_flight(live_photo_video_path)
+
+            album_folder_path = _get_album_staging_folder(album_name)
+            if not os.path.isdir(album_folder_path):
+                return 0
+
+            pending_duplicate_keys = _get_pending_duplicate_file_keys(album_name)
+            with in_flight_asset_paths_lock:
+                in_flight_keys = set(in_flight_asset_paths)
+
+            return sum(
+                1
+                for file_path in _list_album_remaining_files(album_folder_path)
+                if _normalized_asset_path_key(file_path) not in in_flight_keys
+                and _normalized_asset_path_key(file_path) not in pending_duplicate_keys
+            )
+
     def _format_album_pending_context(
         album_name,
         current_asset_file_path=None,
         people_count=0,
         people_assigned_count=0,
         show_people_count=False,
+        pending_count_override=None,
     ):
         people_label = (
             f"{{People: found: {people_count} | assigned: {people_assigned_count}}}"
@@ -2353,25 +2401,28 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         )
         if not album_name:
             return f" [{people_label}]" if people_label else ""
-        album_folder_path = _get_album_staging_folder(album_name)
-        if not os.path.isdir(album_folder_path):
-            details = [f"{{Album: '{album_name}'}}"]
-            if people_label:
-                details.append(people_label)
-            return f" [{' - '.join(details)}]"
+        if pending_count_override is None:
+            album_folder_path = _get_album_staging_folder(album_name)
+            if not os.path.isdir(album_folder_path):
+                details = [f"{{Album: '{album_name}'}}"]
+                if people_label:
+                    details.append(people_label)
+                return f" [{' - '.join(details)}]"
 
-        remaining_files = _list_album_remaining_files(album_folder_path)
-        pending_duplicate_keys = _get_pending_duplicate_file_keys(album_name)
-        current_asset_key = path_key(current_asset_file_path) if current_asset_file_path else None
-        pending_count = 0
+            remaining_files = _list_album_remaining_files(album_folder_path)
+            pending_duplicate_keys = _get_pending_duplicate_file_keys(album_name)
+            current_asset_key = path_key(current_asset_file_path) if current_asset_file_path else None
+            pending_count = 0
 
-        for file_path in remaining_files:
-            file_key = path_key(file_path)
-            if file_key == current_asset_key:
-                continue
-            if file_key in pending_duplicate_keys:
-                continue
-            pending_count += 1
+            for file_path in remaining_files:
+                file_key = path_key(file_path)
+                if file_key == current_asset_key:
+                    continue
+                if file_key in pending_duplicate_keys:
+                    continue
+                pending_count += 1
+        else:
+            pending_count = max(0, int(pending_count_override or 0))
 
         if pending_count > 0:
             details = [f"{{Album: '{album_name}'}}"]
@@ -2379,6 +2430,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 details.append(people_label)
             details.append(f"{{Album Queue: {pending_count} pending file(s)}}")
             return f" [{' - '.join(details)}]"
+
         details = [f"{{Album: '{album_name}'}}"]
         if people_label:
             details.append(people_label)
@@ -4400,9 +4452,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     push_elapsed_ms = None
                     album_assoc_elapsed_ms = None
                     cleanup_elapsed_ms = None
-                    _mark_asset_path_in_flight(asset_file_path)
-                    if live_photo_video_path:
-                        _mark_asset_path_in_flight(live_photo_video_path)
+                    album_pending_count_after_claim = _claim_album_asset_and_snapshot_pending_count(
+                        album_name=album_name,
+                        asset_file_path=asset_file_path,
+                        live_photo_video_path=live_photo_video_path,
+                    )
 
                     # Antes de llamar, guardamos el nivel actual (debería ser INFO)
                     orig_level = LOGGER.level
@@ -4411,7 +4465,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if (not live_photo_video_path) and _is_live_companion_consumed(asset_file_path):
                             LOGGER.info(
                                 f"Asset Live Companion Consumed: '{os.path.basename(asset_file_path)}'. Skipped"
-                                f"{_format_album_pending_context(album_name, asset_file_path)}"
+                                f"{_format_album_pending_context(album_name, asset_file_path, pending_count_override=album_pending_count_after_claim)}"
                             )
                             treat_as_consumed = True
                             cleanup_elapsed_ms = _finalize_asset_success(
@@ -4494,7 +4548,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if isDuplicated:
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}' -> Skipped -"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, album_pending_count_after_claim)}"
                                     )
                                     if count_push_stats:
                                         _increment_push_duplicate_counters(SHARED_DATA.counters, asset_type, physical_stats)
@@ -4522,7 +4576,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         )
                                     LOGGER.info(
                                         f"Asset Pushed    : '{os.path.basename(asset_file_path)}'"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, album_pending_count_after_claim)}"
                                     )
                                     if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
                                         try:
@@ -4543,7 +4597,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if isDuplicated:
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}' -> Skipped -"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, album_pending_count_after_claim)}"
                                     )
                                     treat_as_consumed = True
                                     if count_push_stats and not album_name:
