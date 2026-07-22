@@ -3514,7 +3514,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     _get_album_queue_state(queue_scope["key"]),
                 )
         return (
-            f"Live Companion  : '{os.path.basename(companion_path)}' -> Consumed & associated to "
+            f"Live Companion  : '{os.path.basename(companion_path)}' -> Queued and waiting for "
             f"'{os.path.basename(primary_file_path)}'"
             f"{_format_album_pending_context(context_album_name, companion_path, queue_state_snapshot=queue_state_snapshot, queue_scope=queue_scope)}"
         )
