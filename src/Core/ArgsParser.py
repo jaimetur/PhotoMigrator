@@ -232,9 +232,24 @@ def parse_arguments():
                              "This argument only applies if both '--source' and '--target' arguments are given.\n"
                              "(default: True).")
 
-    PARSER.add_argument("-iPeople", "--import-people", action="store_true", default=False,
+    PARSER.add_argument("-iPeople", "--import-people",
+                        metavar="= [true,false]",
+                        nargs="?",
+                        const=True,
+                        default=True,
+                        type=str2bool,
                         help="Import Google Takeout person labels into Immich when a Takeout people map is available. "
-                             "Only applies to an Immich destination or Immich Upload All/Upload Albums.")
+                             "Only applies to an Immich destination or Immich Upload All/Upload Albums. "
+                             "(default: True).")
+
+    PARSER.add_argument("-cStacks", "--create-stacks",
+                        metavar="= [true,false]",
+                        nargs="?",
+                        const=True,
+                        default=True,
+                        type=str2bool,
+                        help="Create Immich stacks for burst-like photos after Upload All, Upload Albums, or an "
+                             "Automatic Migration with an Immich destination. (default: True).")
 
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------

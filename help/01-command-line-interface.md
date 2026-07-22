@@ -379,10 +379,13 @@ If more than one optional arguments are detected, only the first one will be exe
                - On supported cloud targets, that consolidation also merges redundant variants into the preferred clean keeper.
                - Immich, Synology, and NextCloud remove the redundant albums afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-all ./MyLibrary
--iPeople     ; --import-people
+-iPeople     ; --import-people = [true,false]
                Immich only. During Upload Albums, Upload All, or Automatic Migration with an Immich target, import
                Google Takeout person labels from `takeout_people_metadata.json` or raw Google JSON sidecars.
-               The flag is ignored by other clients and is disabled by default.
+               Enabled by default. Set to `false` to skip people import.
+-cStacks     ; --create-stacks = [true,false]
+               Immich only. During Upload Albums, Upload All, or Automatic Migration with an Immich target, create
+               stacks for burst-like photos after upload. Enabled by default; set to `false` to skip stack creation.
 -prefCanAlb ; --prefer-canonical-album-names
                Normalize newly created destination album names during cloud Upload Albums / Upload All
                and Automatic Migration.

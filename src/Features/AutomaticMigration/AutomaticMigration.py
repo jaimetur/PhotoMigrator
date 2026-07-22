@@ -3980,7 +3980,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             immich_stacks_created = 0
             # Auto-stack burst photos in Immich target using uploaded records.
-            if isinstance(target_client, ClassImmichPhotos):
+            if isinstance(target_client, ClassImmichPhotos) and ARGS.get('create-stacks', True):
                 try:
                     immich_stacks_created = target_client.auto_stack_bursts(
                         immich_uploaded_records,

@@ -164,7 +164,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
     def test_google_takeout_binary_controls_are_boolean_fields(self):
         fields_by_dest = self.web_app.PARSER_SCHEMA["fields_by_dest"]
 
-        for dest in ("show-gpth-info", "show-gpth-errors", "google-process-people"):
+        for dest in ("show-gpth-info", "show-gpth-errors", "google-process-people", "import-people", "create-stacks"):
             with self.subTest(dest=dest):
                 self.assertEqual(fields_by_dest[dest]["kind"], "bool")
 

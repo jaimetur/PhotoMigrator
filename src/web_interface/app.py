@@ -121,6 +121,8 @@ BOOL_VALUE_DESTS = {
     "show-gpth-info",
     "show-gpth-errors",
     "google-process-people",
+    "import-people",
+    "create-stacks",
     "dup-immich-native-algorithm",
     "dup-immich-native-deletion",
 }
@@ -143,6 +145,7 @@ AUTOMATION_DESTS = {
     "consolidate-similar-albums",
     "one-time-password",
     "import-people",
+    "create-stacks",
 }
 
 GOOGLE_DESTS = {
@@ -334,8 +337,8 @@ MODULE_ACTION_ARGUMENTS = {
         "remove-duplicates-assets": [{"dest": "dup-asset-keeper", "required": True}],
     },
     "immich_photos": {
-        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
-        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}],
+        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}, {"dest": "create-stacks", "required": False}],
+        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}, {"dest": "create-stacks", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [

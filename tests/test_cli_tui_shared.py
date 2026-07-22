@@ -13,6 +13,7 @@ if str(SRC_ROOT) not in sys.path:
 try:
     from UI.ui_shared import (
         MIGRATION_FILTER_DESTS,
+        MODULE_ACTION_ARGUMENTS,
         build_automatic_migration_filter_fields,
         build_cli_args,
         build_full_command,
@@ -75,6 +76,27 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("prefer-canonical-album-names", automatic_dests)
         self.assertIn("consolidate-similar-albums", automatic_dests)
         self.assertIn("one-time-password", automatic_dests)
+        self.assertIn("import-people", automatic_dests)
+        self.assertIn("create-stacks", automatic_dests)
+
+    def test_immich_upload_actions_expose_people_and_stack_controls_in_order(self):
+        schema = build_parser_schema()
+
+        for action in ("upload-albums", "upload-all"):
+            with self.subTest(action=action):
+                action_dests = [
+                    item["dest"]
+                    for item in MODULE_ACTION_ARGUMENTS["immich_photos"][action]
+                ]
+                self.assertLess(action_dests.index("import-people"), action_dests.index("create-stacks"))
+
+        args = build_cli_args(
+            schema,
+            "immich_photos",
+            {"account-id": "1", "upload-all": "/photos", "create-stacks": False},
+            "upload-all",
+        )
+        self.assertEqual(args[args.index("--create-stacks") + 1], "false")
 
     def test_build_parser_schema_excludes_unused_album_name_flags_from_takeout_tabs(self):
         schema = build_parser_schema()

@@ -3805,11 +3805,12 @@ class ClassImmichPhotos(BaseMediaClient):
                                 if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
                                     album_assets_ids.append(asset_id)
 
-                        total_stacks_created += self.auto_stack_bursts(
-                            album_uploaded_records,
-                            context_label=f"Album '{album_name}'",
-                            log_level=log_level,
-                        )
+                        if ARGS.get("create-stacks", True):
+                            total_stacks_created += self.auto_stack_bursts(
+                                album_uploaded_records,
+                                context_label=f"Album '{album_name}'",
+                                log_level=log_level,
+                            )
 
                         if album_assets_ids:
                             matched_album = None
@@ -3985,11 +3986,13 @@ class ClassImmichPhotos(BaseMediaClient):
                         total_assets_uploaded += 1
                         uploaded_records.append(self._build_burst_record(asset_id=asset_id, file_path=file_path))
 
-            total_stacks_created = self.auto_stack_bursts(
-                uploaded_records,
-                context_label="No-Album Upload",
-                log_level=log_level,
-            )
+            total_stacks_created = 0
+            if ARGS.get("create-stacks", True):
+                total_stacks_created = self.auto_stack_bursts(
+                    uploaded_records,
+                    context_label="No-Album Upload",
+                    log_level=log_level,
+                )
             self._last_push_no_albums_stacks_created = total_stacks_created
 
             duplicates_assets_removed = 0

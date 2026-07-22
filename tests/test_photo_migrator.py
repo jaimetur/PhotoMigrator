@@ -58,6 +58,30 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
         self.assertFalse(checked["dup-immich-native-algorithm"])
         self.assertFalse(checked["dup-immich-native-deletion"])
 
+    def test_people_and_stack_controls_default_to_enabled_and_accept_false(self):
+        with patch.object(sys, "argv", ["photomigrator"]):
+            args, _ = parse_arguments()
+
+        self.assertTrue(args["import-people"])
+        self.assertTrue(args["create-stacks"])
+        self.assertTrue(args["google-process-people"])
+
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "photomigrator",
+                "--import-people=false",
+                "--create-stacks=false",
+                "--google-process-people=false",
+            ],
+        ):
+            args, _ = parse_arguments()
+
+        self.assertFalse(args["import-people"])
+        self.assertFalse(args["create-stacks"])
+        self.assertFalse(args["google-process-people"])
+
     def test_check_args_parses_single_comma_separated_rename_albums_value_for_dashdash_replacement(self):
         argv = [
             "photomigrator",

@@ -630,8 +630,8 @@
         },
         immich_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
-            "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}],
-            "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}],
+            "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}, {dest: "create-stacks", required: false}],
+            "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}, {dest: "create-stacks", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-duplicates-assets": [{dest: "dup-immich-native-algorithm", required: true}, {dest: "dup-immich-native-deletion", required: true}, {dest: "dup-asset-keeper", required: true}],
@@ -3219,6 +3219,7 @@
         left.className = "migration-main";
         const otpField = byDest["one-time-password"];
         const peopleField = byDest["import-people"];
+        const stacksField = byDest["create-stacks"];
 
         const parseMigrationEndpoint = (rawValue, fallbackKind) => {
             const text = String(rawValue || "").trim();
@@ -3376,6 +3377,9 @@
         if (peopleField && migrationEndpointsState.target?.kind === "immich") {
             flagsCard.appendChild(createArgumentRow(peopleField));
         }
+        if (stacksField && migrationEndpointsState.target?.kind === "immich") {
+            flagsCard.appendChild(createArgumentRow(stacksField));
+        }
 
         left.appendChild(flagsCard);
 
@@ -3435,6 +3439,7 @@
             byDest["prefer-canonical-album-names"],
             byDest["consolidate-similar-albums"],
             migrationEndpointsState.target?.kind === "immich" ? peopleField : null,
+            migrationEndpointsState.target?.kind === "immich" ? stacksField : null,
             otpField,
             getFieldByDest("filter-by-type"),
             getFieldByDest("filter-from-date"),

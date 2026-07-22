@@ -160,6 +160,8 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
         endpoints = f"{args.get('source', '')} {args.get('target', '')}".lower()
         if "synology" in endpoints:
             result.append("one-time-password")
+        if "immich" in str(args.get("target", "")).lower():
+            result.extend(["import-people", "create-stacks"])
         return result
     if feature_name in {"Google Photos", "Synology Photos", "Immich Photos", "NextCloud Photos"}:
         result = ["account-id"]
@@ -170,7 +172,7 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
             if module_name == "Upload All":
                 result.append("albums-folders")
             if feature_name == "Immich Photos":
-                result.append("import-people")
+                result.extend(["import-people", "create-stacks"])
         elif module_name in {"Rename Albums", "Consolidate Album Names"}:
             result.append("preview-album-actions")
         elif module_name in {"Remove Albums", "Remove All Albums"}:

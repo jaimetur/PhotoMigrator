@@ -31,6 +31,7 @@ from UI.ui_shared import (
     build_full_command,
     build_parser_schema,
     automatic_migration_needs_otp,
+    automatic_migration_target_is_immich,
     command_preview_string,
     command_to_string,
     compose_migration_endpoint,
@@ -1436,14 +1437,17 @@ class PhotoMigratorTkGUI:
             regular_fields = [field for field in fields if str(field.get("kind") or "") not in {"flag", "bool"}]
             toggle_fields = [
                 field for field in fields
-                if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") not in {"one-time-password", "import-people"}
+                if str(field.get("kind") or "") in {"flag", "bool"} and str(field.get("dest") or "") not in {"one-time-password", "import-people", "create-stacks"}
             ]
             otp_field = get_field_by_dest(self.schema, "one-time-password")
             if otp_field and automatic_migration_needs_otp(self.state_values, self.migration_endpoints_state):
                 toggle_fields.append(otp_field)
             people_field = get_field_by_dest(self.schema, "import-people")
-            if people_field and self.migration_endpoints_state.get("target", {}).get("kind") == "immich":
+            if people_field and automatic_migration_target_is_immich(self.state_values, self.migration_endpoints_state):
                 toggle_fields.append(people_field)
+            stacks_field = get_field_by_dest(self.schema, "create-stacks")
+            if stacks_field and automatic_migration_target_is_immich(self.state_values, self.migration_endpoints_state):
+                toggle_fields.append(stacks_field)
             migration_filter_fields = build_automatic_migration_filter_fields(self.schema)
             if regular_fields:
                 self._section_label(parent, "Module Fields", accent=True)
