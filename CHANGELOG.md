@@ -104,6 +104,7 @@
   - Fixed the Web Interface theme flash when changing pages. The server now renders the saved user theme on the initial `<body>` element instead of briefly showing the default Emerald palette before client state is loaded.
   - Fixed local-folder analysis when the selected source is nested below a hidden ancestor such as `.web-dev`. Folder and file exclusions are now evaluated relative to the selected source root, so the default `.*` rule still excludes hidden folders inside the source without silently discarding every asset because of an external parent directory.
   - Fixed Automatic Migration physical queue-state counters for assets without a Live Photo companion. Empty companion paths were normalized as a spurious `.` entry, inflating `In flight`, `Completed`, and their denominator by one file per scope.
+  - Fixed local-folder to Immich Automatic Migration Live Photo handling. Same-stem HEIC/JPEG and MOV files are now paired deterministically from the source inventory and uploaded through Immich's Live Photo endpoint as one transfer job while all queue, album, and migration counters continue to count both physical files exactly once.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

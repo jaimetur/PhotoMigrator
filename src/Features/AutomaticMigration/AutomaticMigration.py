@@ -1466,6 +1466,55 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 return companion_path
         return None
 
+    def _find_local_source_live_photo_companion(source_asset_id):
+        """Return the same-stem photo for a local Immich Live Photo video."""
+        if not isinstance(source_client, ClassLocalFolder):
+            return None
+        if not isinstance(target_client, ClassImmichPhotos):
+            return None
+        source_path = str(source_asset_id or "").strip()
+        if not source_path:
+            return None
+        video_ext = os.path.splitext(source_path)[1].lower()
+        if video_ext not in (getattr(target_client, "ALLOWED_IMMICH_VIDEO_EXTENSIONS", []) or []):
+            return None
+        source_dir = os.path.dirname(source_path)
+        source_stem = os.path.splitext(os.path.basename(source_path))[0].lower()
+        photo_extensions = {
+            extension.lower()
+            for extension in (getattr(target_client, "ALLOWED_IMMICH_PHOTO_EXTENSIONS", []) or [])
+        }
+        try:
+            entries = os.listdir(source_dir)
+        except Exception:
+            return None
+        for entry in entries:
+            entry_base, entry_ext = os.path.splitext(entry)
+            if entry_base.lower() != source_stem or entry_ext.lower() not in photo_extensions:
+                continue
+            companion_path = os.path.join(source_dir, entry)
+            if os.path.exists(companion_path):
+                return companion_path
+        return None
+
+    def _stage_local_live_photo_companion(source_asset_id, asset_datetime, source_asset_keys):
+        """Stage a local Live Photo MOV only when it belongs to this input scope."""
+        source_companion_path = _find_local_source_live_video_companion(source_asset_id)
+        if not source_companion_path:
+            return None, None
+        if _normalized_asset_path_key(source_companion_path) not in source_asset_keys:
+            return None, None
+        staged_companion_path = _stage_local_asset_for_automatic_migration(
+            source_client=source_client,
+            source_asset_id=source_companion_path,
+            asset_filename=os.path.basename(source_companion_path),
+            asset_time=asset_datetime,
+            queue_root=push_queue_folder,
+            move_assets=bool(ARGS.get('move-assets', False)),
+        )
+        _mark_source_live_companion_consumed(source_companion_path)
+        return source_companion_path, staged_companion_path
+
     def _mark_target_album_asset_present(album_id, asset_id):
         album_id = str(album_id or "").strip()
         asset_id = str(asset_id or "").strip()
@@ -4064,6 +4113,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     SHARED_DATA.counters['total_pull_failed_albums'] += 1
                     continue
 
+                album_source_asset_keys = {
+                    _normalized_asset_path_key(item.get('id'))
+                    for item in album_assets
+                    if isinstance(item, dict)
+                    and item.get('type') not in ['metadata', 'sidecar']
+                    and _normalized_asset_path_key(item.get('id'))
+                }
+
                 # Crear carpeta del álbum dentro de temp_folder, y bloquea su eliminación hasta que terminen las descargas del album
                 album_folder = _get_album_staging_folder(album_name)
                 os.makedirs(album_folder, exist_ok=True)
@@ -4086,6 +4143,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         # Skip pull metadata and sidecar for the time being
                         if asset_type in ['metadata', 'sidecar']:
+                            continue
+
+                        source_photo_path = _find_local_source_live_photo_companion(asset_id)
+                        if (
+                            source_photo_path
+                            and _normalized_asset_path_key(source_photo_path) in album_source_asset_keys
+                        ):
+                            # The photo stages and uploads this physical MOV in the same
+                            # push_live_photo operation, irrespective of source traversal order.
                             continue
 
                         # Stage every pending upload under Push_Queue. Local-folder
@@ -4111,6 +4177,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         pull_failure_reason = "pull did not return content"
                         pull_started_at = time.perf_counter()
                         try:
+                            source_live_companion_path = None
+                            staged_live_companion_path = None
                             if not isinstance(source_client, ClassLocalFolder):
                                 pull_kwargs = {
                                     "asset_id": asset_id,
@@ -4136,6 +4204,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 local_file_path = staged_path
                                 download_folder = os.path.dirname(staged_path)
                                 staged_filename = os.path.basename(staged_path)
+                                (
+                                    source_live_companion_path,
+                                    staged_live_companion_path,
+                                ) = _stage_local_live_photo_companion(
+                                    source_asset_id=asset_id,
+                                    asset_datetime=asset_datetime,
+                                    source_asset_keys=album_source_asset_keys,
+                                )
                             else:
                                 pulled_assets = source_client.pull_asset(**pull_kwargs)
                         except Exception as e:
@@ -4168,14 +4244,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 pulled_file_paths = [local_file_path]
                             collect_finished_at = time.perf_counter()
 
-                            # A local library enumerates every physical HEIC/JPEG and MOV
-                            # independently. Pairing by whatever happens to be staged at this
-                            # instant can count the MOV both on its own and inside the photo
-                            # bundle, depending on traversal order. Keep local migrations in
-                            # a single physical-file unit instead.
-                            immich_live_companion = None if is_local_source else find_immich_live_video_companion(
-                                local_file_path,
-                                pulled_file_paths,
+                            immich_live_companion = (
+                                staged_live_companion_path
+                                if is_local_source
+                                else find_immich_live_video_companion(local_file_path, pulled_file_paths)
                             )
                             for idx, pulled_file_path in enumerate(pulled_file_paths):
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
@@ -4223,9 +4295,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 }
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                     asset_dict['live_photo_video_path'] = immich_live_companion
-                                    source_companion_path = _find_local_source_live_video_companion(asset_id)
+                                    source_companion_path = source_live_companion_path or _find_local_source_live_video_companion(asset_id)
                                     if source_companion_path:
                                         asset_dict['source_live_photo_video_path'] = source_companion_path
+                                        asset_dict['source_live_companion_already_moved'] = bool(
+                                            ARGS.get('move-assets', False) and is_local_source
+                                        )
                                 # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                                 unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                                 if unique and asset_dict.get('live_photo_video_path'):
@@ -4319,6 +4394,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             except Exception as e:
                 LOGGER.error(f"Error Retrieving All Assets without Albums - {e} \n{traceback.format_exc()}")
 
+            no_album_source_asset_keys = {
+                _normalized_asset_path_key(item.get('id'))
+                for item in assets_no_album
+                if isinstance(item, dict)
+                and item.get('type') not in ['metadata', 'sidecar']
+                and _normalized_asset_path_key(item.get('id'))
+            }
+
             # Crear carpeta temp_folder si no existe, y bloquea su eliminación hasta que terminen las descargas
             os.makedirs(push_queue_folder, exist_ok=True)
             # Crear archivo `.active` para marcar que la carpeta está en uso
@@ -4343,7 +4426,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     if asset_type in ['metadata', 'sidecar']:
                         continue
 
+                    source_photo_path = _find_local_source_live_photo_companion(asset_id)
+                    if (
+                        source_photo_path
+                        and _normalized_asset_path_key(source_photo_path) in no_album_source_asset_keys
+                    ):
+                        # The matching photo uploads this MOV through push_live_photo.
+                        continue
+
                     try:
+                        source_live_companion_path = None
+                        staged_live_companion_path = None
                         download_folder = push_queue_folder
                         staged_filename = asset_filename
                         if isinstance(source_client, ClassLocalFolder):
@@ -4375,6 +4468,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             local_file_path = staged_path
                             download_folder = os.path.dirname(staged_path)
                             staged_filename = os.path.basename(staged_path)
+                            (
+                                source_live_companion_path,
+                                staged_live_companion_path,
+                            ) = _stage_local_live_photo_companion(
+                                source_asset_id=asset_id,
+                                asset_datetime=asset_datetime,
+                                source_asset_keys=no_album_source_asset_keys,
+                            )
                         else:
                             pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=staged_filename, asset_time=asset_datetime, download_folder=download_folder, log_level=logging.ERROR)
                     except Exception as e:
@@ -4413,10 +4514,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             pulled_file_paths = [local_file_path]
                         collect_finished_at = time.perf_counter()
 
-                        # Local sources already enumerate each physical Live Photo companion.
-                        immich_live_companion = None if is_local_source else find_immich_live_video_companion(
-                            local_file_path,
-                            pulled_file_paths,
+                        immich_live_companion = (
+                            staged_live_companion_path
+                            if is_local_source
+                            else find_immich_live_video_companion(local_file_path, pulled_file_paths)
                         )
                         for idx, pulled_file_path in enumerate(pulled_file_paths):
                             if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
@@ -4457,9 +4558,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             }
                             if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                 asset_dict['live_photo_video_path'] = immich_live_companion
-                                source_companion_path = _find_local_source_live_video_companion(asset_id)
+                                source_companion_path = source_live_companion_path or _find_local_source_live_video_companion(asset_id)
                                 if source_companion_path:
                                     asset_dict['source_live_photo_video_path'] = source_companion_path
+                                    asset_dict['source_live_companion_already_moved'] = bool(
+                                        ARGS.get('move-assets', False) and is_local_source
+                                    )
                             unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                             if unique and asset_dict.get('live_photo_video_path'):
                                 _mark_live_companion_consumed(asset_dict.get('live_photo_video_path'))
