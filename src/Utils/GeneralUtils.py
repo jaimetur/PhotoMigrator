@@ -1733,7 +1733,7 @@ def _scan_truncated_name_consolidation_groups(
                         ) if comment
                     )
                     or "Longest name selected"
-                ) + " (Date of Assets matched)"
+                ) + " (Dominant assets year matched)"
                 for candidate in group["redundant_albums"]
             }
             groups.append(group)

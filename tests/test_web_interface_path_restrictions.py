@@ -623,6 +623,22 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertTrue(job.awaiting_confirmation)
         self.assertEqual(lines, ["INFO    : Enter SYNOLOGY OTP Token: "])
 
+    def test_web_job_exposes_yes_no_confirmation_prompt_before_a_newline_is_written(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = Mock()
+        fake_process.stdin.closed = False
+        fake_process.returncode = None
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="immich_photos", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(job, "Do you want to continue? (yes/no): ")
+            lines = self.web_app._read_job_output_lines_for_api(job)
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertTrue(job.awaiting_confirmation)
+        self.assertEqual(lines, ["Do you want to continue? (yes/no): "])
+
     def test_web_job_output_records_incremental_replace_ops_for_progress_updates(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")

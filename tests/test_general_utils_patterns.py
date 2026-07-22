@@ -253,7 +253,7 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertEqual(groups[0]["reason"], "truncated-name-grouping-videos")
         self.assertEqual(
             groups[0]["album_comments"],
-            {"videos": "Video Grouping (Date of Assets matched)"},
+            {"videos": "Video Grouping (Dominant assets year matched)"},
         )
 
     def test_scan_album_consolidation_groups_prefers_without_redundant_terminal_date(self):
@@ -270,7 +270,7 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertEqual(groups[0]["reason"], "truncated-name-redundant-date")
         self.assertEqual(
             groups[0]["album_comments"],
-            {"redundant": "Redundant Ending Date (Date of Assets matched)"},
+            {"redundant": "Redundant Ending Date (Dominant assets year matched)"},
         )
 
     def test_scan_album_consolidation_groups_does_not_block_same_year_truncation_for_another_year(self):

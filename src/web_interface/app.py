@@ -2281,7 +2281,10 @@ PROGRESS_THEN_INNER_STEP_RE = re.compile(
     r"^(.*?\d+/\d+\s+\d+(?:\.\d+)?%)\s+(\[\s*[A-Z]+\s*\]\s*\[Step\s+\d+/\d+\].*)$",
     re.IGNORECASE,
 )
-INPUT_PROMPT_RE = re.compile(r"(?:do you want to continue\?|enter\s+[^\r\n:]+:\s*)$", re.IGNORECASE)
+INPUT_PROMPT_RE = re.compile(
+    r"(?:do you want to continue\?\s*(?:\([^\r\n)]*\))?\s*:\s*|enter\s+[^\r\n:]+:\s*)$",
+    re.IGNORECASE,
+)
 
 
 def _create_job_output_file() -> Path:
