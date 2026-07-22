@@ -126,11 +126,11 @@ def set_help_texts():
             CAUTION!!! The Tool will scan your existing cloud albums and consolidate equivalent album-name families directly in the cloud without uploading new assets.
             It uses the same family-detection rules as '--consolidate-similar-albums', so names such as 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', or 'New_Album 1'
             are treated as the same album family.
-            It also detects compatible date-led names such as '2020 - Album' and '2020.06 -- Album', preserving the most precise compatible date as keeper; albums from a different year or conflicting month/day remain separate.
-            Truncated suffixes are consolidated only when every candidate has the same dominant asset year. Names whose terminal suffix is Shared, Share, Public, Público, or a truncated form of one of them are never merged with the equivalent plain name.
+            It also detects compatible YYYY, YYYY-MM, and YYYY-MM-DD date-led names using dots, underscores, hyphens, long dashes, or spaces. A precise date remains the keeper only when at least 95% of its album assets fall within that date range; albums from a different year or conflicting month/day remain separate.
+            End-truncated names require at least two distinct shared title words and the same dominant asset year. Names whose terminal suffix is Shared, Share, Public, Público, X, or a truncated form of one of them are never merged with the equivalent plain name; a non-Videos variant is preferred over an otherwise equivalent Videos variant.
             On services that support album deletion (Immich, Synology, NextCloud), the redundant albums are removed after their assets are reassigned to the preferred keeper album.
             On Google Photos, the redundant variants remain because the public API does not allow deleting albums.
-            Album preview is enabled by default. '--request-user-confirmation=true' shows the keeper and merge candidates and requests confirmation before any reassignment or deletion; use '--no-preview-album-actions' to skip the preview.
+            Album preview is enabled by default. '--request-user-confirmation=true' shows a table with each group, match rule, keeper, merge candidates, and whether asset dates were considered before any reassignment or deletion; use '--no-preview-album-actions' to skip the preview.
             """)
 
     ############################

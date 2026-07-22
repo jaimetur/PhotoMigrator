@@ -352,11 +352,11 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 - **Explanation:**
   - The Tool connects to Google Photos and looks for equivalent album-name families that already exist in the cloud.
   - It uses the same album-family logic as `--consolidate-similar-albums`, so names such as `Album`, `Album_1`, `Album (2)`, `New_Album`, `New Album`, and `New_Album 1` are treated as the same family.
-  - Compatible date prefixes such as `2020 - Album` and `2020.06 -- Album` are merged with the most precise compatible date as keeper. Different years or conflicting month/day values remain separate.
-  - A truncated name is equivalent only when every candidate has the same dominant asset year. A plain name is never merged with a terminal `Shared`, `Share`, `Public`, `Público`, or truncated equivalent; two variants that both carry that suffix may be merged.
+  - Date-led families accept `YYYY`, `YYYY-MM`, or `YYYY-MM-DD` prefixes, with dots, underscores, hyphens, long dashes, or spaces as separators. Different years or conflicting month/day values remain separate. The most precise compatible date is retained only when at least 95% of that album's assets fall inside its date range; otherwise the compatible broader date prefix is the keeper.
+  - End-truncated names are considered only when their shared title prefix has at least two distinct words and every candidate has the same dominant asset year (more than half of its dated assets). A bare date is never treated as a truncated title. A plain name is never merged with a terminal `Shared`, `Share`, `Public`, `Público`, `X`, or truncated equivalent; two variants that both carry that suffix may be merged. When variants differ only by a terminal `Videos`, the non-`Videos` album is retained.
   - Assets from redundant variants are associated to the preferred keeper album directly in Google Photos without uploading new assets.
   - Google Photos does not support deleting albums through the public API, so the redundant album containers remain after the consolidation.
-  - `--preview-album-actions` lists every keeper and its merge candidates. With `--request-user-confirmation=true` (the default), the list is shown and the tool asks for confirmation before applying changes.
+  - `--preview-album-actions` (enabled by default) displays a table with the group, match rule, keeper, albums to merge, and whether asset dates were considered. With `--request-user-confirmation=true` (the default), the table is shown and the tool asks for confirmation before applying changes.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=google-photos --consolidate-albums-names --preview-album-actions

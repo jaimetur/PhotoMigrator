@@ -43,7 +43,7 @@ By default, destination albums are only reused when the existing target album na
 
 If you include **`--prefer-canonical-album-names`**, PhotoMigrator normalizes newly created destination album names to the preferred clean keeper form even when the target does not already contain a similar album.
 
-If you include **`--consolidate-similar-albums`**, PhotoMigrator also treats equivalent album families as reusable even when they differ only by harmless formatting or duplicate-like suffixes.
+If you include **`--consolidate-similar-albums`**, PhotoMigrator also treats equivalent album families as reusable even when they differ only by harmless formatting or duplicate-like suffixes. It uses the same guarded detection as the standalone **Consolidate Albums Names** module: compatible `YYYY`, `YYYY-MM`, and `YYYY-MM-DD` prefixes can be consolidated, while a specific date is retained only if at least 95% of that album's assets fit its date range; otherwise the compatible broader date is retained. End-truncated names require a shared prefix of at least two distinct words and the same dominant asset year. `Shared`, `Share`, `Public`, `Público`, `X`, and `Videos` suffix safeguards apply as well.
 
 Examples that are treated as the same family:
 - `Album`, `Album_1`, `Album (2)`, `Album_5`

@@ -1659,7 +1659,13 @@ def _scan_truncated_name_consolidation_groups(
                     str((item or {}).get("albumName", "")).casefold(),
                 ),
             )
-            groups.append(_build_direct_consolidation_group(same_year_matches, keeper_album, "truncated-name"))
+            reason = (
+                "truncated-name-grouping-videos"
+                if any(_is_videos_album_variant(candidate) for candidate in same_year_matches)
+                and any(not _is_videos_album_variant(candidate) for candidate in same_year_matches)
+                else "truncated-name"
+            )
+            groups.append(_build_direct_consolidation_group(same_year_matches, keeper_album, reason))
             used_ids.update(str((candidate or {}).get("id", "")).strip() for candidate in same_year_matches)
     return groups
 
@@ -1813,7 +1819,10 @@ def print_album_consolidation_preview(consolidation_groups):
             for album in (group.get("redundant_albums") or [])
             if album_name(album)
         ]
-        reason = str(group.get("reason") or "equivalent name").replace("-", " ").title()
+        reason_key = str(group.get("reason") or "equivalent-name")
+        reason = {
+            "truncated-name-grouping-videos": "Truncated Name (Grouping Videos)",
+        }.get(reason_key, reason_key.replace("-", " ").title())
         table_data.append([
             f"{group_number}/{len(groups)}",
             reason,

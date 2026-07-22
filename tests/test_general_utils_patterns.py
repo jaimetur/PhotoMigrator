@@ -239,6 +239,7 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(len(groups), 1)
         self.assertEqual(groups[0]["keeper_album"]["id"], "plain")
+        self.assertEqual(groups[0]["reason"], "truncated-name-grouping-videos")
 
     def test_scan_album_consolidation_groups_does_not_block_same_year_truncation_for_another_year(self):
         groups = scan_album_consolidation_groups(
