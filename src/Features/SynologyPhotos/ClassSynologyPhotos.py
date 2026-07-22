@@ -24,7 +24,7 @@ from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, C
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
-from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years
+from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.DuplicateUtils import select_people_then_chronology_keeper
 
 """
@@ -2252,6 +2252,13 @@ class ClassSynologyPhotos(BaseMediaClient):
                 progress_desc=f"{MSG_TAGS['INFO']}Scanning albums families to consolidate",
                 progress_unit="albums",
                 asset_years_getter=lambda album: extract_asset_capture_years(
+                    self.get_all_assets_from_album(
+                        str((album or {}).get("id", "")).strip(),
+                        str((album or {}).get("albumName", "")).strip(),
+                        log_level=log_level,
+                    ) or []
+                ),
+                asset_dates_getter=lambda album: extract_asset_capture_datetimes(
                     self.get_all_assets_from_album(
                         str((album or {}).get("id", "")).strip(),
                         str((album or {}).get("albumName", "")).strip(),

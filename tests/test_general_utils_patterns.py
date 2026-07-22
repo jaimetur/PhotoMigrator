@@ -1,6 +1,7 @@
 import sys
 import types
 import unittest
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -141,6 +142,51 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(groups, [])
 
+    def test_date_prefix_prefers_specific_keeper_when_all_its_assets_fit_the_day(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "month", "albumName": "2012-08 - Feria de Málaga"},
+                {"id": "day", "albumName": "2012-08-15 - Feria de Málaga"},
+            ],
+            asset_dates_getter=lambda album: {
+                "month": [datetime(2012, 8, 1), datetime(2012, 8, 15)],
+                "day": [datetime(2012, 8, 15), datetime(2012, 8, 15, 20)],
+            }[album["id"]],
+        )
+
+        self.assertEqual(groups[0]["keeper_album"]["id"], "day")
+        self.assertTrue(groups[0]["assets_date_considered"])
+
+    def test_date_prefix_prefers_specific_keeper_when_at_least_95_percent_fit_the_day(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "month", "albumName": "2012-08 - Feria de Málaga"},
+                {"id": "day", "albumName": "2012-08-15 - Feria de Málaga"},
+            ],
+            asset_dates_getter=lambda album: {
+                "month": [datetime(2012, 8, 1), datetime(2012, 8, 15)],
+                "day": [datetime(2012, 8, 15)] * 19 + [datetime(2012, 8, 16)],
+            }[album["id"]],
+        )
+
+        self.assertEqual(groups[0]["keeper_album"]["id"], "day")
+        self.assertTrue(groups[0]["assets_date_considered"])
+
+    def test_date_prefix_prefers_broader_keeper_below_95_percent_fit(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "month", "albumName": "2012-08 - Feria de Málaga"},
+                {"id": "day", "albumName": "2012-08-15 - Feria de Málaga"},
+            ],
+            asset_dates_getter=lambda album: {
+                "month": [datetime(2012, 8, 1), datetime(2012, 8, 15)],
+                "day": [datetime(2012, 8, 15)] * 18 + [datetime(2012, 8, 16)] * 2,
+            }[album["id"]],
+        )
+
+        self.assertEqual(groups[0]["keeper_album"]["id"], "month")
+        self.assertTrue(groups[0]["assets_date_considered"])
+
     def test_scan_album_consolidation_groups_merges_truncated_names_for_same_dominant_year(self):
         assets_by_id = {
             "full": [{"fileCreatedAt": "2024-07-03T10:00:00Z"}, {"fileCreatedAt": "2024-07-04T10:00:00Z"}],
@@ -157,6 +203,42 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertEqual(len(groups), 1)
         self.assertEqual(groups[0]["reason"], "truncated-name")
         self.assertEqual(groups[0]["keeper_album"]["id"], "full")
+
+    def test_scan_album_consolidation_groups_does_not_treat_a_bare_year_as_a_truncated_name(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "year", "albumName": "2015"},
+                {"id": "madrid", "albumName": "2015-05-21 - Con Yraly por Madrid"},
+                {"id": "praga", "albumName": "2015 - Viaje - 1.Praga"},
+            ],
+            asset_years_getter=lambda _album: [2015, 2015],
+        )
+
+        self.assertEqual(groups, [])
+
+    def test_scan_album_consolidation_groups_requires_two_distinct_words_for_truncation(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "base", "albumName": "Casa"},
+                {"id": "rural", "albumName": "Casa rural"},
+                {"id": "blanca", "albumName": "Casa blanca"},
+            ],
+            asset_years_getter=lambda _album: [2024, 2024],
+        )
+
+        self.assertEqual(groups, [])
+
+    def test_scan_album_consolidation_groups_prefers_non_videos_keeper_for_truncation(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "plain", "albumName": "2013-12-31 - Fiesta de Fin de Año"},
+                {"id": "videos", "albumName": "2013-12-31 - Fiesta de Fin de Año Videos"},
+            ],
+            asset_years_getter=lambda _album: [2013, 2013],
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["keeper_album"]["id"], "plain")
 
     def test_scan_album_consolidation_groups_does_not_block_same_year_truncation_for_another_year(self):
         groups = scan_album_consolidation_groups(
@@ -178,6 +260,17 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
                 {"id": "shared", "albumName": "2024-07 - Vacaciones París, Londres, Noruega (Shar"},
             ],
             asset_years_getter=lambda _album: [2024, 2024],
+        )
+
+        self.assertEqual(groups, [])
+
+    def test_scan_album_consolidation_groups_keeps_x_share_suffix_separate_from_plain_name(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "plain", "albumName": "2017 - Verano con Yraly"},
+                {"id": "shared", "albumName": "2017 - Verano con Yraly X"},
+            ],
+            asset_years_getter=lambda _album: [2017, 2017],
         )
 
         self.assertEqual(groups, [])

@@ -16,7 +16,7 @@ from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALL_PHOTOS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS, PHOTO_EXT
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch
-from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm, match_pattern, replace_pattern, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years
+from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm, match_pattern, replace_pattern, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
 from Utils.DuplicateUtils import select_people_then_chronology_keeper
@@ -2437,6 +2437,7 @@ class ClassLocalFolder(BaseMediaClient):
             groups = scan_album_consolidation_groups(
                 albums,
                 asset_years_getter=lambda album: extract_asset_capture_years(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)),
+                asset_dates_getter=lambda album: extract_asset_capture_datetimes(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)),
             )
             if not groups:
                 LOGGER.info("No equivalent local album families found to consolidate.")
