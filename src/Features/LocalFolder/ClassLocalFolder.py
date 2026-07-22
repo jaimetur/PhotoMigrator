@@ -2482,6 +2482,7 @@ class ClassLocalFolder(BaseMediaClient):
 
     def consolidate_album_namess(self, request_user_confirmation=True, preview_album_actions=False, try_equivalent_albums_grouping=True, try_date_prefix_albums_grouping=True, try_truncated_albums_grouping=True, try_small_albums_grouping=True, log_level=logging.WARNING, small_album_max_assets=3):
         with set_log_level(LOGGER, log_level):
+            self.last_album_consolidation_rule_counts = {}
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             groups = scan_album_consolidation_groups(
                 albums,
@@ -2504,6 +2505,7 @@ class ClassLocalFolder(BaseMediaClient):
             if request_user_confirmation and not confirm_continue():
                 return 0, 0
             consolidated = redundant = 0
+            rule_counts = {}
             for group in tqdm(
                 groups,
                 desc=f"{MSG_TAGS['INFO']}Consolidating album families",
@@ -2538,6 +2540,9 @@ class ClassLocalFolder(BaseMediaClient):
                         )
                     redundant += 1
                 consolidated += 1
+                rule = str(group.get("reason") or "equivalent-name")
+                rule_counts[rule] = rule_counts.get(rule, 0) + 1
+            self.last_album_consolidation_rule_counts = rule_counts
             self._invalidate_asset_caches()
             self.albums_owned_by_user.clear()
             return consolidated, redundant

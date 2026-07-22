@@ -1648,6 +1648,23 @@ def mode_cloud_consolidate_albums_names(client=None, user_confirmation=True, log
         LOGGER.info(f"==================================================")
         LOGGER.info(f"Total album families consolidated       : {families_consolidated}")
         LOGGER.info(f"Total redundant albums detected         : {redundant_albums_detected}")
+        rule_labels = {
+            "equivalent-name": "Equivalent Name",
+            "date-prefix": "Date Prefix",
+            "truncated-name": "Truncated Name",
+            "truncated-name-grouping-videos": "Truncated Name (Video Grouping)",
+            "truncated-name-redundant-date": "Truncated Name (Redundant Date)",
+            "small-album-date-match": "Small Album Date Match",
+        }
+        rule_counts = getattr(cloud_client_obj, "last_album_consolidation_rule_counts", {}) or {}
+        if rule_counts:
+            LOGGER.info("Album families consolidated by rule:")
+            for rule, count in sorted(
+                rule_counts.items(),
+                key=lambda item: (rule_labels.get(str(item[0]), str(item[0]).replace("-", " ").title()), str(item[0])),
+            ):
+                label = rule_labels.get(str(rule), str(rule).replace("-", " ").title())
+                LOGGER.info(f"  {label:<42}: {int(count)}")
         LOGGER.info(f"")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info(f"==================================================")
