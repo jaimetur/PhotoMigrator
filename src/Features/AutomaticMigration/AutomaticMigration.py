@@ -1514,13 +1514,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_assoc_locks[album_key] = lock
             return lock
 
-    def _get_album_pending_context_lock(album_key):
-        album_key = str(album_key or "").strip() or "__default__"
+    def _get_album_pending_context_lock(scope_key):
+        scope_key = str(scope_key or "").strip() or "__default__"
         with album_pending_context_locks_lock:
-            lock = album_pending_context_locks.get(album_key)
+            lock = album_pending_context_locks.get(scope_key)
             if lock is None:
                 lock = threading.Lock()
-                album_pending_context_locks[album_key] = lock
+                album_pending_context_locks[scope_key] = lock
             return lock
 
     def _get_album_finalize_lock(album_key):
@@ -2352,26 +2352,69 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 remaining_files.append(os.path.join(root, entry))
         return remaining_files
 
+    def _list_queue_scope_remaining_files(queue_scope):
+        if queue_scope["kind"] == "Album":
+            return _list_album_remaining_files(queue_scope["folder"])
+
+        folder_path = queue_scope["folder"]
+        try:
+            entries = os.scandir(folder_path)
+        except OSError:
+            return []
+        return [
+            entry.path
+            for entry in entries
+            if entry.is_file()
+            and entry.name not in {".active", ".DS_Store"}
+            and not entry.name.endswith(".lock")
+        ]
+
+    def _get_asset_queue_scope(album_name, asset_file_path):
+        if album_name:
+            return {
+                "key": f"album:{album_name}",
+                "folder": _get_album_staging_folder(album_name),
+                "kind": "Album",
+                "label": str(album_name),
+                "queue_label": "Album Queue",
+            }
+
+        folder_path = os.path.dirname(str(asset_file_path or "")) or push_queue_folder
+        try:
+            relative_folder = os.path.relpath(folder_path, push_queue_folder)
+        except ValueError:
+            relative_folder = os.path.basename(folder_path)
+        relative_parts = [part for part in Path(relative_folder).parts if part not in {"", ".", os.sep, ".."}]
+        folder_label = "/".join(relative_parts) if relative_parts else "No_Albums"
+        return {
+            "key": f"folder:{_normalized_asset_path_key(folder_path)}",
+            "folder": folder_path,
+            "kind": "Folder",
+            "label": folder_label,
+            "queue_label": "Folder Queue",
+        }
+
     def _album_queue_asset_keys(asset_file_path, live_photo_video_path=None):
         asset_keys = set()
         for path in (asset_file_path, live_photo_video_path):
+            if not path:
+                continue
             normalized = _normalized_asset_path_key(path)
             if normalized:
                 asset_keys.add(normalized)
         return asset_keys
 
-    def _get_album_queue_state(album_name):
+    def _get_album_queue_state(scope_key):
         return album_queue_state_by_name.setdefault(
-            album_name,
+            scope_key,
             {"in_flight": set(), "completed": set()},
         )
 
-    def _snapshot_album_queue_state(album_name, state):
-        album_folder_path = _get_album_staging_folder(album_name)
-        pending_duplicate_keys = _get_pending_duplicate_file_keys(album_name)
+    def _snapshot_album_queue_state(queue_scope, state):
+        pending_duplicate_keys = _get_pending_duplicate_file_keys(queue_scope["label"]) if queue_scope["kind"] == "Album" else set()
         staged_file_keys = {
             _normalized_asset_path_key(file_path)
-            for file_path in _list_album_remaining_files(album_folder_path)
+            for file_path in _list_queue_scope_remaining_files(queue_scope)
         }
         in_flight_keys = set(state["in_flight"])
         completed_keys = set(state["completed"])
@@ -2387,48 +2430,39 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         }
 
     def _claim_album_asset_and_snapshot_queue_state(
-        album_name,
+        queue_scope,
         asset_file_path,
         live_photo_video_path=None,
     ):
-        """Reserve an album asset before taking its log-only queue snapshot.
+        """Reserve an asset before taking its log-only queue snapshot.
 
-        Pull workers can add files to an album staging folder while several push
-        workers consume it.  Serializing the reservation and directory scan per
-        album prevents two workers from reporting the same files as pending.
+        Pull workers can add files to a staging scope while several push workers
+        consume it. Serializing the reservation and directory scan per scope
+        prevents two workers from reporting the same files as pending.
         This intentionally does not affect any migration counters.
         """
-        if not album_name:
+        with _get_album_pending_context_lock(queue_scope["key"]):
             _mark_asset_path_in_flight(asset_file_path)
             _mark_asset_path_in_flight(live_photo_video_path)
-            return None
-
-        with _get_album_pending_context_lock(album_name):
-            _mark_asset_path_in_flight(asset_file_path)
-            _mark_asset_path_in_flight(live_photo_video_path)
-            state = _get_album_queue_state(album_name)
+            state = _get_album_queue_state(queue_scope["key"])
             state["in_flight"].update(_album_queue_asset_keys(asset_file_path, live_photo_video_path))
-            return _snapshot_album_queue_state(album_name, state)
+            return _snapshot_album_queue_state(queue_scope, state)
 
     def _complete_album_asset_and_snapshot_queue_state(
-        album_name,
+        queue_scope,
         asset_file_path,
         live_photo_video_path=None,
     ):
-        if not album_name:
-            return None
-        with _get_album_pending_context_lock(album_name):
-            state = _get_album_queue_state(album_name)
+        with _get_album_pending_context_lock(queue_scope["key"]):
+            state = _get_album_queue_state(queue_scope["key"])
             asset_keys = _album_queue_asset_keys(asset_file_path, live_photo_video_path)
             state["in_flight"].difference_update(asset_keys)
             state["completed"].update(asset_keys)
-            return _snapshot_album_queue_state(album_name, state)
+            return _snapshot_album_queue_state(queue_scope, state)
 
-    def _release_album_asset_queue_claim(album_name, asset_file_path, live_photo_video_path=None):
-        if not album_name:
-            return
-        with _get_album_pending_context_lock(album_name):
-            _get_album_queue_state(album_name)["in_flight"].difference_update(
+    def _release_album_asset_queue_claim(queue_scope, asset_file_path, live_photo_video_path=None):
+        with _get_album_pending_context_lock(queue_scope["key"]):
+            _get_album_queue_state(queue_scope["key"])["in_flight"].difference_update(
                 _album_queue_asset_keys(asset_file_path, live_photo_video_path)
             )
 
@@ -2440,19 +2474,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         show_people_count=False,
         pending_count_override=None,
         queue_state_snapshot=None,
+        queue_scope=None,
     ):
         people_label = (
             f"{{People: found: {people_count} | assigned: {people_assigned_count}}}"
             if show_people_count and people_count > 0 else ""
         )
-        if not album_name:
+        if not album_name and queue_scope is None:
             return f" [{people_label}]" if people_label else ""
         if queue_state_snapshot is not None:
-            details = [f"{{Album: '{album_name}'}}"]
+            scope = queue_scope or _get_asset_queue_scope(album_name, current_asset_file_path)
+            details = [f"{{{scope['kind']}: '{scope['label']}'}}"]
             if people_label:
                 details.append(people_label)
             details.append(
-                "{Album Queue: "
+                f"{{{scope['queue_label']}: "
                 f"{int(queue_state_snapshot.get('waiting', 0) or 0)} waiting | "
                 f"In flight: {int(queue_state_snapshot.get('in_flight', 0) or 0)} | "
                 f"Completed: {int(queue_state_snapshot.get('completed', 0) or 0)}/"
@@ -3426,10 +3462,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             return "photo"
         return fallback_type
 
-    def collect_pulled_asset_paths(download_folder, asset_filename):
+    def collect_pulled_asset_paths(download_folder, asset_filename, discover_live_companions=True):
         """
         Returns pulled file paths for one logical asset.
-        For Synology Live Photo ZIP payloads, this includes companion video files sharing the same stem.
+        For cloud Live Photo payloads, this can include companion video files sharing the same stem.
+        Local folders already enumerate each physical file independently, so callers can
+        disable companion discovery to avoid staging the same MOV twice.
         """
         primary_path = os.path.join(download_folder, asset_filename)
         stem = os.path.splitext(asset_filename)[0]
@@ -3448,6 +3486,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
         if os.path.exists(primary_path):
             found.append(primary_path)
+
+        if not discover_live_companions:
+            return found
 
         source_video_exts = [e.lower() for e in getattr(source_client, "ALLOWED_VIDEO_EXTENSIONS", [])]
         stem_lower = stem.lower()
@@ -4117,12 +4158,25 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         # Actualizamos Contadores de descargas
                         if _pull_has_content(pulled_assets):
-                            pulled_file_paths = collect_pulled_asset_paths(download_folder, staged_filename)
+                            is_local_source = isinstance(source_client, ClassLocalFolder)
+                            pulled_file_paths = collect_pulled_asset_paths(
+                                download_folder,
+                                staged_filename,
+                                discover_live_companions=not is_local_source,
+                            )
                             if not pulled_file_paths:
                                 pulled_file_paths = [local_file_path]
                             collect_finished_at = time.perf_counter()
 
-                            immich_live_companion = find_immich_live_video_companion(local_file_path, pulled_file_paths)
+                            # A local library enumerates every physical HEIC/JPEG and MOV
+                            # independently. Pairing by whatever happens to be staged at this
+                            # instant can count the MOV both on its own and inside the photo
+                            # bundle, depending on traversal order. Keep local migrations in
+                            # a single physical-file unit instead.
+                            immich_live_companion = None if is_local_source else find_immich_live_video_companion(
+                                local_file_path,
+                                pulled_file_paths,
+                            )
                             for idx, pulled_file_path in enumerate(pulled_file_paths):
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
                                     continue
@@ -4349,12 +4403,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                     # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
                     if _pull_has_content(pulled_assets):
-                        pulled_file_paths = collect_pulled_asset_paths(download_folder, staged_filename)
+                        is_local_source = isinstance(source_client, ClassLocalFolder)
+                        pulled_file_paths = collect_pulled_asset_paths(
+                            download_folder,
+                            staged_filename,
+                            discover_live_companions=not is_local_source,
+                        )
                         if not pulled_file_paths:
                             pulled_file_paths = [local_file_path]
                         collect_finished_at = time.perf_counter()
 
-                        immich_live_companion = find_immich_live_video_companion(local_file_path, pulled_file_paths)
+                        # Local sources already enumerate each physical Live Photo companion.
+                        immich_live_companion = None if is_local_source else find_immich_live_video_companion(
+                            local_file_path,
+                            pulled_file_paths,
+                        )
                         for idx, pulled_file_path in enumerate(pulled_file_paths):
                             if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
                                 continue
@@ -4472,6 +4535,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             move_assets = ARGS.get('move-assets', None)
             while True:
                 asset = None
+                asset_queue_scope = None
                 try:
                     # Extraemos el siguiente asset de la cola
                     # time.sleep(0.7)  # Esto es por si queremos ralentizar el worker de subidas
@@ -4514,8 +4578,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     push_elapsed_ms = None
                     album_assoc_elapsed_ms = None
                     cleanup_elapsed_ms = None
+                    asset_queue_scope = _get_asset_queue_scope(album_name, asset_file_path)
                     album_queue_state_snapshot = _claim_album_asset_and_snapshot_queue_state(
-                        album_name=album_name,
+                        queue_scope=asset_queue_scope,
                         asset_file_path=asset_file_path,
                         live_photo_video_path=live_photo_video_path,
                     )
@@ -4526,12 +4591,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         isDuplicated = False
                         if (not live_photo_video_path) and _is_live_companion_consumed(asset_file_path):
                             album_queue_state_snapshot = _complete_album_asset_and_snapshot_queue_state(
-                                album_name=album_name,
+                                queue_scope=asset_queue_scope,
                                 asset_file_path=asset_file_path,
                             )
                             LOGGER.info(
                                 f"Asset Live Companion Consumed: '{os.path.basename(asset_file_path)}'. Skipped"
-                                f"{_format_album_pending_context(album_name, asset_file_path, queue_state_snapshot=album_queue_state_snapshot)}"
+                                f"{_format_album_pending_context(album_name, asset_file_path, queue_state_snapshot=album_queue_state_snapshot, queue_scope=asset_queue_scope)}"
                             )
                             treat_as_consumed = True
                             cleanup_elapsed_ms = _finalize_asset_success(
@@ -4596,7 +4661,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 asset_pushed = True
                                 treat_as_consumed = True
                                 album_queue_state_snapshot = _complete_album_asset_and_snapshot_queue_state(
-                                    album_name=album_name,
+                                    queue_scope=asset_queue_scope,
                                     asset_file_path=asset_file_path,
                                     live_photo_video_path=live_photo_video_path,
                                 )
@@ -4624,6 +4689,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         takeout_people_assigned_count,
                                         show_takeout_people_count,
                                         queue_state_snapshot=album_queue_state_snapshot,
+                                        queue_scope=asset_queue_scope,
                                     )
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}'"
@@ -4655,7 +4721,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         )
                                     LOGGER.info(
                                         f"Asset Pushed    : '{os.path.basename(asset_file_path)}'"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, queue_state_snapshot=album_queue_state_snapshot)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, queue_state_snapshot=album_queue_state_snapshot, queue_scope=asset_queue_scope)}"
                                     )
                                     if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
                                         try:
@@ -4674,6 +4740,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 # Si entramos aqui es porque asset_id no existe, probablemente se haya producido una excepción en push_asset, y el LOGGER se haya quedado con el nivel ERROR
                                 set_log_level(LOGGER, orig_level)
                                 if isDuplicated:
+                                    # A duplicate response has completed this asset's push-stage work,
+                                    # even when album association still needs target-id recovery.
+                                    # Keep it in the source scope's completed set before moving it to
+                                    # Album_Association_Queue so later queue snapshots cannot shrink.
+                                    album_queue_state_snapshot = _complete_album_asset_and_snapshot_queue_state(
+                                        queue_scope=asset_queue_scope,
+                                        asset_file_path=asset_file_path,
+                                        live_photo_video_path=live_photo_video_path,
+                                    )
                                     album_context = _format_album_pending_context(
                                         album_name,
                                         asset_file_path,
@@ -4681,6 +4756,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         takeout_people_assigned_count,
                                         show_takeout_people_count,
                                         queue_state_snapshot=album_queue_state_snapshot,
+                                        queue_scope=asset_queue_scope,
                                     )
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}'"
@@ -4891,8 +4967,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         )
                 finally:
                     if asset is not None and isinstance(asset, dict):
-                        _release_album_asset_queue_claim(
+                        queue_scope_for_release = asset_queue_scope or _get_asset_queue_scope(
                             asset.get('album_name'),
+                            asset.get('asset_file_path'),
+                        )
+                        _release_album_asset_queue_claim(
+                            queue_scope_for_release,
                             asset.get('asset_file_path'),
                             asset.get('live_photo_video_path'),
                         )
