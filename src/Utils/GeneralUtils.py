@@ -1863,8 +1863,24 @@ def print_album_consolidation_preview(consolidation_groups):
     def emit(message):
         # Consolidation runs the client with a WARNING log threshold.  Preview
         # output must bypass that threshold so it remains visible before the
-        # confirmation prompt.
+        # confirmation prompt. Persist it explicitly as INFO as well because
+        # that thread-local threshold would otherwise suppress FileHandlers.
         print(f"{MSG_TAGS['INFO']}{message}")
+        logger = GV.LOGGER
+        if not logger:
+            return
+        record = logger.makeRecord(
+            logger.name,
+            logging.INFO,
+            __file__,
+            0,
+            message,
+            (),
+            None,
+        )
+        for handler in list(getattr(logger, "handlers", []) or []):
+            if isinstance(handler, logging.FileHandler):
+                handler.handle(record)
 
     def album_name(album):
         if isinstance(album, dict):

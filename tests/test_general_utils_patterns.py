@@ -1,6 +1,8 @@
 import sys
 import types
 import unittest
+import logging
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -38,6 +40,7 @@ try:
         find_reusable_album_candidate,
         build_reusable_album_group,
         scan_album_consolidation_groups,
+        print_album_consolidation_preview,
     )
     GENERAL_UTILS_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -348,6 +351,29 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
             self.assertTrue(confirm_continue())
 
         mock_print.assert_any_call("Do you want to continue? (yes/no): ", end="", flush=True)
+
+    def test_album_consolidation_preview_is_persisted_to_log_file(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            log_path = Path(temp_dir) / "preview.log"
+            logger = logging.getLogger("album-preview-test")
+            logger.handlers.clear()
+            logger.setLevel(logging.INFO)
+            file_handler = logging.FileHandler(log_path, encoding="utf-8")
+            logger.addHandler(file_handler)
+            try:
+                with patch.object(GV, "LOGGER", logger), patch("builtins.print"):
+                    print_album_consolidation_preview([
+                        {
+                            "keeper_album": {"id": "keeper", "albumName": "Keeper"},
+                            "redundant_albums": [{"id": "candidate", "albumName": "Candidate"}],
+                            "reason": "equivalent-name",
+                        }
+                    ])
+            finally:
+                file_handler.close()
+                logger.handlers.clear()
+
+            self.assertIn("Album consolidation preview: 1 family(ies)", log_path.read_text(encoding="utf-8"))
 
     def test_has_any_filter_treats_filter_by_type_all_as_no_filter(self):
         with patch.object(GV, "ARGS", {"filter-by-type": "all"}):

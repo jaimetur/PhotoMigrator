@@ -89,6 +89,7 @@
   - Expanded truncated-name preview comments to identify the normal longest-name decision and indicate when the candidates' asset-date metadata was matched to confirm their dominant year.
   - Fixed delayed confirmation prompts under redirected stdout. `Do you want to continue? (yes/no):` is now flushed before PhotoMigrator waits for input in Web, TUI, and other job-runner executions.
   - Added determinate `Consolidating album families` progress bars after confirmation in Consolidate Albums Names for Google Photos, Synology Photos, Immich Photos, NextCloud Photos, and Local Folder.
+  - Persisted Consolidate Albums Names preview tables to the configured `.log` file while retaining their immediate console and Web output before confirmation.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
