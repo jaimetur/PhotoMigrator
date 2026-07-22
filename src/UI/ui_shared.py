@@ -81,6 +81,10 @@ UI_FIELD_LABELS = {
     "preview-album-actions": "Preview Album Actions",
     "prefer-canonical-album-names": "Prefer Canonical Album Names",
     "consolidate-similar-albums": "Consolidate Similar Albums",
+    "try-equivalent-albums-grouping": "Try Equivalent Albums Grouping",
+    "try-date-prefix-albums-grouping": "Try Date Prefix Albums Grouping",
+    "try-truncated-albums-grouping": "Try Truncated Albums Grouping",
+    "try-small-albums-grouping": "Try Small Albums Grouping",
     "import-people": "Import People",
     "create-stacks": "Create Stacks",
     "foldername-all-photos": "ALL_PHOTOS Folder Name",
@@ -224,6 +228,10 @@ CLOUD_DESTS = {
     "merge-duplicates-albums",
     # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
+    "try-equivalent-albums-grouping",
+    "try-date-prefix-albums-grouping",
+    "try-truncated-albums-grouping",
+    "try-small-albums-grouping",
     "one-time-password",
 }
 CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
@@ -389,6 +397,17 @@ MODULE_ACTION_ARGUMENTS = {
         ]
     }
 }
+
+_CONSOLIDATE_ALBUMS_GROUPING_ARGUMENTS = [
+    {"dest": "try-equivalent-albums-grouping", "required": False},
+    {"dest": "try-date-prefix-albums-grouping", "required": False},
+    {"dest": "try-truncated-albums-grouping", "required": False},
+    {"dest": "try-small-albums-grouping", "required": False},
+    {"dest": "preview-album-actions", "required": False},
+]
+for _module_actions in MODULE_ACTION_ARGUMENTS.values():
+    if "consolidate-albums-names" in _module_actions:
+        _module_actions["consolidate-albums-names"] = list(_CONSOLIDATE_ALBUMS_GROUPING_ARGUMENTS)
 TAB_TO_CATEGORY = {
     "google_takeout": "google_takeout",
     "icloud_takeout": "icloud_takeout",

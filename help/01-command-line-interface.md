@@ -417,6 +417,14 @@ If more than one optional arguments are detected, only the first one will be exe
                Immich, Synology, and NextCloud remove redundant album variants afterwards. Google Photos keeps them because its public API cannot delete albums.
                Use '--preview-album-actions' to list the detected album families and ask for confirmation before consolidating.
                Example: --client=immich --consolidate-albums-names --preview-album-actions
+-tryEqAlb ; --try-equivalent-albums-grouping ; --no-try-equivalent-albums-grouping
+               Enable or disable canonical/equivalent album-name grouping for Consolidate Albums Names (default: enabled).
+-tryDateAlb ; --try-date-prefix-albums-grouping ; --no-try-date-prefix-albums-grouping
+               Enable or disable compatible date-prefix grouping for Consolidate Albums Names (default: enabled).
+-tryTruncAlb ; --try-truncated-albums-grouping ; --no-try-truncated-albums-grouping
+               Enable or disable guarded truncated-name grouping for Consolidate Albums Names (default: enabled).
+-trySmallAlb ; --try-small-albums-grouping ; --no-try-small-albums-grouping
+               Enable or disable grouping albums with up to three assets into larger similarly named albums with matching capture dates (default: enabled).
 -dAll        ; --download-all <OUTPUT_FOLDER>
                Download all albums and all non-album assets into <OUTPUT_FOLDER>.
                You must provide the photo client using '--client'.

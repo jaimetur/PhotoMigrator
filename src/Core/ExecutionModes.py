@@ -1625,6 +1625,10 @@ def mode_cloud_consolidate_albums_names(client=None, user_confirmation=True, log
         families_consolidated, redundant_albums_detected = cloud_client_obj.consolidate_album_namess(
             request_user_confirmation=bool(ARGS.get('request-user-confirmation', True)),
             preview_album_actions=preview_album_actions,
+            try_equivalent_albums_grouping=bool(ARGS.get('try-equivalent-albums-grouping', True)),
+            try_date_prefix_albums_grouping=bool(ARGS.get('try-date-prefix-albums-grouping', True)),
+            try_truncated_albums_grouping=bool(ARGS.get('try-truncated-albums-grouping', True)),
+            try_small_albums_grouping=bool(ARGS.get('try-small-albums-grouping', True)),
             log_level=logging.WARNING,
         )
         LOGGER.info(f"")

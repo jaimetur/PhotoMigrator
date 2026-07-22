@@ -1889,7 +1889,21 @@ def _scan_truncated_name_consolidation_groups(
     return groups
 
 
-def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_getter=None, progress_desc=None, progress_unit="albums", asset_years_getter=None, asset_dates_getter=None, asset_count_getter=None, include_asset_counts=False):
+def scan_album_consolidation_groups(
+    albums,
+    exact_case_sensitive=False,
+    date_getter=None,
+    progress_desc=None,
+    progress_unit="albums",
+    asset_years_getter=None,
+    asset_dates_getter=None,
+    asset_count_getter=None,
+    include_asset_counts=False,
+    try_equivalent_albums_grouping=True,
+    try_date_prefix_albums_grouping=True,
+    try_truncated_albums_grouping=True,
+    try_small_albums_grouping=True,
+):
     """
     Build consolidation groups for cloud album-name consolidation in one pass.
 
@@ -1915,40 +1929,41 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
     consolidation_groups = []
     seen_similarity_keys = set()
 
-    progress_iterable = tqdm(eligible_albums, desc=progress_desc, unit=progress_unit) if progress_desc else eligible_albums
-    for album in progress_iterable:
-        album_name = str((album or {}).get("albumName", "")).strip()
-        try:
-            similarity_key = album_name_reuse_key(album_name) or album_name.casefold()
-            if similarity_key in seen_similarity_keys:
-                continue
-            seen_similarity_keys.add(similarity_key)
+    if try_equivalent_albums_grouping:
+        progress_iterable = tqdm(eligible_albums, desc=progress_desc, unit=progress_unit) if progress_desc else eligible_albums
+        for album in progress_iterable:
+            album_name = str((album or {}).get("albumName", "")).strip()
+            try:
+                similarity_key = album_name_reuse_key(album_name) or album_name.casefold()
+                if similarity_key in seen_similarity_keys:
+                    continue
+                seen_similarity_keys.add(similarity_key)
 
-            exact_key = album_name if exact_case_sensitive else album_name.casefold()
-            plan = _build_reusable_album_group_from_matches(
-                target_name=album_name,
-                exact_matches=list(exact_groups.get(exact_key) or []),
-                similar_matches=list(similarity_groups.get(similarity_key) or []),
-                allow_similar=True,
-            )
-            redundant_albums = list(plan.get("redundant_albums") or [])
-            if not redundant_albums:
-                continue
-            consolidation_groups.append({
-                "seed_album_name": album_name,
-                "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
-                "keeper_album": plan.get("keeper_album") or {},
-                "should_create_preferred_album": bool(plan.get("should_create_preferred_album")),
-                "redundant_albums": redundant_albums,
-                "similar_albums": list(plan.get("similar_albums") or []),
-                "similarity_key": similarity_key,
-            })
-        except Exception as exc:
-            if GV.LOGGER:
-                GV.LOGGER.exception(
-                    f"Album family scan failed for album '{album_name or '<empty>'}'. Error: {exc}"
+                exact_key = album_name if exact_case_sensitive else album_name.casefold()
+                plan = _build_reusable_album_group_from_matches(
+                    target_name=album_name,
+                    exact_matches=list(exact_groups.get(exact_key) or []),
+                    similar_matches=list(similarity_groups.get(similarity_key) or []),
+                    allow_similar=True,
                 )
-            raise
+                redundant_albums = list(plan.get("redundant_albums") or [])
+                if not redundant_albums:
+                    continue
+                consolidation_groups.append({
+                    "seed_album_name": album_name,
+                    "preferred_album_name": str(plan.get("preferred_album_name") or album_name).strip() or album_name,
+                    "keeper_album": plan.get("keeper_album") or {},
+                    "should_create_preferred_album": bool(plan.get("should_create_preferred_album")),
+                    "redundant_albums": redundant_albums,
+                    "similar_albums": list(plan.get("similar_albums") or []),
+                    "similarity_key": similarity_key,
+                })
+            except Exception as exc:
+                if GV.LOGGER:
+                    GV.LOGGER.exception(
+                        f"Album family scan failed for album '{album_name or '<empty>'}'. Error: {exc}"
+                    )
+                raise
 
     # Keep the established canonical-name groups untouched, then add only new
     # date-prefix/truncation families that do not overlap an existing plan.
@@ -1991,20 +2006,23 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
 
     # Consolidation clients run their inner API work at WARNING. Write phase
     # transitions directly so a long metadata scan never appears stalled.
-    print(f"{MSG_TAGS['INFO']}Scanning date-prefixed album families to consolidate...")
-    date_groups = _scan_date_prefix_consolidation_groups(
-        eligible_albums,
-        assigned_ids,
-        asset_dates_getter=cached_asset_dates if callable(asset_dates_getter) else None,
-        progress_desc=f"{MSG_TAGS['INFO']}Checking date-prefixed album families",
-        progress_unit="families",
-    )
+    if try_date_prefix_albums_grouping:
+        print(f"{MSG_TAGS['INFO']}Scanning date-prefixed album families to consolidate...")
+        date_groups = _scan_date_prefix_consolidation_groups(
+            eligible_albums,
+            assigned_ids,
+            asset_dates_getter=cached_asset_dates if callable(asset_dates_getter) else None,
+            progress_desc=f"{MSG_TAGS['INFO']}Checking date-prefixed album families",
+            progress_unit="families",
+        )
+    else:
+        date_groups = []
     assigned_ids.update(
         str((album or {}).get("id", "")).strip()
         for group in date_groups
         for album in (group.get("similar_albums") or [])
     )
-    if callable(asset_years_getter) or callable(asset_dates_getter):
+    if try_truncated_albums_grouping and (callable(asset_years_getter) or callable(asset_dates_getter)):
         print(
             f"{MSG_TAGS['INFO']}Checking truncated album-name candidates and their dominant asset years. "
             "This may require reading assets from matching albums..."
@@ -2023,7 +2041,7 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
         for group in truncation_groups
         for album in (group.get("similar_albums") or [])
     )
-    if callable(asset_dates_getter) and callable(asset_count_getter):
+    if try_small_albums_grouping and callable(asset_dates_getter) and callable(asset_count_getter):
         print(
             f"{MSG_TAGS['INFO']}Checking small albums with up to {_SMALL_ALBUM_MAX_ASSETS} assets "
             "against larger date-matched albums..."

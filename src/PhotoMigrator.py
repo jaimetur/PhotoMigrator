@@ -164,8 +164,8 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
         if "immich" in str(args.get("target", "")).lower():
             result.extend(["import-people", "create-stacks"])
         return result
-    if feature_name in {"Google Photos", "Synology Photos", "Immich Photos", "NextCloud Photos"}:
-        result = ["account-id"]
+    if feature_name in {"Google Photos", "Synology Photos", "Immich Photos", "NextCloud Photos", "Local Folder"}:
+        result = [] if feature_name == "Local Folder" else ["account-id"]
         if feature_name == "Synology Photos":
             result.append("one-time-password")
         if module_name in {"Upload Albums", "Upload All"}:
@@ -174,7 +174,15 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
                 result.append("albums-folders")
             if feature_name == "Immich Photos":
                 result.extend(["import-people", "create-stacks"])
-        elif module_name in {"Rename Albums", "Consolidate Album Names"}:
+        elif module_name == "Consolidate Album Names":
+            result.extend([
+                "try-equivalent-albums-grouping",
+                "try-date-prefix-albums-grouping",
+                "try-truncated-albums-grouping",
+                "try-small-albums-grouping",
+                "preview-album-actions",
+            ])
+        elif module_name == "Rename Albums":
             result.append("preview-album-actions")
         elif module_name in {"Remove Albums", "Remove All Albums"}:
             if module_name == "Remove Albums":

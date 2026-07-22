@@ -513,6 +513,10 @@
         "preview-album-actions": "Preview Album Actions",
         "prefer-canonical-album-names": "Prefer Canonical Album Names",
         "consolidate-similar-albums": "Consolidate Similar Albums",
+        "try-equivalent-albums-grouping": "Try Equivalent Albums Grouping",
+        "try-date-prefix-albums-grouping": "Try Date Prefix Albums Grouping",
+        "try-truncated-albums-grouping": "Try Truncated Albums Grouping",
+        "try-small-albums-grouping": "Try Small Albums Grouping",
         "find-duplicates": "Find Duplicates Input",
         "process-duplicates": "Duplicates CSV",
         "rename-folders-content-based": "ALBUMS_FOLDER",
@@ -686,6 +690,19 @@
         google_takeout: {},
         icloud_takeout: {}
     };
+
+    const CONSOLIDATE_ALBUMS_GROUPING_ARGUMENTS = [
+        {dest: "try-equivalent-albums-grouping", required: false},
+        {dest: "try-date-prefix-albums-grouping", required: false},
+        {dest: "try-truncated-albums-grouping", required: false},
+        {dest: "try-small-albums-grouping", required: false},
+        {dest: "preview-album-actions", required: false}
+    ];
+    Object.values(MODULE_DEPENDENCIES).forEach((moduleActions) => {
+        if (moduleActions && moduleActions["consolidate-albums-names"]) {
+            moduleActions["consolidate-albums-names"] = [...CONSOLIDATE_ALBUMS_GROUPING_ARGUMENTS];
+        }
+    });
 
     const CLOUD_ACTIONS_AVAILABLE = {
         google_photos: ["upload-albums", "download-albums", "upload-all", "download-all", "remove-duplicates-assets", "consolidate-albums-names"],

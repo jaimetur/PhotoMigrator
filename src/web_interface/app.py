@@ -198,6 +198,10 @@ CLOUD_DESTS = {
     "merge-duplicates-albums",
     # "remove-orphan-assets",  # Discontinued for Immich; keep commented for future reuse.
     "consolidate-albums-names",
+    "try-equivalent-albums-grouping",
+    "try-date-prefix-albums-grouping",
+    "try-truncated-albums-grouping",
+    "try-small-albums-grouping",
     "one-time-password",
 }
 
@@ -393,6 +397,17 @@ MODULE_ACTION_ARGUMENTS = {
         ]
     }
 }
+
+CONSOLIDATE_ALBUMS_GROUPING_ARGUMENTS = [
+    {"dest": "try-equivalent-albums-grouping", "required": False},
+    {"dest": "try-date-prefix-albums-grouping", "required": False},
+    {"dest": "try-truncated-albums-grouping", "required": False},
+    {"dest": "try-small-albums-grouping", "required": False},
+    {"dest": "preview-album-actions", "required": False},
+]
+for module_actions in MODULE_ACTION_ARGUMENTS.values():
+    if "consolidate-albums-names" in module_actions:
+        module_actions["consolidate-albums-names"] = list(CONSOLIDATE_ALBUMS_GROUPING_ARGUMENTS)
 
 TAB_TO_CATEGORY = {
     "google_takeout": "google_takeout",

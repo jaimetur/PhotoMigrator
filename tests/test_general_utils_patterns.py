@@ -434,6 +434,33 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(groups, [])
 
+    def test_scan_album_consolidation_groups_honors_individual_algorithm_switches(self):
+        albums = [
+            {"id": "plain", "albumName": "2024 - Viaje"},
+            {"id": "month", "albumName": "2024-08 - Viaje"},
+        ]
+
+        self.assertEqual(
+            scan_album_consolidation_groups(
+                albums,
+                try_equivalent_albums_grouping=False,
+                try_date_prefix_albums_grouping=False,
+                try_truncated_albums_grouping=False,
+                try_small_albums_grouping=False,
+            ),
+            [],
+        )
+        self.assertEqual(
+            scan_album_consolidation_groups(
+                albums,
+                try_equivalent_albums_grouping=False,
+                try_date_prefix_albums_grouping=True,
+                try_truncated_albums_grouping=False,
+                try_small_albums_grouping=False,
+            )[0]["reason"],
+            "date-prefix",
+        )
+
     def test_confirm_continue_skips_prompt_when_confirmation_is_disabled(self):
         with (
             patch.object(GV, "ARGS", {"request-user-confirmation": False}),

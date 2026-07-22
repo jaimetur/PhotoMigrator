@@ -454,6 +454,15 @@ def parse_arguments():
                              "Enabled by default; use '--no-preview-album-actions' to disable it.\n"
                              "Example: --client=immich --rename-albums \"--\" \"-\"")
 
+    PARSER.add_argument("-tryEqAlb", "--try-equivalent-albums-grouping", action=argparse.BooleanOptionalAction, default=True,
+                        help="For Consolidate Albums Names, try canonical/equivalent album-name grouping (default: True).")
+    PARSER.add_argument("-tryDateAlb", "--try-date-prefix-albums-grouping", action=argparse.BooleanOptionalAction, default=True,
+                        help="For Consolidate Albums Names, try compatible YYYY/YYYY-MM/YYYY-MM-DD date-prefix grouping (default: True).")
+    PARSER.add_argument("-tryTruncAlb", "--try-truncated-albums-grouping", action=argparse.BooleanOptionalAction, default=True,
+                        help="For Consolidate Albums Names, try guarded truncated album-name grouping (default: True).")
+    PARSER.add_argument("-trySmallAlb", "--try-small-albums-grouping", action=argparse.BooleanOptionalAction, default=True,
+                        help="For Consolidate Albums Names, try grouping albums with up to three assets into larger similarly named albums with matching capture dates (default: True).")
+
     PARSER.add_argument("-prefCanAlb", "--prefer-canonical-album-names", action="store_true", default=False,
                         help="When uploading albums to a cloud service or running Automatic Migration, normalize new destination album names to the preferred clean keeper form.\n"
                              "By default, a new destination album keeps the original source name.\n"

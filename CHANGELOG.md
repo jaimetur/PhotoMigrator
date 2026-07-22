@@ -95,6 +95,7 @@
   - Added `Selection` and `Selección` to the protected terminal suffixes for truncated-name consolidation, preventing curated-selection albums from merging into their full albums.
   - Refined protected truncated-name suffix matching into semantic categories: `Public`/`Publico`/`Público`/`Shared` may merge with one another; `Private`/`Privado`/`Privada`/`Guay`/`X` may merge with one another; and `Selection`/`Selección` remains separate. Different categories never merge.
   - Added `Small Album Date Match` consolidation across Google Photos, Synology Photos, Immich Photos, NextCloud Photos, and Local Folder. An album with up to three assets can merge only into a larger, similarly named album when every capture date from the small album is present in the keeper; the preview identifies this asset-date validation for each proposed merge.
+  - Added independent, default-enabled Consolidate Albums Names controls for equivalent names, date prefixes, truncated names, and small-album date matches. The switches are available in CLI, Web, GUI, and TUI, and each disabled rule is skipped entirely during analysis.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

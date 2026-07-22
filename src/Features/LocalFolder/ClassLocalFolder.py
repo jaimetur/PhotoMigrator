@@ -2480,7 +2480,7 @@ class ClassLocalFolder(BaseMediaClient):
             self.albums_owned_by_user.clear()
             return removed
 
-    def consolidate_album_namess(self, request_user_confirmation=True, preview_album_actions=False, log_level=logging.WARNING):
+    def consolidate_album_namess(self, request_user_confirmation=True, preview_album_actions=False, try_equivalent_albums_grouping=True, try_date_prefix_albums_grouping=True, try_truncated_albums_grouping=True, try_small_albums_grouping=True, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             groups = scan_album_consolidation_groups(
@@ -2489,6 +2489,10 @@ class ClassLocalFolder(BaseMediaClient):
                 asset_dates_getter=lambda album: extract_asset_capture_datetimes(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)),
                 asset_count_getter=lambda album: len(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)),
                 include_asset_counts=preview_album_actions or request_user_confirmation,
+                try_equivalent_albums_grouping=try_equivalent_albums_grouping,
+                try_date_prefix_albums_grouping=try_date_prefix_albums_grouping,
+                try_truncated_albums_grouping=try_truncated_albums_grouping,
+                try_small_albums_grouping=try_small_albums_grouping,
             )
             if not groups:
                 LOGGER.info("No equivalent local album families found to consolidate.")
