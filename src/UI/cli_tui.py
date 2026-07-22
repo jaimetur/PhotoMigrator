@@ -102,6 +102,8 @@ def _resolve_semantic_log_style(line: str) -> str | None:
         return "cyan"
     if clean.startswith("asset pushed"):
         return "green"
+    if clean.startswith("live companion"):
+        return "green dim"
     if clean.startswith("asset duplicated"):
         return "grey66"
     return None

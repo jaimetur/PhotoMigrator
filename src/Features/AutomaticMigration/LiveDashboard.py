@@ -776,6 +776,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         line_style = "cyan"
                     elif event_lower.startswith("asset pushed"):
                         line_style = "green"
+                    elif event_lower.startswith("live companion"):
+                        line_style = "green dim"
                     elif event_lower.startswith("album created"):
                         line_style = "bright_white"
                     elif event_lower.startswith("album pulled"):

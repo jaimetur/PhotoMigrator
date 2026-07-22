@@ -1256,6 +1256,9 @@
             ) {
                 return "log-push";
             }
+            if (/\blive companion\s*:/.test(normalizedLower)) {
+                return "log-live-companion";
+            }
         }
 
         if (/\binfo\s*:/.test(normalizedLower)) return "log-info";

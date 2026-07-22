@@ -2683,6 +2683,10 @@ body.is-resizing-log {
     color: #35c874;
 }
 
+.log-live-companion {
+    color: #258a50;
+}
+
 .log-push-album {
     color: #00ff75;
 }

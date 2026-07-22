@@ -76,6 +76,7 @@
   - Local-folder Automatic Migration now keeps Live Photo components in one consistent physical-file accounting model. HEIC/JPEG and MOV files are already independently enumerated by local sources, so PhotoMigrator no longer scans the local staging folder for same-stem MOV companions while processing an HEIC/JPEG; this prevents duplicate physical counts in queue states, album summaries, and final transfer totals.
   - Added `Total Stacks Created` to the final summaries of Immich Automatic Migration, Upload Albums, and Upload All. Upload All aggregates stacks created from both its album and no-album upload phases.
   - Improved Automatic Migration Live Photo logging: a consumed MOV companion now reports its associated HEIC/JPEG and the same album or folder queue state as other pushed assets.
+  - Styled Automatic Migration `Live Companion` log entries as a muted variant of `Asset Pushed` across the CLI, TUI, desktop dashboard, and Web Interface.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

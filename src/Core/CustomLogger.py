@@ -27,6 +27,8 @@ def _resolve_semantic_console_color(message: str) -> str:
         return Fore.CYAN
     if event_line.startswith("asset pushed"):
         return Fore.GREEN
+    if event_line.startswith("live companion"):
+        return f"{Style.DIM}{Fore.GREEN}"
     if event_line.startswith("asset duplicated"):
         return Fore.LIGHTBLACK_EX
     return ""
