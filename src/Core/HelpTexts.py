@@ -130,7 +130,7 @@ def set_help_texts():
             End-truncated names require at least two distinct shared title words and the same dominant asset year. Names whose terminal suffix is Shared, Share, Public, Público, X, or a truncated form of one of them are never merged with the equivalent plain name; a non-Videos variant is preferred over an otherwise equivalent Videos variant. A terminal date already covered by the leading date or year range is redundant, so the name without it is preferred.
             On services that support album deletion (Immich, Synology, NextCloud), the redundant albums are removed after their assets are reassigned to the preferred keeper album.
             On Google Photos, the redundant variants remain because the public API does not allow deleting albums.
-            Album preview is enabled by default. '--request-user-confirmation=true' shows a table with each group, match rule, keeper, merge candidates, and whether asset dates were considered before any reassignment or deletion; use '--no-preview-album-actions' to skip the preview.
+            Album preview is enabled by default. '--request-user-confirmation=true' shows a table with each group, match rule, keeper, merge candidates, and comments explaining the applied keeper decision before any reassignment or deletion; use '--no-preview-album-actions' to skip the preview.
             """)
 
     ############################

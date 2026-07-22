@@ -84,6 +84,11 @@
   - Added visible progress phases after album-family scanning during Consolidate Albums Names: date-prefix families and truncated-name candidates now report their own progress while any required asset metadata is read.
   - Clarified Consolidate Albums Names previews for end-truncated `Videos` variants: groups that retain the equivalent non-`Videos` album now display `Truncated Name (Grouping Videos)` as their match rule.
   - Added redundant-date handling to truncated album-name consolidation. When an album repeats a date already covered by its leading date or year range, the non-redundant name is retained and the preview reports `Truncated Name (Redundant Date)`.
+  - Replaced the Consolidate Albums Names preview's `Assets Date Considered` column with `Comments`. It now explains the applicable keeper decision, including date-coverage threshold results, video grouping, redundant dates, canonical equivalent names, and shared dominant years.
+  - Refined Consolidate Albums Names preview comments to align with each album being merged. A special comment now appears only beside the candidate to which it applies, allowing a group to show multiple independent decisions such as `Video Grouping` and `Redundant Date`.
+  - Expanded truncated-name preview comments to identify the normal longest-name decision and indicate when the candidates' asset-date metadata was matched to confirm their dominant year.
+  - Fixed delayed confirmation prompts under redirected stdout. `Do you want to continue? (yes/no):` is now flushed before PhotoMigrator waits for input in Web, TUI, and other job-runner executions.
+  - Added determinate `Consolidating album families` progress bars after confirmation in Consolidate Albums Names for Google Photos, Synology Photos, Immich Photos, NextCloud Photos, and Local Folder.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.

@@ -356,7 +356,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - End-truncated names are considered only when their shared title prefix has at least two distinct words and every candidate has the same dominant asset year (more than half of its dated assets). A bare date is never treated as a truncated title. A plain name is never merged with a terminal `Shared`, `Share`, `Public`, `Público`, `X`, or truncated equivalent; two variants that both carry that suffix may be merged. When variants differ only by a terminal `Videos`, the non-`Videos` album is retained. A terminal date already covered by the leading date or leading year range is redundant, so the version without it is retained.
   - Assets from redundant variants are associated to the preferred keeper album directly in Google Photos without uploading new assets.
   - Google Photos does not support deleting albums through the public API, so the redundant album containers remain after the consolidation.
-  - `--preview-album-actions` (enabled by default) displays a table with the group, match rule, keeper, albums to merge, and whether asset dates were considered. With `--request-user-confirmation=true` (the default), the table is shown and the tool asks for confirmation before applying changes.
+  - `--preview-album-actions` (enabled by default) displays a table with the group, match rule, keeper, albums to merge, and comments explaining the applied keeper decision. With `--request-user-confirmation=true` (the default), the table is shown and the tool asks for confirmation before applying changes.
 - **Example of use:**
   ```bash
   ./PhotoMigrator.bin --client=google-photos --consolidate-albums-names --preview-album-actions

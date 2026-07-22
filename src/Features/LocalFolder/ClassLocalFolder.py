@@ -2448,7 +2448,11 @@ class ClassLocalFolder(BaseMediaClient):
             if request_user_confirmation and not confirm_continue():
                 return 0, 0
             consolidated = redundant = 0
-            for group in groups:
+            for group in tqdm(
+                groups,
+                desc=f"{MSG_TAGS['INFO']}Consolidating album families",
+                unit="families",
+            ):
                 keeper = group["keeper_album"]
                 keeper_id = keeper["id"]
                 for candidate in group.get("redundant_albums", []):

@@ -670,7 +670,10 @@ def confirm_continue(log_level=None, force_prompt=False):
         GV.LOGGER.info("Awaiting user confirmation (yes/no)...")
         while True:
             try:
-                response = input("Do you want to continue? (yes/no): ").strip().lower()
+                # input(prompt) does not reliably flush its prompt when stdout
+                # is redirected by the Web Interface or another job runner.
+                print("Do you want to continue? (yes/no): ", end="", flush=True)
+                response = input().strip().lower()
                 print("")
             except EOFError:
                 GV.LOGGER.warning(
@@ -1531,6 +1534,8 @@ def _build_direct_consolidation_group(members, keeper_album, reason):
         "similarity_key": f"{reason}:{keeper_id}",
         "reason": reason,
         "assets_date_considered": False,
+        "comment": "",
+        "album_comments": {},
     }
 
 
@@ -1596,6 +1601,7 @@ def _scan_date_prefix_consolidation_groups(
         members = [(album, parsed) for album, parsed in year_variants if _dates_are_compatible(parsed, keeper_date)]
         broadest_precision = min(parsed["precision"] for _, parsed in members)
         assets_date_considered = False
+        comment = "Compatible date prefixes"
         if keeper_date["precision"] > broadest_precision and callable(asset_dates_getter):
             assets_date_considered = True
             try:
@@ -1608,6 +1614,7 @@ def _scan_date_prefix_consolidation_groups(
                     )
                 precise_dates = []
             if not _asset_dates_fit_date_prefix(precise_dates, keeper_date):
+                comment = "Specific date covers <95% of asset dates"
                 broad_candidates = [
                     (album, parsed) for album, parsed in members
                     if parsed["precision"] == broadest_precision
@@ -1618,11 +1625,19 @@ def _scan_date_prefix_consolidation_groups(
                         len(str((item[0] or {}).get("albumName", ""))),
                         str((item[0] or {}).get("albumName", "")).casefold(),
                     ),
-                )
+                    )
+            else:
+                comment = "Specific date covers >=95% of asset dates"
         member_albums = [album for album, _ in members]
         if len(member_albums) > 1:
             group = _build_direct_consolidation_group(member_albums, keeper_album, "date-prefix")
             group["assets_date_considered"] = assets_date_considered
+            group["comment"] = comment
+            if comment != "Compatible date prefixes":
+                group["album_comments"] = {
+                    str((album or {}).get("id", "")).strip(): comment
+                    for album in group["redundant_albums"]
+                }
             groups.append(group)
     return groups
 
@@ -1708,7 +1723,20 @@ def _scan_truncated_name_consolidation_groups(
                 reason = "truncated-name-grouping-videos"
             else:
                 reason = "truncated-name"
-            groups.append(_build_direct_consolidation_group(same_year_matches, keeper_album, reason))
+            group = _build_direct_consolidation_group(same_year_matches, keeper_album, reason)
+            group["album_comments"] = {
+                str((candidate or {}).get("id", "")).strip(): (
+                    "; ".join(
+                        comment for comment in (
+                            "Video Grouping" if _is_videos_album_variant(candidate) else "",
+                            "Redundant Ending Date" if _has_redundant_terminal_date(candidate) else "",
+                        ) if comment
+                    )
+                    or "Longest name selected"
+                ) + " (Date of Assets matched)"
+                for candidate in group["redundant_albums"]
+            }
+            groups.append(group)
             used_ids.update(str((candidate or {}).get("id", "")).strip() for candidate in same_year_matches)
     return groups
 
@@ -1857,27 +1885,33 @@ def print_album_consolidation_preview(consolidation_groups):
                 or str(group.get("preferred_album_name") or "").strip()
             )
         )
-        redundant_album_names = [
-            album_name(album)
-            for album in (group.get("redundant_albums") or [])
+        redundant_albums = [
+            album for album in (group.get("redundant_albums") or [])
             if album_name(album)
         ]
+        redundant_album_names = [album_name(album) for album in redundant_albums]
         reason_key = str(group.get("reason") or "equivalent-name")
-        reason = {
-            "truncated-name-grouping-videos": "Truncated Name (Grouping Videos)",
-            "truncated-name-redundant-date": "Truncated Name (Redundant Date)",
-        }.get(reason_key, reason_key.replace("-", " ").title())
+        reason = (
+            "Truncated Name"
+            if reason_key.startswith("truncated-name")
+            else reason_key.replace("-", " ").title()
+        )
+        album_comments = group.get("album_comments") or {}
+        comments = "\n".join(
+            str(album_comments.get(str((album or {}).get("id", "")).strip(), "")) or "-"
+            for album in redundant_albums
+        )
         table_data.append([
             f"{group_number}/{len(groups)}",
-            reason,
             keeper_name,
             "\n".join(redundant_album_names),
-            "Yes" if group.get("assets_date_considered") else "No",
+            reason,
+            comments,
         ])
 
     preview_table = tabulate(
         table_data,
-        headers=["Group", "Match Rule", "Album Keeper", "Albums to Merge", "Assets Date Considered"],
+        headers=["Group", "Album Keeper", "Albums to Merge", "Match Rule", "Comments"],
         tablefmt="grid",
     )
     for line in preview_table.splitlines():

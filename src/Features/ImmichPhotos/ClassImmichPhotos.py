@@ -1734,7 +1734,11 @@ class ClassImmichPhotos(BaseMediaClient):
 
             families_consolidated = 0
             redundant_albums_detected = 0
-            for group in consolidation_groups:
+            for group in tqdm(
+                consolidation_groups,
+                desc=f"{MSG_TAGS['INFO']}Consolidating album families",
+                unit="families",
+            ):
                 keeper_album, _ = self.consolidate_reusable_album_group(
                     album_name=group["seed_album_name"],
                     existing_albums=albums,

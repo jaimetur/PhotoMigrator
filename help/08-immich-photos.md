@@ -384,7 +384,7 @@ Immich `Upload Albums` and `Upload All` create stacks for burst-like photos by d
   - End-truncated names are considered only when their shared title prefix has at least two distinct words and every candidate has the same dominant asset year (more than half of its dated assets). A bare date is never treated as a truncated title. A plain name is never merged with a terminal `Shared`, `Share`, `Public`, `Público`, `X`, or truncated equivalent; two variants that both carry that suffix may be merged. When variants differ only by a terminal `Videos`, the non-`Videos` album is retained. A terminal date already covered by the leading date or leading year range is redundant, so the version without it is retained.
   - Assets from redundant variants are reassigned directly in Immich Photos to the preferred keeper album without uploading any new asset.
   - Once the reassignment is confirmed, the redundant album variants are removed.
-  - _**`--preview-album-actions`**_ (enabled by default) displays a table with the group, match rule, keeper, albums to merge, and whether asset dates were considered. With _**`--request-user-confirmation=true`**_ (the default), the table is shown and the tool asks for confirmation before consolidating them.
+  - _**`--preview-album-actions`**_ (enabled by default) displays a table with the group, match rule, keeper, albums to merge, and comments explaining the applied keeper decision. With _**`--request-user-confirmation=true`**_ (the default), the table is shown and the tool asks for confirmation before consolidating them.
 - **Example of use:**
   ```
   ./PhotoMigrator.bin --client=immich --consolidate-albums-names --preview-album-actions

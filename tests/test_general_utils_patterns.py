@@ -156,6 +156,10 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(groups[0]["keeper_album"]["id"], "day")
         self.assertTrue(groups[0]["assets_date_considered"])
+        self.assertEqual(
+            groups[0]["album_comments"],
+            {"month": "Specific date covers >=95% of asset dates"},
+        )
 
     def test_date_prefix_prefers_specific_keeper_when_at_least_95_percent_fit_the_day(self):
         groups = scan_album_consolidation_groups(
@@ -186,6 +190,10 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(groups[0]["keeper_album"]["id"], "month")
         self.assertTrue(groups[0]["assets_date_considered"])
+        self.assertEqual(
+            groups[0]["album_comments"],
+            {"day": "Specific date covers <95% of asset dates"},
+        )
 
     def test_scan_album_consolidation_groups_merges_truncated_names_for_same_dominant_year(self):
         assets_by_id = {
@@ -240,6 +248,10 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertEqual(len(groups), 1)
         self.assertEqual(groups[0]["keeper_album"]["id"], "plain")
         self.assertEqual(groups[0]["reason"], "truncated-name-grouping-videos")
+        self.assertEqual(
+            groups[0]["album_comments"],
+            {"videos": "Video Grouping (Date of Assets matched)"},
+        )
 
     def test_scan_album_consolidation_groups_prefers_without_redundant_terminal_date(self):
         groups = scan_album_consolidation_groups(
@@ -253,6 +265,10 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertEqual(len(groups), 1)
         self.assertEqual(groups[0]["keeper_album"]["id"], "plain")
         self.assertEqual(groups[0]["reason"], "truncated-name-redundant-date")
+        self.assertEqual(
+            groups[0]["album_comments"],
+            {"redundant": "Redundant Ending Date (Date of Assets matched)"},
+        )
 
     def test_scan_album_consolidation_groups_does_not_block_same_year_truncation_for_another_year(self):
         groups = scan_album_consolidation_groups(
@@ -318,6 +334,20 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
             patch("builtins.input", return_value="yes"),
         ):
             self.assertTrue(confirm_continue(force_prompt=True))
+
+    def test_confirm_continue_flushes_prompt_before_reading_input(self):
+        fake_stdin = MagicMock()
+        fake_stdin.isatty.return_value = True
+        with (
+            patch.object(GV, "ARGS", {"request-user-confirmation": True}),
+            patch.object(GV, "LOGGER", MagicMock()),
+            patch("Utils.GeneralUtils.sys.stdin", fake_stdin),
+            patch("builtins.input", return_value="yes"),
+            patch("builtins.print") as mock_print,
+        ):
+            self.assertTrue(confirm_continue())
+
+        mock_print.assert_any_call("Do you want to continue? (yes/no): ", end="", flush=True)
 
     def test_has_any_filter_treats_filter_by_type_all_as_no_filter(self):
         with patch.object(GV, "ARGS", {"filter-by-type": "all"}):
