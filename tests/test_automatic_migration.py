@@ -425,6 +425,48 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
 
             self.assertEqual(count, 2)
 
+    def test_temporary_migration_inventory_lists_failed_and_pending_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_root = Path(tmpdir)
+            pull_failed = temp_root / automatic_module.AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER
+            pull_failed.mkdir()
+            (pull_failed / "pull_failed_assets.csv").write_text(
+                "timestamp_utc,asset_filename,album_name,source_asset_id,staged_path,preserved_path,reason\n"
+                "2026-07-22T00:00:00Z,missing.jpg,Trip,asset-1,,,remote not found\n",
+                encoding="utf-8",
+            )
+            (pull_failed / "partial.jpg").write_text("partial", encoding="utf-8")
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER / "Albums" / "Trip").mkdir(parents=True)
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER / "Albums" / "Trip" / "push.jpg").write_text("failed", encoding="utf-8")
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER).mkdir()
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER / "assoc.mov").write_text("failed", encoding="utf-8")
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER).mkdir()
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER / "waiting.jpg").write_text("waiting", encoding="utf-8")
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER / ".active").write_text("marker", encoding="utf-8")
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER).mkdir()
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER / "delayed.jpg.lock").write_text("marker", encoding="utf-8")
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER).mkdir()
+            (temp_root / automatic_module.AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER / "pending.heic").write_text("pending", encoding="utf-8")
+
+            inventory = automatic_module._collect_temporary_migration_inventory(tmpdir)
+
+        self.assertEqual(inventory["pull_failed"]["records"][0]["asset_filename"], "missing.jpg")
+        self.assertEqual(inventory["pull_failed"]["files"], ["partial.jpg"])
+        self.assertEqual(inventory["push_failed"]["files"], ["Albums/Trip/push.jpg"])
+        self.assertEqual(inventory["album_assoc_failed"]["files"], ["assoc.mov"])
+        self.assertEqual(inventory["push_queue"]["files"], ["waiting.jpg"])
+        self.assertEqual(inventory["delayed_queue"]["files"], [])
+        self.assertEqual(inventory["album_assoc_queue"]["files"], ["pending.heic"])
+
+        with patch.object(automatic_module, "LOGGER") as mock_logger:
+            automatic_module._log_temporary_migration_inventory(inventory)
+
+        rendered = "\n".join(str(call.args[0]) for call in mock_logger.warning.call_args_list)
+        self.assertIn("missing.jpg", rendered)
+        self.assertIn("remote not found", rendered)
+        self.assertIn("Push Queue Pending (1 physical file(s))", rendered)
+        self.assertIn("pending.heic", rendered)
+
     def test_stage_local_asset_moves_and_preserves_source_relative_path(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             source_root = Path(tmpdir) / "source"

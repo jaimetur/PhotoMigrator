@@ -464,6 +464,111 @@ def _count_staged_queue_files(temp_folder, queue_folder_name):
         return 0
 
 
+def _list_staged_queue_files(temp_folder, queue_folder_name):
+    """Return persistent queue files relative to their queue root."""
+    queue_root = Path(temp_folder) / queue_folder_name
+    if not queue_root.is_dir():
+        return []
+    ignored_names = {".active", ".DS_Store"}
+    ignored_folders = {"@eaDir", "__MACOSX"}
+    try:
+        return sorted(
+            str(path.relative_to(queue_root))
+            for path in queue_root.rglob("*")
+            if (
+                path.is_file()
+                and path.name not in ignored_names
+                and not path.name.endswith(".lock")
+                and not any(parent.name in ignored_folders for parent in path.parents)
+            )
+        )
+    except OSError:
+        return []
+
+
+def _load_pull_failure_records(temp_folder):
+    """Load the durable pull-failure records written during a migration."""
+    csv_path = Path(temp_folder) / AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER / "pull_failed_assets.csv"
+    if not csv_path.is_file():
+        return []
+    try:
+        with csv_path.open("r", newline="", encoding="utf-8") as csv_file:
+            return [
+                {
+                    "asset_filename": str(row.get("asset_filename") or "").strip(),
+                    "album_name": str(row.get("album_name") or "").strip(),
+                    "reason": str(row.get("reason") or "").strip(),
+                    "preserved_path": str(row.get("preserved_path") or "").strip(),
+                }
+                for row in csv.DictReader(csv_file)
+            ]
+    except (OSError, csv.Error) as error:
+        LOGGER.warning(f"Unable to read pull-failure report '{csv_path}': {error}")
+        return []
+
+
+def _collect_temporary_migration_inventory(temp_folder):
+    """Describe unresolved failure and queue artifacts retained under a migration temp folder."""
+    pull_records = _load_pull_failure_records(temp_folder)
+    pull_preserved_files = _list_staged_queue_files(temp_folder, AUTOMATIC_MIGRATION_PULL_FAILED_FOLDER)
+    return {
+        "pull_failed": {
+            "records": pull_records,
+            "files": [path for path in pull_preserved_files if path != "pull_failed_assets.csv"],
+        },
+        "push_failed": {
+            "files": _list_staged_queue_files(temp_folder, AUTOMATIC_MIGRATION_PUSH_FAILED_FOLDER),
+        },
+        "album_assoc_failed": {
+            "files": _list_staged_queue_files(temp_folder, AUTOMATIC_MIGRATION_ALBUM_ASSOC_FAILED_FOLDER),
+        },
+        "push_queue": {
+            "files": _list_staged_queue_files(temp_folder, AUTOMATIC_MIGRATION_PUSH_QUEUE_FOLDER),
+        },
+        "delayed_queue": {
+            "files": _list_staged_queue_files(temp_folder, AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER),
+        },
+        "album_assoc_queue": {
+            "files": _list_staged_queue_files(temp_folder, AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER),
+        },
+    }
+
+
+def _log_temporary_migration_inventory(inventory):
+    """Log every retained failed or pending migration item before the final summary."""
+    pull_records = list((inventory.get("pull_failed") or {}).get("records") or [])
+    pull_files = list((inventory.get("pull_failed") or {}).get("files") or [])
+    sections = (
+        ("Push Failed", (inventory.get("push_failed") or {}).get("files") or []),
+        ("Album Association Failed", (inventory.get("album_assoc_failed") or {}).get("files") or []),
+        ("Push Queue Pending", (inventory.get("push_queue") or {}).get("files") or []),
+        ("Push Delayed Queue Pending", (inventory.get("delayed_queue") or {}).get("files") or []),
+        ("Album Association Queue Pending", (inventory.get("album_assoc_queue") or {}).get("files") or []),
+    )
+    if not pull_records and not pull_files and not any(files for _, files in sections):
+        return
+
+    LOGGER.warning("----- RETAINED TEMPORARY MIGRATION ITEMS -----")
+    if pull_records:
+        LOGGER.warning(f"Pull Failed ({len(pull_records)} record(s)):")
+        for record in pull_records:
+            scope = f"Album: '{record['album_name']}'" if record.get("album_name") else "No album"
+            reason = record.get("reason") or "unknown pull failure"
+            LOGGER.warning(f"  - '{record.get('asset_filename') or '-'}' [{scope}] - {reason}")
+    if pull_files:
+        label = "Pull Failed Preserved Files" if pull_records else "Pull Failed"
+        LOGGER.warning(f"{label} ({len(pull_files)} physical file(s)):")
+        for path in pull_files:
+            LOGGER.warning(f"  - '{path}'")
+
+    for title, files in sections:
+        if not files:
+            continue
+        LOGGER.warning(f"{title} ({len(files)} physical file(s)):")
+        for path in files:
+            LOGGER.warning(f"  - '{path}'")
+
+
 def _increment_transfer_counters(counter_map, counter_prefix, asset_stats=None, asset_type=None):
     stats = dict(asset_stats or _build_physical_transfer_stats(asset_type))
     counter_map[f'{counter_prefix}_assets'] = int(counter_map.get(f'{counter_prefix}_assets', 0) or 0) + int(stats.get("assets", 0) or 0)
@@ -4096,6 +4201,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # Finalmente, borrar carpetas vacías que queden en temp_folder
             remove_empty_dirs(temp_folder)
             cleanup_temp_folder_markers(temp_folder)
+            temporary_inventory = _collect_temporary_migration_inventory(temp_folder)
             target_empty_albums_removed = _remove_target_empty_albums_if_supported(
                 target_client=target_client,
                 log_level=logging.WARNING,
@@ -4118,10 +4224,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 total_failed_assets
                 + SHARED_DATA.counters['total_album_assoc_failed_assets']
             )
-            if total_issue_assets > 0:
+            pending_temporary_files = sum(
+                len((temporary_inventory.get(key) or {}).get("files") or [])
+                for key in ("push_queue", "delayed_queue", "album_assoc_queue")
+            )
+            if total_issue_assets > 0 or pending_temporary_files > 0:
                 LOGGER.warning(f"{MSG_TAGS['WARNING']}Migration finished with partial failures.")
             else:
                 LOGGER.info(f"🚀 All assets pulled and pushed successfully!")
+            _log_temporary_migration_inventory(temporary_inventory)
             LOGGER.info(f"")
             LOGGER.info(f"----- MIGRATION FINISHED  -----")
             LOGGER.info(f"{source_client_name} --> {target_client_name}")
@@ -4147,6 +4258,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Album Assoc Retry Scheduled : {SHARED_DATA.counters['total_album_assoc_retry_scheduled_assets']}")
             LOGGER.info(f"Album Assoc Retry Recovered : {SHARED_DATA.counters['total_album_assoc_retry_recovered_assets']}")
             LOGGER.info(f"Album Assoc Failed          : {SHARED_DATA.counters['total_album_assoc_failed_assets']}")
+            LOGGER.info(f"Temp Pull Failed            : {len((temporary_inventory['pull_failed']).get('records') or [])} record(s), {len((temporary_inventory['pull_failed']).get('files') or [])} preserved file(s)")
+            LOGGER.info(f"Temp Push Failed            : {len((temporary_inventory['push_failed']).get('files') or [])} physical file(s)")
+            LOGGER.info(f"Temp Album Assoc Failed     : {len((temporary_inventory['album_assoc_failed']).get('files') or [])} physical file(s)")
+            LOGGER.info(f"Temp Push Queue Pending     : {len((temporary_inventory['push_queue']).get('files') or [])} physical file(s)")
+            LOGGER.info(f"Temp Push Delayed Pending   : {len((temporary_inventory['delayed_queue']).get('files') or [])} physical file(s)")
+            LOGGER.info(f"Temp Album Assoc Pending    : {len((temporary_inventory['album_assoc_queue']).get('files') or [])} physical file(s)")
             if consolidate_similar_albums:
                 LOGGER.info(f"Consolidated Albums         : {SHARED_DATA.counters['total_consolidated_albums']}")
             if prefer_canonical_album_names and not consolidate_similar_albums:
