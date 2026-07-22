@@ -345,6 +345,41 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.assertIn('"page": 1', first_payload)
         self.assertIn('"page": 2', second_payload)
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    def test_get_assets_by_filters_paginates_with_immich_string_next_page(self, mock_post):
+        self.manager.all_assets_filtered = None
+        self.manager.type = None
+        self.manager.from_date = None
+        self.manager.to_date = None
+        self.manager.country = None
+        self.manager.city = None
+        self.manager.person = None
+
+        first_response = MagicMock()
+        first_response.raise_for_status.return_value = None
+        first_response.json.return_value = {
+            "assets": {
+                "items": [{"id": "a1", "fileCreatedAt": "2025-12-01T00:00:00Z", "originalFileName": "one.jpg"}],
+                "nextPage": "2",
+            }
+        }
+        second_response = MagicMock()
+        second_response.raise_for_status.return_value = None
+        second_response.json.return_value = {
+            "assets": {
+                "items": [{"id": "a2", "fileCreatedAt": "2025-12-02T00:00:00Z", "originalFileName": "two.jpg"}],
+                "nextPage": None,
+            }
+        }
+        mock_post.side_effect = [first_response, second_response]
+
+        assets = self.manager.get_assets_by_filters()
+
+        self.assertEqual([asset["id"] for asset in assets], ["a1", "a2"])
+        self.assertEqual(json.loads(mock_post.call_args_list[1].kwargs["data"])["page"], 2)
+        self.assertEqual(assets[1]["time"], "2025-12-02T00:00:00Z")
+        self.assertEqual(assets[1]["filename"], "two.jpg")
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.tqdm")
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)

@@ -1399,8 +1399,12 @@ class ClassImmichPhotos(BaseMediaClient):
 
                 next_page = 1
                 while True:
+                    # Immich v3 returns ``nextPage`` as a string while its
+                    # metadata-search endpoint validates ``page`` as an integer.
+                    # Keep the global filtered search aligned with the album
+                    # search paginator to avoid a 400 from the second page on.
                     payload_data = {
-                        "page": next_page,
+                        "page": int(next_page),
                         "order": "desc",
                         # "withArchived": False,
                         # "with_deleted": False,
@@ -1455,6 +1459,9 @@ class ClassImmichPhotos(BaseMediaClient):
                         break
             except Exception as e:
                 LOGGER.error(f"Failed to retrieve assets: {str(e)}")
+                # A partial filtered result can silently omit albums and assets
+                # during Download All. Never cache or return it as complete.
+                return []
 
             # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
             for asset in all_filtered_assets:
