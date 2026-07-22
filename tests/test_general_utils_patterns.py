@@ -239,6 +239,19 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(groups, [])
 
+    def test_scan_album_consolidation_groups_allows_one_title_word_when_a_date_prefix_is_present(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "plain", "albumName": "2011-04 - Panamá"},
+                {"id": "videos", "albumName": "2011-04 - Panamá Videos"},
+            ],
+            asset_years_getter=lambda _album: [2011, 2011],
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["keeper_album"]["id"], "plain")
+        self.assertEqual(groups[0]["reason"], "truncated-name-grouping-videos")
+
     def test_scan_album_consolidation_groups_prefers_non_videos_keeper_for_truncation(self):
         groups = scan_album_consolidation_groups(
             [

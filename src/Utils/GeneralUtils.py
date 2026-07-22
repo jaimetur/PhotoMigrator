@@ -1418,11 +1418,16 @@ def _album_truncation_key(name):
 
 
 def _has_meaningful_truncation_prefix(left_key, right_key):
-    """Require two distinct title words in the shared truncation prefix."""
+    """Require two distinct components in the shared truncation prefix."""
     short_key = left_key if len(left_key) <= len(right_key) else right_key
     title_prefix = _ALBUM_LEADING_DATE_RE.sub("", short_key).strip(" ()-_.")
     words = re.findall(r"[^\W\d_]+", title_prefix, flags=re.UNICODE)
-    return len({word.casefold() for word in words}) >= 2
+    distinct_words = {word.casefold() for word in words}
+    if len(distinct_words) >= 2:
+        return True
+    # A valid leading date is a meaningful independent component. The later
+    # dominant-asset-year check remains mandatory before a group is created.
+    return len(distinct_words) == 1 and _album_date_prefix(short_key) is not None
 
 
 def _is_videos_album_variant(album):
