@@ -4080,7 +4080,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"Assets with People Found    : {assets_with_people_found}")
                 LOGGER.info(f"Assets with People Assigned : {assets_with_people_assigned}")
                 LOGGER.info(f"Total People Assigned       : {target_client.get_imported_takeout_people_count()} (unique)")
-            if isinstance(target_client, ClassImmichPhotos):
+            if isinstance(target_client, ClassImmichPhotos) and ARGS.get('create-stacks', True):
                 LOGGER.info(f"Total Stacks Created        : {immich_stacks_created}")
             LOGGER.info(f"Pull Failed Assets          : {SHARED_DATA.counters['total_pull_failed_assets']}")
             LOGGER.info(f"Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
