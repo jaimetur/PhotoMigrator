@@ -229,6 +229,7 @@ class TestImmichPhotosUnit(unittest.TestCase):
     def test_auto_stack_bursts_resolves_duplicate_candidates_only_after_grouping(self):
         self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".jpg"]
         self.manager._resolve_existing_asset_id_from_metadata = MagicMock(return_value="existing-asset-id")
+        self.manager._get_burst_stack_memberships = MagicMock(return_value={})
         self.manager._create_stack = MagicMock(return_value="stack-id")
         records = [
             {
@@ -268,6 +269,7 @@ class TestImmichPhotosUnit(unittest.TestCase):
 
     def test_auto_stack_bursts_groups_distinct_phone_filenames_by_capture_time(self):
         self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".heic"]
+        self.manager._get_burst_stack_memberships = MagicMock(return_value={})
         self.manager._create_stack = MagicMock(return_value="stack-id")
         records = [
             {
@@ -298,6 +300,86 @@ class TestImmichPhotosUnit(unittest.TestCase):
             ["asset-2", "asset-1"],
             log_level=None,
         )
+
+    def test_auto_stack_bursts_skips_duplicate_candidate_group_and_existing_stack(self):
+        self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".jpg"]
+        self.manager._get_burst_stack_memberships = MagicMock(
+            side_effect=[{}, {"asset-3": "existing-stack", "asset-4": "existing-stack"}]
+        )
+        self.manager._create_stack = MagicMock(return_value="new-stack")
+        records = [
+            {
+                "asset_id": "asset-1",
+                "file_path": "/album-one/IMG_0001.jpg",
+                "folder": "/album-one",
+                "ext": ".jpg",
+                "capture_epoch": 100,
+                "file_size": 100,
+            },
+            {
+                "asset_id": "asset-2",
+                "file_path": "/album-one/IMG_0002.jpg",
+                "folder": "/album-one",
+                "ext": ".jpg",
+                "capture_epoch": 101,
+                "file_size": 100,
+            },
+            {
+                "asset_id": "asset-2",
+                "file_path": "/album-two/IMG_0002.jpg",
+                "folder": "/album-two",
+                "ext": ".jpg",
+                "capture_epoch": 100,
+                "file_size": 100,
+            },
+            {
+                "asset_id": "asset-1",
+                "file_path": "/album-two/IMG_0001.jpg",
+                "folder": "/album-two",
+                "ext": ".jpg",
+                "capture_epoch": 101,
+                "file_size": 100,
+            },
+            {
+                "asset_id": "asset-3",
+                "file_path": "/album-three/IMG_0003.jpg",
+                "folder": "/album-three",
+                "ext": ".jpg",
+                "capture_epoch": 100,
+                "file_size": 100,
+            },
+            {
+                "asset_id": "asset-4",
+                "file_path": "/album-three/IMG_0004.jpg",
+                "folder": "/album-three",
+                "ext": ".jpg",
+                "capture_epoch": 101,
+                "file_size": 100,
+            },
+        ]
+
+        with patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock) as mock_logger:
+            stacks_created = self.manager.auto_stack_bursts(records, context_label="test")
+
+        self.assertEqual(stacks_created, 1)
+        self.assertEqual(self.manager._create_stack.call_count, 1)
+        self.assertIn("1 repeated candidate group(s)", mock_logger.info.call_args.args[0])
+        self.assertIn("1 existing stack group(s)", mock_logger.info.call_args.args[0])
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    def test_create_stack_logs_immich_response_body(self, mock_logger, mock_post):
+        response = MagicMock()
+        error = requests.HTTPError("400 Client Error")
+        error.response = response
+        response.text = '{"message":"Asset is already in a stack"}'
+        mock_post.return_value = response
+        response.raise_for_status.side_effect = error
+
+        stack_id = self.manager._create_stack(["asset-1", "asset-2"])
+
+        self.assertIsNone(stack_id)
+        self.assertIn("Asset is already in a stack", mock_logger.warning.call_args.args[0])
 
     def test_get_album_owner_id_prefers_owner_id_when_present(self):
         album = {

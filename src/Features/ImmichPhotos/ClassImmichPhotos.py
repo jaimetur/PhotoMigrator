@@ -3791,8 +3791,41 @@ class ClassImmichPhotos(BaseMediaClient):
                 data = resp.json()
                 return data.get("id")
             except Exception as e:
-                LOGGER.warning(f"Unable to create burst stack ({len(asset_ids)} assets): {e}")
+                response_text = str(getattr(getattr(e, "response", None), "text", "") or "").strip()
+                response_detail = f" Response: {response_text[:500]}" if response_text else ""
+                LOGGER.warning(
+                    f"Unable to create burst stack ({len(asset_ids)} assets): {e}.{response_detail}"
+                )
                 return None
+
+    def _get_burst_stack_memberships(self, asset_ids, log_level=None):
+        """Return the current Immich stack ID for each candidate asset.
+
+        Only burst candidates are queried.  This makes the final stacking phase
+        idempotent without adding a full-library metadata scan to a migration.
+        An unavailable asset is omitted so its candidate group can still use the
+        normal create request and report Immich's response if needed.
+        """
+        memberships = {}
+        for asset_id in asset_ids:
+            try:
+                response = requests.get(
+                    f"{self.IMMICH_URL}/api/assets/{asset_id}",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    verify=False,
+                    timeout=self.IMMICH_METADATA_MERGE_TIMEOUT,
+                )
+                response.raise_for_status()
+                data = response.json()
+                stack = data.get("stack") if isinstance(data, dict) else None
+                stack_id = str((stack or {}).get("id") or "").strip()
+                memberships[asset_id] = stack_id or None
+            except requests.RequestException as error:
+                LOGGER.warning(
+                    f"Unable to inspect existing stack membership for burst asset '{asset_id}': {error}. "
+                    "Its burst group will still be attempted."
+                )
+        return memberships
 
     def auto_stack_bursts(self, uploaded_records, context_label="", log_level=None):
         """
@@ -3830,6 +3863,9 @@ class ClassImmichPhotos(BaseMediaClient):
                 groups.setdefault(key, []).append(rec)
 
             stacks_created = 0
+            repeated_candidate_groups = 0
+            existing_stack_groups = 0
+            attempted_group_signatures = set()
             for _, items in groups.items():
                 if len(items) < 2:
                     continue
@@ -3874,13 +3910,38 @@ class ClassImmichPhotos(BaseMediaClient):
                             seen_ids.add(aid)
                     if len(ordered_asset_ids) < 2:
                         continue
+
+                    # An asset can be discovered from more than one source album.
+                    # Avoid sending the same remote group repeatedly during one run.
+                    group_signature = tuple(sorted(ordered_asset_ids))
+                    if group_signature in attempted_group_signatures:
+                        repeated_candidate_groups += 1
+                        continue
+                    attempted_group_signatures.add(group_signature)
+
+                    memberships = self._get_burst_stack_memberships(
+                        ordered_asset_ids,
+                        log_level=log_level,
+                    )
+                    if any(memberships.get(asset_id) for asset_id in ordered_asset_ids):
+                        # Do not disturb a pre-existing or partially overlapping
+                        # stack. Immich rejects re-adding child assets with HTTP 400.
+                        existing_stack_groups += 1
+                        continue
+
                     stack_id = self._create_stack(ordered_asset_ids, log_level=log_level)
                     if stack_id:
                         stacks_created += 1
 
+            skipped_details = []
+            if repeated_candidate_groups:
+                skipped_details.append(f"{repeated_candidate_groups} repeated candidate group(s)")
+            if existing_stack_groups:
+                skipped_details.append(f"{existing_stack_groups} existing stack group(s)")
+            skipped_suffix = f"; skipped {', '.join(skipped_details)}" if skipped_details else ""
             LOGGER.info(
                 f"{prefix}Burst auto-stack evaluated {len(records)} photo candidate(s); "
-                f"created {stacks_created} stack group(s) in Immich."
+                f"created {stacks_created} stack group(s) in Immich{skipped_suffix}."
             )
             return stacks_created
 
