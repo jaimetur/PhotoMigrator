@@ -3978,10 +3978,15 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # En este punto todos los pulls y pushs están listas y la cola está vacía.
             _reconcile_terminal_albums()
 
+            immich_stacks_created = 0
             # Auto-stack burst photos in Immich target using uploaded records.
             if isinstance(target_client, ClassImmichPhotos):
                 try:
-                    target_client.auto_stack_bursts(immich_uploaded_records, context_label="Automatic Migration", log_level=logging.INFO)
+                    immich_stacks_created = target_client.auto_stack_bursts(
+                        immich_uploaded_records,
+                        context_label="Automatic Migration",
+                        log_level=logging.INFO,
+                    )
                 except Exception as e:
                     LOGGER.warning(f"Unable to auto-stack bursts in Immich after migration: {e}")
 
@@ -4032,6 +4037,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"Assets with People Found    : {assets_with_people_found}")
                 LOGGER.info(f"Assets with People Assigned : {assets_with_people_assigned}")
                 LOGGER.info(f"Total People Assigned       : {target_client.get_imported_takeout_people_count()} (unique)")
+            if isinstance(target_client, ClassImmichPhotos):
+                LOGGER.info(f"Total Stacks Created        : {immich_stacks_created}")
             LOGGER.info(f"Pull Failed Assets          : {SHARED_DATA.counters['total_pull_failed_assets']}")
             LOGGER.info(f"Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
             LOGGER.info(f"Push Retry Scheduled        : {SHARED_DATA.counters['total_push_retry_scheduled_assets']}")

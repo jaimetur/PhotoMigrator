@@ -3671,6 +3671,7 @@ class ClassImmichPhotos(BaseMediaClient):
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
         """
         with set_log_level(LOGGER, log_level):
+            self._last_push_albums_stacks_created = 0
             try:
                 self.login(log_level=log_level)
                 if not os.path.isdir(input_folder):
@@ -3694,6 +3695,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 total_assets_uploaded = 0
                 total_duplicates_assets_removed = 0
                 total_duplicates_assets_skipped = 0
+                total_stacks_created = 0
                 prefer_canonical_album_names = prefer_canonical_album_names_enabled(ARGS)
                 consolidate_similar_albums = consolidate_similar_albums_enabled(ARGS)
                 LOGGER.info("Retrieving existing albums from Immich Photos and scanning local album folders. This may take some time, please be patient...")
@@ -3803,7 +3805,11 @@ class ClassImmichPhotos(BaseMediaClient):
                                 if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
                                     album_assets_ids.append(asset_id)
 
-                        self.auto_stack_bursts(album_uploaded_records, context_label=f"Album '{album_name}'", log_level=log_level)
+                        total_stacks_created += self.auto_stack_bursts(
+                            album_uploaded_records,
+                            context_label=f"Album '{album_name}'",
+                            log_level=log_level,
+                        )
 
                         if album_assets_ids:
                             matched_album = None
@@ -3877,9 +3883,12 @@ class ClassImmichPhotos(BaseMediaClient):
                 LOGGER.info(f"Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
                 LOGGER.info(f"Removed {total_duplicates_assets_removed} duplicates asset(s) from Immich Database.")
                 LOGGER.info(f"Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
+                LOGGER.info(f"Total Stacks Created: {total_stacks_created}")
+                self._last_push_albums_stacks_created = total_stacks_created
 
             except Exception as e:
                 LOGGER.error(f"Exception while uploading Albums assets into Immich Photos. {e}")
+                self._last_push_albums_stacks_created = 0
                 return 0,0,0,0,0
 
             # self.logout(log_level=log_level)
@@ -3898,6 +3907,7 @@ class ClassImmichPhotos(BaseMediaClient):
         Returns total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed.
         """
         with set_log_level(LOGGER, log_level):
+            self._last_push_no_albums_stacks_created = 0
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
                 LOGGER.error(f"The folder '{input_folder}' does not exist.")
@@ -3975,7 +3985,12 @@ class ClassImmichPhotos(BaseMediaClient):
                         total_assets_uploaded += 1
                         uploaded_records.append(self._build_burst_record(asset_id=asset_id, file_path=file_path))
 
-            self.auto_stack_bursts(uploaded_records, context_label="No-Album Upload", log_level=log_level)
+            total_stacks_created = self.auto_stack_bursts(
+                uploaded_records,
+                context_label="No-Album Upload",
+                log_level=log_level,
+            )
+            self._last_push_no_albums_stacks_created = total_stacks_created
 
             duplicates_assets_removed = 0
             if remove_duplicates:
@@ -3985,6 +4000,7 @@ class ClassImmichPhotos(BaseMediaClient):
             LOGGER.info(f"Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
             LOGGER.info(f"Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
             LOGGER.info(f"Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
+            LOGGER.info(f"Total Stacks Created: {total_stacks_created}")
 
             # self.logout(log_level=log_level)
             return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
@@ -4004,6 +4020,7 @@ class ClassImmichPhotos(BaseMediaClient):
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped)
         """
         with set_log_level(LOGGER, log_level):
+            self._last_push_all_stacks_created = 0
             self.login(log_level=log_level)
 
             total_duplicates_assets_removed = 0
@@ -4028,6 +4045,10 @@ class ClassImmichPhotos(BaseMediaClient):
             total_duplicates_assets_removed = total_duplicates_assets_removed_1 + total_duplicates_assets_removed_2
             total_dupplicated_assets_skipped = total_dupplicated_assets_skipped_1 + total_dupplicated_assets_skipped_2
             total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
+            self._last_push_all_stacks_created = (
+                int(getattr(self, "_last_push_albums_stacks_created", 0) or 0)
+                + int(getattr(self, "_last_push_no_albums_stacks_created", 0) or 0)
+            )
 
             if remove_duplicates:
                 LOGGER.info(f"Removing Duplicates Assets...")
