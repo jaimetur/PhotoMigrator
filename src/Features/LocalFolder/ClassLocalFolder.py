@@ -1915,6 +1915,55 @@ class ClassLocalFolder(BaseMediaClient):
             LOGGER.info(f"Added {count_added} asset(s) to album '{album_name or album_id}'.")
             return count_added
 
+    @staticmethod
+    def _local_album_paths_match(first_path, second_path):
+        """Compare local album entries without trusting a shared file name alone."""
+        first = Path(first_path)
+        second = Path(second_path)
+        try:
+            if first.resolve() == second.resolve():
+                return True
+            if first.stat().st_size != second.stat().st_size:
+                return False
+            first_hasher = hashlib.sha256()
+            second_hasher = hashlib.sha256()
+            with first.open("rb") as first_file, second.open("rb") as second_file:
+                while True:
+                    first_chunk = first_file.read(1024 * 1024)
+                    second_chunk = second_file.read(1024 * 1024)
+                    if first_chunk != second_chunk:
+                        return False
+                    if not first_chunk:
+                        break
+                    first_hasher.update(first_chunk)
+                    second_hasher.update(second_chunk)
+            first_digest = first_hasher.digest()
+            second_digest = second_hasher.digest()
+            return first_digest == second_digest
+        except OSError:
+            return False
+
+    def remove_assets_from_album(self, album_id, asset_ids, album_name=None, log_level=None):
+        """Remove only local album links/copies; never remove their source assets."""
+        with set_log_level(LOGGER, log_level):
+            album_path = Path(album_id).resolve()
+            try:
+                for asset_id in asset_ids or []:
+                    asset_path = Path(asset_id)
+                    try:
+                        asset_path.absolute().relative_to(album_path)
+                    except ValueError:
+                        raise ValueError(f"Asset '{asset_path}' is outside album '{album_path}'.")
+                    if asset_path.is_file() or asset_path.is_symlink():
+                        asset_path.unlink()
+                return True
+            except Exception as error:
+                LOGGER.error(
+                    f"Error while removing local asset association(s) from album "
+                    f"'{album_name or album_id}': {error}"
+                )
+                return False
+
     # def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None):
     #     """
     #     Adds (links) assets to an album using relative symbolic links. If symlink creation fails, copies the file instead.
@@ -2438,6 +2487,8 @@ class ClassLocalFolder(BaseMediaClient):
                 albums,
                 asset_years_getter=lambda album: extract_asset_capture_years(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)),
                 asset_dates_getter=lambda album: extract_asset_capture_datetimes(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)),
+                asset_count_getter=lambda album: len(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)),
+                include_asset_counts=preview_album_actions or request_user_confirmation,
             )
             if not groups:
                 LOGGER.info("No equivalent local album families found to consolidate.")
@@ -2457,8 +2508,29 @@ class ClassLocalFolder(BaseMediaClient):
                 keeper_id = keeper["id"]
                 for candidate in group.get("redundant_albums", []):
                     assets = self.get_all_assets_from_album(candidate["id"], candidate["albumName"], log_level=log_level)
-                    self.add_assets_to_album(keeper_id, [asset["id"] for asset in assets], keeper["albumName"], log_level=log_level)
-                    self.remove_album(candidate["id"], candidate["albumName"], log_level=log_level)
+                    asset_ids = [asset["id"] for asset in assets]
+                    self.add_assets_to_album(keeper_id, asset_ids, keeper["albumName"], log_level=log_level)
+                    confirmed_asset_ids = [
+                        asset_id for asset_id in asset_ids
+                        if self._local_album_paths_match(asset_id, Path(keeper_id) / Path(asset_id).name)
+                    ]
+                    if len(confirmed_asset_ids) == len(asset_ids):
+                        self.remove_album(candidate["id"], candidate["albumName"], log_level=log_level)
+                    elif confirmed_asset_ids and self.remove_assets_from_album(
+                        candidate["id"], confirmed_asset_ids, candidate["albumName"], log_level=log_level,
+                    ):
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{candidate['albumName']}' -> '{keeper['albumName']}'. "
+                            f"Only {len(confirmed_asset_ids)}/{len(asset_ids)} assets were confirmed in the keeper album. "
+                            f"Removed {len(confirmed_asset_ids)} confirmed asset association(s) from the redundant album; "
+                            f"it was kept with {len(asset_ids) - len(confirmed_asset_ids)} unconfirmed asset(s)."
+                        )
+                    else:
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{candidate['albumName']}' -> '{keeper['albumName']}'. "
+                            f"Only {len(confirmed_asset_ids)}/{len(asset_ids)} assets were confirmed in the keeper album. "
+                            f"The redundant album was kept."
+                        )
                     redundant += 1
                 consolidated += 1
             self._invalidate_asset_caches()

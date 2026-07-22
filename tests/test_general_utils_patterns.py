@@ -375,6 +375,24 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
             self.assertIn("Album consolidation preview: 1 family(ies)", log_path.read_text(encoding="utf-8"))
 
+    def test_album_consolidation_preview_shows_physical_asset_counts(self):
+        with patch("builtins.print") as mock_print:
+            print_album_consolidation_preview([
+                {
+                    "keeper_album": {
+                        "id": "keeper", "albumName": "Keeper", "_consolidation_asset_count": 1706,
+                    },
+                    "redundant_albums": [{
+                        "id": "candidate", "albumName": "Candidate", "_consolidation_asset_count": 1,
+                    }],
+                    "reason": "equivalent-name",
+                }
+            ])
+
+        rendered = "\n".join(str(call.args[0]) for call in mock_print.call_args_list)
+        self.assertIn("Keeper [1706 assets]", rendered)
+        self.assertIn("Candidate [1 assets]", rendered)
+
     def test_has_any_filter_treats_filter_by_type_all_as_no_filter(self):
         with patch.object(GV, "ARGS", {"filter-by-type": "all"}):
             self.assertFalse(has_any_filter())

@@ -1741,7 +1741,7 @@ def _scan_truncated_name_consolidation_groups(
     return groups
 
 
-def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_getter=None, progress_desc=None, progress_unit="albums", asset_years_getter=None, asset_dates_getter=None):
+def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_getter=None, progress_desc=None, progress_unit="albums", asset_years_getter=None, asset_dates_getter=None, asset_count_getter=None, include_asset_counts=False):
     """
     Build consolidation groups for cloud album-name consolidation in one pass.
 
@@ -1853,7 +1853,29 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
         )
     else:
         truncation_groups = []
-    return consolidation_groups + date_groups + truncation_groups
+    groups = consolidation_groups + date_groups + truncation_groups
+    if include_asset_counts and callable(asset_count_getter) and groups:
+        counted_albums = {}
+        albums_to_count = {}
+        for group in groups:
+            keeper = group.get("keeper_album") or {}
+            if keeper.get("id"):
+                albums_to_count[str(keeper["id"])] = keeper
+            for candidate in group.get("redundant_albums") or []:
+                if candidate.get("id"):
+                    albums_to_count[str(candidate["id"])] = candidate
+        for album_id, album in tqdm(
+            albums_to_count.items(),
+            desc=f"{MSG_TAGS['INFO']}Counting assets in album consolidation preview",
+            unit="albums",
+        ):
+            try:
+                counted_albums[album_id] = max(0, int(asset_count_getter(album) or 0))
+            except Exception:
+                counted_albums[album_id] = 0
+        for album_id, album in albums_to_count.items():
+            album["_consolidation_asset_count"] = counted_albums[album_id]
+    return groups
 
 
 def print_album_consolidation_preview(consolidation_groups):
@@ -1884,7 +1906,9 @@ def print_album_consolidation_preview(consolidation_groups):
 
     def album_name(album):
         if isinstance(album, dict):
-            return str(album.get("albumName", "")).strip()
+            name = str(album.get("albumName", "")).strip()
+            count = album.get("_consolidation_asset_count")
+            return f"{name} [{count} assets]" if count is not None else name
         return str(album or "").strip()
 
     emit(
@@ -1897,7 +1921,7 @@ def print_album_consolidation_preview(consolidation_groups):
             group.get("preferred_album_name")
             if group.get("should_create_preferred_album")
             else (
-                str((group.get("keeper_album") or {}).get("albumName", "")).strip()
+                album_name(group.get("keeper_album") or {})
                 or str(group.get("preferred_album_name") or "").strip()
             )
         )

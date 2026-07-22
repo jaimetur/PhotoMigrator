@@ -915,6 +915,22 @@ class ClassNextCloudPhotos(BaseMediaClient):
                     LOGGER.warning(f"{MSG_TAGS['WARNING']}Unable to add asset '{src}' to album '{album_id}': {error}")
             return added
 
+    def remove_assets_from_album(self, album_id, asset_ids, album_name=None, log_level=None):
+        """Remove album-file representations without deleting the source library assets."""
+        with set_log_level(LOGGER, log_level):
+            asset_ids = [str(asset_id).strip() for asset_id in (asset_ids or []) if str(asset_id).strip()]
+            try:
+                for asset_id in asset_ids:
+                    if not self._remove_remote(asset_id):
+                        raise RuntimeError(f"Album asset '{asset_id}' no longer exists.")
+                return True
+            except Exception as error:
+                LOGGER.error(
+                    f"Error while removing {len(asset_ids)} asset association(s) from album "
+                    f"'{album_name or album_id}' with ID={album_id}: {error}"
+                )
+                return False
+
     @staticmethod
     def _upsert_existing_album(existing_albums, album_id, album_name):
         if existing_albums is None or not album_id:
@@ -1001,11 +1017,45 @@ class ClassNextCloudPhotos(BaseMediaClient):
                             if str((album or {}).get("id", "")).strip() != redundant_id
                         ]
                 else:
-                    LOGGER.warning(
-                        f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
-                        f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
-                        f"The redundant album was kept."
+                    keeper_asset_signatures = Counter(
+                        (str(asset.get("filename", "")).strip(), str(asset.get("size", "")).strip(), str(asset.get("asset_datetime", "")).strip())
+                        for asset in keeper_assets
+                        if str(asset.get("filename", "")).strip()
                     )
+                    confirmed_asset_ids = []
+                    for asset in duplicate_assets:
+                        signature = (
+                            str(asset.get("filename", "")).strip(),
+                            str(asset.get("size", "")).strip(),
+                            str(asset.get("asset_datetime", "")).strip(),
+                        )
+                        if signature[0] and keeper_asset_signatures[signature]:
+                            keeper_asset_signatures[signature] -= 1
+                            confirmed_asset_ids.append(str(asset.get("id", "")).strip())
+                    confirmed_asset_ids = [asset_id for asset_id in confirmed_asset_ids if asset_id]
+                    removed_associations = 0
+                    if confirmed_asset_ids and self.remove_assets_from_album(
+                        redundant_id, confirmed_asset_ids, redundant_name, log_level=log_level,
+                    ):
+                        remaining_asset_ids = {
+                            str(asset.get("id", "")).strip()
+                            for asset in (self.get_all_assets_from_album(redundant_id, redundant_name, log_level=log_level) or [])
+                            if str(asset.get("id", "")).strip()
+                        }
+                        removed_associations = sum(asset_id not in remaining_asset_ids for asset_id in confirmed_asset_ids)
+                    if removed_associations:
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
+                            f"Removed {removed_associations} confirmed asset association(s) from the redundant album; "
+                            f"it was kept with {total_redundant_assets - removed_associations} unconfirmed asset(s)."
+                        )
+                    else:
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
+                            f"The redundant album was kept."
+                        )
 
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
@@ -1037,6 +1087,12 @@ class ClassNextCloudPhotos(BaseMediaClient):
                         log_level=log_level,
                     ) or []
                 ),
+                asset_count_getter=lambda album: len(self.get_all_assets_from_album(
+                    str((album or {}).get("id", "")).strip(),
+                    str((album or {}).get("albumName", "")).strip(),
+                    log_level=log_level,
+                ) or []),
+                include_asset_counts=preview_album_actions or request_user_confirmation,
             )
 
             if not consolidation_groups:

@@ -2151,6 +2151,41 @@ class ClassSynologyPhotos(BaseMediaClient):
                 LOGGER.warning(f"Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")
                 return 0
 
+    def remove_assets_from_album(self, album_id, asset_ids, album_name=None, log_level=None):
+        """Remove confirmed album memberships without deleting Synology assets."""
+        with set_log_level(LOGGER, log_level):
+            asset_ids = [str(asset_id).strip() for asset_id in convert_to_list(asset_ids) if str(asset_id).strip()]
+            if not asset_ids:
+                return True
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = dict(self.SYNO_TOKEN_HEADER or {})
+                for start in range(0, len(asset_ids), 500):
+                    chunk = [int(asset_id) if asset_id.isdigit() else asset_id for asset_id in asset_ids[start:start + 500]]
+                    response = self._session_get(
+                        url,
+                        params={
+                            "api": "SYNO.Foto.Browse.NormalAlbum",
+                            "method": "remove_item",
+                            "version": "1",
+                            "id": album_id,
+                            "item": json.dumps(chunk, separators=(",", ":")),
+                        },
+                        headers=headers,
+                        verify=False,
+                    )
+                    response.raise_for_status()
+                    if not (response.json() or {}).get("success"):
+                        raise RuntimeError("Synology Photos did not confirm the album-membership removal.")
+                return True
+            except Exception as error:
+                LOGGER.error(
+                    f"Error while removing {len(asset_ids)} asset association(s) from album "
+                    f"'{album_name or album_id}' with ID={album_id}: {error}"
+                )
+                return False
+
     @staticmethod
     def _upsert_existing_album(existing_albums, album_id, album_name):
         if existing_albums is None or not album_id:
@@ -2227,11 +2262,33 @@ class ClassSynologyPhotos(BaseMediaClient):
                             if str((album or {}).get("id", "")).strip() != redundant_id
                         ]
                 else:
-                    LOGGER.warning(
-                        f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
-                        f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
-                        f"The redundant album was kept."
-                    )
+                    confirmed_asset_ids = {
+                        asset_id for asset_id in duplicate_asset_ids
+                        if asset_id in (keeper_asset_ids or set())
+                    }
+                    removed_associations = 0
+                    if confirmed_asset_ids and self.remove_assets_from_album(
+                        redundant_id, sorted(confirmed_asset_ids), redundant_name, log_level=log_level,
+                    ):
+                        remaining_asset_ids = {
+                            str(asset.get("id", "")).strip()
+                            for asset in (self.get_all_assets_from_album(redundant_id, redundant_name, log_level=log_level) or [])
+                            if str(asset.get("id", "")).strip()
+                        }
+                        removed_associations = sum(asset_id not in remaining_asset_ids for asset_id in confirmed_asset_ids)
+                    if removed_associations:
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
+                            f"Removed {removed_associations} confirmed asset association(s) from the redundant album; "
+                            f"it was kept with {total_redundant_assets - removed_associations} unconfirmed asset(s)."
+                        )
+                    else:
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
+                            f"The redundant album was kept."
+                        )
 
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
@@ -2265,6 +2322,12 @@ class ClassSynologyPhotos(BaseMediaClient):
                         log_level=log_level,
                     ) or []
                 ),
+                asset_count_getter=lambda album: len(self.get_all_assets_from_album(
+                    str((album or {}).get("id", "")).strip(),
+                    str((album or {}).get("albumName", "")).strip(),
+                    log_level=log_level,
+                ) or []),
+                include_asset_counts=preview_album_actions or request_user_confirmation,
             )
 
             if not consolidation_groups:

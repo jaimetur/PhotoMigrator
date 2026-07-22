@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import tempfile
@@ -494,6 +495,57 @@ class TestImmichPhotosUnit(unittest.TestCase):
         warning_message = mock_logger.warning.call_args.args[0]
         self.assertIn("confirmed 2/3", warning_message)
         self.assertIn("permission denied", warning_message)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.delete")
+    def test_remove_assets_from_album_removes_memberships_without_deleting_assets(self, mock_delete):
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        mock_delete.return_value = response
+
+        removed = self.manager.remove_assets_from_album(
+            "album-1", ["asset-1", "asset-2"], album_name="Album",
+        )
+
+        self.assertTrue(removed)
+        mock_delete.assert_called_once_with(
+            "http://immich.local/api/albums/album-1/assets",
+            headers=self.manager.HEADERS_WITH_CREDENTIALS,
+            data=json.dumps({"ids": ["asset-1", "asset-2"]}),
+            verify=False,
+        )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.time.sleep")
+    def test_partial_album_consolidation_removes_only_confirmed_memberships(self, _mock_sleep, _mock_logger):
+        plan = {
+            "preferred_album_name": "Keeper",
+            "keeper_album": {"id": "keeper-id", "albumName": "Keeper"},
+            "similar_albums": [{"id": "redundant-id", "albumName": "Redundant"}],
+        }
+        self.manager.get_all_assets_from_album = MagicMock(side_effect=[
+            [{"id": "asset-1"}, {"id": "asset-2"}],  # redundant before reassignment
+            [{"id": "asset-1"}],  # keeper after first add
+            [{"id": "asset-1"}],  # keeper after eventual-consistency retry
+            [{"id": "asset-1"}],  # keeper after missing-asset retry
+            [{"id": "asset-2"}],  # redundant after confirmed membership removal
+        ])
+        self.manager.add_assets_to_album = MagicMock(return_value=1)
+        self.manager.remove_assets_from_album = MagicMock(return_value=True)
+        self.manager.remove_album = MagicMock(return_value=True)
+        albums = [
+            {"id": "keeper-id", "albumName": "Keeper"},
+            {"id": "redundant-id", "albumName": "Redundant"},
+        ]
+
+        keeper, _ = self.manager.consolidate_reusable_album_group(
+            "Keeper", existing_albums=albums, plan=plan,
+        )
+
+        self.assertEqual(keeper, {"id": "keeper-id", "albumName": "Keeper"})
+        self.manager.remove_assets_from_album.assert_called_once_with(
+            "redundant-id", ["asset-1"], "Redundant", log_level=None,
+        )
+        self.manager.remove_album.assert_not_called()
 
 
 if __name__ == "__main__":

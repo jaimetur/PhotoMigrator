@@ -126,6 +126,8 @@
   - Fixed Immich stack summary logging: `Total Stacks Created` is now omitted from Automatic Migration, Upload Albums, and Upload All when `--create-stacks=false`.
   - Fixed Immich burst auto-stacking to group same-folder photos by consecutive capture times rather than by matching filename stems or compressed file sizes. Timestamped phone filenames and variable image compression no longer prevent valid burst stacks.
   - Fixed Automatic Migration album-association workers losing the per-album statistics references while flushing a batch. Takeout people accounting no longer raises `NameError`, allowing the worker to complete the target album membership request; exhausted association retries now finalize the asset as an explicit album-association failure instead of leaving an untracked staged item.
+  - Fixed partial album consolidation across Google Photos, Synology Photos, Immich Photos, NextCloud Photos, and Local Folder. Assets verified in the keeper are now removed from the redundant album while that album remains available with only its unconfirmed assets.
+  - Added physical asset counts beside keeper and redundant album names in Consolidate Albums Names preview tables.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

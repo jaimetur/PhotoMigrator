@@ -1920,7 +1920,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         LOGGER.warning(
                             f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
                             f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
-                            f"The redundant album was kept."
+                            f"The redundant album was kept but onlly with unconfirmed assets."
                         )
 
                 consolidated_album_groups.add(group_key)

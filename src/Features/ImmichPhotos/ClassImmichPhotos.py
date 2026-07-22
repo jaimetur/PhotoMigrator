@@ -1586,6 +1586,35 @@ class ClassImmichPhotos(BaseMediaClient):
                     }
                 return 0
 
+    def remove_assets_from_album(self, album_id, asset_ids, album_name=None, log_level=None):
+        """Remove asset memberships from an Immich album without deleting the assets."""
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            asset_ids = [
+                str(asset_id).strip()
+                for asset_id in convert_to_list(asset_ids)
+                if str(asset_id).strip()
+            ]
+            if not asset_ids:
+                return True
+
+            url = f"{self.IMMICH_URL}/api/albums/{album_id}/assets"
+            try:
+                response = requests.delete(
+                    url,
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    data=json.dumps({"ids": asset_ids}),
+                    verify=False,
+                )
+                response.raise_for_status()
+                return True
+            except Exception as error:
+                LOGGER.error(
+                    f"Error while removing {len(asset_ids)} asset association(s) from album "
+                    f"'{album_name or album_id}' with ID={album_id}: {error}"
+                )
+                return False
+
     @staticmethod
     def _upsert_existing_album(existing_albums, album_id, album_name):
         if existing_albums is None or not album_id:
@@ -1680,11 +1709,41 @@ class ClassImmichPhotos(BaseMediaClient):
                             if str((album or {}).get("id", "")).strip() != redundant_id
                         ]
                 else:
-                    LOGGER.warning(
-                        f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
-                        f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
-                        f"The redundant album was kept."
-                    )
+                    confirmed_asset_ids = {
+                        asset_id for asset_id in duplicate_asset_ids
+                        if asset_id in (keeper_asset_ids or set())
+                    }
+                    removed_associations = 0
+                    if confirmed_asset_ids and self.remove_assets_from_album(
+                        redundant_id,
+                        sorted(confirmed_asset_ids),
+                        redundant_name,
+                        log_level=log_level,
+                    ):
+                        remaining_assets = self.get_all_assets_from_album(redundant_id, log_level=log_level) or []
+                        remaining_asset_ids = {
+                            str(asset.get("id", "")).strip()
+                            for asset in remaining_assets
+                            if str(asset.get("id", "")).strip()
+                        }
+                        removed_associations = sum(
+                            1 for asset_id in confirmed_asset_ids
+                            if asset_id not in remaining_asset_ids
+                        )
+
+                    if removed_associations:
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
+                            f"Removed {removed_associations} confirmed asset association(s) from the redundant album; "
+                            f"it was kept with {total_redundant_assets - removed_associations} unconfirmed asset(s)."
+                        )
+                    else:
+                        LOGGER.warning(
+                            f"Album Consolidation Partial: '{redundant_name}' -> '{keeper_name}'. "
+                            f"Only {reassigned_count}/{total_redundant_assets} assets were confirmed in the keeper album. "
+                            f"The redundant album was kept but onlly with unconfirmed assets."
+                        )
 
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
@@ -1718,6 +1777,12 @@ class ClassImmichPhotos(BaseMediaClient):
                         log_level=log_level,
                     ) or []
                 ),
+                asset_count_getter=lambda album: len(self.get_all_assets_from_album(
+                    str((album or {}).get("id", "")).strip(),
+                    str((album or {}).get("albumName", "")).strip(),
+                    log_level=log_level,
+                ) or []),
+                include_asset_counts=preview_album_actions or request_user_confirmation,
             )
 
             if not consolidation_groups:
