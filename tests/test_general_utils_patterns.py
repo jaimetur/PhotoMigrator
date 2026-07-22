@@ -343,6 +343,28 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(groups, [])
 
+    def test_scan_album_consolidation_groups_merges_public_and_shared_suffix_variants(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "public", "albumName": "2019-11 - Maldivas Público"},
+                {"id": "shared", "albumName": "2019-11 - Maldivas Shared"},
+            ],
+            asset_years_getter=lambda _album: [2019, 2019],
+        )
+
+        self.assertEqual(len(groups), 1)
+
+    def test_scan_album_consolidation_groups_merges_private_and_x_suffix_variants(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "private", "albumName": "2019-11 - Maldivas Privada"},
+                {"id": "x", "albumName": "2019-11 - Maldivas X"},
+            ],
+            asset_years_getter=lambda _album: [2019, 2019],
+        )
+
+        self.assertEqual(len(groups), 1)
+
     def test_scan_album_consolidation_groups_keeps_selection_suffix_separate_from_plain_name(self):
         groups = scan_album_consolidation_groups(
             [

@@ -1409,14 +1409,12 @@ def _album_truncation_key(name):
     special_suffix = ""
     if suffix_match:
         suffix_text = str(suffix_match.group("suffix") or "").casefold()
-        if suffix_text.startswith("sh"):
-            special_suffix = "shared"
-        elif suffix_text.startswith("pub") or suffix_text.startswith("p\u00fab"):
-            special_suffix = suffix_text
-        elif suffix_text.startswith("priv"):
-            special_suffix = suffix_text
+        if suffix_text.startswith("sh") or suffix_text.startswith("pub") or suffix_text.startswith("p\u00fab"):
+            special_suffix = "public-shared"
+        elif suffix_text.startswith("priv") or suffix_text == "x":
+            special_suffix = "private"
         elif suffix_text.startswith("selec") or suffix_text.startswith("select"):
-            special_suffix = suffix_text
+            special_suffix = "selection"
         else:
             special_suffix = suffix_text
         normalized = normalized[:suffix_match.start()].strip(" ()-_.")
