@@ -1374,6 +1374,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     album_assoc_locks_lock = threading.Lock()
     album_pending_context_locks = {}
     album_pending_context_locks_lock = threading.Lock()
+    album_queue_state_by_name = {}
     pending_duplicate_resolution_by_album = {}
     pending_duplicate_resolution_lock = threading.Lock()
     album_assoc_completed_album_keys = set()
@@ -2351,7 +2352,41 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 remaining_files.append(os.path.join(root, entry))
         return remaining_files
 
-    def _claim_album_asset_and_snapshot_pending_count(
+    def _album_queue_asset_keys(asset_file_path, live_photo_video_path=None):
+        asset_keys = set()
+        for path in (asset_file_path, live_photo_video_path):
+            normalized = _normalized_asset_path_key(path)
+            if normalized:
+                asset_keys.add(normalized)
+        return asset_keys
+
+    def _get_album_queue_state(album_name):
+        return album_queue_state_by_name.setdefault(
+            album_name,
+            {"in_flight": set(), "completed": set()},
+        )
+
+    def _snapshot_album_queue_state(album_name, state):
+        album_folder_path = _get_album_staging_folder(album_name)
+        pending_duplicate_keys = _get_pending_duplicate_file_keys(album_name)
+        staged_file_keys = {
+            _normalized_asset_path_key(file_path)
+            for file_path in _list_album_remaining_files(album_folder_path)
+        }
+        in_flight_keys = set(state["in_flight"])
+        completed_keys = set(state["completed"])
+        waiting_keys = staged_file_keys - in_flight_keys - completed_keys - pending_duplicate_keys
+        completed_count = len(completed_keys)
+        in_flight_count = len(in_flight_keys)
+        waiting_count = len(waiting_keys)
+        return {
+            "waiting": waiting_count,
+            "in_flight": in_flight_count,
+            "completed": completed_count,
+            "total": completed_count + in_flight_count + waiting_count,
+        }
+
+    def _claim_album_asset_and_snapshot_queue_state(
         album_name,
         asset_file_path,
         live_photo_video_path=None,
@@ -2371,20 +2406,30 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         with _get_album_pending_context_lock(album_name):
             _mark_asset_path_in_flight(asset_file_path)
             _mark_asset_path_in_flight(live_photo_video_path)
+            state = _get_album_queue_state(album_name)
+            state["in_flight"].update(_album_queue_asset_keys(asset_file_path, live_photo_video_path))
+            return _snapshot_album_queue_state(album_name, state)
 
-            album_folder_path = _get_album_staging_folder(album_name)
-            if not os.path.isdir(album_folder_path):
-                return 0
+    def _complete_album_asset_and_snapshot_queue_state(
+        album_name,
+        asset_file_path,
+        live_photo_video_path=None,
+    ):
+        if not album_name:
+            return None
+        with _get_album_pending_context_lock(album_name):
+            state = _get_album_queue_state(album_name)
+            asset_keys = _album_queue_asset_keys(asset_file_path, live_photo_video_path)
+            state["in_flight"].difference_update(asset_keys)
+            state["completed"].update(asset_keys)
+            return _snapshot_album_queue_state(album_name, state)
 
-            pending_duplicate_keys = _get_pending_duplicate_file_keys(album_name)
-            with in_flight_asset_paths_lock:
-                in_flight_keys = set(in_flight_asset_paths)
-
-            return sum(
-                1
-                for file_path in _list_album_remaining_files(album_folder_path)
-                if _normalized_asset_path_key(file_path) not in in_flight_keys
-                and _normalized_asset_path_key(file_path) not in pending_duplicate_keys
+    def _release_album_asset_queue_claim(album_name, asset_file_path, live_photo_video_path=None):
+        if not album_name:
+            return
+        with _get_album_pending_context_lock(album_name):
+            _get_album_queue_state(album_name)["in_flight"].difference_update(
+                _album_queue_asset_keys(asset_file_path, live_photo_video_path)
             )
 
     def _format_album_pending_context(
@@ -2394,6 +2439,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         people_assigned_count=0,
         show_people_count=False,
         pending_count_override=None,
+        queue_state_snapshot=None,
     ):
         people_label = (
             f"{{People: found: {people_count} | assigned: {people_assigned_count}}}"
@@ -2401,6 +2447,19 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         )
         if not album_name:
             return f" [{people_label}]" if people_label else ""
+        if queue_state_snapshot is not None:
+            details = [f"{{Album: '{album_name}'}}"]
+            if people_label:
+                details.append(people_label)
+            details.append(
+                "{Album Queue: "
+                f"{int(queue_state_snapshot.get('waiting', 0) or 0)} waiting | "
+                f"In flight: {int(queue_state_snapshot.get('in_flight', 0) or 0)} | "
+                f"Completed: {int(queue_state_snapshot.get('completed', 0) or 0)}/"
+                f"{int(queue_state_snapshot.get('total', 0) or 0)}}}"
+            )
+            return f" [{' - '.join(details)}]"
+
         if pending_count_override is None:
             album_folder_path = _get_album_staging_folder(album_name)
             if not os.path.isdir(album_folder_path):
@@ -2435,6 +2494,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         if people_label:
             details.append(people_label)
         return f" [{' - '.join(details)}]"
+
+    def _format_skipped_asset_suffix(context):
+        return f" -> Skipped -{context}" if context else " -> Skipped"
 
     def _import_takeout_people_for_resolved_asset(file_path, asset_id):
         if not (ARGS.get('import-people', False) and isinstance(target_client, ClassImmichPhotos)):
@@ -4452,7 +4514,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     push_elapsed_ms = None
                     album_assoc_elapsed_ms = None
                     cleanup_elapsed_ms = None
-                    album_pending_count_after_claim = _claim_album_asset_and_snapshot_pending_count(
+                    album_queue_state_snapshot = _claim_album_asset_and_snapshot_queue_state(
                         album_name=album_name,
                         asset_file_path=asset_file_path,
                         live_photo_video_path=live_photo_video_path,
@@ -4463,9 +4525,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     try:
                         isDuplicated = False
                         if (not live_photo_video_path) and _is_live_companion_consumed(asset_file_path):
+                            album_queue_state_snapshot = _complete_album_asset_and_snapshot_queue_state(
+                                album_name=album_name,
+                                asset_file_path=asset_file_path,
+                            )
                             LOGGER.info(
                                 f"Asset Live Companion Consumed: '{os.path.basename(asset_file_path)}'. Skipped"
-                                f"{_format_album_pending_context(album_name, asset_file_path, pending_count_override=album_pending_count_after_claim)}"
+                                f"{_format_album_pending_context(album_name, asset_file_path, queue_state_snapshot=album_queue_state_snapshot)}"
                             )
                             treat_as_consumed = True
                             cleanup_elapsed_ms = _finalize_asset_success(
@@ -4529,6 +4595,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             if asset_id:
                                 asset_pushed = True
                                 treat_as_consumed = True
+                                album_queue_state_snapshot = _complete_album_asset_and_snapshot_queue_state(
+                                    album_name=album_name,
+                                    asset_file_path=asset_file_path,
+                                    live_photo_video_path=live_photo_video_path,
+                                )
                                 takeout_people_assigned_count = _import_takeout_people_for_resolved_asset(
                                     asset_file_path,
                                     asset_id,
@@ -4546,9 +4617,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     album_stats_lock_ref,
                                 )
                                 if isDuplicated:
+                                    album_context = _format_album_pending_context(
+                                        album_name,
+                                        asset_file_path,
+                                        takeout_people_count,
+                                        takeout_people_assigned_count,
+                                        show_takeout_people_count,
+                                        queue_state_snapshot=album_queue_state_snapshot,
+                                    )
                                     LOGGER.info(
-                                        f"Asset Duplicated: '{os.path.basename(asset_file_path)}' -> Skipped -"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, album_pending_count_after_claim)}"
+                                        f"Asset Duplicated: '{os.path.basename(asset_file_path)}'"
+                                        f"{_format_skipped_asset_suffix(album_context)}"
                                     )
                                     if count_push_stats:
                                         _increment_push_duplicate_counters(SHARED_DATA.counters, asset_type, physical_stats)
@@ -4576,7 +4655,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         )
                                     LOGGER.info(
                                         f"Asset Pushed    : '{os.path.basename(asset_file_path)}'"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, album_pending_count_after_claim)}"
+                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, queue_state_snapshot=album_queue_state_snapshot)}"
                                     )
                                     if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
                                         try:
@@ -4595,9 +4674,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 # Si entramos aqui es porque asset_id no existe, probablemente se haya producido una excepción en push_asset, y el LOGGER se haya quedado con el nivel ERROR
                                 set_log_level(LOGGER, orig_level)
                                 if isDuplicated:
+                                    album_context = _format_album_pending_context(
+                                        album_name,
+                                        asset_file_path,
+                                        takeout_people_count,
+                                        takeout_people_assigned_count,
+                                        show_takeout_people_count,
+                                        queue_state_snapshot=album_queue_state_snapshot,
+                                    )
                                     LOGGER.info(
-                                        f"Asset Duplicated: '{os.path.basename(asset_file_path)}' -> Skipped -"
-                                        f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, album_pending_count_after_claim)}"
+                                        f"Asset Duplicated: '{os.path.basename(asset_file_path)}'"
+                                        f"{_format_skipped_asset_suffix(album_context)}"
                                     )
                                     treat_as_consumed = True
                                     if count_push_stats and not album_name:
@@ -4804,6 +4891,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         )
                 finally:
                     if asset is not None and isinstance(asset, dict):
+                        _release_album_asset_queue_claim(
+                            asset.get('album_name'),
+                            asset.get('asset_file_path'),
+                            asset.get('live_photo_video_path'),
+                        )
                         _unmark_asset_path_in_flight(asset.get('asset_file_path'))
                         _unmark_asset_path_in_flight(asset.get('live_photo_video_path'))
                     if asset is not None:
