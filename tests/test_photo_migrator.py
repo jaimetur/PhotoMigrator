@@ -82,6 +82,27 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
         self.assertFalse(args["create-stacks"])
         self.assertFalse(args["google-process-people"])
 
+    def test_small_album_max_assets_defaults_to_three_and_rejects_non_positive_values(self):
+        with patch.object(sys, "argv", ["photomigrator"]):
+            args, _ = parse_arguments()
+        self.assertEqual(args["small-album-max-assets"], 3)
+
+        with patch.object(sys, "argv", ["photomigrator", "--small-album-max-assets", "4"]):
+            args, _ = parse_arguments()
+        self.assertEqual(args["small-album-max-assets"], 4)
+
+        with patch.object(sys, "argv", ["photomigrator", "--small-album-max-assets", "0"]):
+            with self.assertRaises(SystemExit):
+                parse_arguments()
+
+        with patch.object(
+            sys,
+            "argv",
+            ["photomigrator", "--no-try-small-albums-grouping", "--small-album-max-assets", "4"],
+        ):
+            with self.assertRaises(SystemExit):
+                parse_arguments()
+
     def test_check_args_parses_single_comma_separated_rename_albums_value_for_dashdash_replacement(self):
         argv = [
             "photomigrator",

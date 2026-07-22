@@ -85,6 +85,7 @@ UI_FIELD_LABELS = {
     "try-date-prefix-albums-grouping": "Try Date Prefix Albums Grouping",
     "try-truncated-albums-grouping": "Try Truncated Albums Grouping",
     "try-small-albums-grouping": "Try Small Albums Grouping",
+    "small-album-max-assets": "Small Album Max Assets",
     "import-people": "Import People",
     "create-stacks": "Create Stacks",
     "foldername-all-photos": "ALL_PHOTOS Folder Name",
@@ -232,6 +233,7 @@ CLOUD_DESTS = {
     "try-date-prefix-albums-grouping",
     "try-truncated-albums-grouping",
     "try-small-albums-grouping",
+    "small-album-max-assets",
     "one-time-password",
 }
 CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
@@ -403,6 +405,7 @@ _CONSOLIDATE_ALBUMS_GROUPING_ARGUMENTS = [
     {"dest": "try-date-prefix-albums-grouping", "required": False},
     {"dest": "try-truncated-albums-grouping", "required": False},
     {"dest": "try-small-albums-grouping", "required": False},
+    {"dest": "small-album-max-assets", "required": False},
     {"dest": "preview-album-actions", "required": False},
 ]
 for _module_actions in MODULE_ACTION_ARGUMENTS.values():
@@ -1648,6 +1651,8 @@ def _allowed_dests_for_tab(schema: Dict[str, Any], tab: str, selected_action_des
 
 def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], selected_action_dest: str | None = None) -> List[str]:
     prepared = prepare_values_for_command(values, tab, selected_action_dest)
+    if not bool_from_value(prepared.get("try-small-albums-grouping", True)):
+        prepared.pop("small-album-max-assets", None)
     allowed_dests = _allowed_dests_for_tab(schema, tab, selected_action_dest)
     required_action_dests = {
         str(item.get("dest") or "").strip()

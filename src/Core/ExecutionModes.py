@@ -1629,6 +1629,7 @@ def mode_cloud_consolidate_albums_names(client=None, user_confirmation=True, log
             try_date_prefix_albums_grouping=bool(ARGS.get('try-date-prefix-albums-grouping', True)),
             try_truncated_albums_grouping=bool(ARGS.get('try-truncated-albums-grouping', True)),
             try_small_albums_grouping=bool(ARGS.get('try-small-albums-grouping', True)),
+            small_album_max_assets=ARGS.get('small-album-max-assets', 3),
             log_level=logging.WARNING,
         )
         LOGGER.info(f"")

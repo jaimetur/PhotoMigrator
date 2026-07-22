@@ -2293,7 +2293,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
             return {"id": keeper_id, "albumName": keeper_name}, plan
 
-    def consolidate_album_namess(self, request_user_confirmation=True, preview_album_actions=False, try_equivalent_albums_grouping=True, try_date_prefix_albums_grouping=True, try_truncated_albums_grouping=True, try_small_albums_grouping=True, log_level=logging.WARNING):
+    def consolidate_album_namess(self, request_user_confirmation=True, preview_album_actions=False, try_equivalent_albums_grouping=True, try_date_prefix_albums_grouping=True, try_truncated_albums_grouping=True, try_small_albums_grouping=True, log_level=logging.WARNING, small_album_max_assets=3):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.warning("Searching for equivalent album-name families to consolidate. This process may take some time. Please be patient...")
@@ -2332,6 +2332,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 try_date_prefix_albums_grouping=try_date_prefix_albums_grouping,
                 try_truncated_albums_grouping=try_truncated_albums_grouping,
                 try_small_albums_grouping=try_small_albums_grouping,
+                small_album_max_assets=small_album_max_assets,
             )
 
             if not consolidation_groups:

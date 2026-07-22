@@ -3145,9 +3145,10 @@ if TEXTUAL_AVAILABLE:
             joined = ", ".join(parse_folder_list_value(value))
             return self.build_input_block(label, dest, joined, required, help_text, path_hint="path", browse_title=f"Select paths for {label}")
 
-        def build_input_block(self, label: str, dest: str, value: str, required: bool, help_text: str, path_hint: str = "", browse_title: str | None = None, password: bool = False) -> List[Any]:
+        def build_input_block(self, label: str, dest: str, value: str, required: bool, help_text: str, path_hint: str = "", browse_title: str | None = None, password: bool = False, disabled: bool = False) -> List[Any]:
             label_text = f"{label}{' *' if required else ''}"
             input_widget = NavigableInput(value=value, password=password, id=f"field-{dest}", classes="field-input-widget")
+            input_widget.disabled = disabled
             self.register_field_help(f"field-{dest}", help_text)
             if path_hint == "path":
                 row = Horizontal(
@@ -3196,7 +3197,11 @@ if TEXTUAL_AVAILABLE:
             if kind == "list":
                 joined = ", ".join(to_list(value))
                 return self.build_input_block(label, dest, joined, required, help_text, path_hint=path_hint, browse_title=label)
-            return self.build_input_block(label, dest, "" if value is None else str(value), required, help_text, path_hint=path_hint, browse_title=label)
+            disabled = dest == "small-album-max-assets" and not bool(
+                self.state_values.get("try-small-albums-grouping", True)
+            )
+            return self.build_input_block(label, dest, "" if value is None else str(value), required, help_text,
+                                          path_hint=path_hint, browse_title=label, disabled=disabled)
 
         def build_config_field_widgets(self, section_name: str, field: Dict[str, Any]) -> List[Any]:
             key = str(field.get("key") or "")
@@ -3771,6 +3776,8 @@ if TEXTUAL_AVAILABLE:
                         self.state_values["dup-asset-keeper"] = (
                             "better-quality" if value else "more-people/tags-then-newest"
                         )
+                        await self.rebuild_content()
+                    elif dest == "try-small-albums-grouping":
                         await self.rebuild_content()
                     self.refresh_boolean_toggle(dest, value)
                     self.update_command_preview()

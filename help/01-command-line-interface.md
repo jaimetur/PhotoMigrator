@@ -405,8 +405,8 @@ If more than one optional arguments are detected, only the first one will be exe
                Equivalent examples: 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', 'New_Album 1'.
                Also applies guarded compatible date-prefix and end-truncation matching: specific dates require 95% asset-date coverage,
                and truncations require two distinct shared title words plus the same dominant asset year.
-               It also considers albums with up to three assets for a larger similarly named keeper only when every small-album
-               capture date is present in that keeper.
+               It also considers small albums for a larger similarly named keeper only when every small-album
+               capture date is present in that keeper. The standalone Consolidate Albums Names action can configure this limit.
                Supported cloud targets also merge redundant variants into the preferred clean keeper.
                Immich, Synology, and NextCloud remove them afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-albums ./Albums --consolidate-similar-albums
@@ -424,7 +424,9 @@ If more than one optional arguments are detected, only the first one will be exe
 -tryTruncAlb ; --try-truncated-albums-grouping ; --no-try-truncated-albums-grouping
                Enable or disable guarded truncated-name grouping for Consolidate Albums Names (default: enabled).
 -trySmallAlb ; --try-small-albums-grouping ; --no-try-small-albums-grouping
-               Enable or disable grouping albums with up to three assets into larger similarly named albums with matching capture dates (default: enabled).
+               Enable or disable grouping small albums into larger similarly named albums with matching capture dates (default: enabled).
+-smallAlbMax ; --small-album-max-assets <COUNT>
+               Set the maximum number of assets that qualifies an album as small for Consolidate Albums Names (default: 3). Only used while --try-small-albums-grouping is enabled.
 -dAll        ; --download-all <OUTPUT_FOLDER>
                Download all albums and all non-album assets into <OUTPUT_FOLDER>.
                You must provide the photo client using '--client'.

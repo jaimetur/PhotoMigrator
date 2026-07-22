@@ -1942,6 +1942,8 @@ class PhotoMigratorTkGUI:
             )
             self.refresh_boolean_toggle("dup-immich-native-deletion", bool(value))
             self.rebuild_content()
+        elif dest == "try-small-albums-grouping":
+            self.rebuild_content()
         self.refresh_boolean_toggle(dest, value)
         self.update_command_preview()
 
@@ -1970,7 +1972,7 @@ class PhotoMigratorTkGUI:
         joined = ", ".join(parse_folder_list_value(value))
         self.build_input_block(parent, label, dest, joined, required, help_text, path_hint="path")
 
-    def build_input_block(self, parent: Any, label: str, dest: str, value: str, required: bool, help_text: str, *, path_hint: str = "", password: bool = False) -> None:
+    def build_input_block(self, parent: Any, label: str, dest: str, value: str, required: bool, help_text: str, *, path_hint: str = "", password: bool = False, disabled: bool = False) -> None:
         row = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])
         row.pack(fill="x", padx=6, pady=2)
         self._label(row, f"{label}{' *' if required else ''}").pack(side="left")
@@ -1980,13 +1982,16 @@ class PhotoMigratorTkGUI:
             control = self.tk.Frame(row, bg=self.current_theme()["panel_bg"])
             control.pack(side="left", fill="x", expand=True)
             entry = self._entry(control, var)
+            entry.configure(state="disabled" if disabled else "normal")
             entry.pack(side="left", fill="x", expand=True)
             btn = self.ttk.Button(control, text="...", width=4, command=lambda d=dest: self.browse_path(d), style="PM.Neutral.TButton")
+            btn.configure(state="disabled" if disabled else "normal")
             btn.pack(side="left", padx=(6, 8))
             self._bind_help(btn, help_text or label)
         else:
             entry = self._entry(row, var)
             entry.configure(show="*" if password else "")
+            entry.configure(state="disabled" if disabled else "normal")
             entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
         self._bind_help(entry, help_text)
 
@@ -2045,7 +2050,11 @@ class PhotoMigratorTkGUI:
             joined = ", ".join(to_list(value))
             self.build_input_block(parent, label, dest, joined, required, help_text, path_hint=path_hint)
             return
-        self.build_input_block(parent, label, dest, "" if value is None else str(value), required, help_text, path_hint=path_hint, password=bool(field.get("sensitive")))
+        disabled = dest == "small-album-max-assets" and not bool(
+            self.state_values.get("try-small-albums-grouping", True)
+        )
+        self.build_input_block(parent, label, dest, "" if value is None else str(value), required, help_text,
+                               path_hint=path_hint, password=bool(field.get("sensitive")), disabled=disabled)
 
     def build_config_field_widgets(self, parent: Any, section_name: str, field: Dict[str, Any]) -> None:
         row = self.tk.Frame(parent, bg=self.current_theme()["panel_bg"])

@@ -29,6 +29,16 @@ choices_for_AUTOMATIC_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-
 valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
 
 
+def _positive_int(value):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise argparse.ArgumentTypeError("must be a positive integer") from exc
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
+
+
 def parse_arguments():
     """
     Builds the CLI argument parser (with pager support), parses arguments,
@@ -461,7 +471,10 @@ def parse_arguments():
     PARSER.add_argument("-tryTruncAlb", "--try-truncated-albums-grouping", action=argparse.BooleanOptionalAction, default=True,
                         help="For Consolidate Albums Names, try guarded truncated album-name grouping (default: True).")
     PARSER.add_argument("-trySmallAlb", "--try-small-albums-grouping", action=argparse.BooleanOptionalAction, default=True,
-                        help="For Consolidate Albums Names, try grouping albums with up to three assets into larger similarly named albums with matching capture dates (default: True).")
+                        help="For Consolidate Albums Names, try grouping small albums into larger similarly named albums with matching capture dates (default: True).")
+    PARSER.add_argument("-smallAlbMax", "--small-album-max-assets", metavar="<COUNT>", type=_positive_int, default=3,
+                        help="For Consolidate Albums Names, set the maximum number of assets for an album to be considered small (default: 3). "
+                             "Only used when '--try-small-albums-grouping' is enabled.")
 
     PARSER.add_argument("-prefCanAlb", "--prefer-canonical-album-names", action="store_true", default=False,
                         help="When uploading albums to a cloud service or running Automatic Migration, normalize new destination album names to the preferred clean keeper form.\n"
@@ -624,6 +637,17 @@ def parse_arguments():
     # Parse args and create a global-like ARGS dict (with '-' keys)
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
+    small_album_limit_options = {"-smallAlbMax", "--small-album-max-assets"}
+    small_album_limit_was_supplied = any(
+        argument in small_album_limit_options
+        or argument.startswith("--small-album-max-assets=")
+        for argument in sys.argv[1:]
+    )
+    if small_album_limit_was_supplied and not ARGS.get("try-small-albums-grouping", True):
+        PARSER.error(
+            "--small-album-max-assets can only be used when "
+            "--try-small-albums-grouping is enabled."
+        )
 
     return ARGS, PARSER
 

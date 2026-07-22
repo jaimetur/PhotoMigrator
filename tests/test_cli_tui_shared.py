@@ -98,6 +98,37 @@ class TestCliTuiShared(unittest.TestCase):
         )
         self.assertEqual(args[args.index("--create-stacks") + 1], "false")
 
+    def test_small_album_limit_is_ordered_after_its_toggle_and_omitted_when_disabled(self):
+        schema = build_parser_schema()
+        action_dests = [
+            item["dest"]
+            for item in MODULE_ACTION_ARGUMENTS["immich_photos"]["consolidate-albums-names"]
+        ]
+        self.assertLess(
+            action_dests.index("try-small-albums-grouping"),
+            action_dests.index("small-album-max-assets"),
+        )
+
+        enabled_args = build_cli_args(
+            schema,
+            "immich_photos",
+            {"account-id": "1", "consolidate-albums-names": True, "small-album-max-assets": 5},
+            "consolidate-albums-names",
+        )
+        disabled_args = build_cli_args(
+            schema,
+            "immich_photos",
+            {
+                "account-id": "1",
+                "consolidate-albums-names": True,
+                "try-small-albums-grouping": False,
+                "small-album-max-assets": 5,
+            },
+            "consolidate-albums-names",
+        )
+        self.assertIn("--small-album-max-assets", enabled_args)
+        self.assertNotIn("--small-album-max-assets", disabled_args)
+
     def test_build_parser_schema_excludes_unused_album_name_flags_from_takeout_tabs(self):
         schema = build_parser_schema()
         general_dests = {field["dest"] for field in schema["general_tabs"]["general"]}

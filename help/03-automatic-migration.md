@@ -47,7 +47,7 @@ If you include **`--consolidate-similar-albums`**, PhotoMigrator also treats equ
 
 When the target is Immich, this uses the same metadata reconciliation as Immich Upload Albums and Upload All: the keeper retains its non-empty description or receives the longest family description, direct recipients are reduced to their common intersection using the most restrictive role, and public keeper links are removed when any family member has none. A reconciliation failure keeps the redundant albums intact.
 
-For the standalone **Consolidate Albums Names** module, all four detectors are enabled by default and can be controlled independently: `--try-equivalent-albums-grouping`, `--try-date-prefix-albums-grouping`, `--try-truncated-albums-grouping`, and `--try-small-albums-grouping`. Use the corresponding `--no-...` option to skip one detector without disabling the others.
+For the standalone **Consolidate Albums Names** module, all four detectors are enabled by default and can be controlled independently: `--try-equivalent-albums-grouping`, `--try-date-prefix-albums-grouping`, `--try-truncated-albums-grouping`, and `--try-small-albums-grouping`. Use the corresponding `--no-...` option to skip one detector without disabling the others. `--small-album-max-assets <COUNT>` controls the small-album limit (default `3`) and is used only when small-album grouping is enabled.
 
 Examples that are treated as the same family:
 - `Album`, `Album_1`, `Album (2)`, `Album_5`

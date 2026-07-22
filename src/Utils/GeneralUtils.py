@@ -1555,7 +1555,7 @@ def _build_direct_consolidation_group(members, keeper_album, reason):
 
 
 _DATE_PREFIX_ASSET_COVERAGE_THRESHOLD = 0.95
-_SMALL_ALBUM_MAX_ASSETS = 3
+_DEFAULT_SMALL_ALBUM_MAX_ASSETS = 3
 _SMALL_ALBUM_GENERIC_TITLE_WORDS = {"album", "albums", "foto", "fotos", "photo", "photos", "video", "videos"}
 
 
@@ -1633,11 +1633,13 @@ def _scan_small_album_date_match_groups(
     asset_dates_getter,
     asset_count_getter,
     asset_date_range_getter=None,
+    small_album_max_assets=_DEFAULT_SMALL_ALBUM_MAX_ASSETS,
     progress_unit="albums",
 ):
     if not callable(asset_dates_getter) or not callable(asset_count_getter):
         return []
 
+    small_album_max_assets = max(1, int(small_album_max_assets or _DEFAULT_SMALL_ALBUM_MAX_ASSETS))
     counts = {}
     eligible_albums = []
     for album in tqdm(
@@ -1660,11 +1662,11 @@ def _scan_small_album_date_match_groups(
         eligible_albums.append(album)
     small_albums = [
         album for album in eligible_albums
-        if 0 < counts.get(str((album or {}).get("id", "")).strip(), 0) <= _SMALL_ALBUM_MAX_ASSETS
+        if 0 < counts.get(str((album or {}).get("id", "")).strip(), 0) <= small_album_max_assets
     ]
     keeper_candidates = [
         album for album in eligible_albums
-        if counts.get(str((album or {}).get("id", "")).strip(), 0) > _SMALL_ALBUM_MAX_ASSETS
+        if counts.get(str((album or {}).get("id", "")).strip(), 0) > small_album_max_assets
     ]
     groups_by_keeper = {}
     for small_album in tqdm(
@@ -1945,6 +1947,7 @@ def scan_album_consolidation_groups(
     try_date_prefix_albums_grouping=True,
     try_truncated_albums_grouping=True,
     try_small_albums_grouping=True,
+    small_album_max_assets=_DEFAULT_SMALL_ALBUM_MAX_ASSETS,
 ):
     """
     Build consolidation groups for cloud album-name consolidation in one pass.
@@ -2085,7 +2088,7 @@ def scan_album_consolidation_groups(
     )
     if try_small_albums_grouping and callable(asset_dates_getter) and callable(asset_count_getter):
         print(
-            f"{MSG_TAGS['INFO']}Checking small albums with up to {_SMALL_ALBUM_MAX_ASSETS} assets "
+            f"{MSG_TAGS['INFO']}Checking small albums with up to {small_album_max_assets} assets "
             "against larger date-matched albums..."
         )
         small_album_groups = _scan_small_album_date_match_groups(
@@ -2094,6 +2097,7 @@ def scan_album_consolidation_groups(
             asset_dates_getter=cached_asset_dates,
             asset_count_getter=cached_asset_count,
             asset_date_range_getter=asset_date_range_getter,
+            small_album_max_assets=small_album_max_assets,
             progress_unit=progress_unit,
         )
     else:

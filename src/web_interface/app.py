@@ -202,6 +202,7 @@ CLOUD_DESTS = {
     "try-date-prefix-albums-grouping",
     "try-truncated-albums-grouping",
     "try-small-albums-grouping",
+    "small-album-max-assets",
     "one-time-password",
 }
 
@@ -403,6 +404,7 @@ CONSOLIDATE_ALBUMS_GROUPING_ARGUMENTS = [
     {"dest": "try-date-prefix-albums-grouping", "required": False},
     {"dest": "try-truncated-albums-grouping", "required": False},
     {"dest": "try-small-albums-grouping", "required": False},
+    {"dest": "small-album-max-assets", "required": False},
     {"dest": "preview-album-actions", "required": False},
 ]
 for module_actions in MODULE_ACTION_ARGUMENTS.values():
@@ -3210,6 +3212,8 @@ def _build_cli_args(
     include_empty_selected_action: bool = False,
 ) -> List[str]:
     values = dict(values or {})
+    if not _bool_from_value(values.get("try-small-albums-grouping", True)):
+        values.pop("small-album-max-assets", None)
     if (
         tab == "immich_photos"
         and selected_action_dest == "remove-duplicates-assets"

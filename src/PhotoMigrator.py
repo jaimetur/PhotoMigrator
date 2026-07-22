@@ -180,6 +180,7 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
                 "try-date-prefix-albums-grouping",
                 "try-truncated-albums-grouping",
                 "try-small-albums-grouping",
+                "small-album-max-assets",
                 "preview-album-actions",
             ])
         elif module_name == "Rename Albums":

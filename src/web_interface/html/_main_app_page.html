@@ -517,6 +517,7 @@
         "try-date-prefix-albums-grouping": "Try Date Prefix Albums Grouping",
         "try-truncated-albums-grouping": "Try Truncated Albums Grouping",
         "try-small-albums-grouping": "Try Small Albums Grouping",
+        "small-album-max-assets": "Small Album Max Assets",
         "find-duplicates": "Find Duplicates Input",
         "process-duplicates": "Duplicates CSV",
         "rename-folders-content-based": "ALBUMS_FOLDER",
@@ -696,6 +697,7 @@
         {dest: "try-date-prefix-albums-grouping", required: false},
         {dest: "try-truncated-albums-grouping", required: false},
         {dest: "try-small-albums-grouping", required: false},
+        {dest: "small-album-max-assets", required: false},
         {dest: "preview-album-actions", required: false}
     ];
     Object.values(MODULE_DEPENDENCIES).forEach((moduleActions) => {
@@ -2033,16 +2035,26 @@
             }
         } else {
             input = document.createElement("input");
-            input.type = "text";
+            input.type = field.dest === "small-album-max-assets" ? "number" : "text";
+            if (field.dest === "small-album-max-assets") {
+                input.min = "1";
+                input.step = "1";
+            }
             input.className = "field__input";
             if (hasScopedPersistedValue) input.value = String(persisted);
-            else input.value = field.default === null ? "" : (typeof field.default === "string" ? field.default : "");
+            else input.value = field.default === null ? "" : String(field.default ?? "");
             if (filterPlaceholderByDest[effectiveDest]) {
                 input.placeholder = filterPlaceholderByDest[effectiveDest];
             }
         }
 
         input.dataset.dest = field.dest;
+        if (field.dest === "small-album-max-assets") {
+            const smallGroupingField = getFieldByDest("try-small-albums-grouping") || {};
+            input.disabled = !uiCheckboxValueForField(
+                smallGroupingField, stateValues["try-small-albums-grouping"],
+            );
+        }
         wrapper.appendChild(input);
 
         const disableFolderSelectorForDest = field.dest === "google-output-folder-suffix";
@@ -2155,6 +2167,10 @@
                         deletionInput.checked = check.checked;
                     }
                     stateValues["dup-immich-native-deletion"] = check.checked;
+                }
+                if (field.dest === "try-small-albums-grouping") {
+                    const thresholdInput = document.querySelector('[data-dest="small-album-max-assets"]');
+                    if (thresholdInput) thresholdInput.disabled = !check.checked;
                 }
                 queueSaveState();
                 queueCommandPreview();

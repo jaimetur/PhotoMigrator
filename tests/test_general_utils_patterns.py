@@ -434,6 +434,33 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(groups, [])
 
+    def test_scan_album_consolidation_groups_uses_configured_small_album_asset_limit(self):
+        albums = [
+            {"id": "keeper", "albumName": "2024-08 - Viaje por Malaga"},
+            {"id": "candidate", "albumName": "2024-08 - Malaga viaje fotos"},
+        ]
+        dates = {
+            "keeper": [datetime(2024, 8, 1), datetime(2024, 8, 10)],
+            "candidate": [datetime(2024, 8, 3), datetime(2024, 8, 4)],
+        }
+        counts = {"keeper": 12, "candidate": 4}
+
+        default_groups = scan_album_consolidation_groups(
+            albums,
+            asset_dates_getter=lambda album: dates[album["id"]],
+            asset_count_getter=lambda album: counts[album["id"]],
+        )
+        configured_groups = scan_album_consolidation_groups(
+            albums,
+            asset_dates_getter=lambda album: dates[album["id"]],
+            asset_count_getter=lambda album: counts[album["id"]],
+            small_album_max_assets=4,
+        )
+
+        self.assertEqual(default_groups, [])
+        self.assertEqual(configured_groups[0]["reason"], "small-album-date-match")
+        self.assertEqual(configured_groups[0]["keeper_album"]["id"], "keeper")
+
     def test_scan_album_consolidation_groups_honors_individual_algorithm_switches(self):
         albums = [
             {"id": "plain", "albumName": "2024 - Viaje"},
