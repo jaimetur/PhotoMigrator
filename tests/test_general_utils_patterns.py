@@ -586,7 +586,13 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
             self.assertIn("Album consolidation preview: 1 family(ies)", log_path.read_text(encoding="utf-8"))
 
     def test_album_consolidation_preview_shows_physical_asset_counts(self):
-        with patch("builtins.print") as mock_print:
+        def render_table(rows, **_kwargs):
+            return "\n".join(" | ".join(str(cell) for cell in row) for row in rows)
+
+        with (
+            patch("Utils.GeneralUtils.tabulate", side_effect=render_table),
+            patch("builtins.print") as mock_print,
+        ):
             print_album_consolidation_preview([
                 {
                     "keeper_album": {
