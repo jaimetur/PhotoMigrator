@@ -1646,8 +1646,8 @@ def mode_cloud_consolidate_albums_names(client=None, user_confirmation=True, log
         LOGGER.info(f"==================================================")
         LOGGER.info(f"                  FINAL SUMMARY:                  ")
         LOGGER.info(f"==================================================")
-        LOGGER.info(f"Total album families consolidated       : {families_consolidated}")
         LOGGER.info(f"Total redundant albums detected         : {redundant_albums_detected}")
+        LOGGER.info(f"Total album families consolidated       : {families_consolidated}")
         rule_labels = {
             "equivalent-name": "Equivalent Name",
             "date-prefix": "Date Prefix",
