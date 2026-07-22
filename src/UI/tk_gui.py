@@ -79,7 +79,6 @@ MODULE_TO_CONFIG_SECTION = {
     "synology_photos": "Synology Photos",
     "immich_photos": "Immich Photos",
     "nextcloud_photos": "NextCloud Photos",
-    "local_folder": "Local Folder",
 }
 INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.items() if key != "upload_folder"}
 THEMES = {
@@ -1404,9 +1403,9 @@ class PhotoMigratorTkGUI:
         elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
             selected = next((field for field in self.schema["tabs"][self.active_module] if field["dest"] == self.cloud_action_dest.get(self.active_module)), None)
             fields = [spec["field"] for spec in build_argument_specs(self.schema, self.active_module, selected, True)]
-            account_field = get_field_by_dest(self.schema, "account-id")
-            if account_field:
-                fields.append(account_field)
+            primary_field = get_field_by_dest(self.schema, "local-folder" if self.active_module == "local_folder" else "account-id")
+            if primary_field:
+                fields.append(primary_field)
         elif self.active_module == "standalone_features":
             selected = next((field for field in self.schema["tabs"]["standalone_features"] if field["dest"] == self.standalone_action_dest), None)
             fields = [spec["field"] for spec in build_argument_specs(self.schema, "standalone_features", selected, True)]
@@ -1740,19 +1739,25 @@ class PhotoMigratorTkGUI:
             selected_dest = actions[0]["dest"]
             self.cloud_action_dest[self.active_module] = selected_dest
         self.build_select_row(parent, "Cloud Action", "cloud-action-select", [(ui_option_name(field), field["dest"]) for field in actions], selected_dest, help_text="Select the cloud action to configure for the current service.")
+        if self.active_module == "local_folder":
+            local_folder_field = get_field_by_dest(self.schema, "local-folder")
+            if local_folder_field:
+                self.build_field_widgets(parent, normalize_field_for_context(local_folder_field, self.active_module), required=True, context=self.active_module)
         selected = next((field for field in actions if field["dest"] == selected_dest), None)
         if selected and str(selected.get("help") or "").strip():
             self._empty_label(parent, str(selected.get("help") or "").strip()).pack(anchor="w", padx=8, pady=(0, 4))
         specs = build_argument_specs(self.schema, self.active_module, selected, True)
-        account_field = get_field_by_dest(self.schema, "account-id")
-        if account_field:
-            normalized = normalize_field_for_context(account_field, self.active_module)
-            specs = [spec for spec in specs if spec["field"]["dest"] != "account-id"]
-            is_immich_duplicate_assets = self.active_module == "immich_photos" and selected and selected.get("dest") == "remove-duplicates-assets"
-            insert_at = len(specs) if is_immich_duplicate_assets else next(
-                (idx for idx, spec in enumerate(specs) if not spec["required"]), len(specs)
-            )
-            specs.insert(insert_at, {"field": normalized, "required": False})
+        primary_dest = "local-folder" if self.active_module == "local_folder" else "account-id"
+        primary_field = get_field_by_dest(self.schema, primary_dest)
+        if primary_field:
+            normalized = normalize_field_for_context(primary_field, self.active_module)
+            specs = [spec for spec in specs if spec["field"]["dest"] != primary_dest]
+            if self.active_module != "local_folder":
+                is_immich_duplicate_assets = self.active_module == "immich_photos" and selected and selected.get("dest") == "remove-duplicates-assets"
+                insert_at = len(specs) if is_immich_duplicate_assets else next(
+                    (idx for idx, spec in enumerate(specs) if not spec["required"]), len(specs)
+                )
+                specs.insert(insert_at, {"field": normalized, "required": False})
         self._section_label(parent, "Action Arguments", accent=True)
         if selected and selected.get("dest") == "rename-albums":
             parsed = parse_rename_albums_value(self.state_values.get("rename-albums"))

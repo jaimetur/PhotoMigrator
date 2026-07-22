@@ -1786,8 +1786,11 @@ def _ordered_allowed_dests(tab: str, allowed_dests: set[str], selected_action_de
             seen.add(text)
 
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
+        if tab == "local_folder":
+            _push("local-folder")
         _push(selected_action_dest or "")
-        _push("local-folder" if tab == "local_folder" else "account-id")
+        if tab != "local_folder":
+            _push("account-id")
         for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest or "", []):
             _push(str((item or {}).get("dest") or ""))
         for dep in MODULE_DEPENDENCIES_REQUIRED.get(tab, {}).get(selected_action_dest or "", set()):
@@ -3223,7 +3226,7 @@ def _build_cli_args(
         kind = field["kind"]
         long_option = field["long_option"]
         default = field["default"]
-        if kind == "bool" and raw_value is None and dest in include_default_dests:
+        if kind == "bool" and raw_value is None and (dest in include_default_dests or dest == "preview-album-actions"):
             raw_value = default
 
         if kind == "flag":
@@ -3235,7 +3238,7 @@ def _build_cli_args(
         if kind == "bool":
             current = _bool_from_value(raw_value)
             default_bool = _bool_from_value(default)
-            if current != default_bool or dest in include_default_dests:
+            if current != default_bool or dest in include_default_dests or dest == "preview-album-actions":
                 false_option = str(field.get("false_option") or "").strip()
                 if false_option:
                     args_unordered.append(long_option if current else false_option)

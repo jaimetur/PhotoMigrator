@@ -189,8 +189,9 @@ Following general arguments have different purposses depending on the Execution 
                If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove
                the assets (photos/videos) inside each album.
 -prevAlbAct ; --preview-album-actions
-               If used together with '-renAlb, --rename-albums' or '-rAlb, --remove-albums', it first shows the
-               matching albums and asks for confirmation before applying the change.
+               Enabled by default for Rename Albums, Remove Albums, and Consolidate Album Names. It previews the
+               matching albums and asks for confirmation before applying the change. Use --no-preview-album-actions
+               to disable the preview.
 
 
 AUTOMATIC MIGRATION PROCESS:

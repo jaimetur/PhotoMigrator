@@ -449,10 +449,10 @@ def parse_arguments():
                              "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.\n"
                              "Example: --client=synology --remove-albums \"^Temp\" --remove-albums-assets")
 
-    PARSER.add_argument("-prevAlbAct", "--preview-album-actions", action="store_true", default=False,
-                        help="Preview Rename Albums / Remove Albums matches and request confirmation before applying changes.\n"
-                             "Works with '--rename-albums' and '--remove-albums'.\n"
-                             "Example: --client=immich --rename-albums \"--\" \"-\" --preview-album-actions")
+    PARSER.add_argument("-prevAlbAct", "--preview-album-actions", action=argparse.BooleanOptionalAction, default=True,
+                        help="Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes.\n"
+                             "Enabled by default; use '--no-preview-album-actions' to disable it.\n"
+                             "Example: --client=immich --rename-albums \"--\" \"-\"")
 
     PARSER.add_argument("-prefCanAlb", "--prefer-canonical-album-names", action="store_true", default=False,
                         help="When uploading albums to a cloud service or running Automatic Migration, normalize new destination album names to the preferred clean keeper form.\n"
@@ -704,6 +704,12 @@ def validate_client_arg(ARGS, PARSER):
                 )
                 exit(1)
 
+    if ARGS.get('client') == 'local-folder' and not str(ARGS.get('local-folder') or '').strip():
+        PARSER.error(
+            f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
+            f"The client '--client=local-folder' requires '--local-folder <LOCAL_FOLDER>'.\n{Style.RESET_ALL}"
+        )
+
 
 def checkArgs(ARGS, PARSER):
     """
@@ -930,17 +936,6 @@ def checkArgs(ARGS, PARSER):
             f"--remove-albums-assets is a modifier flag. It must be used together with one of:\n"
             f"--remove-all-albums\n"
             f"--remove-albums\n"
-            f"{Style.RESET_ALL}"
-        )
-        exit(1)
-
-    if ARGS['preview-album-actions'] and not (ARGS['rename-albums'] or ARGS['remove-albums'] or ARGS['consolidate-albums-names']):
-        PARSER.error(
-            f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
-            f"--preview-album-actions is a modifier flag. It must be used together with one of:\n"
-            f"--rename-albums\n"
-            f"--remove-albums\n"
-            f"--consolidate-albums-names\n"
             f"{Style.RESET_ALL}"
         )
         exit(1)

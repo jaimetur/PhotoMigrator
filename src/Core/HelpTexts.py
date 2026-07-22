@@ -114,12 +114,12 @@ def set_help_texts():
     HELP_TEXTS["remove-albums"] = textwrap.dedent(f"""
             CAUTION!!! The Tool will remove those Albums from your Photos account Database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>'. The remove pattern can be plain text, a wildcard expression, or a regular expression.
             Optionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAsset, --remove-albums-assets' argument.
-            Use '--preview-album-actions' if you want to preview the affected albums and request confirmation before applying the action.
+            Album preview is enabled by default; use '--no-preview-album-actions' to skip it.
             """)
 
     HELP_TEXTS["rename-albums"] = textwrap.dedent(f"""
             CAUTION!!! The Tool will rename those Albums from your Photos account Database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>' and will replace them with the pattern '<ALBUMS_NAME_REPLACEMENT_PATTERN>'. The rename pattern can be plain text, a wildcard expression (for example '*--*' or '--*'), or a regular expression.
-            Use '--preview-album-actions' if you want to preview the affected albums and request confirmation before applying the action.
+            Album preview is enabled by default; use '--no-preview-album-actions' to skip it.
             """)
 
     HELP_TEXTS["consolidate-albums-names"] = textwrap.dedent(f"""
@@ -130,7 +130,7 @@ def set_help_texts():
             Truncated suffixes are consolidated only when every candidate has the same dominant asset year. Names whose terminal suffix is Shared, Share, Public, Público, or a truncated form of one of them are never merged with the equivalent plain name.
             On services that support album deletion (Immich, Synology, NextCloud), the redundant albums are removed after their assets are reassigned to the preferred keeper album.
             On Google Photos, the redundant variants remain because the public API does not allow deleting albums.
-            Use '--preview-album-actions' to preview the detected keeper and merge candidates. '--request-user-confirmation=true' shows that list and requests confirmation before any reassignment or deletion.
+            Album preview is enabled by default. '--request-user-confirmation=true' shows the keeper and merge candidates and requests confirmation before any reassignment or deletion; use '--no-preview-album-actions' to skip the preview.
             """)
 
     ############################

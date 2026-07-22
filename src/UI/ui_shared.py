@@ -76,6 +76,7 @@ FEATURE_LABELS = {
     "process-duplicates": "Process Duplicates",
 }
 UI_FIELD_LABELS = {
+    "local-folder": "Local Folder",
     "dashboard": "Live Dashboard",
     "preview-album-actions": "Preview Album Actions",
     "prefer-canonical-album-names": "Prefer Canonical Album Names",
@@ -1091,6 +1092,12 @@ def build_argument_specs(schema: Dict[str, Any], tab_key: str, selected_field: D
         seen.add(dest)
         specs.append({"field": normalize_field_for_context(field, tab_key), "required": required})
 
+    # A Local Folder module cannot operate without its managed library root.
+    # Keep it first so GUI, TUI, and command previews all lead with the
+    # location that defines the target library.
+    if tab_key == "local_folder":
+        push_spec("local-folder", True, True)
+
     if include_selected_value and selected_field and selected_field.get("kind") != "flag":
         push_spec(str(selected_field.get("dest") or ""), True)
 
@@ -1628,6 +1635,8 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
         for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest or "", [])
         if bool(item.get("required"))
     }
+    if tab == "local_folder":
+        required_action_dests.add("local-folder")
     args: List[str] = []
     for dest in sorted(allowed_dests):
         field = schema["fields_by_dest"][dest]
@@ -1647,7 +1656,11 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
         if kind == "bool":
             current = bool_from_value(raw_value)
             default_bool = bool_from_value(default)
-            if current != default_bool or dest in required_action_dests:
+            if (
+                current != default_bool
+                or dest in required_action_dests
+                or dest == "preview-album-actions"
+            ):
                 false_option = str(field.get("false_option") or "").strip()
                 if false_option:
                     args.append(long_option if current else false_option)
