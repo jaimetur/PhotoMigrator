@@ -105,6 +105,7 @@
   - Fixed local-folder analysis when the selected source is nested below a hidden ancestor such as `.web-dev`. Folder and file exclusions are now evaluated relative to the selected source root, so the default `.*` rule still excludes hidden folders inside the source without silently discarding every asset because of an external parent directory.
   - Fixed Automatic Migration physical queue-state counters for assets without a Live Photo companion. Empty companion paths were normalized as a spurious `.` entry, inflating `In flight`, `Completed`, and their denominator by one file per scope.
   - Fixed local-folder to Immich Automatic Migration Live Photo handling. Same-stem HEIC/JPEG and MOV files are now paired deterministically from the source inventory and uploaded through Immich's Live Photo endpoint as one transfer job while all queue, album, and migration counters continue to count both physical files exactly once.
+  - Fixed Immich burst auto-stacking in Automatic Migration to retain duplicate photo candidates. Existing Immich asset IDs are now resolved only after filename, capture-time, and size heuristics identify a qualifying burst group, preserving the fast duplicate path for unrelated assets. The final burst evaluation is logged even when it creates no stacks.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

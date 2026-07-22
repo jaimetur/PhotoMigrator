@@ -225,6 +225,46 @@ class TestImmichPhotosUnit(unittest.TestCase):
             self.manager._burst_primary_sort_key(smaller_image),
         )
 
+    def test_auto_stack_bursts_resolves_duplicate_candidates_only_after_grouping(self):
+        self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".jpg"]
+        self.manager._resolve_existing_asset_id_from_metadata = MagicMock(return_value="existing-asset-id")
+        self.manager._create_stack = MagicMock(return_value="stack-id")
+        records = [
+            {
+                "asset_id": "new-asset-id",
+                "file_path": "/photos/IMG_0001.jpg",
+                "folder": "/photos",
+                "ext": ".jpg",
+                "normalized_stem": "img_0001",
+                "capture_epoch": 100,
+                "file_size": 100,
+            },
+            {
+                "asset_id": None,
+                "file_path": "/photos/IMG_0001 (1).jpg",
+                "folder": "/photos",
+                "ext": ".jpg",
+                "normalized_stem": "img_0001",
+                "capture_epoch": 101,
+                "file_size": 100,
+            },
+        ]
+
+        with patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock):
+            stacks_created = self.manager.auto_stack_bursts(records, context_label="test")
+
+        self.assertEqual(stacks_created, 1)
+        self.manager._resolve_existing_asset_id_from_metadata.assert_called_once_with(
+            filename="IMG_0001 (1).jpg",
+            capture_epoch=101,
+            file_size=100,
+            log_level=None,
+        )
+        self.manager._create_stack.assert_called_once_with(
+            ["new-asset-id", "existing-asset-id"],
+            log_level=None,
+        )
+
     def test_get_album_owner_id_prefers_owner_id_when_present(self):
         album = {
             "ownerId": "legacy-owner",

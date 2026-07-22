@@ -3650,6 +3650,25 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 return None
         return None
 
+    def _record_immich_burst_candidate(asset_id, asset_file_path, asset_datetime, asset_type):
+        """Retain fresh and duplicate photo candidates for end-of-job burst stacking."""
+        if not isinstance(target_client, ClassImmichPhotos):
+            return
+        if str(asset_type or "").lower() not in image_labels:
+            return
+        try:
+            file_size = os.path.getsize(asset_file_path) if os.path.exists(asset_file_path) else 0
+        except OSError:
+            file_size = 0
+        record = target_client._build_burst_record(
+            asset_id=asset_id,
+            file_path=asset_file_path,
+            capture_epoch=parse_capture_epoch(asset_datetime),
+            file_size=file_size,
+        )
+        with immich_uploaded_records_lock:
+            immich_uploaded_records.append(record)
+
     # ------------------
     # 1) HILO PRINCIPAL
     # ------------------
@@ -4785,6 +4804,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     album_stats_by_name_ref,
                                     album_stats_lock_ref,
                                 )
+                                _record_immich_burst_candidate(
+                                    asset_id=asset_id,
+                                    asset_file_path=asset_file_path,
+                                    asset_datetime=asset_datetime,
+                                    asset_type=asset_type,
+                                )
                                 if isDuplicated:
                                     album_context = _format_album_pending_context(
                                         album_name,
@@ -4827,19 +4852,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         f"Asset Pushed    : '{os.path.basename(asset_file_path)}'"
                                         f"{_format_album_pending_context(album_name, asset_file_path, takeout_people_count, takeout_people_assigned_count, show_takeout_people_count, queue_state_snapshot=album_queue_state_snapshot, queue_scope=asset_queue_scope)}"
                                     )
-                                    if isinstance(target_client, ClassImmichPhotos) and asset_type.lower() in image_labels and not str(asset_id).startswith("duplicate::"):
-                                        try:
-                                            file_size = os.path.getsize(asset_file_path) if os.path.exists(asset_file_path) else 0
-                                        except Exception:
-                                            file_size = 0
-                                        rec = target_client._build_burst_record(
-                                            asset_id=asset_id,
-                                            file_path=asset_file_path,
-                                            capture_epoch=parse_capture_epoch(asset_datetime),
-                                            file_size=file_size
-                                        )
-                                        with immich_uploaded_records_lock:
-                                            immich_uploaded_records.append(rec)
                             else:
                                 # Si entramos aqui es porque asset_id no existe, probablemente se haya producido una excepción en push_asset, y el LOGGER se haya quedado con el nivel ERROR
                                 set_log_level(LOGGER, orig_level)
@@ -4865,6 +4877,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     LOGGER.info(
                                         f"Asset Duplicated: '{os.path.basename(asset_file_path)}'"
                                         f"{_format_skipped_asset_suffix(album_context)}"
+                                    )
+                                    _record_immich_burst_candidate(
+                                        asset_id=None,
+                                        asset_file_path=asset_file_path,
+                                        asset_datetime=asset_datetime,
+                                        asset_type=asset_type,
                                     )
                                     treat_as_consumed = True
                                     if count_push_stats and not album_name:

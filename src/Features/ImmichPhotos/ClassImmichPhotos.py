@@ -3100,21 +3100,22 @@ class ClassImmichPhotos(BaseMediaClient):
             self._all_assets_unfiltered_cache = all_assets
             return all_assets
 
-    def _resolve_existing_asset_id(self, file_path, log_level=None):
+    def _resolve_existing_asset_id_from_metadata(self, filename, capture_epoch=None, file_size=None, log_level=None):
+        """Resolve an existing asset using the identity retained after a duplicate upload."""
         with set_log_level(LOGGER, log_level):
-            cached_asset_id = self._lookup_uploaded_asset_id(file_path)
-            if cached_asset_id:
-                return cached_asset_id
-
-            target_name = os.path.basename(file_path)
+            target_name = os.path.basename(str(filename or ""))
+            if not target_name:
+                return None
             target_name_casefold = target_name.casefold()
             target_name_normalized = self._normalize_duplicate_lookup_name(target_name)
+            target_time = (
+                datetime.fromtimestamp(capture_epoch, tz=timezone.utc)
+                if isinstance(capture_epoch, (int, float))
+                else None
+            )
             try:
-                stat = os.stat(file_path)
-                target_time = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
-                target_size = int(stat.st_size)
-            except Exception:
-                target_time = None
+                target_size = int(file_size) if file_size is not None else None
+            except (TypeError, ValueError):
                 target_size = None
 
             # Duplicate resolution can be invoked hundreds of times in an
@@ -3182,9 +3183,29 @@ class ClassImmichPhotos(BaseMediaClient):
                     if exact_name_match and time_delta <= 1 and (size_delta == 0 or size_delta == float("inf")):
                         break
 
-            if best_asset_id:
-                self._remember_uploaded_asset_id(file_path, best_asset_id)
             return best_asset_id
+
+    def _resolve_existing_asset_id(self, file_path, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            cached_asset_id = self._lookup_uploaded_asset_id(file_path)
+            if cached_asset_id:
+                return cached_asset_id
+            try:
+                stat = os.stat(file_path)
+                capture_epoch = stat.st_mtime
+                file_size = int(stat.st_size)
+            except Exception:
+                capture_epoch = None
+                file_size = None
+            resolved_asset_id = self._resolve_existing_asset_id_from_metadata(
+                filename=os.path.basename(file_path),
+                capture_epoch=capture_epoch,
+                file_size=file_size,
+                log_level=log_level,
+            )
+            if resolved_asset_id:
+                self._remember_uploaded_asset_id(file_path, resolved_asset_id)
+            return resolved_asset_id
 
     @staticmethod
     def _normalize_duplicate_lookup_name(filename):
@@ -3485,22 +3506,25 @@ class ClassImmichPhotos(BaseMediaClient):
         Auto-stack burst-like photo groups in Immich using conservative heuristics.
         """
         with set_log_level(LOGGER, log_level):
+            prefix = f"{context_label}: " if context_label else ""
             if not uploaded_records:
+                LOGGER.info(f"{prefix}Burst auto-stack evaluated 0 photo candidate(s); created 0 stack group(s) in Immich.")
                 return 0
 
-            # Keep only photo assets and valid IDs
+            # Keep photo candidates even when Immich returned a duplicate without
+            # its existing ID. IDs are resolved only for a qualifying burst group.
             photo_exts = {e.lower() for e in (self.ALLOWED_IMMICH_PHOTO_EXTENSIONS or [])}
             records = []
             for rec in uploaded_records:
                 if not rec:
                     continue
-                asset_id = rec.get("asset_id")
                 ext = str(rec.get("ext", "")).lower()
-                if not asset_id or ext not in photo_exts:
+                if ext not in photo_exts:
                     continue
                 records.append(rec)
 
             if not records:
+                LOGGER.info(f"{prefix}Burst auto-stack evaluated 0 photo candidate(s); created 0 stack group(s) in Immich.")
                 return 0
 
             groups = {}
@@ -3546,6 +3570,15 @@ class ClassImmichPhotos(BaseMediaClient):
                     seen_ids = set()
                     for c in cluster_sorted:
                         aid = c.get("asset_id")
+                        if not aid:
+                            aid = self._resolve_existing_asset_id_from_metadata(
+                                filename=os.path.basename(str(c.get("file_path") or "")),
+                                capture_epoch=c.get("capture_epoch"),
+                                file_size=c.get("file_size"),
+                                log_level=log_level,
+                            )
+                            if aid:
+                                c["asset_id"] = aid
                         if aid and aid not in seen_ids:
                             ordered_asset_ids.append(aid)
                             seen_ids.add(aid)
@@ -3555,9 +3588,10 @@ class ClassImmichPhotos(BaseMediaClient):
                     if stack_id:
                         stacks_created += 1
 
-            if stacks_created > 0:
-                prefix = f"{context_label}: " if context_label else ""
-                LOGGER.info(f"{prefix}Auto-stacked {stacks_created} burst group(s) in Immich.")
+            LOGGER.info(
+                f"{prefix}Burst auto-stack evaluated {len(records)} photo candidate(s); "
+                f"created {stacks_created} stack group(s) in Immich."
+            )
             return stacks_created
 
 
