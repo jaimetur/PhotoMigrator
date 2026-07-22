@@ -137,6 +137,7 @@
   - Fixed partial album consolidation across Google Photos, Synology Photos, Immich Photos, NextCloud Photos, and Local Folder. Assets verified in the keeper are now removed from the redundant album while that album remains available with only its unconfirmed assets.
   - Added physical asset counts beside keeper and redundant album names in Consolidate Albums Names preview tables.
   - Fixed Web Interface confirmation detection for `Do you want to continue? (yes/no):` prompts. Preview confirmations now appear in the Output Panel and enable the input controls before the user responds.
+  - Fixed Immich Automatic Migration with `--consolidate-similar-albums` bypassing the album metadata policy used by Upload Albums and Upload All. Existing target album families now use the same description preservation, restrictive direct-sharing intersection, public-link restriction, and fail-closed deletion behavior.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

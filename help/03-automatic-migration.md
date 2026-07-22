@@ -45,6 +45,8 @@ If you include **`--prefer-canonical-album-names`**, PhotoMigrator normalizes ne
 
 If you include **`--consolidate-similar-albums`**, PhotoMigrator also treats equivalent album families as reusable even when they differ only by harmless formatting or duplicate-like suffixes. It uses the same guarded detection as the standalone **Consolidate Albums Names** module: compatible `YYYY`, `YYYY-MM`, and `YYYY-MM-DD` prefixes can be consolidated, while a specific date is retained only if at least 95% of that album's assets fit its date range; otherwise the compatible broader date is retained. End-truncated names require a shared prefix of at least two distinct words and the same dominant asset year. Albums with up to three assets can also join a larger similarly named album when their complete capture-date range fits inside the keeper range. `Shared`, `Share`, `Public`, `Público`, `X`, and `Videos` suffix safeguards apply as well.
 
+When the target is Immich, this uses the same metadata reconciliation as Immich Upload Albums and Upload All: the keeper retains its non-empty description or receives the longest family description, direct recipients are reduced to their common intersection using the most restrictive role, and public keeper links are removed when any family member has none. A reconciliation failure keeps the redundant albums intact.
+
 For the standalone **Consolidate Albums Names** module, all four detectors are enabled by default and can be controlled independently: `--try-equivalent-albums-grouping`, `--try-date-prefix-albums-grouping`, `--try-truncated-albums-grouping`, and `--try-small-albums-grouping`. Use the corresponding `--no-...` option to skip one detector without disabling the others.
 
 Examples that are treated as the same family:

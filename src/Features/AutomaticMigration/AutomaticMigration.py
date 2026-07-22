@@ -1782,6 +1782,57 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         preferred_album_name = str(plan.get("preferred_album_name") or album_name).strip() or album_name
 
         if group_key and group_key not in consolidated_album_groups:
+            # Immich owns album descriptions and direct sharing permissions. Reuse
+            # its consolidation path so Automatic Migration applies the same
+            # restrictive metadata reconciliation as Upload Albums/Upload All.
+            if isinstance(target_client, ClassImmichPhotos) and plan.get("redundant_albums"):
+                redundant_ids = {
+                    str((album or {}).get("id", "")).strip()
+                    for album in (plan.get("redundant_albums") or [])
+                    if str((album or {}).get("id", "")).strip()
+                }
+                keeper_album, resolved_plan = target_client.consolidate_reusable_album_group(
+                    album_name=album_name,
+                    existing_albums=target_existing_albums,
+                    log_level=log_level,
+                    plan=plan,
+                )
+                if not keeper_album:
+                    return None, resolved_plan.get("match_kind"), []
+
+                keeper_id = str((keeper_album or {}).get("id", "")).strip()
+                keeper_name = str((keeper_album or {}).get("albumName", "")).strip()
+                remaining_ids = {
+                    str((album or {}).get("id", "")).strip()
+                    for album in (target_existing_albums or [])
+                    if str((album or {}).get("id", "")).strip()
+                }
+                for redundant_id in redundant_ids - remaining_ids:
+                    _record_unique_counter(
+                        SHARED_DATA.counters,
+                        'total_consolidated_albums',
+                        consolidated_album_ids,
+                        redundant_id,
+                    )
+                consolidated_album_groups.add(group_key)
+                created_albums[preferred_album_name] = keeper_id
+                created_albums[album_name] = keeper_id
+                for similar_album in resolved_plan.get("similar_albums") or []:
+                    similar_name = str((similar_album or {}).get("albumName", "")).strip()
+                    if similar_name:
+                        created_albums[similar_name] = keeper_id
+                if keeper_id:
+                    _set_cached_target_album_asset_ids(
+                        keeper_id,
+                        _get_target_album_asset_ids(
+                            target_client,
+                            keeper_id,
+                            album_name=keeper_name,
+                            log_level=log_level,
+                        ),
+                    )
+                return keeper_album, resolved_plan.get("match_kind") or "similar", []
+
             keeper_id = str((keeper_album or {}).get("id", "")).strip() if keeper_album else ""
             keeper_name = str((keeper_album or {}).get("albumName", "")).strip() if keeper_album else ""
 
