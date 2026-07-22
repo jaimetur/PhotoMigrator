@@ -217,7 +217,7 @@
                         <div class="bar-row bar-row--queue"><span>🧾 Album Assoc Queue</span><div class="progress-track"><div id="bar-info-album-assoc-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-album-assoc-queue-count">0/- (-)</span></span></div>
                     </div>
                     <div class="stats-card stats-card--transfer">
-                        <h4 id="dash-pull-title" class="stats-card__title">⬇️ Pull Panel</h4>
+                        <h4 class="stats-card__title stats-card__title--with-context"><span id="dash-pull-title">⬇️ Pull Panel</span><span id="dash-pull-context" class="stats-card__context-inline" title=""></span></h4>
                         <div class="bar-row"><span>🎯 Pulled Assets</span><div class="progress-track"><div id="bar-pulled-assets" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-assets-count">0/- (-)</span></span></div>
                         <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Assets</span><span id="dash-pull-failed-assets" class="stat-value">0</span></div>
                         <div class="bar-row"><span>📷 Pulled Photos</span><div class="progress-track"><div id="bar-pulled-photos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-photos-count">0/- (-)</span></span></div>
@@ -233,7 +233,7 @@
                         <div class="stat-row"><span class="stat-label">📅 Estimated End</span><span id="dash-estimated-end" class="stat-value">-</span></div>
                     </div>
                     <div class="stats-card stats-card--transfer">
-                        <h4 id="dash-push-title" class="stats-card__title">⬆️ Push Panel</h4>
+                        <h4 class="stats-card__title stats-card__title--with-context"><span id="dash-push-title">⬆️ Push Panel</span><span id="dash-push-context" class="stats-card__context-inline" title=""></span></h4>
                         <div class="bar-row"><span>🎯 Pushed Assets</span><div class="progress-track"><div id="bar-pushed-assets" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-assets-count">0/- (-)</span></span></div>
                         <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Assets (New / Duplicates / Failed)</span><span id="dash-push-assets-outcomes" class="stat-value">0 / 0 / 0</span></div>
                         <div class="bar-row"><span>📷 Pushed Photos</span><div class="progress-track"><div id="bar-pushed-photos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-photos-count">0/- (-)</span></span></div>
@@ -1726,13 +1726,43 @@
         const estimatedEnd = computeEstimatedEnd(estimated, now);
         const updated = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
 
-        const sourceLabel = stats.sourceClientName || source;
-        const targetLabel = stats.targetClientName || target;
+        const splitDashboardClientLabel = (value) => {
+            const label = String(value || "").trim();
+            const match = label.match(/^(.*?)\s*\((.*)\)$/);
+            const isLocalPath = /[\\/]/.test(label);
+            return {
+                full: label,
+                service: match ? match[1].trim() : (isLocalPath ? "Local Folder" : label),
+                detail: match ? match[2].trim() : "",
+            };
+        };
+        const sourceClient = splitDashboardClientLabel(stats.sourceClientName || source);
+        const targetClient = splitDashboardClientLabel(stats.targetClientName || target);
+        const sourceService = String(stats.sourceClientService || sourceClient.service || "Source Client");
+        const targetService = String(stats.targetClientService || targetClient.service || "Target Client");
+        const sourceContext = String(stats.sourceClientContext || sourceClient.detail || "");
+        const targetContext = String(stats.targetClientContext || targetClient.detail || "");
+        const sourceLabel = sourceContext
+            ? `${sourceService} (${sourceContext})`
+            : sourceClient.full;
+        const targetLabel = targetContext
+            ? `${targetService} (${targetContext})`
+            : targetClient.full;
         document.getElementById("web-dashboard-route").textContent = `${sourceLabel}  ->  ${targetLabel}`;
         const pullTitle = document.getElementById("dash-pull-title");
         const pushTitle = document.getElementById("dash-push-title");
-        if (pullTitle) pullTitle.textContent = `⬇️ Pull Panel - ${sourceLabel}`;
-        if (pushTitle) pushTitle.textContent = `⬆️ Push Panel - ${targetLabel}`;
+        const pullContext = document.getElementById("dash-pull-context");
+        const pushContext = document.getElementById("dash-push-context");
+        if (pullTitle) pullTitle.textContent = `⬇️ Pull Panel - ${sourceService}`;
+        if (pushTitle) pushTitle.textContent = `⬆️ Push Panel - ${targetService}`;
+        if (pullContext) {
+            pullContext.textContent = sourceContext ? `(${sourceContext})` : "";
+            pullContext.title = sourceContext;
+        }
+        if (pushContext) {
+            pushContext.textContent = targetContext ? `(${targetContext})` : "";
+            pushContext.title = targetContext;
+        }
         const chip = document.getElementById("web-dashboard-chip");
         const normalizedStatus = webDashboardState.status;
         chip.textContent = normalizedStatus.toUpperCase();

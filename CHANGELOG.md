@@ -69,6 +69,8 @@
   - Redirected the Web Interface to Output whenever the current user opens or reloads Features or Configuration while one of their jobs is running or stopping, while preserving direct navigation through the page tabs.
   - Improved Automatic Migration Immich asset logs for `--import-people`: pushed and duplicate assets now report the labels found and successfully assigned, together with structured album and queue context. Album-association retries now also queue assets with already-known target IDs instead of finalizing them immediately.
   - Added `Start Time` to the Web Interface Output Panel run metadata, displaying the local `HH:MM:SS` at which the current execution began before its elapsed-time and last-update indicators.
+  - Expanded Immich Google Takeout people-import reporting in Automatic Migration. Ambiguous same-name entries with identical or unavailable comparable dates now merge their labels instead of being skipped; empty per-asset people blocks are omitted; `Album Pushed` reports that album's found/assigned labels; and the final summary reports distinct assets with labels found, distinct assets with labels assigned, and total unique people assigned.
+  - Refined Web Interface Automatic Migration Live Dashboard transfer headers. Pull and Push now retain the explicit backend service type (`Local Folder`, `Google Takeout Folder`, `iCloud Takeout Folder`, or cloud service) and display the local path relative to the app/container root or the cloud account as a compact, truncated parenthesized detail in the same title line.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
@@ -98,6 +100,7 @@
   - Fixed Immich duplicate cleanup safety: duplicate-review metadata must now return the requested asset ID, and groups with missing or repeated asset IDs are skipped before preview, native resolution, or deletion.
   - Fixed the Web Interface Output Panel run metadata for Automatic Migration. `Elapsed Time` and `Last Updated` above the Live Dashboard now refresh throughout the running job instead of remaining at their initial values.
   - Fixed the Web Interface theme flash when changing pages. The server now renders the saved user theme on the initial `<body>` element instead of briefly showing the default Emerald palette before client state is loaded.
+  - Fixed local-folder analysis when the selected source is nested below a hidden ancestor such as `.web-dev`. Folder and file exclusions are now evaluated relative to the selected source root, so the default `.*` rule still excludes hidden folders inside the source without silently discarding every asset because of an external parent directory.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

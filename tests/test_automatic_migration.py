@@ -90,6 +90,10 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             info={
                 "source_client_name": "Local Folder",
                 "target_client_name": "Immich Photos",
+                "source_client_service": "Local Folder",
+                "target_client_service": "Immich Photos",
+                "source_client_context": "data/Photos",
+                "target_client_context": "jaimetur@example.com",
                 "asset_transfer_start_time": "2026-07-16T10:00:00Z",
                 "total_assets": 500,
                 "total_photos": 420,
@@ -147,6 +151,10 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["migrationMode"], "parallel")
         self.assertEqual(snapshot["sourceClientName"], "Local Folder")
         self.assertEqual(snapshot["targetClientName"], "Immich Photos")
+        self.assertEqual(snapshot["sourceClientService"], "Local Folder")
+        self.assertEqual(snapshot["targetClientService"], "Immich Photos")
+        self.assertEqual(snapshot["sourceClientContext"], "data/Photos")
+        self.assertEqual(snapshot["targetClientContext"], "jaimetur@example.com")
         self.assertEqual(snapshot["assetTransferStartedAt"], "2026-07-16T10:00:00Z")
         self.assertEqual(snapshot["pulledAssets"], 240)
         self.assertEqual(snapshot["pushedAssets"], 210)

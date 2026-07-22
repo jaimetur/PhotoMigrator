@@ -116,10 +116,18 @@ class FolderAnalyzer:
                     if name.startswith("PhotoMigrator_") or name.startswith("gpth_"):
                         continue
                     full_path = Path(root) / name
-                    if should_exclude_path(full_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                    relative_path = self._get_relative_filter_path(full_path)
+                    if should_exclude_path(relative_path, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
                         continue
                     self.file_list.append(full_path.as_posix())
             self.logger.info(f"{step_name}Built file_list from disk: {len(self.file_list)} files (excluded PhotoMigrator_* and gpth_*).")
+
+    def _get_relative_filter_path(self, path_value):
+        """Return a path relative to the selected source root for exclusions."""
+        try:
+            return Path(path_value).relative_to(Path(self.folder_path))
+        except (TypeError, ValueError):
+            return Path(path_value)
 
     def _build_file_list_from_extracted_dates(self, step_name='', log_level=None):
         with set_log_level(self.logger, log_level):
@@ -164,7 +172,7 @@ class FolderAnalyzer:
                     leave=True,
                 ) as pbar:
                     for p in self.file_list:
-                        if should_exclude_path(p, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                        if should_exclude_path(self._get_relative_filter_path(p), exclusion_folders=folder_patterns, exclusion_files=file_patterns):
                             pbar.update(1)
                             continue
                         self.filtered_file_list.append(p)
@@ -177,7 +185,7 @@ class FolderAnalyzer:
             # otherwise, apply ext + date filters
             self.logger.info(f"{step_name}🔍 Applying filters to Analyzer Object. This may take some time. Please be patient...")
             for p in self.file_list:
-                if should_exclude_path(p, exclusion_folders=folder_patterns, exclusion_files=file_patterns):
+                if should_exclude_path(self._get_relative_filter_path(p), exclusion_folders=folder_patterns, exclusion_files=file_patterns):
                     continue
                 file = Path(p)
                 ext = file.suffix.lower()
@@ -1293,6 +1301,5 @@ if __name__ == "__main__":
     for workers in worker_values:
         print(f"\n🚀 Running pipeline with max_workers = {workers}")
         run_full_pipeline(input_folder, logger, max_workers=workers)
-
 
 

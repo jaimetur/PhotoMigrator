@@ -2279,6 +2279,28 @@ body[data-theme="dark"] .theme-card__name {
     border-bottom: 1px solid rgba(170, 210, 198, 0.35);
 }
 
+.stats-card__title--with-context {
+    align-items: baseline;
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.stats-card__title--with-context > span:first-child {
+    flex: 0 0 auto;
+}
+
+.stats-card__context-inline {
+    min-width: 0;
+    overflow: hidden;
+    color: #a8d3c5;
+    font-size: 0.74rem;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .stat-row {
     display: flex;
     justify-content: space-between;

@@ -78,6 +78,21 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
             ["partner-no-album.jpg", "root-no-album.jpg"],
         )
 
+    def test_analyzer_does_not_exclude_source_files_because_an_ancestor_is_hidden(self):
+        hidden_source = self.root / ".web-dev" / "data" / "Synology"
+        media_file = hidden_source / "No_Albums" / "2025" / "10" / "photo.jpg"
+        media_file.parent.mkdir(parents=True)
+        media_file.write_text("data", encoding="utf-8")
+
+        analyzer = folder_analyzer_module.FolderAnalyzer(
+            folder_path=str(hidden_source),
+            force_date_extraction=False,
+            logger=self.logger,
+        )
+
+        self.assertEqual(analyzer.file_list, [media_file.resolve().as_posix()])
+        self.assertEqual(analyzer.filtered_file_list, [media_file.resolve().as_posix()])
+
     def test_managed_layout_treats_memories_root_as_album_collections(self):
         self._create_file("Memories/Summer Recap/memory-a.jpg")
 

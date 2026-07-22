@@ -18,7 +18,7 @@ from queue import Queue, Empty, PriorityQueue
 from typing import Union, cast
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
-from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE, FOLDERNAME_EXTRACTED_DATES
+from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE, FOLDERNAME_EXTRACTED_DATES, PROJECT_ROOT
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
 from Features.ICloudTakeout.ClassICloudTakeoutFolder import ClassICloudTakeoutFolder, contains_icloud_takeout_structure, is_icloud_metadata_csv_path
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
@@ -108,6 +108,10 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "migrationMode": "parallel" if bool(parallel) else "sequential",
         "sourceClientName": info.get("source_client_name"),
         "targetClientName": info.get("target_client_name"),
+        "sourceClientService": info.get("source_client_service"),
+        "targetClientService": info.get("target_client_service"),
+        "sourceClientContext": info.get("source_client_context"),
+        "targetClientContext": info.get("target_client_context"),
         "assetTransferStartedAt": info.get("asset_transfer_start_time"),
         "totalAssets": physical_total_assets,
         "totalPhotos": physical_total_photos,
@@ -782,6 +786,10 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         input_info = {
             "source_client_name": "Source Client",
             "target_client_name": "Target Client",
+            "source_client_service": "Source Client",
+            "target_client_service": "Target Client",
+            "source_client_context": "",
+            "target_client_context": "",
             "asset_transfer_start_time": None,
             "total_assets": 0,
             "total_photos": 0,
@@ -903,14 +911,43 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             else:
                 raise ValueError(f"{MSG_TAGS['ERROR']}Tipo de cliente no válido: {client_type}")
 
+        def _get_dashboard_client_context(client, client_name):
+            if isinstance(client, (ClassLocalFolder, ClassTakeoutFolder, ClassICloudTakeoutFolder)):
+                local_folder = Path(getattr(client, "base_folder", None) or getattr(client, "output_folder", None) or "")
+                if local_folder:
+                    try:
+                        return str(local_folder.resolve().relative_to(Path(PROJECT_ROOT).resolve()))
+                    except ValueError:
+                        return os.path.relpath(str(local_folder.resolve()), str(Path(PROJECT_ROOT).resolve()))
+            match = re.match(r"^.*?\s*\((.*)\)$", str(client_name or "").strip())
+            return match.group(1).strip() if match else ""
+
+        def _get_dashboard_client_service(client, client_name):
+            if isinstance(client, ClassTakeoutFolder):
+                return "Google Takeout Folder"
+            if isinstance(client, ClassICloudTakeoutFolder):
+                return "iCloud Takeout Folder"
+            if isinstance(client, ClassLocalFolder):
+                return "Local Folder"
+            match = re.match(r"^(.*?)\s*\(.*\)$", str(client_name or "").strip())
+            return match.group(1).strip() if match else str(client_name or "").strip()
+
         # Creamos los objetos source_client y target_client y obtenemos sus nombres para mostrar en el show_dashboard
         source_client = get_client_object(source, client_label="Source")
         source_client_name = source_client.get_client_name()
-        SHARED_DATA.info.update({"source_client_name": source_client_name})
+        SHARED_DATA.info.update({
+            "source_client_name": source_client_name,
+            "source_client_service": _get_dashboard_client_service(source_client, source_client_name),
+            "source_client_context": _get_dashboard_client_context(source_client, source_client_name),
+        })
 
         target_client = get_client_object(target, client_label="Target")
         target_client_name = target_client.get_client_name()
-        SHARED_DATA.info.update({"target_client_name": target_client_name})
+        SHARED_DATA.info.update({
+            "target_client_name": target_client_name,
+            "target_client_service": _get_dashboard_client_service(target_client, target_client_name),
+            "target_client_context": _get_dashboard_client_context(target_client, target_client_name),
+        })
 
         # Check if source_client support specified filters
         unsupported_text = ""
@@ -1085,7 +1122,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 source_client.process(log_level=log_level)
                 source_client = ClassLocalFolder(base_folder=str(source_client.output_folder))
                 source_client_name = source_client.get_client_name()
-                SHARED_DATA.info.update({"source_client_name": source_client_name})
+                SHARED_DATA.info.update({
+                    "source_client_name": source_client_name,
+                    "source_client_service": _get_dashboard_client_service(source_client, source_client_name),
+                    "source_client_context": _get_dashboard_client_context(source_client, source_client_name),
+                })
 
             if isinstance(source_client, ClassTakeoutFolder) and isinstance(target_client, ClassImmichPhotos):
                 target_client.configure_people_import(source_client.output_folder, log_level=log_level)
@@ -1110,7 +1151,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 target_client.process(log_level=log_level)
                 target_client = ClassLocalFolder(base_folder=str(target_client.output_folder))
                 target_client_name = target_client.get_client_name()
-                SHARED_DATA.info.update({"target_client_name": target_client_name})
+                SHARED_DATA.info.update({
+                    "target_client_name": target_client_name,
+                    "target_client_service": _get_dashboard_client_service(target_client, target_client_name),
+                    "target_client_context": _get_dashboard_client_context(target_client, target_client_name),
+                })
 
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
