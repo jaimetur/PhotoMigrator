@@ -1364,7 +1364,7 @@ _ALBUM_LEADING_DATE_RE = re.compile(
     r"^\d{4}(?:[._\-\u2010-\u2015\s]+\d{1,2}){0,2}\s*(?:[._\-\u2010-\u2015]+\s*)?"
 )
 _ALBUM_SPECIAL_SUFFIX_RE = re.compile(
-    r"(?:\s|\()(?P<suffix>(?:sh(?:a(?:r(?:e(?:d)?)?)?)?)|(?:pub(?:l(?:i(?:c(?:o)?)?)?)?)|p(?:u|\u00fa)(?:b(?:l(?:i(?:c(?:o)?)?)?)?)|priv(?:a(?:d(?:o|a)?)?|at(?:e)?)?|selec(?:c(?:i(?:o(?:n)?)?)?)?|select(?:i(?:o(?:n)?)?)?|x)\)?\s*$",
+    r"(?:\s|\()(?P<suffix>(?:sh(?:a(?:r(?:e(?:d)?)?)?)?)|(?:pub(?:l(?:i(?:c(?:o)?)?)?)?)|p(?:u|\u00fa)(?:b(?:l(?:i(?:c(?:o)?)?)?)?)|priv(?:a(?:d(?:o|a)?)?|at(?:e)?)?|selec(?:c(?:i(?:o(?:n)?)?)?)?|select(?:i(?:o(?:n)?)?)?|guay|x)\)?\s*$",
     re.IGNORECASE,
 )
 _ALBUM_VIDEOS_SUFFIX_RE = re.compile(r"(?:^|[\s()_\-]+)videos\s*$", re.IGNORECASE)
@@ -1411,7 +1411,7 @@ def _album_truncation_key(name):
         suffix_text = str(suffix_match.group("suffix") or "").casefold()
         if suffix_text.startswith("sh") or suffix_text.startswith("pub") or suffix_text.startswith("p\u00fab"):
             special_suffix = "public-shared"
-        elif suffix_text.startswith("priv") or suffix_text == "x":
+        elif suffix_text.startswith("priv") or suffix_text in {"x", "guay"}:
             special_suffix = "private"
         elif suffix_text.startswith("selec") or suffix_text.startswith("select"):
             special_suffix = "selection"
@@ -1555,6 +1555,8 @@ def _build_direct_consolidation_group(members, keeper_album, reason):
 
 
 _DATE_PREFIX_ASSET_COVERAGE_THRESHOLD = 0.95
+_SMALL_ALBUM_MAX_ASSETS = 3
+_SMALL_ALBUM_GENERIC_TITLE_WORDS = {"album", "albums", "foto", "fotos", "photo", "photos", "video", "videos"}
 
 
 def _asset_dates_fit_date_prefix(asset_dates, date_prefix):
@@ -1567,6 +1569,137 @@ def _asset_dates_fit_date_prefix(asset_dates, date_prefix):
         for captured in asset_dates
     )
     return (matching_assets / len(asset_dates)) >= _DATE_PREFIX_ASSET_COVERAGE_THRESHOLD
+
+
+def _album_title_similarity_key(album_name):
+    """Return semantic title words, excluding an optional leading album date."""
+    parsed = _album_date_prefix(album_name)
+    title = parsed["title_key"] if parsed else _ALBUM_LEADING_DATE_RE.sub("", str(album_name or ""))
+    normalized = normalize_album_name_for_matching(title)
+    words = {
+        word for word in normalized.split()
+        if len(word) >= 3 and word not in _SMALL_ALBUM_GENERIC_TITLE_WORDS and not word.isdigit()
+    }
+    return normalized, words
+
+
+def _small_album_name_matches_keeper(small_album, keeper_album):
+    small_key, small_suffix = _album_truncation_key((small_album or {}).get("albumName", ""))
+    keeper_key, keeper_suffix = _album_truncation_key((keeper_album or {}).get("albumName", ""))
+    if not small_key or small_suffix != keeper_suffix:
+        return False
+    small_title, small_words = _album_title_similarity_key(small_key)
+    keeper_title, keeper_words = _album_title_similarity_key(keeper_key)
+    if not small_title or not keeper_title or not small_words or not keeper_words:
+        return False
+    if small_title == keeper_title:
+        return True
+    if small_title.startswith(keeper_title) or keeper_title.startswith(small_title):
+        return True
+    common_words = small_words & keeper_words
+    return bool(common_words) and len(common_words) / min(len(small_words), len(keeper_words)) >= 0.75
+
+
+def _small_album_dates_are_covered(small_dates, keeper_dates):
+    """All capture calendar dates from the small album must exist in the keeper."""
+    small_days = {captured.date() for captured in (small_dates or []) if isinstance(captured, datetime)}
+    keeper_days = {captured.date() for captured in (keeper_dates or []) if isinstance(captured, datetime)}
+    return bool(small_days) and small_days.issubset(keeper_days)
+
+
+def _scan_small_album_date_match_groups(
+    albums,
+    excluded_ids,
+    asset_dates_getter,
+    asset_count_getter,
+    progress_unit="albums",
+):
+    if not callable(asset_dates_getter) or not callable(asset_count_getter):
+        return []
+
+    counts = {}
+    eligible_albums = []
+    for album in tqdm(
+        albums,
+        desc=f"{MSG_TAGS['INFO']}Counting albums for small-album date matching",
+        unit=progress_unit,
+    ):
+        album_id = str((album or {}).get("id", "")).strip()
+        if not album_id or album_id in excluded_ids:
+            continue
+        try:
+            counts[album_id] = max(0, int(asset_count_getter(album) or 0))
+        except Exception as exc:
+            if GV.LOGGER:
+                GV.LOGGER.warning(
+                    f"Unable to count assets for small-album matching in "
+                    f"'{(album or {}).get('albumName', '')}': {exc}"
+                )
+            counts[album_id] = 0
+        eligible_albums.append(album)
+    small_albums = [
+        album for album in eligible_albums
+        if 0 < counts.get(str((album or {}).get("id", "")).strip(), 0) <= _SMALL_ALBUM_MAX_ASSETS
+    ]
+    keeper_candidates = [
+        album for album in eligible_albums
+        if counts.get(str((album or {}).get("id", "")).strip(), 0) > _SMALL_ALBUM_MAX_ASSETS
+    ]
+    groups_by_keeper = {}
+    for small_album in tqdm(
+        small_albums,
+        desc=f"{MSG_TAGS['INFO']}Checking small albums against larger date-matched albums",
+        unit=progress_unit,
+    ):
+        try:
+            small_dates = asset_dates_getter(small_album)
+        except Exception as exc:
+            if GV.LOGGER:
+                GV.LOGGER.warning(
+                    f"Unable to inspect capture dates for small album "
+                    f"'{(small_album or {}).get('albumName', '')}': {exc}"
+                )
+            continue
+        matching_keepers = []
+        for keeper in keeper_candidates:
+            if not _small_album_name_matches_keeper(small_album, keeper):
+                continue
+            try:
+                keeper_dates = asset_dates_getter(keeper)
+            except Exception as exc:
+                if GV.LOGGER:
+                    GV.LOGGER.warning(
+                        f"Unable to inspect capture dates for candidate keeper "
+                        f"'{(keeper or {}).get('albumName', '')}': {exc}"
+                    )
+                continue
+            if _small_album_dates_are_covered(small_dates, keeper_dates):
+                matching_keepers.append(keeper)
+        if not matching_keepers:
+            continue
+        keeper = max(
+            matching_keepers,
+            key=lambda album: (
+                counts.get(str((album or {}).get("id", "")).strip(), 0),
+                len(str((album or {}).get("albumName", ""))),
+                str((album or {}).get("albumName", "")).casefold(),
+            ),
+        )
+        keeper_id = str((keeper or {}).get("id", "")).strip()
+        groups_by_keeper.setdefault(keeper_id, {"keeper": keeper, "small_albums": []})["small_albums"].append(small_album)
+
+    groups = []
+    for data in groups_by_keeper.values():
+        keeper = data["keeper"]
+        small_members = data["small_albums"]
+        group = _build_direct_consolidation_group([keeper, *small_members], keeper, "small-album-date-match")
+        group["assets_date_considered"] = True
+        group["album_comments"] = {
+            str((album or {}).get("id", "")).strip(): "All small-album capture dates found in keeper"
+            for album in small_members
+        }
+        groups.append(group)
+    return groups
 
 
 def _scan_date_prefix_consolidation_groups(
@@ -1825,6 +1958,7 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
         for album in (group.get("similar_albums") or [])
     }
     asset_dates_cache = {}
+    asset_count_cache = {}
 
     def cached_asset_dates(album):
         album_id = str((album or {}).get("id", "")).strip()
@@ -1838,6 +1972,22 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
         if callable(asset_dates_getter):
             return [captured.year for captured in cached_asset_dates(album)]
         return asset_years_getter(album) if callable(asset_years_getter) else []
+
+    def cached_asset_count(album):
+        album_id = str((album or {}).get("id", "")).strip()
+        if not callable(asset_count_getter):
+            return 0
+        if album_id not in asset_count_cache:
+            try:
+                asset_count_cache[album_id] = max(0, int(asset_count_getter(album) or 0))
+            except Exception as exc:
+                if GV.LOGGER:
+                    GV.LOGGER.warning(
+                        f"Unable to count assets for album "
+                        f"'{(album or {}).get('albumName', '')}': {exc}"
+                    )
+                asset_count_cache[album_id] = 0
+        return asset_count_cache[album_id]
 
     # Consolidation clients run their inner API work at WARNING. Write phase
     # transitions directly so a long metadata scan never appears stalled.
@@ -1868,7 +2018,26 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
         )
     else:
         truncation_groups = []
-    groups = consolidation_groups + date_groups + truncation_groups
+    assigned_ids.update(
+        str((album or {}).get("id", "")).strip()
+        for group in truncation_groups
+        for album in (group.get("similar_albums") or [])
+    )
+    if callable(asset_dates_getter) and callable(asset_count_getter):
+        print(
+            f"{MSG_TAGS['INFO']}Checking small albums with up to {_SMALL_ALBUM_MAX_ASSETS} assets "
+            "against larger date-matched albums..."
+        )
+        small_album_groups = _scan_small_album_date_match_groups(
+            eligible_albums,
+            assigned_ids,
+            asset_dates_getter=cached_asset_dates,
+            asset_count_getter=cached_asset_count,
+            progress_unit=progress_unit,
+        )
+    else:
+        small_album_groups = []
+    groups = consolidation_groups + date_groups + truncation_groups + small_album_groups
     if include_asset_counts and callable(asset_count_getter) and groups:
         counted_albums = {}
         albums_to_count = {}
@@ -1885,7 +2054,7 @@ def scan_album_consolidation_groups(albums, exact_case_sensitive=False, date_get
             unit="albums",
         ):
             try:
-                counted_albums[album_id] = max(0, int(asset_count_getter(album) or 0))
+                counted_albums[album_id] = cached_asset_count(album)
             except Exception:
                 counted_albums[album_id] = 0
         for album_id, album in albums_to_count.items():

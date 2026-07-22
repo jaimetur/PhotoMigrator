@@ -365,6 +365,17 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(len(groups), 1)
 
+    def test_scan_album_consolidation_groups_merges_private_and_guay_suffix_variants(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "private", "albumName": "2019-11 - Maldivas Privado"},
+                {"id": "guay", "albumName": "2019-11 - Maldivas Guay"},
+            ],
+            asset_years_getter=lambda _album: [2019, 2019],
+        )
+
+        self.assertEqual(len(groups), 1)
+
     def test_scan_album_consolidation_groups_keeps_selection_suffix_separate_from_plain_name(self):
         groups = scan_album_consolidation_groups(
             [
@@ -387,6 +398,41 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         self.assertEqual(len(groups), 1)
         self.assertEqual(groups[0]["keeper_album"]["id"], "full")
+
+    def test_scan_album_consolidation_groups_merges_small_album_into_larger_date_matched_album(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "keeper", "albumName": "2024-08 - Viaje por Malaga"},
+                {"id": "small", "albumName": "2024-08 - Malaga viaje fotos"},
+            ],
+            asset_dates_getter=lambda album: {
+                "keeper": [datetime(2024, 8, 3), datetime(2024, 8, 4), datetime(2024, 8, 5)],
+                "small": [datetime(2024, 8, 3), datetime(2024, 8, 4)],
+            }[album["id"]],
+            asset_count_getter=lambda album: {"keeper": 12, "small": 2}[album["id"]],
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["reason"], "small-album-date-match")
+        self.assertEqual(groups[0]["keeper_album"]["id"], "keeper")
+        self.assertEqual(groups[0]["album_comments"], {
+            "small": "All small-album capture dates found in keeper",
+        })
+
+    def test_scan_album_consolidation_groups_keeps_small_album_when_a_capture_date_is_missing(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "keeper", "albumName": "2024-08 - Viaje por Malaga"},
+                {"id": "small", "albumName": "2024-08 - Malaga viaje fotos"},
+            ],
+            asset_dates_getter=lambda album: {
+                "keeper": [datetime(2024, 8, 3), datetime(2024, 8, 4), datetime(2024, 8, 5)],
+                "small": [datetime(2024, 8, 3), datetime(2024, 8, 6)],
+            }[album["id"]],
+            asset_count_getter=lambda album: {"keeper": 12, "small": 2}[album["id"]],
+        )
+
+        self.assertEqual(groups, [])
 
     def test_confirm_continue_skips_prompt_when_confirmation_is_disabled(self):
         with (

@@ -405,13 +405,15 @@ If more than one optional arguments are detected, only the first one will be exe
                Equivalent examples: 'Album', 'Album_1', 'Album (2)', 'New_Album', 'New Album', 'New_Album 1'.
                Also applies guarded compatible date-prefix and end-truncation matching: specific dates require 95% asset-date coverage,
                and truncations require two distinct shared title words plus the same dominant asset year.
+               It also considers albums with up to three assets for a larger similarly named keeper only when every small-album
+               capture date is present in that keeper.
                Supported cloud targets also merge redundant variants into the preferred clean keeper.
                Immich, Synology, and NextCloud remove them afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-albums ./Albums --consolidate-similar-albums
 -consAlbNames ; --consolidate-albums-names
                Consolidate equivalent existing cloud album-name families directly in the target service without uploading new assets.
                Uses the same family-detection logic as --consolidate-similar-albums, including YYYY/YYYY-MM/YYYY-MM-DD date prefixes
-               and guarded end-truncation matching. The preview table reports the keeper, candidates, match rule, and comments explaining the applied keeper decision.
+               guarded end-truncation matching, and small-album capture-date matches. The preview table reports the keeper, candidates, match rule, and comments explaining the applied keeper decision.
                Immich, Synology, and NextCloud remove redundant album variants afterwards. Google Photos keeps them because its public API cannot delete albums.
                Use '--preview-album-actions' to list the detected album families and ask for confirmation before consolidating.
                Example: --client=immich --consolidate-albums-names --preview-album-actions
