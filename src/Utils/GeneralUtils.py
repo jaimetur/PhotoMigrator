@@ -1365,6 +1365,14 @@ _ALBUM_SHARED_SUFFIX_RE = re.compile(
     re.IGNORECASE,
 )
 _ALBUM_VIDEOS_SUFFIX_RE = re.compile(r"(?:^|[\s()_\-]+)videos\s*$", re.IGNORECASE)
+_ALBUM_LEADING_YEAR_RANGE_RE = re.compile(
+    r"^\s*(?P<start>\d{4})\s*[._\-\u2010-\u2015]+\s*(?P<end>\d{4})\s*(?:[._\-\u2010-\u2015]+\s*)",
+)
+_ALBUM_TRAILING_DATE_RE = re.compile(
+    r"(?:\s|\(|[_\-]+)(?P<year>\d{4})"
+    r"(?:[._\-\u2010-\u2015]+(?P<month>0[1-9]|1[0-2]))?"
+    r"(?:[._\-\u2010-\u2015]+(?P<day>0[1-9]|[12]\d|3[01]))?\)?\s*$"
+)
 
 
 def _album_date_prefix(name):
@@ -1418,6 +1426,34 @@ def _is_videos_album_variant(album):
     name = unicodedata.normalize("NFKD", str((album or {}).get("albumName", "")))
     name = "".join(char for char in name if not unicodedata.combining(char)).casefold().strip()
     return bool(_ALBUM_VIDEOS_SUFFIX_RE.search(name))
+
+
+def _has_redundant_terminal_date(album):
+    """Return whether an album repeats its leading date at the end of its name."""
+    name = str((album or {}).get("albumName", "")).strip()
+    trailing_match = _ALBUM_TRAILING_DATE_RE.search(name)
+    if not trailing_match:
+        return False
+
+    trailing_year = int(trailing_match.group("year"))
+    trailing_month = trailing_match.group("month")
+    trailing_day = trailing_match.group("day")
+    range_match = _ALBUM_LEADING_YEAR_RANGE_RE.match(name)
+    if range_match:
+        # A year inside an explicit leading range, such as 2019-2021, is a
+        # redundant suffix only when it does not claim a more specific date.
+        return (
+            trailing_month is None
+            and trailing_day is None
+            and int(range_match.group("start")) <= trailing_year <= int(range_match.group("end"))
+        )
+
+    leading_date = _album_date_prefix(name)
+    if not leading_date or trailing_year != leading_date["year"]:
+        return False
+    if trailing_month is not None and int(trailing_month) != leading_date["month"]:
+        return False
+    return trailing_day is None or int(trailing_day) == leading_date["day"]
 
 
 def _dominant_asset_year(asset_years):
@@ -1654,17 +1690,24 @@ def _scan_truncated_name_consolidation_groups(
             keeper_album = max(
                 same_year_matches,
                 key=lambda item: (
+                    not _has_redundant_terminal_date(item),
                     not _is_videos_album_variant(item),
                     len(str((item or {}).get("albumName", ""))),
                     str((item or {}).get("albumName", "")).casefold(),
                 ),
             )
-            reason = (
-                "truncated-name-grouping-videos"
-                if any(_is_videos_album_variant(candidate) for candidate in same_year_matches)
+            if (
+                any(_has_redundant_terminal_date(candidate) for candidate in same_year_matches)
+                and any(not _has_redundant_terminal_date(candidate) for candidate in same_year_matches)
+            ):
+                reason = "truncated-name-redundant-date"
+            elif (
+                any(_is_videos_album_variant(candidate) for candidate in same_year_matches)
                 and any(not _is_videos_album_variant(candidate) for candidate in same_year_matches)
-                else "truncated-name"
-            )
+            ):
+                reason = "truncated-name-grouping-videos"
+            else:
+                reason = "truncated-name"
             groups.append(_build_direct_consolidation_group(same_year_matches, keeper_album, reason))
             used_ids.update(str((candidate or {}).get("id", "")).strip() for candidate in same_year_matches)
     return groups
@@ -1822,6 +1865,7 @@ def print_album_consolidation_preview(consolidation_groups):
         reason_key = str(group.get("reason") or "equivalent-name")
         reason = {
             "truncated-name-grouping-videos": "Truncated Name (Grouping Videos)",
+            "truncated-name-redundant-date": "Truncated Name (Redundant Date)",
         }.get(reason_key, reason_key.replace("-", " ").title())
         table_data.append([
             f"{group_number}/{len(groups)}",

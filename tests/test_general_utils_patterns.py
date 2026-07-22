@@ -241,6 +241,19 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertEqual(groups[0]["keeper_album"]["id"], "plain")
         self.assertEqual(groups[0]["reason"], "truncated-name-grouping-videos")
 
+    def test_scan_album_consolidation_groups_prefers_without_redundant_terminal_date(self):
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "plain", "albumName": "2019-2021 - Piso Habitat Litoral Málaga"},
+                {"id": "redundant", "albumName": "2019-2021 - Piso Habitat Litoral Málaga 2020"},
+            ],
+            asset_years_getter=lambda _album: [2020, 2020],
+        )
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["keeper_album"]["id"], "plain")
+        self.assertEqual(groups[0]["reason"], "truncated-name-redundant-date")
+
     def test_scan_album_consolidation_groups_does_not_block_same_year_truncation_for_another_year(self):
         groups = scan_album_consolidation_groups(
             [

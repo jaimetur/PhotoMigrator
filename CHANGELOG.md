@@ -83,6 +83,7 @@
   - Refined date-prefix album consolidation keeper selection: a more specific dated album is retained when at least 95% of its assets fall within that date range; otherwise the compatible broader date prefix remains the keeper.
   - Added visible progress phases after album-family scanning during Consolidate Albums Names: date-prefix families and truncated-name candidates now report their own progress while any required asset metadata is read.
   - Clarified Consolidate Albums Names previews for end-truncated `Videos` variants: groups that retain the equivalent non-`Videos` album now display `Truncated Name (Grouping Videos)` as their match rule.
+  - Added redundant-date handling to truncated album-name consolidation. When an album repeats a date already covered by its leading date or year range, the non-redundant name is retained and the preview reports `Truncated Name (Redundant Date)`.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
