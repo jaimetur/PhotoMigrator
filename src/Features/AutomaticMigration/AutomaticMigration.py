@@ -2976,6 +2976,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         processed_albums=None,
         processed_albums_lock=None,
         log_level=logging.INFO,
+        album_stats_by_name_ref=album_stats_by_name,
+        album_stats_lock_ref=album_stats_lock,
     ):
         if not batch_items:
             return
@@ -3228,9 +3230,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     resolved_target_asset_id=target_asset_id,
                 )
                 if not scheduled_retry:
-                    LOGGER.error(f"Album Push Fail : '{album_name}'")
+                    _finalize_unconfirmed(
+                        item,
+                        target_asset_id=target_asset_id,
+                        reason=f"album association exception for '{album_name}': {str(e)}",
+                    )
+                    LOGGER.error(f"Album Association Fail : '{album_name}'")
                     LOGGER.error(f"Caught Exception: {str(e)}\n{traceback.format_exc()}")
-                    SHARED_DATA.counters['total_push_failed_albums'] += 1
 
     def album_association_worker(processed_albums=None, processed_albums_lock=None, worker_id=1, log_level=logging.INFO):
         if processed_albums is None:

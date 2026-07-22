@@ -114,6 +114,7 @@
   - Fixed Immich burst auto-stacking in Automatic Migration to retain duplicate photo candidates. Existing Immich asset IDs are now resolved only after filename, capture-time, and size heuristics identify a qualifying burst group, preserving the fast duplicate path for unrelated assets. The final burst evaluation is logged even when it creates no stacks.
   - Fixed Immich stack summary logging: `Total Stacks Created` is now omitted from Automatic Migration, Upload Albums, and Upload All when `--create-stacks=false`.
   - Fixed Immich burst auto-stacking to group same-folder photos by consecutive capture times rather than by matching filename stems or compressed file sizes. Timestamped phone filenames and variable image compression no longer prevent valid burst stacks.
+  - Fixed Automatic Migration album-association workers losing the per-album statistics references while flushing a batch. Takeout people accounting no longer raises `NameError`, allowing the worker to complete the target album membership request; exhausted association retries now finalize the asset as an explicit album-association failure instead of leaving an untracked staged item.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
