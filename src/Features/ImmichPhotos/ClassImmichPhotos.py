@@ -769,6 +769,179 @@ class ClassImmichPhotos(BaseMediaClient):
                 return False
 
 
+    def _get_album_info(self, album_id, log_level=None):
+        """Return the full Immich album payload without loading its assets."""
+        album_id = str(album_id or "").strip()
+        if not album_id:
+            return None
+        with set_log_level(LOGGER, log_level):
+            try:
+                response = requests.get(
+                    f"{self.IMMICH_URL}/api/albums/{album_id}",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    params={"withoutAssets": "true"},
+                    verify=False,
+                )
+                response.raise_for_status()
+                return response.json() or None
+            except Exception as error:
+                LOGGER.warning(f"Unable to retrieve album metadata for ID={album_id}: {error}")
+                return None
+
+
+    @staticmethod
+    def _album_shared_users(album):
+        """Return direct non-owner album users keyed by their Immich user id."""
+        shared_users = {}
+        owner_id = ClassImmichPhotos._get_album_owner_id(album or {})
+        for album_user in (album or {}).get("albumUsers", []) or []:
+            user = album_user.get("user") or {}
+            user_id = str(user.get("id") or album_user.get("userId") or "").strip()
+            role = str(album_user.get("role") or "viewer").casefold()
+            if not user_id or user_id == owner_id or role == "owner":
+                continue
+            shared_users[user_id] = "viewer" if role == "viewer" else "editor"
+        return shared_users
+
+
+    @staticmethod
+    def _most_restrictive_album_role(roles):
+        """Immich viewer access is more restrictive than editor access."""
+        return "viewer" if any(str(role).casefold() == "viewer" for role in roles) else "editor"
+
+
+    def _update_album_description(self, album_id, description, log_level=None):
+        try:
+            response = requests.patch(
+                f"{self.IMMICH_URL}/api/albums/{album_id}",
+                headers=self.HEADERS_WITH_CREDENTIALS,
+                json={"description": description},
+                verify=False,
+            )
+            response.raise_for_status()
+            return True
+        except Exception as error:
+            LOGGER.warning(f"Unable to update description for album ID={album_id}: {error}")
+            return False
+
+
+    def _remove_album_shared_links(self, album_id, log_level=None):
+        """Remove every public shared link attached to an album."""
+        try:
+            response = requests.get(
+                f"{self.IMMICH_URL}/api/shared-links",
+                headers=self.HEADERS_WITH_CREDENTIALS,
+                params={"albumId": album_id},
+                verify=False,
+            )
+            response.raise_for_status()
+            payload = response.json() or []
+            links = payload.get("items", payload.get("sharedLinks", [])) if isinstance(payload, dict) else payload
+            for link in links or []:
+                link_id = str((link or {}).get("id") or "").strip()
+                if not link_id:
+                    continue
+                response = requests.delete(
+                    f"{self.IMMICH_URL}/api/shared-links/{link_id}",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    verify=False,
+                )
+                response.raise_for_status()
+            return True
+        except Exception as error:
+            LOGGER.warning(f"Unable to remove shared links for album ID={album_id}: {error}")
+            return False
+
+
+    def _apply_album_shared_users(self, album_id, current_users, desired_users, log_level=None):
+        """Make direct album access match the supplied restrictive user set."""
+        try:
+            for user_id in sorted(set(current_users) - set(desired_users)):
+                response = requests.delete(
+                    f"{self.IMMICH_URL}/api/albums/{album_id}/user/{user_id}",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    verify=False,
+                )
+                response.raise_for_status()
+
+            missing_users = [
+                {"userId": user_id, "role": desired_users[user_id]}
+                for user_id in sorted(set(desired_users) - set(current_users))
+            ]
+            if missing_users:
+                response = requests.put(
+                    f"{self.IMMICH_URL}/api/albums/{album_id}/users",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    json={"albumUsers": missing_users},
+                    verify=False,
+                )
+                response.raise_for_status()
+
+            for user_id in sorted(set(current_users) & set(desired_users)):
+                if current_users[user_id] == desired_users[user_id]:
+                    continue
+                response = requests.put(
+                    f"{self.IMMICH_URL}/api/albums/{album_id}/user/{user_id}",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    json={"role": desired_users[user_id]},
+                    verify=False,
+                )
+                response.raise_for_status()
+            return True
+        except Exception as error:
+            LOGGER.warning(f"Unable to reconcile sharing permissions for album ID={album_id}: {error}")
+            return False
+
+
+    def _reconcile_consolidated_album_metadata(self, keeper_album, redundant_albums, log_level=None):
+        """Preserve the keeper description and intersect direct sharing permissions."""
+        albums = []
+        seen_ids = set()
+        for album in [keeper_album, *(redundant_albums or [])]:
+            album_id = str((album or {}).get("id") or "").strip()
+            if not album_id or album_id in seen_ids:
+                continue
+            seen_ids.add(album_id)
+            album_info = self._get_album_info(album_id, log_level=log_level)
+            if not album_info:
+                return False
+            albums.append(album_info)
+
+        if not albums:
+            return False
+        keeper_info = albums[0]
+        keeper_id = str(keeper_info.get("id") or "").strip()
+        keeper_description = str(keeper_info.get("description") or "").strip()
+        if not keeper_description:
+            descriptions = [str(album.get("description") or "").strip() for album in albums]
+            selected_description = max(descriptions, key=len, default="")
+            if selected_description and not self._update_album_description(
+                keeper_id, selected_description, log_level=log_level,
+            ):
+                return False
+
+        if any(not bool(album.get("hasSharedLink")) for album in albums):
+            if not self._remove_album_shared_links(keeper_id, log_level=log_level):
+                return False
+
+        shared_user_maps = [self._album_shared_users(album) for album in albums]
+        common_user_ids = set(shared_user_maps[0])
+        for user_map in shared_user_maps[1:]:
+            common_user_ids.intersection_update(user_map)
+        desired_users = {
+            user_id: self._most_restrictive_album_role(
+                [user_map[user_id] for user_map in shared_user_maps]
+            )
+            for user_id in common_user_ids
+        }
+        return self._apply_album_shared_users(
+            keeper_id,
+            shared_user_maps[0],
+            desired_users,
+            log_level=log_level,
+        )
+
+
     @staticmethod
     def _get_album_owner_id(album):
         """
@@ -1651,8 +1824,23 @@ class ClassImmichPhotos(BaseMediaClient):
                 keeper_album = {"id": keeper_id, "albumName": keeper_name}
                 self._upsert_existing_album(existing_albums, keeper_id, keeper_name)
 
+            redundant_albums = [
+                album for album in (plan.get("similar_albums") or [])
+                if str((album or {}).get("id", "")).strip() != keeper_id
+            ]
+            if not self._reconcile_consolidated_album_metadata(
+                keeper_album,
+                redundant_albums,
+                log_level=log_level,
+            ):
+                LOGGER.warning(
+                    f"Album Consolidation Skipped: '{keeper_name}'. "
+                    "Description or sharing-permission reconciliation could not be completed."
+                )
+                return None, plan
+
             keeper_asset_ids = None
-            for redundant_album in plan.get("similar_albums") or []:
+            for redundant_album in redundant_albums:
                 redundant_id = str((redundant_album or {}).get("id", "")).strip()
                 redundant_name = str((redundant_album or {}).get("albumName", "")).strip()
                 if not redundant_id or redundant_id == keeper_id:

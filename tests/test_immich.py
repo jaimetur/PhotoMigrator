@@ -532,6 +532,7 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.manager.add_assets_to_album = MagicMock(return_value=1)
         self.manager.remove_assets_from_album = MagicMock(return_value=True)
         self.manager.remove_album = MagicMock(return_value=True)
+        self.manager._reconcile_consolidated_album_metadata = MagicMock(return_value=True)
         albums = [
             {"id": "keeper-id", "albumName": "Keeper"},
             {"id": "redundant-id", "albumName": "Redundant"},
@@ -546,6 +547,69 @@ class TestImmichPhotosUnit(unittest.TestCase):
             "redundant-id", ["asset-1"], "Redundant", log_level=None,
         )
         self.manager.remove_album.assert_not_called()
+
+    def test_consolidation_metadata_uses_longest_description_and_common_viewer(self):
+        albums = [
+            {
+                "id": "keeper", "description": "", "ownerId": "owner",
+                "albumUsers": [
+                    {"role": "owner", "user": {"id": "owner"}},
+                    {"role": "editor", "user": {"id": "ana"}},
+                    {"role": "editor", "user": {"id": "jaime"}},
+                    {"role": "viewer", "user": {"id": "pili"}},
+                ],
+            },
+            {
+                "id": "second", "description": "A longer shared description", "ownerId": "owner",
+                "albumUsers": [
+                    {"role": "owner", "user": {"id": "owner"}},
+                    {"role": "viewer", "user": {"id": "jaime"}},
+                    {"role": "editor", "user": {"id": "pedro"}},
+                ],
+            },
+            {
+                "id": "third", "description": "Short", "ownerId": "owner",
+                "albumUsers": [
+                    {"role": "owner", "user": {"id": "owner"}},
+                    {"role": "editor", "user": {"id": "jaime"}},
+                ],
+            },
+        ]
+        self.manager._get_album_info = MagicMock(side_effect=albums)
+        self.manager._update_album_description = MagicMock(return_value=True)
+        self.manager._remove_album_shared_links = MagicMock(return_value=True)
+        self.manager._apply_album_shared_users = MagicMock(return_value=True)
+
+        result = self.manager._reconcile_consolidated_album_metadata(
+            {"id": "keeper"}, [{"id": "second"}, {"id": "third"}],
+        )
+
+        self.assertTrue(result)
+        self.manager._update_album_description.assert_called_once_with(
+            "keeper", "A longer shared description", log_level=None,
+        )
+        self.manager._apply_album_shared_users.assert_called_once_with(
+            "keeper",
+            {"ana": "editor", "jaime": "editor", "pili": "viewer"},
+            {"jaime": "viewer"},
+            log_level=None,
+        )
+
+    def test_consolidation_metadata_preserves_existing_keeper_description(self):
+        self.manager._get_album_info = MagicMock(side_effect=[
+            {"id": "keeper", "description": "Keep this", "ownerId": "owner", "albumUsers": []},
+            {"id": "redundant", "description": "This is longer but must not replace the keeper", "ownerId": "owner", "albumUsers": []},
+        ])
+        self.manager._update_album_description = MagicMock(return_value=True)
+        self.manager._remove_album_shared_links = MagicMock(return_value=True)
+        self.manager._apply_album_shared_users = MagicMock(return_value=True)
+
+        result = self.manager._reconcile_consolidated_album_metadata(
+            {"id": "keeper"}, [{"id": "redundant"}],
+        )
+
+        self.assertTrue(result)
+        self.manager._update_album_description.assert_not_called()
 
 
 if __name__ == "__main__":
