@@ -3476,6 +3476,49 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             consumed_live_companion_paths.add(normalized)
         _remember_added_asset_path(path)
 
+    live_companion_context_by_path = {}
+    live_companion_context_lock = threading.Lock()
+
+    def _remember_live_companion_context(companion_path, primary_path, album_name):
+        companion_key = _normalized_asset_path_key(companion_path)
+        if not companion_key:
+            return
+        with live_companion_context_lock:
+            live_companion_context_by_path[companion_key] = {
+                "primary_path": str(primary_path or ""),
+                "album_name": str(album_name or ""),
+            }
+
+    def _get_live_companion_context(companion_path):
+        companion_key = _normalized_asset_path_key(companion_path)
+        if not companion_key:
+            return {}
+        with live_companion_context_lock:
+            return dict(live_companion_context_by_path.get(companion_key) or {})
+
+    def _format_live_companion_consumed_log(
+        companion_path,
+        album_name=None,
+        queue_state_snapshot=None,
+        queue_scope=None,
+    ):
+        live_companion_context = _get_live_companion_context(companion_path)
+        primary_file_path = live_companion_context.get("primary_path") or companion_path
+        context_album_name = live_companion_context.get("album_name") or album_name
+        if queue_scope is None:
+            queue_scope = _get_asset_queue_scope(context_album_name, primary_file_path)
+        if queue_state_snapshot is None:
+            with _get_album_pending_context_lock(queue_scope["key"]):
+                queue_state_snapshot = _snapshot_album_queue_state(
+                    queue_scope,
+                    _get_album_queue_state(queue_scope["key"]),
+                )
+        return (
+            f"Live Companion  : '{os.path.basename(companion_path)}' -> Consumed & associated to "
+            f"'{os.path.basename(primary_file_path)}'"
+            f"{_format_album_pending_context(context_album_name, companion_path, queue_state_snapshot=queue_state_snapshot, queue_scope=queue_scope)}"
+        )
+
     def _is_live_companion_consumed(path):
         normalized = _normalized_asset_path_key(path)
         if not normalized:
@@ -4164,7 +4207,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         asset_filename = asset.get('filename')
 
                         if _is_source_live_companion_consumed(asset_id):
-                            LOGGER.info(f"Asset Live Companion Consumed: '{os.path.basename(asset_filename)}' from Album '{album_name}'. Skipped")
+                            LOGGER.info(_format_live_companion_consumed_log(asset_id, album_name=album_name))
                             continue
 
                         # Skip pull metadata and sidecar for the time being
@@ -4238,6 +4281,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     asset_datetime=asset_datetime,
                                     source_asset_keys=album_source_asset_keys,
                                 )
+                                if source_live_companion_path:
+                                    _remember_live_companion_context(
+                                        companion_path=source_live_companion_path,
+                                        primary_path=asset_id,
+                                        album_name=album_name,
+                                    )
                             else:
                                 pulled_assets = source_client.pull_asset(**pull_kwargs)
                         except Exception as e:
@@ -4279,7 +4328,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
                                     continue
                                 if _is_live_companion_consumed(pulled_file_path):
-                                    LOGGER.info(f"Asset Live Companion Consumed: '{os.path.basename(pulled_file_path)}' from Album '{album_name}'. Skipped")
+                                    LOGGER.info(_format_live_companion_consumed_log(pulled_file_path, album_name=album_name))
                                     if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
                                         safe_remove_local_file(pulled_file_path)
                                     continue
@@ -4327,6 +4376,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                         asset_dict['source_live_companion_already_moved'] = bool(
                                             ARGS.get('move-assets', False) and is_local_source
                                         )
+                                    _remember_live_companion_context(
+                                        companion_path=immich_live_companion,
+                                        primary_path=pulled_file_path,
+                                        album_name=album_name,
+                                    )
                                 # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                                 unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                                 if unique and asset_dict.get('live_photo_video_path'):
@@ -4445,7 +4499,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     lock_file = None
 
                     if _is_source_live_companion_consumed(asset_id):
-                        LOGGER.info(f"Asset Live Companion Consumed: '{os.path.basename(asset_filename)}'. Skipped")
+                        LOGGER.info(_format_live_companion_consumed_log(asset_id))
                         continue
 
                     # Skip pull metadata and sidecar for the time being
@@ -4502,6 +4556,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 asset_datetime=asset_datetime,
                                 source_asset_keys=no_album_source_asset_keys,
                             )
+                            if source_live_companion_path:
+                                _remember_live_companion_context(
+                                    companion_path=source_live_companion_path,
+                                    primary_path=asset_id,
+                                    album_name=None,
+                                )
                         else:
                             pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=staged_filename, asset_time=asset_datetime, download_folder=download_folder, log_level=logging.ERROR)
                     except Exception as e:
@@ -4549,7 +4609,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             if immich_live_companion and path_key(pulled_file_path) == path_key(immich_live_companion):
                                 continue
                             if _is_live_companion_consumed(pulled_file_path):
-                                LOGGER.info(f"Asset Live Companion Consumed: '{os.path.basename(pulled_file_path)}'. Skipped")
+                                LOGGER.info(_format_live_companion_consumed_log(pulled_file_path))
                                 if not is_asset_reserved(pulled_file_path) and os.path.exists(pulled_file_path):
                                     safe_remove_local_file(pulled_file_path)
                                 continue
@@ -4590,6 +4650,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     asset_dict['source_live_companion_already_moved'] = bool(
                                         ARGS.get('move-assets', False) and is_local_source
                                     )
+                                _remember_live_companion_context(
+                                    companion_path=immich_live_companion,
+                                    primary_path=pulled_file_path,
+                                    album_name=None,
+                                )
                             unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)
                             if unique and asset_dict.get('live_photo_video_path'):
                                 _mark_live_companion_consumed(asset_dict.get('live_photo_video_path'))
@@ -4724,10 +4789,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 queue_scope=asset_queue_scope,
                                 asset_file_path=asset_file_path,
                             )
-                            LOGGER.info(
-                                f"Asset Live Companion Consumed: '{os.path.basename(asset_file_path)}'. Skipped"
-                                f"{_format_album_pending_context(album_name, asset_file_path, queue_state_snapshot=album_queue_state_snapshot, queue_scope=asset_queue_scope)}"
-                            )
+                            LOGGER.info(_format_live_companion_consumed_log(
+                                asset_file_path,
+                                album_name=album_name,
+                                queue_state_snapshot=album_queue_state_snapshot,
+                                queue_scope=asset_queue_scope,
+                            ))
                             treat_as_consumed = True
                             cleanup_elapsed_ms = _finalize_asset_success(
                                 source_asset_id=source_asset_id,
