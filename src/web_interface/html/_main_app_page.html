@@ -402,6 +402,7 @@
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
         nextcloud_photos: "NEXTCLOUD PHOTOS",
+        local_folder: "LOCAL FOLDER",
         standalone_features: "OTHER FEATURES",
         upload_folder: "UPLOAD TO SERVER"
     };
@@ -419,6 +420,7 @@
         synology_photos: "module-tab--cloud",
         immich_photos: "module-tab--cloud",
         nextcloud_photos: "module-tab--cloud",
+        local_folder: "module-tab--cloud",
         standalone_features: "module-tab--standalone",
         upload_folder: "module-tab--upload"
     };
@@ -585,7 +587,7 @@
     }
 
     function isCloudTab(tabKey) {
-        return tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos";
+        return tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos" || tabKey === "local_folder";
     }
 
     function getScopedCloudAccountId(tabKey) {
@@ -639,6 +641,16 @@
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         nextcloud_photos: {
+            "download-albums": [{dest: "output-folder", required: true}],
+            "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
+            "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
+            "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
+            "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
+            "remove-duplicates-assets": [{dest: "dup-asset-keeper", required: true}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
+            "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
+        },
+        local_folder: {
             "download-albums": [{dest: "output-folder", required: true}],
             "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}],
@@ -716,6 +728,12 @@
             "remove-duplicates-albums",
             "remove-duplicates-assets",
             "merge-duplicates-albums",
+            "consolidate-albums-names"
+        ],
+        local_folder: [
+            "upload-albums", "download-albums", "upload-all", "download-all", "rename-albums",
+            "remove-albums", "remove-all-albums", "remove-all-assets", "remove-empty-albums",
+            "remove-duplicates-albums", "remove-duplicates-assets", "merge-duplicates-albums",
             "consolidate-albums-names"
         ]
     };
@@ -2310,6 +2328,7 @@
             ...(schema.tabs.synology_photos || []),
             ...(schema.tabs.immich_photos || []),
             ...(schema.tabs.nextcloud_photos || []),
+            ...(schema.tabs.local_folder || []),
             ...(schema.tabs.standalone_features || []),
             ...(schema.tabs.automatic_migration || [])
         ];
@@ -2679,11 +2698,11 @@
         left.appendChild(selectRow);
 
         const argSpecs = buildArgumentSpecs(tabKey, selected, true);
-        if (tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos") {
-            const accountField = getFieldByDest("account-id");
+        if (tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos" || tabKey === "local_folder") {
+            const accountField = getFieldByDest(tabKey === "local_folder" ? "local-folder" : "account-id");
             if (accountField) {
                 const normalizedAccountField = normalizeFieldForContext(accountField, tabKey);
-                const accountIndex = argSpecs.findIndex((s) => s.field.dest === "account-id");
+                const accountIndex = argSpecs.findIndex((s) => s.field.dest === accountField.dest);
                 if (accountIndex >= 0) argSpecs.splice(accountIndex, 1);
                 const isImmichDuplicateAssets = tabKey === "immich_photos" && selected && selected.dest === "remove-duplicates-assets";
                 const firstOptionalIndex = argSpecs.findIndex((s) => !s.required);
@@ -3642,7 +3661,8 @@
             return required;
         }
 
-        if (payload.tab === "google_photos" || payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos") {
+        if (payload.tab === "google_photos" || payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos" || payload.tab === "local_folder") {
+            if (payload.tab === "local_folder") required.add("local-folder");
             const selected = (schema.tabs[payload.tab] || []).find((f) => f.dest === payload.selected_action_dest);
             if (selected && selected.kind !== "flag") required.add(selected.dest);
             const mapped = (MODULE_DEPENDENCIES[payload.tab] || {})[selected?.dest || ""] || [];
@@ -3665,7 +3685,7 @@
         const errors = [];
         if (!payload || !payload.tab) return ["Missing tab."];
 
-        if ((payload.tab === "google_photos" || payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos" || payload.tab === "standalone_features")
+        if ((payload.tab === "google_photos" || payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos" || payload.tab === "local_folder" || payload.tab === "standalone_features")
             && !payload.selected_action_dest) {
             errors.push("Please select a feature/module to run.");
         }

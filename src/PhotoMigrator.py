@@ -87,16 +87,17 @@ def _selected_feature_details(args: dict) -> tuple[str, str | None, list[str]]:
         "synology": "Synology Photos",
         "immich": "Immich Photos",
         "nextcloud": "NextCloud Photos",
+        "local-folder": "Local Folder",
     }
     cloud_feature_name = cloud_feature_names.get(str(args.get("client") or "").strip().lower(), "Cloud Photos")
     feature_definitions = (
         (is_set("source") and is_set("target"), "Automatic Migration", None, ["source", "target"]),
         (is_set("google-takeout"), "Google Takeout Processor", None, ["google-takeout"]),
         (is_set("icloud-takeout"), "iCloud Takeout Processor", None, ["icloud-takeout"]),
-        (is_set("upload-albums"), cloud_feature_name, "Upload Albums", ["client", "upload-albums"]),
-        (is_set("upload-all"), cloud_feature_name, "Upload All", ["client", "upload-all"]),
-        (is_set("download-albums"), cloud_feature_name, "Download Albums", ["client", "download-albums", "output-folder"]),
-        (is_set("download-all"), cloud_feature_name, "Download All", ["client", "download-all"]),
+        (is_set("upload-albums"), cloud_feature_name, "Upload Albums", ["client", "local-folder", "upload-albums"] if args.get("client") == "local-folder" else ["client", "upload-albums"]),
+        (is_set("upload-all"), cloud_feature_name, "Upload All", ["client", "local-folder", "upload-all"] if args.get("client") == "local-folder" else ["client", "upload-all"]),
+        (is_set("download-albums"), cloud_feature_name, "Download Albums", ["client", "local-folder", "download-albums", "output-folder"] if args.get("client") == "local-folder" else ["client", "download-albums", "output-folder"]),
+        (is_set("download-all"), cloud_feature_name, "Download All", ["client", "local-folder", "download-all"] if args.get("client") == "local-folder" else ["client", "download-all"]),
         (is_set("remove-albums"), cloud_feature_name, "Remove Albums", ["client", "remove-albums"]),
         (is_set("rename-albums"), cloud_feature_name, "Rename Albums", ["client", "rename-albums"]),
         (is_set("consolidate-albums-names"), cloud_feature_name, "Consolidate Album Names", ["client", "consolidate-albums-names"]),

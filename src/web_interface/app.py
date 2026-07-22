@@ -249,6 +249,12 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "merge-duplicates-albums",
         "consolidate-albums-names",
     },
+    "local_folder": {
+        "upload-albums", "download-albums", "upload-all", "download-all", "rename-albums",
+        "remove-albums", "remove-all-albums", "remove-all-assets", "remove-empty-albums",
+        "remove-duplicates-albums", "remove-duplicates-assets", "merge-duplicates-albums",
+        "consolidate-albums-names",
+    },
 }
 
 STANDALONE_DESTS = {
@@ -295,6 +301,7 @@ FEATURE_SCOPED_DESTS = {
     "input-folder",
     "output-folder",
     "account-id",
+    "local-folder",
 }
 
 MODULE_DEPENDENCIES_REQUIRED = {
@@ -311,6 +318,10 @@ MODULE_DEPENDENCIES_REQUIRED = {
         "rename-albums": {"replacement-pattern"},
     },
     "nextcloud_photos": {
+        "download-albums": {"output-folder"},
+        "rename-albums": {"replacement-pattern"},
+    },
+    "local_folder": {
         "download-albums": {"output-folder"},
         "rename-albums": {"replacement-pattern"},
     },
@@ -364,6 +375,15 @@ MODULE_ACTION_ARGUMENTS = {
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
         "remove-duplicates-assets": [{"dest": "dup-asset-keeper", "required": True}],
     },
+    "local_folder": {
+        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [{"dest": "remove-albums-assets", "required": False}, {"dest": "preview-album-actions", "required": False}],
+        "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
+        "remove-duplicates-assets": [{"dest": "dup-asset-keeper", "required": True}],
+    },
     "standalone_features": {
         "organize-local-folder-by-date": [
             {"dest": "output-folder", "required": False},
@@ -381,6 +401,7 @@ TAB_TO_CATEGORY = {
     "synology_photos": "synology_photos",
     "immich_photos": "immich_photos",
     "nextcloud_photos": "nextcloud_photos",
+    "local_folder": "local_folder",
     "standalone_features": "standalone_features",
     "automatic_migration": "automatic_migration",
 }
@@ -1748,7 +1769,7 @@ def _schema_dest_order(tab: str) -> List[str]:
     elif tab == "standalone_features":
         for field in PARSER_SCHEMA["tabs"].get("standalone_features", []):
             _push(field["dest"])
-    elif tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+    elif tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
         for field in PARSER_SCHEMA["tabs"].get(tab, []):
             _push(field["dest"])
     return ordered
@@ -1764,9 +1785,9 @@ def _ordered_allowed_dests(tab: str, allowed_dests: set[str], selected_action_de
             ordered.append(text)
             seen.add(text)
 
-    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
         _push(selected_action_dest or "")
-        _push("account-id")
+        _push("local-folder" if tab == "local_folder" else "account-id")
         for item in (MODULE_ACTION_ARGUMENTS.get(tab, {}) or {}).get(selected_action_dest or "", []):
             _push(str((item or {}).get("dest") or ""))
         for dep in MODULE_DEPENDENCIES_REQUIRED.get(tab, {}).get(selected_action_dest or "", set()):
@@ -1793,7 +1814,7 @@ def _ordered_allowed_dests(tab: str, allowed_dests: set[str], selected_action_de
     for dest in GENERAL_PANEL_DEST_ORDER:
         _push(dest)
 
-    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "standalone_features", "automatic_migration"}:
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder", "standalone_features", "automatic_migration"}:
         for dest in _schema_dest_order(tab):
             _push(dest)
 
@@ -1813,6 +1834,8 @@ def _client_value_for_tab(tab: str) -> str | None:
         return "immich"
     if tab == "nextcloud_photos":
         return "nextcloud"
+    if tab == "local_folder":
+        return "local-folder"
     return None
 
 
@@ -3078,6 +3101,7 @@ def _load_parser_schema() -> Dict[str, Any]:
             "synology_photos": [*cloud_common, *([otp_field] if otp_field else [])],
             "immich_photos": cloud_common,
             "nextcloud_photos": cloud_common,
+            "local_folder": cloud_common,
             "standalone_features": [field for field in fields if field["tab"] == "standalone_features"],
             "automatic_migration": [field for field in fields if field["tab"] == "automatic_migration"],
         },
@@ -3093,9 +3117,13 @@ def _allowed_dests_for_tab(tab: str, selected_action_dest: str | None = None) ->
 
     allowed_dests = {field["dest"] for field in PARSER_SCHEMA["general_tabs"]["general"]}
     allowed_dests.update(FEATURE_SCOPED_DESTS)
+    if tab == "local_folder":
+        allowed_dests.discard("account-id")
+    elif tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        allowed_dests.discard("local-folder")
     tab_dests = {field["dest"] for field in PARSER_SCHEMA["tabs"][tab]}
 
-    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
         cloud_action_dests = {dest for dest in tab_dests if dest != "one-time-password"}
         available_actions = cloud_action_dests.intersection(
             CLOUD_ACTIONS_AVAILABLE_BY_TAB.get(tab, cloud_action_dests)
@@ -3369,7 +3397,9 @@ def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> s
         required.update({"source", "target"})
         return required
 
-    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "standalone_features"} and selected_action_dest:
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder", "standalone_features"} and selected_action_dest:
+        if tab == "local_folder":
+            required.add("local-folder")
         tab_fields = {field["dest"]: field for field in PARSER_SCHEMA["tabs"].get(tab, [])}
         selected_field = tab_fields.get(selected_action_dest)
         if selected_field and selected_field.get("kind") != "flag":

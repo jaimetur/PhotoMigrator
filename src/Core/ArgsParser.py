@@ -123,10 +123,14 @@ def parse_arguments():
                         help="Specify the output folder to save the result of the processing action.")
 
     PARSER.add_argument("-client", "--client",
-                        metavar="= ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']",
+                        metavar="= ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud', 'local-folder']",
                         default='google-takeout',  # If not provided, default is 'google-takeout'
                         type=validate_client,      # Validates client string
                         help="Set the client to use for the selected feature.")
+
+    PARSER.add_argument("-localFolder", "--local-folder", metavar="<LOCAL_FOLDER>", default="", type=clean_path,
+                        help="Specify the managed Local Folder root when '--client=local-folder'.\n"
+                             "It contains the Albums and No_Albums folders used by Local Folder modules.")
 
     PARSER.add_argument("-id", "--account-id",
                         metavar="= [1-3]",
@@ -653,7 +657,7 @@ def validate_client(valor):
     """
     Validate the photo client selection.
     """
-    valid_clients = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']
+    valid_clients = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud', 'local-folder']
     try:
         valor_lower = valor.lower()
     except Exception:
@@ -696,7 +700,7 @@ def validate_client_arg(ARGS, PARSER):
                 PARSER.error(
                     f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
                     f"The flag '--{flag}' requires that '--client' is also specified "
-                    f"(synology, immich, nextcloud or google-photos).\n{Style.RESET_ALL}"
+                    f"(synology, immich, nextcloud, local-folder or google-photos).\n{Style.RESET_ALL}"
                 )
                 exit(1)
 
@@ -742,6 +746,7 @@ def checkArgs(ARGS, PARSER):
     ARGS['foldername-extracted-dates']      = fix_path(ARGS['foldername-extracted-dates'])
     ARGS['input-folder']                    = fix_path(ARGS['input-folder'])
     ARGS['output-folder']                   = fix_path(ARGS['output-folder'])
+    ARGS['local-folder']                    = fix_path(ARGS['local-folder'])
     ARGS['google-takeout']                  = fix_path(ARGS['google-takeout'])
     ARGS['icloud-takeout']                  = fix_path(ARGS['icloud-takeout'])
     ARGS['upload-albums']                   = fix_path(ARGS['upload-albums'])
@@ -757,6 +762,7 @@ def checkArgs(ARGS, PARSER):
         'target',
         'input-folder',
         'output-folder',
+        'local-folder',
         'albums-folders',  # FIX: was 'albums-folder' (typo) and it prevented resolving this argument
         'google-takeout',
         'icloud-takeout',

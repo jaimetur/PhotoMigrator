@@ -42,6 +42,7 @@ MODULE_TAB_NAMES = {
     "synology_photos": "SYNOLOGY PHOTOS",
     "immich_photos": "IMMICH PHOTOS",
     "nextcloud_photos": "NEXTCLOUD PHOTOS",
+    "local_folder": "LOCAL FOLDER",
     "standalone_features": "OTHER FEATURES",
     "upload_folder": "UPLOAD TO SERVER",
 }
@@ -272,6 +273,12 @@ CLOUD_ACTIONS_AVAILABLE_BY_TAB = {
         "merge-duplicates-albums",
         "consolidate-albums-names",
     },
+    "local_folder": {
+        "upload-albums", "download-albums", "upload-all", "download-all", "rename-albums",
+        "remove-albums", "remove-all-albums", "remove-all-assets", "remove-empty-albums",
+        "remove-duplicates-albums", "remove-duplicates-assets", "merge-duplicates-albums",
+        "consolidate-albums-names",
+    },
 }
 STANDALONE_DESTS = {
     "fix-symlinks-broken",
@@ -306,12 +313,13 @@ GENERAL_OPTIONAL_DESTS = {
     "exec-gpth-tool",
     "exec-exif-tool",
 }
-FEATURE_SCOPED_DESTS = {"input-folder", "output-folder", "account-id"}
+FEATURE_SCOPED_DESTS = {"input-folder", "output-folder", "account-id", "local-folder"}
 MODULE_DEPENDENCIES_REQUIRED = {
     "google_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
     "synology_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
     "immich_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
     "nextcloud_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
+    "local_folder": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
 }
 MODULE_ACTION_ARGUMENTS = {
     "google_photos": {
@@ -362,6 +370,15 @@ MODULE_ACTION_ARGUMENTS = {
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
         "remove-duplicates-assets": [{"dest": "dup-asset-keeper", "required": True}],
     },
+    "local_folder": {
+        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
+        "rename-albums": [{"dest": "preview-album-actions", "required": False}],
+        "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [{"dest": "remove-albums-assets", "required": False}, {"dest": "preview-album-actions", "required": False}],
+        "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
+        "remove-duplicates-assets": [{"dest": "dup-asset-keeper", "required": True}],
+    },
     "standalone_features": {
         "organize-local-folder-by-date": [
             {"dest": "output-folder", "required": False},
@@ -378,6 +395,7 @@ TAB_TO_CATEGORY = {
     "synology_photos": "synology_photos",
     "immich_photos": "immich_photos",
     "nextcloud_photos": "nextcloud_photos",
+    "local_folder": "local_folder",
     "standalone_features": "standalone_features",
     "automatic_migration": "automatic_migration",
 }
@@ -953,6 +971,7 @@ def build_parser_schema(
             "synology_photos": cloud_common,
             "immich_photos": cloud_common,
             "nextcloud_photos": cloud_common,
+            "local_folder": cloud_common,
             "standalone_features": [field for field in fields if field["tab"] == "standalone_features"],
             "automatic_migration": [field for field in fields if field["tab"] == "automatic_migration"],
         },
@@ -980,6 +999,7 @@ def get_all_fields(schema: Dict[str, Any]) -> List[Dict[str, Any]]:
         *(schema.get("tabs", {}).get("synology_photos", []) or []),
         *(schema.get("tabs", {}).get("immich_photos", []) or []),
         *(schema.get("tabs", {}).get("nextcloud_photos", []) or []),
+        *(schema.get("tabs", {}).get("local_folder", []) or []),
         *(schema.get("tabs", {}).get("standalone_features", []) or []),
         *(schema.get("tabs", {}).get("automatic_migration", []) or []),
     ]
@@ -1017,7 +1037,7 @@ def normalize_field_for_context(field: Dict[str, Any] | None, tab_key: str) -> D
                 "Treat equivalent destination album names as one family, then merge their assets into the canonical keeper album. "
                 "Redundant albums are removed only when the target service supports album deletion."
             )
-        elif tab_key in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        elif tab_key in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
             normalized["help"] = (
                 "When uploaded albums must be created, use the canonical form of each source name. "
                 "It normalizes harmless underscore/space and duplicate-style suffix variants, but does not merge existing albums."
@@ -1534,7 +1554,7 @@ def prepare_values_for_command(values: Dict[str, Any], tab: str, selected_action
         # Native deletion requires native detection. Keep the effective false
         # value explicit so previews and the startup log match execution.
         prepared["dup-immich-native-deletion"] = False
-    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and selected_action_dest == "rename-albums":
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"} and selected_action_dest == "rename-albums":
         prepared["rename-albums"] = compose_rename_albums_value(prepared.get("rename-pattern", ""), prepared.get("replacement-pattern", ""))
     if tab == "standalone_features" and selected_action_dest == "find-duplicates":
         folders = parse_folder_list_value(prepared.get("find-duplicates-folders", []))
@@ -1559,8 +1579,12 @@ def _allowed_dests_for_tab(schema: Dict[str, Any], tab: str, selected_action_des
         raise ValueError(f"Unsupported tab: {tab}")
     allowed_dests = {field["dest"] for field in schema["general_tabs"]["general"]}
     allowed_dests.update(FEATURE_SCOPED_DESTS)
+    if tab == "local_folder":
+        allowed_dests.discard("account-id")
+    elif tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        allowed_dests.discard("local-folder")
     tab_dests = {field["dest"] for field in schema["tabs"][tab]}
-    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+    if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
         cloud_action_dests = {dest for dest in tab_dests if dest != "one-time-password"}
         available_actions = cloud_action_dests.intersection(CLOUD_ACTIONS_AVAILABLE_BY_TAB.get(tab, cloud_action_dests))
         if not available_actions:
@@ -1656,6 +1680,8 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
         args.extend(["--client", "immich"])
     elif tab == "nextcloud_photos":
         args.extend(["--client", "nextcloud"])
+    elif tab == "local_folder":
+        args.extend(["--client", "local-folder"])
     return args
 
 

@@ -77,7 +77,8 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-fnNoAlbums <NO_ALBUMS_FOLDER>] [-fnAllPhotos <ALL_PHOTOS_FOLDER>] [-fnLogs <LOG_FOLDER>] [-fnDuplicat <DUPLICATES_OUTPUT_FOLDER>]
                      [-fnExtDates <EXTRACTED_DATES_FOLDER>] [-exeGpthTool <GPTH_PATH>] [-exeExifTool <EXIFTOOL_PATH>]
                      [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                     [-client = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']]
+                     [-localFolder <LOCAL_FOLDER>]
+                     [-client = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud', 'local-folder']]
                      [-id [= [1-3]]]
                      [-from <FROM_DATE>] [-to <TO_DATE>] [-type = [image,video,all]]
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
@@ -156,10 +157,12 @@ Following general arguments have different purposses depending on the Execution 
                Specify the input folder that you want to process.
 -o           ; --output-folder <OUTPUT_FOLDER>
                Specify the output folder to save the result of the processing action.
--client      ; --client = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud']
+-localFolder ; --local-folder <LOCAL_FOLDER>
+               Specify the managed Local Folder root used with --client=local-folder.
+-client      ; --client = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud', 'local-folder']
                Set the client to use for the selected feature.
 -id          ; --account-id = [1-3]
-               Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1).
+               Set the account ID for Synology Photos, Immich Photos, NextCloud Photos or Google Photos (default: 1). Not used by Local Folder.
                This value must exist in the Config.ini as suffix of USERNAME/PASSWORD or API_KEY_USER.
                Example for Immich ID=2:
                  IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini.
@@ -340,15 +343,16 @@ default values for the rest of the arguments for this extra mode.
                Prefer the native EXIF writer for supported iCloud photo files before falling back to ExifTool.
 
 
-GOOGLE PHOTOS/SYNOLOGY/IMMICH/NEXTCLOUD MANAGEMENT:
----------------------------------------------------
-To use following features, it is mandatory to use the argument '--client=[synology, immich, nextcloud, google-photos]'
-to specify which Photo Service do you want to use.
+GOOGLE PHOTOS/SYNOLOGY/IMMICH/NEXTCLOUD/LOCAL FOLDER MANAGEMENT:
+-----------------------------------------------------------------
+To use the following features, select a client with
+'--client=[synology, immich, nextcloud, google-photos, local-folder]'.
+When the client is 'local-folder', '--local-folder <LOCAL_FOLDER>' is also required and identifies
+the managed library root containing its Albums and No_Albums folders.
 
-You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in
-Config.ini.
+Cloud clients can optionally use '--id=[1-3]' to specify an account defined in Config.ini. Local Folder does not use an account ID.
 
-Following arguments allow you to interact with Google Photos, Synology, Immich, and NextCloud.
+The same modules are available for Google Photos, Synology, Immich, NextCloud, and Local Folder.
 If more than one optional arguments are detected, only the first one will be executed.
 
 -uAlb        ; --upload-albums <ALBUMS_FOLDER>
@@ -361,6 +365,7 @@ If more than one optional arguments are detected, only the first one will be exe
                On supported cloud targets, that consolidation uses the preferred clean keeper name.
                Immich, Synology, and NextCloud remove the redundant albums afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-albums ./My_Albums_Folder
+               Local Folder example: --client=local-folder --local-folder ./ManagedLibrary --upload-albums ./My_Albums_Folder
 -dAlb        ; --download-albums <ALBUMS_NAME>
                Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder).
                You must provide the photo client using '--client'.
@@ -379,6 +384,7 @@ If more than one optional arguments are detected, only the first one will be exe
                - On supported cloud targets, that consolidation also merges redundant variants into the preferred clean keeper.
                - Immich, Synology, and NextCloud remove the redundant albums afterwards. Google Photos keeps them because its public API cannot delete albums.
                Example: --client=immich --upload-all ./MyLibrary
+               Local Folder example: --client=local-folder --local-folder ./ManagedLibrary --upload-all ./MyLibrary
 -iPeople     ; --import-people = [true,false]
                Immich only. During Upload Albums, Upload All, or Automatic Migration with an Immich target, import
                Google Takeout person labels from `takeout_people_metadata.json` or raw Google JSON sidecars.

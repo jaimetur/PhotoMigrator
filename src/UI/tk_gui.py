@@ -66,6 +66,7 @@ MODULE_GROUP_CLASSES = {
     "synology_photos": ("#eee0d1", "#5f432b"),
     "immich_photos": ("#eee0d1", "#5f432b"),
     "nextcloud_photos": ("#eee0d1", "#5f432b"),
+    "local_folder": ("#eee0d1", "#5f432b"),
     "standalone_features": ("#e6d8ef", "#54366f"),
     "upload_folder": ("#efc8c8", "#6c2727"),
 }
@@ -78,6 +79,7 @@ MODULE_TO_CONFIG_SECTION = {
     "synology_photos": "Synology Photos",
     "immich_photos": "Immich Photos",
     "nextcloud_photos": "NextCloud Photos",
+    "local_folder": "Local Folder",
 }
 INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.items() if key != "upload_folder"}
 THEMES = {
@@ -1336,7 +1338,7 @@ class PhotoMigratorTkGUI:
             self.build_module_only_fields(parent, "automatic_migration", self.schema["tabs"]["automatic_migration"])
         elif self.active_module in {"google_takeout", "icloud_takeout"}:
             self.build_module_only_fields(parent, self.active_module, self.schema["tabs"][self.active_module])
-        elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
             self.build_cloud_widgets(parent)
         elif self.active_module == "standalone_features":
             self.build_standalone_widgets(parent)
@@ -1399,7 +1401,7 @@ class PhotoMigratorTkGUI:
         """Restore only the current feature's parameters and local overrides."""
         if self.active_module in {"google_takeout", "icloud_takeout", "automatic_migration"}:
             fields = self.schema["tabs"][self.active_module]
-        elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
             selected = next((field for field in self.schema["tabs"][self.active_module] if field["dest"] == self.cloud_action_dest.get(self.active_module)), None)
             fields = [spec["field"] for spec in build_argument_specs(self.schema, self.active_module, selected, True)]
             account_field = get_field_by_dest(self.schema, "account-id")
@@ -1413,7 +1415,7 @@ class PhotoMigratorTkGUI:
         for field in fields:
             default_value = field.get("default")
             self.state_values[field["dest"]] = list(default_value) if isinstance(default_value, list) else default_value
-        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and selected and selected.get("dest") == "rename-albums":
+        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"} and selected and selected.get("dest") == "rename-albums":
             self.state_values["rename-pattern"] = ""
             self.state_values["replacement-pattern"] = ""
         if self.active_module == "automatic_migration":
@@ -1580,7 +1582,7 @@ class PhotoMigratorTkGUI:
         sync_endpoint_state()
 
     def _selected_action_for_active_module(self) -> str | None:
-        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+        if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
             return self.cloud_action_dest.get(self.active_module)
         if self.active_module == "standalone_features":
             return self.standalone_action_dest

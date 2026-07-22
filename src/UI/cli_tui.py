@@ -79,6 +79,7 @@ MODULE_GROUP_CLASSES = {
     "synology_photos": "module-tab--cloud",
     "immich_photos": "module-tab--cloud",
     "nextcloud_photos": "module-tab--cloud",
+    "local_folder": "module-tab--cloud",
     "standalone_features": "module-tab--standalone",
     "upload_folder": "module-tab--upload",
 }
@@ -87,6 +88,7 @@ MODULE_TO_CONFIG_SECTION = {
     "synology_photos": "Synology Photos",
     "immich_photos": "Immich Photos",
     "nextcloud_photos": "NextCloud Photos",
+    "local_folder": "Local Folder",
 }
 INTERACTIVE_MODULE_TAB_NAMES = {key: label for key, label in MODULE_TAB_NAMES.items() if key != "upload_folder"}
 LOG_LEVEL_PREFIX_RE = re.compile(r"^(VERBOSE|DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*:\s*")
@@ -2314,7 +2316,7 @@ if TEXTUAL_AVAILABLE:
                 widgets.extend(self.build_module_only_fields("automatic_migration", self.schema["tabs"]["automatic_migration"]))
             elif self.active_module in {"google_takeout", "icloud_takeout"}:
                 widgets.extend(self.build_module_only_fields(self.active_module, self.schema["tabs"][self.active_module]))
-            elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
                 widgets.extend(self.build_cloud_widgets())
             elif self.active_module == "standalone_features":
                 widgets.extend(self.build_standalone_widgets())
@@ -3488,7 +3490,7 @@ if TEXTUAL_AVAILABLE:
             return self.active_module == "automatic_migration" and bool(self.state_values.get("dashboard"))
 
         def _selected_action_for_active_module(self) -> str | None:
-            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
                 return self.cloud_action_dest.get(self.active_module)
             if self.active_module == "standalone_features":
                 return self.standalone_action_dest
@@ -3641,7 +3643,7 @@ if TEXTUAL_AVAILABLE:
                 self.refresh_action_buttons()
                 return
             selected_action = None
-            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
                 selected_action = self.cloud_action_dest.get(self.active_module)
             elif self.active_module == "standalone_features":
                 selected_action = self.standalone_action_dest
@@ -3695,7 +3697,7 @@ if TEXTUAL_AVAILABLE:
         async def restore_feature_defaults(self) -> None:
             if self.active_module in {"google_takeout", "icloud_takeout", "automatic_migration"}:
                 fields = self.schema["tabs"][self.active_module]
-            elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
+            elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
                 selected = next((field for field in self.schema["tabs"][self.active_module] if field["dest"] == self.cloud_action_dest.get(self.active_module)), None)
                 fields = [spec["field"] for spec in build_argument_specs(self.schema, self.active_module, selected, True)]
                 account_field = get_field_by_dest(self.schema, "account-id")
@@ -3709,7 +3711,7 @@ if TEXTUAL_AVAILABLE:
             for field in fields:
                 default_value = field.get("default")
                 self.state_values[field["dest"]] = list(default_value) if isinstance(default_value, list) else default_value
-            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"} and selected and selected.get("dest") == "rename-albums":
+            if self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"} and selected and selected.get("dest") == "rename-albums":
                 self.state_values["rename-pattern"] = ""
                 self.state_values["replacement-pattern"] = ""
             if self.active_module == "automatic_migration":

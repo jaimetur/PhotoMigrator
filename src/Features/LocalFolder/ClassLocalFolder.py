@@ -16,9 +16,10 @@ from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALL_PHOTOS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS, PHOTO_EXT
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch
-from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm
+from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm, match_pattern, replace_pattern, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
+from Utils.DuplicateUtils import select_people_then_chronology_keeper
 
 """
 -------------------
@@ -890,7 +891,9 @@ class ClassLocalFolder(BaseMediaClient):
                 for p in source_files:
                     for album_root in managed_roots:
                         try:
-                            rel = Path(p).resolve().relative_to(album_root)
+                            # Keep the album entry path itself. Resolving a relative
+                            # symlink here points into No_Albums and hides its album.
+                            rel = Path(p).absolute().relative_to(album_root)
                         except ValueError:
                             continue
                         if not rel.parts:
@@ -1631,6 +1634,17 @@ class ClassLocalFolder(BaseMediaClient):
 
             managed_layout = self._uses_managed_layout()
             non_album_roots = [Path(album_root.resolve()) for album_root, _ in self._iter_album_roots()] if managed_layout else []
+            album_link_targets = set()
+            if managed_layout:
+                for album_root in non_album_roots:
+                    if not album_root.exists():
+                        continue
+                    for album_entry in album_root.rglob("*"):
+                        if album_entry.is_symlink():
+                            try:
+                                album_link_targets.add(album_entry.resolve())
+                            except OSError:
+                                continue
             duplicates_folder = self.base_folder / "_Duplicates"
             sel_ext = self._get_selected_extensions(type)
 
@@ -1645,6 +1659,7 @@ class ClassLocalFolder(BaseMediaClient):
             ) as pbar:
                 for p in self.analyzer.filtered_file_list:
                     f = Path(p)
+                    file_path = f.absolute()
                     # only real files and symlinks should be considered
                     if not (f.is_file() or f.is_symlink()):
                         pbar.update(1)
@@ -1655,12 +1670,15 @@ class ClassLocalFolder(BaseMediaClient):
                         is_album_asset = False
                         for album_root in non_album_roots:
                             try:
-                                f.relative_to(album_root)
+                                file_path.relative_to(album_root)
                                 is_album_asset = True
                                 break
                             except ValueError:
                                 continue
                         if is_album_asset:
+                            pbar.update(1)
+                            continue
+                        if file_path.resolve() in album_link_targets:
                             pbar.update(1)
                             continue
                     else:
@@ -1676,7 +1694,7 @@ class ClassLocalFolder(BaseMediaClient):
                             continue
                     # skip any path under _Duplicates
                     try:
-                        f.relative_to(duplicates_folder)
+                        file_path.relative_to(duplicates_folder.resolve())
                         pbar.update(1)
                         continue
                     except ValueError:
@@ -2209,8 +2227,33 @@ class ClassLocalFolder(BaseMediaClient):
         Returns:
             tuple: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_removed, total_duplicates_skipped=0)
         """
-        # (The concrete local-upload logic can be the same as what we defined earlier)
-        pass
+        with set_log_level(LOGGER, log_level):
+            source_root = Path(input_folder)
+            if not source_root.is_dir():
+                raise FileNotFoundError(f"Albums input folder does not exist: {source_root}")
+            exclusions = set(convert_to_list(subfolders_exclusion))
+            inclusions = set(convert_to_list(subfolders_inclusion))
+            albums_uploaded = albums_skipped = assets_uploaded = duplicates_skipped = 0
+            for source_album in sorted(path for path in source_root.iterdir() if path.is_dir()):
+                if source_album.name in exclusions or (inclusions and source_album.name not in inclusions):
+                    continue
+                destination_album = self.create_album(source_album.name, log_level=log_level)
+                album_assets = [path for path in source_album.rglob("*") if path.is_file() and path.suffix.lower() in self.ALLOWED_MEDIA_EXTENSIONS]
+                if not album_assets:
+                    albums_skipped += 1
+                    continue
+                albums_uploaded += 1
+                for source_asset in album_assets:
+                    asset_id, duplicated = self.push_asset(source_asset, log_level=log_level)
+                    if not asset_id:
+                        continue
+                    self.add_assets_to_album(destination_album, [asset_id], source_album.name, log_level=log_level)
+                    if duplicated:
+                        duplicates_skipped += 1
+                    else:
+                        assets_uploaded += 1
+            self._invalidate_asset_caches()
+            return albums_uploaded, albums_skipped, assets_uploaded, 0, duplicates_skipped
 
 
     def push_no_albums(self, input_folder, subfolders_exclusion=f'{FOLDERNAME_ALBUMS}',
@@ -2223,8 +2266,26 @@ class ClassLocalFolder(BaseMediaClient):
         Returns:
             tuple: (total_assets_uploaded, total_duplicates_skipped=0, total_duplicates_removed)
         """
-        # (Same as the previous local logic, adapted)
-        pass
+        with set_log_level(LOGGER, log_level):
+            source_root = Path(input_folder)
+            if not source_root.is_dir():
+                raise FileNotFoundError(f"Input folder does not exist: {source_root}")
+            excluded_names = set(convert_to_list(subfolders_exclusion))
+            uploaded = duplicates_skipped = 0
+            for source_asset in source_root.rglob("*"):
+                if not source_asset.is_file() or source_asset.suffix.lower() not in self.ALLOWED_MEDIA_EXTENSIONS:
+                    continue
+                if any(part in excluded_names for part in source_asset.relative_to(source_root).parts[:-1]):
+                    continue
+                asset_id, duplicated = self.push_asset(source_asset, log_level=log_level)
+                if not asset_id:
+                    continue
+                if duplicated:
+                    duplicates_skipped += 1
+                else:
+                    uploaded += 1
+            self._invalidate_asset_caches()
+            return uploaded, duplicates_skipped, 0
 
 
     def push_all(self, input_folder, album_folders=None, remove_duplicates=False, log_level=logging.WARNING):
@@ -2236,7 +2297,40 @@ class ClassLocalFolder(BaseMediaClient):
             tuple: (albums_uploaded, albums_skipped, total_assets_uploaded,
                     assets_in_albums, assets_in_no_albums, duplicates_removed, duplicates_skipped=0)
         """
-        pass
+        with set_log_level(LOGGER, log_level):
+            source_root = Path(input_folder)
+            albums_root = source_root / FOLDERNAME_ALBUMS
+            albums_uploaded = albums_skipped = album_assets_uploaded = 0
+            album_duplicates = 0
+            if albums_root.is_dir():
+                albums_uploaded, albums_skipped, album_assets_uploaded, _, album_duplicates = self.push_albums(
+                    albums_root,
+                    log_level=log_level,
+                )
+            extra_album_roots = [Path(path) for path in convert_to_list(album_folders) if str(path or "").strip()]
+            for extra_root in extra_album_roots:
+                result = self.push_albums(extra_root, log_level=log_level)
+                albums_uploaded += result[0]
+                albums_skipped += result[1]
+                album_assets_uploaded += result[2]
+                album_duplicates += result[4]
+            no_albums_root = source_root / FOLDERNAME_NO_ALBUMS
+            non_album_source = no_albums_root if no_albums_root.is_dir() else source_root
+            non_album_exclusions = [] if no_albums_root.is_dir() else [FOLDERNAME_ALBUMS]
+            non_album_uploaded, non_album_duplicates, _ = self.push_no_albums(
+                non_album_source,
+                subfolders_exclusion=non_album_exclusions,
+                log_level=log_level,
+            )
+            return (
+                albums_uploaded,
+                albums_skipped,
+                album_assets_uploaded + non_album_uploaded,
+                album_assets_uploaded,
+                non_album_uploaded,
+                0,
+                album_duplicates + non_album_duplicates,
+            )
 
 
     def pull_albums(self, album_names='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
@@ -2246,9 +2340,20 @@ class ClassLocalFolder(BaseMediaClient):
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
-        # Check if there is some filter applied
-        filters_provided = has_any_filter()
-        pass
+        with set_log_level(LOGGER, log_level):
+            requested_names = convert_to_list(album_names)
+            requested_all = not requested_names or any(str(name).upper() == "ALL" for name in requested_names)
+            output_root = Path(output_folder) / FOLDERNAME_ALBUMS
+            downloaded_albums = downloaded_assets = 0
+            for album in self.get_albums_owned_by_user(filter_assets=True, log_level=log_level):
+                name = album["albumName"]
+                if not requested_all and not any(match_pattern(name, pattern) for pattern in requested_names):
+                    continue
+                destination_album = output_root / name
+                for asset in self.get_all_assets_from_album(album["id"], name, log_level=log_level):
+                    downloaded_assets += self.pull_asset(asset["id"], asset["filename"], asset["time"], destination_album, log_level=log_level)
+                downloaded_albums += 1
+            return downloaded_albums, downloaded_assets
 
 
     def pull_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
@@ -2258,7 +2363,14 @@ class ClassLocalFolder(BaseMediaClient):
         Returns:
             int: Number of assets downloaded.
         """
-        pass
+        with set_log_level(LOGGER, log_level):
+            destination_root = Path(output_folder) / FOLDERNAME_NO_ALBUMS
+            downloaded = 0
+            for asset in self.get_all_assets_without_albums(log_level=log_level):
+                stamp = datetime.fromtimestamp(float(asset["time"]))
+                destination = destination_root / str(stamp.year) / f"{stamp.month:02d}"
+                downloaded += self.pull_asset(asset["id"], asset["filename"], asset["time"], destination, log_level=log_level)
+            return downloaded
 
 
     def pull_all(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
@@ -2269,7 +2381,115 @@ class ClassLocalFolder(BaseMediaClient):
             tuple: (total_albums_downloaded, total_assets_downloaded,
                     total_assets_in_albums, total_assets_no_albums).
         """
-        pass
+        albums_downloaded, album_assets_downloaded = self.pull_albums("ALL", output_folder, log_level=log_level)
+        no_album_assets_downloaded = self.pull_no_albums(output_folder, log_level=log_level)
+        return albums_downloaded, album_assets_downloaded + no_album_assets_downloaded, album_assets_downloaded, no_album_assets_downloaded
+
+    def rename_albums(self, pattern, pattern_to_replace, request_user_confirmation=True, log_level=logging.WARNING):
+        with set_log_level(LOGGER, log_level):
+            matches = [album for album in self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) if match_pattern(album["albumName"], pattern)]
+            if not matches:
+                LOGGER.info("No local albums matched the rename pattern.")
+                return 0
+            if request_user_confirmation and not confirm_continue():
+                return 0
+            renamed = 0
+            for album in matches:
+                source = Path(album["id"])
+                destination = source.with_name(replace_pattern(source.name, pattern, pattern_to_replace))
+                if destination == source:
+                    continue
+                if destination.exists():
+                    LOGGER.warning(f"Skipped renaming '{source.name}': destination '{destination.name}' already exists.")
+                    continue
+                source.rename(destination)
+                renamed += 1
+            self._invalidate_asset_caches()
+            self.albums_owned_by_user.clear()
+            return renamed
+
+    def remove_albums_by_name(self, pattern, remove_album_assets=False, request_user_confirmation=True, log_level=logging.WARNING):
+        with set_log_level(LOGGER, log_level):
+            matches = [album for album in self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) if match_pattern(album["albumName"], pattern)]
+            if not matches:
+                LOGGER.info("No local albums matched the removal pattern.")
+                return 0
+            if request_user_confirmation and not confirm_continue():
+                return 0
+            removed = 0
+            for album in matches:
+                album_path = Path(album["id"])
+                if remove_album_assets:
+                    shutil.rmtree(album_path, ignore_errors=True)
+                else:
+                    for entry in album_path.rglob("*"):
+                        if entry.is_file() or entry.is_symlink():
+                            entry.unlink()
+                    remove_effectively_empty_dirs(album_path, log_level=log_level)
+                removed += 1
+            self._invalidate_asset_caches()
+            self.albums_owned_by_user.clear()
+            return removed
+
+    def consolidate_album_namess(self, request_user_confirmation=True, preview_album_actions=False, log_level=logging.WARNING):
+        with set_log_level(LOGGER, log_level):
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
+            groups = scan_album_consolidation_groups(
+                albums,
+                asset_years_getter=lambda album: extract_asset_capture_years(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)),
+            )
+            if not groups:
+                LOGGER.info("No equivalent local album families found to consolidate.")
+                return 0, 0
+            if preview_album_actions or request_user_confirmation:
+                LOGGER.info("Album families to be consolidated:")
+                print_album_consolidation_preview(groups)
+            if request_user_confirmation and not confirm_continue():
+                return 0, 0
+            consolidated = redundant = 0
+            for group in groups:
+                keeper = group["keeper_album"]
+                keeper_id = keeper["id"]
+                for candidate in group.get("redundant_albums", []):
+                    assets = self.get_all_assets_from_album(candidate["id"], candidate["albumName"], log_level=log_level)
+                    self.add_assets_to_album(keeper_id, [asset["id"] for asset in assets], keeper["albumName"], log_level=log_level)
+                    self.remove_album(candidate["id"], candidate["albumName"], log_level=log_level)
+                    redundant += 1
+                consolidated += 1
+            self._invalidate_asset_caches()
+            self.albums_owned_by_user.clear()
+            return consolidated, redundant
+
+    @staticmethod
+    def _duplicate_asset_size(asset):
+        try:
+            return int(Path((asset or {}).get("id", "")).stat().st_size)
+        except (OSError, TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _duplicate_asset_timestamp(asset):
+        try:
+            return datetime.fromtimestamp(float((asset or {}).get("time")))
+        except (TypeError, ValueError, OSError):
+            return datetime.min
+
+    def find_duplicate_assets_by_name_and_size(self, log_level=None):
+        with set_log_level(LOGGER, log_level):
+            groups = {}
+            for asset in self.get_all_assets_without_albums(log_level=log_level):
+                size = self._duplicate_asset_size(asset)
+                if size is not None:
+                    groups.setdefault((asset["filename"].casefold(), size), []).append(asset)
+            return [group for group in groups.values() if len(group) > 1]
+
+    def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
+        groups = duplicate_groups if duplicate_groups is not None else self.find_duplicate_assets_by_name_and_size(log_level=log_level)
+        removed = 0
+        for group in groups:
+            keeper = select_people_then_chronology_keeper(group, keeper_strategy, self._duplicate_asset_timestamp)
+            removed += self.remove_assets([asset["id"] for asset in group if asset is not keeper], log_level=log_level)
+        return removed
 
     def remove_empty_folders(self, log_level=None):
         """

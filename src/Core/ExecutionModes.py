@@ -14,6 +14,7 @@ from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder
 from Features.ICloudTakeout.ClassICloudTakeoutFolder import ClassICloudTakeoutFolder
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
+from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates, process_duplicates_actions
 from Features.StandAloneFeatures.FixSymLinks import fix_symlinks_broken
@@ -270,7 +271,13 @@ def _build_cloud_client_obj(client_name: str):
         return ClassGooglePhotos(account_id=ARGS['account-id'])
     if normalized == "nextcloud":
         return ClassNextCloudPhotos(account_id=ARGS['account-id'])
-    LOGGER.info(f"Cloud service not valid ({client_name}). Valid clients are ['immich', 'synology', 'nextcloud', 'google-photos']. Exiting program.")
+    if normalized == "local-folder":
+        local_folder = str(ARGS.get('local-folder') or '').strip()
+        if not local_folder:
+            LOGGER.error("'--client=local-folder' requires '--local-folder <LOCAL_FOLDER>'.")
+            sys.exit(1)
+        return ClassLocalFolder(base_folder=local_folder)
+    LOGGER.info(f"Cloud service not valid ({client_name}). Valid clients are ['immich', 'synology', 'nextcloud', 'google-photos', 'local-folder']. Exiting program.")
     sys.exit(0)
 
 # -------------------------------------------------------------
@@ -1101,10 +1108,10 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
 def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log_level=None):
     """Remove duplicate assets while retaining the requested keeper."""
     normalized_client = str(client or "").strip().lower()
-    if normalized_client not in {"google-photos", "synology", "immich", "nextcloud"}:
+    if normalized_client not in {"google-photos", "synology", "immich", "nextcloud", "local-folder"}:
         LOGGER.error(
             "Remove Duplicates Assets requires one of: '--client=google-photos', '--client=synology', "
-            "'--client=immich', or '--client=nextcloud'."
+            "'--client=immich', '--client=nextcloud', or '--client=local-folder'."
         )
         return
     if normalized_client == "google-photos":
