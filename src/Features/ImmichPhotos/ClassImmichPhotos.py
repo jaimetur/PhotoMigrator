@@ -1777,11 +1777,13 @@ class ClassImmichPhotos(BaseMediaClient):
                         log_level=log_level,
                     ) or []
                 ),
-                asset_count_getter=lambda album: len(self.get_all_assets_from_album(
-                    str((album or {}).get("id", "")).strip(),
-                    str((album or {}).get("albumName", "")).strip(),
-                    log_level=log_level,
-                ) or []),
+                # AlbumResponseDto already includes these summaries. Avoid a full
+                # paginated asset search for every album before small-album matching.
+                asset_count_getter=lambda album: (album or {}).get("assetCount", 0),
+                asset_date_range_getter=lambda album: (
+                    (album or {}).get("startDate"),
+                    (album or {}).get("endDate"),
+                ),
                 include_asset_counts=preview_album_actions or request_user_confirmation,
                 try_equivalent_albums_grouping=try_equivalent_albums_grouping,
                 try_date_prefix_albums_grouping=try_date_prefix_albums_grouping,

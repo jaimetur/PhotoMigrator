@@ -1600,11 +1600,31 @@ def _small_album_name_matches_keeper(small_album, keeper_album):
     return bool(common_words) and len(common_words) / min(len(small_words), len(keeper_words)) >= 0.75
 
 
-def _small_album_dates_are_covered(small_dates, keeper_dates):
-    """All capture calendar dates from the small album must exist in the keeper."""
-    small_days = {captured.date() for captured in (small_dates or []) if isinstance(captured, datetime)}
-    keeper_days = {captured.date() for captured in (keeper_dates or []) if isinstance(captured, datetime)}
-    return bool(small_days) and small_days.issubset(keeper_days)
+def _coerce_album_datetime(value):
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+
+
+def _small_album_range_fits_keeper(small_range, keeper_range):
+    """Return whether the small album's complete capture range fits the keeper's range."""
+    if not isinstance(small_range, (list, tuple)) or not isinstance(keeper_range, (list, tuple)):
+        return False
+    if len(small_range) != 2 or len(keeper_range) != 2:
+        return False
+    small_start, small_end = (_coerce_album_datetime(value) for value in small_range)
+    keeper_start, keeper_end = (_coerce_album_datetime(value) for value in keeper_range)
+    if not all((small_start, small_end, keeper_start, keeper_end)):
+        return False
+    return keeper_start <= small_start and small_end <= keeper_end
+
+
+def _capture_range_from_dates(asset_dates):
+    capture_dates = [captured for captured in (asset_dates or []) if isinstance(captured, datetime)]
+    return (min(capture_dates), max(capture_dates)) if capture_dates else None
 
 
 def _scan_small_album_date_match_groups(
@@ -1612,6 +1632,7 @@ def _scan_small_album_date_match_groups(
     excluded_ids,
     asset_dates_getter,
     asset_count_getter,
+    asset_date_range_getter=None,
     progress_unit="albums",
 ):
     if not callable(asset_dates_getter) or not callable(asset_count_getter):
@@ -1651,30 +1672,50 @@ def _scan_small_album_date_match_groups(
         desc=f"{MSG_TAGS['INFO']}Checking small albums against larger date-matched albums",
         unit=progress_unit,
     ):
-        try:
-            small_dates = asset_dates_getter(small_album)
-        except Exception as exc:
-            if GV.LOGGER:
-                GV.LOGGER.warning(
-                    f"Unable to inspect capture dates for small album "
-                    f"'{(small_album or {}).get('albumName', '')}': {exc}"
-                )
+        matching_keepers = [
+            keeper for keeper in keeper_candidates
+            if _small_album_name_matches_keeper(small_album, keeper)
+        ]
+        if not matching_keepers:
             continue
-        matching_keepers = []
-        for keeper in keeper_candidates:
-            if not _small_album_name_matches_keeper(small_album, keeper):
-                continue
+        if callable(asset_date_range_getter):
             try:
-                keeper_dates = asset_dates_getter(keeper)
+                small_range = asset_date_range_getter(small_album)
+            except Exception:
+                small_range = None
+            range_matching_keepers = []
+            for keeper in matching_keepers:
+                try:
+                    keeper_range = asset_date_range_getter(keeper)
+                except Exception:
+                    keeper_range = None
+                if _small_album_range_fits_keeper(small_range, keeper_range):
+                    range_matching_keepers.append(keeper)
+            matching_keepers = range_matching_keepers
+        else:
+            try:
+                small_range = _capture_range_from_dates(asset_dates_getter(small_album))
             except Exception as exc:
                 if GV.LOGGER:
                     GV.LOGGER.warning(
-                        f"Unable to inspect capture dates for candidate keeper "
-                        f"'{(keeper or {}).get('albumName', '')}': {exc}"
+                        f"Unable to inspect capture dates for small album "
+                        f"'{(small_album or {}).get('albumName', '')}': {exc}"
                     )
                 continue
-            if _small_album_dates_are_covered(small_dates, keeper_dates):
-                matching_keepers.append(keeper)
+            range_matching_keepers = []
+            for keeper in matching_keepers:
+                try:
+                    keeper_range = _capture_range_from_dates(asset_dates_getter(keeper))
+                except Exception as exc:
+                    if GV.LOGGER:
+                        GV.LOGGER.warning(
+                            f"Unable to inspect capture dates for candidate keeper "
+                            f"'{(keeper or {}).get('albumName', '')}': {exc}"
+                        )
+                    continue
+                if _small_album_range_fits_keeper(small_range, keeper_range):
+                    range_matching_keepers.append(keeper)
+            matching_keepers = range_matching_keepers
         if not matching_keepers:
             continue
         keeper = max(
@@ -1695,7 +1736,7 @@ def _scan_small_album_date_match_groups(
         group = _build_direct_consolidation_group([keeper, *small_members], keeper, "small-album-date-match")
         group["assets_date_considered"] = True
         group["album_comments"] = {
-            str((album or {}).get("id", "")).strip(): "All small-album capture dates found in keeper"
+            str((album or {}).get("id", "")).strip(): "Small album capture range fits keeper"
             for album in small_members
         }
         groups.append(group)
@@ -1898,6 +1939,7 @@ def scan_album_consolidation_groups(
     asset_years_getter=None,
     asset_dates_getter=None,
     asset_count_getter=None,
+    asset_date_range_getter=None,
     include_asset_counts=False,
     try_equivalent_albums_grouping=True,
     try_date_prefix_albums_grouping=True,
@@ -2051,6 +2093,7 @@ def scan_album_consolidation_groups(
             assigned_ids,
             asset_dates_getter=cached_asset_dates,
             asset_count_getter=cached_asset_count,
+            asset_date_range_getter=asset_date_range_getter,
             progress_unit=progress_unit,
         )
     else:

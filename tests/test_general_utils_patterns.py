@@ -416,7 +416,7 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertEqual(groups[0]["reason"], "small-album-date-match")
         self.assertEqual(groups[0]["keeper_album"]["id"], "keeper")
         self.assertEqual(groups[0]["album_comments"], {
-            "small": "All small-album capture dates found in keeper",
+            "small": "Small album capture range fits keeper",
         })
 
     def test_scan_album_consolidation_groups_keeps_small_album_when_a_capture_date_is_missing(self):
@@ -460,6 +460,48 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
             )[0]["reason"],
             "date-prefix",
         )
+
+    def test_small_album_matching_uses_summary_ranges_before_reading_assets(self):
+        asset_dates_getter = MagicMock(side_effect=AssertionError("asset details should not be read"))
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "keeper", "albumName": "2024-08 - Viaje por Malaga"},
+                {"id": "small", "albumName": "2024-08 - Malaga viaje fotos"},
+            ],
+            asset_dates_getter=asset_dates_getter,
+            asset_count_getter=lambda album: {"keeper": 12, "small": 2}[album["id"]],
+            asset_date_range_getter=lambda album: {
+                "keeper": ("2024-08-01T00:00:00Z", "2024-08-04T00:00:00Z"),
+                "small": ("2024-08-06T00:00:00Z", "2024-08-06T00:00:00Z"),
+            }[album["id"]],
+            try_equivalent_albums_grouping=False,
+            try_date_prefix_albums_grouping=False,
+            try_truncated_albums_grouping=False,
+        )
+
+        self.assertEqual(groups, [])
+        asset_dates_getter.assert_not_called()
+
+    def test_small_album_matching_accepts_immich_summary_range_without_reading_assets(self):
+        asset_dates_getter = MagicMock(side_effect=AssertionError("asset details should not be read"))
+        groups = scan_album_consolidation_groups(
+            [
+                {"id": "keeper", "albumName": "2024-08 - Viaje por Malaga"},
+                {"id": "small", "albumName": "2024-08 - Malaga viaje fotos"},
+            ],
+            asset_dates_getter=asset_dates_getter,
+            asset_count_getter=lambda album: {"keeper": 12, "small": 2}[album["id"]],
+            asset_date_range_getter=lambda album: {
+                "keeper": ("2024-08-01T00:00:00Z", "2024-08-10T00:00:00Z"),
+                "small": ("2024-08-03T00:00:00Z", "2024-08-04T00:00:00Z"),
+            }[album["id"]],
+            try_equivalent_albums_grouping=False,
+            try_date_prefix_albums_grouping=False,
+            try_truncated_albums_grouping=False,
+        )
+
+        self.assertEqual(groups[0]["reason"], "small-album-date-match")
+        asset_dates_getter.assert_not_called()
 
     def test_confirm_continue_skips_prompt_when_confirmation_is_disabled(self):
         with (
