@@ -87,17 +87,17 @@ def _selected_feature_details(args: dict) -> tuple[str, str | None, list[str]]:
         "synology": "Synology Photos",
         "immich": "Immich Photos",
         "nextcloud": "NextCloud Photos",
-        "local-folder": "Local Folder",
+        "local-photos-folder": "Local Photos Folder",
     }
     cloud_feature_name = cloud_feature_names.get(str(args.get("client") or "").strip().lower(), "Cloud Photos")
     feature_definitions = (
         (is_set("source") and is_set("target"), "Automatic Migration", None, ["source", "target"]),
         (is_set("google-takeout"), "Google Takeout Processor", None, ["google-takeout"]),
         (is_set("icloud-takeout"), "iCloud Takeout Processor", None, ["icloud-takeout"]),
-        (is_set("upload-albums"), cloud_feature_name, "Upload Albums", ["client", "local-folder", "upload-albums"] if args.get("client") == "local-folder" else ["client", "upload-albums"]),
-        (is_set("upload-all"), cloud_feature_name, "Upload All", ["client", "local-folder", "upload-all"] if args.get("client") == "local-folder" else ["client", "upload-all"]),
-        (is_set("download-albums"), cloud_feature_name, "Download Albums", ["client", "local-folder", "download-albums", "output-folder"] if args.get("client") == "local-folder" else ["client", "download-albums", "output-folder"]),
-        (is_set("download-all"), cloud_feature_name, "Download All", ["client", "local-folder", "download-all"] if args.get("client") == "local-folder" else ["client", "download-all"]),
+        (is_set("upload-albums"), cloud_feature_name, "Upload Albums", ["client", "local-photos-folder", "upload-albums"] if args.get("client") == "local-photos-folder" else ["client", "upload-albums"]),
+        (is_set("upload-all"), cloud_feature_name, "Upload All", ["client", "local-photos-folder", "upload-all"] if args.get("client") == "local-photos-folder" else ["client", "upload-all"]),
+        (is_set("download-albums"), cloud_feature_name, "Download Albums", ["client", "local-photos-folder", "download-albums", "output-folder"] if args.get("client") == "local-photos-folder" else ["client", "download-albums", "output-folder"]),
+        (is_set("download-all"), cloud_feature_name, "Download All", ["client", "local-photos-folder", "download-all"] if args.get("client") == "local-photos-folder" else ["client", "download-all"]),
         (is_set("remove-albums"), cloud_feature_name, "Remove Albums", ["client", "remove-albums"]),
         (is_set("rename-albums"), cloud_feature_name, "Rename Albums", ["client", "rename-albums"]),
         (is_set("consolidate-albums-names"), cloud_feature_name, "Consolidate Album Names", ["client", "consolidate-albums-names"]),
@@ -164,8 +164,8 @@ def _feature_optional_dests(feature_name: str, module_name: str | None, args: di
         if "immich" in str(args.get("target", "")).lower():
             result.extend(["import-people", "create-stacks"])
         return result
-    if feature_name in {"Google Photos", "Synology Photos", "Immich Photos", "NextCloud Photos", "Local Folder"}:
-        result = [] if feature_name == "Local Folder" else ["account-id"]
+    if feature_name in {"Google Photos", "Synology Photos", "Immich Photos", "NextCloud Photos", "Local Photos Folder"}:
+        result = [] if feature_name == "Local Photos Folder" else ["account-id"]
         if feature_name == "Synology Photos":
             result.append("one-time-password")
         if module_name in {"Upload Albums", "Upload All"}:

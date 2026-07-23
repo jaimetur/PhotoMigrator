@@ -28,7 +28,7 @@ from Core.CustomLogger import suppress_console_output_temporarily
 from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_ALL_PHOTOS, TIMESTAMP, SUPPLEMENTAL_METADATA, MSG_TAGS, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, GPTH_VERSION, FOLDERNAME_GPTH, TAKEOUT_SPECIAL_FOLDER_NAMES, \
     PIL_SUPPORTED_EXTENSIONS, FOLDERNAME_EXIFTOOL, GOOGLE_PHOTOS_CONTAINER_NAMES, TAKEOUT_YEAR_FOLDER_PATTERNS
-from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder  # Import ClassLocalFolder (Parent Class of this)
+from Features.LocalPhotosFolder.ClassLocalPhotosFolder import ClassLocalPhotosFolder
 from Features.GoogleTakeout.PeopleMetadata import build_people_map, PEOPLE_MAP_FILENAME
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAloneFeatures.Duplicates import find_duplicates
@@ -310,7 +310,7 @@ def _iter_google_takeout_album_dirs(input_folder):
                 continue
             occurrence_index = album_occurrences.get(album_dir.name, 0)
             album_occurrences[album_dir.name] = occurrence_index + 1
-            yield album_dir, ClassLocalFolder._manifest_album_key(album_dir.name, occurrence_index)
+            yield album_dir, ClassLocalPhotosFolder._manifest_album_key(album_dir.name, occurrence_index)
 
 
 def _build_non_album_candidate_index(no_albums_root):
@@ -577,7 +577,7 @@ def preserve_archive_browser_artifacts(output_folder, step_name="", log_level=No
 
         try:
             html_text = destination_html.read_text(encoding="utf-8", errors="replace")
-            albums_manifest = ClassLocalFolder._parse_archive_browser_manifest(html_text)
+            albums_manifest = ClassLocalPhotosFolder._parse_archive_browser_manifest(html_text)
             payload = {
                 "source_file": destination_html.name,
                 "generated_at": datetime.now().isoformat(),
@@ -1307,7 +1307,7 @@ def relocate_gpth_fix_outputs(fix_root, output_folder, step_name="", log_level=N
 ##############################################################################
 #                              START OF CLASS                                #
 ##############################################################################
-class ClassTakeoutFolder(ClassLocalFolder):
+class ClassTakeoutFolder(ClassLocalPhotosFolder):
     def _sync_local_folder_view(self):
         self.base_folder = Path(self.output_folder)
         if not self.ARGS['google-skip-move-albums']:
@@ -2391,7 +2391,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
 
-            # At the end of the process, we call the super() to make this objet a sub-instance of the class ClassLocalFolder to create the same folder structure
+            # At the end of the process, we call super() to make this object a ClassLocalPhotosFolder subclass with the same folder structure.
             if create_localfolder_object:
                 super().__init__(output_folder)
 

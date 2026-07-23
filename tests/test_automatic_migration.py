@@ -88,9 +88,9 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
     def test_build_web_dashboard_snapshot_uses_structured_counters(self):
         shared_data = automatic_module.SharedData(
             info={
-                "source_client_name": "Local Folder",
+                "source_client_name": "Local Photos Folder",
                 "target_client_name": "Immich Photos",
-                "source_client_service": "Local Folder",
+                "source_client_service": "Local Photos Folder",
                 "target_client_service": "Immich Photos",
                 "source_client_context": "data/Photos",
                 "target_client_context": "jaimetur@example.com",
@@ -149,9 +149,9 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         snapshot = automatic_module._build_web_dashboard_snapshot(shared_data, parallel=True)
 
         self.assertEqual(snapshot["migrationMode"], "parallel")
-        self.assertEqual(snapshot["sourceClientName"], "Local Folder")
+        self.assertEqual(snapshot["sourceClientName"], "Local Photos Folder")
         self.assertEqual(snapshot["targetClientName"], "Immich Photos")
-        self.assertEqual(snapshot["sourceClientService"], "Local Folder")
+        self.assertEqual(snapshot["sourceClientService"], "Local Photos Folder")
         self.assertEqual(snapshot["targetClientService"], "Immich Photos")
         self.assertEqual(snapshot["sourceClientContext"], "data/Photos")
         self.assertEqual(snapshot["targetClientContext"], "jaimetur@example.com")
@@ -281,7 +281,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(removed, 0)
 
     def test_remove_source_asset_after_move_uses_quiet_local_delete_path(self):
-        local_client = object.__new__(automatic_module.ClassLocalFolder)
+        local_client = object.__new__(automatic_module.ClassLocalPhotosFolder)
         local_client.remove_assets = unittest.mock.Mock(return_value=1)
 
         removed = automatic_module._remove_source_asset_after_move(
@@ -473,7 +473,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             source_photo = source_root / "Albums" / "MiAlbum" / "IMG_0001.JPG"
             source_photo.parent.mkdir(parents=True)
             source_photo.write_text("photo", encoding="utf-8")
-            local_client = object.__new__(automatic_module.ClassLocalFolder)
+            local_client = object.__new__(automatic_module.ClassLocalPhotosFolder)
             local_client.base_folder = source_root
             queue_root = Path(tmpdir) / "Automatic_Migration" / "Push_Queue"
 
@@ -500,7 +500,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             album_link.parent.mkdir(parents=True)
             physical_photo.write_text("photo", encoding="utf-8")
             album_link.symlink_to(physical_photo)
-            local_client = object.__new__(automatic_module.ClassLocalFolder)
+            local_client = object.__new__(automatic_module.ClassLocalPhotosFolder)
             local_client.base_folder = source_root
             queue_root = Path(tmpdir) / "Automatic_Migration" / "Push_Queue"
 
@@ -554,7 +554,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         logger.error.assert_not_called()
 
     def test_is_blocked_synology_shared_album_returns_false_for_non_synology_sources(self):
-        local_client = object.__new__(automatic_module.ClassLocalFolder)
+        local_client = object.__new__(automatic_module.ClassLocalPhotosFolder)
         album = {"id": "album-1", "albumName": "Album"}
 
         blocked = automatic_module._is_blocked_synology_shared_album(local_client, album)
@@ -744,7 +744,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             (album_folder / ".DS_Store").write_text("junk", encoding="utf-8")
             (album_folder / ".active").write_text("busy", encoding="utf-8")
 
-            local_client = object.__new__(automatic_module.ClassLocalFolder)
+            local_client = object.__new__(automatic_module.ClassLocalPhotosFolder)
             local_client.FOLDER_EXCLUSION_PATTERNS = ["@eaDir", "@Recycle", ".*"]
             local_client.FILE_EXCLUSION_PATTERNS = [".DS_Store", "Thumbs.db", "._*"]
 
@@ -878,8 +878,8 @@ class TestAutomaticMigrationMode(unittest.TestCase):
             patch.object(automatic_module, "confirm_continue", return_value=True),
             patch.object(automatic_module, "contains_zip_files", return_value=False),
             patch.object(automatic_module, "contains_takeout_structure", return_value=False),
-            patch("Features.LocalFolder.ClassLocalFolder.ARGS", dict(self.base_args)),
-            patch("Features.LocalFolder.ClassLocalFolder.LOGGER", self.logger),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.ARGS", dict(self.base_args)),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.ARGS", dict(self.base_args)),
             patch("Core.FolderAnalyzer.LOGGER", self.logger),
             patch.object(automatic_module, "parallel_automatic_migration") as mock_parallel,
@@ -894,8 +894,8 @@ class TestAutomaticMigrationMode(unittest.TestCase):
 
         self.assertEqual(mock_parallel.call_count, 1)
         kwargs = mock_parallel.call_args.kwargs
-        self.assertIn("Local Folder", kwargs["source_client"].CLIENT_NAME)
-        self.assertIn("Local Folder", kwargs["target_client"].CLIENT_NAME)
+        self.assertIn("Local Photos Folder", kwargs["source_client"].CLIENT_NAME)
+        self.assertIn("Local Photos Folder", kwargs["target_client"].CLIENT_NAME)
 
     def test_mode_automatic_migration_processes_takeout_source_before_parallel_flow(self):
         takeout_google_photos = self.source / "Google Photos"
@@ -913,9 +913,9 @@ class TestAutomaticMigrationMode(unittest.TestCase):
                 "contains_takeout_structure",
                 side_effect=lambda path, log_level=None: Path(path) == self.source,
             ),
-            patch("Features.LocalFolder.ClassLocalFolder.ARGS", dict(self.base_args)),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.ARGS", dict(self.base_args)),
             patch("Features.GoogleTakeout.ClassTakeoutFolder.LOGGER", self.logger),
-            patch("Features.LocalFolder.ClassLocalFolder.LOGGER", self.logger),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.ARGS", dict(self.base_args)),
             patch("Features.GoogleTakeout.ClassTakeoutFolder.ClassTakeoutFolder.process") as mock_process,
@@ -960,9 +960,9 @@ class TestAutomaticMigrationMode(unittest.TestCase):
                 "contains_icloud_takeout_structure",
                 side_effect=lambda path, log_level=None: Path(path) == self.source,
             ),
-            patch("Features.LocalFolder.ClassLocalFolder.ARGS", dict(self.base_args)),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.ARGS", dict(self.base_args)),
             patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.ARGS", dict(self.base_args)),
-            patch("Features.LocalFolder.ClassLocalFolder.LOGGER", self.logger),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.LOGGER", self.logger),
             patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.ARGS", dict(self.base_args)),
@@ -986,7 +986,7 @@ class TestAutomaticMigrationMode(unittest.TestCase):
         self.assertEqual(len(process_calls), 1)
         self.assertTrue(process_calls[0]["icloud-include-memories"])
         kwargs = mock_parallel.call_args.kwargs
-        self.assertIn("Local Folder", kwargs["source_client"].CLIENT_NAME)
+        self.assertIn("Local Photos Folder", kwargs["source_client"].CLIENT_NAME)
         self.assertIn("_processed_", str(kwargs["source_client"].base_folder))
 
     def test_mode_automatic_migration_unzips_local_zip_source_before_detecting_icloud_takeout(self):
@@ -1017,9 +1017,9 @@ class TestAutomaticMigrationMode(unittest.TestCase):
                 side_effect=lambda path, log_level=None: Path(path).resolve() == expected_unzip,
             ),
             patch.object(automatic_module, "sanitize_and_unpack_zips", side_effect=fake_unzip) as mock_unzip,
-            patch("Features.LocalFolder.ClassLocalFolder.ARGS", dict(self.base_args)),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.ARGS", dict(self.base_args)),
             patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.ARGS", dict(self.base_args)),
-            patch("Features.LocalFolder.ClassLocalFolder.LOGGER", self.logger),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.LOGGER", self.logger),
             patch("Features.ICloudTakeout.ClassICloudTakeoutFolder.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.LOGGER", self.logger),
             patch("Core.FolderAnalyzer.ARGS", dict(self.base_args)),

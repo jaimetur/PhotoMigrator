@@ -306,7 +306,7 @@ FEATURE_SCOPED_DESTS = {
     "input-folder",
     "output-folder",
     "account-id",
-    "local-folder",
+    "local-photos-folder",
 }
 
 MODULE_DEPENDENCIES_REQUIRED = {
@@ -1804,7 +1804,7 @@ def _ordered_allowed_dests(tab: str, allowed_dests: set[str], selected_action_de
 
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
         if tab == "local_folder":
-            _push("local-folder")
+            _push("local-photos-folder")
         _push(selected_action_dest or "")
         if tab != "local_folder":
             _push("account-id")
@@ -1855,7 +1855,7 @@ def _client_value_for_tab(tab: str) -> str | None:
     if tab == "nextcloud_photos":
         return "nextcloud"
     if tab == "local_folder":
-        return "local-folder"
+        return "local-photos-folder"
     return None
 
 
@@ -3143,7 +3143,7 @@ def _allowed_dests_for_tab(tab: str, selected_action_dest: str | None = None) ->
     if tab == "local_folder":
         allowed_dests.discard("account-id")
     elif tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
-        allowed_dests.discard("local-folder")
+        allowed_dests.discard("local-photos-folder")
     tab_dests = {field["dest"] for field in PARSER_SCHEMA["tabs"][tab]}
 
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
@@ -3424,7 +3424,7 @@ def _required_dests_for_payload(tab: str, selected_action_dest: str | None) -> s
 
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder", "standalone_features"} and selected_action_dest:
         if tab == "local_folder":
-            required.add("local-folder")
+            required.add("local-photos-folder")
         tab_fields = {field["dest"]: field for field in PARSER_SCHEMA["tabs"].get(tab, [])}
         selected_field = tab_fields.get(selected_action_dest)
         if selected_field and selected_field.get("kind") != "flag":

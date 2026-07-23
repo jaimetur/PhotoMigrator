@@ -402,7 +402,7 @@
         synology_photos: "SYNOLOGY PHOTOS",
         immich_photos: "IMMICH PHOTOS",
         nextcloud_photos: "NEXTCLOUD PHOTOS",
-        local_folder: "LOCAL FOLDER",
+        local_folder: "LOCAL PHOTOS FOLDER",
         standalone_features: "OTHER FEATURES",
         upload_folder: "UPLOAD TO SERVER"
     };
@@ -500,7 +500,7 @@
     }
 
     const ARG_LABELS = {
-        "local-folder": "Local Folder",
+        "local-photos-folder": "Local Photos Folder",
         "output-folder": "Output Folder",
         "input-folder": "Input Folder",
         "upload-albums": "Albums Folder",
@@ -883,7 +883,7 @@
         if (payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos" || payload.tab === "google_photos" || payload.tab === "local_folder") {
             const clientLabel = payload.tab === "synology_photos"
                 ? "Synology Photos"
-                : (payload.tab === "immich_photos" ? "Immich Photos" : (payload.tab === "nextcloud_photos" ? "NextCloud Photos" : (payload.tab === "local_folder" ? "Local Folder" : "Google Photos")));
+                : (payload.tab === "immich_photos" ? "Immich Photos" : (payload.tab === "nextcloud_photos" ? "NextCloud Photos" : (payload.tab === "local_folder" ? "Local Photos Folder" : "Google Photos")));
             const removeAlbumAssets = uiBooleanValue(payload?.values?.["remove-albums-assets"]);
             const useImmichDuplicateDeletion = payload.tab === "immich_photos"
                 && uiBooleanValue(payload?.values?.["dup-immich-native-deletion"]);
@@ -1777,7 +1777,7 @@
             const isLocalPath = /[\\/]/.test(label);
             return {
                 full: label,
-                service: match ? match[1].trim() : (isLocalPath ? "Local Folder" : label),
+                service: match ? match[1].trim() : (isLocalPath ? "Local Photos Folder" : label),
                 detail: match ? match[2].trim() : "",
             };
         };
@@ -2675,7 +2675,7 @@
                 ? "Synology Photos"
                 : (tabKey === "immich_photos"
                     ? "Immich Photos"
-                    : (tabKey === "nextcloud_photos" ? "NextCloud Photos" : (tabKey === "local_folder" ? "Local Folder" : ""))));
+                    : (tabKey === "nextcloud_photos" ? "NextCloud Photos" : (tabKey === "local_folder" ? "Local Photos Folder" : ""))));
 
         const generalDocCard = document.createElement("div");
         generalDocCard.className = "desc-card cloud-doc-card";
@@ -2737,7 +2737,7 @@
         left.appendChild(selectRow);
 
         if (tabKey === "local_folder") {
-            const localFolderField = getFieldByDest("local-folder");
+            const localFolderField = getFieldByDest("local-photos-folder");
             if (localFolderField) {
                 left.appendChild(createArgumentRow(normalizeFieldForContext(localFolderField, tabKey), true));
             }
@@ -2745,7 +2745,7 @@
 
         const argSpecs = buildArgumentSpecs(tabKey, selected, true);
         if (tabKey === "google_photos" || tabKey === "synology_photos" || tabKey === "immich_photos" || tabKey === "nextcloud_photos" || tabKey === "local_folder") {
-            const primaryDest = tabKey === "local_folder" ? "local-folder" : "account-id";
+            const primaryDest = tabKey === "local_folder" ? "local-photos-folder" : "account-id";
             const primaryField = getFieldByDest(primaryDest);
             if (primaryField) {
                 const primaryIndex = argSpecs.findIndex((s) => s.field.dest === primaryDest);
@@ -2850,7 +2850,7 @@
         rightTitle.textContent = `${moduleDisplayName}: ${selected ? uiFeatureName(selected) : "-"} - Module Description:`;
         const rightHelp = document.createElement("p");
         const requiredFieldsForDescription = [
-            ...(tabKey === "local_folder" ? [getFieldByDest("local-folder")].filter(Boolean) : []),
+            ...(tabKey === "local_folder" ? [getFieldByDest("local-photos-folder")].filter(Boolean) : []),
             ...renderArgSpecs
             .filter((spec) => spec.required)
             .map((spec) => spec.field),
@@ -2860,7 +2860,7 @@
             .map((spec) => spec.field);
         rightHelp.innerHTML = formatDescriptionHtml(selected, optionalFieldsForDescription, {
             requiredFields: requiredFieldsForDescription,
-            clientName: tabKey === "google_photos" ? "Google Photos" : (tabKey === "synology_photos" ? "Synology" : (tabKey === "immich_photos" ? "Immich" : (tabKey === "nextcloud_photos" ? "NextCloud" : (tabKey === "local_folder" ? "Local Folder" : ""))))
+            clientName: tabKey === "google_photos" ? "Google Photos" : (tabKey === "synology_photos" ? "Synology" : (tabKey === "immich_photos" ? "Immich" : (tabKey === "nextcloud_photos" ? "NextCloud" : (tabKey === "local_folder" ? "Local Photos Folder" : ""))))
         });
         right.appendChild(rightTitle);
         right.appendChild(rightHelp);
@@ -3714,7 +3714,7 @@
         }
 
         if (payload.tab === "google_photos" || payload.tab === "synology_photos" || payload.tab === "immich_photos" || payload.tab === "nextcloud_photos" || payload.tab === "local_folder") {
-            if (payload.tab === "local_folder") required.add("local-folder");
+            if (payload.tab === "local_folder") required.add("local-photos-folder");
             const selected = (schema.tabs[payload.tab] || []).find((f) => f.dest === payload.selected_action_dest);
             if (selected && selected.kind !== "flag") required.add(selected.dest);
             const mapped = (MODULE_DEPENDENCIES[payload.tab] || {})[selected?.dest || ""] || [];

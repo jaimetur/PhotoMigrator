@@ -64,7 +64,7 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 - [Synology Photos](07-synology-photos.md)
 - [Immich Photos](08-immich-photos.md)
 - [NextCloud Photos](09-nextcloud-photos.md)
-- [Local Folder](10-local-folder.md)
+- [Local Photos Folder](10-local-photos-folder.md)
 - [Other Features](10-other-features.md)
 - [Google Photos Takeout Helper (GPTH)](11-GPTH-complete-pipeline.md)
 - [Docker Deployment](12-docker-deployment.md)

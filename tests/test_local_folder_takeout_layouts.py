@@ -9,8 +9,8 @@ from unittest.mock import Mock, patch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
 import Core.FolderAnalyzer as folder_analyzer_module
-import Features.LocalFolder.ClassLocalFolder as local_folder_module
-from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder
+import Features.LocalPhotosFolder.ClassLocalPhotosFolder as local_folder_module
+from Features.LocalPhotosFolder.ClassLocalPhotosFolder import ClassLocalPhotosFolder
 
 
 class TestLocalFolderTakeoutLayouts(unittest.TestCase):
@@ -62,7 +62,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         file_path.write_text("data", encoding="utf-8")
 
     def test_takeout_partner_shared_and_special_folders_are_classified_correctly(self):
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
 
         albums = local_folder.get_albums_including_shared_with_user(log_level=logging.INFO)
         album_names = sorted(album["albumName"] for album in albums)
@@ -96,7 +96,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
     def test_managed_layout_treats_memories_root_as_album_collections(self):
         self._create_file("Memories/Summer Recap/memory-a.jpg")
 
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
 
         albums = local_folder.get_albums_including_shared_with_user(log_level=logging.INFO)
         album_names = sorted(album["albumName"] for album in albums)
@@ -117,7 +117,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         generic_csv = self.root / "No_Date_Assets.csv"
         generic_csv.write_text("filename,path\nIMG_0002.JPG,/tmp/IMG_0002.JPG\n", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
 
         self.assertEqual(local_folder._determine_file_type(metadata_csv), "metadata")
         self.assertEqual(local_folder._determine_file_type(generic_csv), "unknown")
@@ -127,7 +127,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         webp_file.parent.mkdir(parents=True, exist_ok=True)
         webp_file.write_text("img", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
 
         self.assertEqual(local_folder._determine_file_type(webp_file), "image")
 
@@ -139,7 +139,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         mp_file = self.root / "ALL_PHOTOS/2024/PXL_20230512_222825532.MP"
         mp_file.write_text("img", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
 
         self.assertEqual(local_folder._determine_file_type(progress_json), "unknown")
         self.assertEqual(local_folder._determine_file_type(mp_file), "unknown")
@@ -161,7 +161,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         removable.parent.mkdir(parents=True, exist_ok=True)
         removable.write_text("delete", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
         removed_key = removable.resolve().as_posix()
         keep_key = (self.root / "ALL_PHOTOS/2024/root-no-album.jpg").resolve().as_posix()
 
@@ -210,7 +210,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         (cleanup_root / "@eaDir" / "SYNOPHOTO_THUMB_XL.jpg").write_text("thumb", encoding="utf-8")
         (cleanup_root / ".DS_Store").write_text("junk", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
 
         removed = local_folder.remove_empty_folders(log_level=logging.INFO)
 
@@ -223,7 +223,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         (clean_root / "Albums/OnlyExcluded/@eaDir/thumb.jpg").write_text("thumb", encoding="utf-8")
         (clean_root / "Albums/OnlyExcluded/.DS_Store").write_text("junk", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=clean_root)
+        local_folder = ClassLocalPhotosFolder(base_folder=clean_root)
         summary = local_folder.cleanup_after_move_assets(log_level=logging.INFO)
 
         self.assertTrue(summary["root_removed"])
@@ -235,7 +235,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         (clean_root / "Albums/OnlyRuntimeMarkers/.active").write_text("busy", encoding="utf-8")
         (clean_root / "Albums/OnlyRuntimeMarkers/asset.jpg.lock").write_text("busy", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=clean_root)
+        local_folder = ClassLocalPhotosFolder(base_folder=clean_root)
         summary = local_folder.cleanup_after_move_assets(log_level=logging.INFO)
 
         self.assertTrue(summary["root_removed"])
@@ -246,7 +246,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         removable.parent.mkdir(parents=True, exist_ok=True)
         removable.write_text("delete", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
 
         class AnalyzerStub:
             def __init__(self):
@@ -284,7 +284,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         removable.parent.mkdir(parents=True, exist_ok=True)
         removable.write_text("delete", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=self.root)
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
         removed_key = removable.resolve().as_posix()
 
         class AnalyzerStub:
@@ -322,7 +322,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         (plain_root / "Family").mkdir(parents=True, exist_ok=True)
         (plain_root / "Family" / "family-a.jpg").write_text("data", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=plain_root)
+        local_folder = ClassLocalPhotosFolder(base_folder=plain_root)
 
         self.assertFalse((plain_root / "Albums").exists())
         self.assertFalse((plain_root / "Albums-shared").exists())
@@ -342,7 +342,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         all_photos_file.parent.mkdir(parents=True, exist_ok=True)
         all_photos_file.write_text("data", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=takeout_root)
+        local_folder = ClassLocalPhotosFolder(base_folder=takeout_root)
 
         self.assertTrue(local_folder._uses_managed_layout())
         no_album_assets = local_folder.get_all_assets_without_albums(log_level=logging.INFO)
@@ -357,7 +357,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         (plain_root / "Memories" / "Summer Recap").mkdir(parents=True, exist_ok=True)
         (plain_root / "Memories" / "Summer Recap" / "memory-a.jpg").write_text("data", encoding="utf-8")
 
-        local_folder = ClassLocalFolder(base_folder=plain_root)
+        local_folder = ClassLocalPhotosFolder(base_folder=plain_root)
 
         albums = local_folder.get_albums_including_shared_with_user(log_level=logging.INFO)
         album_names = sorted(album["albumName"] for album in albums)
@@ -371,7 +371,7 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         plain_root = self.root / "plain-target"
         plain_root.mkdir(parents=True, exist_ok=True)
 
-        local_folder = ClassLocalFolder(base_folder=plain_root)
+        local_folder = ClassLocalPhotosFolder(base_folder=plain_root)
 
         self.assertFalse((plain_root / "Albums-shared").exists())
 

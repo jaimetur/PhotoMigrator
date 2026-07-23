@@ -1403,7 +1403,7 @@ class PhotoMigratorTkGUI:
         elif self.active_module in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
             selected = next((field for field in self.schema["tabs"][self.active_module] if field["dest"] == self.cloud_action_dest.get(self.active_module)), None)
             fields = [spec["field"] for spec in build_argument_specs(self.schema, self.active_module, selected, True)]
-            primary_field = get_field_by_dest(self.schema, "local-folder" if self.active_module == "local_folder" else "account-id")
+            primary_field = get_field_by_dest(self.schema, "local-photos-folder" if self.active_module == "local_folder" else "account-id")
             if primary_field:
                 fields.append(primary_field)
         elif self.active_module == "standalone_features":
@@ -1740,14 +1740,14 @@ class PhotoMigratorTkGUI:
             self.cloud_action_dest[self.active_module] = selected_dest
         self.build_select_row(parent, "Cloud Action", "cloud-action-select", [(ui_option_name(field), field["dest"]) for field in actions], selected_dest, help_text="Select the cloud action to configure for the current service.")
         if self.active_module == "local_folder":
-            local_folder_field = get_field_by_dest(self.schema, "local-folder")
+            local_folder_field = get_field_by_dest(self.schema, "local-photos-folder")
             if local_folder_field:
                 self.build_field_widgets(parent, normalize_field_for_context(local_folder_field, self.active_module), required=True, context=self.active_module)
         selected = next((field for field in actions if field["dest"] == selected_dest), None)
         if selected and str(selected.get("help") or "").strip():
             self._empty_label(parent, str(selected.get("help") or "").strip()).pack(anchor="w", padx=8, pady=(0, 4))
         specs = build_argument_specs(self.schema, self.active_module, selected, True)
-        primary_dest = "local-folder" if self.active_module == "local_folder" else "account-id"
+        primary_dest = "local-photos-folder" if self.active_module == "local_folder" else "account-id"
         primary_field = get_field_by_dest(self.schema, primary_dest)
         if primary_field:
             normalized = normalize_field_for_context(primary_field, self.active_module)

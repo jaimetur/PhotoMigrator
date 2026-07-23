@@ -23,9 +23,9 @@ from Utils.DuplicateUtils import select_people_then_chronology_keeper
 
 """
 -------------------
-ClassLocalFolder.py
+ClassLocalPhotosFolder.py
 -------------------
-Python module with example functions to interact with Local Folder, including following functions:
+Python module with example functions to interact with Local Photos Folder, including following functions:
   - Listing and managing albums
   - Listing, uploading, and downloading assets
   - Deleting empty or duplicate albums
@@ -41,7 +41,7 @@ Python module with example functions to interact with Local Folder, including fo
 ##############################################################################
 #                              START OF CLASS                                #
 ##############################################################################
-class ClassLocalFolder(BaseMediaClient):
+class ClassLocalPhotosFolder(BaseMediaClient):
     def __init__(self, base_folder):
         """
         Initializes the class and sets up the base folder where albums and assets will be managed.
@@ -103,7 +103,7 @@ class ClassLocalFolder(BaseMediaClient):
         # Create the object analyzer from FolderAnalyzer Class
         self.analyzer = None
 
-        self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
+        self.CLIENT_NAME = f'Local Photos Folder ({self.base_folder.name})'
 
     def _get_effective_cleanup_file_exclusion_patterns(self):
         return merge_exclusion_patterns(
@@ -3123,7 +3123,7 @@ if __name__ == "__main__":
     change_working_dir(change_dir=False)
 
     # Create the Object
-    localFolder = ClassLocalFolder()
+    localFolder = ClassLocalPhotosFolder()
 
     # 0) Read configuration and log in
     localFolder.read_config_file(CONFIGURATION_FILE)

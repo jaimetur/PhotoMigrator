@@ -133,14 +133,14 @@ def parse_arguments():
                         help="Specify the output folder to save the result of the processing action.")
 
     PARSER.add_argument("-client", "--client",
-                        metavar="= ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud', 'local-folder']",
+                        metavar="= ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud', 'local-photos-folder']",
                         default='google-takeout',  # If not provided, default is 'google-takeout'
                         type=validate_client,      # Validates client string
                         help="Set the client to use for the selected feature.")
 
-    PARSER.add_argument("-localFolder", "--local-folder", metavar="<LOCAL_FOLDER>", default="", type=clean_path,
-                        help="Specify the managed Local Folder root when '--client=local-folder'.\n"
-                             "It contains the Albums and No_Albums folders used by Local Folder modules.")
+    PARSER.add_argument("-lPhotosFolder", "--local-photos-folder", metavar="<LOCAL_PHOTOS_FOLDER>", default="", type=clean_path,
+                        help="Specify the managed Local Photos Folder root when '--client=local-photos-folder'.\n"
+                             "It contains the Albums and No_Albums folders used by Local Photos Folder modules.")
 
     PARSER.add_argument("-id", "--account-id",
                         metavar="= [1-3]",
@@ -172,13 +172,13 @@ def parse_arguments():
                         help="Specify the Person Name to filter assets in the different Photo Clients.")
 
     PARSER.add_argument("-exFolders", "--exclude-folders", metavar="<FOLDER_PATTERN>", default=[], nargs="*",
-                        help="Exclude folders matching one or more glob patterns during local-folder processing or migration.\n"
+                        help="Exclude folders matching one or more glob patterns during Local Photos Folder processing or migration.\n"
                              "Examples:\n"
                              "  --exclude-folders @eaDir .@__thumb @Recycle\n"
                              "  --exclude-folders='@eaDir,.@__thumb,@Recycle'")
 
     PARSER.add_argument("-exFiles", "--exclude-files", metavar="<FILE_PATTERN>", default=[], nargs="*",
-                        help="Exclude files matching one or more glob patterns during local-folder processing or migration.\n"
+                        help="Exclude files matching one or more glob patterns during Local Photos Folder processing or migration.\n"
                              "Examples:\n"
                              "  --exclude-files SYNOFILE_THUMB* SYNOPHOTO_THUMB* SYNOPHOTO_FILM* Thumbs.db .DS_Store\n"
                              "  --exclude-files='SYNOFILE_THUMB*,SYNOPHOTO_THUMB*,SYNOPHOTO_FILM*,Thumbs.db,.DS_Store'")
@@ -690,7 +690,7 @@ def validate_client(valor):
     """
     Validate the photo client selection.
     """
-    valid_clients = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud', 'local-folder']
+    valid_clients = ['google-takeout', 'google-photos', 'synology', 'immich', 'nextcloud', 'local-photos-folder']
     try:
         valor_lower = valor.lower()
     except Exception:
@@ -733,14 +733,14 @@ def validate_client_arg(ARGS, PARSER):
                 PARSER.error(
                     f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
                     f"The flag '--{flag}' requires that '--client' is also specified "
-                    f"(synology, immich, nextcloud, local-folder or google-photos).\n{Style.RESET_ALL}"
+                    f"(synology, immich, nextcloud, local-photos-folder or google-photos).\n{Style.RESET_ALL}"
                 )
                 exit(1)
 
-    if ARGS.get('client') == 'local-folder' and not str(ARGS.get('local-folder') or '').strip():
+    if ARGS.get('client') == 'local-photos-folder' and not str(ARGS.get('local-photos-folder') or '').strip():
         PARSER.error(
             f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
-            f"The client '--client=local-folder' requires '--local-folder <LOCAL_FOLDER>'.\n{Style.RESET_ALL}"
+            f"The client '--client=local-photos-folder' requires '--local-photos-folder <LOCAL_PHOTOS_FOLDER>'.\n{Style.RESET_ALL}"
         )
 
 
@@ -785,7 +785,7 @@ def checkArgs(ARGS, PARSER):
     ARGS['foldername-extracted-dates']      = fix_path(ARGS['foldername-extracted-dates'])
     ARGS['input-folder']                    = fix_path(ARGS['input-folder'])
     ARGS['output-folder']                   = fix_path(ARGS['output-folder'])
-    ARGS['local-folder']                    = fix_path(ARGS['local-folder'])
+    ARGS['local-photos-folder']             = fix_path(ARGS['local-photos-folder'])
     ARGS['google-takeout']                  = fix_path(ARGS['google-takeout'])
     ARGS['icloud-takeout']                  = fix_path(ARGS['icloud-takeout'])
     ARGS['upload-albums']                   = fix_path(ARGS['upload-albums'])
@@ -801,7 +801,7 @@ def checkArgs(ARGS, PARSER):
         'target',
         'input-folder',
         'output-folder',
-        'local-folder',
+        'local-photos-folder',
         'albums-folders',  # FIX: was 'albums-folder' (typo) and it prevented resolving this argument
         'google-takeout',
         'icloud-takeout',

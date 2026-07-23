@@ -1,6 +1,6 @@
-# Local Folder Management
+# Local Photos Folder Management
 
-The **Local Folder** tab exposes the same library-management modules as the cloud-service tabs, but operates on a managed folder on disk. It is selected with `--client=local-folder` and requires `--local-folder`.
+The **Local Photos Folder** tab exposes the same library-management modules as the cloud-service tabs, but operates on a managed folder on disk. It is selected with `--client=local-photos-folder` and requires `--local-photos-folder`.
 
 The managed root uses this layout:
 
@@ -17,24 +17,24 @@ Album entries link to their physical files in `No_Albums` where the filesystem p
 Upload a complete local library:
 
 ```bash
-PhotoMigrator --client local-folder --local-folder ./ManagedLibrary --upload-all ./SourceLibrary
+PhotoMigrator --client local-photos-folder --local-photos-folder ./ManagedLibrary --upload-all ./SourceLibrary
 ```
 
 Upload directories as albums:
 
 ```bash
-PhotoMigrator --client local-folder --local-folder ./ManagedLibrary --upload-albums ./AlbumsToImport
+PhotoMigrator --client local-photos-folder --local-photos-folder ./ManagedLibrary --upload-albums ./AlbumsToImport
 ```
 
 Download the managed library:
 
 ```bash
-PhotoMigrator --client local-folder --local-folder ./ManagedLibrary --download-all ./ExportedLibrary
+PhotoMigrator --client local-photos-folder --local-photos-folder ./ManagedLibrary --download-all ./ExportedLibrary
 ```
 
 All common album modules are available: upload/download albums, upload/download all, rename/remove albums, remove empty or duplicate albums, consolidate album names, remove all assets, and remove duplicate physical assets. `--dup-asset-keeper` is required for duplicate-asset removal.
 
-`--local-folder` identifies the managed library; upload arguments continue to identify the source folder, and download arguments continue to identify the destination folder.
+`--local-photos-folder` identifies the managed library; upload arguments continue to identify the source folder, and download arguments continue to identify the destination folder.
 
 ## Consolidate Albums Names
 

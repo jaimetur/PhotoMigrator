@@ -42,7 +42,7 @@ MODULE_TAB_NAMES = {
     "synology_photos": "SYNOLOGY PHOTOS",
     "immich_photos": "IMMICH PHOTOS",
     "nextcloud_photos": "NEXTCLOUD PHOTOS",
-    "local_folder": "LOCAL FOLDER",
+    "local_folder": "LOCAL PHOTOS FOLDER",
     "standalone_features": "OTHER FEATURES",
     "upload_folder": "UPLOAD TO SERVER",
 }
@@ -76,7 +76,7 @@ FEATURE_LABELS = {
     "process-duplicates": "Process Duplicates",
 }
 UI_FIELD_LABELS = {
-    "local-folder": "Local Folder",
+    "local-photos-folder": "Local Photos Folder",
     "dashboard": "Live Dashboard",
     "preview-album-actions": "Preview Album Actions",
     "prefer-canonical-album-names": "Prefer Canonical Album Names",
@@ -324,7 +324,7 @@ GENERAL_OPTIONAL_DESTS = {
     "exec-gpth-tool",
     "exec-exif-tool",
 }
-FEATURE_SCOPED_DESTS = {"input-folder", "output-folder", "account-id", "local-folder"}
+FEATURE_SCOPED_DESTS = {"input-folder", "output-folder", "account-id", "local-photos-folder"}
 MODULE_DEPENDENCIES_REQUIRED = {
     "google_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
     "synology_photos": {"download-albums": {"output-folder"}, "rename-albums": {"replacement-pattern"}},
@@ -1114,11 +1114,11 @@ def build_argument_specs(schema: Dict[str, Any], tab_key: str, selected_field: D
         seen.add(dest)
         specs.append({"field": normalize_field_for_context(field, tab_key), "required": required})
 
-    # A Local Folder module cannot operate without its managed library root.
+    # A Local Photos Folder module cannot operate without its managed library root.
     # Keep it first so GUI, TUI, and command previews all lead with the
     # location that defines the target library.
     if tab_key == "local_folder":
-        push_spec("local-folder", True, True)
+        push_spec("local-photos-folder", True, True)
 
     if include_selected_value and selected_field and selected_field.get("kind") != "flag":
         push_spec(str(selected_field.get("dest") or ""), True)
@@ -1611,7 +1611,7 @@ def _allowed_dests_for_tab(schema: Dict[str, Any], tab: str, selected_action_des
     if tab == "local_folder":
         allowed_dests.discard("account-id")
     elif tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos"}:
-        allowed_dests.discard("local-folder")
+        allowed_dests.discard("local-photos-folder")
     tab_dests = {field["dest"] for field in schema["tabs"][tab]}
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"}:
         cloud_action_dests = {dest for dest in tab_dests if dest != "one-time-password"}
@@ -1660,7 +1660,7 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
         if bool(item.get("required"))
     }
     if tab == "local_folder":
-        required_action_dests.add("local-folder")
+        required_action_dests.add("local-photos-folder")
     args: List[str] = []
     for dest in sorted(allowed_dests):
         field = schema["fields_by_dest"][dest]
@@ -1718,7 +1718,7 @@ def build_cli_args(schema: Dict[str, Any], tab: str, values: Dict[str, Any], sel
     elif tab == "nextcloud_photos":
         args.extend(["--client", "nextcloud"])
     elif tab == "local_folder":
-        args.extend(["--client", "local-folder"])
+        args.extend(["--client", "local-photos-folder"])
     return args
 
 

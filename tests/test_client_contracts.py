@@ -3,13 +3,13 @@ import unittest
 
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
-from Features.LocalFolder.ClassLocalFolder import ClassLocalFolder
+from Features.LocalPhotosFolder.ClassLocalPhotosFolder import ClassLocalPhotosFolder
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
 
 
 CLIENT_CLASSES = [
-    ClassLocalFolder,
+    ClassLocalPhotosFolder,
     ClassSynologyPhotos,
     ClassImmichPhotos,
     ClassNextCloudPhotos,

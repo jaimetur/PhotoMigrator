@@ -19,7 +19,8 @@ from typing import Union, cast
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
 from Core.GlobalVariables import TOOL_NAME_VERSION, TOOL_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS, TOOL_DATE, FOLDERNAME_EXTRACTED_DATES, PROJECT_ROOT
-from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder, contains_takeout_structure
+from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder, contains_takeout_structure
+from Features.LocalPhotosFolder.ClassLocalPhotosFolder import ClassLocalPhotosFolder
 from Features.ICloudTakeout.ClassICloudTakeoutFolder import ClassICloudTakeoutFolder, contains_icloud_takeout_structure, is_icloud_metadata_csv_path
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
@@ -257,7 +258,7 @@ def _remove_source_asset_after_move(source_client, asset_id, log_level=logging.I
     """
     if not asset_id:
         return 0
-    if isinstance(source_client, ClassLocalFolder):
+    if isinstance(source_client, ClassLocalPhotosFolder):
         return source_client.remove_assets(
             asset_ids=asset_id,
             log_level=logging.WARNING,
@@ -295,7 +296,7 @@ def _safe_asset_relative_path(source_root, source_path, fallback_name):
 
 
 def _build_automatic_migration_relative_asset_path(source_client, source_asset_id, asset_filename, album_name=None):
-    if isinstance(source_client, ClassLocalFolder):
+    if isinstance(source_client, ClassLocalPhotosFolder):
         base_folder = getattr(source_client, "base_folder", None)
         relative_path = _safe_asset_relative_path(base_folder, source_asset_id, asset_filename)
         if str(relative_path).strip():
@@ -645,7 +646,7 @@ def _move_to_album_association_failed_folder(temp_folder, album_name, asset_file
 
 
 def _cleanup_local_source_after_move(source_client, log_level=logging.INFO):
-    if not isinstance(source_client, ClassLocalFolder):
+    if not isinstance(source_client, ClassLocalPhotosFolder):
         return {}
     try:
         return source_client.cleanup_after_move_assets(log_level=log_level)
@@ -759,7 +760,7 @@ def _cleanup_local_source_album_folders_after_push(
     source_album_paths_by_name,
     log_level=None,
 ):
-    if not album_name or not isinstance(source_client, ClassLocalFolder):
+    if not album_name or not isinstance(source_client, ClassLocalPhotosFolder):
         return 0
     if not isinstance(source_album_paths_by_name, dict):
         return 0
@@ -1010,14 +1011,14 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             elif Path(local_detection_path).is_dir() and contains_takeout_structure(local_detection_path, log_level=logging.INFO):
                 return ClassTakeoutFolder(local_detection_path)  # In this clase, client_type is the path to the Takeout Folder
 
-            # Return ClassLocalFolder
+            # Return ClassLocalPhotosFolder.
             elif Path(local_detection_path).is_dir():
-                return ClassLocalFolder(base_folder=local_detection_path)  # In this clase, client_type is the path to the base Local Folder
+                return ClassLocalPhotosFolder(base_folder=local_detection_path)
             else:
                 raise ValueError(f"{MSG_TAGS['ERROR']}Tipo de cliente no válido: {client_type}")
 
         def _get_dashboard_client_context(client, client_name):
-            if isinstance(client, (ClassLocalFolder, ClassTakeoutFolder, ClassICloudTakeoutFolder)):
+            if isinstance(client, (ClassLocalPhotosFolder, ClassTakeoutFolder, ClassICloudTakeoutFolder)):
                 local_folder = Path(getattr(client, "base_folder", None) or getattr(client, "output_folder", None) or "")
                 if local_folder:
                     try:
@@ -1032,8 +1033,8 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 return "Google Takeout Folder"
             if isinstance(client, ClassICloudTakeoutFolder):
                 return "iCloud Takeout Folder"
-            if isinstance(client, ClassLocalFolder):
-                return "Local Folder"
+            if isinstance(client, ClassLocalPhotosFolder):
+                return "Local Photos Folder"
             match = re.match(r"^(.*?)\s*\(.*\)$", str(client_name or "").strip())
             return match.group(1).strip() if match else str(client_name or "").strip()
 
@@ -1056,7 +1057,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         # Check if source_client support specified filters
         unsupported_text = ""
-        if isinstance(source_client, (ClassTakeoutFolder, ClassICloudTakeoutFolder, ClassLocalFolder)):
+        if isinstance(source_client, (ClassTakeoutFolder, ClassICloudTakeoutFolder, ClassLocalPhotosFolder)):
             unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
         # Check if '-move, --move-assets' have been passed as argument
@@ -1225,7 +1226,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                     source_client.albums_folder = source_client.output_folder / source_client.albums_folder.name
                     source_client.memories_folder = source_client.output_folder / source_client.memories_folder.name
                 source_client.process(log_level=log_level)
-                source_client = ClassLocalFolder(base_folder=str(source_client.output_folder))
+                source_client = ClassLocalPhotosFolder(base_folder=str(source_client.output_folder))
                 source_client_name = source_client.get_client_name()
                 SHARED_DATA.info.update({
                     "source_client_name": source_client_name,
@@ -1235,7 +1236,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
             if isinstance(source_client, ClassTakeoutFolder) and isinstance(target_client, ClassImmichPhotos):
                 target_client.configure_people_import(source_client.output_folder, log_level=log_level)
-            elif isinstance(source_client, ClassLocalFolder) and isinstance(target_client, ClassImmichPhotos):
+            elif isinstance(source_client, ClassLocalPhotosFolder) and isinstance(target_client, ClassImmichPhotos):
                 target_client.configure_people_import(source_client.base_folder, log_level=log_level)
 
             if isinstance(target_client, ClassTakeoutFolder):
@@ -1254,7 +1255,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                     target_client.albums_folder = target_client.output_folder / target_client.albums_folder.name
                     target_client.memories_folder = target_client.output_folder / target_client.memories_folder.name
                 target_client.process(log_level=log_level)
-                target_client = ClassLocalFolder(base_folder=str(target_client.output_folder))
+                target_client = ClassLocalPhotosFolder(base_folder=str(target_client.output_folder))
                 target_client_name = target_client.get_client_name()
                 SHARED_DATA.info.update({
                     "target_client_name": target_client_name,
@@ -1544,7 +1545,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             return target_album_asset_ids_cache.setdefault(album_id, asset_ids)
 
     def _find_local_source_live_video_companion(source_asset_id):
-        if not isinstance(source_client, ClassLocalFolder):
+        if not isinstance(source_client, ClassLocalPhotosFolder):
             return None
         if not isinstance(target_client, ClassImmichPhotos):
             return None
@@ -1573,7 +1574,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
     def _find_local_source_live_photo_companion(source_asset_id):
         """Return the same-stem photo for a local Immich Live Photo video."""
-        if not isinstance(source_client, ClassLocalFolder):
+        if not isinstance(source_client, ClassLocalPhotosFolder):
             return None
         if not isinstance(target_client, ClassImmichPhotos):
             return None
@@ -1702,7 +1703,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             if album_name not in created_albums:
                 aid = None
                 exists = False
-                if isinstance(target_client, ClassLocalFolder):
+                if isinstance(target_client, ClassLocalPhotosFolder):
                     exists, aid = target_client.album_exists(
                         album_name=album_name,
                         shared=album_is_shared,
@@ -1710,7 +1711,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     )
                 else:
                     exists, aid = target_client.album_exists(album_name=album_name, log_level=log_level)
-                if not exists and isinstance(target_client, ClassLocalFolder):
+                if not exists and isinstance(target_client, ClassLocalPhotosFolder):
                     aid = target_client.create_album(
                         album_name=album_name,
                         shared=album_is_shared,
@@ -2533,7 +2534,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
         )
 
     def _get_album_staging_folder(album_name):
-        if isinstance(source_client, ClassLocalFolder):
+        if isinstance(source_client, ClassLocalPhotosFolder):
             with source_album_paths_lock:
                 album_source_paths = sorted(source_album_paths_by_name.get(album_name) or [])
             for album_source_path in album_source_paths:
@@ -3879,7 +3880,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # ------------------
     def main_thread(parallel=None, log_level=logging.INFO):
         def is_unsupported_source(client) -> bool:
-            return isinstance(client, (ClassTakeoutFolder, ClassLocalFolder))
+            return isinstance(client, (ClassTakeoutFolder, ClassLocalPhotosFolder))
 
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Get Log_filename
@@ -4027,7 +4028,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             all_sidecar = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in sidecar_labels]
             all_invalid = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['unknown']]
             extra_metadata_csv_count = 0
-            if isinstance(source_client, ClassLocalFolder):
+            if isinstance(source_client, ClassLocalPhotosFolder):
                 try:
                     for csv_path in Path(source_client.base_folder).rglob("*.csv"):
                         if is_icloud_metadata_csv_path(csv_path):
@@ -4195,7 +4196,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 except Exception as e:
                     LOGGER.warning(f"Unable to auto-stack bursts in Immich after migration: {e}")
 
-            if move_assets and isinstance(source_client, ClassLocalFolder):
+            if move_assets and isinstance(source_client, ClassLocalPhotosFolder):
                 _cleanup_local_source_after_move(source_client=source_client, log_level=logging.INFO)
 
             # Finalmente, borrar carpetas vacías que queden en temp_folder
@@ -4314,7 +4315,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 album_assets = []
                 album_id = album['id']
                 album_name = album['albumName']
-                if isinstance(source_client, ClassLocalFolder) and album_id:
+                if isinstance(source_client, ClassLocalPhotosFolder) and album_id:
                     with source_album_paths_lock:
                         source_album_paths_by_name.setdefault(album_name, set()).add(str(album_id))
                 album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
@@ -4401,7 +4402,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # sources retain their full path relative to the source root.
                         download_folder = album_folder
                         staged_filename = asset_filename
-                        if isinstance(source_client, ClassLocalFolder):
+                        if isinstance(source_client, ClassLocalPhotosFolder):
                             relative_path = _build_automatic_migration_relative_asset_path(
                                 source_client, asset_id, asset_filename, album_name,
                             )
@@ -4422,7 +4423,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         try:
                             source_live_companion_path = None
                             staged_live_companion_path = None
-                            if not isinstance(source_client, ClassLocalFolder):
+                            if not isinstance(source_client, ClassLocalPhotosFolder):
                                 pull_kwargs = {
                                     "asset_id": asset_id,
                                     "asset_filename": staged_filename,
@@ -4434,7 +4435,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 if isinstance(source_client, ClassSynologyPhotos):
                                     pull_kwargs["album_id"] = album_id
                                     pull_kwargs["album_scope"] = album_scope
-                            if isinstance(source_client, ClassLocalFolder):
+                            if isinstance(source_client, ClassLocalPhotosFolder):
                                 staged_path = _stage_local_asset_for_automatic_migration(
                                     source_client=source_client,
                                     source_asset_id=asset_id,
@@ -4483,7 +4484,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         # Actualizamos Contadores de descargas
                         if _pull_has_content(pulled_assets):
-                            is_local_source = isinstance(source_client, ClassLocalFolder)
+                            is_local_source = isinstance(source_client, ClassLocalPhotosFolder)
                             pulled_file_paths = collect_pulled_asset_paths(
                                 download_folder,
                                 staged_filename,
@@ -4540,7 +4541,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     'count_push_stats': count_push_stats,
                                     'physical_stats': asset_stats,
                                     'enqueued_at_monotonic': time.perf_counter(),
-                                    'source_asset_already_moved': bool(ARGS.get('move-assets', None)) and isinstance(source_client, ClassLocalFolder),
+                                    'source_asset_already_moved': bool(ARGS.get('move-assets', None)) and isinstance(source_client, ClassLocalPhotosFolder),
                                 }
                                 if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                     asset_dict['live_photo_video_path'] = immich_live_companion
@@ -4693,7 +4694,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         staged_live_companion_path = None
                         download_folder = push_queue_folder
                         staged_filename = asset_filename
-                        if isinstance(source_client, ClassLocalFolder):
+                        if isinstance(source_client, ClassLocalPhotosFolder):
                             relative_path = _build_automatic_migration_relative_asset_path(
                                 source_client, asset_id, asset_filename,
                             )
@@ -4709,7 +4710,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             lock.write("Pulling")
                         # Descargar directamente en temp_folder
                         pull_started_at = time.perf_counter()
-                        if isinstance(source_client, ClassLocalFolder):
+                        if isinstance(source_client, ClassLocalPhotosFolder):
                             staged_path = _stage_local_asset_for_automatic_migration(
                                 source_client=source_client,
                                 source_asset_id=asset_id,
@@ -4764,7 +4765,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                     # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
                     if _pull_has_content(pulled_assets):
-                        is_local_source = isinstance(source_client, ClassLocalFolder)
+                        is_local_source = isinstance(source_client, ClassLocalPhotosFolder)
                         pulled_file_paths = collect_pulled_asset_paths(
                             download_folder,
                             staged_filename,
@@ -4814,7 +4815,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 'count_push_stats': count_push_stats,
                                 'physical_stats': asset_stats,
                                 'enqueued_at_monotonic': time.perf_counter(),
-                                'source_asset_already_moved': bool(ARGS.get('move-assets', None)) and isinstance(source_client, ClassLocalFolder),
+                                'source_asset_already_moved': bool(ARGS.get('move-assets', None)) and isinstance(source_client, ClassLocalPhotosFolder),
                             }
                             if immich_live_companion and path_key(pulled_file_path) == path_key(local_file_path):
                                 asset_dict['live_photo_video_path'] = immich_live_companion

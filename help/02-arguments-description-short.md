@@ -59,23 +59,23 @@ PhotoMigrator.bin --version
 ## ⚙️ General Options
 Following general arguments have different purposes depending on the Execution Mode.
 
-| Argument                                  | Description                                                                                          |
-|-------------------------------------------|------------------------------------------------------------------------------------------------------|
-| `-i`,<br>`--input-folder`                 | Input folder to process                                                                              |
-| `-o`,<br>`--output-folder`                | Output folder to store results                                                                       |
-| `-localFolder`,<br>`--local-folder`       | Managed library root required with `--client=local-folder`                                           |
-| `-client`,<br>`--client`                  | Service client: `google-takeout`, `google-photos`, `synology`, `immich`, `nextcloud`, `local-folder` |
-| `-id`,<br>`--account-id`                  | Cloud account ID (1–3) from `Config.ini` (default: `1`); unused by Local Folder                      |
-| `-from`,<br>`--filter-from-date`          | Filter assets from this date                                                                         |
-| `-to`,<br>`--filter-to-date`              | Filter assets up to this date                                                                        |
-| `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all` (default: `all`)                                      |
-| `-country`,<br>`--filter-by-country`      | Filter assets by country                                                                             |
-| `-city`,<br>`--filter-by-city`            | Filter assets by city                                                                                |
-| `-person`,<br>`--filter-by-person`        | Filter assets by person                                                                              |
-| `-exFolders`,<br>`--exclude-folders`      | Exclude folder patterns during local-folder processing/migration                                     |
-| `-exFiles`,<br>`--exclude-files`          | Exclude file patterns during local-folder processing/migration                                       |
-| `-AlbFolder`,<br>`--albums-folders`       | Use subfolders in folder as albums                                                                   |
-| `-rAlbAsset`,<br>`--remove-albums-assets` | Remove assets inside deleted albums                                                                  |
+| Argument                                     | Description                                                                                                 |
+|----------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `-i`,<br>`--input-folder`                    | Input folder to process                                                                                     |
+| `-o`,<br>`--output-folder`                   | Output folder to store results                                                                              |
+| `-lPhotosFolder`,<br>`--local-photos-folder` | Managed library root required with `--client=local-photos-folder`                                           |
+| `-client`,<br>`--client`                     | Service client: `google-takeout`, `google-photos`, `synology`, `immich`, `nextcloud`, `local-photos-folder` |
+| `-id`,<br>`--account-id`                     | Cloud account ID (1–3) from `Config.ini` (default: `1`); unused by Local Photos Folder                      |
+| `-from`,<br>`--filter-from-date`             | Filter assets from this date                                                                                |
+| `-to`,<br>`--filter-to-date`                 | Filter assets up to this date                                                                               |
+| `-type`,<br>`--filter-by-type`               | Filter assets by type: `image`, `video`, `all` (default: `all`)                                             |
+| `-country`,<br>`--filter-by-country`         | Filter assets by country                                                                                    |
+| `-city`,<br>`--filter-by-city`               | Filter assets by city                                                                                       |
+| `-person`,<br>`--filter-by-person`           | Filter assets by person                                                                                     |
+| `-exFolders`,<br>`--exclude-folders`         | Exclude folder patterns during Local Photos Folder processing/migration                                     |
+| `-exFiles`,<br>`--exclude-files`             | Exclude file patterns during Local Photos Folder processing/migration                                       |
+| `-AlbFolder`,<br>`--albums-folders`          | Use subfolders in folder as albums                                                                          |
+| `-rAlbAsset`,<br>`--remove-albums-assets`    | Remove assets inside deleted albums                                                                         |
 
 #### 🧪 Examples:
 ```bash
@@ -174,8 +174,8 @@ PhotoMigrator.bin -iTakeout="/home/user/iCloudExport" -insa -iMem
 ```
 
 ---
-## 🖼️ Google Photos / Synology / Immich / NextCloud / Local Folder Management
-Use `--client=[synology, immich, nextcloud, google-photos, local-folder]` to select the service or managed local library. Local Folder additionally requires `--local-folder <LOCAL_FOLDER>`; it does not use an account ID.  
+## 🖼️ Google Photos / Synology / Immich / NextCloud / Local Photos Folder Management
+Use `--client=[synology, immich, nextcloud, google-photos, local-photos-folder]` to select the service or managed local library. Local Photos Folder additionally requires `--local-photos-folder <LOCAL_PHOTOS_FOLDER>`; it does not use an account ID.
 Cloud clients can optionally use `--id=[1-3]` to specify the account id defined in Config.ini.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
@@ -217,7 +217,7 @@ Following arguments allow you to interact with Google Photos, Synology, Immich, 
 PhotoMigrator.bin --client=immich --upload-all=/mnt/pictures
 PhotoMigrator.bin --client=synology --download-albums "album1 album2 album3" --output-folder=/mnt/backup
 PhotoMigrator.bin --client=synology --remove-empty-albums --one-time-password
-PhotoMigrator.bin --client=local-folder --local-folder=/mnt/managed-library --upload-all=/mnt/pictures
+PhotoMigrator.bin --client=local-photos-folder --local-photos-folder=/mnt/managed-library --upload-all=/mnt/pictures
 
 or using short arguments,
 PhotoMigrator.bin -client=synology -uAlb="Albums" -id=1
