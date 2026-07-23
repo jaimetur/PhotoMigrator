@@ -16,7 +16,7 @@ from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALL_PHOTOS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS, PHOTO_EXT
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_calendar_range
-from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm, match_pattern, replace_pattern, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
+from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm, match_pattern, replace_pattern, scan_album_consolidation_groups, print_album_consolidation_preview, print_remove_albums_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
 from Utils.DuplicateUtils import select_people_then_chronology_keeper
@@ -2473,6 +2473,15 @@ class ClassLocalPhotosFolder(BaseMediaClient):
             if not matches:
                 LOGGER.info("No local albums matched the removal pattern.")
                 return 0, 0
+            for album in tqdm(
+                matches,
+                desc=f"{MSG_TAGS['INFO']}Counting assets in albums selected for removal",
+                unit="albums",
+            ):
+                album["asset_count"] = len(
+                    self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level)
+                )
+            print_remove_albums_preview(matches, remove_album_assets=remove_album_assets)
             if request_user_confirmation and not confirm_continue():
                 return 0, 0
             removed = 0

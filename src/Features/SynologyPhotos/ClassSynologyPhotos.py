@@ -24,7 +24,7 @@ from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, C
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range, is_date_outside_calendar_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
-from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
+from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, print_remove_albums_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.DuplicateUtils import select_people_then_chronology_keeper
 
 """
@@ -4034,7 +4034,9 @@ class ClassSynologyPhotos(BaseMediaClient):
                 if match_pattern(album_name, pattern):
                     albums_to_remove.append({
                         "album_id": album_id,
-                        "album_name": album_name
+                        "album_name": album_name,
+                        "created_at": album_date,
+                        "asset_count": album.get("assetCount", album.get("item_count", 0)),
                     })
 
             if not albums_to_remove:
@@ -4042,10 +4044,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 # self.logout(log_level=log_level)
                 return 0, 0
 
-            # Display the albums that will be removed
-            LOGGER.warning(f"Albums marked for deletion:")
-            for album_info in albums_to_remove:
-                LOGGER.warning(f"{album_info['album_name']}' (ID={album_info['album_id']})")
+            print_remove_albums_preview(albums_to_remove, remove_album_assets=remove_album_assets)
 
             # Ask for confirmation only if requested
             if request_user_confirmation and not confirm_continue(force_prompt=True):

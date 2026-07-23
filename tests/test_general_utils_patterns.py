@@ -41,6 +41,7 @@ try:
         build_reusable_album_group,
         scan_album_consolidation_groups,
         print_album_consolidation_preview,
+        print_remove_albums_preview,
     )
     GENERAL_UTILS_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
@@ -608,6 +609,29 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         rendered = "\n".join(str(call.args[0]) for call in mock_print.call_args_list)
         self.assertIn("Keeper [1706 assets]", rendered)
         self.assertIn("Candidate [1 assets]", rendered)
+
+    def test_remove_albums_preview_shows_requested_columns_without_warning_labels(self):
+        def render_table(rows, headers, **_kwargs):
+            return " | ".join(headers) + "\n" + "\n".join(
+                " | ".join(str(cell) for cell in row) for row in rows
+            )
+
+        with (
+            patch("Utils.GeneralUtils.tabulate", side_effect=render_table),
+            patch("builtins.print") as mock_print,
+        ):
+            print_remove_albums_preview([
+                {
+                    "album_name": "Videos",
+                    "created_at": "2026-07-23T12:34:56Z",
+                    "asset_count": 11,
+                }
+            ], remove_album_assets=True)
+
+        rendered = "\n".join(str(call.args[0]) for call in mock_print.call_args_list)
+        self.assertIn("# | Album Name | Created At | Assets | Remove Assets", rendered)
+        self.assertIn("1 | Videos | 2026-07-23 12:34:56 | 11 | Yes", rendered)
+        self.assertNotIn("WARNING", rendered)
 
     def test_has_any_filter_treats_filter_by_type_all_as_no_filter(self):
         with patch.object(GV, "ARGS", {"filter-by-type": "all"}):

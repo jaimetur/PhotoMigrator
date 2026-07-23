@@ -2207,6 +2207,56 @@ def print_album_consolidation_preview(consolidation_groups):
         emit(line)
 
 
+def print_remove_albums_preview(albums, remove_album_assets=False):
+    """Render the Remove Albums selection before asking for confirmation."""
+    albums = list(albums or [])
+
+    def emit(message):
+        # The removal clients normally run at WARNING level.  Keep the preview
+        # visible and persist it in the log without labelling every row as a warning.
+        print(f"{MSG_TAGS['INFO']}{message}")
+        logger = GV.LOGGER
+        if not logger:
+            return
+        record = logger.makeRecord(logger.name, logging.INFO, __file__, 0, message, (), None)
+        for handler in list(getattr(logger, "handlers", []) or []):
+            if isinstance(handler, logging.FileHandler):
+                handler.handle(record)
+
+    def format_created_at(value):
+        if value in (None, ""):
+            return "-"
+        if isinstance(value, (int, float)):
+            try:
+                return datetime.fromtimestamp(value).strftime("%Y-%m-%d %H:%M:%S")
+            except (OverflowError, OSError, ValueError):
+                return str(value)
+        raw_value = str(value).strip()
+        try:
+            return datetime.fromisoformat(raw_value.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            return raw_value or "-"
+
+    table_data = [
+        [
+            index,
+            str(album.get("album_name") or album.get("albumName") or "-"),
+            format_created_at(album.get("created_at", album.get("createdAt", album.get("create_time")))),
+            int(album.get("asset_count", 0) or 0),
+            "Yes" if remove_album_assets else "No",
+        ]
+        for index, album in enumerate(albums, start=1)
+    ]
+    emit(f"Albums selected for removal: {len(table_data)}")
+    preview_table = tabulate(
+        table_data,
+        headers=["#", "Album Name", "Created At", "Assets", "Remove Assets"],
+        tablefmt="grid",
+    )
+    for line in preview_table.splitlines():
+        emit(line)
+
+
 def find_reusable_album_candidate(album_name, albums, allow_similar=False, exact_case_sensitive=False):
     """
     Resolve an existing album candidate from a list of album dicts.

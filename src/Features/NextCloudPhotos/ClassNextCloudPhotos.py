@@ -32,7 +32,7 @@ from Core.GlobalVariables import (
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
 from Utils.DateUtils import guess_date_from_filename, is_date_outside_calendar_range
-from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
+from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, print_remove_albums_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.DuplicateUtils import select_people_then_chronology_keeper
 
 
@@ -1911,10 +1911,15 @@ class ClassNextCloudPhotos(BaseMediaClient):
                 LOGGER.info("No albums matched the pattern.")
                 return 0, 0
 
+            for album in tqdm(
+                albums_to_remove,
+                desc=f"{MSG_TAGS['INFO']}Counting assets in albums selected for removal",
+                unit="albums",
+            ):
+                album["asset_count"] = len(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level))
+
+            print_remove_albums_preview(albums_to_remove, remove_album_assets=remove_album_assets)
             if request_user_confirmation:
-                LOGGER.warning("Albums marked for deletion:")
-                for album in albums_to_remove:
-                    LOGGER.warning(f"'{album['albumName']}' (PATH={album['id']})")
                 if not confirm_continue(force_prompt=True):
                     LOGGER.info("Exiting program.")
                     return 0, 0
