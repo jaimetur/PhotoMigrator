@@ -33,7 +33,7 @@ from Features.BaseMediaClient import BaseMediaClient
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
 from Utils.DateUtils import guess_date_from_filename, is_date_outside_calendar_range
 from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, print_remove_albums_preview, extract_asset_capture_years, extract_asset_capture_datetimes
-from Utils.DuplicateUtils import select_people_then_chronology_keeper
+from Utils.DuplicateUtils import run_duplicate_asset_cleanup, select_people_then_chronology_keeper
 
 
 class ClassNextCloudPhotos(BaseMediaClient):
@@ -1222,9 +1222,15 @@ class ClassNextCloudPhotos(BaseMediaClient):
     def get_duplicates_assets(self, log_level=None):
         return self.find_duplicate_assets_by_name_and_size(log_level=log_level)
 
-    def remove_duplicates_assets(self, log_level=None):
-        removed, _groups, _skipped = self.remove_duplicates_assets_by_name_and_size(log_level=log_level)
-        return removed
+    def remove_duplicates_assets(self, keeper_strategy="newest", request_user_confirmation=True, log_level=None, **_ignored):
+        try:
+            return run_duplicate_asset_cleanup(
+                self, keeper_strategy=keeper_strategy,
+                request_user_confirmation=request_user_confirmation,
+                logger=LOGGER, confirm=confirm_continue, log_level=log_level,
+            )
+        finally:
+            self.logout(log_level=logging.WARNING)
 
     def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         with set_log_level(LOGGER, log_level):

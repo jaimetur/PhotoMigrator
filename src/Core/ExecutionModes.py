@@ -586,7 +586,6 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
     After uploading, the function performs a cleanup of the cloud account:
         - Remove empty albums
         - Merge duplicate albums
-        - Remove duplicate assets
 
     Args:
         client (str|None): Client name (expected 'immich' or 'synology').
@@ -629,8 +628,8 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"Find Albums in Folder    : {input_folder}")
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client_obj.push_albums(input_folder=input_folder, log_level=logging.WARNING)
-        # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        # After Upload Assets/Albums, clean up empty and duplicate albums only.
+        LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums)...")
         # Execute mode_remove_empty_albums
         LOGGER.info(f"Removing Empty Albums...")
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
@@ -638,9 +637,6 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"Merging Duplicates Albums...")
         merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
-        # Execute remove_duplicates_assets
-        LOGGER.info(f"Removing Duplicates Assets...")
-        duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # logout
         LOGGER.info(f"Logged out from {client} Photos.")
         cloud_client_obj.logout(log_level=logging.WARNING)
@@ -668,7 +664,6 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
         LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
         LOGGER.info(f"Total Duplicated Albums merged          : {total_duplicates_albums_merged}")
         LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
-        LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
         LOGGER.info(f"")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info(f"==================================================")
@@ -724,8 +719,8 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"Uploading Assets in Folder    : {input_folder}")
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client_obj.push_all(input_folder=input_folder, album_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
-        # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        # After Upload Assets/Albums, clean up empty and duplicate albums only.
+        LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums)...")
         # Execute mode_remove_empty_albums
         LOGGER.info(f"Removing Empty Albums...")
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
@@ -733,9 +728,6 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"Merging Duplicates Albums...")
         merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
-        # Execute merge_duplicates_assets
-        LOGGER.info(f"Removing Duplicates Assets...")
-        duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # logout
         LOGGER.info(f"Logged out from {client} Photos.")
         cloud_client_obj.logout(log_level=logging.WARNING)
@@ -764,7 +756,6 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
         LOGGER.info(f"Total Duplicated Albums merged          : {total_duplicates_albums_merged}")
         LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
-        LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
         LOGGER.info(f"")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info(f"==================================================")
@@ -778,7 +769,6 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
     Before downloading, the function performs a cleanup of the cloud account:
         - Remove empty albums
         - Merge duplicate albums
-        - Remove duplicate assets
 
     Args:
         client (str|None): Client name (expected 'immich' or 'synology').
@@ -816,9 +806,9 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
         LOGGER.info(f"")
         LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
-        # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
+        # Before downloading, clean up empty and duplicate albums only.
         LOGGER.info(f"")
-        LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums)...")
         # Execute mode_remove_empty_albums
         LOGGER.info(f"")
         LOGGER.info(f"Removing Empty Albums...")
@@ -828,10 +818,6 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
         LOGGER.info(f"Merging Duplicates Albums...")
         merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
-        # Execute remove_duplicates_assets
-        LOGGER.info(f"")
-        LOGGER.info(f"Removing Duplicates Assets...")
-        duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
         albums_downloaded, assets_downloaded = cloud_client_obj.pull_albums(album_names=albums_name, output_folder=output_folder, log_level=logging.WARNING)
         # logout
@@ -864,7 +850,6 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
     Before downloading, the function performs a cleanup of the cloud account:
         - Remove empty albums
         - Merge duplicate albums
-        - Remove duplicate assets
 
     Args:
         client (str|None): Client name (expected 'immich' or 'synology').
@@ -897,15 +882,13 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
         # login
         LOGGER.info(f"Reading Configuration file and Login into {client} Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
-        # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        # Before downloading, clean up empty and duplicate albums only.
+        LOGGER.info(f"Cleaning-up {client} Photos account (Removing Empty/Duplicates Albums)...")
         # Execute mode_remove_empty_albums
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute merge_duplicates_albums
         merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
-        # Execute remove_duplicates_assets
-        duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
         albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = cloud_client_obj.pull_all(output_folder=output_folder, log_level=logging.WARNING)
         # logout
@@ -1114,13 +1097,6 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
             "'--client=immich', '--client=nextcloud', or '--client=local-photos-folder'."
         )
         return
-    if normalized_client == "google-photos":
-        LOGGER.error(
-            "Google Photos cannot remove duplicate assets: its public Library API does not provide "
-            "a media-item deletion operation. No changes were made."
-        )
-        return
-
     native_detection_value = ARGS.get("dup-immich-native-algorithm", True)
     use_immich_detection = str(native_detection_value).strip().lower() not in {"false", "0", "no", "off"}
     native_deletion_value = ARGS.get("dup-immich-native-deletion", True)
@@ -1142,110 +1118,15 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     LOGGER.info(f"{client_label} Photos: 'Remove Duplicates Assets' Mode detected. Only this module will be run!!!")
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")
     LOGGER.info(f"Keeper strategy: {keeper_strategy}.")
-    if normalized_client == "immich":
-        if use_immich_detection:
-            LOGGER.warning(
-                "Immich native duplicate detection is enabled. Its visually similar groups are used while "
-                "PhotoMigrator retains the selected keeper strategy."
-            )
-        else:
-            LOGGER.warning(
-                "Immich native duplicate detection is disabled: assets are grouped by exact filename and file size."
-            )
-        if use_immich_deletion:
-            LOGGER.warning(
-                "Immich native duplicate deletion is enabled. Immich's Alpha resolver will merge its supported "
-                "metadata and move redundant assets to trash; PhotoMigrator's manual metadata merge is bypassed."
-            )
-        else:
-            LOGGER.info(
-                "Immich native duplicate deletion is disabled. PhotoMigrator's guarded manual metadata merge "
-                "will run before permanently deleting redundant assets."
-            )
-    else:
-        LOGGER.warning(
-            "Assets are grouped by exact filename and file size. The selected backend does not expose "
-            "portable asset metadata merge operations, so only redundant physical assets are deleted."
-        )
     cloud_client_obj = _build_cloud_client_obj(normalized_client)
     with set_log_level(LOGGER, log_level):
-        try:
-            if normalized_client == "immich" and use_immich_detection:
-                duplicate_groups = cloud_client_obj.find_duplicate_assets_by_immich_detection(log_level=logging.INFO)
-            else:
-                duplicate_groups = cloud_client_obj.find_duplicate_assets_by_name_and_size(log_level=logging.INFO)
-            if not duplicate_groups:
-                LOGGER.info("No duplicate assets were found.")
-                return
-            if normalized_client == "immich":
-                metadata_display_names = {}
-                if not use_immich_deletion:
-                    LOGGER.info(
-                        "Loading complete metadata for each duplicate candidate before confirmation. "
-                        "This can take time, but the review list will show the metadata that is preserved."
-                    )
-                duplicate_groups = cloud_client_obj.hydrate_duplicate_groups_metadata(
-                    duplicate_groups,
-                    log_level=logging.INFO,
-                    include_albums=False,
-                )
-                if not duplicate_groups:
-                    LOGGER.warning(
-                        "No duplicate group could be fully loaded for safe metadata review. No assets were deleted."
-                    )
-                    return
-                metadata_display_names = cloud_client_obj.get_duplicate_metadata_display_names(
-                    duplicate_groups,
-                    log_level=logging.INFO,
-                )
-            else:
-                metadata_display_names = {}
-            LOGGER.info("Duplicate asset groups found:")
-            for group_index, group in enumerate(duplicate_groups, start=1):
-                LOGGER.info("")
-                if normalized_client == "immich" and use_immich_detection:
-                    keeper = cloud_client_obj._select_duplicate_asset_keeper(group, keeper_strategy)
-                    ordered = [keeper, *[asset for asset in group if asset is not keeper]]
-                else:
-                    keeper = select_people_then_chronology_keeper(
-                        group, keeper_strategy, cloud_client_obj._duplicate_asset_timestamp,
-                    )
-                    ordered = [keeper, *[asset for asset in group if asset is not keeper]]
-                keeper, redundant = ordered[0], ordered[1:]
-                filename = str(keeper.get("originalFileName") or "")
-                size = cloud_client_obj._duplicate_asset_size(keeper)
-                LOGGER.info(
-                    f"  [{group_index}] {filename} ({size} bytes, {len(ordered)} candidate asset(s))"
-                )
-                if normalized_client == "immich":
-                    for line in _duplicate_group_preview_table(
-                        ordered,
-                        metadata_display_names,
-                        keeper_strategy=keeper_strategy,
-                    ):
-                        LOGGER.info(f"      {line}")
-                else:
-                    for asset_index, item in enumerate(ordered):
-                        role = "Keeper" if asset_index == 0 else f"Remove {asset_index}"
-                        LOGGER.info(f"      {role:<8} ID: {item.get('id')}")
-                        LOGGER.info(f"               Uploaded: {item.get('createdAt')}")
-            if user_confirmation and not confirm_continue():
-                LOGGER.info("Exiting program without deleting duplicate assets.")
-                return
-            if use_immich_deletion:
-                removed, groups_found, groups_skipped = cloud_client_obj.resolve_duplicate_asset_groups_with_immich(
-                    duplicate_groups=duplicate_groups,
-                    keeper_strategy=keeper_strategy,
-                    log_level=logging.INFO,
-                )
-            else:
-                removed, groups_found, groups_skipped = cloud_client_obj.remove_duplicates_assets_by_name_and_size(
-                    keeper_strategy=keeper_strategy,
-                    duplicate_groups=duplicate_groups,
-                    log_level=logging.INFO,
-                )
-        finally:
-            cloud_client_obj.logout(log_level=logging.WARNING)
+        removed, groups_found, groups_skipped = cloud_client_obj.remove_duplicates_assets(
+            keeper_strategy=keeper_strategy,
+            request_user_confirmation=user_confirmation,
+            use_immich_detection=use_immich_detection,
+            use_immich_deletion=use_immich_deletion,
+            log_level=logging.INFO,
+        )
 
     elapsed = str(timedelta(seconds=round((datetime.now() - START_TIME).total_seconds())))
     LOGGER.info("==================================================")

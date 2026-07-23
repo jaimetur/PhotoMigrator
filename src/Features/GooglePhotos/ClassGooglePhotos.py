@@ -822,9 +822,13 @@ class ClassGooglePhotos(BaseMediaClient):
             LOGGER.info(f"{MSG_TAGS['WARNING']}Google Photos API does not support deleting media items via public Library API. No action applied.")
             return 0
 
-    def remove_duplicates_assets(self, log_level=None):
+    def remove_duplicates_assets(self, keeper_strategy="newest", request_user_confirmation=True, log_level=None, **_ignored):
         with set_log_level(LOGGER, log_level):
-            return 0
+            LOGGER.error(
+                "Google Photos cannot remove duplicate assets: its public Library API does not provide "
+                "a media-item deletion operation. No changes were made."
+            )
+            return 0, 0, 0
 
     def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         with set_log_level(LOGGER, log_level):

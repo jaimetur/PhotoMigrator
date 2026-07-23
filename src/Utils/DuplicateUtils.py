@@ -75,3 +75,64 @@ def select_people_then_chronology_keeper(group, strategy, timestamp_getter):
         key=lambda item: (timestamp_getter(item), str((item or {}).get("id") or "")),
         reverse=(tie_breaker == "newest"),
     )[0]
+
+
+def run_duplicate_asset_cleanup(
+    client,
+    keeper_strategy="newest",
+    request_user_confirmation=True,
+    use_immich_detection=False,
+    use_immich_deletion=False,
+    logger=None,
+    confirm=None,
+    log_level=None,
+):
+    """Run the safe duplicate cleanup workflow for one media client.
+
+    The public client method owns this workflow; this helper merely avoids
+    duplicating its common review and keeper-selection mechanics across
+    backends.
+    """
+    is_immich = bool(use_immich_detection or use_immich_deletion)
+    if is_immich and use_immich_detection:
+        groups = client.find_duplicate_assets_by_immich_detection(log_level=log_level)
+    else:
+        groups = client.find_duplicate_assets_by_name_and_size(log_level=log_level)
+    if not groups:
+        if logger:
+            logger.info("No duplicate assets were found.")
+        return 0, 0, 0
+
+    if is_immich:
+        groups = client.hydrate_duplicate_groups_metadata(
+            groups, log_level=log_level, include_albums=False,
+        )
+        if not groups:
+            if logger:
+                logger.warning("No duplicate group could be fully loaded for safe metadata review. No assets were deleted.")
+            return 0, 0, 0
+
+    if logger:
+        logger.info("Duplicate asset groups found:")
+        for index, group in enumerate(groups, start=1):
+            if is_immich and use_immich_detection:
+                keeper = client._select_duplicate_asset_keeper(group, keeper_strategy)
+            else:
+                keeper = select_people_then_chronology_keeper(group, keeper_strategy, client._duplicate_asset_timestamp)
+            filename = str(keeper.get("originalFileName") or keeper.get("filename") or keeper.get("id") or "")
+            size = client._duplicate_asset_size(keeper)
+            logger.info(f"  [{index}] {filename} ({size} bytes, {len(group)} candidate asset(s))")
+
+    if request_user_confirmation and confirm and not confirm():
+        if logger:
+            logger.info("Exiting program without deleting duplicate assets.")
+        return 0, len(groups), 0
+
+    if is_immich and use_immich_deletion:
+        return client.resolve_duplicate_asset_groups_with_immich(
+            duplicate_groups=groups, keeper_strategy=keeper_strategy, log_level=log_level,
+        )
+    result = client.remove_duplicates_assets_by_name_and_size(
+        keeper_strategy=keeper_strategy, duplicate_groups=groups, log_level=log_level,
+    )
+    return result if isinstance(result, tuple) else (int(result or 0), len(groups), 0)

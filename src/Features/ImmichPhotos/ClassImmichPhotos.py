@@ -29,7 +29,7 @@ from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range,
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
 from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, print_remove_albums_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.StandaloneUtils import change_working_dir
-from Utils.DuplicateUtils import duplicate_asset_people_count, duplicate_asset_tag_count, select_people_then_chronology_keeper
+from Utils.DuplicateUtils import duplicate_asset_people_count, duplicate_asset_tag_count, run_duplicate_asset_cleanup, select_people_then_chronology_keeper
 from Features.GoogleTakeout.PeopleMetadata import build_people_map, load_people_map
 
 """
@@ -2071,24 +2071,20 @@ class ClassImmichPhotos(BaseMediaClient):
 
 
 
-    def remove_duplicates_assets(self, log_level=None):
-        """
-        Removes duplicate assets in the Immich database. Returns how many duplicates got removed.
-        """
+    def remove_duplicates_assets(self, keeper_strategy="better-quality", request_user_confirmation=True,
+                                 use_immich_detection=True, use_immich_deletion=True, log_level=None):
+        """Safely remove duplicates using Immich detection and the selected keeper."""
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
-            duplicates_assets = self.get_duplicates_assets(log_level=log_level)
-            duplicates_ids = []
-            for duplicates_set in duplicates_assets:
-                duplicates_assets_in_set = duplicates_set.get('assets', [])
-                # Keep the first, remove the rest
-                for duplicate_asset_in_set in duplicates_assets_in_set[1:]:
-                    duplicates_ids.append(duplicate_asset_in_set.get('id'))
-
-            if len(duplicates_ids) > 0:
-                LOGGER.info(f"Removing Duplicates Assets...")
-                return self.remove_assets(duplicates_ids, log_level=log_level)
-            return 0
+            try:
+                return run_duplicate_asset_cleanup(
+                    self, keeper_strategy=keeper_strategy,
+                    request_user_confirmation=request_user_confirmation,
+                    use_immich_detection=use_immich_detection,
+                    use_immich_deletion=use_immich_deletion,
+                    logger=LOGGER, confirm=confirm_continue, log_level=log_level,
+                )
+            finally:
+                self.logout(log_level=logging.WARNING)
 
     @staticmethod
     def _duplicate_asset_size(asset):
@@ -4053,7 +4049,8 @@ class ClassImmichPhotos(BaseMediaClient):
             input_folder (str): Input folder
             subfolders_exclusion (str or list): Subfolders exclusion
             subfolders_inclusion (str or list): Subfolders inclusion
-            remove_duplicates (bool): True to remove duplicates assets after upload
+            remove_duplicates (bool): Retained for API compatibility. Uploads never delete
+                duplicate assets automatically.
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
@@ -4263,14 +4260,9 @@ class ClassImmichPhotos(BaseMediaClient):
                         else:
                             total_albums_skipped += 1
 
-                if remove_duplicates:
-                    LOGGER.info(f"Removing Duplicates Assets...")
-                    total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
-
                 LOGGER.info(f"Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
                 LOGGER.info(f"Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
                 LOGGER.info(f"Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
-                LOGGER.info(f"Removed {total_duplicates_assets_removed} duplicates asset(s) from Immich Database.")
                 LOGGER.info(f"Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
                 LOGGER.info(f"Total Stacks Created: {total_stacks_created}")
                 self._last_push_albums_stacks_created = total_stacks_created
@@ -4342,6 +4334,7 @@ class ClassImmichPhotos(BaseMediaClient):
             total_files = len(file_paths)
             total_assets_uploaded = 0
             total_duplicated_assets_skipped = 0
+            duplicates_assets_removed = 0
             consumed_live_companions = set()
             uploaded_records = []
 
@@ -4383,14 +4376,8 @@ class ClassImmichPhotos(BaseMediaClient):
                 )
             self._last_push_no_albums_stacks_created = total_stacks_created
 
-            duplicates_assets_removed = 0
-            if remove_duplicates:
-                LOGGER.info(f"Removing Duplicates Assets...")
-                duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
-
             LOGGER.info(f"Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
             LOGGER.info(f"Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
-            LOGGER.info(f"Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
             LOGGER.info(f"Total Stacks Created: {total_stacks_created}")
 
             # self.logout(log_level=log_level)
@@ -4405,7 +4392,8 @@ class ClassImmichPhotos(BaseMediaClient):
         Args:
             input_folder (str): Input folder
             album_folders (str): Albums folder
-            remove_duplicates (bool): True to remove duplicates assets after upload all assets
+            remove_duplicates (bool): Retained for API compatibility. Uploads never delete
+                duplicate assets automatically.
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped)
@@ -4440,10 +4428,6 @@ class ClassImmichPhotos(BaseMediaClient):
                 int(getattr(self, "_last_push_albums_stacks_created", 0) or 0)
                 + int(getattr(self, "_last_push_no_albums_stacks_created", 0) or 0)
             )
-
-            if remove_duplicates:
-                LOGGER.info(f"Removing Duplicates Assets...")
-                total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
 
             # self.logout(log_level=log_level)
 

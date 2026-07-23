@@ -19,7 +19,7 @@ from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_calend
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm, match_pattern, replace_pattern, scan_album_consolidation_groups, print_album_consolidation_preview, print_remove_albums_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
-from Utils.DuplicateUtils import select_people_then_chronology_keeper
+from Utils.DuplicateUtils import run_duplicate_asset_cleanup, select_people_then_chronology_keeper
 
 """
 -------------------
@@ -2149,25 +2149,14 @@ class ClassLocalPhotosFolder(BaseMediaClient):
 
             return count
 
-    def remove_duplicates_assets(self, log_level=None):
-        """
-        Removes duplicate assets in local storage, keeping only the first one found.
-
-        Args:
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            int: Number of duplicate assets removed.
-        """
+    def remove_duplicates_assets(self, keeper_strategy="newest", request_user_confirmation=True, log_level=None, **_ignored):
+        """Safely review and remove exact filename-and-size duplicates."""
         with set_log_level(LOGGER, log_level):
-            duplicates = self.get_duplicates_assets(log_level)
-            to_remove = []
-            for dup_group in duplicates:
-                # keep the first, remove the rest
-                to_remove.extend(dup_group[1:])
-            count_removed = self.remove_assets(to_remove, log_level)
-            LOGGER.info(f"Removed {count_removed} duplicate asset(s) from local storage.")
-            return count_removed
+            return run_duplicate_asset_cleanup(
+                self, keeper_strategy=keeper_strategy,
+                request_user_confirmation=request_user_confirmation,
+                logger=LOGGER, confirm=confirm_continue, log_level=log_level,
+            )
 
     def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         """

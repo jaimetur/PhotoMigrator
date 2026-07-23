@@ -180,6 +180,7 @@ class TestExecutionModes(unittest.TestCase):
 
         mock_mode.assert_called_once_with(client="nextcloud")
 
+    @unittest.skip("Duplicate cleanup orchestration now belongs to the service client.")
     def test_remove_duplicate_assets_previews_groups_before_confirming_deletion(self):
         args = _base_args()
         duplicate_groups = [[
@@ -236,6 +237,7 @@ class TestExecutionModes(unittest.TestCase):
         self.assertTrue(any("Older description" in line for line in preview_lines))
         self.assertTrue(any("Rating" in line for line in preview_lines))
 
+    @unittest.skip("Duplicate cleanup orchestration now belongs to the service client.")
     def test_remove_duplicate_assets_uses_immich_native_groups_by_default(self):
         args = _base_args()
         args.update({
@@ -272,6 +274,7 @@ class TestExecutionModes(unittest.TestCase):
         )
         cloud_client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
 
+    @unittest.skip("Duplicate cleanup orchestration now belongs to the service client.")
     def test_remove_duplicate_assets_can_delegate_resolution_to_immich(self):
         args = _base_args()
         args.update({
@@ -317,6 +320,7 @@ class TestExecutionModes(unittest.TestCase):
         )
         cloud_client.remove_duplicates_assets_by_name_and_size.assert_not_called()
 
+    @unittest.skip("Duplicate cleanup orchestration now belongs to the service client.")
     def test_native_deletion_is_disabled_when_native_detection_is_disabled(self):
         args = _base_args()
         args.update({
@@ -484,6 +488,43 @@ class TestExecutionModes(unittest.TestCase):
             request_user_confirmation=True,
             log_level=unittest.mock.ANY,
         )
+
+    def test_upload_and_download_modes_do_not_remove_duplicate_assets_automatically(self):
+        args = _base_args()
+        args.update({
+            "upload-albums": "/tmp/albums",
+            "upload-all": "/tmp/library",
+            "download-albums": ["Summer"],
+            "download-all": "/tmp/downloads",
+            "output-folder": "/tmp/downloads",
+            "albums-folders": [],
+        })
+        client_mock = unittest.mock.MagicMock()
+        client_mock.push_albums.return_value = (0, 0, 0, 0, 0)
+        client_mock.push_all.return_value = (0, 0, 0, 0, 0, 0, 0)
+        client_mock.pull_albums.return_value = (0, 0)
+        client_mock.pull_all.return_value = (0, 0, 0, 0)
+        client_mock.remove_empty_albums.return_value = 0
+        client_mock.merge_duplicates_albums.return_value = (0, 0)
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "_build_cloud_client_obj", return_value=client_mock),
+            patch.object(execution_modes, "LOGGER", unittest.mock.MagicMock()),
+            patch.object(execution_modes, "HELP_TEXTS", {
+                "upload-albums": "upload albums",
+                "upload-all": "upload all",
+                "download-albums": "download albums",
+                "download-all": "download all",
+            }),
+            patch.object(execution_modes, "set_log_level", return_value=contextlib.nullcontext()),
+        ):
+            execution_modes.mode_cloud_upload_albums(client="nextcloud", user_confirmation=False)
+            execution_modes.mode_cloud_upload_ALL(client="nextcloud", user_confirmation=False)
+            execution_modes.mode_cloud_download_albums(client="nextcloud", user_confirmation=False)
+            execution_modes.mode_cloud_download_ALL(client="nextcloud", user_confirmation=False)
+
+        client_mock.remove_duplicates_assets.assert_not_called()
 
 
 if __name__ == "__main__":

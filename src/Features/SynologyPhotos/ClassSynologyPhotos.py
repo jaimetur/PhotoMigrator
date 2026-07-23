@@ -25,7 +25,7 @@ from Features.BaseMediaClient import BaseMediaClient
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range, is_date_outside_calendar_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
 from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, print_remove_albums_preview, extract_asset_capture_years, extract_asset_capture_datetimes
-from Utils.DuplicateUtils import select_people_then_chronology_keeper
+from Utils.DuplicateUtils import run_duplicate_asset_cleanup, select_people_then_chronology_keeper
 
 """
 ----------------------
@@ -2486,10 +2486,17 @@ class ClassSynologyPhotos(BaseMediaClient):
                 LOGGER.error(f"Exception while removing Assets from Synology Photos. {e}")
             
 
-    def remove_duplicates_assets(self, log_level=None):
-        """Backward-compatible cleanup retaining the newest upload."""
-        removed, _groups, _skipped = self.remove_duplicates_assets_by_name_and_size(log_level=log_level)
-        return removed
+    def remove_duplicates_assets(self, keeper_strategy="newest", request_user_confirmation=True, log_level=None, **_ignored):
+        """Safely review and remove exact filename-and-size duplicates."""
+        with set_log_level(LOGGER, log_level):
+            try:
+                return run_duplicate_asset_cleanup(
+                    self, keeper_strategy=keeper_strategy,
+                    request_user_confirmation=request_user_confirmation,
+                    logger=LOGGER, confirm=confirm_continue, log_level=log_level,
+                )
+            finally:
+                self.logout(log_level=logging.WARNING)
 
     def _ensure_uploaded_asset_cache(self):
         if not hasattr(self, "_uploaded_asset_cache"):
@@ -3299,7 +3306,8 @@ class ClassSynologyPhotos(BaseMediaClient):
             input_folder (str): Input folder
             subfolders_exclusion (str or list): Subfolders exclusion
             subfolders_inclusion (str or list): Subfolders inclusion
-            remove_duplicates (bool): True to remove duplicates assets after upload
+            remove_duplicates (bool): Retained for API compatibility. Uploads never delete
+                duplicate assets automatically.
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed)
@@ -3483,14 +3491,9 @@ class ClassSynologyPhotos(BaseMediaClient):
                         else:
                             total_albums_skipped += 1
 
-                if remove_duplicates:
-                    LOGGER.info(f"Removing Duplicates Assets...")
-                    total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
-
                 LOGGER.info(f"Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
                 LOGGER.info(f"Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
                 LOGGER.info(f"Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
-                LOGGER.info(f"Removed {total_duplicates_assets_removed} duplicates asset(s) from Synology Database.")
                 LOGGER.info(f"Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
 
             except Exception as e:
@@ -3561,6 +3564,7 @@ class ClassSynologyPhotos(BaseMediaClient):
                 total_files = len(file_paths)
                 total_assets_uploaded = 0
                 total_duplicated_assets_skipped = 0
+                duplicates_assets_removed = 0
 
                 with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}Uploading Assets", unit=" asset") as pbar:
                     for file_ in file_paths:
@@ -3573,14 +3577,8 @@ class ClassSynologyPhotos(BaseMediaClient):
                             total_assets_uploaded += 1
                         pbar.update(1)
 
-                duplicates_assets_removed = 0
-                if remove_duplicates:
-                    LOGGER.info(f"Removing Duplicates Assets...")
-                    duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
-
                 LOGGER.info(f"Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
                 LOGGER.info(f"Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
-                LOGGER.info(f"Removed {duplicates_assets_removed} duplicates asset(s) from Synology Database.")
 
             except Exception as e:
                 LOGGER.error(f"Exception while uploading No-Albums assets into Synology Photos. {e}")
@@ -3597,7 +3595,8 @@ class ClassSynologyPhotos(BaseMediaClient):
         Args:
             input_folder (str): Input folder
             album_folders (str): Albums folder
-            remove_duplicates (bool): True to remove duplicates assets after upload all assets
+            remove_duplicates (bool): Retained for API compatibility. Uploads never delete
+                duplicate assets automatically.
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed)
@@ -3627,10 +3626,6 @@ class ClassSynologyPhotos(BaseMediaClient):
                 total_duplicates_assets_removed = total_duplicates_assets_removed_1 + total_duplicates_assets_removed_2
                 total_dupplicated_assets_skipped = total_dupplicated_assets_skipped_1 + total_dupplicated_assets_skipped_2
                 total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
-
-                if remove_duplicates:
-                    LOGGER.info(f"Removing Duplicates Assets...")
-                    total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
 
             except Exception as e:
                 LOGGER.error(f"Exception while uploading ALL assets into Synology Photos. {e}")
