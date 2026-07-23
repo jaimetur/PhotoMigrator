@@ -841,6 +841,34 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertEqual(lines, ["WARNING : Real warning message"])
         self.assertEqual(persisted, "WARNING : Real warning message\n")
 
+    def test_orphan_info_prefix_is_preserved_before_duplicate_preview_group(self):
+        fake_process = Mock()
+        fake_process.stdout = io.StringIO("")
+        fake_process.stdin = None
+        fake_process.returncode = 0
+        job = self.web_app.JobData(command=["python"], process=fake_process, tab="immich_photos", owner_user_id=1)
+        try:
+            self.web_app._append_job_output(
+                job,
+                "INFO    : \nINFO    :   [374] IMG_20220527_221822.jpg (1435171 bytes, 2 candidate asset(s))\n",
+            )
+            lines = self.web_app._read_job_output_lines_for_api(job)
+            persisted = Path(job.output_file).read_text(encoding="utf-8")
+        finally:
+            self.web_app._close_job_output_file(job)
+
+        self.assertEqual(
+            lines,
+            [
+                "INFO    : ",
+                "INFO    :   [374] IMG_20220527_221822.jpg (1435171 bytes, 2 candidate asset(s))",
+            ],
+        )
+        self.assertEqual(
+            persisted,
+            "INFO    : \nINFO    :   [374] IMG_20220527_221822.jpg (1435171 bytes, 2 candidate asset(s))\n",
+        )
+
     def test_ansi_colored_orphan_info_prefix_is_dropped(self):
         fake_process = Mock()
         fake_process.stdout = io.StringIO("")

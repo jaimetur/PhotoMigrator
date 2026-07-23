@@ -187,7 +187,7 @@ def _duplicate_group_preview_table(ordered_assets, display_names=None, keeper_st
     # Four 42-character asset columns plus the field column fit in the normal
     # dashboard terminal and keep UUIDs/timestamps on one line. Wider groups
     # can overflow horizontally rather than becoming unreadably narrow.
-    candidate_width = 42
+    candidate_width = 47
     widths = [field_width, *([candidate_width] * len(ordered_assets))]
 
     def border():
@@ -344,6 +344,7 @@ def run_duplicate_asset_cleanup(
         )
         logger.info("Duplicate asset groups found:")
         for index, group in enumerate(groups, start=1):
+            logger.info("")
             if is_immich and use_immich_detection:
                 keeper = client._select_duplicate_asset_keeper(group, keeper_strategy)
             else:

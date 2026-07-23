@@ -100,6 +100,11 @@ class TestDuplicateKeeperUtils(unittest.TestCase):
 
         rendered = "\n".join(str(call.args[0]) for call in logger.info.call_args_list)
         self.assertIn("Duplicate review: 1 duplicate group(s), 2 duplicate asset(s).", rendered)
+        preview_header_index = next(
+            index for index, call in enumerate(logger.info.call_args_list)
+            if "[1] IMG_0001.JPG" in str(call.args[0])
+        )
+        self.assertEqual(logger.info.call_args_list[preview_header_index - 1].args[0], "")
         self.assertIn("[1] IMG_0001.JPG (42 bytes, 2 candidate asset(s))", rendered)
         self.assertIn("Field", rendered)
         self.assertIn("Keeper (oldest)", rendered)
@@ -111,3 +116,5 @@ class TestDuplicateKeeperUtils(unittest.TestCase):
         self.assertIn("Keeper description", rendered)
         self.assertIn("Favorite", rendered)
         self.assertLess(rendered.index("Tags"), rendered.index("People"))
+        header = next(line for line in rendered.splitlines() if "Keeper (oldest)" in line)
+        self.assertIn("Keeper (oldest)".ljust(47), header)

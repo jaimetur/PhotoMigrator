@@ -547,6 +547,7 @@ class JobData:
         self.partial_line = ""             # current in-progress line (no trailing \n yet)
         self.pending_cr = False            # track split CRLF across chunk boundaries
         self.pending_level_prefix = ""
+        self.pending_info_blank_line = ""
         self.pending_structured_prefix = ""
         self.progress_lines: Dict[str, "OutputLine"] = {}
         self.total_output_chars = 0        # full execution chars
@@ -2298,6 +2299,7 @@ LOG_LEVEL_PREFIX_RE = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\
 ORPHAN_LOG_LEVEL_LINE_RE = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*$", re.IGNORECASE)
 TRAILING_LOG_LEVEL_PREFIX_RE = re.compile(r"(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s*$", re.IGNORECASE)
 EMBEDDED_LOG_LEVEL_PREFIX_RE = re.compile(r"(CRITICAL|ERROR|WARNING|INFO|DEBUG|VERBOSE)\s*:?\s+", re.IGNORECASE)
+DUPLICATE_PREVIEW_GROUP_HEADER_RE = re.compile(r"^INFO\s*:\s+\[\d+\]\s+", re.IGNORECASE)
 INNER_STEP_INFO_RE = re.compile(r"^\[\s*[A-Z]+\s*\]\s*\[Step\s+\d+/\d+\]", re.IGNORECASE)
 INNER_STEP_INFO_SEARCH_RE = re.compile(r"\[\s*[A-Z]+\s*\]\s*\[Step\s+\d+/\d+\]", re.IGNORECASE)
 PROGRESS_THEN_INNER_STEP_RE = re.compile(
@@ -2538,9 +2540,30 @@ def _append_job_output(job: JobData, text: str) -> None:
                 line_with_nl, trailing_prefix = _split_trailing_orphan_level_prefix_from_progress_line(line_with_nl)
             orphan_prefix = _extract_orphan_log_level_prefix(line_with_nl)
             if orphan_prefix:
+                if orphan_prefix == "INFO    : ":
+                    job.pending_info_blank_line = orphan_prefix
+                    output_changed = True
+                    continue
                 job.pending_level_prefix = orphan_prefix
                 output_changed = True
                 continue
+
+            pending_info_blank_line = str(getattr(job, "pending_info_blank_line", "") or "")
+            if pending_info_blank_line:
+                if DUPLICATE_PREVIEW_GROUP_HEADER_RE.match(_strip_ansi(line_with_nl).lstrip()):
+                    blank_entry = OutputLine(
+                        text=f"{pending_info_blank_line}\n",
+                        line_id=int(job.next_output_line_id or 1),
+                    )
+                    job.next_output_line_id += 1
+                    job.output.append(blank_entry)
+                    job.output_chars += len(blank_entry.text)
+                    _record_job_output_op(job, "append", blank_entry)
+                    persisted_chunks.append(blank_entry.text)
+                    output_changed = True
+                elif needs_progress_processing and not _has_log_level_prefix(line_with_nl):
+                    job.pending_level_prefix = pending_info_blank_line
+                job.pending_info_blank_line = ""
 
             if needs_progress_processing and job.pending_structured_prefix and _starts_with_inner_step_info(line_with_nl):
                 line_with_nl = f"{job.pending_structured_prefix}{line_with_nl.lstrip()}"
