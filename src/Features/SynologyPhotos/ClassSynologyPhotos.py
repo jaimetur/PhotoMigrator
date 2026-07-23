@@ -4044,7 +4044,13 @@ class ClassSynologyPhotos(BaseMediaClient):
                 # self.logout(log_level=log_level)
                 return 0, 0
 
-            print_remove_albums_preview(albums_to_remove, remove_album_assets=remove_album_assets)
+            print_remove_albums_preview(
+                albums_to_remove,
+                remove_album_assets=remove_album_assets,
+                pattern=pattern,
+                created_from=created_from,
+                created_to=created_to,
+            )
 
             # Ask for confirmation only if requested
             if request_user_confirmation and not confirm_continue(force_prompt=True):

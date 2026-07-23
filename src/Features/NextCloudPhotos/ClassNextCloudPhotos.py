@@ -1918,7 +1918,13 @@ class ClassNextCloudPhotos(BaseMediaClient):
             ):
                 album["asset_count"] = len(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level))
 
-            print_remove_albums_preview(albums_to_remove, remove_album_assets=remove_album_assets)
+            print_remove_albums_preview(
+                albums_to_remove,
+                remove_album_assets=remove_album_assets,
+                pattern=pattern,
+                created_from=created_from,
+                created_to=created_to,
+            )
             if request_user_confirmation:
                 if not confirm_continue(force_prompt=True):
                     LOGGER.info("Exiting program.")

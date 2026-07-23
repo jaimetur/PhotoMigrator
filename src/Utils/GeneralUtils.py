@@ -2207,7 +2207,13 @@ def print_album_consolidation_preview(consolidation_groups):
         emit(line)
 
 
-def print_remove_albums_preview(albums, remove_album_assets=False):
+def print_remove_albums_preview(
+    albums,
+    remove_album_assets=False,
+    pattern=None,
+    created_from=None,
+    created_to=None,
+):
     """Render the Remove Albums selection before asking for confirmation."""
     albums = list(albums or [])
 
@@ -2247,7 +2253,11 @@ def print_remove_albums_preview(albums, remove_album_assets=False):
         ]
         for index, album in enumerate(albums, start=1)
     ]
-    emit(f"Albums selected for removal: {len(table_data)}")
+    emit(f"Albums found for removal: {len(table_data)}")
+    emit("Album selection filters:")
+    emit(f"  Name pattern   : {pattern or '-'}")
+    emit(f"  Created from   : {format_created_at(created_from)}")
+    emit(f"  Created to     : {format_created_at(created_to)}")
     preview_table = tabulate(
         table_data,
         headers=["#", "Album Name", "Created At", "Assets", "Remove Assets"],

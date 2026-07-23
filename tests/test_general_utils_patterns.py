@@ -626,9 +626,13 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
                     "created_at": "2026-07-23T12:34:56Z",
                     "asset_count": 11,
                 }
-            ], remove_album_assets=True)
+            ], remove_album_assets=True, pattern="*Videos*", created_from="2026-01-01T00:00:00.000Z")
 
         rendered = "\n".join(str(call.args[0]) for call in mock_print.call_args_list)
+        self.assertIn("Albums found for removal: 1", rendered)
+        self.assertIn("Name pattern   : *Videos*", rendered)
+        self.assertIn("Created from   : 2026-01-01 00:00:00", rendered)
+        self.assertNotIn("Configured general asset filters", rendered)
         self.assertIn("# | Album Name | Created At | Assets | Remove Assets", rendered)
         self.assertIn("1 | Videos | 2026-07-23 12:34:56 | 11 | Yes", rendered)
         self.assertNotIn("WARNING", rendered)
