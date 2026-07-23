@@ -878,6 +878,22 @@
             {anchor: "merge-duplicates-albums-from-immich-photos", label: "8.12 Merge Duplicates Albums"},
             {anchor: "consolidate-albums-names-from-immich-photos", label: "8.13 Consolidate Albums Names"},
         ];
+        const localPhotosFolderSubDocs = [
+            {anchor: "local-photos-folder-layout", label: "10.1 Library Layout"},
+            {anchor: "upload-albums-from-local-folder-into-local-photos-folder", label: "10.2 Upload Albums"},
+            {anchor: "download-albums-from-local-photos-folder", label: "10.3 Download Albums"},
+            {anchor: "upload-all-from-local-folder-into-local-photos-folder", label: "10.4 Upload All"},
+            {anchor: "download-all-from-local-photos-folder", label: "10.5 Download All"},
+            {anchor: "remove-all-assets-from-local-photos-folder", label: "10.6 Remove All Assets"},
+            {anchor: "remove-all-albums-from-local-photos-folder", label: "10.7 Remove All Albums"},
+            {anchor: "remove-albums-by-name-pattern-from-local-photos-folder", label: "10.8 Remove Albums by Pattern"},
+            {anchor: "rename-albums-by-name-pattern-from-local-photos-folder", label: "10.9 Rename Albums by Pattern"},
+            {anchor: "remove-empty-albums-from-local-photos-folder", label: "10.10 Remove Empty Albums"},
+            {anchor: "remove-duplicates-albums-from-local-photos-folder", label: "10.11 Remove Duplicates Albums"},
+            {anchor: "remove-duplicates-assets-from-local-photos-folder", label: "10.12 Remove Duplicates Assets"},
+            {anchor: "merge-duplicates-albums-from-local-photos-folder", label: "10.13 Merge Duplicates Albums"},
+            {anchor: "consolidate-albums-names-from-local-photos-folder", label: "10.14 Consolidate Albums Names"},
+        ];
         const fallbackDocs = [...baseDocs];
         const preferredOrder = {
             "00-configuration-file.md": 10,
@@ -891,6 +907,7 @@
             "07-synology-photos.md": 90,
             "08-immich-photos.md": 100,
             "09-nextcloud-photos.md": 110,
+            "10-local-photos-folder.md": 120,
             "10-other-features.md": 120,
             "11-gpth-complete-pipeline.md": 130,
             "12-docker-deployment.md": 140,
@@ -960,6 +977,11 @@
                 }
                 if (key === "08-immich-photos.md") {
                     const items = immichSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
+                    navEl.lastElementChild?.remove();
+                    addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
+                }
+                if (key === "10-local-photos-folder.md") {
+                    const items = localPhotosFolderSubDocs.map((sub) => ({label: sub.label, url: `${doc.url}#${sub.anchor}`}));
                     navEl.lastElementChild?.remove();
                     addCollapsibleSection(buildHelpLabel(doc.path), doc.url, items);
                 }

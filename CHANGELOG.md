@@ -157,6 +157,7 @@
   - Updated CLI, cloud-feature, and Docker deployment documentation for `--request-user-confirmation=true|false`.
   - Documented the Immich API-key permissions required by native duplicate detection and native duplicate resolution, including the additional album/tag permissions needed for complete server-side metadata merging.
   - Documented the `--dup-immich-native-deletion` trade-off across the Immich guide and CLI argument references: native resolution merges Immich's documented fields and moves assets to trash, while disabling it invokes PhotoMigrator's guarded manual merge with additional capture-date, stack, and safe face/person preservation before permanent deletion.
+  - Reworked the Local Photos Folder guide to match the cloud-service documentation structure, with module-specific sections and corresponding Web Interface Navigator entries.
 
 ---
 
