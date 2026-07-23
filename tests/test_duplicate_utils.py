@@ -20,10 +20,10 @@ class TestDuplicateKeeperUtils(unittest.TestCase):
         }
         self.assertEqual(duplicate_asset_people_count(asset), 2)
 
-    def test_people_count_falls_back_to_takeout_people_tags(self):
+    def test_people_count_does_not_treat_people_tags_as_native_people(self):
         self.assertEqual(
             duplicate_asset_people_count({"tags": [{"value": "people/Ana"}, {"value": "people/Luis"}]}),
-            2,
+            0,
         )
 
     def test_more_people_then_newest_prefers_people_before_date(self):

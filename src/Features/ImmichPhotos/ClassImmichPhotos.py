@@ -2900,13 +2900,16 @@ class ClassImmichPhotos(BaseMediaClient):
             max_tags = max(duplicate_asset_tag_count(asset) for asset in group)
             group = [asset for asset in group if duplicate_asset_tag_count(asset) == max_tags]
         if tie_breaker == "better-quality":
-            suggested_ids = {
-                suggested_id
-                for asset in group
-                for suggested_id in (asset.get("_immich_suggested_keep_asset_ids") or [])
-            }
-            suggested_assets = [asset for asset in group if str(asset.get("id") or "") in suggested_ids]
-            candidates = suggested_assets or list(group)
+            if people_first:
+                candidates = list(group)
+            else:
+                suggested_ids = {
+                    suggested_id
+                    for asset in group
+                    for suggested_id in (asset.get("_immich_suggested_keep_asset_ids") or [])
+                }
+                suggested_assets = [asset for asset in group if str(asset.get("id") or "") in suggested_ids]
+                candidates = suggested_assets or list(group)
             return max(
                 candidates,
                 key=lambda item: (

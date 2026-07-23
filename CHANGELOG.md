@@ -158,6 +158,7 @@
   - Fixed Local Photos Folder manifest recovery double-counting files that remain physically under `No_Albums`: when the manifest assigns a source file to a discovered album, it is now transferred only through that album rather than also as a no-album asset.
   - Restored the detailed Immich `Remove Duplicates Assets` review table after the service-client cleanup delegation reduced it to one compact line per group. The preview again compares the selected keeper and every removal candidate by ID, size, upload time, and available metadata before confirmation, separates each group with the original empty `INFO` line in CLI, logs, and Web output, and does not change whether native Immich or exact filename-and-size detection is selected.
   - Improved the duplicate-review preview with a final pre-table summary of the retained duplicate groups and candidate assets. The `Tags` row now appears immediately before `People` for easier metadata comparison.
+  - Fixed `more-people/tags-then-*` duplicate keeper selection for Immich. Native people associations now take precedence over tags, including `people/<name>` import tags; equal people and tag counts use the requested final criterion, with `-then-better-quality` selecting the largest physical file rather than an Immich quality suggestion.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

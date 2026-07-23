@@ -237,6 +237,45 @@ class TestImmichStreamingUpload(unittest.TestCase):
 
         self.assertEqual(keeper["id"], "people")
 
+    def test_people_first_quality_uses_file_size_after_people_and_tags(self):
+        manager = self._build_manager()
+        group = [
+            {
+                "id": "suggested-smaller", "createdAt": "2024-01-01T00:00:00Z",
+                "_immich_suggested_keep_asset_ids": ["suggested-smaller"],
+                "people": [{"personId": "ana"}], "tags": [{"value": "family"}],
+                "exifInfo": {"fileSizeInByte": 100},
+            },
+            {
+                "id": "larger", "createdAt": "2020-01-01T00:00:00Z",
+                "people": [{"personId": "ana"}], "tags": [{"value": "family"}],
+                "exifInfo": {"fileSizeInByte": 200},
+            },
+        ]
+
+        keeper = manager._select_duplicate_asset_keeper(group, "more-people/tags-then-better-quality")
+
+        self.assertEqual(keeper["id"], "larger")
+
+    def test_people_first_prioritizes_native_people_over_people_tags(self):
+        manager = self._build_manager()
+        group = [
+            {
+                "id": "tag-only", "createdAt": "2024-01-01T00:00:00Z",
+                "tags": [{"value": "people/Ana"}, {"value": "people/Luis"}],
+                "exifInfo": {"fileSizeInByte": 1000},
+            },
+            {
+                "id": "native-people", "createdAt": "2020-01-01T00:00:00Z",
+                "people": [{"personId": "ana"}, {"personId": "luis"}],
+                "exifInfo": {"fileSizeInByte": 10},
+            },
+        ]
+
+        keeper = manager._select_duplicate_asset_keeper(group, "more-people/tags-then-better-quality")
+
+        self.assertEqual(keeper["id"], "native-people")
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_native_duplicate_detection_preserves_immich_quality_suggestion(self, mock_get, _mock_logger):

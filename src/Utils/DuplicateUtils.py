@@ -247,17 +247,7 @@ def duplicate_asset_people_count(asset):
     if identifiers:
         return len(identifiers)
 
-    # Google Takeout people imports are represented in Immich as people/<name>
-    # tags. Use them when the backend response has no native face/person links.
-    raw_tags = asset.get("tags") or []
-    if not isinstance(raw_tags, (list, tuple, set)):
-        return 0
-    for tag in raw_tags:
-        value = tag.get("value") or tag.get("name") if isinstance(tag, dict) else tag
-        value = str(value or "").strip()
-        if value.casefold().startswith("people/") and value.split("/", 1)[1].strip():
-            identifiers.add(value.casefold())
-    return len(identifiers)
+    return 0
 
 
 def duplicate_asset_tag_count(asset):
