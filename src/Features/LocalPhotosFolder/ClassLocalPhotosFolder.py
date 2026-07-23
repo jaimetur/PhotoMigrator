@@ -2389,6 +2389,7 @@ class ClassLocalPhotosFolder(BaseMediaClient):
             requested_all = not requested_names or any(str(name).upper() == "ALL" for name in requested_names)
             output_root = Path(output_folder) / FOLDERNAME_ALBUMS
             downloaded_albums = downloaded_assets = 0
+            LOGGER.info("Retrieving Local Photos Folder albums and applying active asset filters before download...")
             for album in self.get_albums_owned_by_user(filter_assets=True, log_level=log_level):
                 name = album["albumName"]
                 if not requested_all and not any(match_pattern(name, pattern) for pattern in requested_names):

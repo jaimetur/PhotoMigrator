@@ -3660,7 +3660,10 @@ class ClassSynologyPhotos(BaseMediaClient):
 
                 # Check if there is some filter applied
                 filters_provided = has_any_filter()
-
+                LOGGER.info(
+                    "Retrieving Synology albums and applying active asset filters before download. "
+                    "This can take time for large libraries..."
+                )
                 all_albums = self.get_albums_including_shared_with_user(filter_assets=filters_provided, log_level=log_level)
 
                 if not all_albums:

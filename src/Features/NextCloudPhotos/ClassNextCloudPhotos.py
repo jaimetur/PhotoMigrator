@@ -1695,6 +1695,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
     def pull_albums(self, album_names="ALL", output_folder="Downloads_NextCloud", log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
             target_names = [n.lower() for n in convert_to_list(album_names, log_level=log_level)] if album_names != "ALL" else ["all"]
+            LOGGER.info("Retrieving NextCloud albums and selecting those requested for download. This can take time for large libraries...")
             albums = self._list_download_album_directories(log_level=log_level)
             selected_albums = []
             for album in albums:
