@@ -147,6 +147,7 @@
   - Fixed Web Interface confirmation detection for `Do you want to continue? (yes/no):` prompts. Preview confirmations now appear in the Output Panel and enable the input controls before the user responds.
   - Fixed Immich Automatic Migration with `--consolidate-similar-albums` bypassing the album metadata policy used by Upload Albums and Upload All. Existing target album families now use the same description preservation, restrictive direct-sharing intersection, public-link restriction, and fail-closed deletion behavior.
   - Fixed Immich `Download All` with filters failing after the first metadata-search page on Immich v3 (`400 Bad Request`). The global filtered search now converts string `nextPage` values to the integer `page` required by Immich, matching album pagination; incomplete filtered results are discarded rather than cached as a complete selection. Resolves issue #1207.
+  - Fixed the Web Help Navigator fallback path omitting the Local Photos Folder collapsible section. Its overview, layout, and all module links now remain available when the help-index API cannot be loaded.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.
