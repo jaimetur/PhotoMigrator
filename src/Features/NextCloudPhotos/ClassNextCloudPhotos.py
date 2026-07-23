@@ -1932,7 +1932,11 @@ class ClassNextCloudPhotos(BaseMediaClient):
 
             removed_albums = 0
             removed_assets = 0
-            for album in albums_to_remove:
+            for album in tqdm(
+                albums_to_remove,
+                desc=f"{MSG_TAGS['INFO']}Removing selected albums",
+                unit="albums",
+            ):
                 if remove_album_assets:
                     removed_assets += len(self.get_all_assets_from_album(album["id"], log_level=log_level))
                 if self._remove_remote(album["id"]):

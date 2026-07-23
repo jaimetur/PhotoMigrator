@@ -2492,7 +2492,11 @@ class ClassLocalPhotosFolder(BaseMediaClient):
                 return 0, 0
             removed = 0
             removed_assets = 0
-            for album in matches:
+            for album in tqdm(
+                matches,
+                desc=f"{MSG_TAGS['INFO']}Removing selected albums",
+                unit="albums",
+            ):
                 album_path = Path(album["id"])
                 if remove_album_assets:
                     removed_assets += len(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level))

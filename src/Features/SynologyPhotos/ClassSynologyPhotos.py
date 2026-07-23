@@ -4060,7 +4060,11 @@ class ClassSynologyPhotos(BaseMediaClient):
 
             total_removed_albums = 0
             total_removed_assets = 0
-            for album_info in albums_to_remove:
+            for album_info in tqdm(
+                albums_to_remove,
+                desc=f"{MSG_TAGS['INFO']}Removing selected albums",
+                unit="albums",
+            ):
                 album_id = album_info["album_id"]
                 album_name = album_info["album_name"]
                 if remove_album_assets:

@@ -107,6 +107,7 @@
   - Completed Local Photos Folder documentation across CLI, Web, GUI, TUI, help, and the README service matrix, which now documents every supported Local Photos Folder module.
   - Added optional `-createdFrom, --created-from` and `-createdTo, --created-to` filters to `Remove Albums` across supported cloud services and Local Photos Folder. The inclusive bounds filter albums by creation date independently from asset date filters, support open-ended ranges, and are available in CLI, Web, GUI, and TUI.
   - Improved the `Remove Albums` pre-deletion review across Immich Photos, Synology Photos, NextCloud Photos, and Local Photos Folder. It now announces the number of albums found with the active name/creation-date criteria before rendering an INFO table with an ordinal, name, creation date, asset count, and whether their assets will also be removed, replacing the previous per-album warning list.
+  - Added determinate `Removing selected albums` progress bars to `Remove Albums` across Immich Photos, Synology Photos, NextCloud Photos, and Local Photos Folder, keeping the post-confirmation deletion phase visible in CLI, TUI, GUI, and the Web Output Panel.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
