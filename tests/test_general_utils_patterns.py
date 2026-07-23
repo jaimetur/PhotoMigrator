@@ -1,12 +1,12 @@
 import sys
 import types
 import unittest
+from zoneinfo import ZoneInfo
 import logging
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from zoneinfo import ZoneInfo
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -620,6 +620,7 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
 
         with (
             patch("Utils.GeneralUtils.tabulate", side_effect=render_table),
+            patch("Utils.GeneralUtils.tzlocal.get_localzone", return_value=ZoneInfo("Europe/Madrid")),
             patch("builtins.print") as mock_print,
         ):
             print_remove_albums_preview([
