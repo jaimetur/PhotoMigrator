@@ -17,6 +17,7 @@ from dataclasses import is_dataclass, asdict
 from datetime import datetime
 
 import piexif
+import tzlocal
 from tabulate import tabulate
 from tqdm import tqdm as original_tqdm
 
@@ -2229,17 +2230,21 @@ def print_remove_albums_preview(
             if isinstance(handler, logging.FileHandler):
                 handler.handle(record)
 
-    def format_created_at(value):
+    def format_created_at(value, display_local_time=False):
         if value in (None, ""):
             return "-"
         if isinstance(value, (int, float)):
             try:
-                return datetime.fromtimestamp(value).strftime("%Y-%m-%d %H:%M:%S")
+                timezone_info = tzlocal.get_localzone() if display_local_time else None
+                return datetime.fromtimestamp(value, tz=timezone_info).strftime("%Y-%m-%d %H:%M:%S")
             except (OverflowError, OSError, ValueError):
                 return str(value)
         raw_value = str(value).strip()
         try:
-            return datetime.fromisoformat(raw_value.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M:%S")
+            parsed_value = datetime.fromisoformat(raw_value.replace("Z", "+00:00"))
+            if display_local_time and parsed_value.tzinfo is not None:
+                parsed_value = parsed_value.astimezone(tzlocal.get_localzone())
+            return parsed_value.strftime("%Y-%m-%d %H:%M:%S")
         except ValueError:
             return raw_value or "-"
 
@@ -2247,7 +2252,10 @@ def print_remove_albums_preview(
         [
             index,
             str(album.get("album_name") or album.get("albumName") or "-"),
-            format_created_at(album.get("created_at", album.get("createdAt", album.get("create_time")))),
+            format_created_at(
+                album.get("created_at", album.get("createdAt", album.get("create_time"))),
+                display_local_time=True,
+            ),
             int(album.get("asset_count", 0) or 0),
             "Yes" if remove_album_assets else "No",
         ]
@@ -2260,7 +2268,7 @@ def print_remove_albums_preview(
     emit(f"  Created to     : {format_created_at(created_to)}")
     preview_table = tabulate(
         table_data,
-        headers=["#", "Album Name", "Created At", "Assets", "Remove Assets"],
+        headers=["#", "Album Name", "Created At (local)", "Assets", "Remove Assets"],
         tablefmt="grid",
     )
     for line in preview_table.splitlines():

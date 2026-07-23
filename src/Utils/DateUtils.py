@@ -45,19 +45,24 @@ def is_date_outside_calendar_range(date_to_check, date_from=None, date_to=None):
     """Return whether a date falls outside an inclusive calendar-date range.
 
     Unlike :func:`is_date_outside_range`, this helper receives its boundaries
-    explicitly and compares calendar dates.  It is intended for album creation
-    dates, where ``created-to=YYYY-MM-DD`` must include the whole supplied day.
+    explicitly and compares calendar dates in the local timezone. It is intended
+    for album creation dates, where ``created-to=YYYY-MM-DD`` must include the
+    whole supplied day as displayed by the photo service UI.
     """
     date_epoch = parse_text_datetime_to_epoch(date_to_check)
     if date_epoch is None:
         return False
 
-    candidate_date = datetime.fromtimestamp(date_epoch, tz=timezone.utc).date()
+    # Album UIs such as Immich display ``createdAt`` in the user's local
+    # calendar. Comparing UTC dates would exclude an album created late on the
+    # preceding UTC day even though the UI shows it on the requested day.
+    local_timezone = tzlocal.get_localzone()
+    candidate_date = datetime.fromtimestamp(date_epoch, tz=local_timezone).date()
     from_epoch = parse_text_datetime_to_epoch(date_from)
     to_epoch = parse_text_datetime_to_epoch(date_to)
-    if from_epoch is not None and candidate_date < datetime.fromtimestamp(from_epoch, tz=timezone.utc).date():
+    if from_epoch is not None and candidate_date < datetime.fromtimestamp(from_epoch, tz=local_timezone).date():
         return True
-    if to_epoch is not None and candidate_date > datetime.fromtimestamp(to_epoch, tz=timezone.utc).date():
+    if to_epoch is not None and candidate_date > datetime.fromtimestamp(to_epoch, tz=local_timezone).date():
         return True
     return False
 

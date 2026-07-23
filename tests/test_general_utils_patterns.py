@@ -6,6 +6,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+from zoneinfo import ZoneInfo
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -593,6 +594,7 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         with (
             patch("Utils.GeneralUtils.tabulate", side_effect=render_table),
             patch("builtins.print") as mock_print,
+            patch("Utils.GeneralUtils.tzlocal.get_localzone", return_value=ZoneInfo("Europe/Madrid")),
         ):
             print_album_consolidation_preview([
                 {
@@ -633,8 +635,8 @@ class TestGeneralUtilsPatterns(unittest.TestCase):
         self.assertIn("Name pattern   : *Videos*", rendered)
         self.assertIn("Created from   : 2026-01-01 00:00:00", rendered)
         self.assertNotIn("Configured general asset filters", rendered)
-        self.assertIn("# | Album Name | Created At | Assets | Remove Assets", rendered)
-        self.assertIn("1 | Videos | 2026-07-23 12:34:56 | 11 | Yes", rendered)
+        self.assertIn("# | Album Name | Created At (local) | Assets | Remove Assets", rendered)
+        self.assertIn("1 | Videos | 2026-07-23 14:34:56 | 11 | Yes", rendered)
         self.assertNotIn("WARNING", rendered)
 
     def test_has_any_filter_treats_filter_by_type_all_as_no_filter(self):
