@@ -4032,6 +4032,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.error(f"Error Retrieving Assets without albums from '{source_client_name}' - {e}")
             all_albums_assets = []
             try:
+                # The puller lists every album when no filters are active, so the
+                # initial inventory must do the same. In particular, managed
+                # Takeout albums can contain only manifest-backed members (such
+                # as a Live Photo MOV) and would otherwise be missed here.
                 all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.INFO)
             except Exception as e:
                 LOGGER.error(f"Error Retrieving Albums's Assets from '{source_client_name}' - {e}")

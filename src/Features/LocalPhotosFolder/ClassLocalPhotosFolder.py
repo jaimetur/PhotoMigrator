@@ -233,6 +233,8 @@ class ClassLocalPhotosFolder(BaseMediaClient):
         self.all_assets_filtered = None
         self.assets_without_albums_filtered = None
         self.albums_assets_filtered = None
+        if hasattr(self, "_manifest_member_paths_assigned_to_albums"):
+            self._manifest_member_paths_assigned_to_albums = None
 
     @staticmethod
     def _normalize_manifest_asset_name(filename):
@@ -444,6 +446,53 @@ class ClassLocalPhotosFolder(BaseMediaClient):
         if supplemented > 0:
             LOGGER.info(f"Supplemented {supplemented} album asset(s) for '{album_name}' using archive_browser manifest fallback.")
         return current_assets
+
+    def _get_manifest_member_paths_assigned_to_albums(self, log_level=None):
+        """Return non-album files that the manifest assigns to a discovered album."""
+        cached_paths = getattr(self, "_manifest_member_paths_assigned_to_albums", None)
+        if cached_paths is not None:
+            return cached_paths
+
+        assigned_paths = set()
+        if not self._uses_managed_layout():
+            self._manifest_member_paths_assigned_to_albums = assigned_paths
+            return assigned_paths
+
+        try:
+            filter_assets = bool(has_any_filter())
+        except (AttributeError, TypeError):
+            filter_assets = False
+        album_names = {
+            str(album.get("albumName") or "")
+            for album in self.get_albums_including_shared_with_user(
+                filter_assets=filter_assets,
+                log_level=log_level,
+            )
+        }
+        if not album_names:
+            self._manifest_member_paths_assigned_to_albums = assigned_paths
+            return assigned_paths
+
+        non_album_roots = self._iter_non_album_roots()
+        for album_name, expected_files in self._load_album_membership_manifest(log_level=log_level).items():
+            if str(album_name) not in album_names:
+                continue
+            for expected_filename in expected_files or []:
+                candidate_path = self._select_manifest_backed_asset_path(expected_filename)
+                if candidate_path is None:
+                    continue
+                try:
+                    resolved_path = candidate_path.resolve()
+                except OSError:
+                    continue
+                if any(
+                    resolved_path.is_relative_to(root)
+                    for root in non_album_roots
+                ):
+                    assigned_paths.add(resolved_path)
+
+        self._manifest_member_paths_assigned_to_albums = assigned_paths
+        return assigned_paths
 
     def _refresh_analyzer_from_disk(self, step_name="", log_level=None):
         self._ensure_analyzer(log_level=log_level)
@@ -1651,6 +1700,7 @@ class ClassLocalPhotosFolder(BaseMediaClient):
                                 album_link_targets.add(album_entry.resolve())
                             except OSError:
                                 continue
+            manifest_member_paths = self._get_manifest_member_paths_assigned_to_albums(log_level=log_level)
             duplicates_folder = self.base_folder / "_Duplicates"
             sel_ext = self._get_selected_extensions(type)
 
@@ -1685,6 +1735,9 @@ class ClassLocalPhotosFolder(BaseMediaClient):
                             pbar.update(1)
                             continue
                         if file_path.resolve() in album_link_targets:
+                            pbar.update(1)
+                            continue
+                        if file_path.resolve() in manifest_member_paths:
                             pbar.update(1)
                             continue
                     else:
@@ -1854,7 +1907,19 @@ class ClassLocalPhotosFolder(BaseMediaClient):
                 return self.albums_assets_filtered
 
             combined_assets = []
-            all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
+            # Match Automatic Migration's puller: when there are no active
+            # filters it must also inspect albums whose only members are kept
+            # in the Takeout manifest rather than as album-directory entries.
+            try:
+                filter_assets = bool(has_any_filter())
+            except (AttributeError, TypeError):
+                # Keep the public client method usable by lightweight callers
+                # that have not initialized the global argument store.
+                filter_assets = False
+            all_albums = self.get_albums_including_shared_with_user(
+                filter_assets=filter_assets,
+                log_level=log_level,
+            )
             with tqdm(
                 total=len(all_albums),
                 desc="📚 Gathering Albums Assets",

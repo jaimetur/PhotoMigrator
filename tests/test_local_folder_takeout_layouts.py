@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import sys
@@ -118,11 +119,30 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         assets = local_folder.get_all_assets_from_all_albums(log_level=logging.INFO)
 
         self.assertEqual(assets, [{"id": "asset-id"}])
+        local_folder.get_albums_including_shared_with_user.assert_called_once_with(
+            filter_assets=False,
+            log_level=logging.INFO,
+        )
         local_folder.get_all_assets_from_album.assert_called_once_with(
             album_id="album-id",
             album_name="Summer Live Photos",
             log_level=logging.INFO,
         )
+
+    def test_manifest_assigned_no_album_asset_is_not_returned_twice(self):
+        self._create_file("Albums/Manifest Album/album-info.json")
+        (self.root / "automatic_migration_album_manifest.json").write_text(
+            json.dumps({"albums": {"Manifest Album": ["root-no-album.jpg"]}}),
+            encoding="utf-8",
+        )
+        local_folder = ClassLocalPhotosFolder(base_folder=self.root)
+
+        no_album_filenames = {
+            asset["filename"]
+            for asset in local_folder.get_all_assets_without_albums(log_level=logging.INFO)
+        }
+
+        self.assertNotIn("root-no-album.jpg", no_album_filenames)
 
     def test_determine_file_type_treats_real_icloud_metadata_csv_as_metadata_but_not_generic_reports(self):
         metadata_csv = self.root / "Albums/Trip/Photo Details.csv"
