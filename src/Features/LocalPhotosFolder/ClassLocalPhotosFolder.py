@@ -1865,7 +1865,13 @@ class ClassLocalPhotosFolder(BaseMediaClient):
             ) as pbar:
                 for album in all_albums:
                     album_id = album["id"]
-                    combined_assets.extend(self.get_all_assets_from_album(album_id, log_level))
+                    # Keep the real name available to the manifest fallback. Passing
+                    # log_level positionally used to populate album_name instead.
+                    combined_assets.extend(self.get_all_assets_from_album(
+                        album_id=album_id,
+                        album_name=album.get("albumName"),
+                        log_level=log_level,
+                    ))
                     pbar.update(1)
             self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
             return combined_assets

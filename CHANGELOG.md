@@ -110,6 +110,7 @@
   - Added determinate `Removing selected albums` progress bars to `Remove Albums` across Immich Photos, Synology Photos, NextCloud Photos, and Local Photos Folder, keeping the post-confirmation deletion phase visible in CLI, TUI, GUI, and the Web Output Panel.
   - Reworked `Remove Duplicates Assets` so `ExecutionModes` delegates the explicit cleanup workflow to the selected service client. Immich, Synology, NextCloud Photos, Local Photos Folder, and Google Photos now expose a consistent `remove_duplicates_assets` contract; the safe review, keeper selection, confirmation, metadata-preserving Immich resolution, and normalized result handling are no longer bypassed by Upload or Download features. Automatic duplicate-asset deletion has been removed from Upload All, Upload Albums, Download All, and Download Albums.
   - Added visible pre-download selection feedback to Download Albums and Download All across Immich Photos, Synology Photos, NextCloud Photos, Google Photos, and Local Photos Folder. The output now explains that album inventories and active filters are being evaluated before the download progress bar starts.
+  - Added periodic Automatic Migration feedback while delayed push retries are pending, reporting the retained physical-file count and the next retry deadline so long-running retry backoff no longer appears stalled.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
@@ -153,6 +154,7 @@
   - Fixed Immich `Download All` with filters failing after the first metadata-search page on Immich v3 (`400 Bad Request`). The global filtered search now converts string `nextPage` values to the integer `page` required by Immich, matching album pagination; incomplete filtered results are discarded rather than cached as a complete selection. Resolves issue #1207.
   - Fixed the Web Help Navigator fallback path omitting the Local Photos Folder collapsible section. Its overview, layout, and all module links now remain available when the help-index API cannot be loaded.
   - Fixed `Remove Albums` creation-date boundaries being evaluated in UTC instead of the local calendar timezone displayed by photo service UIs. Albums created late on the preceding UTC day but shown as the selected local day are now included by `--created-from` and `--created-to`; the preview now labels and displays album creation timestamps in that same local timezone.
+  - Fixed Local Photos Folder Automatic Migration inventory aggregation to preserve each album name when resolving its assets. Manifest-backed members, including Live Photo MOV companions, are now included during the initial analysis so its physical totals match Pull and Push from the beginning. Immich asset uploads now use bounded connection/read timeouts instead of allowing a stalled upload request to block migration workers indefinitely.
 
 #### 📚 Documentation:
   - Updated documentation with all changes.

@@ -686,6 +686,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertNotIn("files", kwargs)
         self.assertIsInstance(kwargs["data"], MultipartEncoder)
         self.assertIn("multipart/form-data", kwargs["headers"]["Content-Type"])
+        self.assertEqual(kwargs["timeout"], manager.IMMICH_ASSET_UPLOAD_TIMEOUT)
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")

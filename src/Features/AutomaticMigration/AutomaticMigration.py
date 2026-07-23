@@ -3510,13 +3510,32 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"Album Association Worker {worker_id} - Task Finished!")
 
     def _wait_until_push_pipeline_drains():
+        last_retry_wait_log_at = 0.0
         while True:
             push_queue.join()
             album_assoc_queue.join()
             with retry_condition:
                 retries_pending = len(retry_heap)
+                next_retry_ready_at = retry_heap[0][0] if retry_heap else None
             if retries_pending == 0 and push_queue.qsize() == 0 and album_assoc_queue.qsize() == 0:
                 break
+
+            now_monotonic = time.monotonic()
+            if retries_pending and now_monotonic - last_retry_wait_log_at >= 30.0:
+                delayed_files = _count_staged_queue_files(
+                    temp_folder,
+                    AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
+                )
+                if next_retry_ready_at is None:
+                    next_retry_text = "next retry is being scheduled"
+                else:
+                    seconds_until_retry = max(0, int((next_retry_ready_at - time.time()) + 0.999))
+                    next_retry_text = f"next retry in {seconds_until_retry}s"
+                LOGGER.info(
+                    f"Waiting for delayed push retries: {delayed_files} physical file(s) pending; "
+                    f"{next_retry_text}."
+                )
+                last_retry_wait_log_at = now_monotonic
             time.sleep(0.25)
 
     def _reconcile_terminal_albums():

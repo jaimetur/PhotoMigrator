@@ -67,6 +67,7 @@ class ClassImmichPhotos(BaseMediaClient):
     IMMICH_ASSET_INVENTORY_RETRIES = 5
     DUPLICATE_METADATA_REVIEW_WORKERS = 100
     IMMICH_AUTH_TIMEOUT = (10, 30)
+    IMMICH_ASSET_UPLOAD_TIMEOUT = (10, 300)
     IMMICH_DUPLICATES_TIMEOUT = (10, 300)
     IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE = 100
     IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE = 250
@@ -3602,7 +3603,12 @@ class ClassImmichPhotos(BaseMediaClient):
 
                     multipart_data = MultipartEncoder(fields=fields)
                     header["Content-Type"] = multipart_data.content_type
-                    response = requests.post(url, headers=header, data=multipart_data)
+                    response = requests.post(
+                        url,
+                        headers=header,
+                        data=multipart_data,
+                        timeout=self.IMMICH_ASSET_UPLOAD_TIMEOUT,
+                    )
                     response.raise_for_status()
                     new_asset = response.json()
                 asset_id = new_asset.get("id")

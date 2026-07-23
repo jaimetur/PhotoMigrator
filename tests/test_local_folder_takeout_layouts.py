@@ -106,6 +106,24 @@ class TestLocalFolderTakeoutLayouts(unittest.TestCase):
         no_album_filenames = sorted(asset["filename"] for asset in no_album_assets)
         self.assertNotIn("memory-a.jpg", no_album_filenames)
 
+    def test_all_album_assets_passes_album_name_to_manifest_aware_lookup(self):
+        local_folder = object.__new__(ClassLocalPhotosFolder)
+        local_folder.albums_assets_filtered = None
+        local_folder.get_albums_including_shared_with_user = Mock(return_value=[{
+            "id": "album-id",
+            "albumName": "Summer Live Photos",
+        }])
+        local_folder.get_all_assets_from_album = Mock(return_value=[{"id": "asset-id"}])
+
+        assets = local_folder.get_all_assets_from_all_albums(log_level=logging.INFO)
+
+        self.assertEqual(assets, [{"id": "asset-id"}])
+        local_folder.get_all_assets_from_album.assert_called_once_with(
+            album_id="album-id",
+            album_name="Summer Live Photos",
+            log_level=logging.INFO,
+        )
+
     def test_determine_file_type_treats_real_icloud_metadata_csv_as_metadata_but_not_generic_reports(self):
         metadata_csv = self.root / "Albums/Trip/Photo Details.csv"
         metadata_csv.parent.mkdir(parents=True, exist_ok=True)
