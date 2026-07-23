@@ -86,7 +86,7 @@ PhotoMigrator --client=local-photos-folder --local-photos-folder ./ManagedLibrar
 ## Remove Albums by Name Pattern from Local Photos Folder
 
 - **Usage:** `--client=local-photos-folder --local-photos-folder <LOCAL_PHOTOS_FOLDER> --remove-albums <PATTERN>`
-- **Explanation:** Removes albums matching the supplied name or pattern. `--remove-albums-assets` also removes associated physical assets; `--preview-album-actions` shows the selected albums first.
+- **Explanation:** Removes albums matching the supplied name or pattern. `--remove-albums-assets` also removes associated physical assets; `--preview-album-actions` shows the selected albums first. `--created-from` and `--created-to` optionally restrict the selection to album directories created within an inclusive date range; either date may be omitted and `YYYY`, `YYYY-MM`, and `YYYY-MM-DD` are accepted.
 
 ## Rename Albums by Name Pattern from Local Photos Folder
 

@@ -15,7 +15,7 @@ from Core.CustomLogger import set_log_level
 from Core.FolderAnalyzer import FolderAnalyzer
 from Core.GlobalVariables import LOGGER, ARGS, FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALL_PHOTOS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS, PHOTO_EXT
 from Features.BaseMediaClient import BaseMediaClient
-from Utils.DateUtils import parse_text_datetime_to_epoch
+from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_calendar_range
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list, tqdm, match_pattern, replace_pattern, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, should_exclude_path
 from Utils.StandaloneUtils import change_working_dir
@@ -917,7 +917,13 @@ class ClassLocalPhotosFolder(BaseMediaClient):
                 if album_id in seen:
                     continue
                 seen.add(album_id)
-                albums.append({"id": album_id, "albumName": album_name})
+                album_path = Path(album_id)
+                try:
+                    stat = album_path.stat()
+                    created_at = getattr(stat, "st_birthtime", stat.st_ctime)
+                except OSError:
+                    created_at = None
+                albums.append({"id": album_id, "albumName": album_name, "createdAt": created_at})
 
             LOGGER.info(f"Found {len(albums)} owned albums.")
             # Cache the result for future calls
@@ -2457,18 +2463,24 @@ class ClassLocalPhotosFolder(BaseMediaClient):
             self.albums_owned_by_user.clear()
             return renamed
 
-    def remove_albums_by_name(self, pattern, remove_album_assets=False, request_user_confirmation=True, log_level=logging.WARNING):
+    def remove_albums_by_name(self, pattern, remove_album_assets=False, created_from=None, created_to=None, request_user_confirmation=True, log_level=logging.WARNING):
         with set_log_level(LOGGER, log_level):
-            matches = [album for album in self.get_albums_owned_by_user(filter_assets=False, log_level=log_level) if match_pattern(album["albumName"], pattern)]
+            matches = [
+                album for album in self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
+                if not is_date_outside_calendar_range(album.get("createdAt"), created_from, created_to)
+                and match_pattern(album["albumName"], pattern)
+            ]
             if not matches:
                 LOGGER.info("No local albums matched the removal pattern.")
-                return 0
+                return 0, 0
             if request_user_confirmation and not confirm_continue():
-                return 0
+                return 0, 0
             removed = 0
+            removed_assets = 0
             for album in matches:
                 album_path = Path(album["id"])
                 if remove_album_assets:
+                    removed_assets += len(self.get_all_assets_from_album(album["id"], album["albumName"], log_level=log_level))
                     shutil.rmtree(album_path, ignore_errors=True)
                 else:
                     for entry in album_path.rglob("*"):
@@ -2478,7 +2490,7 @@ class ClassLocalPhotosFolder(BaseMediaClient):
                 removed += 1
             self._invalidate_asset_caches()
             self.albums_owned_by_user.clear()
-            return removed
+            return removed, removed_assets
 
     def consolidate_album_namess(self, request_user_confirmation=True, preview_album_actions=False, try_equivalent_albums_grouping=True, try_date_prefix_albums_grouping=True, try_truncated_albums_grouping=True, try_small_albums_grouping=True, log_level=logging.WARNING, small_album_max_assets=3):
         with set_log_level(LOGGER, log_level):

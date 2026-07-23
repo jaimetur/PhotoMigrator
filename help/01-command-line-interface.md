@@ -82,7 +82,7 @@ usage: PhotoMigrator [-h] [-v] [-config <CONFIGURATION_FILE>] [-noConfirm] [-noL
                      [-id [= [1-3]]]
                      [-from <FROM_DATE>] [-to <TO_DATE>] [-type = [image,video,all]]
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
-                     [-AlbFolder [<ALBUMS_FOLDER> ...]] [-rAlbAsset]
+                     [-AlbFolder [<ALBUMS_FOLDER> ...]] [-rAlbAsset] [-createdFrom <DATE>] [-createdTo <DATE>]
                      [-source <SOURCE>] [-target <TARGET>]
                      [-move [= [true,false]]] [-dashboard [= [true,false]]] [-parallel [= [true,false]]]
                      [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
@@ -449,6 +449,10 @@ If more than one optional arguments are detected, only the first one will be exe
                Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.
                Example: --client=synology --remove-albums "*Temp*" --preview-album-actions
                Example: --client=synology --remove-albums "^Temp" --remove-albums-assets
+-createdFrom ; --created-from <DATE>
+               For Remove Albums, only select albums created on or after this date (YYYY, YYYY-MM, or YYYY-MM-DD).
+-createdTo   ; --created-to <DATE>
+               For Remove Albums, only select albums created on or before this date (YYYY, YYYY-MM, or YYYY-MM-DD).
 -rAllAlb     ; --remove-all-albums
                CAUTION!!! Remove ALL albums.
                Requires '--client'.

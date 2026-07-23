@@ -22,7 +22,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS, PHOTO_EXT
 from Features.BaseMediaClient import BaseMediaClient
-from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
+from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range, is_date_outside_calendar_range
 from Utils.FileUtils import matches_any_pattern, merge_exclusion_patterns
 from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue, sha1_checksum, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.DuplicateUtils import select_people_then_chronology_keeper
@@ -3997,7 +3997,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             # self.logout(log_level=log_level)
             return total_renamed_albums
 
-    def remove_albums_by_name(self, pattern, remove_album_assets=False, request_user_confirmation=True, log_level=logging.WARNING):
+    def remove_albums_by_name(self, pattern, remove_album_assets=False, created_from=None, created_to=None, request_user_confirmation=True, log_level=logging.WARNING):
         """
         Removes all albums in Synology Photos whose name matches the provided pattern.
 
@@ -4007,6 +4007,8 @@ class ClassSynologyPhotos(BaseMediaClient):
         Args:
             pattern (str): The regex pattern to match album names.
             remove_album_assets (bool): Whether to delete all assets contained in the albums.
+            created_from (str | None): Inclusive album creation-date lower bound.
+            created_to (str | None): Inclusive album creation-date upper bound.
             request_user_confirmation (bool): Whether to ask for confirmation before deleting.
             log_level (logging.LEVEL): The log level for logging and console output.
 
@@ -4025,7 +4027,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             albums_to_remove = []
             for album in tqdm(albums, desc=f"{MSG_TAGS['INFO']}Searching for albums to remove", unit="albums"):
                 album_date = album.get("create_time")
-                if is_date_outside_range(album_date):
+                if is_date_outside_calendar_range(album_date, created_from, created_to):
                     continue
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")

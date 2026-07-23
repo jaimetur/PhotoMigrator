@@ -1122,7 +1122,7 @@ class ClassGooglePhotos(BaseMediaClient):
             LOGGER.info(f"{MSG_TAGS['WARNING']}Google Photos API does not support renaming albums via public Library API. No action applied.")
             return 0
 
-    def remove_albums_by_name(self, pattern, remove_album_assets=False, request_user_confirmation=True, log_level=None):
+    def remove_albums_by_name(self, pattern, remove_album_assets=False, created_from=None, created_to=None, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"{MSG_TAGS['WARNING']}Google Photos API does not support deleting albums via public Library API. No action applied.")
             return 0, 0

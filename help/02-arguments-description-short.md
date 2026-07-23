@@ -76,6 +76,8 @@ Following general arguments have different purposes depending on the Execution M
 | `-exFiles`,<br>`--exclude-files`             | Exclude file patterns during Local Photos Folder processing/migration                                       |
 | `-AlbFolder`,<br>`--albums-folders`          | Use subfolders in folder as albums                                                                          |
 | `-rAlbAsset`,<br>`--remove-albums-assets`    | Remove assets inside deleted albums                                                                         |
+| `-createdFrom`,<br>`--created-from`          | For Remove Albums, only match albums created on/after this date.                                            |
+| `-createdTo`,<br>`--created-to`              | For Remove Albums, only match albums created on/before this date.                                           |
 
 #### 🧪 Examples:
 ```bash

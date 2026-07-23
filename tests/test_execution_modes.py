@@ -97,6 +97,8 @@ def _base_args():
         "download-albums": "",
         "download-all": "",
         "remove-albums": "",
+        "created-from": "",
+        "created-to": "",
         "rename-albums": "",
         "preview-album-actions": False,
         "prefer-canonical-album-names": False,
@@ -461,6 +463,8 @@ class TestExecutionModes(unittest.TestCase):
         args["remove-albums"] = "*Temp*"
         args["remove-albums-assets"] = True
         args["preview-album-actions"] = True
+        args["created-from"] = "2024-01-01T00:00:00.000Z"
+        args["created-to"] = "2024-12-31T00:00:00.000Z"
         client_mock = unittest.mock.MagicMock()
         client_mock.remove_albums_by_name.return_value = (2, 5)
 
@@ -475,6 +479,8 @@ class TestExecutionModes(unittest.TestCase):
         client_mock.remove_albums_by_name.assert_called_once_with(
             pattern="*Temp*",
             remove_album_assets=True,
+            created_from="2024-01-01T00:00:00.000Z",
+            created_to="2024-12-31T00:00:00.000Z",
             request_user_confirmation=True,
             log_level=unittest.mock.ANY,
         )

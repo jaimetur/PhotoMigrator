@@ -459,6 +459,13 @@ def parse_arguments():
                              "Optionally also remove assets inside albums using '-rAlbAsset, --remove-albums-assets'.\n"
                              "Example: --client=synology --remove-albums \"^Temp\" --remove-albums-assets")
 
+    PARSER.add_argument("-createdFrom", "--created-from", metavar="<DATE>", default="",
+                        help="For Remove Albums, only match albums created on or after <DATE>.\n"
+                             "Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD.")
+    PARSER.add_argument("-createdTo", "--created-to", metavar="<DATE>", default="",
+                        help="For Remove Albums, only match albums created on or before <DATE>.\n"
+                             "Use with '--remove-albums'; accepted formats include YYYY, YYYY-MM, and YYYY-MM-DD.")
+
     PARSER.add_argument("-prevAlbAct", "--preview-album-actions", action=argparse.BooleanOptionalAction, default=True,
                         help="Preview Rename Albums / Remove Albums / Consolidate Album Names matches before applying changes.\n"
                              "Enabled by default; use '--no-preview-album-actions' to disable it.\n"
@@ -973,9 +980,24 @@ def checkArgs(ARGS, PARSER):
         )
         exit(1)
 
+    if (ARGS.get('created-from') or ARGS.get('created-to')) and not ARGS.get('remove-albums'):
+        PARSER.error(
+            "--created-from and --created-to are modifiers for --remove-albums and cannot be used on their own."
+        )
+
     # Parse dates: return ISO8601 if valid, otherwise empty string
     ARGS['filter-from-date'] = parse_text_to_iso8601(ARGS.get('filter-from-date', ''))
     ARGS['filter-to-date'] = parse_text_to_iso8601(ARGS.get('filter-to-date', ''))
+    raw_created_from = ARGS.get('created-from', '')
+    raw_created_to = ARGS.get('created-to', '')
+    ARGS['created-from'] = parse_text_to_iso8601(raw_created_from)
+    ARGS['created-to'] = parse_text_to_iso8601(raw_created_to)
+    if raw_created_from and not ARGS['created-from']:
+        PARSER.error("--created-from must be a valid date (for example 2024, 2024-06, or 2024-06-15).")
+    if raw_created_to and not ARGS['created-to']:
+        PARSER.error("--created-to must be a valid date (for example 2024, 2024-06, or 2024-06-15).")
+    if ARGS['created-from'] and ARGS['created-to'] and ARGS['created-from'] > ARGS['created-to']:
+        PARSER.error("--created-from cannot be later than --created-to.")
 
     # Parse filter-by-type
     if ARGS['filter-by-type'] and ARGS['filter-by-type'].lower() not in valid_asset_types:

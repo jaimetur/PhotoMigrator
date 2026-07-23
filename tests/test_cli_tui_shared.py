@@ -354,6 +354,8 @@ class TestCliTuiShared(unittest.TestCase):
         values = {
             "account-id": "1",
             "remove-albums": "*Temp*",
+            "created-from": "2024-01-01",
+            "created-to": "2024-12-31",
             "preview-album-actions": True,
             "remove-albums-assets": True,
         }
@@ -364,6 +366,10 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("*Temp*", args)
         self.assertIn("--preview-album-actions", args)
         self.assertIn("--remove-albums-assets", args)
+        self.assertIn("--created-from", args)
+        self.assertIn("2024-01-01", args)
+        self.assertIn("--created-to", args)
+        self.assertIn("2024-12-31", args)
 
     def test_remove_albums_assets_is_scoped_to_supported_cloud_album_removal_modules(self):
         schema = build_parser_schema()

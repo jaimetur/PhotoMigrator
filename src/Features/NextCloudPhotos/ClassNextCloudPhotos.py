@@ -31,7 +31,7 @@ from Core.GlobalVariables import (
 )
 from Features.BaseMediaClient import BaseMediaClient
 from Utils.FileUtils import get_all_files_paths, get_subfolders, merge_exclusion_patterns
-from Utils.DateUtils import guess_date_from_filename
+from Utils.DateUtils import guess_date_from_filename, is_date_outside_calendar_range
 from Utils.GeneralUtils import confirm_continue, convert_to_list, match_pattern, replace_pattern, tqdm, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, scan_album_consolidation_groups, print_album_consolidation_preview, extract_asset_capture_years, extract_asset_capture_datetimes
 from Utils.DuplicateUtils import select_people_then_chronology_keeper
 
@@ -420,8 +420,8 @@ class ClassNextCloudPhotos(BaseMediaClient):
     def _propfind(self, remote_path: str, depth: int = 1, namespace: str = "files") -> List[Dict[str, str]]:
         xml_body = (
             '<?xml version="1.0"?>'
-            '<d:propfind xmlns:d="DAV:"><d:prop>'
-            "<d:resourcetype/><d:getcontentlength/><d:getlastmodified/>"
+            '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop>'
+            "<d:resourcetype/><d:getcontentlength/><d:getlastmodified/><oc:creationdate/>"
             "</d:prop></d:propfind>"
         )
         namespace_value = "photos" if str(namespace or "").lower() == "photos" else "files"
@@ -442,7 +442,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                 data=xml_body,
             )
         root = ET.fromstring(response.text)
-        ns = {"d": "DAV:"}
+        ns = {"d": "DAV:", "oc": "http://owncloud.org/ns"}
         items: List[Dict[str, str]] = []
         for item in root.findall("d:response", ns):
             href_node = item.find("d:href", ns)
@@ -456,6 +456,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
             collection = resource_type.find("d:collection", ns) if resource_type is not None else None
             content_length = prop.find("d:getcontentlength", ns)
             last_modified = prop.find("d:getlastmodified", ns)
+            creation_date = prop.find("oc:creationdate", ns)
             href = href_node.text or ""
             rel_path = self._split_relative_from_href(href, namespace=namespace_value)
             name = Path(rel_path.rstrip("/")).name
@@ -467,6 +468,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                     "is_dir": "true" if collection is not None else "false",
                     "size": (content_length.text or "0") if content_length is not None else "0",
                     "last_modified": (last_modified.text or "") if last_modified is not None else "",
+                    "creation_date": (creation_date.text or "") if creation_date is not None else "",
                     "source_namespace": namespace_value,
                 }
             )
@@ -709,7 +711,7 @@ class ClassNextCloudPhotos(BaseMediaClient):
                     continue
                 if entry["is_dir"] != "true":
                     continue
-                albums.append({"id": entry["path"], "albumName": entry["name"], "source_namespace": "files"})
+                albums.append({"id": entry["path"], "albumName": entry["name"], "createdAt": entry.get("creation_date", "") or entry.get("last_modified", ""), "source_namespace": "files"})
             albums.sort(key=lambda a: a["albumName"].lower())
             return albums
 
@@ -1895,10 +1897,12 @@ class ClassNextCloudPhotos(BaseMediaClient):
                     LOGGER.warning(f"{MSG_TAGS['WARNING']}Failed to rename album '{old_name}' -> '{new_name}': {error}")
             return renamed
 
-    def remove_albums_by_name(self, pattern, remove_album_assets=False, request_user_confirmation=True, log_level=None):
+    def remove_albums_by_name(self, pattern, remove_album_assets=False, created_from=None, created_to=None, request_user_confirmation=True, log_level=None):
         with set_log_level(LOGGER, log_level):
             albums_to_remove = []
             for album in self._list_album_directories(log_level=log_level):
+                if is_date_outside_calendar_range(album.get("createdAt"), created_from, created_to):
+                    continue
                 if not match_pattern(album["albumName"], pattern):
                     continue
                 albums_to_remove.append(album)

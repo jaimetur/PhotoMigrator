@@ -77,6 +77,8 @@ FEATURE_LABELS = {
 }
 UI_FIELD_LABELS = {
     "local-photos-folder": "Local Photos Folder",
+    "created-from": "Created From",
+    "created-to": "Created To",
     "dashboard": "Live Dashboard",
     "preview-album-actions": "Preview Album Actions",
     "prefer-canonical-album-names": "Prefer Canonical Album Names",
@@ -338,7 +340,7 @@ MODULE_ACTION_ARGUMENTS = {
         "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
-        "remove-albums": [{"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [{"dest": "created-from", "required": False}, {"dest": "created-to", "required": False}, {"dest": "preview-album-actions", "required": False}],
         "remove-duplicates-assets": [{"dest": "dup-asset-keeper", "required": True}],
     },
     "synology_photos": {
@@ -348,6 +350,8 @@ MODULE_ACTION_ARGUMENTS = {
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
+            {"dest": "created-from", "required": False},
+            {"dest": "created-to", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
@@ -360,6 +364,8 @@ MODULE_ACTION_ARGUMENTS = {
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
+            {"dest": "created-from", "required": False},
+            {"dest": "created-to", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
@@ -376,6 +382,8 @@ MODULE_ACTION_ARGUMENTS = {
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [
             {"dest": "remove-albums-assets", "required": False},
+            {"dest": "created-from", "required": False},
+            {"dest": "created-to", "required": False},
             {"dest": "preview-album-actions", "required": False},
         ],
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
@@ -386,7 +394,7 @@ MODULE_ACTION_ARGUMENTS = {
         "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
-        "remove-albums": [{"dest": "remove-albums-assets", "required": False}, {"dest": "preview-album-actions", "required": False}],
+        "remove-albums": [{"dest": "remove-albums-assets", "required": False}, {"dest": "created-from", "required": False}, {"dest": "created-to", "required": False}, {"dest": "preview-album-actions", "required": False}],
         "remove-all-albums": [{"dest": "remove-albums-assets", "required": False}],
         "remove-duplicates-assets": [{"dest": "dup-asset-keeper", "required": True}],
     },

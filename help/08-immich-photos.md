@@ -227,7 +227,7 @@ Immich `Upload Albums` and `Upload All` create stacks for burst-like photos by d
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all the Albums found.
-  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
+  - `-createdFrom, --created-from` and `-createdTo, --created-to` optionally filter by album creation date. The lower and upper bounds are inclusive; either boundary can be omitted, and date formats `YYYY`, `YYYY-MM`, and `YYYY-MM-DD` are accepted.
   - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _**`-rAlbAsset, --remove-albums-assets`**_
 - **Example of use:**
   ```
@@ -257,6 +257,7 @@ Immich `Upload Albums` and `Upload All` create stacks for burst-like photos by d
   ./PhotoMigrator.bin --client=immich --remove-albums "Temp" --preview-album-actions
   ./PhotoMigrator.bin --client=immich --remove-albums "*Temp*" --preview-album-actions
   ./PhotoMigrator.bin --client=immich --remove-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
+  ./PhotoMigrator.bin --client=immich --remove-albums "*Temp*" --created-from 2024-01-01 --created-to 2024-12-31
   ```
   With these examples, the Tool can remove albums by literal text, simple wildcard patterns, or regular expressions. When `--preview-album-actions` is used, it first shows the affected albums and asks for confirmation before proceeding.
 

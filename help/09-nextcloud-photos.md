@@ -222,6 +222,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
 - **Explanation:**
   - Removes albums whose name matches `<ALBUMS_NAME_PATTERN>`.
   - The remove pattern can be plain text, a wildcard expression (for example `*Temp*` or `Temp*`), or a regular expression.
+  - `-createdFrom, --created-from` and `-createdTo, --created-to` optionally filter by the album directory creation date. Both bounds are inclusive; either can be omitted, and `YYYY`, `YYYY-MM`, and `YYYY-MM-DD` are accepted.
   - If `--remove-albums-assets` is set, assets inside removed albums are also removed.
   - If `--preview-album-actions` is set, the matching albums are listed and the tool asks for confirmation before deleting them.
 - **Example of use:**
@@ -229,6 +230,7 @@ NEXTCLOUD_ALBUMS_FOLDER_3       = /Photos/Albums
   ./PhotoMigrator.bin --client=nextcloud --remove-albums "Temp" --preview-album-actions
   ./PhotoMigrator.bin --client=nextcloud --remove-albums "*Temp*" --preview-album-actions
   ./PhotoMigrator.bin --client=nextcloud --remove-albums "^Temp" --remove-albums-assets
+  ./PhotoMigrator.bin --client=nextcloud --remove-albums "*Temp*" --created-from 2024-01-01 --created-to 2024-12-31
   ```
 
 > [!CAUTION]

@@ -116,6 +116,21 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
 
         self.assertEqual(checked["rename-albums"], ["*-*", "--"])
 
+    def test_check_args_normalizes_remove_album_creation_date_filters(self):
+        argv = [
+            "photomigrator",
+            "--client=immich",
+            "--remove-albums=*Temp*",
+            "--created-from=2024-01-01",
+            "--created-to=2024-12-31",
+        ]
+        with patch.object(sys, "argv", argv):
+            args, parser = parse_arguments()
+            checked = checkArgs(args, parser)
+
+        self.assertEqual(checked["created-from"], "2024-01-01T00:00:00.000Z")
+        self.assertEqual(checked["created-to"], "2024-12-31T00:00:00.000Z")
+
 
 if __name__ == "__main__":
     unittest.main()

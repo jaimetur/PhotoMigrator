@@ -243,6 +243,7 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - Configure OAuth credentials in `Config.ini`.
 - **Explanation:**
   - Not supported by current Google Photos public API.
+  - `--created-from` and `--created-to` are available for a consistent Remove Albums command across services, but Google Photos remains a no-op because the public API cannot delete albums.
   - For supported cloud clients, the remove pattern can now be plain text, a wildcard expression, or a regular expression, and `--preview-album-actions` can be used to preview and confirm the affected albums before deletion.
 - **Example of use:**
   ```bash

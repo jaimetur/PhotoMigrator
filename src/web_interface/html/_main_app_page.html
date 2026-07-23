@@ -510,6 +510,8 @@
         "rename-albums": "Rename Pattern",
         "replacement-pattern": "Replacement Pattern",
         "remove-albums": "Albums Name Pattern",
+        "created-from": "Created From",
+        "created-to": "Created To",
         "preview-album-actions": "Preview Album Actions",
         "prefer-canonical-album-names": "Prefer Canonical Album Names",
         "consolidate-similar-albums": "Consolidate Similar Albums",
@@ -637,7 +639,7 @@
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-duplicates-assets": [{dest: "dup-asset-keeper", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "created-from", required: false}, {dest: "created-to", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         immich_photos: {
@@ -647,7 +649,7 @@
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-duplicates-assets": [{dest: "dup-immich-native-algorithm", required: true}, {dest: "dup-immich-native-deletion", required: true}, {dest: "dup-asset-keeper", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "created-from", required: false}, {dest: "created-to", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         nextcloud_photos: {
@@ -657,7 +659,7 @@
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-duplicates-assets": [{dest: "dup-asset-keeper", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "created-from", required: false}, {dest: "created-to", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         local_folder: {
@@ -667,7 +669,7 @@
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-duplicates-assets": [{dest: "dup-asset-keeper", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "created-from", required: false}, {dest: "created-to", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         google_photos: {
@@ -677,7 +679,7 @@
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-duplicates-assets": [{dest: "dup-asset-keeper", required: true}],
-            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "preview-album-actions", required: false}],
+            "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "created-from", required: false}, {dest: "created-to", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
         standalone_features: {
@@ -1971,7 +1973,9 @@
             "filter-by-person": "Example: Peter",
             "exclude-folders": "Example: @eaDir, .@__thumb, @Recycle",
             "exclude-files": "Example: SYNOFILE_THUMB*, SYNOPHOTO_THUMB*, SYNOPHOTO_FILM*, Thumbs.db, .DS_Store",
-            "remove-albums": "Album name pattern (text, wildcard, or regex). Example: *Temp* or ^Temp|^Test"
+            "remove-albums": "Album name pattern (text, wildcard, or regex). Example: *Temp* or ^Temp|^Test",
+            "created-from": "Album creation date lower bound. Example: 2024-01-01",
+            "created-to": "Album creation date upper bound. Example: 2024-12-31"
         };
 
         if (effectiveDest === "filter-by-type") {

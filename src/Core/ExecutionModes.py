@@ -1549,6 +1549,8 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
 
     remove_albums_assets = ARGS['remove-albums-assets']
     preview_album_actions = bool(ARGS.get('preview-album-actions', False))
+    created_from = ARGS.get('created-from') or None
+    created_to = ARGS.get('created-to') or None
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Argument detected  : '-rAlb, --remove-albums'.")
     LOGGER.info('-' * terminal_width)
@@ -1559,6 +1561,8 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         LOGGER.info(f"Since, flag '-rAlbAsset, --remove-albums-assets' have been detected, ALL the Assets associated to any removed Albums will also be removed.")
         LOGGER.info(f"")
     LOGGER.info(f"Preview album actions                  : {preview_album_actions}")
+    if created_from or created_to:
+        LOGGER.info(f"Album creation date filter            : {created_from or '-'} to {created_to or '-'}")
 
     cloud_client_obj = _build_cloud_client_obj(client)
 
@@ -1572,6 +1576,8 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         albums_removed, assets_removed = cloud_client_obj.remove_albums_by_name(
             pattern=albums_name_pattern,
             remove_album_assets=remove_albums_assets,
+            created_from=created_from,
+            created_to=created_to,
             request_user_confirmation=preview_album_actions,
             log_level=logging.WARNING,
         )
