@@ -79,10 +79,12 @@ if "tzlocal" not in sys.modules:
 try:
     import Features.AutomaticMigration.AutomaticMigration as automatic_module
     import Core.ExecutionModes as execution_modes
+    from Utils.DuplicateUtils import _duplicate_asset_merge_metadata_preview
     EXECUTION_MODES_IMPORT_ERROR = None
 except ModuleNotFoundError as exc:
     automatic_module = exc
     execution_modes = exc
+    _duplicate_asset_merge_metadata_preview = exc
     EXECUTION_MODES_IMPORT_ERROR = exc
 
 
@@ -354,7 +356,7 @@ class TestExecutionModes(unittest.TestCase):
         cloud_client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
 
     def test_duplicate_metadata_preview_uses_resolved_names(self):
-        preview = execution_modes._duplicate_asset_merge_metadata_preview(
+        preview = _duplicate_asset_merge_metadata_preview(
             {
                 "albums": [{"id": "album-1"}],
                 "tags": [{"id": "tag-1"}],
@@ -373,7 +375,7 @@ class TestExecutionModes(unittest.TestCase):
         )
 
     def test_duplicate_metadata_preview_uses_names_embedded_in_immich_assets(self):
-        preview = execution_modes._duplicate_asset_merge_metadata_preview(
+        preview = _duplicate_asset_merge_metadata_preview(
             {
                 "tags": [{"id": "tag-1", "value": "family/yoli"}],
                 "people": [{"id": "person-1", "name": "Yoli"}],

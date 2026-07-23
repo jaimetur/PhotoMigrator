@@ -2082,6 +2082,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     request_user_confirmation=request_user_confirmation,
                     use_immich_detection=use_immich_detection,
                     use_immich_deletion=use_immich_deletion,
+                    is_immich_client=True,
                     logger=LOGGER, confirm=confirm_continue, log_level=log_level,
                 )
             finally:

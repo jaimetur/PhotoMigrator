@@ -1,7 +1,12 @@
 import unittest
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 
-from Utils.DuplicateUtils import duplicate_asset_people_count, select_people_then_chronology_keeper
+from Utils.DuplicateUtils import (
+    duplicate_asset_people_count,
+    run_duplicate_asset_cleanup,
+    select_people_then_chronology_keeper,
+)
 
 
 class TestDuplicateKeeperUtils(unittest.TestCase):
@@ -51,3 +56,58 @@ class TestDuplicateKeeperUtils(unittest.TestCase):
             [newer, more_tags], "more-people/tags-then-newest", lambda asset: asset["time"],
         )
         self.assertEqual(keeper["id"], "more-tags")
+
+    def test_immich_cleanup_restores_detailed_duplicate_review_table(self):
+        duplicate_group = [
+            {
+                "id": "older",
+                "originalFileName": "IMG_0001.JPG",
+                "createdAt": "2020-01-01T00:00:00Z",
+                "dateTimeOriginal": "2019-12-31T12:00:00Z",
+                "visibility": "timeline",
+                "tags": [{"id": "tag-1", "value": "family/yoli"}],
+                "people": [{"id": "person-1", "name": "Yoli"}],
+                "exifInfo": {"fileSize": 42, "description": "Keeper description"},
+            },
+            {
+                "id": "newer",
+                "originalFileName": "IMG_0001.JPG",
+                "createdAt": "2021-01-01T00:00:00Z",
+                "dateTimeOriginal": "2020-01-01T12:00:00Z",
+                "visibility": "timeline",
+                "exifInfo": {"fileSize": 42},
+                "isFavorite": True,
+            },
+        ]
+        client = MagicMock()
+        client.find_duplicate_assets_by_immich_detection.return_value = [duplicate_group]
+        client.hydrate_duplicate_groups_metadata.return_value = [duplicate_group]
+        client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
+        client._select_duplicate_asset_keeper.return_value = duplicate_group[0]
+        client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
+        client.remove_duplicates_assets_by_name_and_size.return_value = (1, 1, 0)
+        logger = MagicMock()
+
+        run_duplicate_asset_cleanup(
+            client,
+            keeper_strategy="oldest",
+            request_user_confirmation=False,
+            use_immich_detection=True,
+            use_immich_deletion=False,
+            is_immich_client=True,
+            logger=logger,
+        )
+
+        rendered = "\n".join(str(call.args[0]) for call in logger.info.call_args_list)
+        self.assertIn("Duplicate review: 1 duplicate group(s), 2 duplicate asset(s).", rendered)
+        self.assertIn("[1] IMG_0001.JPG (42 bytes, 2 candidate asset(s))", rendered)
+        self.assertIn("Field", rendered)
+        self.assertIn("Keeper (oldest)", rendered)
+        self.assertIn("Remove 1", rendered)
+        self.assertIn("ID", rendered)
+        self.assertIn("older", rendered)
+        self.assertIn("newer", rendered)
+        self.assertIn("Date/time original", rendered)
+        self.assertIn("Keeper description", rendered)
+        self.assertIn("Favorite", rendered)
+        self.assertLess(rendered.index("Tags"), rendered.index("People"))
