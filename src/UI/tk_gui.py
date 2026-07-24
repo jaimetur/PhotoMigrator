@@ -1904,9 +1904,15 @@ class PhotoMigratorTkGUI:
                 return
             if widget_id.startswith("field-"):
                 dest = widget_id.replace("field-", "", 1)
+                if (
+                    dest == "dup-asset-keeper"
+                    and bool(self.state_values.get("dup-immich-native-deletion", False))
+                    and selected != "better-quality"
+                ):
+                    var.set(reverse.get("better-quality", "better-quality"))
+                    return
                 self.state_values[dest] = selected
                 if dest == "dup-asset-keeper":
-                    self.state_values["dup-immich-native-deletion"] = False
                     self.rebuild_content()
                 self.update_command_preview()
                 return
@@ -1934,7 +1940,6 @@ class PhotoMigratorTkGUI:
     def set_boolean_toggle(self, dest: str, value: bool) -> None:
         if dest == "dup-immich-native-deletion" and not (
             bool(self.state_values.get("dup-immich-native-algorithm", True))
-            and str(self.state_values.get("dup-asset-keeper") or "").strip().lower() == "better-quality"
         ):
             value = False
         if dest == "remember-state":
@@ -1948,8 +1953,9 @@ class PhotoMigratorTkGUI:
             )
             self.refresh_boolean_toggle("dup-immich-native-deletion", bool(value))
             self.rebuild_content()
-        elif dest == "dup-immich-native-deletion" and value:
-            self.state_values["dup-asset-keeper"] = "better-quality"
+        elif dest == "dup-immich-native-deletion":
+            if value:
+                self.state_values["dup-asset-keeper"] = "better-quality"
             self.rebuild_content()
         elif dest == "try-small-albums-grouping":
             self.rebuild_content()
@@ -1963,7 +1969,6 @@ class PhotoMigratorTkGUI:
             return
         disabled = dest == "dup-immich-native-deletion" and not (
             bool(self.state_values.get("dup-immich-native-algorithm", True))
-            and str(self.state_values.get("dup-asset-keeper") or "").strip().lower() == "better-quality"
         )
         track_fill = "#35c759" if value and not disabled else "#6b7481"
         thumb_fill = "#f4f7fb"
@@ -2039,7 +2044,6 @@ class PhotoMigratorTkGUI:
         if kind in {"flag", "bool"}:
             if dest == "dup-immich-native-deletion" and not (
                 bool(self.state_values.get("dup-immich-native-algorithm", True))
-                and str(self.state_values.get("dup-asset-keeper") or "").strip().lower() == "better-quality"
             ):
                 value = False
                 self.state_values[dest] = False
@@ -2047,19 +2051,24 @@ class PhotoMigratorTkGUI:
             return
         if kind == "select":
             choices = list(field.get("choices") or [])
-            if dest == "dup-asset-keeper" and bool(self.state_values.get("dup-immich-native-deletion", False)):
-                choices = ["better-quality"]
-                if value != "better-quality":
-                    value = "better-quality"
-                    self.state_values[dest] = value
-            elif dest == "dup-asset-keeper" and not (
+            if dest == "dup-asset-keeper" and not (
                 self.active_module == "immich_photos" and bool(self.state_values.get("dup-immich-native-algorithm", True))
             ):
                 choices = [choice for choice in choices if choice not in {"better-quality", "more-people/tags-then-better-quality"}]
                 if value not in choices:
                     value = "more-people/tags-then-oldest"
                     self.state_values[dest] = value
-            options = [(str(choice), str(choice)) for choice in choices]
+            native_deletion_enabled = dest == "dup-asset-keeper" and bool(
+                self.state_values.get("dup-immich-native-deletion", False)
+            )
+            options = [
+                (
+                    str(choice) if not native_deletion_enabled or choice == "better-quality"
+                    else f"{choice} (unavailable while native deletion is enabled)",
+                    str(choice),
+                )
+                for choice in choices
+            ]
             self.build_select_row(parent, f"{label}{' *' if required else ''}", f"field-{dest}", options, value, help_text=help_text)
             return
         if kind == "list":

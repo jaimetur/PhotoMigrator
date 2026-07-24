@@ -552,7 +552,7 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         deletion_index = args.index("--dup-immich-native-deletion")
         self.assertEqual(args[deletion_index + 1], "false")
 
-    def test_immich_native_deletion_requires_better_quality_in_command_preview(self):
+    def test_immich_native_deletion_normalizes_to_better_quality_in_command_preview(self):
         args = self.web_app._build_cli_args(
             "immich_photos",
             {
@@ -566,7 +566,8 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         )
 
         deletion_index = args.index("--dup-immich-native-deletion")
-        self.assertEqual(args[deletion_index + 1], "false")
+        self.assertEqual(args[deletion_index + 1], "true")
+        self.assertEqual(args[args.index("--dup-asset-keeper") + 1], "better-quality")
 
     def test_web_job_output_compacts_indeterminate_tqdm_lines(self):
         fake_process = Mock()

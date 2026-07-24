@@ -3246,13 +3246,24 @@ def _build_cli_args(
     if (
         tab == "immich_photos"
         and selected_action_dest == "remove-duplicates-assets"
-        and (
-            not _bool_from_value(values.get("dup-immich-native-algorithm", True))
-            or str(values.get("dup-asset-keeper") or "").strip().lower() != "better-quality"
-        )
+        and not _bool_from_value(values.get("dup-immich-native-algorithm", True))
     ):
-        # Immich's native resolver only accepts native groups resolved with
-        # better-quality. Keep invalid persisted states explicit.
+        # Native deletion requires Immich's duplicate algorithm. Keep the
+        # effective value explicit so previews and execution agree.
+        values["dup-immich-native-deletion"] = False
+    elif (
+        tab == "immich_photos"
+        and selected_action_dest == "remove-duplicates-assets"
+        and _bool_from_value(values.get("dup-immich-native-deletion", False))
+        and str(values.get("dup-asset-keeper") or "").strip().lower() != "better-quality"
+    ):
+        values["dup-asset-keeper"] = "better-quality"
+    elif (
+        tab == "immich_photos"
+        and selected_action_dest == "remove-duplicates-assets"
+        and "dup-immich-native-deletion" not in values
+        and str(values.get("dup-asset-keeper") or "").strip().lower() != "better-quality"
+    ):
         values["dup-immich-native-deletion"] = False
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     include_default_dests = set(include_default_dests or set())

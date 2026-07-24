@@ -3176,7 +3176,6 @@ if TEXTUAL_AVAILABLE:
             if kind == "bool":
                 disabled = dest == "dup-immich-native-deletion" and not (
                     bool(self.state_values.get("dup-immich-native-algorithm", True))
-                    and str(self.state_values.get("dup-asset-keeper") or "").strip().lower() == "better-quality"
                 )
                 if disabled:
                     value = False
@@ -3186,19 +3185,24 @@ if TEXTUAL_AVAILABLE:
                 )]
             if kind == "select":
                 choices = list(field.get("choices") or [])
-                if dest == "dup-asset-keeper" and bool(self.state_values.get("dup-immich-native-deletion", False)):
-                    choices = ["better-quality"]
-                    if value != "better-quality":
-                        value = "better-quality"
-                        self.state_values[dest] = value
-                elif dest == "dup-asset-keeper" and not (
+                if dest == "dup-asset-keeper" and not (
                     self.active_module == "immich_photos" and bool(self.state_values.get("dup-immich-native-algorithm", True))
                 ):
                     choices = [choice for choice in choices if choice not in {"better-quality", "more-people/tags-then-better-quality"}]
                     if value not in choices:
                         value = "more-people/tags-then-oldest"
                         self.state_values[dest] = value
-                options = [(str(choice), str(choice)) for choice in choices]
+                native_deletion_enabled = dest == "dup-asset-keeper" and bool(
+                    self.state_values.get("dup-immich-native-deletion", False)
+                )
+                options = [
+                    (
+                        str(choice) if not native_deletion_enabled or choice == "better-quality"
+                        else f"{choice} (unavailable while native deletion is enabled)",
+                        str(choice),
+                    )
+                    for choice in choices
+                ]
                 return [self.build_select_row(f"{label}{' *' if required else ''}", f"field-{dest}", options, value, help_text=help_text)]
             if kind == "list":
                 joined = ", ".join(to_list(value))
@@ -3783,8 +3787,9 @@ if TEXTUAL_AVAILABLE:
                             "more-people/tags-then-better-quality" if value else "more-people/tags-then-oldest"
                         )
                         await self.rebuild_content()
-                    elif dest == "dup-immich-native-deletion" and value:
-                        self.state_values["dup-asset-keeper"] = "better-quality"
+                    elif dest == "dup-immich-native-deletion":
+                        if value:
+                            self.state_values["dup-asset-keeper"] = "better-quality"
                         await self.rebuild_content()
                     elif dest == "try-small-albums-grouping":
                         await self.rebuild_content()
@@ -4002,9 +4007,17 @@ if TEXTUAL_AVAILABLE:
                 if value == str(self.state_values.get(widget_id.replace("field-", "", 1)) or ""):
                     return
                 dest = widget_id.replace("field-", "", 1)
+                if (
+                    dest == "dup-asset-keeper"
+                    and bool(self.state_values.get("dup-immich-native-deletion", False))
+                    and value != "better-quality"
+                ):
+                    self.state_values[dest] = "better-quality"
+                    await self.rebuild_content()
+                    self.update_command_preview()
+                    return
                 self.state_values[dest] = value
                 if dest == "dup-asset-keeper":
-                    self.state_values["dup-immich-native-deletion"] = False
                     await self.rebuild_content()
                 self.update_command_preview()
                 return

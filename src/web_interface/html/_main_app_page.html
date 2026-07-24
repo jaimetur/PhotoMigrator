@@ -1926,14 +1926,6 @@
     }
 
     function duplicateAssetKeeperChoices(field) {
-        const nativeDeletionEnabled = activeModuleTab === "immich_photos"
-            && uiCheckboxValueForField(
-                getFieldByDest("dup-immich-native-deletion") || {},
-                stateValues["dup-immich-native-deletion"],
-            );
-        if (field.dest === "dup-asset-keeper" && nativeDeletionEnabled) {
-            return ["better-quality"];
-        }
         const isImmichNativeDetectionEnabled = activeModuleTab === "immich_photos"
             && uiCheckboxValueForField(
                 getFieldByDest("dup-immich-native-algorithm") || {},
@@ -1949,8 +1941,7 @@
             && uiCheckboxValueForField(
                 getFieldByDest("dup-immich-native-algorithm") || {},
                 stateValues["dup-immich-native-algorithm"],
-            )
-            && String(stateValues["dup-asset-keeper"] || "").trim().toLowerCase() === "better-quality";
+            );
     }
 
     function syncImmichNativeDuplicateDeletionControl() {
@@ -1971,11 +1962,22 @@
 
         const selectedValue = keeperInput.value;
         keeperInput.replaceChildren(new Option("(default)", ""));
-        duplicateAssetKeeperChoices(keeperField).forEach((choice) => keeperInput.add(new Option(choice, choice)));
-        const nextValue = ["better-quality", "more-people/tags-then-better-quality"].includes(selectedValue) && !Array.from(keeperInput.options)
-            .some((option) => option.value === selectedValue)
-            ? "more-people/tags-then-oldest"
-            : selectedValue;
+        const nativeDeletionEnabled = activeModuleTab === "immich_photos"
+            && uiCheckboxValueForField(
+                getFieldByDest("dup-immich-native-deletion") || {},
+                stateValues["dup-immich-native-deletion"],
+            );
+        duplicateAssetKeeperChoices(keeperField).forEach((choice) => {
+            const option = new Option(choice, choice);
+            option.disabled = nativeDeletionEnabled && choice !== "better-quality";
+            keeperInput.add(option);
+        });
+        const nextValue = nativeDeletionEnabled
+            ? "better-quality"
+            : (["better-quality", "more-people/tags-then-better-quality"].includes(selectedValue) && !Array.from(keeperInput.options)
+                .some((option) => option.value === selectedValue)
+                ? "more-people/tags-then-oldest"
+                : selectedValue);
         keeperInput.value = nextValue;
         stateValues["dup-asset-keeper"] = nextValue;
     }
