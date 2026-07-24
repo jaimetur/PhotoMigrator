@@ -1586,10 +1586,13 @@ def prepare_values_for_command(values: Dict[str, Any], tab: str, selected_action
     if (
         tab == "immich_photos"
         and selected_action_dest == "remove-duplicates-assets"
-        and not bool_from_value(prepared.get("dup-immich-native-algorithm", True))
+        and (
+            not bool_from_value(prepared.get("dup-immich-native-algorithm", True))
+            or str(prepared.get("dup-asset-keeper") or "").strip().lower() != "better-quality"
+        )
     ):
-        # Native deletion requires native detection. Keep the effective false
-        # value explicit so previews and the startup log match execution.
+        # Immich's native resolver supports only native detection with its
+        # better-quality keeper. Keep invalid persisted states explicit.
         prepared["dup-immich-native-deletion"] = False
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"} and selected_action_dest == "rename-albums":
         prepared["rename-albums"] = compose_rename_albums_value(prepared.get("rename-pattern", ""), prepared.get("replacement-pattern", ""))

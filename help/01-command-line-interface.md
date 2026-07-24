@@ -488,7 +488,8 @@ If more than one optional arguments are detected, only the first one will be exe
                favorites, highest rating, combined descriptions, restrictive visibility, matching locations,
                and tags, then moves redundant assets to trash. Every other keeper strategy uses PhotoMigrator's
                guarded merge and sends redundant native-group assets to trash only after verifying the keeper.
-               It is disabled for every other combination and enabled by default only for this supported one.
+               It is disabled for every other combination and enabled by default only for this supported one. While
+               enabled, '--dup-asset-keeper' must be 'better-quality'.
 -dupKeeper   ; --dup-asset-keeper {more-people/tags-then-better-quality,more-people/tags-then-oldest,more-people/tags-then-newest,better-quality,oldest,newest}
                Select the asset retained by '--remove-duplicates-assets'. The more-people/tags strategies first
                retain the asset with the largest distinct people count, then tag count, then use their named tie breaker. 'better-quality' uses Immich's

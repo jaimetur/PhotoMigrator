@@ -552,7 +552,8 @@ def parse_arguments():
                              "Immich's Alpha duplicate-resolution API and is available only with native detection "
                              "and '--dup-asset-keeper=better-quality'. All other keeper strategies use PhotoMigrator's "
                              "guarded merge and are sent to trash only after the selected keeper is verified. "
-                             "It is enabled by default only for that supported combination and disabled otherwise.")
+                             "When enabled, the keeper must be 'better-quality'. It is enabled by default only for "
+                             "that supported combination and disabled otherwise.")
 
     PARSER.add_argument("-dupKeeper", "--dup-asset-keeper", choices=["more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest", "better-quality", "oldest", "newest"], default="more-people/tags-then-better-quality",
                         help="Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain "

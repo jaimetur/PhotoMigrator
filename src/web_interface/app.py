@@ -3246,11 +3246,13 @@ def _build_cli_args(
     if (
         tab == "immich_photos"
         and selected_action_dest == "remove-duplicates-assets"
-        and not _bool_from_value(values.get("dup-immich-native-algorithm", True))
+        and (
+            not _bool_from_value(values.get("dup-immich-native-algorithm", True))
+            or str(values.get("dup-asset-keeper") or "").strip().lower() != "better-quality"
+        )
     ):
-        # Native deletion requires Immich's duplicate algorithm. Keep the
-        # effective value explicit so previews, startup logs, and execution
-        # all describe the same configuration.
+        # Immich's native resolver only accepts native groups resolved with
+        # better-quality. Keep invalid persisted states explicit.
         values["dup-immich-native-deletion"] = False
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     include_default_dests = set(include_default_dests or set())

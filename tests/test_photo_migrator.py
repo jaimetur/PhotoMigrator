@@ -105,6 +105,17 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 checkArgs(args, parser)
 
+    def test_native_duplicate_deletion_is_enabled_for_native_better_quality_strategy(self):
+        with patch.object(
+            sys,
+            "argv",
+            ["photomigrator", "--dup-asset-keeper=better-quality"],
+        ):
+            args, parser = parse_arguments()
+            checked = checkArgs(args, parser)
+
+        self.assertTrue(checked["dup-immich-native-deletion"])
+
     def test_small_album_max_assets_defaults_to_three_and_rejects_non_positive_values(self):
         with patch.object(sys, "argv", ["photomigrator"]):
             args, _ = parse_arguments()

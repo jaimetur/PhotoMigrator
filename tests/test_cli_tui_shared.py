@@ -401,7 +401,24 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("--dup-immich-native-algorithm", args)
         self.assertIn("--dup-immich-native-deletion", args)
         self.assertEqual(args[args.index("--dup-immich-native-algorithm") + 1], "true")
+        self.assertEqual(args[args.index("--dup-immich-native-deletion") + 1], "false")
+
+    def test_immich_native_deletion_keeps_only_better_quality_strategy(self):
+        schema = build_parser_schema()
+        args = build_cli_args(
+            schema,
+            "immich_photos",
+            {
+                "account-id": "1",
+                "remove-duplicates-assets": True,
+                "dup-immich-native-deletion": True,
+                "dup-asset-keeper": "better-quality",
+            },
+            "remove-duplicates-assets",
+        )
+
         self.assertEqual(args[args.index("--dup-immich-native-deletion") + 1], "true")
+        self.assertEqual(args[args.index("--dup-asset-keeper") + 1], "better-quality")
 
     def test_immich_native_duplicate_detection_is_contextual_and_can_be_disabled(self):
         schema = build_parser_schema()

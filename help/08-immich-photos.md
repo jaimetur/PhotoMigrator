@@ -327,7 +327,7 @@ Immich `Upload Albums` and `Upload All` create stacks for burst-like photos by d
   - Set Immich as the client using _**`--client=immich`**_.
   - Use _**`--remove-duplicates-assets`**_.
   - By default, _**`--dup-immich-native-algorithm=true`**_ retrieves Immich's native groups of visually similar assets, including different encodes or file sizes of the same image.
-  - _**`--dup-immich-native-deletion=true`**_ delegates groups to Immich's duplicate resolver only with _**`--dup-immich-native-algorithm=true`**_ and _**`--dup-asset-keeper=better-quality`**_. Every other keeper strategy uses PhotoMigrator's guarded merge, so the selected keeper is verified before redundant assets are sent to trash.
+  - _**`--dup-immich-native-deletion=true`**_ delegates groups to Immich's duplicate resolver only with _**`--dup-immich-native-algorithm=true`**_ and _**`--dup-asset-keeper=better-quality`**_. While enabled, `better-quality` is the only available keeper. Every other keeper strategy uses PhotoMigrator's guarded merge, so the selected keeper is verified before redundant assets are sent to trash.
   - Select the keeper with `more-people/tags-then-better-quality`, `more-people/tags-then-oldest`, `more-people/tags-then-newest`, `better-quality`, `newest`, or `oldest`. The people/tags-first variants retain the asset with the largest distinct-person count, then distinct tag count, before their tie breaker. `more-people/tags-then-better-quality` is available only with native detection. Native detection defaults to `more-people/tags-then-better-quality`; disabling it defaults to `more-people/tags-then-oldest`.
 - **Pre-Requisites:**
   - Configure `Config.ini` with an Immich account that can update assets, add assets to albums and tags, and delete assets.
