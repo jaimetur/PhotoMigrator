@@ -3174,8 +3174,9 @@ if TEXTUAL_AVAILABLE:
             if kind == "flag":
                 return [self.build_boolean_toggle_row(f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text)]
             if kind == "bool":
-                disabled = dest == "dup-immich-native-deletion" and not bool(
-                    self.state_values.get("dup-immich-native-algorithm", True)
+                disabled = dest == "dup-immich-native-deletion" and not (
+                    bool(self.state_values.get("dup-immich-native-algorithm", True))
+                    and str(self.state_values.get("dup-asset-keeper") or "").strip().lower() == "better-quality"
                 )
                 if disabled:
                     value = False
@@ -3185,7 +3186,12 @@ if TEXTUAL_AVAILABLE:
                 )]
             if kind == "select":
                 choices = list(field.get("choices") or [])
-                if dest == "dup-asset-keeper" and not (
+                if dest == "dup-asset-keeper" and bool(self.state_values.get("dup-immich-native-deletion", False)):
+                    choices = ["better-quality"]
+                    if value != "better-quality":
+                        value = "better-quality"
+                        self.state_values[dest] = value
+                elif dest == "dup-asset-keeper" and not (
                     self.active_module == "immich_photos" and bool(self.state_values.get("dup-immich-native-algorithm", True))
                 ):
                     choices = [choice for choice in choices if choice not in {"better-quality", "more-people/tags-then-better-quality"}]
@@ -3772,10 +3778,13 @@ if TEXTUAL_AVAILABLE:
                     else:
                         self.state_values[dest] = value
                     if dest == "dup-immich-native-algorithm":
-                        self.state_values["dup-immich-native-deletion"] = bool(value)
+                        self.state_values["dup-immich-native-deletion"] = False
                         self.state_values["dup-asset-keeper"] = (
-                            "better-quality" if value else "more-people/tags-then-oldest"
+                            "more-people/tags-then-better-quality" if value else "more-people/tags-then-oldest"
                         )
+                        await self.rebuild_content()
+                    elif dest == "dup-immich-native-deletion" and value:
+                        self.state_values["dup-asset-keeper"] = "better-quality"
                         await self.rebuild_content()
                     elif dest == "try-small-albums-grouping":
                         await self.rebuild_content()
@@ -3994,6 +4003,9 @@ if TEXTUAL_AVAILABLE:
                     return
                 dest = widget_id.replace("field-", "", 1)
                 self.state_values[dest] = value
+                if dest == "dup-asset-keeper":
+                    self.state_values["dup-immich-native-deletion"] = False
+                    await self.rebuild_content()
                 self.update_command_preview()
                 return
             if widget_id.startswith("config-"):

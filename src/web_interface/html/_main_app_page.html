@@ -1926,6 +1926,14 @@
     }
 
     function duplicateAssetKeeperChoices(field) {
+        const nativeDeletionEnabled = activeModuleTab === "immich_photos"
+            && uiCheckboxValueForField(
+                getFieldByDest("dup-immich-native-deletion") || {},
+                stateValues["dup-immich-native-deletion"],
+            );
+        if (field.dest === "dup-asset-keeper" && nativeDeletionEnabled) {
+            return ["better-quality"];
+        }
         const isImmichNativeDetectionEnabled = activeModuleTab === "immich_photos"
             && uiCheckboxValueForField(
                 getFieldByDest("dup-immich-native-algorithm") || {},
@@ -1934,6 +1942,26 @@
         return field.dest === "dup-asset-keeper" && !isImmichNativeDetectionEnabled
             ? field.choices.filter((choice) => !["better-quality", "more-people/tags-then-better-quality"].includes(choice))
             : field.choices;
+    }
+
+    function immichNativeDuplicateDeletionAllowed() {
+        return activeModuleTab === "immich_photos"
+            && uiCheckboxValueForField(
+                getFieldByDest("dup-immich-native-algorithm") || {},
+                stateValues["dup-immich-native-algorithm"],
+            )
+            && String(stateValues["dup-asset-keeper"] || "").trim().toLowerCase() === "better-quality";
+    }
+
+    function syncImmichNativeDuplicateDeletionControl() {
+        const deletionInput = document.querySelector('[data-dest="dup-immich-native-deletion"]');
+        if (!deletionInput) return;
+        const allowed = immichNativeDuplicateDeletionAllowed();
+        deletionInput.disabled = !allowed;
+        if (!allowed) {
+            deletionInput.checked = false;
+            stateValues["dup-immich-native-deletion"] = false;
+        }
     }
 
     function syncDuplicateAssetKeeperChoices() {
@@ -2010,7 +2038,7 @@
             }
             const defaultValue = field.dest === "dup-asset-keeper" && activeModuleTab === "immich_photos"
                 && uiCheckboxValueForField(getFieldByDest("dup-immich-native-algorithm") || {}, stateValues["dup-immich-native-algorithm"])
-                ? "better-quality"
+                ? "more-people/tags-then-better-quality"
                 : "";
             const selectedValue = persisted === undefined ? defaultValue : String(persisted);
             const nativeQualityUnavailable = ["better-quality", "more-people/tags-then-better-quality"].includes(selectedValue)
@@ -2113,6 +2141,13 @@
             normalizeOrganizeLocalFolderUiState();
             syncOrganizeSuffixInput();
         }
+        if (el.dataset.dest === "dup-asset-keeper") {
+            syncImmichNativeDuplicateDeletionControl();
+        }
+        if (el.dataset.dest === "dup-immich-native-deletion" && el.checked) {
+            stateValues["dup-asset-keeper"] = "better-quality";
+            syncDuplicateAssetKeeperChoices();
+        }
     }
 
     function createArgumentRow(field, isRequired = false) {
@@ -2142,12 +2177,8 @@
             const persisted = stateValues[field.dest];
             check.checked = uiCheckboxValueForField(field, persisted);
             if (field.dest === "dup-immich-native-deletion") {
-                const algorithmField = getFieldByDest("dup-immich-native-algorithm") || {};
-                const algorithmEnabled = uiCheckboxValueForField(
-                    algorithmField, stateValues["dup-immich-native-algorithm"],
-                );
-                check.disabled = !algorithmEnabled;
-                if (!algorithmEnabled) {
+                check.disabled = !immichNativeDuplicateDeletionAllowed();
+                if (check.disabled) {
                     check.checked = false;
                     stateValues["dup-immich-native-deletion"] = false;
                 }
@@ -2156,21 +2187,17 @@
                 updateStateValueForElement(check);
                 if (field.dest === "dup-immich-native-algorithm") {
                     if (check.checked) {
-                        stateValues["dup-asset-keeper"] = "better-quality";
+                        stateValues["dup-asset-keeper"] = "more-people/tags-then-better-quality";
                         const keeperInput = document.querySelector('[data-dest="dup-asset-keeper"]');
-                        if (keeperInput) keeperInput.value = "better-quality";
+                        if (keeperInput) keeperInput.value = "more-people/tags-then-better-quality";
                     } else {
                         stateValues["dup-asset-keeper"] = "more-people/tags-then-oldest";
                         const keeperInput = document.querySelector('[data-dest="dup-asset-keeper"]');
                         if (keeperInput) keeperInput.value = "more-people/tags-then-oldest";
                     }
                     syncDuplicateAssetKeeperChoices();
-                    const deletionInput = document.querySelector('[data-dest="dup-immich-native-deletion"]');
-                    if (deletionInput) {
-                        deletionInput.disabled = !check.checked;
-                        deletionInput.checked = check.checked;
-                    }
-                    stateValues["dup-immich-native-deletion"] = check.checked;
+                    stateValues["dup-immich-native-deletion"] = false;
+                    syncImmichNativeDuplicateDeletionControl();
                 }
                 if (field.dest === "try-small-albums-grouping") {
                     const thresholdInput = document.querySelector('[data-dest="small-album-max-assets"]');

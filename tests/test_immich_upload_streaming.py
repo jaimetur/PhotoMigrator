@@ -312,6 +312,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
     ):
         manager = self._build_manager()
         manager._merge_duplicate_asset_stacks = MagicMock(return_value=True)
+        manager._verify_duplicate_keeper_merge = MagicMock(return_value=True)
         response = MagicMock()
         response.raise_for_status.return_value = None
         mock_put.return_value = response
@@ -346,6 +347,7 @@ class TestImmichStreamingUpload(unittest.TestCase):
     ):
         manager = self._build_manager()
         manager._merge_duplicate_asset_stacks = MagicMock(return_value=True)
+        manager._verify_duplicate_keeper_merge = MagicMock(return_value=True)
         response = MagicMock()
         response.raise_for_status.return_value = None
         mock_put.return_value = response
@@ -366,12 +368,54 @@ class TestImmichStreamingUpload(unittest.TestCase):
     ):
         manager = self._build_manager()
         manager._merge_duplicate_asset_stacks = MagicMock(return_value=True)
+        manager._verify_duplicate_keeper_merge = MagicMock(return_value=True)
         keeper = {"id": "keeper", "exifInfo": {"rating": 0}}
         duplicate = {"id": "duplicate", "exifInfo": {"rating": 0}}
 
         self.assertTrue(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
 
         mock_put.assert_not_called()
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.delete")
+    def test_guarded_duplicate_cleanup_trashes_only_after_successful_merge(self, mock_delete, _mock_logger):
+        manager = self._build_manager()
+        manager.login = MagicMock(return_value=True)
+        manager._hydrate_duplicate_group_metadata = MagicMock(side_effect=lambda group, **_kwargs: group)
+        manager._merge_duplicate_asset_metadata = MagicMock(return_value=True)
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        mock_delete.return_value = response
+        group = [{"id": "keeper"}, {"id": "redundant"}]
+
+        removed, found, skipped = manager.remove_duplicates_assets_by_name_and_size(
+            keeper_strategy="more-people/tags-then-oldest",
+            duplicate_groups=[group],
+            trash_redundant_assets=True,
+        )
+
+        self.assertEqual((removed, found, skipped), (1, 1, 0))
+        self.assertEqual(json.loads(mock_delete.call_args.kwargs["data"]), {
+            "force": False, "ids": ["redundant"],
+        })
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.delete")
+    def test_guarded_duplicate_cleanup_never_deletes_when_keeper_merge_verification_fails(self, mock_delete, _mock_logger):
+        manager = self._build_manager()
+        manager.login = MagicMock(return_value=True)
+        manager._hydrate_duplicate_group_metadata = MagicMock(side_effect=lambda group, **_kwargs: group)
+        manager._merge_duplicate_asset_metadata = MagicMock(return_value=False)
+        group = [{"id": "keeper"}, {"id": "redundant"}]
+
+        removed, found, skipped = manager.remove_duplicates_assets_by_name_and_size(
+            keeper_strategy="more-people/tags-then-oldest",
+            duplicate_groups=[group],
+            trash_redundant_assets=True,
+        )
+
+        self.assertEqual((removed, found, skipped), (0, 1, 1))
+        mock_delete.assert_not_called()
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")

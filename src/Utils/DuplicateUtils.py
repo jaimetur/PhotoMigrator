@@ -354,6 +354,21 @@ def run_duplicate_asset_cleanup(
             logger.info("Exiting program without deleting duplicate assets.")
         return 0, len(groups), 0
 
+    native_resolver_strategy = str(keeper_strategy or "").strip().lower() == "better-quality"
+    if is_immich and use_immich_detection and not native_resolver_strategy:
+        if logger:
+            logger.info(
+                "Immich duplicate resolution: using PhotoMigrator's guarded keeper-preserving "
+                "merge for the selected keeper strategy; redundant assets will be sent to trash."
+            )
+        result = client.remove_duplicates_assets_by_name_and_size(
+            keeper_strategy=keeper_strategy,
+            duplicate_groups=groups,
+            trash_redundant_assets=True,
+            log_level=log_level,
+        )
+        return result if isinstance(result, tuple) else (int(result or 0), len(groups), 0)
+
     if is_immich and use_immich_deletion:
         return client.resolve_duplicate_asset_groups_with_immich(
             duplicate_groups=groups, keeper_strategy=keeper_strategy, log_level=log_level,

@@ -475,7 +475,7 @@ If more than one optional arguments are detected, only the first one will be exe
                other cloud services use exact filename and file size.
                Requires '--client' and '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'.
                The three more-people/tags strategies retain the asset with the most people, then tags. For Immich,
-               native detection defaults to 'better-quality'; disabling it defaults to 'more-people/tags-then-oldest'.
+               native detection defaults to 'more-people/tags-then-better-quality'; disabling it defaults to 'more-people/tags-then-oldest'.
                Example: --client=immich --remove-duplicates-assets --dup-asset-keeper newest
 -immichDupAlgo ; --dup-immich-native-algorithm=[true,false]
                Immich only: native detection compares visual similarity rather than filename or size.
@@ -483,12 +483,12 @@ If more than one optional arguments are detected, only the first one will be exe
                was uploaded on different dates and an EXIF tag difference prevented Immich from rejecting it.
                Default: true.
 -immichDupDel ; --dup-immich-native-deletion=[true,false]
-               Immich only: resolve native duplicate groups through Immich's server-side resolver.
-               true (Alpha API): Immich merges albums, favorites, highest rating, combined descriptions, most
-               restrictive visibility, matching locations, and tags, then moves redundant assets to trash.
-               false: PhotoMigrator merges those fields plus missing capture date and stacks, then permanently
-               deletes redundant assets. It cannot be used when
-               '--dup-immich-native-algorithm=false'. Default: true while native detection is enabled.
+               Immich only: available only when '--dup-immich-native-algorithm=true' and
+               '--dup-asset-keeper=better-quality'. true uses Immich's Alpha resolver, which merges albums,
+               favorites, highest rating, combined descriptions, restrictive visibility, matching locations,
+               and tags, then moves redundant assets to trash. Every other keeper strategy uses PhotoMigrator's
+               guarded merge and sends redundant native-group assets to trash only after verifying the keeper.
+               It is disabled for every other combination and enabled by default only for this supported one.
 -dupKeeper   ; --dup-asset-keeper {more-people/tags-then-better-quality,more-people/tags-then-oldest,more-people/tags-then-newest,better-quality,oldest,newest}
                Select the asset retained by '--remove-duplicates-assets'. The more-people/tags strategies first
                retain the asset with the largest distinct people count, then tag count, then use their named tie breaker. 'better-quality' uses Immich's

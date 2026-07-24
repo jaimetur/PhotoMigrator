@@ -118,3 +118,65 @@ class TestDuplicateKeeperUtils(unittest.TestCase):
         self.assertLess(rendered.index("Tags"), rendered.index("People"))
         header = next(line for line in rendered.splitlines() if "Keeper (oldest)" in line)
         self.assertIn("Keeper (oldest)".ljust(47), header)
+
+    def test_people_first_native_cleanup_uses_guarded_merge_and_trashes_redundant_assets(self):
+        duplicate_group = [
+            {"id": "keeper", "originalFileName": "IMG.JPG", "people": [{"personId": "ana"}], "exifInfo": {"fileSize": 10}},
+            {"id": "redundant", "originalFileName": "IMG.JPG", "people": [], "exifInfo": {"fileSize": 100}},
+        ]
+        client = MagicMock()
+        client.find_duplicate_assets_by_immich_detection.return_value = [duplicate_group]
+        client.hydrate_duplicate_groups_metadata.return_value = [duplicate_group]
+        client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
+        client._select_duplicate_asset_keeper.return_value = duplicate_group[0]
+        client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
+        client.remove_duplicates_assets_by_name_and_size.return_value = (1, 1, 0)
+
+        run_duplicate_asset_cleanup(
+            client,
+            keeper_strategy="more-people/tags-then-better-quality",
+            request_user_confirmation=False,
+            use_immich_detection=True,
+            use_immich_deletion=True,
+            is_immich_client=True,
+            logger=MagicMock(),
+        )
+
+        client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
+        client.remove_duplicates_assets_by_name_and_size.assert_called_once_with(
+            keeper_strategy="more-people/tags-then-better-quality",
+            duplicate_groups=[duplicate_group],
+            trash_redundant_assets=True,
+            log_level=None,
+        )
+
+    def test_native_oldest_cleanup_uses_guarded_merge_and_trashes_redundant_assets(self):
+        duplicate_group = [
+            {"id": "older", "originalFileName": "IMG.JPG", "exifInfo": {"fileSize": 10}},
+            {"id": "newer", "originalFileName": "IMG.JPG", "exifInfo": {"fileSize": 100}},
+        ]
+        client = MagicMock()
+        client.find_duplicate_assets_by_immich_detection.return_value = [duplicate_group]
+        client.hydrate_duplicate_groups_metadata.return_value = [duplicate_group]
+        client.get_duplicate_metadata_display_names.return_value = {"albums": {}, "tags": {}, "people": {}}
+        client._select_duplicate_asset_keeper.return_value = duplicate_group[0]
+        client._duplicate_asset_size.side_effect = lambda asset: asset["exifInfo"]["fileSize"]
+        client.remove_duplicates_assets_by_name_and_size.return_value = (1, 1, 0)
+
+        run_duplicate_asset_cleanup(
+            client,
+            keeper_strategy="oldest",
+            request_user_confirmation=False,
+            use_immich_detection=True,
+            use_immich_deletion=False,
+            is_immich_client=True,
+            logger=MagicMock(),
+        )
+
+        client.resolve_duplicate_asset_groups_with_immich.assert_not_called()
+        client.remove_duplicates_assets_by_name_and_size.assert_called_once_with(
+            keeper_strategy="oldest",
+            duplicate_groups=[duplicate_group],
+            trash_redundant_assets=True,
+            log_level=None,
+        )

@@ -60,7 +60,7 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
 
     def test_people_and_stack_controls_default_to_enabled_and_accept_false(self):
         with patch.object(sys, "argv", ["photomigrator"]):
-            args, _ = parse_arguments()
+            args, parser = parse_arguments()
 
         self.assertTrue(args["import-people"])
         self.assertTrue(args["create-stacks"])
@@ -81,6 +81,29 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
         self.assertFalse(args["import-people"])
         self.assertFalse(args["create-stacks"])
         self.assertFalse(args["google-process-people"])
+
+    def test_immich_native_duplicate_detection_defaults_to_people_tags_then_quality(self):
+        with patch.object(sys, "argv", ["photomigrator"]):
+            args, parser = parse_arguments()
+
+        self.assertTrue(args["dup-immich-native-algorithm"])
+        self.assertEqual(args["dup-asset-keeper"], "more-people/tags-then-better-quality")
+        checked = checkArgs(args, parser)
+        self.assertFalse(checked["dup-immich-native-deletion"])
+
+    def test_native_duplicate_deletion_requires_native_better_quality_strategy(self):
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "photomigrator",
+                "--dup-immich-native-deletion=true",
+                "--dup-asset-keeper=oldest",
+            ],
+        ):
+            args, parser = parse_arguments()
+            with self.assertRaises(SystemExit):
+                checkArgs(args, parser)
 
     def test_small_album_max_assets_defaults_to_three_and_rejects_non_positive_values(self):
         with patch.object(sys, "argv", ["photomigrator"]):

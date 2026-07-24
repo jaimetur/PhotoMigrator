@@ -1905,6 +1905,9 @@ class PhotoMigratorTkGUI:
             if widget_id.startswith("field-"):
                 dest = widget_id.replace("field-", "", 1)
                 self.state_values[dest] = selected
+                if dest == "dup-asset-keeper":
+                    self.state_values["dup-immich-native-deletion"] = False
+                    self.rebuild_content()
                 self.update_command_preview()
                 return
             if widget_id.startswith("config-"):
@@ -1929,18 +1932,24 @@ class PhotoMigratorTkGUI:
         self.refresh_boolean_toggle(dest, value)
 
     def set_boolean_toggle(self, dest: str, value: bool) -> None:
-        if dest == "dup-immich-native-deletion" and not bool(self.state_values.get("dup-immich-native-algorithm", True)):
+        if dest == "dup-immich-native-deletion" and not (
+            bool(self.state_values.get("dup-immich-native-algorithm", True))
+            and str(self.state_values.get("dup-asset-keeper") or "").strip().lower() == "better-quality"
+        ):
             value = False
         if dest == "remember-state":
             self.remember_state = value
         else:
             self.state_values[dest] = value
         if dest == "dup-immich-native-algorithm":
-            self.state_values["dup-immich-native-deletion"] = bool(value)
+            self.state_values["dup-immich-native-deletion"] = False
             self.state_values["dup-asset-keeper"] = (
-                "better-quality" if value else "more-people/tags-then-oldest"
+                "more-people/tags-then-better-quality" if value else "more-people/tags-then-oldest"
             )
             self.refresh_boolean_toggle("dup-immich-native-deletion", bool(value))
+            self.rebuild_content()
+        elif dest == "dup-immich-native-deletion" and value:
+            self.state_values["dup-asset-keeper"] = "better-quality"
             self.rebuild_content()
         elif dest == "try-small-albums-grouping":
             self.rebuild_content()
@@ -1952,8 +1961,9 @@ class PhotoMigratorTkGUI:
         switch = self.bool_toggle_widgets.get(dest)
         if not switch:
             return
-        disabled = dest == "dup-immich-native-deletion" and not bool(
-            self.state_values.get("dup-immich-native-algorithm", True)
+        disabled = dest == "dup-immich-native-deletion" and not (
+            bool(self.state_values.get("dup-immich-native-algorithm", True))
+            and str(self.state_values.get("dup-asset-keeper") or "").strip().lower() == "better-quality"
         )
         track_fill = "#35c759" if value and not disabled else "#6b7481"
         thumb_fill = "#f4f7fb"
@@ -2027,8 +2037,9 @@ class PhotoMigratorTkGUI:
         if dest == "process-duplicates":
             path_hint = "path"
         if kind in {"flag", "bool"}:
-            if dest == "dup-immich-native-deletion" and not bool(
-                self.state_values.get("dup-immich-native-algorithm", True)
+            if dest == "dup-immich-native-deletion" and not (
+                bool(self.state_values.get("dup-immich-native-algorithm", True))
+                and str(self.state_values.get("dup-asset-keeper") or "").strip().lower() == "better-quality"
             ):
                 value = False
                 self.state_values[dest] = False
@@ -2036,7 +2047,12 @@ class PhotoMigratorTkGUI:
             return
         if kind == "select":
             choices = list(field.get("choices") or [])
-            if dest == "dup-asset-keeper" and not (
+            if dest == "dup-asset-keeper" and bool(self.state_values.get("dup-immich-native-deletion", False)):
+                choices = ["better-quality"]
+                if value != "better-quality":
+                    value = "better-quality"
+                    self.state_values[dest] = value
+            elif dest == "dup-asset-keeper" and not (
                 self.active_module == "immich_photos" and bool(self.state_values.get("dup-immich-native-algorithm", True))
             ):
                 choices = [choice for choice in choices if choice not in {"better-quality", "more-people/tags-then-better-quality"}]

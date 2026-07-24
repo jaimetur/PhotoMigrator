@@ -2434,6 +2434,10 @@ class ClassImmichPhotos(BaseMediaClient):
                     data=json.dumps({"ids": [keeper_id]}),
                     verify=False,
                 )
+            if not self._verify_duplicate_keeper_merge(
+                keeper_id, payload, album_ids, tag_ids, log_level=log_level,
+            ):
+                return False
         except requests.RequestException as error:
             response_text = str(getattr(getattr(error, "response", None), "text", "") or "").strip()
             response_detail = f" Response: {response_text[:500]}" if response_text else ""
@@ -2487,6 +2491,62 @@ class ClassImmichPhotos(BaseMediaClient):
             )
             return None
 
+    def _verify_duplicate_keeper_merge(self, keeper_id, payload, album_ids, tag_ids, log_level=None):
+        """Confirm the selected keeper remains active and received the requested merge."""
+        keeper = self._get_duplicate_asset_metadata(keeper_id, log_level=log_level)
+        if not isinstance(keeper, dict) or str(keeper.get("id") or "").strip() != keeper_id:
+            LOGGER.warning(
+                f"Duplicate keeper '{keeper_id}' could not be verified after metadata merging. "
+                "The redundant assets were not deleted."
+            )
+            return False
+        if keeper.get("isTrashed") or keeper.get("deletedAt"):
+            LOGGER.warning(
+                f"Duplicate keeper '{keeper_id}' is in the Immich trash after metadata merging. "
+                "The redundant assets were not deleted."
+            )
+            return False
+
+        for field in ("isFavorite", "description", "rating", "visibility", "dateTimeOriginal", "latitude", "longitude"):
+            if field not in payload:
+                continue
+            actual = keeper.get(field)
+            if actual is None:
+                actual = (keeper.get("exifInfo") or {}).get(field)
+            expected = payload[field]
+            if field == "visibility":
+                matches = str(actual or "").strip().lower() == str(expected).strip().lower()
+            elif field in {"latitude", "longitude"}:
+                try:
+                    matches = abs(float(actual) - float(expected)) < 0.000001
+                except (TypeError, ValueError):
+                    matches = False
+            else:
+                matches = actual == expected
+            if not matches:
+                LOGGER.warning(
+                    f"Duplicate keeper '{keeper_id}' did not retain merged '{field}' metadata. "
+                    "The redundant assets were not deleted."
+                )
+                return False
+
+        merged_tag_ids = self._asset_reference_ids(keeper, "tags")
+        if not set(tag_ids).issubset(merged_tag_ids):
+            LOGGER.warning(
+                f"Duplicate keeper '{keeper_id}' did not retain every merged tag. "
+                "The redundant assets were not deleted."
+            )
+            return False
+        keeper_albums = self._get_duplicate_asset_albums(keeper_id, log_level=log_level)
+        keeper_album_ids = self._asset_reference_ids({"albums": keeper_albums or []}, "albums")
+        if keeper_albums is None or not set(album_ids).issubset(keeper_album_ids):
+            LOGGER.warning(
+                f"Duplicate keeper '{keeper_id}' did not retain every merged album. "
+                "The redundant assets were not deleted."
+            )
+            return False
+        return True
+
     def _hydrate_duplicate_group_metadata(self, group, log_level=None):
         """Load complete metadata for a duplicate group while keeping native hints."""
         hydrated_assets = []
@@ -2500,6 +2560,12 @@ class ClassImmichPhotos(BaseMediaClient):
     def _hydrate_duplicate_asset_metadata(self, asset, log_level=None, include_albums=True):
         """Load one review candidate and retain native duplicate-selection hints."""
         if asset.get("_photomigrator_duplicate_metadata_hydrated"):
+            if include_albums and not asset.get("_photomigrator_duplicate_albums_hydrated"):
+                albums = self._get_duplicate_asset_albums(asset.get("id"), log_level=log_level)
+                if albums is None:
+                    return None
+                asset["albums"] = albums
+                asset["_photomigrator_duplicate_albums_hydrated"] = True
             return asset
         requested_asset_id = str(asset.get("id") or "").strip()
         metadata = self._get_duplicate_asset_metadata(requested_asset_id, log_level=log_level)
@@ -2547,6 +2613,7 @@ class ClassImmichPhotos(BaseMediaClient):
             if key in asset:
                 metadata[key] = asset[key]
         metadata["_photomigrator_duplicate_metadata_hydrated"] = True
+        metadata["_photomigrator_duplicate_albums_hydrated"] = bool(include_albums)
         return metadata
 
     def hydrate_duplicate_groups_metadata(self, duplicate_groups, log_level=None, include_albums=True):
@@ -3009,7 +3076,10 @@ class ClassImmichPhotos(BaseMediaClient):
         )
         return removed_assets, len(duplicate_groups), skipped_groups + failed_resolution_groups
 
-    def remove_duplicates_assets_by_name_and_size(self, keeper_strategy="newest", duplicate_groups=None, log_level=None):
+    def remove_duplicates_assets_by_name_and_size(
+        self, keeper_strategy="newest", duplicate_groups=None, log_level=None,
+        trash_redundant_assets=False,
+    ):
         """Remove duplicate assets while preserving metadata on one selected keeper."""
         strategy = str(keeper_strategy or "newest").strip().lower()
         if strategy not in {"better-quality", "oldest", "newest", "more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest"}:
@@ -3035,7 +3105,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     response = requests.delete(
                         f"{self.IMMICH_URL}/api/assets",
                         headers=self.HEADERS_WITH_CREDENTIALS,
-                        data=json.dumps({"force": True, "ids": asset_ids}),
+                        data=json.dumps({"force": not trash_redundant_assets, "ids": asset_ids}),
                         verify=False,
                     )
                     response.raise_for_status()
@@ -3117,7 +3187,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     f"{examples}{suffix}."
                 )
             LOGGER.info(
-                f"Duplicate asset cleanup finished: removed={removed_assets}, "
+                f"Duplicate asset cleanup finished: {'trashed' if trash_redundant_assets else 'removed'}={removed_assets}, "
                 f"groups_skipped_for_metadata_safety={skipped_groups}, "
                 f"assets_not_confirmed_deleted={len(delete_failed_assets)}."
             )

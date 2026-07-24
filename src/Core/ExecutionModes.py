@@ -895,13 +895,12 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
         return
     native_detection_value = ARGS.get("dup-immich-native-algorithm", True)
     use_immich_detection = str(native_detection_value).strip().lower() not in {"false", "0", "no", "off"}
-    native_deletion_value = ARGS.get("dup-immich-native-deletion", True)
-    use_immich_deletion = str(native_deletion_value).strip().lower() in {"true", "1", "yes", "on"}
-    if normalized_client != "immich":
-        use_immich_deletion = False
-    if use_immich_deletion and not use_immich_detection:
-        use_immich_deletion = False
-    keeper_strategy = str(ARGS.get("dup-asset-keeper") or "better-quality").lower()
+    default_keeper_strategy = (
+        "more-people/tags-then-better-quality"
+        if normalized_client == "immich" and use_immich_detection
+        else "better-quality"
+    )
+    keeper_strategy = str(ARGS.get("dup-asset-keeper") or default_keeper_strategy).lower()
     if normalized_client != "immich" and keeper_strategy == "better-quality":
         keeper_strategy = "newest"
     if normalized_client != "immich" and keeper_strategy == "more-people/tags-then-better-quality":
@@ -910,6 +909,13 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
         keeper_strategy = "more-people/tags-then-oldest"
     if normalized_client == "immich" and not use_immich_detection and keeper_strategy == "more-people/tags-then-better-quality":
         keeper_strategy = "more-people/tags-then-oldest"
+    native_deletion_value = ARGS.get("dup-immich-native-deletion", True)
+    use_immich_deletion = (
+        normalized_client == "immich"
+        and use_immich_detection
+        and keeper_strategy == "better-quality"
+        and str(native_deletion_value).strip().lower() in {"true", "1", "yes", "on"}
+    )
     client_label = capitalize_first_letter(normalized_client.replace("-photos", ""))
     LOGGER.info(f"{client_label} Photos: 'Remove Duplicates Assets' Mode detected. Only this module will be run!!!")
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")

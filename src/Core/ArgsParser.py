@@ -524,7 +524,7 @@ def parse_arguments():
                         help="Remove duplicate assets while preserving available metadata and people on the selected keeper asset.\n"
                              "Requires '--client'.\n"
                              "Also requires module selector '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'.\n"
-                             "For Immich, native duplicate detection is enabled by default and the selector defaults to 'better-quality'. "
+                             "For Immich, native duplicate detection is enabled by default and the selector defaults to 'more-people/tags-then-better-quality'. "
                              "Google Photos cannot delete library media through its public API.\n"
                              "Example: --client=immich --remove-duplicates-assets --dup-asset-keeper newest")
 
@@ -549,15 +549,15 @@ def parse_arguments():
                         help="For Immich Remove Duplicates Assets, let Immich resolve each native duplicate group, "
                              "merge albums, favorites, highest rating, combined descriptions, most restrictive "
                              "visibility, matching locations, and tags, then trash redundant assets. This uses "
-                             "Immich's Alpha duplicate-resolution API. When disabled, PhotoMigrator merges those "
-                             "fields plus missing capture date and stacks, then permanently deletes redundant assets. "
-                             "It is disabled whenever native detection "
-                             "is disabled (default: True with native detection).")
+                             "Immich's Alpha duplicate-resolution API and is available only with native detection "
+                             "and '--dup-asset-keeper=better-quality'. All other keeper strategies use PhotoMigrator's "
+                             "guarded merge and are sent to trash only after the selected keeper is verified. "
+                             "It is enabled by default only for that supported combination and disabled otherwise.")
 
-    PARSER.add_argument("-dupKeeper", "--dup-asset-keeper", choices=["more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest", "better-quality", "oldest", "newest"], default="better-quality",
+    PARSER.add_argument("-dupKeeper", "--dup-asset-keeper", choices=["more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest", "better-quality", "oldest", "newest"], default="more-people/tags-then-better-quality",
                         help="Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain "
                              "the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' "
-                             "uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm).")
+                             "uses Immich's native suggestion; 'oldest' and 'newest' use upload date (default: more-people/tags-then-better-quality for Immich native duplicates algorithm or more-people/tags-then-oldest for PhotoMigrator duplicates algorithm).")
 
     PARSER.add_argument("-mDupAlb", "--merge-duplicates-albums", action="store_true", default="",
                         help="Merge duplicated albums (same name): move assets into the most relevant album and remove duplicates.\n"
@@ -774,14 +774,19 @@ def checkArgs(ARGS, PARSER):
     )
     native_deletion_enabled = bool(ARGS.get('dup-immich-native-deletion', True))
     native_detection_enabled = bool(ARGS.get('dup-immich-native-algorithm', True))
-    if native_deletion_provided and native_deletion_enabled and not native_detection_enabled:
+    keeper_strategy = str(ARGS.get('dup-asset-keeper') or '').strip().lower()
+    native_deletion_allowed = native_detection_enabled and keeper_strategy == 'better-quality'
+    if native_deletion_provided and native_deletion_enabled and not native_deletion_allowed:
         PARSER.error(
             f"\n\n❌ {GV.MSG_TAGS_COLORED['ERROR']}"
-            "Argument '--dup-immich-native-deletion' requires "
-            "'--dup-immich-native-algorithm=true'.\n"
+            "Argument '--dup-immich-native-deletion=true' requires "
+            "'--dup-immich-native-algorithm=true' and "
+            "'--dup-asset-keeper=better-quality'.\n"
             f"{Style.RESET_ALL}"
         )
         exit(1)
+    if not native_deletion_allowed:
+        ARGS['dup-immich-native-deletion'] = False
 
     # Remove last slash for all folder arguments:
     ARGS['foldername-albums']               = fix_path(ARGS['foldername-albums'])
