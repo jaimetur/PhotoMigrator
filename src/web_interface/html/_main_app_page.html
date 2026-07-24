@@ -1946,7 +1946,7 @@
         duplicateAssetKeeperChoices(keeperField).forEach((choice) => keeperInput.add(new Option(choice, choice)));
         const nextValue = ["better-quality", "more-people/tags-then-better-quality"].includes(selectedValue) && !Array.from(keeperInput.options)
             .some((option) => option.value === selectedValue)
-            ? "more-people/tags-then-newest"
+            ? "more-people/tags-then-oldest"
             : selectedValue;
         keeperInput.value = nextValue;
         stateValues["dup-asset-keeper"] = nextValue;
@@ -2015,8 +2015,8 @@
             const selectedValue = persisted === undefined ? defaultValue : String(persisted);
             const nativeQualityUnavailable = ["better-quality", "more-people/tags-then-better-quality"].includes(selectedValue)
                 && !choices.includes(selectedValue);
-            input.value = nativeQualityUnavailable ? "more-people/tags-then-newest" : selectedValue;
-            if (nativeQualityUnavailable) stateValues[field.dest] = "more-people/tags-then-newest";
+            input.value = nativeQualityUnavailable ? "more-people/tags-then-oldest" : selectedValue;
+            if (nativeQualityUnavailable) stateValues[field.dest] = "more-people/tags-then-oldest";
         } else if (field.kind === "list") {
             if (field.dest === "albums-folders") {
                 input = document.createElement("input");
@@ -2160,9 +2160,9 @@
                         const keeperInput = document.querySelector('[data-dest="dup-asset-keeper"]');
                         if (keeperInput) keeperInput.value = "better-quality";
                     } else {
-                        stateValues["dup-asset-keeper"] = "more-people/tags-then-newest";
+                        stateValues["dup-asset-keeper"] = "more-people/tags-then-oldest";
                         const keeperInput = document.querySelector('[data-dest="dup-asset-keeper"]');
-                        if (keeperInput) keeperInput.value = "more-people/tags-then-newest";
+                        if (keeperInput) keeperInput.value = "more-people/tags-then-oldest";
                     }
                     syncDuplicateAssetKeeperChoices();
                     const deletionInput = document.querySelector('[data-dest="dup-immich-native-deletion"]');

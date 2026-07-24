@@ -475,7 +475,7 @@ If more than one optional arguments are detected, only the first one will be exe
                other cloud services use exact filename and file size.
                Requires '--client' and '--dup-asset-keeper {more-people/tags-then-better-quality, more-people/tags-then-oldest, more-people/tags-then-newest, better-quality, oldest, newest}'.
                The three more-people/tags strategies retain the asset with the most people, then tags. For Immich,
-               native detection defaults to 'better-quality'; disabling it defaults to 'more-people/tags-then-newest'.
+               native detection defaults to 'better-quality'; disabling it defaults to 'more-people/tags-then-oldest'.
                Example: --client=immich --remove-duplicates-assets --dup-asset-keeper newest
 -immichDupAlgo ; --dup-immich-native-algorithm=[true,false]
                Immich only: native detection compares visual similarity rather than filename or size.

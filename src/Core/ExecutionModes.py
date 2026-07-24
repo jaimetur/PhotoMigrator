@@ -907,9 +907,9 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     if normalized_client != "immich" and keeper_strategy == "more-people/tags-then-better-quality":
         keeper_strategy = "more-people/tags-then-newest"
     if normalized_client == "immich" and not use_immich_detection and keeper_strategy == "better-quality":
-        keeper_strategy = "more-people/tags-then-newest"
+        keeper_strategy = "more-people/tags-then-oldest"
     if normalized_client == "immich" and not use_immich_detection and keeper_strategy == "more-people/tags-then-better-quality":
-        keeper_strategy = "more-people/tags-then-newest"
+        keeper_strategy = "more-people/tags-then-oldest"
     client_label = capitalize_first_letter(normalized_client.replace("-photos", ""))
     LOGGER.info(f"{client_label} Photos: 'Remove Duplicates Assets' Mode detected. Only this module will be run!!!")
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")

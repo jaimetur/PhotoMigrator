@@ -182,6 +182,34 @@ class TestExecutionModes(unittest.TestCase):
 
         mock_mode.assert_called_once_with(client="nextcloud")
 
+    def test_immich_manual_duplicate_mode_defaults_to_people_tags_then_oldest(self):
+        args = _base_args()
+        args.update({
+            "remove-duplicates-assets": True,
+            "dup-immich-native-algorithm": False,
+            "dup-immich-native-deletion": False,
+            "dup-asset-keeper": "better-quality",
+        })
+        cloud_client = MagicMock()
+        cloud_client.remove_duplicates_assets.return_value = (0, 0, 0)
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
+            patch.object(execution_modes, "LOGGER", MagicMock()),
+        ):
+            execution_modes.mode_cloud_remove_duplicates_assets(
+                client="immich", user_confirmation=False,
+            )
+
+        cloud_client.remove_duplicates_assets.assert_called_once_with(
+            keeper_strategy="more-people/tags-then-oldest",
+            request_user_confirmation=False,
+            use_immich_detection=False,
+            use_immich_deletion=False,
+            log_level=execution_modes.logging.INFO,
+        )
+
     @unittest.skip("Duplicate cleanup orchestration now belongs to the service client.")
     def test_remove_duplicate_assets_previews_groups_before_confirming_deletion(self):
         args = _base_args()

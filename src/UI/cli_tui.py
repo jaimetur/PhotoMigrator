@@ -3190,7 +3190,7 @@ if TEXTUAL_AVAILABLE:
                 ):
                     choices = [choice for choice in choices if choice not in {"better-quality", "more-people/tags-then-better-quality"}]
                     if value not in choices:
-                        value = "more-people/tags-then-newest"
+                        value = "more-people/tags-then-oldest"
                         self.state_values[dest] = value
                 options = [(str(choice), str(choice)) for choice in choices]
                 return [self.build_select_row(f"{label}{' *' if required else ''}", f"field-{dest}", options, value, help_text=help_text)]
@@ -3774,7 +3774,7 @@ if TEXTUAL_AVAILABLE:
                     if dest == "dup-immich-native-algorithm":
                         self.state_values["dup-immich-native-deletion"] = bool(value)
                         self.state_values["dup-asset-keeper"] = (
-                            "better-quality" if value else "more-people/tags-then-newest"
+                            "better-quality" if value else "more-people/tags-then-oldest"
                         )
                         await self.rebuild_content()
                     elif dest == "try-small-albums-grouping":
