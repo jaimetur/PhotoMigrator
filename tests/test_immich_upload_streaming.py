@@ -426,6 +426,23 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertEqual(mock_post.call_count, 2)
         mock_sleep.assert_called_once_with(1)
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_merge_duplicate_stacks_does_not_recreate_stack_for_redundant_child(
+        self, mock_get, mock_post
+    ):
+        manager = self._build_manager()
+        keeper = {"id": "keeper", "stack": None}
+        duplicate = {
+            "id": "duplicate-child",
+            "stack": {"id": "stack-1", "primaryAssetId": "other-primary"},
+        }
+
+        self.assertTrue(manager._merge_duplicate_asset_stacks(keeper, [duplicate]))
+
+        mock_get.assert_not_called()
+        mock_post.assert_not_called()
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_merge_duplicate_stacks_reports_asset_names_and_immich_error_body(

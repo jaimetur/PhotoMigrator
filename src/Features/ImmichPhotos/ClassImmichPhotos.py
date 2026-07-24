@@ -2211,22 +2211,38 @@ class ClassImmichPhotos(BaseMediaClient):
     def _merge_duplicate_asset_stacks(self, keeper, duplicates, log_level=None):
         """Keep non-duplicate stack members reachable through the selected keeper.
 
-        An Immich asset can only belong to one stack. Recreating each stack occupied
-        by a redundant asset with the keeper first makes it the primary asset and
-        lets Immich merge its surviving members. A read or write failure prevents
-        deletion of the duplicate group.
+        An Immich asset can only belong to one stack. A redundant *child* can be
+        deleted directly: its original stack retains its primary and every other
+        member. Only when the redundant asset is the stack primary must its stack
+        be read and recreated around the selected keeper. A read or write failure
+        for that primary stack prevents deletion of the duplicate group.
         """
         keeper_id = str(keeper.get("id") or "").strip()
         redundant_ids = {
             str(asset.get("id") or "").strip() for asset in duplicates
             if str(asset.get("id") or "").strip()
         }
-        stack_ids = {
-            str((asset.get("stack") or {}).get("id") or "").strip()
-            for asset in duplicates
-            if isinstance(asset.get("stack"), dict)
-        }
-        stack_ids.discard("")
+        stack_ids = set()
+        for asset in duplicates:
+            stack = asset.get("stack") or {}
+            if not isinstance(stack, dict):
+                continue
+            stack_id = str(stack.get("id") or "").strip()
+            if not stack_id:
+                continue
+            duplicate_id = str(asset.get("id") or "").strip()
+            primary_asset_id = str(
+                stack.get("primaryAssetId")
+                or stack.get("primary_asset_id")
+                or ""
+            ).strip()
+            # Asset metadata already tells us this duplicate is merely a child.
+            # Deleting it leaves the remote stack and its surviving members intact.
+            if primary_asset_id and primary_asset_id != duplicate_id:
+                continue
+            # Older Immich payloads can omit the primary ID. Keep the previous
+            # fail-closed behavior for that ambiguous representation.
+            stack_ids.add(stack_id)
 
         for stack_id in stack_ids:
             stack_duplicate_names = [
