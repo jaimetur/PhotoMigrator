@@ -386,7 +386,7 @@ class ClassSynologyPhotos(BaseMediaClient):
             return sanitized
         return payload
 
-    def _log_api_request_debug(self, method_name, url, payload_key, payload, response=None, error=None):
+    def _log_api_request_debug(self, method_name, url, payload_key, payload, response=None, error=None, stream=False):
         sanitized_payload = self._sanitize_api_payload(payload)
         if error is not None:
             LOGGER.debug(
@@ -397,14 +397,16 @@ class ClassSynologyPhotos(BaseMediaClient):
 
         status_code = getattr(response, "status_code", None)
         success = None
-        try:
-            response_json = response.json()
-            success = response_json.get("success")
-        except Exception:
-            success = None
+        content_type = str(getattr(response, "headers", {}).get("Content-Type", "")).lower()
+        if not stream and "json" in content_type:
+            try:
+                response_json = response.json()
+                success = response_json.get("success")
+            except Exception:
+                success = None
         LOGGER.debug(
             f"[SYNOLOGY_API] {method_name.upper()} {url} {payload_key}={json.dumps(sanitized_payload, ensure_ascii=True, default=str)} "
-            f"-> status={status_code} success={success}"
+            f"-> status={status_code} success={success} stream={stream} content_type={content_type or 'unknown'}"
         )
 
     def _session_get(self, url, *, params=None, headers=None, verify=False, stream=False):
@@ -413,7 +415,7 @@ class ClassSynologyPhotos(BaseMediaClient):
         except Exception as error:
             self._log_api_request_debug("get", url, "params", params, error=error)
             raise
-        self._log_api_request_debug("get", url, "params", params, response=response)
+        self._log_api_request_debug("get", url, "params", params, response=response, stream=stream)
         return response
 
     def _session_post(self, url, *, data=None, headers=None, verify=False, stream=False):
@@ -422,7 +424,7 @@ class ClassSynologyPhotos(BaseMediaClient):
         except Exception as error:
             self._log_api_request_debug("post", url, "data", data, error=error)
             raise
-        self._log_api_request_debug("post", url, "data", data, response=response)
+        self._log_api_request_debug("post", url, "data", data, response=response, stream=stream)
         return response
 
     def _request_entry_api(self, url, payload, headers=None, prefer_post=False, stream=False):
@@ -2779,6 +2781,7 @@ class ClassSynologyPhotos(BaseMediaClient):
         with set_log_level(LOGGER, log_level):
             tmp_dir = None
             download_tmp_path = None
+            resp = None
             try:
                 self.login(log_level=log_level)
                 os.makedirs(download_folder, exist_ok=True)
@@ -2831,22 +2834,26 @@ class ClassSynologyPhotos(BaseMediaClient):
                 # `album_id` without passphrase. True shared-with-me albums may
                 # still require passphrase, so we try the browser-like context
                 # first and only then fall back to the passphrase variant.
-                resp = None
                 selected_download_api = download_api
                 for request_params in request_variants:
                     request_download_api = str(request_params.get("api") or download_api)
                     prefer_post = request_download_api == "SYNO.FotoTeam.Download" or album_scope in {"owned_shared_space", "shared_with_me"}
-                    resp = self._request_entry_api(
+                    candidate_resp = self._request_entry_api(
                         url,
                         request_params,
                         headers=headers,
                         prefer_post=prefer_post,
                         stream=True,
                     )
-                    response_content_type = str(resp.headers.get("Content-Type", "")).lower()
-                    if resp.status_code == 200 and "json" not in response_content_type and "text/html" not in response_content_type:
+                    response_content_type = str(candidate_resp.headers.get("Content-Type", "")).lower()
+                    if candidate_resp.status_code == 200 and "json" not in response_content_type and "text/html" not in response_content_type:
+                        resp = candidate_resp
                         selected_download_api = request_download_api
                         break
+                    candidate_resp.close()
+                if resp is None:
+                    LOGGER.error(f"Failed to download asset '{asset_filename}' with ID [{asset_id}]. No media response received.")
+                    return 0
                 if resp.status_code != 200:
                     LOGGER.error(f"")
                     LOGGER.error(f"Failed to download asset '{asset_filename}' with ID [{asset_id}]. Status code: {resp.status_code}")
@@ -2948,6 +2955,11 @@ class ClassSynologyPhotos(BaseMediaClient):
                 LOGGER.error(f"Exception occurred while downloading asset '{asset_filename}' with ID [{asset_id}]. {e}")
                 return 0
             finally:
+                try:
+                    if resp is not None:
+                        resp.close()
+                except Exception:
+                    pass
                 try:
                     if download_tmp_path and os.path.exists(download_tmp_path):
                         os.remove(download_tmp_path)
