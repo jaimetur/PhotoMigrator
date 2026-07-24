@@ -486,9 +486,8 @@ If more than one optional arguments are detected, only the first one will be exe
                Immich only: resolve native duplicate groups through Immich's server-side resolver.
                true (Alpha API): Immich merges albums, favorites, highest rating, combined descriptions, most
                restrictive visibility, matching locations, and tags, then moves redundant assets to trash.
-               false: PhotoMigrator merges those fields plus missing capture date, stacks, and conservatively
-               transferable assigned faces/persons, then permanently deletes redundant assets. If a face transfer
-               is unsafe, its associations can be lost but do not block the group. It cannot be used when
+               false: PhotoMigrator merges those fields plus missing capture date and stacks, then permanently
+               deletes redundant assets. It cannot be used when
                '--dup-immich-native-algorithm=false'. Default: true while native detection is enabled.
 -dupKeeper   ; --dup-asset-keeper {more-people/tags-then-better-quality,more-people/tags-then-oldest,more-people/tags-then-newest,better-quality,oldest,newest}
                Select the asset retained by '--remove-duplicates-assets'. The more-people/tags strategies first

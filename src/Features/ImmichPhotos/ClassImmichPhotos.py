@@ -74,10 +74,6 @@ class ClassImmichPhotos(BaseMediaClient):
     IMMICH_METADATA_MERGE_TIMEOUT = (10, 60)
     IMMICH_METADATA_MERGE_RETRIES = 5
     IMMICH_BURST_STACK_TIMEOUT = (10, 30)
-    # Face detection can differ by a few pixels between equivalent assets.
-    # Compare coordinates in image-relative space to avoid duplicating a face.
-    DUPLICATE_FACE_GEOMETRY_TOLERANCE = 0.01
-
     def __init__(self, account_id=1):
         """
         Constructor that initializes what used to be global variables.
@@ -2141,22 +2137,6 @@ class ClassImmichPhotos(BaseMediaClient):
             if reference_id(item)
         }
 
-    @staticmethod
-    def _positive_face_number(value):
-        try:
-            number = float(value)
-        except (TypeError, ValueError):
-            return None
-        return number if number > 0 else None
-
-    @staticmethod
-    def _face_coordinate(value):
-        try:
-            number = float(value)
-        except (TypeError, ValueError):
-            return None
-        return number if number >= 0 else None
-
     def _get_asset_faces(self, asset_id, log_level=None):
         """Return the complete face records for one asset, or ``None`` on error."""
         asset_id = str(asset_id or "").strip()
@@ -2184,161 +2164,6 @@ class ClassImmichPhotos(BaseMediaClient):
                 f"its duplicate group was left unchanged: {error}"
             )
             return None
-
-    def _normalise_asset_face(self, face, asset):
-        """Build a comparable, image-relative face record from an Immich response."""
-        if not isinstance(face, dict):
-            return None
-        person = face.get("person") or {}
-        person_id = str(face.get("personId") or person.get("id") or "").strip()
-        image_width = self._positive_face_number(face.get("imageWidth") or asset.get("width"))
-        image_height = self._positive_face_number(face.get("imageHeight") or asset.get("height"))
-        x1 = self._face_coordinate(face.get("boundingBoxX1"))
-        y1 = self._face_coordinate(face.get("boundingBoxY1"))
-        x2 = self._face_coordinate(face.get("boundingBoxX2"))
-        y2 = self._face_coordinate(face.get("boundingBoxY2"))
-        if not person_id or any(value is None for value in (image_width, image_height, x1, y1, x2, y2)):
-            return None
-        if x2 <= x1 or y2 <= y1:
-            return None
-        return {
-            "person_id": person_id,
-            "x1": x1 / image_width,
-            "y1": y1 / image_height,
-            "x2": x2 / image_width,
-            "y2": y2 / image_height,
-            "image_width": image_width,
-            "image_height": image_height,
-        }
-
-    def _asset_image_dimensions(self, asset, faces):
-        """Use asset dimensions, falling back to a face response when necessary."""
-        width = self._positive_face_number(asset.get("width"))
-        height = self._positive_face_number(asset.get("height"))
-        if width and height:
-            return width, height
-        for face in faces:
-            width = self._positive_face_number(face.get("imageWidth"))
-            height = self._positive_face_number(face.get("imageHeight"))
-            if width and height:
-                return width, height
-        return None
-
-    def _faces_match(self, left, right):
-        if left["person_id"] != right["person_id"]:
-            return False
-        return all(
-            abs(left[key] - right[key]) <= self.DUPLICATE_FACE_GEOMETRY_TOLERANCE
-            for key in ("x1", "y1", "x2", "y2")
-        )
-
-    def _merge_duplicate_asset_faces(self, keeper, duplicates, log_level=None):
-        """Copy missing assigned faces to the keeper before duplicate deletion.
-
-        Unassigned faces cannot be recreated because Immich's stable create-face API
-        requires a person ID. Returning ``False`` tells the caller that face transfer
-        was incomplete, while the caller can still finish the remaining merge.
-        """
-        group_assets = [keeper, *duplicates]
-        if not any(
-            self._asset_reference_ids(asset, "people") or asset.get("unassignedFaces")
-            for asset in group_assets
-        ):
-            return True
-        if any(asset.get("unassignedFaces") for asset in group_assets):
-            LOGGER.warning(
-                f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
-                "it contains unassigned faces that cannot be safely recreated."
-            )
-            return False
-        checksums = {str(asset.get("checksum") or "").strip() for asset in group_assets}
-        if not checksums or "" in checksums or len(checksums) != 1:
-            LOGGER.warning(
-                f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
-                "face transfer requires an identical Immich checksum for every asset."
-            )
-            return False
-
-        face_records_by_asset = {}
-        normalised_by_asset = {}
-        for asset in group_assets:
-            asset_id = str(asset.get("id") or "").strip()
-            faces = self._get_asset_faces(asset_id, log_level=log_level)
-            if faces is None:
-                return False
-            expected_people = self._asset_reference_ids(asset, "people")
-            normalised_faces = []
-            for face in faces:
-                normalised_face = self._normalise_asset_face(face, asset)
-                if normalised_face is None:
-                    LOGGER.warning(
-                        f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
-                        f"asset ID={asset_id} has an unassigned or malformed face."
-                    )
-                    return False
-                normalised_faces.append(normalised_face)
-            if expected_people and not expected_people.issubset(
-                {face["person_id"] for face in normalised_faces}
-            ):
-                LOGGER.warning(
-                    f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
-                    f"face data for asset ID={asset_id} is incomplete."
-                )
-                return False
-            face_records_by_asset[asset_id] = faces
-            normalised_by_asset[asset_id] = normalised_faces
-
-        keeper_id = str(keeper.get("id") or "").strip()
-        keeper_faces = normalised_by_asset[keeper_id]
-        keeper_dimensions = self._asset_image_dimensions(keeper, face_records_by_asset[keeper_id])
-        faces_created = 0
-        for duplicate in duplicates:
-            duplicate_id = str(duplicate.get("id") or "").strip()
-            for face, normalised_face in zip(
-                face_records_by_asset[duplicate_id], normalised_by_asset[duplicate_id]
-            ):
-                if any(self._faces_match(normalised_face, existing) for existing in keeper_faces):
-                    continue
-                if keeper_dimensions is None:
-                    LOGGER.warning(
-                        f"Skipping face transfer for '{keeper.get('originalFileName', '')}': "
-                        "the keeper image dimensions are unavailable for face transfer."
-                    )
-                    return False
-                image_width, image_height = keeper_dimensions
-                image_width = int(round(image_width))
-                image_height = int(round(image_height))
-                payload = {
-                    "assetId": keeper_id,
-                    "personId": normalised_face["person_id"],
-                    "imageWidth": image_width,
-                    "imageHeight": image_height,
-                    "x": int(round(normalised_face["x1"] * image_width)),
-                    "y": int(round(normalised_face["y1"] * image_height)),
-                    "width": int(round((normalised_face["x2"] - normalised_face["x1"]) * image_width)),
-                    "height": int(round((normalised_face["y2"] - normalised_face["y1"]) * image_height)),
-                }
-                try:
-                    response = requests.post(
-                        f"{self.IMMICH_URL}/api/faces",
-                        headers=self.HEADERS_WITH_CREDENTIALS,
-                        data=json.dumps(payload),
-                        verify=False,
-                    )
-                    response.raise_for_status()
-                except requests.RequestException as error:
-                    LOGGER.warning(
-                        f"Could not copy faces into duplicate keeper '{keeper_id}': {error}. "
-                        "Face associations will not be transferred."
-                    )
-                    return False
-                keeper_faces.append(normalised_face)
-                faces_created += 1
-        if faces_created:
-            LOGGER.info(
-                f"Merged {faces_created} missing assigned face(s) into duplicate keeper '{keeper_id}'."
-            )
-        return True
 
     @staticmethod
     def _first_duplicate_metadata_value(assets, *paths):
@@ -2462,16 +2287,10 @@ class ClassImmichPhotos(BaseMediaClient):
         return True
 
     def _merge_duplicate_asset_metadata(self, keeper, duplicates, log_level=None):
-        """Merge metadata and assigned faces into the keeper before deletion."""
+        """Merge transferable metadata into the keeper before deletion."""
         keeper_id = str(keeper.get("id") or "").strip()
         if not keeper_id:
             return False
-
-        if not self._merge_duplicate_asset_faces(keeper, duplicates, log_level=log_level):
-            LOGGER.warning(
-                f"Proceeding with duplicate keeper '{keeper_id}' without transferring all face associations. "
-                "The selected face merge could not be completed safely."
-            )
 
         group_assets = [keeper, *duplicates]
         if not self._merge_duplicate_asset_stacks(keeper, duplicates, log_level=log_level):
