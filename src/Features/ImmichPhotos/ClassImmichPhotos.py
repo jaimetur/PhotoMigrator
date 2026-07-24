@@ -5081,36 +5081,51 @@ class ClassImmichPhotos(BaseMediaClient):
 
             total_merged_albums = 0
             total_removed_duplicated_albums = 0
-            for album_name, album_group in albums_by_name.items():
-                if len(album_group) <= 1:
-                    continue  # No duplicates
+            duplicate_groups = [
+                (album_name, album_group)
+                for album_name, album_group in albums_by_name.items()
+                if len(album_group) > 1
+            ]
+            duplicate_albums = sum(len(album_group) - 1 for _, album_group in duplicate_groups)
+            if duplicate_albums:
+                LOGGER.info(
+                    f"Merging {duplicate_albums} duplicate album(s) across "
+                    f"{len(duplicate_groups)} name group(s)..."
+                )
 
-                if strategy == 'size':
-                    sorted_group = sorted(album_group, key=lambda x: x["size"], reverse=True)
-                else:  # Default to 'count'
-                    sorted_group = sorted(album_group, key=lambda x: x["count"], reverse=True)
+            with tqdm(
+                total=duplicate_albums,
+                desc=f"{MSG_TAGS['INFO']}Merging Duplicate Albums",
+                unit=" albums",
+            ) as progress_bar:
+                for album_name, album_group in duplicate_groups:
+                    if strategy == 'size':
+                        sorted_group = sorted(album_group, key=lambda x: x["size"], reverse=True)
+                    else:  # Default to 'count'
+                        sorted_group = sorted(album_group, key=lambda x: x["count"], reverse=True)
 
-                keeper = sorted_group[0]
-                keeper_id = keeper["id"]
-                keeper_name = keeper["name"]
+                    keeper = sorted_group[0]
+                    keeper_id = keeper["id"]
+                    keeper_name = keeper["name"]
 
-                LOGGER.info(f"Merging duplicates of album '{album_name}' into ID={keeper_id} with {keeper['count']} assets and {keeper['size']} bytes.")
+                    LOGGER.info(f"Merging duplicates of album '{album_name}' into ID={keeper_id} with {keeper['count']} assets and {keeper['size']} bytes.")
 
-                for duplicate in sorted_group[1:]:
-                    dup_id = duplicate["id"]
-                    dup_name = duplicate["name"]
-                    dup_size = duplicate["size"]
+                    for duplicate in sorted_group[1:]:
+                        dup_id = duplicate["id"]
+                        dup_name = duplicate["name"]
+                        dup_size = duplicate["size"]
 
-                    LOGGER.debug(f"Transferring assets from duplicate album '{dup_name}' (ID={dup_id}, Size={dup_size} bytes)")
-                    assets = self.get_all_assets_from_album(dup_id, dup_name, log_level=log_level)
-                    asset_ids = [asset["id"] for asset in assets] if assets else []
-                    if asset_ids:
-                        self.add_assets_to_album(keeper_id, asset_ids, keeper_name, log_level=log_level)
+                        LOGGER.debug(f"Transferring assets from duplicate album '{dup_name}' (ID={dup_id}, Size={dup_size} bytes)")
+                        assets = self.get_all_assets_from_album(dup_id, dup_name, log_level=log_level)
+                        asset_ids = [asset["id"] for asset in assets] if assets else []
+                        if asset_ids:
+                            self.add_assets_to_album(keeper_id, asset_ids, keeper_name, log_level=log_level)
 
-                    LOGGER.info(f"Removing duplicate album: '{dup_name}' (ID={dup_id})")
-                    if self.remove_album(dup_id, dup_name, log_level=log_level):
-                        total_removed_duplicated_albums += 1
-                total_merged_albums += 1
+                        LOGGER.info(f"Removing duplicate album: '{dup_name}' (ID={dup_id})")
+                        if self.remove_album(dup_id, dup_name, log_level=log_level):
+                            total_removed_duplicated_albums += 1
+                        progress_bar.update(1)
+                    total_merged_albums += 1
 
             LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate albums belonging to {total_merged_albums} different Albums groups.")
             # self.logout(log_level=log_level)

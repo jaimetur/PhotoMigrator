@@ -862,11 +862,6 @@ def update_exif_date(image_path, asset_time, log_level=None):
             exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_bytes
             exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes
             exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes
-            # Validate and fix incorrect values before inserting
-            for ifd_name in ["0th", "Exif"]:
-                for tag, value in exif_dict.get(ifd_name, {}).items():
-                    if isinstance(value, int):
-                        exif_dict[ifd_name][tag] = str(value).encode('utf-8')
             try:
                 # Dump and insert updated EXIF data
                 exif_bytes = piexif.dump(exif_dict)
@@ -874,8 +869,10 @@ def update_exif_date(image_path, asset_time, log_level=None):
                 # Restore original file timestamps
                 os.utime(image_path, (original_atime, original_mtime))
                 GV.LOGGER.debug(f"EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
-            except Exception:
-                GV.LOGGER.error(f"Error when restoring original metadata to file: '{image_path}'")
+            except Exception as error:
+                GV.LOGGER.error(
+                    f"Error when restoring original metadata to file: '{image_path}'. {error}"
+                )
                 return
         except Exception as e:
             GV.LOGGER.warning(f"Failed to update EXIF metadata for {image_path}. {e}")

@@ -598,7 +598,14 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
         # Execute mode_merge_duplicates_albums
         LOGGER.info(f"")
         LOGGER.info(f"Merging Duplicates Albums...")
-        merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        LOGGER.info(
+            "Checking and merging duplicate albums with the same name before downloading. "
+            "This can take time while their assets are transferred."
+        )
+        merge_result = cloud_client_obj.merge_duplicates_albums(
+            request_user_confirmation=False,
+            log_level=logging.INFO,
+        )
         total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
         # Call the Function
         albums_downloaded, assets_downloaded = cloud_client_obj.pull_albums(album_names=albums_name, output_folder=output_folder, log_level=logging.WARNING)
@@ -669,7 +676,14 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
         # Execute mode_remove_empty_albums
         total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute merge_duplicates_albums
-        merge_result = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        LOGGER.info(
+            "Checking and merging duplicate albums with the same name before downloading. "
+            "This can take time while their assets are transferred."
+        )
+        merge_result = cloud_client_obj.merge_duplicates_albums(
+            request_user_confirmation=False,
+            log_level=logging.INFO,
+        )
         total_duplicates_albums_merged, total_duplicates_albums_removed = _normalize_merge_duplicates_result(merge_result)
         # Call the Function
         albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = cloud_client_obj.pull_all(output_folder=output_folder, log_level=logging.WARNING)
