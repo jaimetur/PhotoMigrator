@@ -2268,6 +2268,40 @@ class ClassImmichPhotos(BaseMediaClient):
                 asset_ids = [keeper_id, *[asset_id for asset_id in survivor_ids if asset_id != keeper_id]]
                 if len(asset_ids) < 2:
                     continue
+                asset_names = {
+                    keeper_id: keeper_label,
+                    **{
+                        str(asset.get("id") or "").strip(): str(
+                            asset.get("originalFileName")
+                            or asset.get("filename")
+                            or "unnamed asset"
+                        )
+                        for asset in stack_assets
+                        if isinstance(asset, dict) and str(asset.get("id") or "").strip()
+                    },
+                }
+                self._last_burst_stack_membership_failures = {}
+                verified_assets = self._get_burst_stack_memberships(asset_ids, log_level=log_level)
+                unavailable_ids = [asset_id for asset_id in asset_ids if asset_id not in verified_assets]
+                if unavailable_ids:
+                    failures = getattr(self, "_last_burst_stack_membership_failures", {}) or {}
+                    response_messages = []
+                    for asset_id in unavailable_ids:
+                        failure = failures.get(asset_id) or {}
+                        detail = str(failure.get("response") or failure.get("error") or "").strip()
+                        if detail and detail not in response_messages:
+                            response_messages.append(detail)
+                    response_detail = (
+                        f" Response: {' | '.join(response_messages)[:500]}"
+                        if response_messages else ""
+                    )
+                    LOGGER.warning(
+                        f"Could not preserve the stack containing duplicate asset(s) '{stack_duplicate_label}' "
+                        f"while merging into keeper '{keeper_label}'. Destination asset(s) could not be verified: "
+                        f"{self._format_stack_asset_labels(asset_names, unavailable_ids)}. "
+                        f"The duplicate group was not deleted.{response_detail}"
+                    )
+                    return False
                 self._metadata_merge_request(
                     requests.post,
                     f"{self.IMMICH_URL}/api/stacks",
@@ -2276,7 +2310,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     verify=False,
                 )
             except (requests.RequestException, ValueError) as error:
-                response_text = str(getattr(getattr(error, "response", None), "text", "") or "").strip()
+                response_text = self._request_error_response_text(error)
                 response_detail = f" Response: {response_text[:500]}" if response_text else ""
                 LOGGER.warning(
                     f"Could not preserve the stack containing duplicate asset(s) '{stack_duplicate_label}' "
@@ -3625,7 +3659,30 @@ class ClassImmichPhotos(BaseMediaClient):
         capture_rank = capture if isinstance(capture, (int, float)) else float("inf")
         return (ext_rank, -size, capture_rank)
 
-    def _create_stack(self, asset_ids, log_level=None):
+    @staticmethod
+    def _stack_asset_label(asset_names, asset_id):
+        """Return a readable label for an asset involved in a stack operation."""
+        name = str((asset_names or {}).get(asset_id) or "").strip()
+        return name or "unnamed asset"
+
+    @staticmethod
+    def _request_error_response_text(error):
+        """Return Immich's concise response body when an HTTP request fails."""
+        return str(getattr(getattr(error, "response", None), "text", "") or "").strip()
+
+    @staticmethod
+    def _format_stack_asset_labels(asset_names, asset_ids, limit=3):
+        labels = []
+        for asset_id in asset_ids:
+            label = ClassImmichPhotos._stack_asset_label(asset_names, asset_id)
+            if label not in labels:
+                labels.append(label)
+        rendered = ", ".join(f"'{label}'" for label in labels[:limit])
+        if len(labels) > limit:
+            rendered += f" (+{len(labels) - limit} more)"
+        return rendered or "the selected assets"
+
+    def _create_stack(self, asset_ids, log_level=None, asset_names=None):
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             if not asset_ids or len(asset_ids) < 2:
@@ -3646,10 +3703,12 @@ class ClassImmichPhotos(BaseMediaClient):
                 data = resp.json()
                 return data.get("id")
             except Exception as e:
-                response_text = str(getattr(getattr(e, "response", None), "text", "") or "").strip()
+                response_text = self._request_error_response_text(e)
                 response_detail = f" Response: {response_text[:500]}" if response_text else ""
+                asset_label = self._format_stack_asset_labels(asset_names, asset_ids)
                 LOGGER.warning(
-                    f"Unable to create burst stack ({len(asset_ids)} assets): {e}.{response_detail}"
+                    f"Unable to create burst stack for {asset_label} ({len(asset_ids)} assets): "
+                    f"{e}.{response_detail}"
                 )
                 return None
 
@@ -3658,10 +3717,11 @@ class ClassImmichPhotos(BaseMediaClient):
 
         Only burst candidates are queried.  This makes the final stacking phase
         idempotent without adding a full-library metadata scan to a migration.
-        An unavailable asset is omitted so its candidate group can still use the
-        normal create request and report Immich's response if needed.
+        Failed lookups are retained so the caller can safely skip the complete
+        group instead of asking Immich to create a partial or invalid stack.
         """
         memberships = {}
+        failures = {}
         for asset_id in asset_ids:
             try:
                 response = requests.get(
@@ -3676,10 +3736,11 @@ class ClassImmichPhotos(BaseMediaClient):
                 stack_id = str((stack or {}).get("id") or "").strip()
                 memberships[asset_id] = stack_id or None
             except requests.RequestException as error:
-                LOGGER.warning(
-                    f"Unable to inspect existing stack membership for burst asset '{asset_id}': {error}. "
-                    "Its burst group will still be attempted."
-                )
+                failures[asset_id] = {
+                    "error": str(error),
+                    "response": self._request_error_response_text(error),
+                }
+        self._last_burst_stack_membership_failures = failures
         return memberships
 
     def auto_stack_bursts(self, uploaded_records, context_label="", log_level=None):
@@ -3764,6 +3825,7 @@ class ClassImmichPhotos(BaseMediaClient):
             stacks_created = 0
             repeated_candidate_groups = 0
             existing_stack_groups = 0
+            unverified_asset_groups = 0
             attempted_group_signatures = set()
             with tqdm(
                 total=len(candidate_clusters),
@@ -3775,6 +3837,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     cluster_sorted = sorted(cluster, key=self._burst_primary_sort_key)
                     ordered_asset_ids = []
                     seen_ids = set()
+                    asset_names = {}
                     for c in cluster_sorted:
                         aid = c.get("asset_id")
                         if not aid:
@@ -3789,6 +3852,7 @@ class ClassImmichPhotos(BaseMediaClient):
                         if aid and aid not in seen_ids:
                             ordered_asset_ids.append(aid)
                             seen_ids.add(aid)
+                            asset_names[aid] = os.path.basename(str(c.get("file_path") or ""))
                     if len(ordered_asset_ids) < 2:
                         progress_bar.update(1)
                         continue
@@ -3802,10 +3866,37 @@ class ClassImmichPhotos(BaseMediaClient):
                         continue
                     attempted_group_signatures.add(group_signature)
 
+                    self._last_burst_stack_membership_failures = {}
                     memberships = self._get_burst_stack_memberships(
                         ordered_asset_ids,
                         log_level=log_level,
                     )
+                    unverified_asset_ids = [
+                        asset_id for asset_id in ordered_asset_ids
+                        if asset_id not in memberships
+                    ]
+                    if unverified_asset_ids:
+                        unverified_asset_groups += 1
+                        failures = getattr(self, "_last_burst_stack_membership_failures", {}) or {}
+                        response_messages = []
+                        for asset_id in unverified_asset_ids:
+                            response = str((failures.get(asset_id) or {}).get("response") or "").strip()
+                            error = str((failures.get(asset_id) or {}).get("error") or "").strip()
+                            detail = response or error
+                            if detail and detail not in response_messages:
+                                response_messages.append(detail)
+                        response_detail = (
+                            f" Immich response: {' | '.join(response_messages)[:500]}"
+                            if response_messages else ""
+                        )
+                        LOGGER.warning(
+                            "Burst auto-stack skipped because its destination asset(s) could not be verified: "
+                            f"{self._format_stack_asset_labels(asset_names, unverified_asset_ids)}. "
+                            "The complete group was left unchanged."
+                            f"{response_detail}"
+                        )
+                        progress_bar.update(1)
+                        continue
                     if any(memberships.get(asset_id) for asset_id in ordered_asset_ids):
                         # Do not disturb a pre-existing or partially overlapping
                         # stack. Immich rejects re-adding child assets with HTTP 400.
@@ -3813,7 +3904,11 @@ class ClassImmichPhotos(BaseMediaClient):
                         progress_bar.update(1)
                         continue
 
-                    stack_id = self._create_stack(ordered_asset_ids, log_level=log_level)
+                    stack_id = self._create_stack(
+                        ordered_asset_ids,
+                        log_level=log_level,
+                        asset_names=asset_names,
+                    )
                     if stack_id:
                         stacks_created += 1
                     progress_bar.update(1)
@@ -3823,6 +3918,8 @@ class ClassImmichPhotos(BaseMediaClient):
                 skipped_details.append(f"{repeated_candidate_groups} repeated candidate group(s)")
             if existing_stack_groups:
                 skipped_details.append(f"{existing_stack_groups} existing stack group(s)")
+            if unverified_asset_groups:
+                skipped_details.append(f"{unverified_asset_groups} group(s) with unverified destination assets")
             skipped_suffix = f"; skipped {', '.join(skipped_details)}" if skipped_details else ""
             LOGGER.info(
                 f"{prefix}Burst auto-stack evaluated {len(records)} photo candidate(s); "

@@ -390,11 +390,10 @@ class TestImmichStreamingUpload(unittest.TestCase):
 
         self.assertTrue(manager._merge_duplicate_asset_stacks(keeper, [duplicate]))
 
-        mock_get.assert_called_once_with(
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(
+            mock_get.call_args_list[0].args[0],
             "http://immich.local/api/stacks/stack-1",
-            headers=manager.HEADERS_WITH_CREDENTIALS,
-            verify=False,
-            timeout=manager.IMMICH_METADATA_MERGE_TIMEOUT,
         )
         mock_post.assert_called_once_with(
             "http://immich.local/api/stacks",
@@ -450,6 +449,40 @@ class TestImmichStreamingUpload(unittest.TestCase):
         self.assertIn("duplicate.jpg", warning)
         self.assertIn("keeper.jpg", warning)
         self.assertIn("Not found or no stack.read access", warning)
+        self.assertNotIn("stack-1", warning)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_merge_duplicate_stacks_skips_group_when_stack_assets_cannot_be_verified(
+        self, mock_get, mock_logger
+    ):
+        manager = self._build_manager()
+        stack_response = MagicMock()
+        stack_response.raise_for_status.return_value = None
+        stack_response.json.return_value = {"assets": [{"id": "duplicate"}, {"id": "other", "originalFileName": "other.jpg"}]}
+        mock_get.return_value = stack_response
+
+        def memberships_with_failure(*_args, **_kwargs):
+            manager._last_burst_stack_membership_failures = {
+                "other": {"response": '{"message":"Not found or no asset.update access"}'}
+            }
+            return {"keeper": None}
+
+        manager._get_burst_stack_memberships = MagicMock(side_effect=memberships_with_failure)
+        keeper = {"id": "keeper", "originalFileName": "keeper.jpg", "stack": None}
+        duplicate = {
+            "id": "duplicate",
+            "originalFileName": "duplicate.jpg",
+            "stack": {"id": "stack-1"},
+        }
+
+        self.assertFalse(manager._merge_duplicate_asset_stacks(keeper, [duplicate]))
+
+        warning = str(mock_logger.warning.call_args.args[0])
+        self.assertIn("duplicate.jpg", warning)
+        self.assertIn("keeper.jpg", warning)
+        self.assertIn("other.jpg", warning)
+        self.assertIn("Not found or no asset.update access", warning)
         self.assertNotIn("stack-1", warning)
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)

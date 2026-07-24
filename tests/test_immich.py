@@ -229,7 +229,9 @@ class TestImmichPhotosUnit(unittest.TestCase):
     def test_auto_stack_bursts_resolves_duplicate_candidates_only_after_grouping(self):
         self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".jpg"]
         self.manager._resolve_existing_asset_id_from_metadata = MagicMock(return_value="existing-asset-id")
-        self.manager._get_burst_stack_memberships = MagicMock(return_value={})
+        self.manager._get_burst_stack_memberships = MagicMock(
+            return_value={"new-asset-id": None, "existing-asset-id": None}
+        )
         self.manager._create_stack = MagicMock(return_value="stack-id")
         records = [
             {
@@ -265,11 +267,17 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.manager._create_stack.assert_called_once_with(
             ["new-asset-id", "existing-asset-id"],
             log_level=None,
+            asset_names={
+                "new-asset-id": "IMG_0001.jpg",
+                "existing-asset-id": "IMG_0001 (1).jpg",
+            },
         )
 
     def test_auto_stack_bursts_groups_distinct_phone_filenames_by_capture_time(self):
         self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".heic"]
-        self.manager._get_burst_stack_memberships = MagicMock(return_value={})
+        self.manager._get_burst_stack_memberships = MagicMock(
+            return_value={"asset-1": None, "asset-2": None}
+        )
         self.manager._create_stack = MagicMock(return_value="stack-id")
         records = [
             {
@@ -299,12 +307,19 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.manager._create_stack.assert_called_once_with(
             ["asset-2", "asset-1"],
             log_level=None,
+            asset_names={
+                "asset-2": "IMG_20250306_172109.HEIC",
+                "asset-1": "IMG_20250306_172108.HEIC",
+            },
         )
 
     def test_auto_stack_bursts_skips_duplicate_candidate_group_and_existing_stack(self):
         self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".jpg"]
         self.manager._get_burst_stack_memberships = MagicMock(
-            side_effect=[{}, {"asset-3": "existing-stack", "asset-4": "existing-stack"}]
+            side_effect=[
+                {"asset-1": None, "asset-2": None},
+                {"asset-3": "existing-stack", "asset-4": "existing-stack"},
+            ]
         )
         self.manager._create_stack = MagicMock(return_value="new-stack")
         records = [
@@ -365,6 +380,37 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.assertEqual(self.manager._create_stack.call_count, 1)
         self.assertIn("1 repeated candidate group(s)", mock_logger.info.call_args.args[0])
         self.assertIn("1 existing stack group(s)", mock_logger.info.call_args.args[0])
+
+    def test_auto_stack_bursts_skips_complete_group_when_destination_asset_is_unverified(self):
+        self.manager.ALLOWED_IMMICH_PHOTO_EXTENSIONS = [".jpg"]
+        def memberships_with_failure(*_args, **_kwargs):
+            self.manager._last_burst_stack_membership_failures = {
+                "asset-2": {"response": '{"message":"Not found or no asset.update access"}'}
+            }
+            return {"asset-1": None}
+
+        self.manager._get_burst_stack_memberships = MagicMock(side_effect=memberships_with_failure)
+        self.manager._create_stack = MagicMock(return_value="stack-id")
+        records = [
+            {
+                "asset_id": "asset-1", "file_path": "/photos/first.jpg", "folder": "/photos",
+                "ext": ".jpg", "capture_epoch": 100, "file_size": 100,
+            },
+            {
+                "asset_id": "asset-2", "file_path": "/photos/second.jpg", "folder": "/photos",
+                "ext": ".jpg", "capture_epoch": 101, "file_size": 100,
+            },
+        ]
+
+        with patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock) as mock_logger:
+            stacks_created = self.manager.auto_stack_bursts(records, context_label="test")
+
+        self.assertEqual(stacks_created, 0)
+        self.manager._create_stack.assert_not_called()
+        warning = str(mock_logger.warning.call_args.args[0])
+        self.assertIn("second.jpg", warning)
+        self.assertIn("Not found or no asset.update access", warning)
+        self.assertNotIn("asset-2", warning)
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
