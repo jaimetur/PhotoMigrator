@@ -2404,6 +2404,26 @@ class ClassImmichPhotos(BaseMediaClient):
         stack_ids.discard("")
 
         for stack_id in stack_ids:
+            stack_duplicate_names = [
+                str(
+                    asset.get("originalFileName")
+                    or asset.get("filename")
+                    or asset.get("id")
+                    or "unnamed asset"
+                )
+                for asset in duplicates
+                if isinstance(asset.get("stack"), dict)
+                and str((asset.get("stack") or {}).get("id") or "").strip() == stack_id
+            ]
+            stack_duplicate_label = ", ".join(stack_duplicate_names[:3])
+            if len(stack_duplicate_names) > 3:
+                stack_duplicate_label += f" (+{len(stack_duplicate_names) - 3} more)"
+            keeper_label = str(
+                keeper.get("originalFileName")
+                or keeper.get("filename")
+                or keeper_id
+                or "unnamed asset"
+            )
             try:
                 response = self._metadata_merge_request(
                     requests.get,
@@ -2431,8 +2451,11 @@ class ClassImmichPhotos(BaseMediaClient):
                     verify=False,
                 )
             except (requests.RequestException, ValueError) as error:
+                response_text = str(getattr(getattr(error, "response", None), "text", "") or "").strip()
+                response_detail = f" Response: {response_text[:500]}" if response_text else ""
                 LOGGER.warning(
-                    f"Could not merge stack '{stack_id}' into duplicate keeper '{keeper_id}': {error}. "
+                    f"Could not preserve the stack containing duplicate asset(s) '{stack_duplicate_label}' "
+                    f"while merging into keeper '{keeper_label}': {error}.{response_detail} "
                     "The duplicate group was not deleted."
                 )
                 return False

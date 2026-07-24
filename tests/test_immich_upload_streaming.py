@@ -502,6 +502,31 @@ class TestImmichStreamingUpload(unittest.TestCase):
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
+    def test_merge_duplicate_stacks_reports_asset_names_and_immich_error_body(
+        self, mock_get, mock_logger
+    ):
+        manager = self._build_manager()
+        response = MagicMock()
+        response.text = '{"message":"Not found or no stack.read access"}'
+        error = requests.HTTPError("400 Client Error", response=response)
+        mock_get.return_value.raise_for_status.side_effect = error
+        keeper = {"id": "keeper", "originalFileName": "keeper.jpg", "stack": None}
+        duplicate = {
+            "id": "duplicate",
+            "originalFileName": "duplicate.jpg",
+            "stack": {"id": "stack-1"},
+        }
+
+        self.assertFalse(manager._merge_duplicate_asset_stacks(keeper, [duplicate]))
+
+        warning = str(mock_logger.warning.call_args.args[0])
+        self.assertIn("duplicate.jpg", warning)
+        self.assertIn("keeper.jpg", warning)
+        self.assertIn("Not found or no stack.read access", warning)
+        self.assertNotIn("stack-1", warning)
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")
     def test_duplicate_metadata_display_names_resolves_album_tag_and_person_names(self, mock_get, _mock_logger):
         manager = self._build_manager()
 

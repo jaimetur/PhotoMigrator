@@ -114,6 +114,7 @@
   - Made the duplicate-album cleanup that precedes Download Albums and Download All visible. The download modes now announce the exact-name consolidation phase, and Immich shows a determinate `Merging Duplicate Albums` bar while assets are transferred and redundant albums are removed, instead of appearing stalled after album-name grouping.
   - Corrected JPEG EXIF date restoration during downloads: existing numeric EXIF tags are no longer coerced to byte strings before `piexif` writes the file, preventing invalid-tag failures on older JPEGs. Any remaining unsupported metadata now reports the underlying error.
   - Reduced Immich duplicate-inventory page concurrency from 50 to 10 requests. `Remove Duplicates Assets` now applies lower, steadier load to Immich while fetching its paginated asset inventory, avoiding read-timeout retries on resource-constrained servers.
+  - Improved manual Immich duplicate-stack preservation diagnostics. Stack-merge warnings now identify the duplicate asset(s) and selected keeper by filename and include Immich's response body, rather than opaque UUIDs, while continuing to retain the duplicate group when its stack cannot be read or preserved.
 
 #### 🐛 Bug fixes:
   - Fixed Immich people import during Automatic Migration for mapped duplicate assets. PhotoMigrator now resolves the existing Immich asset ID only for assets with Takeout labels, attempts the import, and logs the map load, person count, and resulting import/skip outcome at `INFO` level.
