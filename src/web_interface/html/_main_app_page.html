@@ -2146,8 +2146,10 @@
         if (el.dataset.dest === "dup-asset-keeper") {
             syncImmichNativeDuplicateDeletionControl();
         }
-        if (el.dataset.dest === "dup-immich-native-deletion" && el.checked) {
-            stateValues["dup-asset-keeper"] = "better-quality";
+        if (el.dataset.dest === "dup-immich-native-deletion") {
+            if (el.checked) {
+                stateValues["dup-asset-keeper"] = "better-quality";
+            }
             syncDuplicateAssetKeeperChoices();
         }
     }
