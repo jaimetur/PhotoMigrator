@@ -897,6 +897,36 @@ class TestAutomaticMigrationMode(unittest.TestCase):
         self.assertIn("Local Photos Folder", kwargs["source_client"].CLIENT_NAME)
         self.assertIn("Local Photos Folder", kwargs["target_client"].CLIENT_NAME)
 
+    def test_mode_automatic_migration_allows_dashboard_context_on_another_windows_drive(self):
+        with (
+            patch.object(automatic_module, "ARGS", dict(self.base_args)),
+            patch.object(automatic_module, "HELP_TEXTS", self.help_texts),
+            patch.object(automatic_module, "LOGGER", self.logger),
+            patch.object(GV, "ARGS", dict(self.base_args)),
+            patch.object(automatic_module, "confirm_continue", return_value=True),
+            patch.object(automatic_module, "contains_zip_files", return_value=False),
+            patch.object(automatic_module, "contains_takeout_structure", return_value=False),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.ARGS", dict(self.base_args)),
+            patch("Features.LocalPhotosFolder.ClassLocalPhotosFolder.LOGGER", self.logger),
+            patch("Core.FolderAnalyzer.ARGS", dict(self.base_args)),
+            patch("Core.FolderAnalyzer.LOGGER", self.logger),
+            patch.object(automatic_module.os.path, "relpath", side_effect=ValueError("path is on mount 'B:', start on mount 'C:'")),
+            patch.object(automatic_module, "parallel_automatic_migration") as mock_parallel,
+        ):
+            automatic_module.mode_AUTOMATIC_MIGRATION(
+                source=str(self.source),
+                target=str(self.target),
+                show_dashboard=False,
+                parallel=False,
+                log_level=logging.INFO,
+            )
+
+        self.assertEqual(mock_parallel.call_count, 1)
+        self.assertEqual(
+            mock_parallel.call_args.kwargs["SHARED_DATA"].info["source_client_context"],
+            str(self.source.resolve()),
+        )
+
     def test_mode_automatic_migration_processes_takeout_source_before_parallel_flow(self):
         takeout_google_photos = self.source / "Google Photos"
         (takeout_google_photos / "Photos from 2024").mkdir(parents=True)

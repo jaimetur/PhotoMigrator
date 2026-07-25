@@ -1024,7 +1024,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                     try:
                         return str(local_folder.resolve().relative_to(Path(PROJECT_ROOT).resolve()))
                     except ValueError:
-                        return os.path.relpath(str(local_folder.resolve()), str(Path(PROJECT_ROOT).resolve()))
+                        try:
+                            return os.path.relpath(str(local_folder.resolve()), str(Path(PROJECT_ROOT).resolve()))
+                        except ValueError:
+                            # Windows cannot derive a relative path across drive letters.
+                            return str(local_folder.resolve())
             match = re.match(r"^.*?\s*\((.*)\)$", str(client_name or "").strip())
             return match.group(1).strip() if match else ""
 
