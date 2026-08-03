@@ -117,8 +117,6 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "totalAssets": physical_total_assets,
         "totalPhotos": physical_total_photos,
         "totalVideos": physical_total_videos,
-        "totalPhotoBytes": int(info.get("total_photo_bytes", 0) or 0),
-        "totalVideoBytes": int(info.get("total_video_bytes", 0) or 0),
         # Push tracks the same physical source inventory as Pull. Do not use
         # the current queue size as a maximum or Push appears nearly complete.
         "pushTotalAssets": physical_total_assets,
@@ -138,8 +136,6 @@ def _build_web_dashboard_snapshot(shared_data, parallel=None):
         "pulledAssets": int(counters.get("total_pulled_assets", 0) or 0),
         "pulledPhotos": int(counters.get("total_pulled_photos", 0) or 0),
         "pulledVideos": int(counters.get("total_pulled_videos", 0) or 0),
-        "pulledPhotoBytes": int(counters.get("total_pulled_photo_bytes", 0) or 0),
-        "pulledVideoBytes": int(counters.get("total_pulled_video_bytes", 0) or 0),
         "pulledAlbums": int(counters.get("total_pulled_albums", 0) or 0),
         "pullFailedAssets": int(counters.get("total_pull_failed_assets", 0) or 0),
         "pullFailedPhotos": int(counters.get("total_pull_failed_photos", 0) or 0),
@@ -279,36 +275,6 @@ def _build_physical_transfer_stats(asset_type, include_live_companion=False):
     if include_live_companion:
         return {"assets": 2, "photos": 1, "videos": 1}
     return {"assets": 1, "photos": 1, "videos": 0}
-
-
-def _get_declared_asset_size(asset):
-    """Return an already-provided source size without issuing an extra request."""
-    asset = dict(asset or {})
-    exif_info = asset.get("exifInfo") or asset.get("exif_info") or {}
-    candidates = (
-        asset.get("size"), asset.get("fileSize"), asset.get("file_size"),
-        asset.get("filesize"), exif_info.get("fileSizeInByte"), exif_info.get("fileSize"),
-    )
-    for candidate in candidates:
-        try:
-            size = int(candidate)
-        except (TypeError, ValueError):
-            continue
-        if size > 0:
-            return size
-    return 0
-
-
-def _known_media_bytes(assets):
-    """Sum media sizes only when every item already exposes a trustworthy size."""
-    assets = list(assets or [])
-    asset_ids = [str((asset or {}).get("id") or "").strip() for asset in assets]
-    # The transfer queue may collapse the same remote asset referenced by
-    # multiple albums. Fall back to counts rather than overstate remaining bytes.
-    if any(not asset_id for asset_id in asset_ids) or len(asset_ids) != len(set(asset_ids)):
-        return 0
-    sizes = [_get_declared_asset_size(asset) for asset in assets]
-    return sum(sizes) if sizes and all(size > 0 for size in sizes) else 0
 
 
 def _safe_asset_relative_path(source_root, source_path, fallback_name):
@@ -609,9 +575,6 @@ def _increment_transfer_counters(counter_map, counter_prefix, asset_stats=None, 
     counter_map[f'{counter_prefix}_assets'] = int(counter_map.get(f'{counter_prefix}_assets', 0) or 0) + int(stats.get("assets", 0) or 0)
     counter_map[f'{counter_prefix}_photos'] = int(counter_map.get(f'{counter_prefix}_photos', 0) or 0) + int(stats.get("photos", 0) or 0)
     counter_map[f'{counter_prefix}_videos'] = int(counter_map.get(f'{counter_prefix}_videos', 0) or 0) + int(stats.get("videos", 0) or 0)
-    counter_map[f'{counter_prefix}_bytes'] = int(counter_map.get(f'{counter_prefix}_bytes', 0) or 0) + int(stats.get("bytes", 0) or 0)
-    counter_map[f'{counter_prefix}_photo_bytes'] = int(counter_map.get(f'{counter_prefix}_photo_bytes', 0) or 0) + int(stats.get("photo_bytes", 0) or 0)
-    counter_map[f'{counter_prefix}_video_bytes'] = int(counter_map.get(f'{counter_prefix}_video_bytes', 0) or 0) + int(stats.get("video_bytes", 0) or 0)
 
 
 def _increment_pull_counters(counter_map, asset_type, asset_stats=None):
@@ -3941,24 +3904,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 return None
         return None
 
-    def _add_physical_byte_stats(asset_stats, asset_path, asset_type, live_companion_path=None):
-        """Attach local staged-file byte counts to existing physical transfer stats."""
-        def _file_size(path):
-            try:
-                return os.path.getsize(path) if path and os.path.exists(path) else 0
-            except OSError:
-                return 0
-
-        primary_bytes = _file_size(asset_path)
-        companion_bytes = _file_size(live_companion_path)
-        normalized_type = str(asset_type or "").strip().lower()
-        asset_stats["bytes"] = primary_bytes + companion_bytes
-        asset_stats["photo_bytes"] = primary_bytes if normalized_type in image_labels else 0
-        asset_stats["video_bytes"] = (
-            primary_bytes if normalized_type in video_labels else 0
-        ) + companion_bytes
-        return asset_stats
-
     def _record_immich_burst_candidate(asset_id, asset_file_path, asset_datetime, asset_type):
         """Retain fresh and duplicate photo candidates for end-of-job burst stacking."""
         if not isinstance(target_client, ClassImmichPhotos):
@@ -4147,10 +4092,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 "total_assets": len(all_assets),
                 "total_photos": len(all_photos),
                 "total_videos": len(all_videos),
-                # Sizes are optional source metadata. Zero means this service did
-                # not provide a complete inventory without additional API calls.
-                "total_photo_bytes": _known_media_bytes(all_photos),
-                "total_video_bytes": _known_media_bytes(all_videos),
                 "total_albums": len(all_albums),
                 "total_albums_blocked": total_albums_blocked_count,
                 "total_metadata": len(all_metadata) + extra_metadata_csv_count,
@@ -4627,12 +4568,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     normalized_asset_type,
                                     include_live_companion=include_live_companion,
                                 )
-                                _add_physical_byte_stats(
-                                    asset_stats,
-                                    pulled_file_path,
-                                    normalized_asset_type,
-                                    immich_live_companion if include_live_companion else None,
-                                )
                                 _increment_album_stat_counter(
                                     album_stats_by_name_ref,
                                     album_stats_lock_ref,
@@ -4913,12 +4848,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             asset_stats = _build_physical_transfer_stats(
                                 normalized_asset_type,
                                 include_live_companion=include_live_companion,
-                            )
-                            _add_physical_byte_stats(
-                                asset_stats,
-                                pulled_file_path,
-                                normalized_asset_type,
-                                immich_live_companion if include_live_companion else None,
                             )
                             count_push_stats = True
                             # Actualizamos Contadores de descargas

@@ -112,44 +112,34 @@ def _compute_dashboard_media_type_estimated_time(
     total_videos,
     pulled_photos,
     pulled_videos,
-    total_photo_bytes,
-    total_video_bytes,
-    pulled_photo_bytes,
-    pulled_video_bytes,
     progress_samples,
 ):
-    """Estimate per media type with cumulative rates and a global fallback."""
+    """Estimate per media type from cumulative asset rates and a global fallback."""
     elapsed_seconds = max(0.0, float(elapsed_seconds or 0.0))
     if elapsed_seconds <= 0.0:
         return "Calibrating..."
 
     media_items = []
     global_completed_assets = 0
-    global_completed_bytes = 0
-    for media_type, total_count, pulled_count, total_bytes, pulled_bytes in (
-        ("photos", total_photos, pulled_photos, total_photo_bytes, pulled_photo_bytes),
-        ("videos", total_videos, pulled_videos, total_video_bytes, pulled_video_bytes),
+    for media_type, total_count, pulled_count in (
+        ("photos", total_photos, pulled_photos),
+        ("videos", total_videos, pulled_videos),
     ):
         total_count = max(0, _parse_int(total_count, 0))
         pulled_count = min(total_count, max(0, _parse_int(pulled_count, 0)))
-        total_bytes = max(0, _parse_int(total_bytes, 0))
-        pulled_bytes = min(total_bytes, max(0, _parse_int(pulled_bytes, 0)))
-        media_items.append((media_type, total_count, pulled_count, total_bytes, pulled_bytes))
+        media_items.append((media_type, total_count, pulled_count))
         global_completed_assets += pulled_count
-        global_completed_bytes += pulled_bytes
 
     global_asset_rate = global_completed_assets / elapsed_seconds if global_completed_assets else 0.0
-    global_byte_rate = global_completed_bytes / elapsed_seconds if global_completed_bytes else 0.0
     estimates = []
     has_pending_media = False
-    for media_type, total_count, pulled_count, total_bytes, pulled_bytes in media_items:
+    for media_type, total_count, pulled_count in media_items:
         if not total_count or pulled_count >= total_count:
             continue
         has_pending_media = True
-        use_bytes = total_bytes > 0 and global_byte_rate > 0.0
-        completed_units = min(total_bytes, pulled_bytes) if use_bytes else pulled_count
-        pending_units = (total_bytes - completed_units) if use_bytes else (total_count - pulled_count)
-        sample_key = f"{media_type}:{'bytes' if use_bytes else 'assets'}"
+        completed_units = pulled_count
+        pending_units = total_count - pulled_count
+        sample_key = media_type
         baseline = progress_samples.get(sample_key)
         if completed_units > 0 and baseline is None:
             # Do not include hours before this media type first appears.
@@ -162,8 +152,7 @@ def _compute_dashboard_media_type_estimated_time(
             sampled_units = completed_units - baseline_units
             if sampled_seconds > 0.0 and sampled_units > 0:
                 media_rate = sampled_units / sampled_seconds
-        fallback_rate = global_byte_rate if use_bytes else global_asset_rate
-        effective_rate = media_rate or fallback_rate
+        effective_rate = media_rate or global_asset_rate
         if effective_rate > 0.0:
             estimates.append(pending_units / effective_rate)
 
@@ -543,10 +532,6 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         total_videos=physical_progress_total('total_pulled_videos', 'total_videos'),
                         pulled_photos=SHARED_DATA.counters.get('total_pulled_photos', 0),
                         pulled_videos=SHARED_DATA.counters.get('total_pulled_videos', 0),
-                        total_photo_bytes=SHARED_DATA.info.get('total_photo_bytes', 0),
-                        total_video_bytes=SHARED_DATA.info.get('total_video_bytes', 0),
-                        pulled_photo_bytes=SHARED_DATA.counters.get('total_pulled_photo_bytes', 0),
-                        pulled_video_bytes=SHARED_DATA.counters.get('total_pulled_video_bytes', 0),
                         progress_samples=eta_media_progress_samples,
                     )
                     SHARED_DATA.info["estimated_time"] = media_eta

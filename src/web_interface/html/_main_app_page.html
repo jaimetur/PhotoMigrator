@@ -1663,28 +1663,24 @@
         return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
     }
 
-    function computeEstimatedRemainingDuration({elapsedMs = 0, totals = {}, pulled = {}, bytes = {}, samples = {}}) {
+    function computeEstimatedRemainingDuration({elapsedMs = 0, totals = {}, pulled = {}, samples = {}}) {
         const safeElapsedMs = Math.max(0, Number(elapsedMs || 0));
         if (!Number.isFinite(safeElapsedMs) || safeElapsedMs <= 0) return "Calibrating...";
         const mediaItems = ["photos", "videos"].map((mediaType) => {
             const total = Math.max(0, Number(totals[mediaType] || 0));
             const completed = Math.min(total, Math.max(0, Number(pulled[mediaType] || 0)));
-            const totalBytes = Math.max(0, Number(bytes[`total${mediaType}`] || 0));
-            const pulledBytes = Math.min(totalBytes, Math.max(0, Number(bytes[`pulled${mediaType}`] || 0)));
-            return {mediaType, total, completed, totalBytes, pulledBytes};
+            return {mediaType, total, completed};
         });
         const globalAssetRate = mediaItems.reduce((sum, item) => sum + item.completed, 0) / safeElapsedMs;
-        const globalByteRate = mediaItems.reduce((sum, item) => sum + item.pulledBytes, 0) / safeElapsedMs;
         let remainingMs = 0;
         let hasEstimate = false;
         let hasPendingMedia = false;
-        for (const {mediaType, total, completed, totalBytes, pulledBytes} of mediaItems) {
+        for (const {mediaType, total, completed} of mediaItems) {
             if (!total || completed >= total) continue;
             hasPendingMedia = true;
-            const useBytes = totalBytes > 0 && globalByteRate > 0;
-            const completedUnits = useBytes ? Math.min(totalBytes, pulledBytes) : completed;
-            const pendingUnits = useBytes ? totalBytes - completedUnits : total - completed;
-            const sampleKey = `${mediaType}:${useBytes ? "bytes" : "assets"}`;
+            const completedUnits = completed;
+            const pendingUnits = total - completed;
+            const sampleKey = mediaType;
             if (completedUnits > 0 && !samples[sampleKey]) {
                 samples[sampleKey] = {elapsedMs: safeElapsedMs, completed: completedUnits};
             }
@@ -1692,8 +1688,7 @@
             const sampledMs = baseline ? safeElapsedMs - baseline.elapsedMs : 0;
             const sampledUnits = baseline ? completedUnits - baseline.completed : 0;
             const mediaRate = sampledMs > 0 && sampledUnits > 0 ? sampledUnits / sampledMs : 0;
-            const fallbackRate = useBytes ? globalByteRate : globalAssetRate;
-            const effectiveRate = mediaRate || fallbackRate;
+            const effectiveRate = mediaRate || globalAssetRate;
             if (effectiveRate > 0) {
                 remainingMs += pendingUnits / effectiveRate;
                 hasEstimate = true;
@@ -1799,12 +1794,6 @@
                 elapsedMs: Math.max(0, Date.now() - assetTransferStartedMs),
                 totals: {assets: stats.totalAssets, photos: stats.totalPhotos, videos: stats.totalVideos},
                 pulled: {assets: stats.pulledAssets, photos: stats.pulledPhotos, videos: stats.pulledVideos},
-                bytes: {
-                    totalphotos: stats.totalPhotoBytes,
-                    totalvideos: stats.totalVideoBytes,
-                    pulledphotos: stats.pulledPhotoBytes,
-                    pulledvideos: stats.pulledVideoBytes,
-                },
                 samples: dashboardEtaSamples,
             })
             : "-";
