@@ -280,7 +280,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
 
         self.assertEqual(estimated, "0:02:00")
 
-    def test_dashboard_eta_does_not_require_fixed_photo_or_video_sample_counts(self):
+    def test_dashboard_eta_uses_global_rate_before_each_media_type_has_its_own_rate(self):
         samples = {}
         automatic_module._compute_dashboard_media_type_estimated_time(
             elapsed_seconds=0,
@@ -308,7 +308,39 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
             progress_samples=samples,
         )
 
-        self.assertEqual(estimated, "0:05:00")
+        self.assertEqual(estimated, "0:02:30")
+
+    def test_dashboard_eta_estimates_unseen_videos_from_global_rate(self):
+        estimated = automatic_module._compute_dashboard_media_type_estimated_time(
+            elapsed_seconds=30,
+            total_photos=100,
+            total_videos=10,
+            pulled_photos=1,
+            pulled_videos=0,
+            total_photo_bytes=0,
+            total_video_bytes=0,
+            pulled_photo_bytes=0,
+            pulled_video_bytes=0,
+            progress_samples={},
+        )
+
+        self.assertEqual(estimated, "0:54:30")
+
+    def test_dashboard_eta_reports_zero_after_all_known_media_is_processed(self):
+        estimated = automatic_module._compute_dashboard_media_type_estimated_time(
+            elapsed_seconds=30,
+            total_photos=100,
+            total_videos=10,
+            pulled_photos=100,
+            pulled_videos=10,
+            total_photo_bytes=0,
+            total_video_bytes=0,
+            pulled_photo_bytes=0,
+            pulled_video_bytes=0,
+            progress_samples={},
+        )
+
+        self.assertEqual(estimated, "00:00:00")
 
     def test_compute_dashboard_estimated_end_uses_local_time_for_valid_duration(self):
         estimated_end = automatic_module._compute_dashboard_estimated_end(

@@ -118,39 +118,58 @@ def _compute_dashboard_media_type_estimated_time(
     pulled_video_bytes,
     progress_samples,
 ):
-    """Estimate independently per media type, preferring byte rates when complete sizes exist."""
+    """Estimate per media type with cumulative rates and a global fallback."""
     elapsed_seconds = max(0.0, float(elapsed_seconds or 0.0))
-    estimates = []
-    still_calibrating = False
+    if elapsed_seconds <= 0.0:
+        return "Calibrating..."
+
+    media_items = []
+    global_completed_assets = 0
+    global_completed_bytes = 0
     for media_type, total_count, pulled_count, total_bytes, pulled_bytes in (
         ("photos", total_photos, pulled_photos, total_photo_bytes, pulled_photo_bytes),
         ("videos", total_videos, pulled_videos, total_video_bytes, pulled_video_bytes),
     ):
         total_count = max(0, _parse_int(total_count, 0))
         pulled_count = min(total_count, max(0, _parse_int(pulled_count, 0)))
+        total_bytes = max(0, _parse_int(total_bytes, 0))
+        pulled_bytes = min(total_bytes, max(0, _parse_int(pulled_bytes, 0)))
+        media_items.append((media_type, total_count, pulled_count, total_bytes, pulled_bytes))
+        global_completed_assets += pulled_count
+        global_completed_bytes += pulled_bytes
+
+    global_asset_rate = global_completed_assets / elapsed_seconds if global_completed_assets else 0.0
+    global_byte_rate = global_completed_bytes / elapsed_seconds if global_completed_bytes else 0.0
+    estimates = []
+    has_pending_media = False
+    for media_type, total_count, pulled_count, total_bytes, pulled_bytes in media_items:
         if not total_count or pulled_count >= total_count:
             continue
-        total_bytes = max(0, _parse_int(total_bytes, 0))
-        pulled_bytes = max(0, _parse_int(pulled_bytes, 0))
-        use_bytes = total_bytes > 0 and pulled_bytes > 0
+        has_pending_media = True
+        use_bytes = total_bytes > 0 and global_byte_rate > 0.0
         completed_units = min(total_bytes, pulled_bytes) if use_bytes else pulled_count
         pending_units = (total_bytes - completed_units) if use_bytes else (total_count - pulled_count)
-        samples = progress_samples.setdefault(media_type, deque())
-        if not samples or samples[-1][1] != completed_units:
-            samples.append((elapsed_seconds, completed_units))
-        cutoff = elapsed_seconds - 300.0
-        while len(samples) > 1 and samples[1][0] <= cutoff:
-            samples.popleft()
-        baseline_elapsed, baseline_units = samples[0]
-        sampled_seconds = elapsed_seconds - baseline_elapsed
-        sampled_units = completed_units - baseline_units
-        if pulled_count <= 0 or sampled_seconds < 30.0 or sampled_units <= 0:
-            still_calibrating = True
-        else:
-            estimates.append((sampled_seconds / sampled_units) * pending_units)
-    if still_calibrating:
-        return "Calibrating..."
-    return _format_hms_from_seconds(sum(estimates)) if estimates else "00:00:00"
+        sample_key = f"{media_type}:{'bytes' if use_bytes else 'assets'}"
+        baseline = progress_samples.get(sample_key)
+        if completed_units > 0 and baseline is None:
+            # Do not include hours before this media type first appears.
+            progress_samples[sample_key] = (elapsed_seconds, completed_units)
+            baseline = progress_samples[sample_key]
+        media_rate = 0.0
+        if baseline is not None:
+            baseline_elapsed, baseline_units = baseline
+            sampled_seconds = elapsed_seconds - baseline_elapsed
+            sampled_units = completed_units - baseline_units
+            if sampled_seconds > 0.0 and sampled_units > 0:
+                media_rate = sampled_units / sampled_seconds
+        fallback_rate = global_byte_rate if use_bytes else global_asset_rate
+        effective_rate = media_rate or fallback_rate
+        if effective_rate > 0.0:
+            estimates.append(pending_units / effective_rate)
+
+    if not has_pending_media and any(item[1] for item in media_items):
+        return "00:00:00"
+    return _format_hms_from_seconds(sum(estimates)) if estimates else "Calibrating..."
 
 
 def _compute_dashboard_estimated_end(estimated_time, now=None):
@@ -440,7 +459,6 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 return int(SHARED_DATA.info.get(configured_total_label, 0) or 0)
 
             eta_media_progress_samples = {}
-            eta_progress_samples = deque()
 
             # ─────────────────────────────────────────────────────────────────────────
             # 2) Info Panel
@@ -531,16 +549,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         pulled_video_bytes=SHARED_DATA.counters.get('total_pulled_video_bytes', 0),
                         progress_samples=eta_media_progress_samples,
                     )
-                    if media_eta == "Calibrating..." and elapsed_seconds >= 300.0:
-                        SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time_with_rolling_average(
-                            elapsed_seconds=elapsed_seconds,
-                            processed_assets=processed_assets,
-                            pending_assets=pending_assets,
-                            total_assets=total_assets,
-                            progress_samples=eta_progress_samples,
-                        )
-                    else:
-                        SHARED_DATA.info["estimated_time"] = media_eta
+                    SHARED_DATA.info["estimated_time"] = media_eta
                     SHARED_DATA.info["estimated_end"] = _compute_dashboard_estimated_end(
                         SHARED_DATA.info["estimated_time"],
                     )

@@ -1666,42 +1666,41 @@
     function computeEstimatedRemainingDuration({elapsedMs = 0, totals = {}, pulled = {}, bytes = {}, samples = {}}) {
         const safeElapsedMs = Math.max(0, Number(elapsedMs || 0));
         if (!Number.isFinite(safeElapsedMs) || safeElapsedMs <= 0) return "Calibrating...";
-        let remainingMs = 0;
-        let stillCalibrating = false;
-        for (const mediaType of ["photos", "videos"]) {
+        const mediaItems = ["photos", "videos"].map((mediaType) => {
             const total = Math.max(0, Number(totals[mediaType] || 0));
             const completed = Math.min(total, Math.max(0, Number(pulled[mediaType] || 0)));
-            if (!total || completed >= total) continue;
             const totalBytes = Math.max(0, Number(bytes[`total${mediaType}`] || 0));
-            const pulledBytes = Math.max(0, Number(bytes[`pulled${mediaType}`] || 0));
-            const useBytes = totalBytes > 0 && pulledBytes > 0;
+            const pulledBytes = Math.min(totalBytes, Math.max(0, Number(bytes[`pulled${mediaType}`] || 0)));
+            return {mediaType, total, completed, totalBytes, pulledBytes};
+        });
+        const globalAssetRate = mediaItems.reduce((sum, item) => sum + item.completed, 0) / safeElapsedMs;
+        const globalByteRate = mediaItems.reduce((sum, item) => sum + item.pulledBytes, 0) / safeElapsedMs;
+        let remainingMs = 0;
+        let hasEstimate = false;
+        let hasPendingMedia = false;
+        for (const {mediaType, total, completed, totalBytes, pulledBytes} of mediaItems) {
+            if (!total || completed >= total) continue;
+            hasPendingMedia = true;
+            const useBytes = totalBytes > 0 && globalByteRate > 0;
             const completedUnits = useBytes ? Math.min(totalBytes, pulledBytes) : completed;
             const pendingUnits = useBytes ? totalBytes - completedUnits : total - completed;
-            const typeSamples = samples[mediaType] || (samples[mediaType] = []);
-            const lastSample = typeSamples[typeSamples.length - 1];
-            if (!lastSample || lastSample.completed !== completedUnits) {
-                typeSamples.push({elapsedMs: safeElapsedMs, completed: completedUnits});
+            const sampleKey = `${mediaType}:${useBytes ? "bytes" : "assets"}`;
+            if (completedUnits > 0 && !samples[sampleKey]) {
+                samples[sampleKey] = {elapsedMs: safeElapsedMs, completed: completedUnits};
             }
-            const cutoffMs = safeElapsedMs - (5 * 60 * 1000);
-            while (typeSamples.length > 1 && typeSamples[1].elapsedMs <= cutoffMs) typeSamples.shift();
-            const baseline = typeSamples[0];
-            const sampledMs = safeElapsedMs - baseline.elapsedMs;
-            const sampledUnits = completedUnits - baseline.completed;
-            if (completed <= 0 || sampledMs < 30 * 1000 || sampledUnits <= 0) {
-                stillCalibrating = true;
-                continue;
+            const baseline = samples[sampleKey];
+            const sampledMs = baseline ? safeElapsedMs - baseline.elapsedMs : 0;
+            const sampledUnits = baseline ? completedUnits - baseline.completed : 0;
+            const mediaRate = sampledMs > 0 && sampledUnits > 0 ? sampledUnits / sampledMs : 0;
+            const fallbackRate = useBytes ? globalByteRate : globalAssetRate;
+            const effectiveRate = mediaRate || fallbackRate;
+            if (effectiveRate > 0) {
+                remainingMs += pendingUnits / effectiveRate;
+                hasEstimate = true;
             }
-            remainingMs += (sampledMs / sampledUnits) * pendingUnits;
         }
-        if (stillCalibrating) {
-            if (safeElapsedMs < 5 * 60 * 1000) return "Calibrating...";
-            const totalAssets = Math.max(0, Number(totals.assets || 0));
-            const pulledAssets = Math.min(totalAssets, Math.max(0, Number(pulled.assets || 0)));
-            const pendingAssets = Math.max(0, totalAssets - pulledAssets);
-            if (!pulledAssets || !pendingAssets) return pulledAssets >= totalAssets ? "00:00:00" : "Calibrating...";
-            return formatDuration((safeElapsedMs / pulledAssets) * pendingAssets);
-        }
-        return formatDuration(remainingMs);
+        if (!hasPendingMedia && mediaItems.some((item) => item.total > 0)) return "00:00:00";
+        return hasEstimate ? formatDuration(remainingMs) : "Calibrating...";
     }
 
     function computeEstimatedEnd(remainingDuration, now = new Date()) {
