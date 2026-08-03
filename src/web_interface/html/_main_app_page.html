@@ -817,7 +817,7 @@
     let lastOutputVersion = -1;
     let lastDashboardSnapshotUpdatedAt = "";
     let lastDashboardClockRenderedAt = 0;
-    let dashboardEtaSamples = [];
+    let dashboardEtaSamples = {photos: [], videos: []};
     let dashboardEtaSampleTransferStart = "";
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
@@ -1663,33 +1663,39 @@
         return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
     }
 
-    function computeEstimatedRemainingDuration({elapsedMs = 0, totalAssets = 0, pulledAssets = 0, samples = []}) {
-        const total = Math.max(0, Number(totalAssets || 0));
-        if (!Number.isFinite(total) || total <= 0) return "-";
-
-        const processed = Math.min(total, Math.max(0, Number(pulledAssets || 0)));
-        const pending = Math.max(0, total - processed);
-        if (pending <= 0) return "00:00:00";
-        if (processed <= 0) return "Estimating...";
-
+    function computeEstimatedRemainingDuration({elapsedMs = 0, totals = {}, pulled = {}, bytes = {}, samples = {}}) {
         const safeElapsedMs = Math.max(0, Number(elapsedMs || 0));
-        if (!Number.isFinite(safeElapsedMs) || safeElapsedMs <= 0) return "Estimating...";
-
-        const lastSample = samples[samples.length - 1];
-        if (!lastSample || lastSample.processed !== processed) {
-            samples.push({elapsedMs: safeElapsedMs, processed});
+        if (!Number.isFinite(safeElapsedMs) || safeElapsedMs <= 0) return "Calibrating...";
+        let remainingMs = 0;
+        let stillCalibrating = false;
+        for (const mediaType of ["photos", "videos"]) {
+            const total = Math.max(0, Number(totals[mediaType] || 0));
+            const completed = Math.min(total, Math.max(0, Number(pulled[mediaType] || 0)));
+            if (!total || completed >= total) continue;
+            const totalBytes = Math.max(0, Number(bytes[`total${mediaType}`] || 0));
+            const pulledBytes = Math.max(0, Number(bytes[`pulled${mediaType}`] || 0));
+            const useBytes = totalBytes > 0 && pulledBytes > 0;
+            const completedUnits = useBytes ? Math.min(totalBytes, pulledBytes) : completed;
+            const pendingUnits = useBytes ? totalBytes - completedUnits : total - completed;
+            const typeSamples = samples[mediaType] || (samples[mediaType] = []);
+            const lastSample = typeSamples[typeSamples.length - 1];
+            if (!lastSample || lastSample.completed !== completedUnits) {
+                typeSamples.push({elapsedMs: safeElapsedMs, completed: completedUnits});
+            }
+            const cutoffMs = safeElapsedMs - (5 * 60 * 1000);
+            while (typeSamples.length > 1 && typeSamples[1].elapsedMs <= cutoffMs) typeSamples.shift();
+            const baseline = typeSamples[0];
+            const sampledMs = safeElapsedMs - baseline.elapsedMs;
+            const sampledUnits = completedUnits - baseline.completed;
+            const minimumCompleted = Math.min(total, mediaType === "photos" ? 100 : 10);
+            if (completed < minimumCompleted || sampledMs < 30 * 1000 || sampledUnits <= 0) {
+                stillCalibrating = true;
+                continue;
+            }
+            remainingMs += (sampledMs / sampledUnits) * pendingUnits;
         }
-        const cutoffMs = safeElapsedMs - (5 * 60 * 1000);
-        while (samples.length > 1 && samples[1].elapsedMs <= cutoffMs) samples.shift();
-        const baseline = samples[0];
-        const sampledMs = safeElapsedMs - baseline.elapsedMs;
-        const sampledAssets = processed - baseline.processed;
-        if (sampledMs >= 30 * 1000 && sampledAssets >= 10) {
-            return formatDuration((sampledMs / sampledAssets) * pending);
-        }
-
-        const avgMsPerAsset = safeElapsedMs / processed;
-        return formatDuration(avgMsPerAsset * pending);
+        if (stillCalibrating) return "Calibrating...";
+        return formatDuration(remainingMs);
     }
 
     function computeEstimatedEnd(remainingDuration, now = new Date()) {
@@ -1781,12 +1787,18 @@
         const assetTransferStartedMs = assetTransferStartedAt ? Date.parse(assetTransferStartedAt) : NaN;
         if (assetTransferStartedAt !== dashboardEtaSampleTransferStart) {
             dashboardEtaSampleTransferStart = assetTransferStartedAt;
-            dashboardEtaSamples = [];
+            dashboardEtaSamples = {photos: [], videos: []};
         }
         const estimated = computeEstimatedRemainingDuration({
             elapsedMs: Number.isFinite(assetTransferStartedMs) ? Math.max(0, Date.now() - assetTransferStartedMs) : elapsedMs,
-            totalAssets: stats.totalAssets,
-            pulledAssets: stats.pulledAssets,
+            totals: {photos: stats.totalPhotos, videos: stats.totalVideos},
+            pulled: {photos: stats.pulledPhotos, videos: stats.pulledVideos},
+            bytes: {
+                totalphotos: stats.totalPhotoBytes,
+                totalvideos: stats.totalVideoBytes,
+                pulledphotos: stats.pulledPhotoBytes,
+                pulledvideos: stats.pulledVideoBytes,
+            },
             samples: dashboardEtaSamples,
         });
         const now = new Date();

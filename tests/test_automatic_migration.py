@@ -250,6 +250,36 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
 
         self.assertEqual(estimated, "0:03:30")
 
+    def test_dashboard_eta_separates_photo_and_video_byte_rates_after_calibration(self):
+        samples = {}
+        automatic_module._compute_dashboard_media_type_estimated_time(
+            elapsed_seconds=60,
+            total_photos=200,
+            total_videos=20,
+            pulled_photos=100,
+            pulled_videos=10,
+            total_photo_bytes=2_000,
+            total_video_bytes=20_000,
+            pulled_photo_bytes=1_000,
+            pulled_video_bytes=10_000,
+            progress_samples=samples,
+        )
+
+        estimated = automatic_module._compute_dashboard_media_type_estimated_time(
+            elapsed_seconds=120,
+            total_photos=200,
+            total_videos=20,
+            pulled_photos=150,
+            pulled_videos=15,
+            total_photo_bytes=2_000,
+            total_video_bytes=20_000,
+            pulled_photo_bytes=1_500,
+            pulled_video_bytes=15_000,
+            progress_samples=samples,
+        )
+
+        self.assertEqual(estimated, "0:02:00")
+
     def test_compute_dashboard_estimated_end_uses_local_time_for_valid_duration(self):
         estimated_end = automatic_module._compute_dashboard_estimated_end(
             "01:02:03",

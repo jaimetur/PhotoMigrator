@@ -106,6 +106,54 @@ def _compute_dashboard_estimated_time_with_rolling_average(
     )
 
 
+def _compute_dashboard_media_type_estimated_time(
+    elapsed_seconds,
+    total_photos,
+    total_videos,
+    pulled_photos,
+    pulled_videos,
+    total_photo_bytes,
+    total_video_bytes,
+    pulled_photo_bytes,
+    pulled_video_bytes,
+    progress_samples,
+):
+    """Estimate independently per media type, preferring byte rates when complete sizes exist."""
+    elapsed_seconds = max(0.0, float(elapsed_seconds or 0.0))
+    estimates = []
+    still_calibrating = False
+    for media_type, total_count, pulled_count, total_bytes, pulled_bytes, minimum_count in (
+        ("photos", total_photos, pulled_photos, total_photo_bytes, pulled_photo_bytes, 100),
+        ("videos", total_videos, pulled_videos, total_video_bytes, pulled_video_bytes, 10),
+    ):
+        total_count = max(0, _parse_int(total_count, 0))
+        pulled_count = min(total_count, max(0, _parse_int(pulled_count, 0)))
+        if not total_count or pulled_count >= total_count:
+            continue
+        total_bytes = max(0, _parse_int(total_bytes, 0))
+        pulled_bytes = max(0, _parse_int(pulled_bytes, 0))
+        use_bytes = total_bytes > 0 and pulled_bytes > 0
+        completed_units = min(total_bytes, pulled_bytes) if use_bytes else pulled_count
+        pending_units = (total_bytes - completed_units) if use_bytes else (total_count - pulled_count)
+        samples = progress_samples.setdefault(media_type, deque())
+        if not samples or samples[-1][1] != completed_units:
+            samples.append((elapsed_seconds, completed_units))
+        cutoff = elapsed_seconds - 300.0
+        while len(samples) > 1 and samples[1][0] <= cutoff:
+            samples.popleft()
+        baseline_elapsed, baseline_units = samples[0]
+        sampled_seconds = elapsed_seconds - baseline_elapsed
+        sampled_units = completed_units - baseline_units
+        required_count = min(total_count, minimum_count)
+        if pulled_count < required_count or sampled_seconds < 30.0 or sampled_units <= 0:
+            still_calibrating = True
+        else:
+            estimates.append((sampled_seconds / sampled_units) * pending_units)
+    if still_calibrating:
+        return "Calibrating..."
+    return _format_hms_from_seconds(sum(estimates)) if estimates else "00:00:00"
+
+
 def _compute_dashboard_estimated_end(estimated_time, now=None):
     """Return a local completion timestamp for a valid ``HH:MM:SS`` estimate."""
     match = re.fullmatch(r"(\d+):(\d{2}):(\d{2})", str(estimated_time or "").strip())
@@ -392,7 +440,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     )
                 return int(SHARED_DATA.info.get(configured_total_label, 0) or 0)
 
-            eta_progress_samples = deque()
+            eta_media_progress_samples = {}
 
             # ─────────────────────────────────────────────────────────────────────────
             # 2) Info Panel
@@ -467,13 +515,19 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     0.0,
                     (datetime.now(timezone.utc) - transfer_started_at).total_seconds()
                 ) if transfer_started_at else 0.0
-                SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time_with_rolling_average(
+                media_eta = _compute_dashboard_media_type_estimated_time(
                     elapsed_seconds=elapsed_seconds,
-                    processed_assets=processed_assets,
-                    pending_assets=pending_assets,
-                    total_assets=total_assets,
-                    progress_samples=eta_progress_samples,
+                    total_photos=physical_progress_total('total_pulled_photos', 'total_photos'),
+                    total_videos=physical_progress_total('total_pulled_videos', 'total_videos'),
+                    pulled_photos=SHARED_DATA.counters.get('total_pulled_photos', 0),
+                    pulled_videos=SHARED_DATA.counters.get('total_pulled_videos', 0),
+                    total_photo_bytes=SHARED_DATA.info.get('total_photo_bytes', 0),
+                    total_video_bytes=SHARED_DATA.info.get('total_video_bytes', 0),
+                    pulled_photo_bytes=SHARED_DATA.counters.get('total_pulled_photo_bytes', 0),
+                    pulled_video_bytes=SHARED_DATA.counters.get('total_pulled_video_bytes', 0),
+                    progress_samples=eta_media_progress_samples,
                 )
+                SHARED_DATA.info["estimated_time"] = media_eta
                 SHARED_DATA.info["estimated_end"] = _compute_dashboard_estimated_end(
                     SHARED_DATA.info["estimated_time"],
                 )
