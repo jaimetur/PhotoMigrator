@@ -117,6 +117,8 @@ class ClassImmichPhotos(BaseMediaClient):
         self.all_assets_filtered = None
         self.assets_without_albums_filtered = None
         self.albums_assets_filtered = None
+        self._all_assets_unfiltered_cache = None
+        self._all_assets_unfiltered_cache_lock = threading.Lock()
 
         # Get the values from the arguments (if exists)
         self.type = ARGS.get('filter-by-type', None)
@@ -3249,6 +3251,16 @@ class ClassImmichPhotos(BaseMediaClient):
             return None
 
     def _get_all_assets_unfiltered(self, log_level=None, show_progress=False):
+        """Return one shared snapshot when concurrent duplicate resolution needs it."""
+        if not hasattr(self, "_all_assets_unfiltered_cache_lock"):
+            self._all_assets_unfiltered_cache_lock = threading.Lock()
+        with self._all_assets_unfiltered_cache_lock:
+            return self._get_all_assets_unfiltered_locked(
+                log_level=log_level,
+                show_progress=show_progress,
+            )
+
+    def _get_all_assets_unfiltered_locked(self, log_level=None, show_progress=False):
         with set_log_level(LOGGER, log_level):
             if hasattr(self, "_all_assets_unfiltered_cache") and self._all_assets_unfiltered_cache is not None:
                 return self._all_assets_unfiltered_cache

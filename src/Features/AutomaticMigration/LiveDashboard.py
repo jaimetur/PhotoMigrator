@@ -67,6 +67,23 @@ def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending
     return _format_hms_from_seconds(estimated_remaining_seconds)
 
 
+def _compute_dashboard_terminal_assets(counters, total_assets=None):
+    """Return source files whose migration outcome is already final."""
+    counters = dict(counters or {})
+    terminal_assets = sum(
+        max(0, _parse_int(counters.get(counter_name), 0))
+        for counter_name in (
+            "total_pull_failed_assets",
+            "total_pushed_assets",
+            "total_push_duplicates_assets",
+            "total_push_failed_assets",
+        )
+    )
+    if total_assets is not None:
+        terminal_assets = min(max(0, _parse_int(total_assets, 0)), terminal_assets)
+    return terminal_assets
+
+
 def _compute_dashboard_estimated_end(estimated_time, now=None):
     """Return a local completion timestamp for a valid ``HH:MM:SS`` estimate."""
     match = re.fullmatch(r"(\d+):(\d{2}):(\d{2})", str(estimated_time or "").strip())
@@ -408,9 +425,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 current_album_assoc_queue_size = int(SHARED_DATA.info.get('album_assoc_queue_size', 0) or 0)
                 current_delayed_queue_size = int(SHARED_DATA.info.get('delayed_assets_pending', 0) or 0)
                 total_assets = physical_progress_total('total_pulled_assets', 'total_assets')
-                processed_assets = min(
-                    total_assets,
-                    max(0, int(SHARED_DATA.counters.get('total_pulled_assets', 0) or 0))
+                processed_assets = _compute_dashboard_terminal_assets(
+                    SHARED_DATA.counters,
+                    total_assets=total_assets,
                 )
                 pending_assets = max(0, total_assets - processed_assets)
                 transfer_started_at_raw = SHARED_DATA.info.get("asset_transfer_start_time")

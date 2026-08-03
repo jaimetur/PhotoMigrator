@@ -562,6 +562,44 @@ class TestImmichPhotosUnit(unittest.TestCase):
         self.assertEqual(mock_post.call_args.kwargs["timeout"], self.manager.IMMICH_ASSET_INVENTORY_TIMEOUT)
         mock_sleep.assert_called_once_with(1)
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    def test_unfiltered_asset_inventory_coalesces_concurrent_requests(self, mock_post):
+        response = MagicMock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            "assets": {
+                "items": [{"id": "a1"}],
+                "nextPage": None,
+            }
+        }
+        request_started = threading.Event()
+        allow_response = threading.Event()
+
+        def delayed_response(*_args, **_kwargs):
+            request_started.set()
+            self.assertTrue(allow_response.wait(timeout=2))
+            return response
+
+        mock_post.side_effect = delayed_response
+        results = []
+
+        def load_inventory():
+            results.append(self.manager._get_all_assets_unfiltered())
+
+        first = threading.Thread(target=load_inventory)
+        second = threading.Thread(target=load_inventory)
+        first.start()
+        self.assertTrue(request_started.wait(timeout=2))
+        second.start()
+        allow_response.set()
+        first.join(timeout=2)
+        second.join(timeout=2)
+
+        self.assertFalse(first.is_alive())
+        self.assertFalse(second.is_alive())
+        self.assertEqual(mock_post.call_count, 1)
+        self.assertEqual(results, [[{"id": "a1"}], [{"id": "a1"}]])
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.has_any_filter", return_value=False)
     @patch.object(ClassImmichPhotos, "_get_album_assets_via_search")
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.get")

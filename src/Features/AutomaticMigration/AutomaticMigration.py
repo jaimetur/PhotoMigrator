@@ -26,7 +26,7 @@ from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Features.AutomaticMigration.LiveDashboard import _compute_dashboard_estimated_end, _compute_dashboard_estimated_time, _format_hms_from_seconds, _normalize_bg_progress_desc, _parse_dashboard_progress_line, _parse_int, _select_visible_bg_progress_rows, start_dashboard
+from Features.AutomaticMigration.LiveDashboard import _compute_dashboard_estimated_end, _compute_dashboard_estimated_time, _compute_dashboard_terminal_assets, _format_hms_from_seconds, _normalize_bg_progress_desc, _parse_dashboard_progress_line, _parse_int, _select_visible_bg_progress_rows, start_dashboard
 from Utils.FileUtils import DEFAULT_FILE_EXCLUSION_PATTERNS, DEFAULT_FOLDER_EXCLUSION_PATTERNS, merge_exclusion_patterns, remove_dir_if_effectively_empty, remove_effectively_empty_dirs, remove_empty_dirs, contains_zip_files, normalize_path, sanitize_and_unpack_zips
 from Utils.GeneralUtils import confirm_continue, TQDM_DASHBOARD_PREFIX, TQDM_DASHBOARD_META_PREFIX, find_reusable_album_candidate, build_reusable_album_group, canonicalize_album_name_for_reuse, prefer_canonical_album_names_enabled, consolidate_similar_albums_enabled, has_any_filter
 from Utils.StandaloneUtils import change_working_dir, resolve_external_path
@@ -1428,23 +1428,36 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             )
         return removed_count
 
-    def _refresh_queue_depth():
+    queue_depth_last_scan_monotonic = 0.0
+    queue_depth_scan_interval_seconds = 0.5
+
+    def _refresh_queue_depth(force=False):
+        """Refresh dashboard queue depths without repeatedly walking persistent queues."""
+        nonlocal queue_depth_last_scan_monotonic
         with metrics_lock:
-            delayed_assets = _count_staged_queue_files(
-                temp_folder,
-                AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
-            )
             try:
                 queue_size = push_queue.qsize()
             except NameError:
                 queue_size = 0
-            album_assoc_queue_size = _count_staged_queue_files(
-                temp_folder,
-                AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+            now = time.monotonic()
+            refresh_persistent_depths = (
+                force
+                or not queue_depth_last_scan_monotonic
+                or now - queue_depth_last_scan_monotonic >= queue_depth_scan_interval_seconds
             )
+            if refresh_persistent_depths:
+                delayed_assets = _count_staged_queue_files(
+                    temp_folder,
+                    AUTOMATIC_MIGRATION_DELAYED_QUEUE_FOLDER,
+                )
+                album_assoc_queue_size = _count_staged_queue_files(
+                    temp_folder,
+                    AUTOMATIC_MIGRATION_ALBUM_ASSOC_QUEUE_FOLDER,
+                )
+                SHARED_DATA.info['album_assoc_queue_size'] = album_assoc_queue_size
+                SHARED_DATA.info['delayed_assets_pending'] = delayed_assets
+                queue_depth_last_scan_monotonic = now
             SHARED_DATA.info['assets_in_queue'] = queue_size
-            SHARED_DATA.info['album_assoc_queue_size'] = album_assoc_queue_size
-            SHARED_DATA.info['delayed_assets_pending'] = delayed_assets
 
     class MonitoredQueue(Queue):
         def put(self, item, *args, **kwargs):
@@ -1485,6 +1498,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     album_pending_context_locks = {}
     album_pending_context_locks_lock = threading.Lock()
     album_queue_state_by_name = {}
+    queue_context_scan_interval_seconds = 0.25
     pending_duplicate_resolution_by_album = {}
     pending_duplicate_resolution_lock = threading.Lock()
     album_assoc_completed_album_keys = set()
@@ -2617,15 +2631,26 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     def _get_album_queue_state(scope_key):
         return album_queue_state_by_name.setdefault(
             scope_key,
-            {"in_flight": set(), "completed": set()},
+            {
+                "in_flight": set(),
+                "completed": set(),
+                "staged_file_keys": None,
+                "last_staged_scan_monotonic": 0.0,
+            },
         )
 
     def _snapshot_album_queue_state(queue_scope, state):
         pending_duplicate_keys = _get_pending_duplicate_file_keys(queue_scope["label"]) if queue_scope["kind"] == "Album" else set()
-        staged_file_keys = {
-            _normalized_asset_path_key(file_path)
-            for file_path in _list_queue_scope_remaining_files(queue_scope)
-        }
+        now = time.monotonic()
+        last_staged_scan = float(state.get("last_staged_scan_monotonic") or 0.0)
+        staged_file_keys = state.get("staged_file_keys")
+        if staged_file_keys is None or now - last_staged_scan >= queue_context_scan_interval_seconds:
+            staged_file_keys = {
+                _normalized_asset_path_key(file_path)
+                for file_path in _list_queue_scope_remaining_files(queue_scope)
+            }
+            state["staged_file_keys"] = staged_file_keys
+            state["last_staged_scan_monotonic"] = now
         in_flight_keys = set(state["in_flight"])
         completed_keys = set(state["completed"])
         waiting_keys = staged_file_keys - in_flight_keys - completed_keys - pending_duplicate_keys
@@ -4209,6 +4234,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 t.join()
 
             # En este punto todos los pulls y pushs están listas y la cola está vacía.
+            _refresh_queue_depth(force=True)
             _reconcile_terminal_albums()
 
             immich_stacks_created = 0

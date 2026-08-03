@@ -175,6 +175,7 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         self.assertEqual(snapshot["albumAssocRetryScheduled"], 7)
         self.assertEqual(snapshot["albumAssocRetryRecovered"], 5)
         self.assertEqual(snapshot["albumAssocUnconfirmed"], 1)
+        self.assertIn("updatedAt", snapshot)
 
     def test_web_dashboard_snapshot_uses_the_same_physical_totals_for_pull_and_push(self):
         shared_data = automatic_module.SharedData(
@@ -227,6 +228,20 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
         )
 
         self.assertEqual(estimated, "Estimating...")
+
+    def test_dashboard_terminal_assets_excludes_assets_only_pulled_from_eta_progress(self):
+        terminal_assets = automatic_module._compute_dashboard_terminal_assets(
+            {
+                "total_pulled_assets": 90,
+                "total_pull_failed_assets": 2,
+                "total_pushed_assets": 10,
+                "total_push_duplicates_assets": 3,
+                "total_push_failed_assets": 1,
+            },
+            total_assets=100,
+        )
+
+        self.assertEqual(terminal_assets, 16)
 
     def test_compute_dashboard_estimated_end_uses_local_time_for_valid_duration(self):
         estimated_end = automatic_module._compute_dashboard_estimated_end(
