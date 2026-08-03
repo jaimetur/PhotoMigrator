@@ -1687,14 +1687,20 @@
             const baseline = typeSamples[0];
             const sampledMs = safeElapsedMs - baseline.elapsedMs;
             const sampledUnits = completedUnits - baseline.completed;
-            const minimumCompleted = Math.min(total, mediaType === "photos" ? 100 : 10);
-            if (completed < minimumCompleted || sampledMs < 30 * 1000 || sampledUnits <= 0) {
+            if (completed <= 0 || sampledMs < 30 * 1000 || sampledUnits <= 0) {
                 stillCalibrating = true;
                 continue;
             }
             remainingMs += (sampledMs / sampledUnits) * pendingUnits;
         }
-        if (stillCalibrating) return "Calibrating...";
+        if (stillCalibrating) {
+            if (safeElapsedMs < 5 * 60 * 1000) return "Calibrating...";
+            const totalAssets = Math.max(0, Number(totals.assets || 0));
+            const pulledAssets = Math.min(totalAssets, Math.max(0, Number(pulled.assets || 0)));
+            const pendingAssets = Math.max(0, totalAssets - pulledAssets);
+            if (!pulledAssets || !pendingAssets) return pulledAssets >= totalAssets ? "00:00:00" : "Calibrating...";
+            return formatDuration((safeElapsedMs / pulledAssets) * pendingAssets);
+        }
         return formatDuration(remainingMs);
     }
 
@@ -1791,8 +1797,8 @@
         }
         const estimated = computeEstimatedRemainingDuration({
             elapsedMs: Number.isFinite(assetTransferStartedMs) ? Math.max(0, Date.now() - assetTransferStartedMs) : elapsedMs,
-            totals: {photos: stats.totalPhotos, videos: stats.totalVideos},
-            pulled: {photos: stats.pulledPhotos, videos: stats.pulledVideos},
+            totals: {assets: stats.totalAssets, photos: stats.totalPhotos, videos: stats.totalVideos},
+            pulled: {assets: stats.pulledAssets, photos: stats.pulledPhotos, videos: stats.pulledVideos},
             bytes: {
                 totalphotos: stats.totalPhotoBytes,
                 totalvideos: stats.totalVideoBytes,

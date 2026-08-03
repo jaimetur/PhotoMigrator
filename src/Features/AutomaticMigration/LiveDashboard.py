@@ -122,9 +122,9 @@ def _compute_dashboard_media_type_estimated_time(
     elapsed_seconds = max(0.0, float(elapsed_seconds or 0.0))
     estimates = []
     still_calibrating = False
-    for media_type, total_count, pulled_count, total_bytes, pulled_bytes, minimum_count in (
-        ("photos", total_photos, pulled_photos, total_photo_bytes, pulled_photo_bytes, 100),
-        ("videos", total_videos, pulled_videos, total_video_bytes, pulled_video_bytes, 10),
+    for media_type, total_count, pulled_count, total_bytes, pulled_bytes in (
+        ("photos", total_photos, pulled_photos, total_photo_bytes, pulled_photo_bytes),
+        ("videos", total_videos, pulled_videos, total_video_bytes, pulled_video_bytes),
     ):
         total_count = max(0, _parse_int(total_count, 0))
         pulled_count = min(total_count, max(0, _parse_int(pulled_count, 0)))
@@ -144,8 +144,7 @@ def _compute_dashboard_media_type_estimated_time(
         baseline_elapsed, baseline_units = samples[0]
         sampled_seconds = elapsed_seconds - baseline_elapsed
         sampled_units = completed_units - baseline_units
-        required_count = min(total_count, minimum_count)
-        if pulled_count < required_count or sampled_seconds < 30.0 or sampled_units <= 0:
+        if pulled_count <= 0 or sampled_seconds < 30.0 or sampled_units <= 0:
             still_calibrating = True
         else:
             estimates.append((sampled_seconds / sampled_units) * pending_units)
@@ -441,6 +440,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 return int(SHARED_DATA.info.get(configured_total_label, 0) or 0)
 
             eta_media_progress_samples = {}
+            eta_progress_samples = deque()
 
             # ─────────────────────────────────────────────────────────────────────────
             # 2) Info Panel
@@ -527,7 +527,16 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     pulled_video_bytes=SHARED_DATA.counters.get('total_pulled_video_bytes', 0),
                     progress_samples=eta_media_progress_samples,
                 )
-                SHARED_DATA.info["estimated_time"] = media_eta
+                if media_eta == "Calibrating..." and elapsed_seconds >= 300.0:
+                    SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time_with_rolling_average(
+                        elapsed_seconds=elapsed_seconds,
+                        processed_assets=processed_assets,
+                        pending_assets=pending_assets,
+                        total_assets=total_assets,
+                        progress_samples=eta_progress_samples,
+                    )
+                else:
+                    SHARED_DATA.info["estimated_time"] = media_eta
                 SHARED_DATA.info["estimated_end"] = _compute_dashboard_estimated_end(
                     SHARED_DATA.info["estimated_time"],
                 )
