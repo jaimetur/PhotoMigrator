@@ -5,7 +5,7 @@
 ---
 
 ## Release: v4.6.1
-### Release Date: 2026-08*03
+### Release Date: 2026-08-03
   
 #### 🚨 Breaking Changes:
 
