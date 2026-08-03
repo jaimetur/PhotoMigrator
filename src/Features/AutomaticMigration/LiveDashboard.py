@@ -515,31 +515,35 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     0.0,
                     (datetime.now(timezone.utc) - transfer_started_at).total_seconds()
                 ) if transfer_started_at else 0.0
-                media_eta = _compute_dashboard_media_type_estimated_time(
-                    elapsed_seconds=elapsed_seconds,
-                    total_photos=physical_progress_total('total_pulled_photos', 'total_photos'),
-                    total_videos=physical_progress_total('total_pulled_videos', 'total_videos'),
-                    pulled_photos=SHARED_DATA.counters.get('total_pulled_photos', 0),
-                    pulled_videos=SHARED_DATA.counters.get('total_pulled_videos', 0),
-                    total_photo_bytes=SHARED_DATA.info.get('total_photo_bytes', 0),
-                    total_video_bytes=SHARED_DATA.info.get('total_video_bytes', 0),
-                    pulled_photo_bytes=SHARED_DATA.counters.get('total_pulled_photo_bytes', 0),
-                    pulled_video_bytes=SHARED_DATA.counters.get('total_pulled_video_bytes', 0),
-                    progress_samples=eta_media_progress_samples,
-                )
-                if media_eta == "Calibrating..." and elapsed_seconds >= 300.0:
-                    SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time_with_rolling_average(
-                        elapsed_seconds=elapsed_seconds,
-                        processed_assets=processed_assets,
-                        pending_assets=pending_assets,
-                        total_assets=total_assets,
-                        progress_samples=eta_progress_samples,
-                    )
+                if transfer_started_at is None:
+                    SHARED_DATA.info["estimated_time"] = "-"
+                    SHARED_DATA.info["estimated_end"] = "-"
                 else:
-                    SHARED_DATA.info["estimated_time"] = media_eta
-                SHARED_DATA.info["estimated_end"] = _compute_dashboard_estimated_end(
-                    SHARED_DATA.info["estimated_time"],
-                )
+                    media_eta = _compute_dashboard_media_type_estimated_time(
+                        elapsed_seconds=elapsed_seconds,
+                        total_photos=physical_progress_total('total_pulled_photos', 'total_photos'),
+                        total_videos=physical_progress_total('total_pulled_videos', 'total_videos'),
+                        pulled_photos=SHARED_DATA.counters.get('total_pulled_photos', 0),
+                        pulled_videos=SHARED_DATA.counters.get('total_pulled_videos', 0),
+                        total_photo_bytes=SHARED_DATA.info.get('total_photo_bytes', 0),
+                        total_video_bytes=SHARED_DATA.info.get('total_video_bytes', 0),
+                        pulled_photo_bytes=SHARED_DATA.counters.get('total_pulled_photo_bytes', 0),
+                        pulled_video_bytes=SHARED_DATA.counters.get('total_pulled_video_bytes', 0),
+                        progress_samples=eta_media_progress_samples,
+                    )
+                    if media_eta == "Calibrating..." and elapsed_seconds >= 300.0:
+                        SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time_with_rolling_average(
+                            elapsed_seconds=elapsed_seconds,
+                            processed_assets=processed_assets,
+                            pending_assets=pending_assets,
+                            total_assets=total_assets,
+                            progress_samples=eta_progress_samples,
+                        )
+                    else:
+                        SHARED_DATA.info["estimated_time"] = media_eta
+                    SHARED_DATA.info["estimated_end"] = _compute_dashboard_estimated_end(
+                        SHARED_DATA.info["estimated_time"],
+                    )
 
                 def _format_queue_bar(current_value, max_value=None, show_total=False):
                     displayed_max = max(0, int(max_value if max_value is not None else total_assets or 0))

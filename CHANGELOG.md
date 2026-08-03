@@ -17,6 +17,7 @@
   - Coalesced concurrent Immich duplicate-resolution inventory reads. A client now allows one unfiltered library snapshot to download and index at a time; simultaneous workers wait for and reuse that same cached result instead of issuing duplicate full-library scans. Fixes #1214.
   - Improved Automatic Migration ETA stability. Remaining time now uses a five-minute moving average and calibrates each media type from its first measurable progress instead of waiting for fixed photo/video counts; a global fallback prevents calibration from blocking the ETA indefinitely. Fixes #1214.
   - Improved Automatic Migration ETA accuracy for mixed media libraries. Photo and video throughput are estimated independently; when complete file sizes are already present in the source inventory, each media type uses byte-based throughput without additional remote API requests. Fixes #1214.
+  - Clarified Automatic Migration dashboard timing before transfer begins. Remaining Time and Estimated End now remain unset until Pull/Push has a real transfer start time, preventing a misleading zero-duration ETA; Web dashboard time values are highlighted independently from their labels.
 
 #### 🐛 Bug fixes:
   - Corrected Immich `Remove All Assets` cleanup. Active assets are now sent only to the bulk asset-delete endpoint, while assets already in Immich's trash are permanently removed through the dedicated trash-empty endpoint. The final summary reports both phases separately, avoiding repeated rejected 250-asset batches and misleading active-asset totals.

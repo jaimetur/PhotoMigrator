@@ -2252,6 +2252,11 @@ body[data-theme="dark"] .theme-card__name {
     color: #b9dcd1;
 }
 
+.web-dashboard__meta-value {
+    color: #ffd56a;
+    font-weight: 700;
+}
+
 .stats-columns {
     margin-top: 10px;
     display: grid;
