@@ -1129,10 +1129,16 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=None):
         LOGGER.info(f"==================================================")
         LOGGER.info(f"                  FINAL SUMMARY:                  ")
         LOGGER.info(f"==================================================")
-        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
-        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
+        removal_details = getattr(cloud_client_obj, "last_remove_all_assets_details", None)
+        if removal_details is not None:
+            LOGGER.info(f"Active Assets removed                  : {removal_details['active_assets_removed']}")
+            LOGGER.info(f"Assets permanently removed from trash  : {removal_details['trashed_assets_permanently_removed']}")
+            LOGGER.info(f"Total Assets permanently removed       : {assets_removed}")
+        else:
+            LOGGER.info(f"Total Assets removed                   : {assets_removed}")
+        LOGGER.info(f"Total Albums removed                   : {albums_removed}")
         LOGGER.info(f"")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info(f"Total time elapsed                     : {formatted_duration}")
         LOGGER.info(f"==================================================")
         LOGGER.info(f"")
 

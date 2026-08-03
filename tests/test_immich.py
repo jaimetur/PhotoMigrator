@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 import tempfile
@@ -108,6 +109,37 @@ class TestImmichPhotosUnit(unittest.TestCase):
                 entry = self.manager._get_takeout_people_entry_for_asset(str(asset_path))
 
         self.assertEqual(entry["people"], ["Luis"])
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    def test_empty_trash_uses_immich_trash_endpoint(self, mock_post):
+        response = MagicMock()
+        response.content = b'{"count": 3}'
+        response.json.return_value = {"count": 3}
+        response.raise_for_status.return_value = None
+        mock_post.return_value = response
+
+        removed = self.manager.empty_trash()
+
+        self.assertEqual(removed, 3)
+        mock_post.assert_called_once_with(
+            "http://immich.local/api/trash/empty",
+            headers=self.manager.HEADERS_WITH_CREDENTIALS,
+            verify=False,
+        )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    def test_remove_all_assets_keeps_active_assets_and_trash_as_separate_phases(self, _mock_logger):
+        self.manager.get_assets_by_filters = MagicMock(return_value=[{"id": "asset-1"}, {"id": "asset-2"}])
+        self.manager.remove_assets = MagicMock(return_value=2)
+        self.manager.empty_trash = MagicMock(return_value=4)
+        self.manager.remove_empty_albums = MagicMock(return_value=0)
+
+        removed_assets, removed_albums = self.manager.remove_all_assets()
+
+        self.assertEqual((removed_assets, removed_albums), (6, 0))
+        self.manager.get_assets_by_filters.assert_called_once()
+        self.manager.remove_assets.assert_called_once_with(["asset-1", "asset-2"], log_level=logging.WARNING)
+        self.manager.empty_trash.assert_called_once_with(log_level=logging.WARNING)
 
     def test_takeout_people_resolution_uses_single_same_name_candidate_without_dates(self):
         with tempfile.TemporaryDirectory() as temp_dir:

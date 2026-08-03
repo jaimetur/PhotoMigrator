@@ -2069,6 +2069,31 @@ class ClassImmichPhotos(BaseMediaClient):
                 return 0
 
 
+    def empty_trash(self, log_level=None):
+        """Permanently delete assets already present in the Immich trash."""
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            try:
+                response = requests.post(
+                    f"{self.IMMICH_URL}/api/trash/empty",
+                    headers=self.HEADERS_WITH_CREDENTIALS,
+                    verify=False,
+                )
+                response.raise_for_status()
+                payload = response.json() if response.content else {}
+                return int(payload.get("count", 0) or 0)
+            except Exception as error:
+                response_body = ""
+                if "response" in locals():
+                    try:
+                        response_body = str(response.text or "").strip()
+                    except Exception:
+                        pass
+                detail = f" Response: {response_body}" if response_body else ""
+                LOGGER.error(f"Failed to empty Immich trash: {error}{detail}")
+                return 0
+
+
 
     def remove_duplicates_assets(self, keeper_strategy="better-quality", request_user_confirmation=True,
                                  use_immich_detection=True, use_immich_deletion=True, log_level=None):
@@ -5312,7 +5337,8 @@ class ClassImmichPhotos(BaseMediaClient):
     ###########################################################################
     def remove_all_assets(self, log_level=logging.WARNING):
         """
-        Removes ALL assets in Immich Photos (in batches of 250 if needed) and then removes empty albums.
+        Removes active Immich assets in batches, permanently empties the trash,
+        and then removes empty albums.
 
         Args:
             log_level (logging.LEVEL): log_level for logs and console
@@ -5325,8 +5351,6 @@ class ClassImmichPhotos(BaseMediaClient):
 
             # Collect
             all_assets_items = self.get_assets_by_filters(log_level=log_level)
-            all_assets_items_with_deleted = self.get_assets_by_filters(with_deleted=True, log_level=log_level)
-            all_assets_items.extend(all_assets_items_with_deleted)
 
             total_assets_found = len(all_assets_items)
             if total_assets_found == 0:
@@ -5334,11 +5358,14 @@ class ClassImmichPhotos(BaseMediaClient):
             LOGGER.info(f"Found {total_assets_found} asset(s) to remove.")
 
             assets_ids = []
+            seen_asset_ids = set()
             for asset in all_assets_items:
                 asset_id = asset.get("id")
-                if not asset_id:
+                asset_id = str(asset_id or "").strip()
+                if not asset_id or asset_id in seen_asset_ids:
                     continue
                 assets_ids.append(asset_id)
+                seen_asset_ids.add(asset_id)
 
             total_removed_assets = 0
             BATCH_SIZE = min(250, len(assets_ids))
@@ -5352,14 +5379,22 @@ class ClassImmichPhotos(BaseMediaClient):
                         total_removed_assets += removed_count
                         pbar.update(len(batch))
 
+            LOGGER.info("Emptying Immich trash permanently...")
+            total_trashed_assets_removed = self.empty_trash(log_level=logging.WARNING)
+
             LOGGER.info(f"Getting empty albums to remove...")
             total_removed_albums = self.remove_empty_albums(log_level=logging.WARNING)
 
             # self.logout(log_level=log_level)
             LOGGER.info(f"Total Assets removed: {total_removed_assets}")
+            LOGGER.info(f"Total trashed assets permanently removed: {total_trashed_assets_removed}")
             LOGGER.info(f"Total Albums removed: {total_removed_albums}")
 
-            return total_removed_assets, total_removed_albums
+            self.last_remove_all_assets_details = {
+                "active_assets_removed": total_removed_assets,
+                "trashed_assets_permanently_removed": total_trashed_assets_removed,
+            }
+            return total_removed_assets + total_trashed_assets_removed, total_removed_albums
 
 ##############################################################################
 #                                END OF CLASS                                #

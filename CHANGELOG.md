@@ -19,6 +19,7 @@
   - Improved Automatic Migration ETA accuracy for mixed media libraries. Photo and video throughput are estimated independently; when complete file sizes are already present in the source inventory, each media type uses byte-based throughput without additional remote API requests. Fixes #1214.
 
 #### 🐛 Bug fixes:
+  - Corrected Immich `Remove All Assets` cleanup. Active assets are now sent only to the bulk asset-delete endpoint, while assets already in Immich's trash are permanently removed through the dedicated trash-empty endpoint. The final summary reports both phases separately, avoiding repeated rejected 250-asset batches and misleading active-asset totals.
 
 #### 📚 Documentation:
 
