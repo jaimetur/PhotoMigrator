@@ -318,6 +318,51 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
 
         self.assertEqual(estimated, "00:00:00")
 
+    def test_dashboard_eta_display_throttles_and_smooths_updates(self):
+        state = {}
+        first_eta, first_end = automatic_module._update_dashboard_eta_display(
+            "10:00:00",
+            state,
+            now_monotonic=0,
+            now=datetime(2026, 8, 3, 10, 0, 0),
+        )
+        throttled_eta, throttled_end = automatic_module._update_dashboard_eta_display(
+            "02:00:00",
+            state,
+            now_monotonic=5,
+            now=datetime(2026, 8, 3, 10, 0, 5),
+        )
+        smoothed_eta, smoothed_end = automatic_module._update_dashboard_eta_display(
+            "02:00:00",
+            state,
+            now_monotonic=10,
+            now=datetime(2026, 8, 3, 10, 0, 10),
+        )
+
+        self.assertEqual(first_eta, "10:00:00")
+        self.assertEqual(throttled_eta, first_eta)
+        self.assertEqual(throttled_end, first_end)
+        self.assertEqual(smoothed_eta, "8:24:00")
+        self.assertEqual(smoothed_end, "2026-08-03 18:24:10")
+
+    def test_dashboard_eta_display_keeps_valid_eta_until_next_projection(self):
+        state = {}
+        automatic_module._update_dashboard_eta_display(
+            "01:00:00",
+            state,
+            now_monotonic=0,
+            now=datetime(2026, 8, 3, 10, 0, 0),
+        )
+        estimated, estimated_end = automatic_module._update_dashboard_eta_display(
+            "Calibrating...",
+            state,
+            now_monotonic=30,
+            now=datetime(2026, 8, 3, 10, 0, 30),
+        )
+
+        self.assertEqual(estimated, "1:00:00")
+        self.assertEqual(estimated_end, "2026-08-03 11:00:00")
+
     def test_compute_dashboard_estimated_end_uses_local_time_for_valid_duration(self):
         estimated_end = automatic_module._compute_dashboard_estimated_end(
             "01:02:03",

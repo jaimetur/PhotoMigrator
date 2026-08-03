@@ -47,6 +47,64 @@ def _format_hms_from_seconds(total_seconds):
     return str(timedelta(seconds=safe_seconds))
 
 
+def _parse_hms_to_seconds(value):
+    """Return a duration value in seconds when ``value`` is an ``HH:MM:SS`` string."""
+    match = re.fullmatch(r"(\d+):(\d{2}):(\d{2})", str(value or "").strip())
+    if not match:
+        return None
+    hours, minutes, seconds = (int(part) for part in match.groups())
+    return (hours * 3600) + (minutes * 60) + seconds
+
+
+def _update_dashboard_eta_display(
+    candidate_eta,
+    display_state,
+    now_monotonic=None,
+    now=None,
+    update_interval_seconds=10.0,
+    smoothing_factor=0.2,
+):
+    """Throttle and smooth the ETA shown to users without affecting migration work."""
+    current_eta = str(display_state.get("estimated_time") or "-")
+    current_seconds = _parse_hms_to_seconds(current_eta)
+    candidate_seconds = _parse_hms_to_seconds(candidate_eta)
+    current_monotonic = time.monotonic() if now_monotonic is None else float(now_monotonic)
+
+    # Completion and the first valid projection must be immediately visible.
+    if candidate_eta == "00:00:00":
+        display_state["estimated_time"] = candidate_eta
+        display_state["estimated_end"] = _compute_dashboard_estimated_end(candidate_eta, now=now)
+        display_state["last_update_monotonic"] = current_monotonic
+        return display_state["estimated_time"], display_state["estimated_end"]
+
+    # Keep a usable ETA while a transient sample cannot produce a projection.
+    if candidate_seconds is None:
+        if current_seconds is not None:
+            return current_eta, str(display_state.get("estimated_end") or "-")
+        display_state["estimated_time"] = candidate_eta
+        display_state["estimated_end"] = "-"
+        return display_state["estimated_time"], display_state["estimated_end"]
+
+    last_update_monotonic = float(display_state.get("last_update_monotonic") or 0.0)
+    should_update = (
+        current_seconds is None
+        or current_monotonic - last_update_monotonic >= max(1.0, float(update_interval_seconds or 0.0))
+    )
+    if should_update:
+        alpha = min(1.0, max(0.0, float(smoothing_factor or 0.0)))
+        displayed_seconds = candidate_seconds
+        if current_seconds is not None:
+            displayed_seconds = ((1.0 - alpha) * current_seconds) + (alpha * candidate_seconds)
+        display_state["estimated_time"] = _format_hms_from_seconds(displayed_seconds)
+        display_state["estimated_end"] = _compute_dashboard_estimated_end(display_state["estimated_time"], now=now)
+        display_state["last_update_monotonic"] = current_monotonic
+
+    return (
+        str(display_state.get("estimated_time") or "-"),
+        str(display_state.get("estimated_end") or "-"),
+    )
+
+
 def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending_assets, total_assets=None):
     total_assets = max(0, _parse_int(total_assets, 0))
     processed_assets = max(0, _parse_int(processed_assets, 0))
@@ -448,6 +506,11 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 return int(SHARED_DATA.info.get(configured_total_label, 0) or 0)
 
             eta_media_progress_samples = {}
+            eta_display_state = {
+                "estimated_time": "-",
+                "estimated_end": "-",
+                "last_update_monotonic": 0.0,
+            }
 
             # ─────────────────────────────────────────────────────────────────────────
             # 2) Info Panel
@@ -523,6 +586,11 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     (datetime.now(timezone.utc) - transfer_started_at).total_seconds()
                 ) if transfer_started_at else 0.0
                 if transfer_started_at is None:
+                    eta_display_state.update({
+                        "estimated_time": "-",
+                        "estimated_end": "-",
+                        "last_update_monotonic": 0.0,
+                    })
                     SHARED_DATA.info["estimated_time"] = "-"
                     SHARED_DATA.info["estimated_end"] = "-"
                 else:
@@ -534,9 +602,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                         pulled_videos=SHARED_DATA.counters.get('total_pulled_videos', 0),
                         progress_samples=eta_media_progress_samples,
                     )
-                    SHARED_DATA.info["estimated_time"] = media_eta
-                    SHARED_DATA.info["estimated_end"] = _compute_dashboard_estimated_end(
+                    (
                         SHARED_DATA.info["estimated_time"],
+                        SHARED_DATA.info["estimated_end"],
+                    ) = _update_dashboard_eta_display(
+                        media_eta,
+                        eta_display_state,
                     )
 
                 def _format_queue_bar(current_value, max_value=None, show_total=False):

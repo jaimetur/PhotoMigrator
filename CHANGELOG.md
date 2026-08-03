@@ -17,6 +17,7 @@
   - Coalesced concurrent Immich duplicate-resolution inventory reads. A client now allows one unfiltered library snapshot to download and index at a time; simultaneous workers wait for and reuse that same cached result instead of issuing duplicate full-library scans. Fixes #1214.
   - Improved Automatic Migration ETA stability. Remaining time now uses cumulative photo/video throughput instead of a five-minute moving window; until a media type establishes its own rate, its pending work uses the measured global transfer rate, so an unseen video stream cannot block ETA reporting. Fixes #1214.
   - Improved Automatic Migration ETA performance for mixed media libraries. Photo and video throughput are estimated independently from physical asset counts, avoiding per-file size reads in the Pull pipeline while preserving a global fallback until each media type has its own rate. Fixes #1214.
+  - Smoothed Automatic Migration ETA presentation. Remaining Time and Estimated End now refresh at most every 10 seconds; each refresh blends 80% of the displayed ETA with 20% of the latest projection to avoid abrupt fluctuations.
   - Clarified Automatic Migration dashboard timing before transfer begins. Remaining Time and Estimated End now remain unset until Pull/Push has a real transfer start time, preventing a misleading zero-duration ETA; Web dashboard time values are highlighted independently from their labels.
 
 #### 🐛 Bug fixes:

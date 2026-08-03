@@ -819,6 +819,7 @@
     let lastDashboardClockRenderedAt = 0;
     let dashboardEtaSamples = {photos: [], videos: []};
     let dashboardEtaSampleTransferStart = "";
+    let dashboardEtaDisplayState = {estimated: "-", estimatedEnd: "-", lastUpdatedMs: 0};
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
     const OUTPUT_BLOCK_SIZE = 400;
@@ -1656,6 +1657,12 @@
         return `${h}:${m}:${s}`;
     }
 
+    function durationToMilliseconds(value) {
+        const match = /^(\d+):(\d{2}):(\d{2})$/.exec(String(value || "").trim());
+        if (!match) return null;
+        return ((Number(match[1]) * 3600) + (Number(match[2]) * 60) + Number(match[3])) * 1000;
+    }
+
     function formatTimeOfDay(value) {
         const timestamp = Date.parse(String(value || ""));
         if (!Number.isFinite(timestamp)) return "-";
@@ -1710,6 +1717,41 @@
         const minutes = String(estimatedEnd.getMinutes()).padStart(2, "0");
         const secondsText = String(estimatedEnd.getSeconds()).padStart(2, "0");
         return `${year}-${month}-${day} ${hours}:${minutes}:${secondsText}`;
+    }
+
+    function updateDashboardEtaDisplay(candidateEta, now = new Date()) {
+        const candidateMs = durationToMilliseconds(candidateEta);
+        const currentMs = durationToMilliseconds(dashboardEtaDisplayState.estimated);
+        const nowMs = now.getTime();
+
+        if (candidateEta === "00:00:00") {
+            dashboardEtaDisplayState = {
+                estimated: candidateEta,
+                estimatedEnd: computeEstimatedEnd(candidateEta, now),
+                lastUpdatedMs: nowMs,
+            };
+            return dashboardEtaDisplayState;
+        }
+
+        if (candidateMs === null) {
+            if (currentMs !== null) return dashboardEtaDisplayState;
+            dashboardEtaDisplayState = {...dashboardEtaDisplayState, estimated: candidateEta, estimatedEnd: "-"};
+            return dashboardEtaDisplayState;
+        }
+
+        const updateIntervalMs = 10 * 1000;
+        if (currentMs === null || nowMs - dashboardEtaDisplayState.lastUpdatedMs >= updateIntervalMs) {
+            const smoothedMs = currentMs === null
+                ? candidateMs
+                : Math.round((currentMs * 0.8) + (candidateMs * 0.2));
+            const estimated = formatDuration(smoothedMs);
+            dashboardEtaDisplayState = {
+                estimated,
+                estimatedEnd: computeEstimatedEnd(estimated, now),
+                lastUpdatedMs: nowMs,
+            };
+        }
+        return dashboardEtaDisplayState;
     }
 
     function setText(id, value, fallback = "-") {
@@ -1788,8 +1830,9 @@
         if (assetTransferStartedAt !== dashboardEtaSampleTransferStart) {
             dashboardEtaSampleTransferStart = assetTransferStartedAt;
             dashboardEtaSamples = {photos: [], videos: []};
+            dashboardEtaDisplayState = {estimated: "-", estimatedEnd: "-", lastUpdatedMs: 0};
         }
-        const estimated = Number.isFinite(assetTransferStartedMs)
+        const etaCandidate = Number.isFinite(assetTransferStartedMs)
             ? computeEstimatedRemainingDuration({
                 elapsedMs: Math.max(0, Date.now() - assetTransferStartedMs),
                 totals: {assets: stats.totalAssets, photos: stats.totalPhotos, videos: stats.totalVideos},
@@ -1798,7 +1841,7 @@
             })
             : "-";
         const now = new Date();
-        const estimatedEnd = computeEstimatedEnd(estimated, now);
+        const {estimated, estimatedEnd} = updateDashboardEtaDisplay(etaCandidate, now);
         const updated = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
 
         const splitDashboardClientLabel = (value) => {
