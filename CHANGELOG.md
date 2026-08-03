@@ -15,7 +15,7 @@
   - Reduced Automatic Migration queue-context filesystem overhead. Per-asset `Album Queue` / `Folder Queue` log snapshots now reuse their staging-directory scan for a short interval, preserving the same transfer and queue behavior while avoiding a full directory walk for every emitted asset log. Fixes #1214.
   - Reduced Automatic Migration dashboard queue-refresh overhead. Persistent delayed and album-association queue depths are now reconciled at most twice per second while the in-memory push-queue depth continues to update immediately, avoiding repeated recursive scans during every queue operation. Fixes #1214.
   - Coalesced concurrent Immich duplicate-resolution inventory reads. A client now allows one unfiltered library snapshot to download and index at a time; simultaneous workers wait for and reuse that same cached result instead of issuing duplicate full-library scans. Fixes #1214.
-  - Improved Automatic Migration ETA accuracy. Remaining time is now calculated from terminal transfer outcomes (pushed, skipped duplicate, and failed files) rather than files merely read by the puller, so it continues to reflect pending upload work after Pull completes. Fixes #1214.
+  - Improved Automatic Migration ETA stability. Remaining time now uses a five-minute moving average once enough recent transfer progress is available, while preserving the existing Pull-based progress unit and falling back to the cumulative average during startup. Fixes #1214.
 
 #### 🐛 Bug fixes:
 

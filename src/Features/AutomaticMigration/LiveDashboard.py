@@ -67,21 +67,43 @@ def _compute_dashboard_estimated_time(elapsed_seconds, processed_assets, pending
     return _format_hms_from_seconds(estimated_remaining_seconds)
 
 
-def _compute_dashboard_terminal_assets(counters, total_assets=None):
-    """Return source files whose migration outcome is already final."""
-    counters = dict(counters or {})
-    terminal_assets = sum(
-        max(0, _parse_int(counters.get(counter_name), 0))
-        for counter_name in (
-            "total_pull_failed_assets",
-            "total_pushed_assets",
-            "total_push_duplicates_assets",
-            "total_push_failed_assets",
-        )
+def _compute_dashboard_estimated_time_with_rolling_average(
+    elapsed_seconds,
+    processed_assets,
+    pending_assets,
+    total_assets,
+    progress_samples,
+    window_seconds=300,
+    minimum_sample_seconds=30,
+    minimum_sample_assets=10,
+):
+    """Estimate remaining time from recent terminal-transfer throughput when available."""
+    elapsed_seconds = max(0.0, float(elapsed_seconds or 0.0))
+    processed_assets = max(0, _parse_int(processed_assets, 0))
+    pending_assets = max(0, _parse_int(pending_assets, 0))
+    if not progress_samples or progress_samples[-1][1] != processed_assets:
+        progress_samples.append((elapsed_seconds, processed_assets))
+
+    cutoff = elapsed_seconds - max(1.0, float(window_seconds or 0.0))
+    while len(progress_samples) > 1 and progress_samples[1][0] <= cutoff:
+        progress_samples.popleft()
+
+    baseline_elapsed, baseline_processed = progress_samples[0]
+    sampled_seconds = elapsed_seconds - baseline_elapsed
+    sampled_assets = processed_assets - baseline_processed
+    if (
+        pending_assets > 0
+        and sampled_seconds >= max(1.0, float(minimum_sample_seconds or 0.0))
+        and sampled_assets >= max(1, _parse_int(minimum_sample_assets, 1))
+    ):
+        return _format_hms_from_seconds((sampled_seconds / sampled_assets) * pending_assets)
+
+    return _compute_dashboard_estimated_time(
+        elapsed_seconds=elapsed_seconds,
+        processed_assets=processed_assets,
+        pending_assets=pending_assets,
+        total_assets=total_assets,
     )
-    if total_assets is not None:
-        terminal_assets = min(max(0, _parse_int(total_assets, 0)), terminal_assets)
-    return terminal_assets
 
 
 def _compute_dashboard_estimated_end(estimated_time, now=None):
@@ -370,6 +392,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     )
                 return int(SHARED_DATA.info.get(configured_total_label, 0) or 0)
 
+            eta_progress_samples = deque()
+
             # ─────────────────────────────────────────────────────────────────────────
             # 2) Info Panel
             # ─────────────────────────────────────────────────────────────────────────
@@ -425,9 +449,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                 current_album_assoc_queue_size = int(SHARED_DATA.info.get('album_assoc_queue_size', 0) or 0)
                 current_delayed_queue_size = int(SHARED_DATA.info.get('delayed_assets_pending', 0) or 0)
                 total_assets = physical_progress_total('total_pulled_assets', 'total_assets')
-                processed_assets = _compute_dashboard_terminal_assets(
-                    SHARED_DATA.counters,
-                    total_assets=total_assets,
+                processed_assets = min(
+                    total_assets,
+                    max(0, int(SHARED_DATA.counters.get('total_pulled_assets', 0) or 0)),
                 )
                 pending_assets = max(0, total_assets - processed_assets)
                 transfer_started_at_raw = SHARED_DATA.info.get("asset_transfer_start_time")
@@ -443,11 +467,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, step_name=''
                     0.0,
                     (datetime.now(timezone.utc) - transfer_started_at).total_seconds()
                 ) if transfer_started_at else 0.0
-                SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time(
+                SHARED_DATA.info["estimated_time"] = _compute_dashboard_estimated_time_with_rolling_average(
                     elapsed_seconds=elapsed_seconds,
                     processed_assets=processed_assets,
                     pending_assets=pending_assets,
                     total_assets=total_assets,
+                    progress_samples=eta_progress_samples,
                 )
                 SHARED_DATA.info["estimated_end"] = _compute_dashboard_estimated_end(
                     SHARED_DATA.info["estimated_time"],

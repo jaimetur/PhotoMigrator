@@ -4,6 +4,7 @@ import tempfile
 import threading
 import types
 import unittest
+from collections import deque
 from datetime import datetime
 from pathlib import Path
 from queue import PriorityQueue
@@ -229,19 +230,25 @@ class TestAutomaticMigrationHelpers(unittest.TestCase):
 
         self.assertEqual(estimated, "Estimating...")
 
-    def test_dashboard_terminal_assets_excludes_assets_only_pulled_from_eta_progress(self):
-        terminal_assets = automatic_module._compute_dashboard_terminal_assets(
-            {
-                "total_pulled_assets": 90,
-                "total_pull_failed_assets": 2,
-                "total_pushed_assets": 10,
-                "total_push_duplicates_assets": 3,
-                "total_push_failed_assets": 1,
-            },
+    def test_dashboard_eta_uses_recent_pull_throughput_when_available(self):
+        progress_samples = deque()
+        automatic_module._compute_dashboard_estimated_time_with_rolling_average(
+            elapsed_seconds=60,
             total_assets=100,
+            processed_assets=10,
+            pending_assets=90,
+            progress_samples=progress_samples,
         )
 
-        self.assertEqual(terminal_assets, 16)
+        estimated = automatic_module._compute_dashboard_estimated_time_with_rolling_average(
+            elapsed_seconds=120,
+            total_assets=100,
+            processed_assets=30,
+            pending_assets=70,
+            progress_samples=progress_samples,
+        )
+
+        self.assertEqual(estimated, "0:03:30")
 
     def test_compute_dashboard_estimated_end_uses_local_time_for_valid_duration(self):
         estimated_end = automatic_module._compute_dashboard_estimated_end(

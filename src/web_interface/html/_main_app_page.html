@@ -817,6 +817,8 @@
     let lastOutputVersion = -1;
     let lastDashboardSnapshotUpdatedAt = "";
     let lastDashboardClockRenderedAt = 0;
+    let dashboardEtaSamples = [];
+    let dashboardEtaSampleTransferStart = "";
     let outputVirtualLineHeight = 0;
     let outputRenderDeferredBySelection = false;
     const OUTPUT_BLOCK_SIZE = 400;
@@ -1661,7 +1663,7 @@
         return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
     }
 
-    function computeEstimatedRemainingDuration({elapsedMs = 0, totalAssets = 0, pulledAssets = 0}) {
+    function computeEstimatedRemainingDuration({elapsedMs = 0, totalAssets = 0, pulledAssets = 0, samples = []}) {
         const total = Math.max(0, Number(totalAssets || 0));
         if (!Number.isFinite(total) || total <= 0) return "-";
 
@@ -1672,6 +1674,19 @@
 
         const safeElapsedMs = Math.max(0, Number(elapsedMs || 0));
         if (!Number.isFinite(safeElapsedMs) || safeElapsedMs <= 0) return "Estimating...";
+
+        const lastSample = samples[samples.length - 1];
+        if (!lastSample || lastSample.processed !== processed) {
+            samples.push({elapsedMs: safeElapsedMs, processed});
+        }
+        const cutoffMs = safeElapsedMs - (5 * 60 * 1000);
+        while (samples.length > 1 && samples[1].elapsedMs <= cutoffMs) samples.shift();
+        const baseline = samples[0];
+        const sampledMs = safeElapsedMs - baseline.elapsedMs;
+        const sampledAssets = processed - baseline.processed;
+        if (sampledMs >= 30 * 1000 && sampledAssets >= 10) {
+            return formatDuration((sampledMs / sampledAssets) * pending);
+        }
 
         const avgMsPerAsset = safeElapsedMs / processed;
         return formatDuration(avgMsPerAsset * pending);
@@ -1764,10 +1779,15 @@
         const elapsed = Number.isFinite(startedMs) ? formatDuration(elapsedMs) : "00:00:00";
         const assetTransferStartedAt = stats.assetTransferStartedAt || "";
         const assetTransferStartedMs = assetTransferStartedAt ? Date.parse(assetTransferStartedAt) : NaN;
+        if (assetTransferStartedAt !== dashboardEtaSampleTransferStart) {
+            dashboardEtaSampleTransferStart = assetTransferStartedAt;
+            dashboardEtaSamples = [];
+        }
         const estimated = computeEstimatedRemainingDuration({
             elapsedMs: Number.isFinite(assetTransferStartedMs) ? Math.max(0, Date.now() - assetTransferStartedMs) : elapsedMs,
             totalAssets: stats.totalAssets,
             pulledAssets: stats.pulledAssets,
+            samples: dashboardEtaSamples,
         });
         const now = new Date();
         const estimatedEnd = computeEstimatedEnd(estimated, now);
