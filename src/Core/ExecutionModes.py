@@ -10,7 +10,7 @@ from Features.AutomaticMigration.AutomaticMigration import mode_AUTOMATIC_MIGRAT
 from Features.GooglePhotos.ClassGooglePhotos import ClassGooglePhotos
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder
 from Features.ICloudTakeout.ClassICloudTakeoutFolder import ClassICloudTakeoutFolder
-from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
+from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos, ImmichAssetInventoryError
 from Features.NextCloudPhotos.ClassNextCloudPhotos import ClassNextCloudPhotos
 from Features.LocalPhotosFolder.ClassLocalPhotosFolder import ClassLocalPhotosFolder
 from Features.StandAloneFeatures.AutoRenameAlbumsFolders import rename_album_folders
@@ -921,14 +921,22 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")
     LOGGER.info(f"Keeper strategy: {keeper_strategy}.")
     cloud_client_obj = _build_cloud_client_obj(normalized_client)
-    with set_log_level(LOGGER, log_level):
-        removed, groups_found, groups_skipped = cloud_client_obj.remove_duplicates_assets(
-            keeper_strategy=keeper_strategy,
-            request_user_confirmation=user_confirmation,
-            use_immich_detection=use_immich_detection,
-            use_immich_deletion=use_immich_deletion,
-            log_level=logging.INFO,
+    try:
+        with set_log_level(LOGGER, log_level):
+            removed, groups_found, groups_skipped = cloud_client_obj.remove_duplicates_assets(
+                keeper_strategy=keeper_strategy,
+                request_user_confirmation=user_confirmation,
+                use_immich_detection=use_immich_detection,
+                use_immich_deletion=use_immich_deletion,
+                log_level=logging.INFO,
+            )
+    except ImmichAssetInventoryError as error:
+        LOGGER.error(
+            "Duplicate cleanup stopped because Immich could not provide a complete asset inventory. "
+            "No duplicate groups were analyzed and no assets were removed."
         )
+        LOGGER.error(str(error))
+        raise SystemExit(1) from None
 
     elapsed = str(timedelta(seconds=round((datetime.now() - START_TIME).total_seconds())))
     LOGGER.info("==================================================")

@@ -53,6 +53,11 @@ Python module with example functions to interact with Immich Photos, including f
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
+class ImmichAssetInventoryError(RuntimeError):
+    """Raised when PhotoMigrator cannot obtain a complete Immich asset inventory."""
+
+
 ##############################################################################
 #                              START OF CLASS                                #
 ##############################################################################
@@ -3318,7 +3323,8 @@ class ClassImmichPhotos(BaseMediaClient):
                         return assets_page.get("items", []), assets_page.get("nextPage")
                     except requests.HTTPError as error:
                         status_code = getattr(error.response, "status_code", None)
-                        if status_code not in {429, 502, 503, 504}:
+                        is_server_error = isinstance(status_code, int) and 500 <= status_code < 600
+                        if status_code != 429 and not is_server_error:
                             raise
                         last_error = error
                     except (requests.ConnectionError, requests.Timeout) as error:
@@ -3332,8 +3338,8 @@ class ClassImmichPhotos(BaseMediaClient):
                         f"{attempt}/{self.IMMICH_ASSET_INVENTORY_RETRIES}; retrying in {delay}s: {last_error}"
                     )
                     time.sleep(delay)
-                raise RuntimeError(
-                    f"Immich asset inventory page {page_number} failed after "
+                raise ImmichAssetInventoryError(
+                    f"Immich asset inventory page {page_number} could not be retrieved after "
                     f"{self.IMMICH_ASSET_INVENTORY_RETRIES} attempts: {last_error}"
                 ) from last_error
 

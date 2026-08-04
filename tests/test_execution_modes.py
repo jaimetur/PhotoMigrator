@@ -210,6 +210,32 @@ class TestExecutionModes(unittest.TestCase):
             log_level=execution_modes.logging.INFO,
         )
 
+    def test_remove_duplicate_assets_reports_inventory_failure_without_traceback(self):
+        args = _base_args()
+        args.update({
+            "remove-duplicates-assets": True,
+            "dup-immich-native-algorithm": False,
+            "dup-immich-native-deletion": False,
+            "dup-asset-keeper": "more-people/tags-then-oldest",
+        })
+        cloud_client = MagicMock()
+        cloud_client.remove_duplicates_assets.side_effect = execution_modes.ImmichAssetInventoryError(
+            "Immich asset inventory page 29 could not be retrieved after 5 attempts: HTTP 500"
+        )
+
+        with (
+            patch.object(execution_modes, "ARGS", args),
+            patch.object(execution_modes, "_build_cloud_client_obj", return_value=cloud_client),
+            patch.object(execution_modes, "LOGGER", MagicMock()) as mock_logger,
+            self.assertRaises(SystemExit) as raised,
+        ):
+            execution_modes.mode_cloud_remove_duplicates_assets(client="immich", user_confirmation=False)
+
+        self.assertEqual(raised.exception.code, 1)
+        logged_errors = [str(call.args[0]) for call in mock_logger.error.call_args_list]
+        self.assertTrue(any("could not provide a complete asset inventory" in message for message in logged_errors))
+        self.assertTrue(any("page 29" in message for message in logged_errors))
+
     @unittest.skip("Duplicate cleanup orchestration now belongs to the service client.")
     def test_remove_duplicate_assets_previews_groups_before_confirming_deletion(self):
         args = _base_args()

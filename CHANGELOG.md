@@ -22,6 +22,7 @@
 
 #### 🐛 Bug fixes:
   - Corrected Immich `Remove All Assets` cleanup. Active assets are now sent only to the bulk asset-delete endpoint, while assets already in Immich's trash are permanently removed through the dedicated trash-empty endpoint. The final summary reports both phases separately, avoiding repeated rejected 250-asset batches and misleading active-asset totals.
+  - Improved Immich duplicate inventory resilience. Retry transient `5xx` metadata-search failures and report an exhausted inventory request as a concise controlled error, including its page number, instead of emitting an unhandled traceback.
 
 #### 📚 Documentation:
 
