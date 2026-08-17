@@ -90,13 +90,15 @@ PhotoMigrator.bin --filter-by-type=video --log-level=debug
 ## 🚀 Automatic Migration Process
 Following arguments allow you to execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
 
-| Argument                               | Description                                                                                   |
-|----------------------------------------|-----------------------------------------------------------------------------------------------|
-| `-source`,<br>`--source` `<SOURCE>`    | Source service or folder: `immich`, `synology`, `nextcloud`, `google-photos`, or `local path` |
-| `-target`,<br>`--target` `<TARGET>`    | Target service or folder: `immich`, `synology`, `nextcloud`, `google-photos`, or `local path` |
-| `-move`,<br>`--move-assets`            | Move instead of copy files (`true` or `false`)                                                |
-| `-dashboard`,<br>`--dashboard`         | Show live dashboard during migration (`true` or `false`)                                      |
-| `-parallel`,<br>`--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)                                   |
+| Argument                                                                 | Description                                                                                    |
+|--------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| `-source`,<br>`--source` `<SOURCE>`                                      | Source service or folder: `immich`, `synology`, `nextcloud`, `google-photos`, or `local path`  |
+| `-target`,<br>`--target` `<TARGET>`                                      | Target service or folder: `immich`, `synology`, `nextcloud`, `google-photos`, or `local path`  |
+| `-move`,<br>`--move-assets`                                              | Move instead of copy files (`true` or `false`)                                                 |
+| `-dashboard`,<br>`--dashboard`                                           | Show live dashboard during migration (`true` or `false`)                                       |
+| `-parallel`,<br>`--parallel-migration`                                   | Run migration in parallel or sequential (`true` or `false`)                                    |
+| `-pushMaxMB`,<br>`--push-asset-max-size-mb` `<MB>`                       | Maximum size eligible for Automatic Migration push retries; `0` means unlimited (default: `0`) |
+| `-immichUploadTimeout`,<br>`--immich-upload-timeout-seconds` `<SECONDS>` | Immich target upload read timeout for upload/migration flows (default: `900`)                  |
 
 #### 🧪 Examples:
 ```bash

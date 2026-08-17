@@ -78,8 +78,10 @@ class TestCliTuiShared(unittest.TestCase):
         self.assertIn("one-time-password", automatic_dests)
         self.assertIn("import-people", automatic_dests)
         self.assertIn("create-stacks", automatic_dests)
+        self.assertIn("push-asset-max-size-mb", automatic_dests)
+        self.assertIn("immich-upload-timeout-seconds", automatic_dests)
 
-    def test_immich_upload_actions_expose_people_and_stack_controls_in_order(self):
+    def test_immich_upload_actions_expose_people_stack_and_timeout_controls_in_order(self):
         schema = build_parser_schema()
 
         for action in ("upload-albums", "upload-all"):
@@ -89,6 +91,7 @@ class TestCliTuiShared(unittest.TestCase):
                     for item in MODULE_ACTION_ARGUMENTS["immich_photos"][action]
                 ]
                 self.assertLess(action_dests.index("import-people"), action_dests.index("create-stacks"))
+                self.assertLess(action_dests.index("create-stacks"), action_dests.index("immich-upload-timeout-seconds"))
 
         args = build_cli_args(
             schema,
@@ -97,6 +100,14 @@ class TestCliTuiShared(unittest.TestCase):
             "upload-all",
         )
         self.assertEqual(args[args.index("--create-stacks") + 1], "false")
+
+        timeout_args = build_cli_args(
+            schema,
+            "immich_photos",
+            {"account-id": "1", "upload-all": "/photos", "immich-upload-timeout-seconds": 1800},
+            "upload-all",
+        )
+        self.assertEqual(timeout_args[timeout_args.index("--immich-upload-timeout-seconds") + 1], "1800")
 
     def test_small_album_limit_is_ordered_after_its_toggle_and_omitted_when_disabled(self):
         schema = build_parser_schema()

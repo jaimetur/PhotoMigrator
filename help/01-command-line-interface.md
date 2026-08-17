@@ -237,6 +237,12 @@ Service to other, or from two different accounts within the same Photo Cloud ser
                Select Parallel/Sequential migration during Automatic Migration job.
                This argument only applies if both '--source' and '--target' arguments are given.
                (default: True).
+-pushMaxMB  ; --push-asset-max-size-mb <MEGABYTES>
+               Maximum failed-upload size eligible for Automatic Migration retry. `0` means unlimited
+               and is the default. Set a positive value only to keep larger failed files in `Push_Failed`.
+-immichUploadTimeout ; --immich-upload-timeout-seconds <SECONDS>
+               Immich only. Upload read timeout for Upload Albums, Upload All, and Automatic Migration when
+               Immich is the target. (default: 900).
 
 
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:

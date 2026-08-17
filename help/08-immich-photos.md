@@ -105,6 +105,10 @@ Examples:
 
 Immich `Upload Albums` and `Upload All` create stacks for burst-like photos by default with `--create-stacks=true`. Set `--create-stacks=false` to skip that post-upload operation. Automatic Migration exposes the same enabled-by-default control only when its target is Immich.
 
+## Upload Timeout
+
+Immich `Upload Albums`, `Upload All`, and Automatic Migration with an Immich target use **`-immichUploadTimeout, --immich-upload-timeout-seconds <SECONDS>`** to configure the upload read timeout. The default is `900` seconds. Increase it for large files or slower Immich storage. If the connection closes after Immich has persisted an asset, PhotoMigrator retries with the same upload identifier; when a matching asset is already available from its cached inventory, it reuses that asset instead of uploading it again.
+
 
 ## Upload Albums (from Local Folder) into Immich Photos:
 - **From:** v3.0.0 

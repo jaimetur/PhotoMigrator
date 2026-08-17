@@ -141,6 +141,8 @@ AUTOMATION_DESTS = {
     "move-assets",
     "dashboard",
     "parallel-migration",
+    "push-asset-max-size-mb",
+    "immich-upload-timeout-seconds",
     "prefer-canonical-album-names",
     "consolidate-similar-albums",
     "one-time-password",
@@ -355,8 +357,8 @@ MODULE_ACTION_ARGUMENTS = {
         "remove-duplicates-assets": [{"dest": "dup-asset-keeper", "required": True}],
     },
     "immich_photos": {
-        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}, {"dest": "create-stacks", "required": False}],
-        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}, {"dest": "create-stacks", "required": False}],
+        "upload-albums": [{"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}, {"dest": "create-stacks", "required": False}, {"dest": "immich-upload-timeout-seconds", "required": False}],
+        "upload-all": [{"dest": "albums-folders", "required": False}, {"dest": "prefer-canonical-album-names", "required": False}, {"dest": "consolidate-similar-albums", "required": False}, {"dest": "import-people", "required": False}, {"dest": "create-stacks", "required": False}, {"dest": "immich-upload-timeout-seconds", "required": False}],
         "rename-albums": [{"dest": "preview-album-actions", "required": False}],
         "consolidate-albums-names": [{"dest": "preview-album-actions", "required": False}],
         "remove-albums": [

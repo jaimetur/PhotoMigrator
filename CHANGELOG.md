@@ -12,6 +12,8 @@
 #### 🌟 New Features:
 
 #### 🚀 Enhancements:
+  - Improved Automatic Migration recovery of failed uploads. `--push-asset-max-size-mb` replaces the fixed 200 MB retry cutoff and defaults to `0` (unlimited), so large assets use the existing retry policy unless an explicit limit is configured. Fixes #1225.
+  - Added `--immich-upload-timeout-seconds` (default: `900`) to Immich Upload All, Upload Albums, and Immich-target Automatic Migration across CLI, Web, GUI, and TUI. Upload failures now report the effective timeout and reuse a matching target asset from an already cached Immich inventory when available, avoiding an unnecessary retransmission. Fixes #1225.
 
 #### 🐛 Bug fixes:
 

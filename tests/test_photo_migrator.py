@@ -82,6 +82,44 @@ class TestPhotoMigratorCLIParsing(unittest.TestCase):
         self.assertFalse(args["create-stacks"])
         self.assertFalse(args["google-process-people"])
 
+    def test_large_push_retry_and_immich_upload_timeout_controls(self):
+        with patch.object(sys, "argv", ["photomigrator"]):
+            args, _ = parse_arguments()
+
+        self.assertEqual(args["push-asset-max-size-mb"], 0)
+        self.assertEqual(args["immich-upload-timeout-seconds"], 900)
+
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "photomigrator",
+                "--push-asset-max-size-mb=1024",
+                "--immich-upload-timeout-seconds=1800",
+            ],
+        ):
+            args, _ = parse_arguments()
+
+        self.assertEqual(args["push-asset-max-size-mb"], 1024)
+        self.assertEqual(args["immich-upload-timeout-seconds"], 1800)
+
+        with patch.object(sys, "argv", [
+            "photomigrator",
+            "--client=immich",
+            "--upload-all=/photos",
+            "--immich-upload-timeout-seconds=1200",
+        ]):
+            args, _ = parse_arguments()
+        self.assertEqual(args["immich-upload-timeout-seconds"], 1200)
+
+        with patch.object(sys, "argv", ["photomigrator", "--push-asset-max-size-mb=-1"]):
+            with self.assertRaises(SystemExit):
+                parse_arguments()
+
+        with patch.object(sys, "argv", ["photomigrator", "--immich-upload-timeout-seconds=0"]):
+            with self.assertRaises(SystemExit):
+                parse_arguments()
+
     def test_immich_native_duplicate_detection_defaults_to_people_tags_then_quality(self):
         with patch.object(sys, "argv", ["photomigrator"]):
             args, parser = parse_arguments()

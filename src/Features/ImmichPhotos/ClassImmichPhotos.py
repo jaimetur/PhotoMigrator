@@ -72,7 +72,7 @@ class ClassImmichPhotos(BaseMediaClient):
     IMMICH_ASSET_INVENTORY_RETRIES = 5
     DUPLICATE_METADATA_REVIEW_WORKERS = 100
     IMMICH_AUTH_TIMEOUT = (10, 30)
-    IMMICH_ASSET_UPLOAD_TIMEOUT = (10, 300)
+    IMMICH_ASSET_UPLOAD_TIMEOUT = (10, 900)
     IMMICH_DUPLICATES_TIMEOUT = (10, 300)
     IMMICH_DUPLICATES_RESOLVE_BATCH_SIZE = 100
     IMMICH_MANUAL_DUPLICATE_DELETE_BATCH_SIZE = 250
@@ -3515,6 +3515,15 @@ class ClassImmichPhotos(BaseMediaClient):
         return f"{stem.casefold()}{ext.casefold()}"
 
 
+    def _get_asset_upload_timeout(self):
+        """Return the configured Immich upload connect/read timeout pair."""
+        try:
+            read_timeout = int((ARGS or {}).get("immich-upload-timeout-seconds", 900) or 900)
+        except (TypeError, ValueError):
+            read_timeout = 900
+        return self.IMMICH_ASSET_UPLOAD_TIMEOUT[0], max(1, read_timeout)
+
+
     def push_asset(self, file_path, log_level=None, resolve_duplicate_id=True):
         """
         Uploads a local file (photo/video) to Immich Photos via /api/assets.
@@ -3616,7 +3625,7 @@ class ClassImmichPhotos(BaseMediaClient):
                         url,
                         headers=header,
                         data=multipart_data,
-                        timeout=self.IMMICH_ASSET_UPLOAD_TIMEOUT,
+                        timeout=self._get_asset_upload_timeout(),
                     )
                     response.raise_for_status()
                     new_asset = response.json()
@@ -3656,7 +3665,22 @@ class ClassImmichPhotos(BaseMediaClient):
                         LOGGER.debug(f"Pushed '{os.path.basename(file_path)}' with asset_id={asset_id}")
                 return asset_id, is_duplicated
             except Exception as e:
-                LOGGER.error(f"Failed to push '{file_path}': {e}")
+                # A connection can close after Immich has persisted the asset but before
+                # its response reaches PhotoMigrator. Reuse a cached inventory only;
+                # do not trigger an expensive full-library scan on a failed upload.
+                recovered_asset_id = self._lookup_uploaded_asset_id(file_path)
+                if not recovered_asset_id and getattr(self, "_all_assets_unfiltered_cache", None) is not None:
+                    recovered_asset_id = self._resolve_existing_asset_id(file_path, log_level=log_level)
+                if recovered_asset_id:
+                    LOGGER.warning(
+                        f"Immich upload response was unavailable for '{file_path}', but the existing target asset "
+                        f"was recovered (ID={recovered_asset_id})."
+                    )
+                    return recovered_asset_id, True
+                LOGGER.error(
+                    f"Failed to push '{file_path}' (Immich upload read timeout: "
+                    f"{self._get_asset_upload_timeout()[1]}s): {e}"
+                )
                 return None, None
 
     def _find_live_photo_video_companion(self, photo_file_path):

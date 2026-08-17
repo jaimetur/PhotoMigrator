@@ -39,6 +39,16 @@ def _positive_int(value):
     return parsed
 
 
+def _non_negative_int(value):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise argparse.ArgumentTypeError("must be a non-negative integer") from exc
+    if parsed < 0:
+        raise argparse.ArgumentTypeError("must be a non-negative integer")
+    return parsed
+
+
 def parse_arguments():
     """
     Builds the CLI argument parser (with pager support), parses arguments,
@@ -245,6 +255,16 @@ def parse_arguments():
                         help="Select Parallel/Sequential migration during Automatic Migration job.\n"
                              "This argument only applies if both '--source' and '--target' arguments are given.\n"
                              "(default: True).")
+
+    PARSER.add_argument("-pushMaxMB", "--push-asset-max-size-mb", metavar="<MEGABYTES>", default=0,
+                        type=_non_negative_int,
+                        help="Maximum asset size eligible for Automatic Migration push retries, in MB. "
+                             "Use 0 for no size limit (default: 0). Retry count and delay settings still apply.")
+
+    PARSER.add_argument("-immichUploadTimeout", "--immich-upload-timeout-seconds", metavar="<SECONDS>", default=900,
+                        type=_positive_int,
+                        help="Immich upload read timeout in seconds for Upload All, Upload Albums, and Automatic Migration "
+                             "when Immich is the target (default: 900).")
 
     PARSER.add_argument("-iPeople", "--import-people",
                         metavar="= [true,false]",

@@ -520,6 +520,8 @@
         "try-truncated-albums-grouping": "Try Truncated Albums Grouping",
         "try-small-albums-grouping": "Try Small Albums Grouping",
         "small-album-max-assets": "Small Album Max Assets",
+        "push-asset-max-size-mb": "Push Asset Max Size (MB)",
+        "immich-upload-timeout-seconds": "Immich Upload Timeout (seconds)",
         "find-duplicates": "Find Duplicates Input",
         "process-duplicates": "Duplicates CSV",
         "rename-folders-content-based": "ALBUMS_FOLDER",
@@ -644,8 +646,8 @@
         },
         immich_photos: {
             "download-albums": [{dest: "output-folder", required: true}],
-            "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}, {dest: "create-stacks", required: false}],
-            "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}, {dest: "create-stacks", required: false}],
+            "upload-albums": [{dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}, {dest: "create-stacks", required: false}, {dest: "immich-upload-timeout-seconds", required: false}],
+            "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}, {dest: "create-stacks", required: false}, {dest: "immich-upload-timeout-seconds", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
             "remove-duplicates-assets": [{dest: "dup-immich-native-algorithm", required: true}, {dest: "dup-immich-native-deletion", required: true}, {dest: "dup-asset-keeper", required: true}],
@@ -3400,6 +3402,8 @@
         const otpField = byDest["one-time-password"];
         const peopleField = byDest["import-people"];
         const stacksField = byDest["create-stacks"];
+        const pushAssetMaxSizeField = byDest["push-asset-max-size-mb"];
+        const immichUploadTimeoutField = byDest["immich-upload-timeout-seconds"];
 
         const parseMigrationEndpoint = (rawValue, fallbackKind) => {
             const text = String(rawValue || "").trim();
@@ -3563,6 +3567,17 @@
 
         left.appendChild(flagsCard);
 
+        const recoveryCard = document.createElement("div");
+        recoveryCard.className = "flags-card";
+        const recoveryTitle = document.createElement("h3");
+        recoveryTitle.textContent = "Push Recovery";
+        recoveryCard.appendChild(recoveryTitle);
+        if (pushAssetMaxSizeField) recoveryCard.appendChild(createArgumentRow(pushAssetMaxSizeField));
+        if (immichUploadTimeoutField && migrationEndpointsState.target?.kind === "immich") {
+            recoveryCard.appendChild(createArgumentRow(immichUploadTimeoutField));
+        }
+        left.appendChild(recoveryCard);
+
         const filtersCard = document.createElement("div");
         filtersCard.className = "flags-card";
         const filtersTitle = document.createElement("h3");
@@ -3616,6 +3631,8 @@
             byDest["move-assets"],
             byDest["dashboard"],
             byDest["parallel-migration"],
+            pushAssetMaxSizeField,
+            migrationEndpointsState.target?.kind === "immich" ? immichUploadTimeoutField : null,
             byDest["prefer-canonical-album-names"],
             byDest["consolidate-similar-albums"],
             migrationEndpointsState.target?.kind === "immich" ? peopleField : null,

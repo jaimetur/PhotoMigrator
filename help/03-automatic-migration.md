@@ -33,6 +33,12 @@ When the destination is Immich, **`-iPeople, --import-people=true`** imports peo
 
 When the destination is Immich, **`-cStacks, --create-stacks=true`** creates stacks for burst-like photos after the migration. It is enabled by default; set it to `false` to skip stack creation.
 
+## Large Immich Upload Recovery
+
+Automatic Migration retries failed uploads using the configured retry count and delay. **`-pushMaxMB, --push-asset-max-size-mb <MEGABYTES>`** controls the largest asset eligible for those retries. Its default is `0`, which means **no size limit**: large videos are retried just like photos. Set a positive value only when you deliberately want oversized failed uploads to remain in `Push_Failed` instead of being retried.
+
+For an Immich destination, **`-immichUploadTimeout, --immich-upload-timeout-seconds <SECONDS>`** controls the upload read timeout. The default is `900` seconds. This is useful for large files or slower Immich storage. A transport failure can occur after Immich has received the asset but before PhotoMigrator receives the response; retries reuse the same `deviceAssetId`, so Immich can report the already-created asset as a duplicate rather than creating a second copy. When a target asset ID is already available from the cached inventory, PhotoMigrator reuses it directly and avoids retransmission.
+
 Following immich-go's `--people-tag` behavior, PhotoMigrator creates or reuses an Immich hierarchical tag named `people/<name>` for every Google Takeout person and attaches it to the asset. This preserves any face recognition that Immich already has and works before its AI has detected faces, because it does not create, remove, or reassign face records.
 
 When enabled, the migration log reports `Google Takeout people map loaded (N assets)`. Each `Asset Pushed` or `Asset Duplicated` line includes `People found: N`, including `0` when the asset has no resolved labels. Only assets with `N > 0` resolve an existing Immich asset ID for a duplicate, so assets without people labels retain the fast duplicate path.

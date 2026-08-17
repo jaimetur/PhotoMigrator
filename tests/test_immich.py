@@ -110,6 +110,36 @@ class TestImmichPhotosUnit(unittest.TestCase):
 
         self.assertEqual(entry["people"], ["Luis"])
 
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.ARGS", {"immich-upload-timeout-seconds": 1800})
+    def test_asset_upload_timeout_uses_configured_read_timeout(self):
+        self.assertEqual(self.manager._get_asset_upload_timeout(), (10, 1800))
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    def test_push_asset_recovers_existing_cached_target_after_transport_failure(self, mock_logger, mock_post):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            asset_path = Path(temp_dir) / "large-video.jpg"
+            asset_path.write_bytes(b"asset-content")
+            captured_at = datetime(2024, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
+            os.utime(asset_path, (captured_at.timestamp(), captured_at.timestamp()))
+            self.manager.API_KEY_LOGIN = True
+            self.manager.IMMICH_USER_API_KEY = "test-key"
+            self.manager.ALLOWED_IMMICH_MEDIA_EXTENSIONS = [".jpg"]
+            self.manager.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = []
+            self.manager._all_assets_unfiltered_cache = [{
+                "id": "existing-asset",
+                "originalFileName": asset_path.name,
+                "fileCreatedAt": "2024-01-02T03:04:05Z",
+                "exifInfo": {"fileSizeInByte": asset_path.stat().st_size},
+            }]
+            mock_post.side_effect = requests.ConnectionError("connection aborted")
+
+            asset_id, is_duplicate = self.manager.push_asset(str(asset_path))
+
+        self.assertEqual(asset_id, "existing-asset")
+        self.assertTrue(is_duplicate)
+        self.assertIn("existing target asset was recovered", mock_logger.warning.call_args.args[0])
+
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.post")
     def test_empty_trash_uses_immich_trash_endpoint(self, mock_post):
         response = MagicMock()

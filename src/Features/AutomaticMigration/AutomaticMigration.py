@@ -1332,6 +1332,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     retry_delay_seconds = max(60, int(ARGS.get("push-failed-asset-retry-delay-seconds", 300) or 300))
     max_push_retries = max(0, int(ARGS.get("push-failed-asset-retries", 3) or 3))
     retry_backoff_factor = max(1, int(ARGS.get("push-failed-asset-retry-backoff-factor", 1) or 1))
+    push_retry_max_size_mb = max(0, int(ARGS.get("push-asset-max-size-mb", 0) or 0))
+    push_retry_max_size_bytes = push_retry_max_size_mb * 1024 * 1024
     album_assoc_retry_delays_seconds = [2, 5, 10]
     max_album_assoc_retries = min(
         len(album_assoc_retry_delays_seconds),
@@ -3011,8 +3013,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 "live_photo_video_path": moved_asset.get("live_photo_video_path"),
             })
 
-    NO_RETRY_LARGE_ASSET_BYTES = 200 * 1024 * 1024
-
     def _compute_push_retry_delay_seconds(retry_attempt):
         exponent = max(0, int(retry_attempt) - 1)
         return int(retry_delay_seconds * (retry_backoff_factor ** exponent))
@@ -3044,10 +3044,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 asset_size = os.path.getsize(asset_file_path) if os.path.exists(asset_file_path) else 0
             except Exception:
                 asset_size = 0
-            if asset_size > NO_RETRY_LARGE_ASSET_BYTES:
+            if push_retry_max_size_bytes and asset_size > push_retry_max_size_bytes:
                 LOGGER.warning(
                     f"Asset Retry Skipped: '{os.path.basename(asset_file_path)}' exceeds "
-                    f"{NO_RETRY_LARGE_ASSET_BYTES // (1024 * 1024)} MB ({asset_size / (1024 * 1024):.1f} MB). "
+                    f"the configured {push_retry_max_size_mb} MB limit ({asset_size / (1024 * 1024):.1f} MB). "
                     f"Reason: {reason}"
                 )
                 return False
@@ -3084,7 +3084,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
         LOGGER.warning(
             f"Asset Retry Delayed: '{os.path.basename(asset.get('asset_file_path', ''))}' "
-            f"attempt {next_attempt}/{max_push_retries} scheduled in {delay_seconds}s. Reason: {reason}"
+            f"attempt {next_attempt}/{max_push_retries} scheduled in {delay_seconds}s. "
+            f"Retry size limit: {push_retry_max_size_mb or 'unlimited'} MB. Reason: {reason}"
         )
         return True
 
