@@ -92,6 +92,7 @@ UI_FIELD_LABELS = {
     "create-stacks": "Create Stacks",
     "push-asset-max-size-mb": "Push Asset Max Size (MB)",
     "immich-upload-timeout-seconds": "Immich Upload Timeout (seconds)",
+    "merge-duplicate-locations": "Merge Duplicate Locations",
     "foldername-all-photos": "ALL_PHOTOS Folder Name",
 }
 TAKEOUT_FOLDER_STRUCTURE_DESTS = (
@@ -164,6 +165,7 @@ BOOL_VALUE_DESTS = {
     "create-stacks",
     "dup-immich-native-algorithm",
     "dup-immich-native-deletion",
+    "merge-duplicate-locations",
 }
 UI_FOLDERNAME_DEFAULTS = {
     "foldername-albums": "Albums",
@@ -377,6 +379,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "dup-immich-native-algorithm", "required": True},
             {"dest": "dup-immich-native-deletion", "required": True},
             {"dest": "dup-asset-keeper", "required": True},
+            {"dest": "merge-duplicate-locations", "required": False},
         ],
     },
     "nextcloud_photos": {
@@ -1609,6 +1612,12 @@ def prepare_values_for_command(values: Dict[str, Any], tab: str, selected_action
         and str(prepared.get("dup-asset-keeper") or "").strip().lower() != "better-quality"
     ):
         prepared["dup-immich-native-deletion"] = False
+    if (
+        tab == "immich_photos"
+        and selected_action_dest == "remove-duplicates-assets"
+        and bool_from_value(prepared.get("dup-immich-native-deletion", False))
+    ):
+        prepared["merge-duplicate-locations"] = False
     if tab in {"google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"} and selected_action_dest == "rename-albums":
         prepared["rename-albums"] = compose_rename_albums_value(prepared.get("rename-pattern", ""), prepared.get("replacement-pattern", ""))
     if tab == "standalone_features" and selected_action_dest == "find-duplicates":

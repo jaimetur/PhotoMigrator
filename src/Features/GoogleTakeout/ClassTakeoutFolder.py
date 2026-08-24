@@ -347,27 +347,38 @@ def _extract_year_from_candidate_path(path_obj):
 
 
 def _select_recoverable_asset_path(candidate_index, expected_filename, expected_year=None):
+    """Return one unambiguous exact-name candidate from the expected year.
+
+    Album-only Takeout sidecars do not carry a stable media identifier.  A
+    filename match alone is therefore not sufficient to create an album
+    membership: common camera names can legitimately recur across years.
+    """
     casefold_name = str(expected_filename or "").casefold()
-    normalized_name = _normalize_recoverable_asset_name(expected_filename)
     candidates = list(candidate_index["exact"].get(casefold_name, []))
-    if not candidates:
-        candidates = list(candidate_index["normalized"].get(normalized_name, []))
-    if not candidates:
+    if not candidates or expected_year is None:
         return None
+    same_year_candidates = [
+        path_obj for path_obj in candidates
+        if _extract_year_from_candidate_path(path_obj) == int(expected_year)
+    ]
+    return same_year_candidates[0] if len(same_year_candidates) == 1 else None
 
-    def score(path_obj):
-        exact_penalty = 0 if path_obj.name.casefold() == casefold_name else 1
-        candidate_year = _extract_year_from_candidate_path(path_obj)
-        year_penalty = 10_000
-        if expected_year:
-            if candidate_year is not None:
-                year_penalty = abs(int(candidate_year) - int(expected_year))
-        elif candidate_year is not None:
-            year_penalty = 0
-        depth_penalty = len(path_obj.parts)
-        return (exact_penalty, year_penalty, depth_penalty, path_obj.as_posix().casefold())
 
-    return sorted(candidates, key=score)[0]
+def _recoverable_asset_match_details(candidate_index, expected_filename, expected_year=None):
+    """Describe the exact-name candidates used for orphan-sidecar auditing."""
+    casefold_name = str(expected_filename or "").casefold()
+    exact_candidates = list(candidate_index["exact"].get(casefold_name, []))
+    if expected_year is None:
+        return exact_candidates, [], "missing-capture-year"
+    same_year_candidates = [
+        path_obj for path_obj in exact_candidates
+        if _extract_year_from_candidate_path(path_obj) == int(expected_year)
+    ]
+    if len(same_year_candidates) == 1:
+        return exact_candidates, same_year_candidates, "unique-exact-name-and-year"
+    if len(same_year_candidates) > 1:
+        return exact_candidates, same_year_candidates, "ambiguous-exact-name-and-year"
+    return exact_candidates, same_year_candidates, "no-exact-name-candidate-in-capture-year"
 
 
 def _build_album_asset_presence_index(album_root):
@@ -399,6 +410,39 @@ def _album_contains_expected_asset(album_root, expected_filename, album_presence
         expected_casefold in album_presence_index["exact"]
         or expected_normalized in album_presence_index["normalized"]
     )
+
+
+def _audit_existing_orphan_album_entries(album_root, no_albums_root, expected_filename, expected_year):
+    """Audit existing exact-name album entries without changing memberships."""
+    album_root = Path(album_root)
+    no_albums_root = Path(no_albums_root).resolve()
+    expected_name = str(expected_filename or "").casefold()
+    entries = []
+    for entry in album_root.rglob("*"):
+        if not (entry.is_file() or entry.is_symlink()) or entry.name.casefold() != expected_name:
+            continue
+        audit_entry = {"album_entry": str(entry.relative_to(album_root))}
+        if not entry.is_symlink():
+            audit_entry["status"] = "existing-copy-not-auditable"
+            entries.append(audit_entry)
+            continue
+        try:
+            target = entry.resolve()
+            target.relative_to(no_albums_root)
+        except (OSError, ValueError):
+            audit_entry["status"] = "existing-link-outside-all-photos"
+            entries.append(audit_entry)
+            continue
+        source_year = _extract_year_from_candidate_path(target)
+        audit_entry["source_asset"] = str(target.relative_to(no_albums_root))
+        audit_entry["source_capture_year"] = source_year
+        audit_entry["status"] = (
+            "existing-link-capture-year-mismatch"
+            if expected_year is not None and source_year != int(expected_year)
+            else "existing-link-capture-year-matched"
+        )
+        entries.append(audit_entry)
+    return entries
 
 
 def _build_album_output_target_path(album_root, filename, asset_dt=None, albums_structure="flatten"):
@@ -462,6 +506,7 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
 
         candidate_index = _build_non_album_candidate_index(no_albums_root)
         per_album_stats = {}
+        recovery_manifest = []
 
         for source_album_dir, output_album_name in _iter_google_takeout_album_dirs(input_root):
             json_candidates = sorted(source_album_dir.rglob("*.json"), key=lambda p: p.as_posix().casefold())
@@ -480,16 +525,60 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 expected_title = descriptor["title"]
                 expected_year = descriptor["year"]
                 summary["orphan_json_detected"] += 1
+                manifest_entry = {
+                    "source_json": str(json_path.relative_to(input_root)),
+                    "album": output_album_name,
+                    "expected_filename": expected_title,
+                    "expected_capture_year": expected_year,
+                }
 
                 if _album_contains_expected_asset(output_album_dir, expected_title, album_presence_index):
                     summary["already_present_assets"] += 1
                     album_stat["already_present"] += 1
+                    existing_entries = _audit_existing_orphan_album_entries(
+                        output_album_dir,
+                        no_albums_root,
+                        expected_title,
+                        expected_year,
+                    )
+                    has_year_mismatch = any(
+                        entry.get("status") == "existing-link-capture-year-mismatch"
+                        for entry in existing_entries
+                    )
+                    manifest_entry["status"] = (
+                        "already-present-capture-year-mismatch"
+                        if has_year_mismatch else "already-present"
+                    )
+                    manifest_entry["existing_entries"] = existing_entries
+                    recovery_manifest.append(manifest_entry)
+                    if has_year_mismatch:
+                        LOGGER.warning(
+                            f"{step_name}Existing album entry requires review: '{expected_title}' in "
+                            f"'{output_album_name}' links to a different capture year than its JSON sidecar."
+                        )
                     continue
 
+                exact_candidates, same_year_candidates, match_status = _recoverable_asset_match_details(
+                    candidate_index, expected_title, expected_year,
+                )
                 source_candidate = _select_recoverable_asset_path(candidate_index, expected_title, expected_year)
                 if source_candidate is None:
                     summary["unresolved_assets"] += 1
                     album_stat["unresolved"] += 1
+                    manifest_entry["status"] = match_status
+                    manifest_entry["exact_name_candidates"] = [
+                        str(candidate.relative_to(no_albums_root)) for candidate in exact_candidates
+                    ]
+                    manifest_entry["same_year_candidates"] = [
+                        str(candidate.relative_to(no_albums_root)) for candidate in same_year_candidates
+                    ]
+                    recovery_manifest.append(manifest_entry)
+                    if match_status == "ambiguous-exact-name-and-year":
+                        LOGGER.warning(
+                            f"{step_name}Leaving orphan album sidecar unresolved: '{json_path.name}' in "
+                            f"'{output_album_name}' has {len(same_year_candidates)} exact-name candidates "
+                            f"for {expected_year}."
+                        )
                     continue
 
                 target_path = _build_album_output_target_path(
@@ -502,6 +591,8 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 if _album_contains_expected_asset(output_album_dir, expected_title, album_presence_index):
                     summary["already_present_assets"] += 1
                     album_stat["already_present"] += 1
+                    manifest_entry["status"] = "already-present"
+                    recovery_manifest.append(manifest_entry)
                     continue
 
                 if _create_symbolic_or_copied_album_entry(
@@ -513,11 +604,18 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 ):
                     summary["recovered_assets"] += 1
                     album_stat["recovered"] += 1
+                    manifest_entry["status"] = "recovered"
+                    manifest_entry["source_asset"] = str(source_candidate.relative_to(no_albums_root))
+                    manifest_entry["album_entry"] = str(target_path.relative_to(albums_root))
+                    recovery_manifest.append(manifest_entry)
                     album_presence_index["exact"].add(source_candidate.name.casefold())
                     album_presence_index["normalized"].add(_normalize_recoverable_asset_name(source_candidate.name))
                 else:
                     summary["unresolved_assets"] += 1
                     album_stat["unresolved"] += 1
+                    manifest_entry["status"] = "failed-to-create-album-entry"
+                    manifest_entry["source_asset"] = str(source_candidate.relative_to(no_albums_root))
+                    recovery_manifest.append(manifest_entry)
 
         for album_name, album_stat in per_album_stats.items():
             if album_stat["recovered"] or album_stat["unresolved"]:
@@ -534,6 +632,15 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
             f"Already present: {summary['already_present_assets']}. "
             f"Recovered: {summary['recovered_assets']}. Unresolved: {summary['unresolved_assets']}."
         )
+        manifest_path = Path(output_folder) / "orphan_album_asset_recovery_manifest.json"
+        try:
+            manifest_path.write_text(
+                json.dumps({"version": 1, "entries": recovery_manifest}, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            LOGGER.info(f"{step_name}Saved orphan album recovery manifest: '{manifest_path}'.")
+        except OSError as error:
+            LOGGER.warning(f"{step_name}Could not save orphan album recovery manifest: {error}")
         return summary
 
 

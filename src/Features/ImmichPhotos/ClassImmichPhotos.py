@@ -2101,7 +2101,8 @@ class ClassImmichPhotos(BaseMediaClient):
 
 
     def remove_duplicates_assets(self, keeper_strategy="better-quality", request_user_confirmation=True,
-                                 use_immich_detection=True, use_immich_deletion=True, log_level=None):
+                                 use_immich_detection=True, use_immich_deletion=True,
+                                 merge_duplicate_locations=False, log_level=None):
         """Safely remove duplicates using Immich detection and the selected keeper."""
         with set_log_level(LOGGER, log_level):
             try:
@@ -2110,6 +2111,7 @@ class ClassImmichPhotos(BaseMediaClient):
                     request_user_confirmation=request_user_confirmation,
                     use_immich_detection=use_immich_detection,
                     use_immich_deletion=use_immich_deletion,
+                    merge_duplicate_locations=merge_duplicate_locations,
                     is_immich_client=True,
                     logger=LOGGER, confirm=confirm_continue, log_level=log_level,
                 )
@@ -2368,7 +2370,7 @@ class ClassImmichPhotos(BaseMediaClient):
                 return False
         return True
 
-    def _merge_duplicate_asset_metadata(self, keeper, duplicates, log_level=None):
+    def _merge_duplicate_asset_metadata(self, keeper, duplicates, merge_duplicate_locations=False, log_level=None):
         """Merge transferable metadata into the keeper before deletion."""
         keeper_id = str(keeper.get("id") or "").strip()
         if not keeper_id:
@@ -2410,9 +2412,9 @@ class ClassImmichPhotos(BaseMediaClient):
         if visibility != str(keeper.get("visibility") or "TIMELINE").strip().upper():
             payload["visibility"] = visibility.lower()
 
-        # Immich accepts one capture date and one coordinate pair per asset. Keep
-        # the selected keeper's values when available; otherwise retain the first
-        # complete value found in the duplicate group.
+        # Immich accepts one capture date and one coordinate pair per asset. GPS
+        # is intentionally not transferred by default: duplicate groups can
+        # contain a stale or incorrectly geotagged source asset.
         date_time_original = self._first_duplicate_metadata_value(
             group_assets, ("dateTimeOriginal",), ("exifInfo", "dateTimeOriginal"),
         )
@@ -2426,20 +2428,22 @@ class ClassImmichPhotos(BaseMediaClient):
         keeper_longitude = self._first_duplicate_metadata_value(
             [keeper], ("longitude",), ("exifInfo", "longitude"),
         )
-        locations = set()
-        for asset in group_assets:
-            latitude = self._first_duplicate_metadata_value(
-                [asset], ("latitude",), ("exifInfo", "latitude"),
-            )
-            longitude = self._first_duplicate_metadata_value(
-                [asset], ("longitude",), ("exifInfo", "longitude"),
-            )
-            if latitude is not None and longitude is not None:
+        if merge_duplicate_locations and keeper_latitude is None and keeper_longitude is None and len(duplicates) >= 2:
+            locations = set()
+            all_redundant_assets_have_complete_location = True
+            for asset in duplicates:
+                latitude = self._first_duplicate_metadata_value(
+                    [asset], ("latitude",), ("exifInfo", "latitude"),
+                )
+                longitude = self._first_duplicate_metadata_value(
+                    [asset], ("longitude",), ("exifInfo", "longitude"),
+                )
+                if latitude is None or longitude is None:
+                    all_redundant_assets_have_complete_location = False
+                    break
                 locations.add((latitude, longitude))
-        # Match Immich's native resolver: only propagate a location when every
-        # geotagged member agrees on the same coordinate pair.
-        if (keeper_latitude is None or keeper_longitude is None) and len(locations) == 1:
-            payload["latitude"], payload["longitude"] = next(iter(locations))
+            if all_redundant_assets_have_complete_location and len(locations) == 1:
+                payload["latitude"], payload["longitude"] = next(iter(locations))
         try:
             if len(payload) > 1:
                 response = self._metadata_merge_request(
@@ -3110,7 +3114,7 @@ class ClassImmichPhotos(BaseMediaClient):
 
     def remove_duplicates_assets_by_name_and_size(
         self, keeper_strategy="newest", duplicate_groups=None, log_level=None,
-        trash_redundant_assets=False,
+        trash_redundant_assets=False, merge_duplicate_locations=False,
     ):
         """Remove duplicate assets while preserving metadata on one selected keeper."""
         strategy = str(keeper_strategy or "newest").strip().lower()
@@ -3188,7 +3192,12 @@ class ClassImmichPhotos(BaseMediaClient):
                 keeper_id = str(keeper_candidate.get("id") or "").strip()
                 ordered = sorted(hydrated_group, key=lambda item: str(item.get("id") or "") != keeper_id)
                 keeper, redundant = ordered[0], ordered[1:]
-                if not self._merge_duplicate_asset_metadata(keeper, redundant, log_level=log_level):
+                if not self._merge_duplicate_asset_metadata(
+                    keeper,
+                    redundant,
+                    merge_duplicate_locations=merge_duplicate_locations,
+                    log_level=log_level,
+                ):
                     skipped_groups += 1
                     metadata_merge_seconds += time.perf_counter() - merge_started_at
                     continue

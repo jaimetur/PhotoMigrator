@@ -496,6 +496,11 @@ If more than one optional arguments are detected, only the first one will be exe
                guarded merge and sends redundant native-group assets to trash only after verifying the keeper.
                It is disabled for every other combination and enabled by default only for this supported one. While
                enabled, '--dup-asset-keeper' must be 'better-quality'.
+-mergeDupLoc ; --merge-duplicate-locations=[true,false]
+               Immich manual duplicate resolution only. Disabled by default: the selected keeper retains its GPS
+               location and no location is copied from redundant assets. When true, a location is copied only when
+               the keeper has no GPS and at least two redundant assets have the same complete coordinate pair.
+               It does not apply to '--dup-immich-native-deletion=true'.
 -dupKeeper   ; --dup-asset-keeper {more-people/tags-then-better-quality,more-people/tags-then-oldest,more-people/tags-then-newest,better-quality,oldest,newest}
                Select the asset retained by '--remove-duplicates-assets'. The more-people/tags strategies first
                retain the asset with the largest distinct people count, then tag count, then use their named tie breaker. 'better-quality' uses Immich's

@@ -327,8 +327,14 @@ class TestImmichStreamingUpload(unittest.TestCase):
                 "latitude": 40.4168, "longitude": -3.7038,
             },
         }
+        duplicate_2 = {
+            "id": "duplicate-2", "originalFileName": "IMG.JPG",
+            "exifInfo": {"latitude": 40.4168, "longitude": -3.7038},
+        }
 
-        self.assertTrue(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
+        self.assertTrue(manager._merge_duplicate_asset_metadata(
+            keeper, [duplicate, duplicate_2], merge_duplicate_locations=True,
+        ))
 
         self.assertEqual(mock_put.call_args.args[0], "http://immich.local/api/assets")
         self.assertEqual(
@@ -339,6 +345,22 @@ class TestImmichStreamingUpload(unittest.TestCase):
                 "latitude": 40.4168, "longitude": -3.7038,
             },
         )
+
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
+    @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.put")
+    def test_merge_duplicate_metadata_does_not_copy_location_by_default(self, mock_put, _mock_logger):
+        manager = self._build_manager()
+        manager._merge_duplicate_asset_stacks = MagicMock(return_value=True)
+        manager._verify_duplicate_keeper_merge = MagicMock(return_value=True)
+        keeper = {"id": "keeper", "originalFileName": "IMG.JPG"}
+        duplicate = {
+            "id": "duplicate",
+            "exifInfo": {"latitude": 40.4168, "longitude": -3.7038},
+        }
+
+        self.assertTrue(manager._merge_duplicate_asset_metadata(keeper, [duplicate]))
+
+        mock_put.assert_not_called()
 
     @patch("Features.ImmichPhotos.ClassImmichPhotos.LOGGER", new_callable=MagicMock)
     @patch("Features.ImmichPhotos.ClassImmichPhotos.requests.put")

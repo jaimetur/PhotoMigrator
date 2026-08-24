@@ -125,6 +125,7 @@ BOOL_VALUE_DESTS = {
     "create-stacks",
     "dup-immich-native-algorithm",
     "dup-immich-native-deletion",
+    "merge-duplicate-locations",
 }
 WEB_FOLDERNAME_DEFAULTS = {
     "foldername-albums": "Albums",
@@ -372,6 +373,7 @@ MODULE_ACTION_ARGUMENTS = {
             {"dest": "dup-immich-native-algorithm", "required": True},
             {"dest": "dup-immich-native-deletion", "required": True},
             {"dest": "dup-asset-keeper", "required": True},
+            {"dest": "merge-duplicate-locations", "required": False},
         ],
     },
     "nextcloud_photos": {
@@ -3267,6 +3269,12 @@ def _build_cli_args(
         and str(values.get("dup-asset-keeper") or "").strip().lower() != "better-quality"
     ):
         values["dup-immich-native-deletion"] = False
+    if (
+        tab == "immich_photos"
+        and selected_action_dest == "remove-duplicates-assets"
+        and _bool_from_value(values.get("dup-immich-native-deletion", False))
+    ):
+        values["merge-duplicate-locations"] = False
     allowed_dests = _allowed_dests_for_tab(tab, selected_action_dest)
     include_default_dests = set(include_default_dests or set())
     include_default_dests.update(

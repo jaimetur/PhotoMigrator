@@ -575,6 +575,17 @@ def parse_arguments():
                              "When enabled, the keeper must be 'better-quality'. It is enabled by default only for "
                              "that supported combination and disabled otherwise.")
 
+    PARSER.add_argument("-mergeDupLoc", "--merge-duplicate-locations",
+                        metavar="= [true,false]",
+                        nargs="?",
+                        const=True,
+                        default=False,
+                        type=str2bool,
+                        help="For Immich Remove Duplicates Assets manual resolution only, allow copying a missing keeper "
+                             "location from duplicates. Disabled by default to avoid propagating an incorrect GPS location. "
+                             "When enabled, at least two redundant assets must have the same complete coordinate pair; this option "
+                             "does not apply to Immich native duplicate deletion.")
+
     PARSER.add_argument("-dupKeeper", "--dup-asset-keeper", choices=["more-people/tags-then-better-quality", "more-people/tags-then-oldest", "more-people/tags-then-newest", "better-quality", "oldest", "newest"], default="more-people/tags-then-better-quality",
                         help="Choose the retained asset for '--remove-duplicates-assets'. The more-people/tags strategies retain "
                              "the asset with the most distinct people, then tags, then apply their named tie breaker. 'better-quality' "

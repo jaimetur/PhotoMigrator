@@ -207,6 +207,7 @@ class TestExecutionModes(unittest.TestCase):
             request_user_confirmation=False,
             use_immich_detection=False,
             use_immich_deletion=False,
+            merge_duplicate_locations=False,
             log_level=execution_modes.logging.INFO,
         )
 

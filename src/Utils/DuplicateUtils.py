@@ -290,6 +290,7 @@ def run_duplicate_asset_cleanup(
     request_user_confirmation=True,
     use_immich_detection=False,
     use_immich_deletion=False,
+    merge_duplicate_locations=False,
     is_immich_client=False,
     logger=None,
     confirm=None,
@@ -365,6 +366,7 @@ def run_duplicate_asset_cleanup(
             keeper_strategy=keeper_strategy,
             duplicate_groups=groups,
             trash_redundant_assets=True,
+            merge_duplicate_locations=merge_duplicate_locations,
             log_level=log_level,
         )
         return result if isinstance(result, tuple) else (int(result or 0), len(groups), 0)
@@ -373,7 +375,12 @@ def run_duplicate_asset_cleanup(
         return client.resolve_duplicate_asset_groups_with_immich(
             duplicate_groups=groups, keeper_strategy=keeper_strategy, log_level=log_level,
         )
-    result = client.remove_duplicates_assets_by_name_and_size(
-        keeper_strategy=keeper_strategy, duplicate_groups=groups, log_level=log_level,
-    )
+    manual_merge_kwargs = {
+        "keeper_strategy": keeper_strategy,
+        "duplicate_groups": groups,
+        "log_level": log_level,
+    }
+    if is_immich:
+        manual_merge_kwargs["merge_duplicate_locations"] = merge_duplicate_locations
+    result = client.remove_duplicates_assets_by_name_and_size(**manual_merge_kwargs)
     return result if isinstance(result, tuple) else (int(result or 0), len(groups), 0)

@@ -467,6 +467,43 @@ class TestCliTuiShared(unittest.TestCase):
         deletion_index = args.index("--dup-immich-native-deletion")
         self.assertEqual(args[deletion_index + 1], "false")
 
+    def test_immich_manual_duplicate_location_merge_is_exposed_and_disabled_for_native_deletion(self):
+        schema = build_parser_schema()
+        action_dests = [
+            item["dest"]
+            for item in MODULE_ACTION_ARGUMENTS["immich_photos"]["remove-duplicates-assets"]
+        ]
+        self.assertIn("merge-duplicate-locations", action_dests)
+
+        manual_args = build_cli_args(
+            schema,
+            "immich_photos",
+            {
+                "account-id": "1",
+                "remove-duplicates-assets": True,
+                "dup-immich-native-algorithm": False,
+                "dup-immich-native-deletion": False,
+                "dup-asset-keeper": "oldest",
+                "merge-duplicate-locations": True,
+            },
+            "remove-duplicates-assets",
+        )
+        self.assertEqual(manual_args[manual_args.index("--merge-duplicate-locations") + 1], "true")
+
+        native_args = build_cli_args(
+            schema,
+            "immich_photos",
+            {
+                "account-id": "1",
+                "remove-duplicates-assets": True,
+                "dup-immich-native-deletion": True,
+                "dup-asset-keeper": "better-quality",
+                "merge-duplicate-locations": True,
+            },
+            "remove-duplicates-assets",
+        )
+        self.assertNotIn("--merge-duplicate-locations", native_args)
+
     def test_duplicate_asset_keeper_is_available_for_every_cloud_tab(self):
         schema = build_parser_schema()
         for tab in ("google_photos", "synology_photos", "immich_photos", "nextcloud_photos"):

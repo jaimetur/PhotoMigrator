@@ -147,6 +147,7 @@ class TestDuplicateKeeperUtils(unittest.TestCase):
             keeper_strategy="more-people/tags-then-better-quality",
             duplicate_groups=[duplicate_group],
             trash_redundant_assets=True,
+            merge_duplicate_locations=False,
             log_level=None,
         )
 
@@ -178,5 +179,6 @@ class TestDuplicateKeeperUtils(unittest.TestCase):
             keeper_strategy="oldest",
             duplicate_groups=[duplicate_group],
             trash_redundant_assets=True,
+            merge_duplicate_locations=False,
             log_level=None,
         )

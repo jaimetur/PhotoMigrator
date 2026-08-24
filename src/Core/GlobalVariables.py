@@ -17,7 +17,7 @@ TOOL_VERSION                    = f"v{TOOL_VERSION_WITHOUT_V}"
 TOOL_DATE                       = "2026-08-24"
 TOOL_NAME_VERSION               = f"{TOOL_NAME} {TOOL_VERSION}"
 
-GPTH_VERSION                    = "6.1.9"
+GPTH_VERSION                    = "6.1.10"
 EXIFTOOL_VERSION                = "13.30"
 INCLUDE_EXIF_TOOL               = True
 COMPILE_IN_ONE_FILE             = True

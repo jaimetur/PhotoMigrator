@@ -920,6 +920,13 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
     LOGGER.info(f"{client_label} Photos: 'Remove Duplicates Assets' Mode detected. Only this module will be run!!!")
     LOGGER.info("Flag detected  : '-rDupAst, --remove-duplicates-assets'.")
     LOGGER.info(f"Keeper strategy: {keeper_strategy}.")
+    merge_locations_requested = str(ARGS.get("merge-duplicate-locations", False)).strip().lower() in {"true", "1", "yes", "on"}
+    merge_duplicate_locations = merge_locations_requested and not use_immich_deletion
+    if normalized_client == "immich" and merge_locations_requested:
+        LOGGER.info(
+            "Manual duplicate location merge: "
+            f"{'enabled with matching complete redundant-asset GPS coordinates' if merge_duplicate_locations else 'not applicable to Immich native deletion'}."
+        )
     cloud_client_obj = _build_cloud_client_obj(normalized_client)
     try:
         with set_log_level(LOGGER, log_level):
@@ -928,6 +935,7 @@ def mode_cloud_remove_duplicates_assets(client=None, user_confirmation=True, log
                 request_user_confirmation=user_confirmation,
                 use_immich_detection=use_immich_detection,
                 use_immich_deletion=use_immich_deletion,
+                merge_duplicate_locations=merge_duplicate_locations,
                 log_level=logging.INFO,
             )
     except ImmichAssetInventoryError as error:

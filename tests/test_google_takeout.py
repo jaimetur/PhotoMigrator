@@ -506,7 +506,7 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
 
         self.assertIsNone(descriptor)
 
-    def test_recover_orphan_album_assets_from_json_sidecars_prefers_nearest_year_fallback(self):
+    def test_recover_orphan_album_assets_from_json_sidecars_rejects_cross_year_fallback(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             input_root = root / "Takeout"
@@ -540,9 +540,77 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
                 )
 
             recovered_entry = albums_root / "Album_1" / "mi cocina.JPG"
-            self.assertEqual(summary["recovered_assets"], 1)
-            self.assertTrue(recovered_entry.is_file())
-            self.assertEqual(recovered_entry.read_bytes(), b"nearer-year")
+            self.assertEqual(summary["recovered_assets"], 0)
+            self.assertEqual(summary["unresolved_assets"], 1)
+            self.assertFalse(recovered_entry.exists())
+
+    def test_recover_orphan_album_assets_from_json_sidecars_rejects_ambiguous_same_year_candidates(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_root = root / "Takeout"
+            album_dir = input_root / "Google Photos" / "Album_1"
+            album_dir.mkdir(parents=True)
+            (album_dir / "IMG_0001.JPG.json").write_text(
+                json.dumps({"title": "IMG_0001.JPG", "photoTakenTime": {"timestamp": "1388534400"}}),
+                encoding="utf-8",
+            )
+            output_root = root / "Processed"
+            for folder_name in ("2014/01", "2014/02"):
+                candidate = output_root / "ALL_PHOTOS" / folder_name / "IMG_0001.JPG"
+                candidate.parent.mkdir(parents=True, exist_ok=True)
+                candidate.write_bytes(folder_name.encode())
+            albums_root = output_root / "Albums"
+            albums_root.mkdir(parents=True)
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_root,
+                    output_folder=output_root,
+                    albums_folder=albums_root,
+                    no_symbolic_albums=True,
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertEqual(summary["recovered_assets"], 0)
+            self.assertEqual(summary["unresolved_assets"], 1)
+            manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["entries"][0]["status"], "ambiguous-exact-name-and-year")
+
+    def test_recover_orphan_album_assets_audits_existing_cross_year_symbolic_link(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_root = root / "Takeout"
+            album_dir = input_root / "Google Photos" / "Album_1"
+            album_dir.mkdir(parents=True)
+            (album_dir / "IMG_0001.JPG.json").write_text(
+                json.dumps({"title": "IMG_0001.JPG", "photoTakenTime": {"timestamp": "1388534400"}}),
+                encoding="utf-8",
+            )
+            output_root = root / "Processed"
+            source_asset = output_root / "ALL_PHOTOS" / "2026" / "IMG_0001.JPG"
+            source_asset.parent.mkdir(parents=True)
+            source_asset.write_bytes(b"wrong-year")
+            albums_root = output_root / "Albums"
+            recovered_album_dir = albums_root / "Album_1"
+            recovered_album_dir.mkdir(parents=True)
+            (recovered_album_dir / "IMG_0001.JPG").symlink_to(
+                "../../ALL_PHOTOS/2026/IMG_0001.JPG",
+            )
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_root,
+                    output_folder=output_root,
+                    albums_folder=albums_root,
+                    no_symbolic_albums=False,
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertEqual(summary["recovered_assets"], 0)
+            manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["entries"][0]["status"], "already-present-capture-year-mismatch")
 
     def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
         with tempfile.TemporaryDirectory() as temp_dir:

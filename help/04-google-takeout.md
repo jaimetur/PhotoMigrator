@@ -80,7 +80,7 @@ Below you can see the different steps of this feature:
     - 🕒 Update Creation Time
   - 4.3. ➡️ <span style="color:grey">Copy/Move files to Output folder manually.
          `(default=disabled. It is automatically enabled if detect that Step 4.2 has been skipped)`</span>
-  - 4.4. 🧩 Recover orphan album assets from source JSON sidecars when Google Takeout exported an album entry only as `.json` metadata and the real media exists under `ALL_PHOTOS` / the corresponding year folder. PhotoMigrator reads the original album-side `.json`, extracts the asset title and timestamp, locates the real media in the processed output, and recreates the album entry as a symbolic link/hardlink or as a physical copy depending on `--google-no-symbolic-albums`.
+  - 4.4. 🧩 Recover orphan album assets from source JSON sidecars when Google Takeout exported an album entry only as `.json` metadata and the real media exists under `ALL_PHOTOS` / the corresponding year folder. PhotoMigrator recreates an entry only when the JSON title has one exact filename match in the JSON capture year; ambiguous or cross-year candidates are left unresolved rather than assigned to the wrong album. It writes `orphan_album_asset_recovery_manifest.json` for audit and flags pre-existing symbolic album links whose source year conflicts with the JSON without removing them.
 
 #### 5. 🔢 Calculate statistics of your Final processed Media Library
 
@@ -100,7 +100,7 @@ Below you can see the different steps of this feature:
   - 6.8. 🧹 Remove empty folders. 
 
 > [!IMPORTANT]
-> Google Photos Takeout sometimes exports album folders that contain only metadata sidecars such as `photo.jpg.json`, while the real media file is exported only once inside a year folder like `Photos from 2002`. GPTH usually rebuilds those album memberships, but when any of them is missed, PhotoMigrator now performs an additional post-GPTH repair pass. It scans the original album-side JSON files, extracts fields such as `title` and `photoTakenTime.timestamp`, searches the processed `ALL_PHOTOS` tree for the real asset, and recreates the missing album entry automatically.
+> Google Photos Takeout sometimes exports album folders that contain only metadata sidecars such as `photo.jpg.json`, while the real media file is exported only once inside a year folder like `Photos from 2002`. GPTH usually rebuilds those album memberships, but when any of them is missed, PhotoMigrator performs an additional post-GPTH repair pass. It only recreates the membership for one exact filename candidate in the sidecar capture year. Ambiguous or cross-year matches are retained in `orphan_album_asset_recovery_manifest.json` as unresolved, rather than guessed.
 >
 > Example:
 > - Original album folder contains only `mi cocina.JPG.json`
