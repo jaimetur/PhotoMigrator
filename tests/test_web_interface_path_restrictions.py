@@ -309,6 +309,20 @@ class TestWebInterfacePathRestrictions(unittest.TestCase):
         self.assertIn("google-takeout", scope)
         self.assertNotIn("google-output-folder-suffix", scope)
 
+    def test_folder_structure_selects_are_not_sanitized_as_paths(self):
+        values = {
+            "google-albums-folders-structure": "flatten",
+            "google-all-photos-folders-structure": "year/month",
+        }
+
+        scope = self.web_app._path_validation_scope_for_payload("google_takeout", None, values)
+        sanitized = self.web_app._sanitize_payload_paths_for_user(values, self.current_user, path_scope=scope)
+
+        self.assertNotIn("google-albums-folders-structure", scope)
+        self.assertNotIn("google-all-photos-folders-structure", scope)
+        self.assertEqual(sanitized["google-albums-folders-structure"], "flatten")
+        self.assertEqual(sanitized["google-all-photos-folders-structure"], "year/month")
+
     def test_boolean_flags_with_path_like_names_are_not_treated_as_paths(self):
         takeout_subfolder = self.allowed_roots[0] / "TakeoutInput"
         takeout_subfolder.mkdir(parents=True, exist_ok=True)

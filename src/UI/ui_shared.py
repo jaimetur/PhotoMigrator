@@ -793,7 +793,9 @@ def _field_kind(action: argparse.Action, dest: str) -> str:
     return "text"
 
 
-def _path_hint(dest: str, metavar: Any) -> str:
+def _path_hint(dest: str, metavar: Any, kind: str | None = None) -> str:
+    if str(kind or "").strip().lower() in {"flag", "bool", "select"}:
+        return ""
     name = dest.lower()
     if name in {"exclude-folders", "exclude-files", *UI_FOLDERNAME_DEFAULTS} or name.endswith("-suffix"):
         return ""
@@ -969,6 +971,7 @@ def build_parser_schema(
         long_options = [opt for opt in action.option_strings if opt.startswith("--")]
         long_option = long_options[0] if long_options else action.option_strings[-1]
         dest = action.dest.replace("_", "-")
+        kind = _field_kind(action, dest)
         field = {
             "dest": dest,
             "long_option": long_option,
@@ -978,8 +981,8 @@ def build_parser_schema(
             "choices": list(action.choices) if action.choices else [],
             "nargs": action.nargs,
             "tab": _tab_for_dest(dest),
-            "kind": _field_kind(action, dest),
-            "path_hint": _path_hint(dest, getattr(action, "metavar", None)),
+            "kind": kind,
+            "path_hint": _path_hint(dest, getattr(action, "metavar", None), kind=kind),
         }
         if dest == "google-takeout" and default_google_takeout_path:
             field["default"] = default_google_takeout_path

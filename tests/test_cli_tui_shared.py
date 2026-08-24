@@ -180,6 +180,21 @@ class TestCliTuiShared(unittest.TestCase):
                 self.assertEqual([field["dest"] for field in structure_fields], expected_structure_dests)
                 self.assertNotIn("foldername-all-photos", [field["dest"] for field in module_fields])
 
+    def test_folder_structure_selects_are_not_exposed_as_path_fields(self):
+        schema = build_parser_schema()
+
+        for dest in (
+            "google-albums-folders-structure",
+            "google-all-photos-folders-structure",
+            "icloud-albums-folders-structure",
+            "icloud-all-photos-folders-structure",
+            "organize-folder-structure",
+        ):
+            with self.subTest(dest=dest):
+                field = schema["fields_by_dest"][dest]
+                self.assertEqual(field["kind"], "select")
+                self.assertEqual(field["path_hint"], "")
+
     def test_album_naming_help_is_specific_to_each_feature_context(self):
         schema = build_parser_schema()
         field = schema["fields_by_dest"]["prefer-canonical-album-names"]

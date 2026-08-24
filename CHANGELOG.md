@@ -26,6 +26,7 @@
 
 #### 🐛 Bug fixes:
   - Fixed `Merge Duplicate Locations` in the Immich duplicate-cleanup form so it is displayed in the Web UI and is cleared and disabled consistently in Web, GUI, and TUI while native Immich deletion is enabled.
+  - Fixed Web interface path sanitization for folder-structure selectors. Google Takeout, iCloud Takeout, and local-folder organization layout values such as `flatten` and `year/month` are no longer converted into filesystem paths before execution.
 
 #### 📚 Documentation:
   - Documented conservative Takeout JSON-only album recovery, its audit manifest, and the opt-in manual Immich duplicate-location merge control.

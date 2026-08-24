@@ -3035,7 +3035,7 @@ def _field_kind(action: argparse.Action, dest: str) -> str:
 
 
 def _path_hint(dest: str, metavar: Any, kind: str | None = None) -> str:
-    if str(kind or "").strip().lower() in {"flag", "bool"}:
+    if str(kind or "").strip().lower() in {"flag", "bool", "select"}:
         return ""
     name = dest.lower()
     if name in {"exclude-folders", "exclude-files", *WEB_FOLDERNAME_DEFAULTS} or name.endswith("-suffix"):
