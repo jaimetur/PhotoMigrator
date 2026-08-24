@@ -513,6 +513,7 @@
         "created-from": "Created From",
         "created-to": "Created To",
         "preview-album-actions": "Preview Album Actions",
+        "merge-duplicate-locations": "Merge Duplicate Locations",
         "prefer-canonical-album-names": "Prefer Canonical Album Names",
         "consolidate-similar-albums": "Consolidate Similar Albums",
         "try-equivalent-albums-grouping": "Try Equivalent Albums Grouping",
@@ -650,7 +651,7 @@
             "upload-all": [{dest: "albums-folders", required: false}, {dest: "prefer-canonical-album-names", required: false}, {dest: "consolidate-similar-albums", required: false}, {dest: "import-people", required: false}, {dest: "create-stacks", required: false}, {dest: "immich-upload-timeout-seconds", required: false}],
             "rename-albums": [{dest: "replacement-pattern", required: true}, {dest: "preview-album-actions", required: false}],
             "consolidate-albums-names": [{dest: "preview-album-actions", required: false}],
-            "remove-duplicates-assets": [{dest: "dup-immich-native-algorithm", required: true}, {dest: "dup-immich-native-deletion", required: true}, {dest: "dup-asset-keeper", required: true}],
+            "remove-duplicates-assets": [{dest: "dup-immich-native-algorithm", required: true}, {dest: "dup-immich-native-deletion", required: true}, {dest: "dup-asset-keeper", required: true}, {dest: "merge-duplicate-locations", required: false}],
             "remove-albums": [{dest: "remove-albums-assets", required: false}, {dest: "created-from", required: false}, {dest: "created-to", required: false}, {dest: "preview-album-actions", required: false}],
             "remove-all-albums": [{dest: "remove-albums-assets", required: false}]
         },
@@ -2028,6 +2029,21 @@
         }
     }
 
+    function syncMergeDuplicateLocationsControl() {
+        const locationInput = document.querySelector('[data-dest="merge-duplicate-locations"]');
+        if (!locationInput) return;
+        const nativeDeletionEnabled = activeModuleTab === "immich_photos"
+            && uiCheckboxValueForField(
+                getFieldByDest("dup-immich-native-deletion") || {},
+                stateValues["dup-immich-native-deletion"],
+            );
+        locationInput.disabled = nativeDeletionEnabled;
+        if (nativeDeletionEnabled) {
+            locationInput.checked = false;
+            stateValues["merge-duplicate-locations"] = false;
+        }
+    }
+
     function syncDuplicateAssetKeeperChoices() {
         const keeperInput = document.querySelector('[data-dest="dup-asset-keeper"]');
         const keeperField = getFieldByDest("dup-asset-keeper");
@@ -2224,6 +2240,7 @@
                 stateValues["dup-asset-keeper"] = "better-quality";
             }
             syncDuplicateAssetKeeperChoices();
+            syncMergeDuplicateLocationsControl();
         }
     }
 
@@ -2260,6 +2277,18 @@
                     stateValues["dup-immich-native-deletion"] = false;
                 }
             }
+            if (field.dest === "merge-duplicate-locations") {
+                const nativeDeletionEnabled = activeModuleTab === "immich_photos"
+                    && uiCheckboxValueForField(
+                        getFieldByDest("dup-immich-native-deletion") || {},
+                        stateValues["dup-immich-native-deletion"],
+                    );
+                check.disabled = nativeDeletionEnabled;
+                if (nativeDeletionEnabled) {
+                    check.checked = false;
+                    stateValues["merge-duplicate-locations"] = false;
+                }
+            }
             const syncFlagState = () => {
                 updateStateValueForElement(check);
                 if (field.dest === "dup-immich-native-algorithm") {
@@ -2275,6 +2304,7 @@
                     syncDuplicateAssetKeeperChoices();
                     stateValues["dup-immich-native-deletion"] = false;
                     syncImmichNativeDuplicateDeletionControl();
+                    syncMergeDuplicateLocationsControl();
                 }
                 if (field.dest === "try-small-albums-grouping") {
                     const thresholdInput = document.querySelector('[data-dest="small-album-max-assets"]');

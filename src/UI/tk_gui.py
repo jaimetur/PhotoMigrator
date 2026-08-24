@@ -1942,6 +1942,10 @@ class PhotoMigratorTkGUI:
             bool(self.state_values.get("dup-immich-native-algorithm", True))
         ):
             value = False
+        if dest == "merge-duplicate-locations" and bool(
+            self.state_values.get("dup-immich-native-deletion", False)
+        ):
+            value = False
         if dest == "remember-state":
             self.remember_state = value
         else:
@@ -1956,6 +1960,7 @@ class PhotoMigratorTkGUI:
         elif dest == "dup-immich-native-deletion":
             if value:
                 self.state_values["dup-asset-keeper"] = "better-quality"
+                self.state_values["merge-duplicate-locations"] = False
             self.rebuild_content()
         elif dest == "try-small-albums-grouping":
             self.rebuild_content()
@@ -1967,8 +1972,13 @@ class PhotoMigratorTkGUI:
         switch = self.bool_toggle_widgets.get(dest)
         if not switch:
             return
-        disabled = dest == "dup-immich-native-deletion" and not (
-            bool(self.state_values.get("dup-immich-native-algorithm", True))
+        disabled = (
+            dest == "dup-immich-native-deletion" and not (
+                bool(self.state_values.get("dup-immich-native-algorithm", True))
+            )
+        ) or (
+            dest == "merge-duplicate-locations"
+            and bool(self.state_values.get("dup-immich-native-deletion", False))
         )
         track_fill = "#35c759" if value and not disabled else "#6b7481"
         thumb_fill = "#f4f7fb"
@@ -2044,6 +2054,11 @@ class PhotoMigratorTkGUI:
         if kind in {"flag", "bool"}:
             if dest == "dup-immich-native-deletion" and not (
                 bool(self.state_values.get("dup-immich-native-algorithm", True))
+            ):
+                value = False
+                self.state_values[dest] = False
+            if dest == "merge-duplicate-locations" and bool(
+                self.state_values.get("dup-immich-native-deletion", False)
             ):
                 value = False
                 self.state_values[dest] = False

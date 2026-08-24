@@ -25,6 +25,7 @@
   - Regression test suites for issue #140 at two levels — Unit tests (test/unit/issue_140_video_batch_date_contamination_test.dart) capture the per-file tags emitted by writeExifDataSingle (the mock deliberately does not override writeExifDataBatch, so the real isolation logic runs) and assert two videos with different dates each receive their own XMP/EXIF date tags, plus that each file's queued tag map is a distinct instance (the defensive-copy snapshot property). An e2e test (test/e2e/e2e_issue_140_video_batch_date_test.dart) drives the full pipeline with --write-exif using the issue's exact scenario (two .MOV files, each with its own JSON sidecar carrying a distinct date) and reads back the XMP date tags via real ExifTool, confirming each video keeps its own date rather than inheriting the sibling's.
 
 #### 🐛 Bug fixes:
+  - Fixed `Merge Duplicate Locations` in the Immich duplicate-cleanup form so it is displayed in the Web UI and is cleared and disabled consistently in Web, GUI, and TUI while native Immich deletion is enabled.
 
 #### 📚 Documentation:
   - Documented conservative Takeout JSON-only album recovery, its audit manifest, and the opt-in manual Immich duplicate-location merge control.

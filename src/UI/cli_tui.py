@@ -3174,8 +3174,13 @@ if TEXTUAL_AVAILABLE:
             if kind == "flag":
                 return [self.build_boolean_toggle_row(f"{label}{' *' if required else ''}", dest, bool(value), help_text=help_text)]
             if kind == "bool":
-                disabled = dest == "dup-immich-native-deletion" and not (
-                    bool(self.state_values.get("dup-immich-native-algorithm", True))
+                disabled = (
+                    dest == "dup-immich-native-deletion" and not (
+                        bool(self.state_values.get("dup-immich-native-algorithm", True))
+                    )
+                ) or (
+                    dest == "merge-duplicate-locations"
+                    and bool(self.state_values.get("dup-immich-native-deletion", False))
                 )
                 if disabled:
                     value = False
@@ -3790,6 +3795,7 @@ if TEXTUAL_AVAILABLE:
                     elif dest == "dup-immich-native-deletion":
                         if value:
                             self.state_values["dup-asset-keeper"] = "better-quality"
+                            self.state_values["merge-duplicate-locations"] = False
                         await self.rebuild_content()
                     elif dest == "try-small-albums-grouping":
                         await self.rebuild_content()

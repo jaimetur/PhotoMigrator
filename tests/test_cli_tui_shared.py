@@ -504,6 +504,17 @@ class TestCliTuiShared(unittest.TestCase):
         )
         self.assertNotIn("--merge-duplicate-locations", native_args)
 
+    def test_web_duplicate_location_merge_is_declared_in_the_immich_form(self):
+        page_path = PROJECT_ROOT / "src" / "web_interface" / "html" / "_main_app_page.html"
+        page = page_path.read_text(encoding="utf-8")
+
+        self.assertIn('"merge-duplicate-locations": "Merge Duplicate Locations"', page)
+        self.assertIn(
+            '{dest: "merge-duplicate-locations", required: false}',
+            page,
+        )
+        self.assertIn("function syncMergeDuplicateLocationsControl()", page)
+
     def test_duplicate_asset_keeper_is_available_for_every_cloud_tab(self):
         schema = build_parser_schema()
         for tab in ("google_photos", "synology_photos", "immich_photos", "nextcloud_photos"):
