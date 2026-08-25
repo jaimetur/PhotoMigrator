@@ -448,6 +448,16 @@ def _build_album_asset_presence_index(album_root):
     }
 
 
+def _album_asset_entry_paths(album_presence_index, expected_filename):
+    expected_name = str(expected_filename or "").casefold()
+    expected_normalized_name = _normalize_recoverable_asset_name(expected_filename)
+    paths = [
+        *album_presence_index.get("exact_paths", {}).get(expected_name, []),
+        *album_presence_index.get("normalized_paths", {}).get(expected_normalized_name, []),
+    ]
+    return list(dict.fromkeys(paths))
+
+
 def _album_contains_expected_asset(album_root, expected_filename, album_presence_index=None):
     if not album_root.exists() or not album_root.is_dir():
         return False
@@ -462,20 +472,22 @@ def _album_contains_expected_asset(album_root, expected_filename, album_presence
     )
 
 
-def _audit_existing_orphan_album_entries(album_root, no_albums_root, expected_filename, album_presence_index):
+def _audit_existing_orphan_album_entries(album_root, no_albums_root, expected_filename, album_presence_index, canonical_source=None):
     """Describe existing album entries without treating valid links as orphans."""
     album_root = Path(album_root)
     no_albums_root = Path(no_albums_root).resolve()
-    expected_name = str(expected_filename or "").casefold()
-    expected_normalized_name = _normalize_recoverable_asset_name(expected_filename)
     entries = []
-    existing_paths = [
-        *album_presence_index.get("exact_paths", {}).get(expected_name, []),
-        *album_presence_index.get("normalized_paths", {}).get(expected_normalized_name, []),
-    ]
-    for entry in dict.fromkeys(existing_paths):
+    for entry in _album_asset_entry_paths(album_presence_index, expected_filename):
         audit_entry = {"album_entry": str(entry.relative_to(album_root))}
         if not entry.is_symlink():
+            if canonical_source is not None:
+                try:
+                    if os.path.samefile(entry, canonical_source):
+                        audit_entry["status"] = "existing-hardlink-to-all-photos"
+                        entries.append(audit_entry)
+                        continue
+                except OSError:
+                    pass
             # Windows shortcut albums use hard links, which are intentionally
             # indistinguishable from regular files through pathlib.
             audit_entry["status"] = "existing-hardlink-or-copy" if os.name == "nt" else "existing-physical-entry"
@@ -532,6 +544,65 @@ def _create_symbolic_or_copied_album_entry(source_path, target_path, no_symbolic
                 return False
 
 
+def _files_match_content(first_path, second_path, chunk_size=1024 * 1024):
+    """Compare files byte-for-byte before replacing a physical album copy."""
+    first_path = Path(first_path)
+    second_path = Path(second_path)
+    try:
+        if os.path.samefile(first_path, second_path):
+            return True
+        if first_path.stat().st_size != second_path.stat().st_size:
+            return False
+        with first_path.open("rb") as first_file, second_path.open("rb") as second_file:
+            while True:
+                first_chunk = first_file.read(chunk_size)
+                second_chunk = second_file.read(chunk_size)
+                if first_chunk != second_chunk:
+                    return False
+                if not first_chunk:
+                    return True
+    except OSError:
+        return False
+
+
+def _replace_matching_album_entry_with_shortcut(source_path, album_entry_path, content_verified=False, step_name="", log_level=None):
+    """Replace an exact physical duplicate with the platform-native album link."""
+    source_path = Path(source_path)
+    album_entry_path = Path(album_entry_path)
+    if album_entry_path.is_symlink() or not album_entry_path.is_file():
+        return False
+    try:
+        if os.path.samefile(source_path, album_entry_path):
+            return False
+    except OSError:
+        pass
+    if not content_verified and not _files_match_content(source_path, album_entry_path):
+        return False
+
+    backup_path = album_entry_path.with_name(f".{album_entry_path.name}.photomigrator-shortcut-backup")
+    if backup_path.exists() or backup_path.is_symlink():
+        LOGGER.warning(f"{step_name}Could not replace physical album entry '{album_entry_path.name}': temporary backup already exists.")
+        return False
+    try:
+        album_entry_path.replace(backup_path)
+        if _create_symbolic_or_copied_album_entry(
+            source_path,
+            album_entry_path,
+            no_symbolic_albums=False,
+            step_name=step_name,
+            log_level=log_level,
+        ):
+            backup_path.unlink()
+            return True
+        backup_path.replace(album_entry_path)
+    except OSError as error:
+        LOGGER.warning(f"{step_name}Could not replace physical album entry '{album_entry_path.name}': {error}")
+        if backup_path.exists() and not album_entry_path.exists() and not album_entry_path.is_symlink():
+            with suppress(OSError):
+                backup_path.replace(album_entry_path)
+    return False
+
+
 def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, albums_folder, no_symbolic_albums=False, albums_structure="flatten", all_photos_structure="flatten", descriptors=None, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):
         albums_root = Path(albums_folder)
@@ -543,6 +614,7 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
             "unresolved_assets": 0,
             "albums_touched": 0,
             "already_present_assets": 0,
+            "shortcut_entries_repaired": 0,
         }
 
         all_photos_structure = str(all_photos_structure or "flatten").strip().lower()
@@ -558,12 +630,19 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
         candidate_index = _build_non_album_candidate_index(no_albums_root)
         per_album_stats = {}
         recovery_manifest = []
+        indexed_album_name = None
+        album_presence_index = None
 
         for descriptor in descriptors:
             output_album_name = descriptor["album"]
             output_album_dir = albums_root / output_album_name
-            album_presence_index = _build_album_asset_presence_index(output_album_dir)
-            album_stat = per_album_stats.setdefault(output_album_name, {"recovered": 0, "unresolved": 0, "already_present": 0})
+            if output_album_name != indexed_album_name:
+                album_presence_index = _build_album_asset_presence_index(output_album_dir)
+                indexed_album_name = output_album_name
+            album_stat = per_album_stats.setdefault(
+                output_album_name,
+                {"recovered": 0, "unresolved": 0, "already_present": 0, "shortcuts_repaired": 0},
+            )
 
             expected_title = descriptor["title"]
             expected_year = descriptor["year"]
@@ -577,28 +656,95 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
             if _album_contains_expected_asset(output_album_dir, expected_title, album_presence_index):
                 summary["already_present_assets"] += 1
                 album_stat["already_present"] += 1
-                if not no_symbolic_albums and os.name != "nt":
+                if not no_symbolic_albums:
+                    existing_paths = _album_asset_entry_paths(album_presence_index, expected_title)
+                    physical_entries = [path for path in existing_paths if not path.is_symlink()]
+                    repaired_entries = []
+                    canonical_source = None
+                    if physical_entries:
+                        canonical_source, _, _, _, canonical_match_status = _find_recoverable_asset_candidate(
+                            candidate_index,
+                            no_albums_root,
+                            expected_title,
+                            descriptor.get("photo_taken_datetime"),
+                            descriptor.get("creation_datetime"),
+                            all_photos_structure,
+                        )
+                        if canonical_source is not None:
+                            for entry_path in physical_entries:
+                                try:
+                                    if os.path.samefile(canonical_source, entry_path):
+                                        continue
+                                except OSError:
+                                    pass
+                                if not _files_match_content(canonical_source, entry_path):
+                                    LOGGER.warning(
+                                        f"{step_name}Album entry requires review. Album: '{output_album_name}'; "
+                                        f"File: '{entry_path.name}' is a physical file instead of a valid shortcut to "
+                                        f"'{FOLDERNAME_ALL_PHOTOS}' while the Albums strategy is 'Shortcut', but it does not "
+                                        f"match the canonical asset. The physical file was kept."
+                                    )
+                                    continue
+                                LOGGER.warning(
+                                    f"{step_name}Album entry requires review. Album: '{output_album_name}'; "
+                                    f"File: '{entry_path.name}' is a physical file instead of a valid shortcut to "
+                                    f"'{FOLDERNAME_ALL_PHOTOS}' while the Albums strategy is 'Shortcut'. "
+                                    f"Creating a platform-native shortcut instead."
+                                )
+                                if _replace_matching_album_entry_with_shortcut(
+                                    canonical_source,
+                                    entry_path,
+                                    content_verified=True,
+                                    step_name=step_name,
+                                    log_level=log_level,
+                                ):
+                                    repaired_entries.append(entry_path)
+                        else:
+                            for entry_path in physical_entries:
+                                LOGGER.warning(
+                                    f"{step_name}Album entry requires review. Album: '{output_album_name}'; "
+                                    f"File: '{entry_path.name}' is a physical file instead of a valid shortcut to "
+                                    f"'{FOLDERNAME_ALL_PHOTOS}' while the Albums strategy is 'Shortcut'. "
+                                    f"No unique canonical asset could be resolved ({canonical_match_status}), so the physical file was kept."
+                                )
+                        if repaired_entries:
+                            repaired_count = len(repaired_entries)
+                            summary["shortcut_entries_repaired"] += repaired_count
+                            album_stat["shortcuts_repaired"] += repaired_count
+                            manifest_entry.update({
+                                "status": "repaired-physical-entries-with-shortcuts",
+                                "source_asset": str(canonical_source.relative_to(no_albums_root)),
+                                "album_entries": [str(path.relative_to(albums_root)) for path in repaired_entries],
+                            })
+
                     existing_entries = _audit_existing_orphan_album_entries(
                         output_album_dir,
                         no_albums_root,
                         expected_title,
                         album_presence_index,
+                        canonical_source=canonical_source,
                     )
-                    shortcut_strategy_mismatches = any(
-                        entry.get("status") in {
+                    shortcut_strategy_mismatches = [
+                        entry for entry in existing_entries
+                        if entry.get("status") in {
                             "existing-physical-entry",
                             "existing-link-outside-all-photos",
+                            "existing-hardlink-or-copy",
                         }
-                        for entry in existing_entries
-                    )
+                    ]
                     if shortcut_strategy_mismatches:
                         manifest_entry["status"] = "already-present-shortcut-strategy-mismatch"
                         manifest_entry["existing_entries"] = existing_entries
                         recovery_manifest.append(manifest_entry)
-                        LOGGER.warning(
-                            f"{step_name}Album entry requires review: '{expected_title}' in "
-                            f"'{output_album_name}' is not a valid shortcut to '{FOLDERNAME_ALL_PHOTOS}'."
-                        )
+                        for entry in shortcut_strategy_mismatches:
+                            if entry.get("status") == "existing-link-outside-all-photos":
+                                LOGGER.warning(
+                                    f"{step_name}Album entry requires review. Album: '{output_album_name}'; "
+                                    f"File: '{entry['album_entry']}' is a shortcut outside '{FOLDERNAME_ALL_PHOTOS}' "
+                                    f"while the Albums strategy is 'Shortcut'. The entry was kept for review."
+                                )
+                    elif repaired_entries:
+                        recovery_manifest.append(manifest_entry)
                 continue
 
             summary["orphan_json_detected"] += 1
@@ -669,6 +815,11 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 recovery_manifest.append(manifest_entry)
                 album_presence_index["exact"].add(source_candidate.name.casefold())
                 album_presence_index["normalized"].add(_normalize_recoverable_asset_name(source_candidate.name))
+                album_presence_index["exact_paths"].setdefault(source_candidate.name.casefold(), []).append(target_path)
+                album_presence_index["normalized_paths"].setdefault(
+                    _normalize_recoverable_asset_name(source_candidate.name),
+                    [],
+                ).append(target_path)
             else:
                 summary["unresolved_assets"] += 1
                 album_stat["unresolved"] += 1
@@ -677,19 +828,21 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 recovery_manifest.append(manifest_entry)
 
         for album_name, album_stat in per_album_stats.items():
-            if album_stat["recovered"] or album_stat["unresolved"]:
+            if album_stat["recovered"] or album_stat["unresolved"] or album_stat["shortcuts_repaired"]:
                 summary["albums_touched"] += 1
                 total_assets = album_stat["already_present"] + album_stat["recovered"]
                 LOGGER.info(
                     f"{step_name}Album JSON Recovery: '{album_name}' already had {album_stat['already_present']} assets, "
-                    f"recovered {album_stat['recovered']} assets, and left {album_stat['unresolved']} unresolved. "
+                    f"recovered {album_stat['recovered']} assets, replaced {album_stat['shortcuts_repaired']} physical "
+                    f"entries with shortcuts, and left {album_stat['unresolved']} unresolved. "
                     f"Total assets: {total_assets}"
                 )
 
         LOGGER.info(
             f"{step_name}Orphan album JSON sidecars detected: {summary['orphan_json_detected']}. "
             f"Already present: {summary['already_present_assets']}. "
-            f"Recovered: {summary['recovered_assets']}. Unresolved: {summary['unresolved_assets']}."
+            f"Recovered: {summary['recovered_assets']}. Shortcut entries repaired: "
+            f"{summary['shortcut_entries_repaired']}. Unresolved: {summary['unresolved_assets']}."
         )
         manifest_path = Path(output_folder) / "orphan_album_asset_recovery_manifest.json"
         try:
@@ -2107,8 +2260,8 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             if should_recover_orphan_album_assets(self.takeout_detection_info) and all_photos_structure != 'flatten':
                 self.orphan_album_json_sidecars = collect_orphan_album_json_sidecars(input_folder)
                 LOGGER.info(
-                    f"🧩 [PROCESS]-[Recover Orphan Album Assets] : Captured "
-                    f"{len(self.orphan_album_json_sidecars)} album JSON sidecars for recovery after "
+                    f"🧩 [PROCESS]-[Reconcile Album Entries] : Captured "
+                    f"{len(self.orphan_album_json_sidecars)} album JSON sidecars for reconciliation after "
                     f"the final ALL_PHOTOS structure is created."
                 )
             else:
@@ -2522,9 +2675,10 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"Total Albums folders found in Output folder : {result['valid_albums_found']}")
-                if result.get('orphan_album_json_detected', 0) or result.get('orphan_album_assets_recovered', 0) or result.get('orphan_album_assets_unresolved', 0):
+                if result.get('orphan_album_json_detected', 0) or result.get('orphan_album_assets_recovered', 0) or result.get('orphan_album_assets_unresolved', 0) or result.get('orphan_album_shortcut_entries_repaired', 0):
                     LOGGER.info(f"Orphan Album JSON Sidecars Detected         : {result.get('orphan_album_json_detected', 0)}")
                     LOGGER.info(f"Orphan Album Assets Recovered               : {result.get('orphan_album_assets_recovered', 0)}")
+                    LOGGER.info(f"Orphan Album Shortcut Entries Repaired      : {result.get('orphan_album_shortcut_entries_repaired', 0)}")
                     LOGGER.info(f"Orphan Album Assets Unresolved              : {result.get('orphan_album_assets_unresolved', 0)}")
                 if ARGS['google-rename-albums-folders']:
                     LOGGER.info(f"Total Albums Renamed                        : {result['renamed_album_folders']}")
@@ -2714,7 +2868,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
 
             # Step 6.5: Recover album JSON-only memberships after ALL_PHOTOS is finalized.
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧩 [POST-PROCESS]-[Recover Orphan Album Assets] : '
+            step_name = '🧩 [POST-PROCESS]-[Reconcile Album Entries with ALL_PHOTOS] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             self.substep += 1
             sub_step_start_time = datetime.now()
@@ -2736,6 +2890,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 )
                 self.result['orphan_album_json_detected'] = recovery_summary['orphan_json_detected']
                 self.result['orphan_album_assets_recovered'] = recovery_summary['recovered_assets']
+                self.result['orphan_album_shortcut_entries_repaired'] = recovery_summary['shortcut_entries_repaired']
                 self.result['orphan_album_assets_unresolved'] = recovery_summary['unresolved_assets']
                 self.result['orphan_album_recovery_albums_touched'] = recovery_summary['albums_touched']
                 formatted_duration = str(timedelta(seconds=round((datetime.now() - sub_step_start_time).total_seconds())))

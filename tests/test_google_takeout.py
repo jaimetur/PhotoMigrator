@@ -487,6 +487,44 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertTrue(recovered_entry.is_file())
             self.assertFalse(recovered_entry.is_symlink())
 
+    def test_recover_orphan_album_assets_indexes_each_album_once(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_root = root / "Takeout"
+            album_dir = input_root / "Google Photos" / "Album_1"
+            album_dir.mkdir(parents=True)
+            for filename in ("IMG_0001.JPG", "IMG_0002.JPG"):
+                (album_dir / f"{filename}.json").write_text(
+                    json.dumps({"title": filename, "photoTakenTime": {"timestamp": "1388534400"}}),
+                    encoding="utf-8",
+                )
+            output_root = root / "Processed"
+            all_photos_root = output_root / "ALL_PHOTOS" / "2014"
+            all_photos_root.mkdir(parents=True)
+            (all_photos_root / "IMG_0001.JPG").write_bytes(b"first")
+            (all_photos_root / "IMG_0002.JPG").write_bytes(b"second")
+
+            with (
+                patch.object(takeout_module, "LOGGER", MagicMock()),
+                patch.object(
+                    takeout_module,
+                    "_build_album_asset_presence_index",
+                    wraps=takeout_module._build_album_asset_presence_index,
+                ) as build_index,
+            ):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_root,
+                    output_folder=output_root,
+                    albums_folder=output_root / "Albums",
+                    no_symbolic_albums=True,
+                    all_photos_structure="year",
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertEqual(summary["recovered_assets"], 2)
+            self.assertEqual(build_index.call_count, 1)
+
     def test_recover_orphan_album_assets_uses_creation_time_when_photo_taken_folder_has_no_match(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -684,6 +722,44 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertFalse(any("requires review" in str(call) for call in mock_logger.warning.call_args_list))
 
     @unittest.skipIf(os.name == "nt", "Windows shortcut albums use hard links")
+    def test_recover_orphan_album_assets_replaces_matching_physical_entry_with_relative_shortcut(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_root = root / "Takeout"
+            album_dir = input_root / "Google Photos" / "Album_1"
+            album_dir.mkdir(parents=True)
+            (album_dir / "IMG_0001.MOV.json").write_text(
+                json.dumps({"title": "IMG_0001.MOV", "photoTakenTime": {"timestamp": "1388534400"}}),
+                encoding="utf-8",
+            )
+            output_root = root / "Processed"
+            source_asset = output_root / "ALL_PHOTOS" / "2014" / "IMG_0001.MOV"
+            source_asset.parent.mkdir(parents=True)
+            source_asset.write_bytes(b"matching-video-content")
+            album_entry = output_root / "Albums" / "Album_1" / "IMG_0001.MOV"
+            album_entry.parent.mkdir(parents=True)
+            album_entry.write_bytes(b"matching-video-content")
+
+            mock_logger = MagicMock()
+            with patch.object(takeout_module, "LOGGER", mock_logger):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_root,
+                    output_folder=output_root,
+                    albums_folder=output_root / "Albums",
+                    no_symbolic_albums=False,
+                    all_photos_structure="year",
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertEqual(summary["shortcut_entries_repaired"], 1)
+            self.assertTrue(album_entry.is_symlink())
+            self.assertEqual(os.readlink(album_entry), "../../ALL_PHOTOS/2014/IMG_0001.MOV")
+            manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["entries"][0]["status"], "repaired-physical-entries-with-shortcuts")
+            self.assertTrue(any("Creating a platform-native shortcut instead" in str(call) for call in mock_logger.warning.call_args_list))
+
+    @unittest.skipIf(os.name == "nt", "Windows shortcut albums use hard links")
     def test_recover_orphan_album_assets_warns_for_physical_entry_in_shortcut_mode(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -718,7 +794,7 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertEqual(summary["orphan_json_detected"], 0)
             manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["entries"][0]["status"], "already-present-shortcut-strategy-mismatch")
-            self.assertTrue(any("not a valid shortcut" in str(call) for call in mock_logger.warning.call_args_list))
+            self.assertTrue(any("physical file instead of a valid shortcut" in str(call) for call in mock_logger.warning.call_args_list))
 
     def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
         with tempfile.TemporaryDirectory() as temp_dir:
