@@ -932,6 +932,21 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         if show_gpth_info is None: show_gpth_info = ARGS['show-gpth-info']
         if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
+        # Confirm before source detection can extract archives or target setup can
+        # authenticate. A directory stat is intentionally the only filesystem work
+        # performed before the user accepts the migration.
+        source_is_local_folder = Path(str(source)).expanduser().is_dir()
+        confirmation_help = HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'")
+        if source_is_local_folder:
+            confirmation_help = confirmation_help.replace('Pulling', 'Analyzing and Fixing').replace(f"'{source}' Cloud Service", f"folder '{source}'")
+        LOGGER.info('-' * (terminal_width - 10))
+        LOGGER.warning(confirmation_help)
+        LOGGER.info('Source type, archive contents, and target credentials will be checked after confirmation.')
+        LOGGER.info('-' * (terminal_width - 10))
+        if not confirm_continue():
+            LOGGER.info("Exiting program.")
+            sys.exit(0)
+
         # Define the INTERMEDIATE_FOLDER
         INTERMEDIATE_FOLDER = resolve_external_path(f'./Automatic_Migration_{TIMESTAMP}')
 
@@ -1088,11 +1103,6 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         LOGGER.info(f"")
         LOGGER.info(f"*** Automatic Migration Mode *** detected")
         LOGGER.info('-' * (terminal_width-10))
-        if not isinstance(source_client, (ClassTakeoutFolder, ClassICloudTakeoutFolder)):
-            LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
-        else:
-            LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
-        LOGGER.info('-' * (terminal_width-10))
         LOGGER.info(f"Source Client  : {source_client_name}")
         LOGGER.info(f"Target Client  : {target_client_name}")
         LOGGER.info(f"Temp Folder    : {INTERMEDIATE_FOLDER}")
@@ -1132,10 +1142,6 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.error(ClassGooglePhotos.get_full_library_read_unsupported_message("Automatic Migration"))
             LOGGER.error("Recommended workaround: export your library with Google Takeout and use the Takeout folder as `--source`.")
             sys.exit(1)
-
-        if not confirm_continue():
-            LOGGER.info(f"Exiting program.")
-            sys.exit(0)
 
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────

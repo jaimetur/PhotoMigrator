@@ -3,6 +3,7 @@ import builtins
 import io
 import json
 import logging
+import os
 import sys
 import tempfile
 import unittest
@@ -577,7 +578,7 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["entries"][0]["status"], "ambiguous-exact-name-and-year")
 
-    def test_recover_orphan_album_assets_audits_existing_cross_year_symbolic_link(self):
+    def test_recover_orphan_album_assets_accepts_existing_cross_year_symbolic_link(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             input_root = root / "Takeout"
@@ -609,8 +610,45 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
                 )
 
             self.assertEqual(summary["recovered_assets"], 0)
+            self.assertEqual(summary["orphan_json_detected"], 0)
             manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
-            self.assertEqual(manifest["entries"][0]["status"], "already-present-capture-year-mismatch")
+            self.assertEqual(manifest["entries"], [])
+            self.assertFalse(any("requires review" in str(call) for call in self.logger.warning.call_args_list))
+
+    @unittest.skipIf(os.name == "nt", "Windows shortcut albums use hard links")
+    def test_recover_orphan_album_assets_warns_for_physical_entry_in_shortcut_mode(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            input_root = root / "Takeout"
+            album_dir = input_root / "Google Photos" / "Album_1"
+            album_dir.mkdir(parents=True)
+            (album_dir / "IMG_0001.JPG.json").write_text(
+                json.dumps({"title": "IMG_0001.JPG", "photoTakenTime": {"timestamp": "1388534400"}}),
+                encoding="utf-8",
+            )
+            output_root = root / "Processed"
+            all_photos_asset = output_root / "ALL_PHOTOS" / "2014" / "IMG_0001.JPG"
+            all_photos_asset.parent.mkdir(parents=True)
+            all_photos_asset.write_bytes(b"asset")
+            album_entry = output_root / "Albums" / "Album_1" / "IMG_0001.JPG"
+            album_entry.parent.mkdir(parents=True)
+            album_entry.write_bytes(b"copied-asset")
+
+            with patch.object(takeout_module, "LOGGER", self.logger):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_root,
+                    output_folder=output_root,
+                    albums_folder=output_root / "Albums",
+                    no_symbolic_albums=False,
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            self.assertEqual(summary["recovered_assets"], 0)
+            self.assertEqual(summary["orphan_json_detected"], 0)
+            manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["entries"][0]["status"], "already-present-shortcut-strategy-mismatch")
+            self.assertTrue(any("not a valid shortcut" in str(call) for call in self.logger.warning.call_args_list))
 
     def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -384,18 +384,34 @@ def _recoverable_asset_match_details(candidate_index, expected_filename, expecte
 def _build_album_asset_presence_index(album_root):
     exact = set()
     normalized = set()
+    exact_paths = {}
+    normalized_paths = {}
     album_root = Path(album_root)
     if not album_root.exists() or not album_root.is_dir():
-        return {"exact": exact, "normalized": normalized}
+        return {
+            "exact": exact,
+            "normalized": normalized,
+            "exact_paths": exact_paths,
+            "normalized_paths": normalized_paths,
+        }
 
     for path_obj in album_root.rglob("*"):
         if not (path_obj.is_file() or path_obj.is_symlink()):
             continue
         if path_obj.suffix.lower() == ".json":
             continue
-        exact.add(path_obj.name.casefold())
-        normalized.add(_normalize_recoverable_asset_name(path_obj.name))
-    return {"exact": exact, "normalized": normalized}
+        exact_name = path_obj.name.casefold()
+        normalized_name = _normalize_recoverable_asset_name(path_obj.name)
+        exact.add(exact_name)
+        normalized.add(normalized_name)
+        exact_paths.setdefault(exact_name, []).append(path_obj)
+        normalized_paths.setdefault(normalized_name, []).append(path_obj)
+    return {
+        "exact": exact,
+        "normalized": normalized,
+        "exact_paths": exact_paths,
+        "normalized_paths": normalized_paths,
+    }
 
 
 def _album_contains_expected_asset(album_root, expected_filename, album_presence_index=None):
@@ -412,18 +428,23 @@ def _album_contains_expected_asset(album_root, expected_filename, album_presence
     )
 
 
-def _audit_existing_orphan_album_entries(album_root, no_albums_root, expected_filename, expected_year):
-    """Audit existing exact-name album entries without changing memberships."""
+def _audit_existing_orphan_album_entries(album_root, no_albums_root, expected_filename, album_presence_index):
+    """Describe existing album entries without treating valid links as orphans."""
     album_root = Path(album_root)
     no_albums_root = Path(no_albums_root).resolve()
     expected_name = str(expected_filename or "").casefold()
+    expected_normalized_name = _normalize_recoverable_asset_name(expected_filename)
     entries = []
-    for entry in album_root.rglob("*"):
-        if not (entry.is_file() or entry.is_symlink()) or entry.name.casefold() != expected_name:
-            continue
+    existing_paths = [
+        *album_presence_index.get("exact_paths", {}).get(expected_name, []),
+        *album_presence_index.get("normalized_paths", {}).get(expected_normalized_name, []),
+    ]
+    for entry in dict.fromkeys(existing_paths):
         audit_entry = {"album_entry": str(entry.relative_to(album_root))}
         if not entry.is_symlink():
-            audit_entry["status"] = "existing-copy-not-auditable"
+            # Windows shortcut albums use hard links, which are intentionally
+            # indistinguishable from regular files through pathlib.
+            audit_entry["status"] = "existing-hardlink-or-copy" if os.name == "nt" else "existing-physical-entry"
             entries.append(audit_entry)
             continue
         try:
@@ -433,14 +454,8 @@ def _audit_existing_orphan_album_entries(album_root, no_albums_root, expected_fi
             audit_entry["status"] = "existing-link-outside-all-photos"
             entries.append(audit_entry)
             continue
-        source_year = _extract_year_from_candidate_path(target)
         audit_entry["source_asset"] = str(target.relative_to(no_albums_root))
-        audit_entry["source_capture_year"] = source_year
-        audit_entry["status"] = (
-            "existing-link-capture-year-mismatch"
-            if expected_year is not None and source_year != int(expected_year)
-            else "existing-link-capture-year-matched"
-        )
+        audit_entry["status"] = "existing-link-to-all-photos"
         entries.append(audit_entry)
     return entries
 
@@ -524,7 +539,6 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
 
                 expected_title = descriptor["title"]
                 expected_year = descriptor["year"]
-                summary["orphan_json_detected"] += 1
                 manifest_entry = {
                     "source_json": str(json_path.relative_to(input_root)),
                     "album": output_album_name,
@@ -535,28 +549,31 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 if _album_contains_expected_asset(output_album_dir, expected_title, album_presence_index):
                     summary["already_present_assets"] += 1
                     album_stat["already_present"] += 1
-                    existing_entries = _audit_existing_orphan_album_entries(
-                        output_album_dir,
-                        no_albums_root,
-                        expected_title,
-                        expected_year,
-                    )
-                    has_year_mismatch = any(
-                        entry.get("status") == "existing-link-capture-year-mismatch"
-                        for entry in existing_entries
-                    )
-                    manifest_entry["status"] = (
-                        "already-present-capture-year-mismatch"
-                        if has_year_mismatch else "already-present"
-                    )
-                    manifest_entry["existing_entries"] = existing_entries
-                    recovery_manifest.append(manifest_entry)
-                    if has_year_mismatch:
-                        LOGGER.warning(
-                            f"{step_name}Existing album entry requires review: '{expected_title}' in "
-                            f"'{output_album_name}' links to a different capture year than its JSON sidecar."
+                    if not no_symbolic_albums and os.name != "nt":
+                        existing_entries = _audit_existing_orphan_album_entries(
+                            output_album_dir,
+                            no_albums_root,
+                            expected_title,
+                            album_presence_index,
                         )
+                        shortcut_strategy_mismatches = any(
+                            entry.get("status") in {
+                                "existing-physical-entry",
+                                "existing-link-outside-all-photos",
+                            }
+                            for entry in existing_entries
+                        )
+                        if shortcut_strategy_mismatches:
+                            manifest_entry["status"] = "already-present-shortcut-strategy-mismatch"
+                            manifest_entry["existing_entries"] = existing_entries
+                            recovery_manifest.append(manifest_entry)
+                            LOGGER.warning(
+                                f"{step_name}Album entry requires review: '{expected_title}' in "
+                                f"'{output_album_name}' is not a valid shortcut to '{FOLDERNAME_ALL_PHOTOS}'."
+                            )
                     continue
+
+                summary["orphan_json_detected"] += 1
 
                 exact_candidates, same_year_candidates, match_status = _recoverable_asset_match_details(
                     candidate_index, expected_title, expected_year,

@@ -1004,6 +1004,30 @@ class TestAutomaticMigrationMode(unittest.TestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
+    def test_mode_automatic_migration_confirms_before_source_detection_or_unzip(self):
+        with (
+            patch.object(automatic_module, "ARGS", dict(self.base_args)),
+            patch.object(automatic_module, "HELP_TEXTS", self.help_texts),
+            patch.object(automatic_module, "LOGGER", self.logger),
+            patch.object(GV, "ARGS", dict(self.base_args)),
+            patch.object(automatic_module, "confirm_continue", return_value=False) as mock_confirm,
+            patch.object(automatic_module, "contains_zip_files") as mock_contains_zip,
+            patch.object(automatic_module, "sanitize_and_unpack_zips") as mock_unzip,
+        ):
+            with self.assertRaises(SystemExit) as exit_context:
+                automatic_module.mode_AUTOMATIC_MIGRATION(
+                    source=str(self.source),
+                    target="immich-photos-2",
+                    show_dashboard=False,
+                    parallel=False,
+                    log_level=logging.INFO,
+                )
+
+        self.assertEqual(exit_context.exception.code, 0)
+        mock_confirm.assert_called_once()
+        mock_contains_zip.assert_not_called()
+        mock_unzip.assert_not_called()
+
     def test_mode_automatic_migration_uses_local_folder_clients(self):
         with (
             patch.object(automatic_module, "ARGS", dict(self.base_args)),
