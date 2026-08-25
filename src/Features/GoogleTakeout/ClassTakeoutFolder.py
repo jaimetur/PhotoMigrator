@@ -2316,18 +2316,29 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             LOGGER.info(f"")
             LOGGER.info(f"Processing Time per Step:")
             LOGGER.info(f"-" * 67)
+            summary_rows = []
             for entry in self.steps_duration:
                 label_cleaned = ' '.join(entry['step_name'].replace(' : ', '').split()).replace(' ]', ']')
-                # If it is a principal Step, add new line
-                if '.' not in str(entry['step_id']):
-                    LOGGER.info("")
+                is_principal_step = '.' not in str(entry['step_id'])
+                if is_principal_step:
                     step_id_and_label = f"{('STEP ' + str(entry['step_id'])).ljust(9)} : {label_cleaned}"
                 else:
                     step_id_and_label = f"{('Step ' + str(entry['step_id'])).ljust(9)} : {label_cleaned}"
 
-                LOGGER.info(f"{step_id_and_label.ljust(55)} : {entry['duration'].rjust(8)}")
+                summary_rows.append((is_principal_step, step_id_and_label, entry['duration']))
+
+            summary_label_width = max(
+                55,
+                len('TOTAL PROCESSING TIME'),
+                *(len(step_id_and_label) for _, step_id_and_label, _ in summary_rows),
+            )
+            for is_principal_step, step_id_and_label, duration in summary_rows:
+                # Principal steps remain separated from their substeps.
+                if is_principal_step:
+                    LOGGER.info("")
+                LOGGER.info(f"{step_id_and_label.ljust(summary_label_width)} : {duration.rjust(8)}")
             LOGGER.info(f"")
-            LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(55)}  : {formatted_duration.rjust(8)}")
+            LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(summary_label_width)} : {formatted_duration.rjust(8)}")
             LOGGER.info(f"================================================================================================================================================")
 
             # PRINT RESULTS
@@ -2569,7 +2580,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
 
             # Step 4.2: Normalize conflicting video XMP dates left by GPTH
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🎞️ [POST-PROCESS]-[Repair Video XMP Dates]   : '
+            step_name = '🎞️ [POST-PROCESS]-[Repair Video XMP Dates]    : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             sub_step_start_time = datetime.now()
             self.substep += 1

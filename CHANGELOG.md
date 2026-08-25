@@ -12,6 +12,7 @@
   - Moved Automatic Migration confirmation ahead of source detection, ZIP extraction, destination authentication, and temporary-folder preparation. Cancelling now exits before any long-running preprocessing begins; the Google Takeout and iCloud Takeout processors already confirm before their processing and extraction phases.
   - Made manual Immich duplicate location merging opt-in with `-mergeDupLoc, --merge-duplicate-locations` (default: `false`). The guarded merge now preserves the keeper GPS by default; when explicitly enabled, it copies a location only if the keeper has no coordinates and at least two redundant assets agree on one complete coordinate pair. Native Immich duplicate deletion remains server-managed.
   - Updated GPTH to v6.1.10 which includes new enhancements.
+  - Improved GoGoogleogle Takeout processing-time summaries. Step labels now use the longest rendered label as their shared width, keeping the duration separator and values aligned when optional steps have long names.
 
 #### 🚀 GPTH Enhancements:
 ##### 🐛 GPTH Bug Fixes
