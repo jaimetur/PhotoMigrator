@@ -60,6 +60,24 @@ VIDEO_NATIVE_DATE_TAGS = (
 VIDEO_METADATA_REPAIR_SOURCE_PREFIXES = ("QuickTime:", "Track:", "Media:")
 VIDEO_METADATA_REPAIR_EXTENSIONS = {".mp4", ".mov", ".m4v", ".3gp", ".3g2"}
 
+
+def _console_display_width(value):
+    """Return the terminal cell width used by the Takeout timing summary."""
+    text = str(value or "")
+    width = 0
+    for index, character in enumerate(text):
+        if unicodedata.combining(character) or character in {"\ufe0e", "\ufe0f", "\u200d"}:
+            continue
+        is_emoji_presentation = index + 1 < len(text) and text[index + 1] == "\ufe0f"
+        width += 2 if unicodedata.east_asian_width(character) in {"W", "F"} or is_emoji_presentation else 1
+    return width
+
+
+def _ljust_console_display_width(value, width):
+    text = str(value or "")
+    return text + " " * max(0, width - _console_display_width(text))
+
+
 def _normalize_special_folder_token(value):
     text = unicodedata.normalize("NFKD", str(value or ""))
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
@@ -2314,16 +2332,16 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
 
             summary_label_width = max(
                 55,
-                len('TOTAL PROCESSING TIME'),
-                *(len(step_id_and_label) for _, step_id_and_label, _ in summary_rows),
+                _console_display_width('TOTAL PROCESSING TIME'),
+                *(_console_display_width(step_id_and_label) for _, step_id_and_label, _ in summary_rows),
             )
             for is_principal_step, step_id_and_label, duration in summary_rows:
                 # Principal steps remain separated from their substeps.
                 if is_principal_step:
                     LOGGER.info("")
-                LOGGER.info(f"{step_id_and_label.ljust(summary_label_width)} : {duration.rjust(8)}")
+                LOGGER.info(f"{_ljust_console_display_width(step_id_and_label, summary_label_width)} : {duration.rjust(8)}")
             LOGGER.info(f"")
-            LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(summary_label_width)} : {formatted_duration.rjust(8)}")
+            LOGGER.info(f"{_ljust_console_display_width('TOTAL PROCESSING TIME', summary_label_width)} : {formatted_duration.rjust(8)}")
             LOGGER.info(f"================================================================================================================================================")
 
             # PRINT RESULTS
