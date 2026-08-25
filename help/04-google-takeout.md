@@ -91,7 +91,7 @@ Below you can see the different steps of this feature:
   - 6.4. 📁 Organize your assets in a year/month structure for a better organization. 
     - Can be customized using the flags: `-gafs, --google-albums-folders-structure` and `-gaps, --google-all-photos-folders-structure`. The master folder name is controlled by `--foldername-all-photos`.
     - `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
-  - 6.5. 🧩 Recover orphan album memberships from the finalized `ALL_PHOTOS` structure. This applies only when `--google-all-photos-folders-structure` is `year`, `year/month`, or `year-month`. It searches the exact filename in the folder implied by `photoTakenTime`, then tries `creationTime` if needed; `flatten` is skipped because same-name assets cannot be safely disambiguated. When shortcut albums are enabled, an existing physical album file is replaced with the platform-native relative shortcut only when it is byte-for-byte identical to that unique canonical `ALL_PHOTOS` asset; different files are left untouched for review. The log identifies the album, file, shortcut strategy, and whether PhotoMigrator replaced or retained each entry.
+  - 6.5. 🧩 Reconcile Album Entries with `ALL_PHOTOS`. This applies only when `--google-all-photos-folders-structure` is `year`, `year/month`, or `year-month`. It recreates an album entry missing from the album when its JSON sidecar resolves one exact filename in the folder implied by `photoTakenTime`, then tries `creationTime` if needed; `flatten` is skipped because same-name assets cannot be safely disambiguated. When shortcut albums are enabled, an existing physical album file is replaced with the platform-native relative shortcut only when it is byte-for-byte identical to that unique canonical `ALL_PHOTOS` asset; different files are left untouched for review. The log identifies the album, file, shortcut strategy, and whether PhotoMigrator replaced or retained each entry.
   - 6.6. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates.</span>
          `(default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders')`
   - 6.7. 👥 <span style="color:grey">Detect and remove duplicates.</span>
@@ -130,40 +130,40 @@ Below you can see the different steps of this feature:
 > Processing Time per Step:
 > -------------------------------------------------------------------
 > 
-> STEP 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]               :  1:01:01  
-> Step 1.1  : 🔍 [PRE-CHECKS]-[Unzip Takeout]                :  1:01:01  
-> Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]                :  Skipped  
+> STEP 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]                            :  1:01:01  
+> Step 1.1  : 🔍 [PRE-CHECKS]-[Unzip Takeout]                             :  1:01:01  
+> Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]                             :  Skipped  
 > 
-> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]              :  0:36:42  
-> Step 2.1  : 🪛 [PRE-PROCESS]-[Sanitize Takeout Folder]     :  0:00:02  
-> Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]        :  0:04:34  
-> Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]           :  0:32:05  
+> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]                           :  0:36:42  
+> Step 2.1  : 🪛 [PRE-PROCESS]-[Sanitize Takeout Folder]                  :  0:00:02  
+> Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]                     :  0:04:34  
+> Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]                        :  0:32:05  
 > 
-> STEP 3    : 🔢 [PRE]-[Analyze Takeout]                     :  0:24:55  
+> STEP 3    : 🔢 [PRE]-[Analyze Takeout]                                  :  0:24:55  
 > 
-> STEP 4    : 🧠 [PROCESS]-[TOTAL DURATION]                  :  7:34:13  
-> Step 4.1  : 👥 [PROCESS]-[People Metadata Capture]         :  0:00:02
-> Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]             :  7:34:13
-> Step 4.3  : 📁 [PROCESS]-[Copy/Move]                       :  Skipped
+> STEP 4    : 🧠 [PROCESS]-[TOTAL DURATION]                               :  7:34:13  
+> Step 4.1  : 👥 [PROCESS]-[People Metadata Capture]                      :  0:00:02
+> Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]                          :  7:34:13
+> Step 4.3  : 📁 [PROCESS]-[Copy/Move]                                    :  Skipped
 > 
-> STEP 5    : 🔢 [POST]-[Analyze Output]                     :  0:22:21  
+> STEP 5    : 🔢 [POST]-[Analyze Output]                                  :  0:22:21  
 > 
-> STEP 6    : ✅ [POST-PROCESS]-[TOTAL DURATION]             :  0:14:47  
-> Step 6.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]        :  0:00:12  
-> Step 6.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]     :  Skipped 
-> Step 6.3  : 📚 [POST-PROCESS]-[Albums Moving]              :  0:01:34  
-> Step 6.4  : 📁 [POST-PROCESS]-[Create year/month struct]   :  0:12:15  
-> Step 6.5  : 🧩 [POST-PROCESS]-[Recover Orphan Album Assets]:  0:00:01
-> Step 6.6  : 📝 [POST-PROCESS]-[Albums Renaming]            :  0:00:41
-> Step 6.7  : 👥 [POST-PROCESS]-[Remove Duplicates]          :  Skipped
-> Step 6.8  : 🔢 [POST-PROCESS]-[Count Albums]               :  0:00:03
-> Step 6.9  : 🧹 [POST-PROCESS]-[Remove Empty Folders]       :  0:00:02
+> STEP 6    : ✅ [POST-PROCESS]-[TOTAL DURATION]                          :  0:14:47  
+> Step 6.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]                     :  0:00:12  
+> Step 6.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]                  :  Skipped 
+> Step 6.3  : 📚 [POST-PROCESS]-[Albums Moving]                           :  0:01:34  
+> Step 6.4  : 📁 [POST-PROCESS]-[Create year/month struct]                :  0:12:15  
+> Step 6.5  : 🧩 [POST-PROCESS]-[Reconcile Album Entries with ALL_PHOTOS] :  0:00:01
+> Step 6.6  : 📝 [POST-PROCESS]-[Albums Renaming]                         :  0:00:41
+> Step 6.7  : 👥 [POST-PROCESS]-[Remove Duplicates]                       :  Skipped
+> Step 6.8  : 🔢 [POST-PROCESS]-[Count Albums]                            :  0:00:03
+> Step 6.9  : 🧹 [POST-PROCESS]-[Remove Empty Folders]                    :  0:00:02
 > 
-> STEP 7    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]              :  0:07:49  
-> Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]              :  0:07:47  
-> Step 7.2  : ❔ [FINAL-STEPS]-[Files without dates]         :  0:00:01  
+> STEP 7    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]                           :  0:07:49  
+> Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]                           :  0:07:47  
+> Step 7.2  : ❔ [FINAL-STEPS]-[Files without dates]                      :  0:00:01  
 > 
-> **TOTAL PROCESSING TIME                                    :  10:38:28**  
+> **TOTAL PROCESSING TIME                                                 :  10:38:28**  
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 

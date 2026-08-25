@@ -14,7 +14,7 @@
   - Updated GPTH to v6.1.10 which includes new enhancements.
   - Improved Google Takeout processing-time summaries. Step labels now use the longest terminal display width, including emoji presentation width, as their shared width, keeping the duration separator and values aligned when optional steps have long names.
   - Hardened Google Takeout shortcut-album recovery for media GPTH leaves as physical copies. After the final non-flat `ALL_PHOTOS` layout is created, a physical album entry is replaced with the platform-native shortcut only when its JSON sidecar resolves one exact canonical asset in the configured date folder and both files match byte-for-byte. POSIX links are relative; Windows uses hard links. Different or ambiguous files are preserved and reported for review with the album, filename, shortcut strategy, and decision.
-  - Optimized Google Takeout orphan-album recovery. Step 6.5 now indexes an album once while processing all of its sidecars and updates that index in memory after creating entries, avoiding repeated recursive scans of the same album without weakening filename, date-folder, or byte-for-byte validation.
+  - Optimized Google Takeout album-entry reconciliation. Step 6.5, now named `Reconcile Album Entries with ALL_PHOTOS`, indexes an album once while processing all of its sidecars and updates that index in memory after creating entries, avoiding repeated recursive scans of the same album without weakening filename, date-folder, or byte-for-byte validation.
 
 #### 🚀 GPTH Enhancements:
 ##### 🐛 GPTH Bug Fixes
