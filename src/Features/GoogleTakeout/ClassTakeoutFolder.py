@@ -2230,21 +2230,6 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[') + 1: step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Sub-Step 4.4: Recovery runs after ALL_PHOTOS receives its configured date structure.
-            # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧩 [PROCESS]-[Recover Orphan Album Assets] : '
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
-            sub_step_start_time = datetime.now()
-            self.substep += 1
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}.{self.substep}. RECOVERING ORPHAN ALBUM ASSETS FROM SOURCE JSON SIDECARS...")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
-            formatted_duration = "Deferred"
-            LOGGER.info(f"{step_name}Recovery is deferred until post-processing has created the configured ALL_PHOTOS structure.")
-            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-
             # Finally show TOTAL DURATION OF PROCESSING PHASE
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
@@ -2692,7 +2677,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                     LOGGER.warning(f"{step_name}No argument '-gafs, --google-albums-folders-structure' and '-gaps, --google-all-photos-folders-structure' detected. All photos and videos will be flattened in their folders.")
 
                 if albums_structure != 'flatten' or no_albums_structure != 'flatten':
-                    # Step 4.6.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                    # Step 6.4 supplemental: Fix broken symbolic links after reorganizing files.
                     # ----------------------------------------------------------------------------------------------------------------------
                     if not self.ARGS['google-no-symbolic-albums']:
                         LOGGER.info(f"")
@@ -2709,7 +2694,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 4.3.1: Recover album JSON-only memberships after ALL_PHOTOS is finalized.
+            # Step 6.5: Recover album JSON-only memberships after ALL_PHOTOS is finalized.
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧩 [POST-PROCESS]-[Recover Orphan Album Assets] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2742,7 +2727,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"{step_name}Step Skipped: no recoverable sidecars were captured, or ALL_PHOTOS uses 'flatten'.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 4.4.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
+            # Step 6.6: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2762,7 +2747,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements, step_name=step_name)
                 # Merge all counts from rename_output into self.result in one go
                 self.result.update(rename_output)
-                # Step 4.4.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # Step 6.6 supplemental: Fix broken symbolic links after album renaming.
                 # ----------------------------------------------------------------------------------------------------------------------
                 if not self.ARGS['google-no-symbolic-albums']:
                     LOGGER.info(f"")

@@ -80,7 +80,6 @@ Below you can see the different steps of this feature:
     - 🕒 Update Creation Time
   - 4.3. ➡️ <span style="color:grey">Copy/Move files to Output folder manually.
          `(default=disabled. It is automatically enabled if detect that Step 4.2 has been skipped)`</span>
-  - 4.4. 🧩 Capture album JSON sidecars for deferred orphan-membership recovery. PhotoMigrator preserves each relevant sidecar's exact title, `photoTakenTime`, and `creationTime` before GPTH can remove source JSON files. The actual recovery runs after the final `ALL_PHOTOS` folder structure is created during post-processing.
 
 #### 5. 🔢 Calculate statistics of your Final processed Media Library
 
@@ -119,11 +118,9 @@ Below you can see the different steps of this feature:
 > [!NOTE]
 > Step 4.3 is disabled by default, but It is automatically enabled if detect that Step 4.2 has been skipped.
 > 
-> Step 6.5 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
+> Step 6.6 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
 >
-> Step 6.6 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
->
-> Step 4.4 is enabled by default and is especially important for Takeouts where some album folders contain only `.json` sidecars and no physical media files.
+> Step 6.7 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (423807 files zipped, 220224 photos/video files, 900 albums) and moved it into Synology Photos.  
@@ -148,7 +145,6 @@ Below you can see the different steps of this feature:
 > Step 4.1  : 👥 [PROCESS]-[People Metadata Capture]         :  0:00:02
 > Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]             :  7:34:13
 > Step 4.3  : 📁 [PROCESS]-[Copy/Move]                       :  Skipped
-> Step 4.4  : 🧩 [PROCESS]-[Recover Orphan Album Assets]     :  Deferred
 > 
 > STEP 5    : 🔢 [POST]-[Analyze Output]                     :  0:22:21  
 > 
