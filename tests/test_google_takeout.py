@@ -665,7 +665,8 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
                 "../../ALL_PHOTOS/2026/IMG_0001.JPG",
             )
 
-            with patch.object(takeout_module, "LOGGER", self.logger):
+            mock_logger = MagicMock()
+            with patch.object(takeout_module, "LOGGER", mock_logger):
                 summary = recover_orphan_album_assets_from_json_sidecars(
                     input_folder=input_root,
                     output_folder=output_root,
@@ -680,7 +681,7 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertEqual(summary["orphan_json_detected"], 0)
             manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["entries"], [])
-            self.assertFalse(any("requires review" in str(call) for call in self.logger.warning.call_args_list))
+            self.assertFalse(any("requires review" in str(call) for call in mock_logger.warning.call_args_list))
 
     @unittest.skipIf(os.name == "nt", "Windows shortcut albums use hard links")
     def test_recover_orphan_album_assets_warns_for_physical_entry_in_shortcut_mode(self):
@@ -701,7 +702,8 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             album_entry.parent.mkdir(parents=True)
             album_entry.write_bytes(b"copied-asset")
 
-            with patch.object(takeout_module, "LOGGER", self.logger):
+            mock_logger = MagicMock()
+            with patch.object(takeout_module, "LOGGER", mock_logger):
                 summary = recover_orphan_album_assets_from_json_sidecars(
                     input_folder=input_root,
                     output_folder=output_root,
@@ -716,7 +718,7 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertEqual(summary["orphan_json_detected"], 0)
             manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["entries"][0]["status"], "already-present-shortcut-strategy-mismatch")
-            self.assertTrue(any("not a valid shortcut" in str(call) for call in self.logger.warning.call_args_list))
+            self.assertTrue(any("not a valid shortcut" in str(call) for call in mock_logger.warning.call_args_list))
 
     def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
         with tempfile.TemporaryDirectory() as temp_dir:
