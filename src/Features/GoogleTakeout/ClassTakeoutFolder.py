@@ -254,25 +254,29 @@ def _extract_orphan_album_json_descriptor(json_path):
     if not isinstance(creation_time, dict):
         creation_time = {}
 
-    timestamp_raw = photo_taken.get("timestamp") or creation_time.get("timestamp")
     # Album-level metadata JSONs contain "title" but describe the album itself
     # (usually via a "date" field) instead of an individual asset sidecar.
-    if timestamp_raw in (None, ""):
+    photo_taken_raw = photo_taken.get("timestamp")
+    creation_time_raw = creation_time.get("timestamp")
+    if photo_taken_raw in (None, "") and creation_time_raw in (None, ""):
         return None
 
-    asset_dt = None
-    year = None
-    try:
-        asset_dt = datetime.fromtimestamp(int(str(timestamp_raw)), timezone.utc)
-        year = asset_dt.year
-    except Exception:
-        asset_dt = None
-        year = None
+    def parse_timestamp(timestamp_raw):
+        try:
+            return datetime.fromtimestamp(int(str(timestamp_raw)), timezone.utc)
+        except (TypeError, ValueError, OverflowError):
+            return None
+
+    photo_taken_dt = parse_timestamp(photo_taken_raw)
+    creation_time_dt = parse_timestamp(creation_time_raw)
+    preferred_dt = photo_taken_dt or creation_time_dt
 
     return {
         "title": title,
-        "year": year,
-        "datetime": asset_dt,
+        "year": preferred_dt.year if preferred_dt else None,
+        "datetime": preferred_dt,
+        "photo_taken_datetime": photo_taken_dt,
+        "creation_datetime": creation_time_dt,
     }
 
 
@@ -329,56 +333,68 @@ def _build_non_album_candidate_index(no_albums_root):
     return {"exact": exact, "normalized": normalized}
 
 
-def _extract_year_from_candidate_path(path_obj):
-    for part in reversed(path_obj.parts):
-        part = str(part)
-        if re.fullmatch(r"(19|20)\d{2}", part):
-            try:
-                return int(part)
-            except ValueError:
-                return None
-        match = re.match(r"^((19|20)\d{2})[-_]", part)
-        if match:
-            try:
-                return int(match.group(1))
-            except ValueError:
-                return None
+def collect_orphan_album_json_sidecars(input_folder):
+    """Capture album-only sidecars before GPTH can remove the source JSON files."""
+    input_root = Path(input_folder)
+    descriptors = []
+    if not input_root.exists() or not input_root.is_dir():
+        return descriptors
+    for source_album_dir, output_album_name in _iter_google_takeout_album_dirs(input_root):
+        for json_path in sorted(source_album_dir.rglob("*.json"), key=lambda path: path.as_posix().casefold()):
+            descriptor = _extract_orphan_album_json_descriptor(json_path)
+            if not descriptor:
+                continue
+            descriptors.append({
+                **descriptor,
+                "source_json": str(json_path.relative_to(input_root)),
+                "album": output_album_name,
+            })
+    return descriptors
+
+
+def _expected_all_photos_folder(no_albums_root, structure, asset_datetime):
+    if asset_datetime is None:
+        return None
+    structure = str(structure or "flatten").strip().lower()
+    if structure == "year":
+        return Path(no_albums_root) / asset_datetime.strftime("%Y")
+    if structure == "year/month":
+        return Path(no_albums_root) / asset_datetime.strftime("%Y") / asset_datetime.strftime("%m")
+    if structure == "year-month":
+        return Path(no_albums_root) / asset_datetime.strftime("%Y-%m")
     return None
 
 
-def _select_recoverable_asset_path(candidate_index, expected_filename, expected_year=None):
-    """Return one unambiguous exact-name candidate from the expected year.
+def _find_recoverable_asset_candidate(candidate_index, no_albums_root, expected_filename, photo_taken_datetime, creation_datetime, all_photos_structure):
+    """Resolve one exact-name output asset using the finalized ALL_PHOTOS layout."""
+    exact_candidates = list(candidate_index["exact"].get(str(expected_filename or "").casefold(), []))
+    attempts = []
+    seen_folders = set()
+    for date_source, asset_datetime in (
+        ("photoTakenTime", photo_taken_datetime),
+        ("creationTime", creation_datetime),
+    ):
+        expected_folder = _expected_all_photos_folder(no_albums_root, all_photos_structure, asset_datetime)
+        if expected_folder is None:
+            continue
+        folder_key = expected_folder.resolve().as_posix()
+        if folder_key in seen_folders:
+            continue
+        seen_folders.add(folder_key)
+        matches = [candidate for candidate in exact_candidates if candidate.parent == expected_folder]
+        attempts.append((date_source, asset_datetime, expected_folder, matches))
+        if len(matches) == 1:
+            return matches[0], exact_candidates, attempts, date_source, "unique-exact-name-in-date-folder"
 
-    Album-only Takeout sidecars do not carry a stable media identifier.  A
-    filename match alone is therefore not sufficient to create an album
-    membership: common camera names can legitimately recur across years.
-    """
-    casefold_name = str(expected_filename or "").casefold()
-    candidates = list(candidate_index["exact"].get(casefold_name, []))
-    if not candidates or expected_year is None:
-        return None
-    same_year_candidates = [
-        path_obj for path_obj in candidates
-        if _extract_year_from_candidate_path(path_obj) == int(expected_year)
-    ]
-    return same_year_candidates[0] if len(same_year_candidates) == 1 else None
-
-
-def _recoverable_asset_match_details(candidate_index, expected_filename, expected_year=None):
-    """Describe the exact-name candidates used for orphan-sidecar auditing."""
-    casefold_name = str(expected_filename or "").casefold()
-    exact_candidates = list(candidate_index["exact"].get(casefold_name, []))
-    if expected_year is None:
-        return exact_candidates, [], "missing-capture-year"
-    same_year_candidates = [
-        path_obj for path_obj in exact_candidates
-        if _extract_year_from_candidate_path(path_obj) == int(expected_year)
-    ]
-    if len(same_year_candidates) == 1:
-        return exact_candidates, same_year_candidates, "unique-exact-name-and-year"
-    if len(same_year_candidates) > 1:
-        return exact_candidates, same_year_candidates, "ambiguous-exact-name-and-year"
-    return exact_candidates, same_year_candidates, "no-exact-name-candidate-in-capture-year"
+    if not exact_candidates:
+        status = "no-exact-name-candidate"
+    elif any(matches for _, _, _, matches in attempts):
+        status = "ambiguous-exact-name-in-date-folder"
+    elif not attempts:
+        status = "missing-sidecar-dates"
+    else:
+        status = "no-exact-name-candidate-in-date-folder"
+    return None, exact_candidates, attempts, None, status
 
 
 def _build_album_asset_presence_index(album_root):
@@ -498,9 +514,8 @@ def _create_symbolic_or_copied_album_entry(source_path, target_path, no_symbolic
                 return False
 
 
-def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, albums_folder, no_symbolic_albums=False, albums_structure="flatten", step_name="", log_level=None):
+def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, albums_folder, no_symbolic_albums=False, albums_structure="flatten", all_photos_structure="flatten", descriptors=None, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):
-        input_root = Path(input_folder)
         albums_root = Path(albums_folder)
         no_albums_root = Path(output_folder) / FOLDERNAME_ALL_PHOTOS
 
@@ -512,127 +527,136 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
             "already_present_assets": 0,
         }
 
-        if not input_root.exists() or not input_root.is_dir():
-            LOGGER.warning(f"{step_name}Skipping orphan album JSON recovery because input folder does not exist: '{input_root}'")
+        all_photos_structure = str(all_photos_structure or "flatten").strip().lower()
+        if all_photos_structure == "flatten":
+            LOGGER.info(f"{step_name}Skipping orphan album JSON recovery because ALL_PHOTOS uses the 'flatten' structure and same-name assets cannot be safely disambiguated.")
             return summary
         if not no_albums_root.exists() or not no_albums_root.is_dir():
             LOGGER.warning(f"{step_name}Skipping orphan album JSON recovery because '{FOLDERNAME_ALL_PHOTOS}' folder does not exist in output: '{no_albums_root}'")
             return summary
 
+        if descriptors is None:
+            descriptors = collect_orphan_album_json_sidecars(input_folder)
         candidate_index = _build_non_album_candidate_index(no_albums_root)
         per_album_stats = {}
         recovery_manifest = []
 
-        for source_album_dir, output_album_name in _iter_google_takeout_album_dirs(input_root):
-            json_candidates = sorted(source_album_dir.rglob("*.json"), key=lambda p: p.as_posix().casefold())
-            if not json_candidates:
-                continue
-
+        for descriptor in descriptors:
+            output_album_name = descriptor["album"]
             output_album_dir = albums_root / output_album_name
             album_presence_index = _build_album_asset_presence_index(output_album_dir)
             album_stat = per_album_stats.setdefault(output_album_name, {"recovered": 0, "unresolved": 0, "already_present": 0})
 
-            for json_path in json_candidates:
-                descriptor = _extract_orphan_album_json_descriptor(json_path)
-                if not descriptor:
-                    continue
+            expected_title = descriptor["title"]
+            expected_year = descriptor["year"]
+            manifest_entry = {
+                "source_json": descriptor["source_json"],
+                "album": output_album_name,
+                "expected_filename": expected_title,
+                "expected_capture_year": expected_year,
+            }
 
-                expected_title = descriptor["title"]
-                expected_year = descriptor["year"]
-                manifest_entry = {
-                    "source_json": str(json_path.relative_to(input_root)),
-                    "album": output_album_name,
-                    "expected_filename": expected_title,
-                    "expected_capture_year": expected_year,
-                }
-
-                if _album_contains_expected_asset(output_album_dir, expected_title, album_presence_index):
-                    summary["already_present_assets"] += 1
-                    album_stat["already_present"] += 1
-                    if not no_symbolic_albums and os.name != "nt":
-                        existing_entries = _audit_existing_orphan_album_entries(
-                            output_album_dir,
-                            no_albums_root,
-                            expected_title,
-                            album_presence_index,
-                        )
-                        shortcut_strategy_mismatches = any(
-                            entry.get("status") in {
-                                "existing-physical-entry",
-                                "existing-link-outside-all-photos",
-                            }
-                            for entry in existing_entries
-                        )
-                        if shortcut_strategy_mismatches:
-                            manifest_entry["status"] = "already-present-shortcut-strategy-mismatch"
-                            manifest_entry["existing_entries"] = existing_entries
-                            recovery_manifest.append(manifest_entry)
-                            LOGGER.warning(
-                                f"{step_name}Album entry requires review: '{expected_title}' in "
-                                f"'{output_album_name}' is not a valid shortcut to '{FOLDERNAME_ALL_PHOTOS}'."
-                            )
-                    continue
-
-                summary["orphan_json_detected"] += 1
-
-                exact_candidates, same_year_candidates, match_status = _recoverable_asset_match_details(
-                    candidate_index, expected_title, expected_year,
-                )
-                source_candidate = _select_recoverable_asset_path(candidate_index, expected_title, expected_year)
-                if source_candidate is None:
-                    summary["unresolved_assets"] += 1
-                    album_stat["unresolved"] += 1
-                    manifest_entry["status"] = match_status
-                    manifest_entry["exact_name_candidates"] = [
-                        str(candidate.relative_to(no_albums_root)) for candidate in exact_candidates
-                    ]
-                    manifest_entry["same_year_candidates"] = [
-                        str(candidate.relative_to(no_albums_root)) for candidate in same_year_candidates
-                    ]
-                    recovery_manifest.append(manifest_entry)
-                    if match_status == "ambiguous-exact-name-and-year":
+            if _album_contains_expected_asset(output_album_dir, expected_title, album_presence_index):
+                summary["already_present_assets"] += 1
+                album_stat["already_present"] += 1
+                if not no_symbolic_albums and os.name != "nt":
+                    existing_entries = _audit_existing_orphan_album_entries(
+                        output_album_dir,
+                        no_albums_root,
+                        expected_title,
+                        album_presence_index,
+                    )
+                    shortcut_strategy_mismatches = any(
+                        entry.get("status") in {
+                            "existing-physical-entry",
+                            "existing-link-outside-all-photos",
+                        }
+                        for entry in existing_entries
+                    )
+                    if shortcut_strategy_mismatches:
+                        manifest_entry["status"] = "already-present-shortcut-strategy-mismatch"
+                        manifest_entry["existing_entries"] = existing_entries
+                        recovery_manifest.append(manifest_entry)
                         LOGGER.warning(
-                            f"{step_name}Leaving orphan album sidecar unresolved: '{json_path.name}' in "
-                            f"'{output_album_name}' has {len(same_year_candidates)} exact-name candidates "
-                            f"for {expected_year}."
+                            f"{step_name}Album entry requires review: '{expected_title}' in "
+                            f"'{output_album_name}' is not a valid shortcut to '{FOLDERNAME_ALL_PHOTOS}'."
                         )
-                    continue
+                continue
 
-                target_path = _build_album_output_target_path(
-                    output_album_dir,
-                    source_candidate.name,
-                    asset_dt=descriptor.get("datetime"),
-                    albums_structure=albums_structure,
-                )
+            summary["orphan_json_detected"] += 1
 
-                if _album_contains_expected_asset(output_album_dir, expected_title, album_presence_index):
-                    summary["already_present_assets"] += 1
-                    album_stat["already_present"] += 1
-                    manifest_entry["status"] = "already-present"
-                    recovery_manifest.append(manifest_entry)
-                    continue
+            source_candidate, exact_candidates, attempts, matched_date_source, match_status = _find_recoverable_asset_candidate(
+                candidate_index,
+                no_albums_root,
+                expected_title,
+                descriptor.get("photo_taken_datetime"),
+                descriptor.get("creation_datetime"),
+                all_photos_structure,
+            )
+            if source_candidate is None:
+                summary["unresolved_assets"] += 1
+                album_stat["unresolved"] += 1
+                manifest_entry["status"] = match_status
+                manifest_entry["exact_name_candidates"] = [
+                    str(candidate.relative_to(no_albums_root)) for candidate in exact_candidates
+                ]
+                manifest_entry["date_folder_attempts"] = [
+                    {
+                        "date_source": date_source,
+                        "expected_folder": str(folder.relative_to(no_albums_root)),
+                        "matches": [str(candidate.relative_to(no_albums_root)) for candidate in matches],
+                    }
+                    for date_source, _, folder, matches in attempts
+                ]
+                recovery_manifest.append(manifest_entry)
+                if match_status == "ambiguous-exact-name-in-date-folder":
+                    LOGGER.warning(
+                        f"{step_name}Leaving orphan album sidecar unresolved: '{descriptor['source_json']}' in "
+                        f"'{output_album_name}' has multiple exact-name candidates in a configured date folder."
+                    )
+                continue
 
-                if _create_symbolic_or_copied_album_entry(
-                    source_candidate,
-                    target_path,
-                    no_symbolic_albums=no_symbolic_albums,
-                    step_name=step_name,
-                    log_level=log_level,
-                ):
-                    summary["recovered_assets"] += 1
-                    album_stat["recovered"] += 1
-                    manifest_entry["status"] = "recovered"
-                    manifest_entry["source_asset"] = str(source_candidate.relative_to(no_albums_root))
-                    manifest_entry["album_entry"] = str(target_path.relative_to(albums_root))
-                    recovery_manifest.append(manifest_entry)
-                    album_presence_index["exact"].add(source_candidate.name.casefold())
-                    album_presence_index["normalized"].add(_normalize_recoverable_asset_name(source_candidate.name))
-                else:
-                    summary["unresolved_assets"] += 1
-                    album_stat["unresolved"] += 1
-                    manifest_entry["status"] = "failed-to-create-album-entry"
-                    manifest_entry["source_asset"] = str(source_candidate.relative_to(no_albums_root))
-                    recovery_manifest.append(manifest_entry)
+            target_datetime = (
+                descriptor.get("photo_taken_datetime")
+                if matched_date_source == "photoTakenTime"
+                else descriptor.get("creation_datetime")
+            )
+            target_path = _build_album_output_target_path(
+                output_album_dir,
+                source_candidate.name,
+                asset_dt=target_datetime,
+                albums_structure=albums_structure,
+            )
+
+            if _album_contains_expected_asset(output_album_dir, expected_title, album_presence_index):
+                summary["already_present_assets"] += 1
+                album_stat["already_present"] += 1
+                manifest_entry["status"] = "already-present"
+                recovery_manifest.append(manifest_entry)
+                continue
+
+            if _create_symbolic_or_copied_album_entry(
+                source_candidate,
+                target_path,
+                no_symbolic_albums=no_symbolic_albums,
+                step_name=step_name,
+                log_level=log_level,
+            ):
+                summary["recovered_assets"] += 1
+                album_stat["recovered"] += 1
+                manifest_entry["status"] = "recovered"
+                manifest_entry["source_asset"] = str(source_candidate.relative_to(no_albums_root))
+                manifest_entry["album_entry"] = str(target_path.relative_to(albums_root))
+                manifest_entry["matched_date_source"] = matched_date_source
+                recovery_manifest.append(manifest_entry)
+                album_presence_index["exact"].add(source_candidate.name.casefold())
+                album_presence_index["normalized"].add(_normalize_recoverable_asset_name(source_candidate.name))
+            else:
+                summary["unresolved_assets"] += 1
+                album_stat["unresolved"] += 1
+                manifest_entry["status"] = "failed-to-create-album-entry"
+                manifest_entry["source_asset"] = str(source_candidate.relative_to(no_albums_root))
+                recovery_manifest.append(manifest_entry)
 
         for album_name, album_stat in per_album_stats.items():
             if album_stat["recovered"] or album_stat["unresolved"]:
@@ -1509,6 +1533,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
         self.output_folder_analyzer = FolderAnalyzer()
         self.initial_filedates_json = ""
         self.final_filedates_json = ""
+        self.orphan_album_json_sidecars = []
 
         # Contador de pasos durante el procesamiento
         self.step = 0
@@ -2060,6 +2085,16 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             albums_folder = self.get_albums_folder()
             gpth_input_folder = input_folder
             gpth_filedates_json = self.initial_filedates_json
+            all_photos_structure = self.ARGS['google-all-photos-folders-structure'].lower()
+            if should_recover_orphan_album_assets(self.takeout_detection_info) and all_photos_structure != 'flatten':
+                self.orphan_album_json_sidecars = collect_orphan_album_json_sidecars(input_folder)
+                LOGGER.info(
+                    f"🧩 [PROCESS]-[Recover Orphan Album Assets] : Captured "
+                    f"{len(self.orphan_album_json_sidecars)} album JSON sidecars for recovery after "
+                    f"the final ALL_PHOTOS structure is created."
+                )
+            else:
+                self.orphan_album_json_sidecars = []
 
             # Sub-Step 4.2: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
@@ -2195,7 +2230,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[') + 1: step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Sub-Step 4.4: Recover orphan album assets from JSON-only source entries
+            # Sub-Step 4.4: Recovery runs after ALL_PHOTOS receives its configured date structure.
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧩 [PROCESS]-[Recover Orphan Album Assets] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2206,27 +2241,8 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             LOGGER.info(f"{self.step}.{self.substep}. RECOVERING ORPHAN ALBUM ASSETS FROM SOURCE JSON SIDECARS...")
             LOGGER.info(f"================================================================================================================================================")
             LOGGER.info(f"")
-            if should_recover_orphan_album_assets(self.takeout_detection_info):
-                recovery_summary = recover_orphan_album_assets_from_json_sidecars(
-                    input_folder=input_folder,
-                    output_folder=output_folder,
-                    albums_folder=albums_folder,
-                    no_symbolic_albums=self.ARGS['google-no-symbolic-albums'],
-                    albums_structure=self.ARGS['google-albums-folders-structure'],
-                    step_name=step_name,
-                    log_level=LOG_LEVEL,
-                )
-                self.result['orphan_album_json_detected'] = recovery_summary['orphan_json_detected']
-                self.result['orphan_album_assets_recovered'] = recovery_summary['recovered_assets']
-                self.result['orphan_album_assets_unresolved'] = recovery_summary['unresolved_assets']
-                self.result['orphan_album_recovery_albums_touched'] = recovery_summary['albums_touched']
-                sub_step_end_time = datetime.now()
-                formatted_duration = str(timedelta(seconds=round((sub_step_end_time - sub_step_start_time).total_seconds())))
-                LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-            else:
-                formatted_duration = "Skipped"
-                LOGGER.info(f"{step_name}Step Skipped: orphan album JSON recovery only applies to Takeouts with year folders.")
+            formatted_duration = "Deferred"
+            LOGGER.info(f"{step_name}Recovery is deferred until post-processing has created the configured ALL_PHOTOS structure.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
             # Finally show TOTAL DURATION OF PROCESSING PHASE
@@ -2680,6 +2696,39 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             else:
                 formatted_duration = f"Skipped"
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+            # Step 4.3.1: Recover album JSON-only memberships after ALL_PHOTOS is finalized.
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🧩 [POST-PROCESS]-[Recover Orphan Album Assets] : '
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            self.substep += 1
+            sub_step_start_time = datetime.now()
+            if self.orphan_album_json_sidecars:
+                LOGGER.info(f"")
+                LOGGER.info(f"================================================================================================================================================")
+                LOGGER.info(f"{self.step}.{self.substep}. RECOVERING ORPHAN ALBUM ASSETS FROM THE FINAL ALL_PHOTOS STRUCTURE...")
+                LOGGER.info(f"================================================================================================================================================")
+                recovery_summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=input_folder,
+                    output_folder=output_folder,
+                    albums_folder=self.get_albums_folder(),
+                    no_symbolic_albums=self.ARGS['google-no-symbolic-albums'],
+                    albums_structure=self.ARGS['google-albums-folders-structure'],
+                    all_photos_structure=self.ARGS['google-all-photos-folders-structure'],
+                    descriptors=self.orphan_album_json_sidecars,
+                    step_name=step_name,
+                    log_level=LOG_LEVEL,
+                )
+                self.result['orphan_album_json_detected'] = recovery_summary['orphan_json_detected']
+                self.result['orphan_album_assets_recovered'] = recovery_summary['recovered_assets']
+                self.result['orphan_album_assets_unresolved'] = recovery_summary['unresolved_assets']
+                self.result['orphan_album_recovery_albums_touched'] = recovery_summary['albums_touched']
+                formatted_duration = str(timedelta(seconds=round((datetime.now() - sub_step_start_time).total_seconds())))
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            else:
+                formatted_duration = "Skipped"
+                LOGGER.info(f"{step_name}Step Skipped: no recoverable sidecars were captured, or ALL_PHOTOS uses 'flatten'.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
             # Step 4.4.1: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date

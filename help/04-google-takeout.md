@@ -80,7 +80,7 @@ Below you can see the different steps of this feature:
     - 🕒 Update Creation Time
   - 4.3. ➡️ <span style="color:grey">Copy/Move files to Output folder manually.
          `(default=disabled. It is automatically enabled if detect that Step 4.2 has been skipped)`</span>
-  - 4.4. 🧩 Recover orphan album assets from source JSON sidecars when Google Takeout exported an album entry only as `.json` metadata and the real media exists under `ALL_PHOTOS` / the corresponding year folder. PhotoMigrator recreates an entry only when the JSON title has one exact filename match in the JSON capture year; ambiguous or cross-year candidates are left unresolved rather than assigned to the wrong album. It writes `orphan_album_asset_recovery_manifest.json` for audit and flags pre-existing symbolic album links whose source year conflicts with the JSON without removing them.
+  - 4.4. 🧩 Capture album JSON sidecars for deferred orphan-membership recovery. PhotoMigrator preserves each relevant sidecar's exact title, `photoTakenTime`, and `creationTime` before GPTH can remove source JSON files. The actual recovery runs after the final `ALL_PHOTOS` folder structure is created during post-processing.
 
 #### 5. 🔢 Calculate statistics of your Final processed Media Library
 
@@ -92,20 +92,21 @@ Below you can see the different steps of this feature:
   - 6.4. 📁 Organize your assets in a year/month structure for a better organization. 
     - Can be customized using the flags: `-gafs, --google-albums-folders-structure` and `-gaps, --google-all-photos-folders-structure`. The master folder name is controlled by `--foldername-all-photos`.
     - `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
-  - 6.5. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates.</span>  
+  - 6.5. 🧩 Recover orphan album memberships from the finalized `ALL_PHOTOS` structure. This applies only when `--google-all-photos-folders-structure` is `year`, `year/month`, or `year-month`. It searches the exact filename in the folder implied by `photoTakenTime`, then tries `creationTime` if needed; `flatten` is skipped because same-name assets cannot be safely disambiguated.
+  - 6.6. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates.</span>
          `(default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders')`
-  - 6.6. 👥 <span style="color:grey">Detect and remove duplicates.</span>  
+  - 6.7. 👥 <span style="color:grey">Detect and remove duplicates.</span>
          `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`
-  - 6.7. 🔢 Count Albums.
-  - 6.8. 🧹 Remove empty folders. 
+  - 6.8. 🔢 Count Albums.
+  - 6.9. 🧹 Remove empty folders.
 
 > [!IMPORTANT]
-> Google Photos Takeout sometimes exports album folders that contain only metadata sidecars such as `photo.jpg.json`, while the real media file is exported only once inside a year folder like `Photos from 2002`. GPTH usually rebuilds those album memberships, but when any of them is missed, PhotoMigrator performs an additional post-GPTH repair pass. It only recreates the membership for one exact filename candidate in the sidecar capture year. Ambiguous or cross-year matches are retained in `orphan_album_asset_recovery_manifest.json` as unresolved, rather than guessed.
+> Google Photos Takeout sometimes exports album folders that contain only metadata sidecars such as `photo.jpg.json`, while the real media file is exported only once elsewhere in the Takeout. GPTH usually rebuilds those album memberships, but when any is missed, PhotoMigrator captures the source sidecar before GPTH and performs an additional repair only after the final `ALL_PHOTOS` layout exists. It recreates a membership only for one exact filename in the date folder configured for `ALL_PHOTOS`: it tries `photoTakenTime` first, then `creationTime`. The repair is deliberately skipped for `flatten`, and unresolved matches are retained in `orphan_album_asset_recovery_manifest.json` rather than guessed.
 >
 > Example:
 > - Original album folder contains only `mi cocina.JPG.json`
 > - The JSON says `"title": "mi cocina.JPG"` and `"photoTakenTime.timestamp": "1024570414"` (year `2002`)
-> - The real media exists in processed output under `ALL_PHOTOS/2002/.../mi cocina.JPG`
+> - With `--google-all-photos-folders-structure=year/month`, the real media exists in processed output under `ALL_PHOTOS/2002/06/mi cocina.JPG`
 > - PhotoMigrator recreates `Albums/<Album Name>/mi cocina.JPG` as a symlink/hardlink by default, or as a copied file when `--google-no-symbolic-albums` is enabled
 
 > [!IMPORTANT]
@@ -132,38 +133,39 @@ Below you can see the different steps of this feature:
 > Processing Time per Step:
 > -------------------------------------------------------------------
 > 
-> STEP 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]             :  1:01:01  
-> Step 1.1  : 🔍 [PRE-CHECKS]-[Unzip Takeout]              :  1:01:01  
-> Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]              :  Skipped  
+> STEP 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]               :  1:01:01  
+> Step 1.1  : 🔍 [PRE-CHECKS]-[Unzip Takeout]                :  1:01:01  
+> Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]                :  Skipped  
 > 
-> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:36:42  
-> Step 2.1  : 🪛 [PRE-PROCESS]-[Sanitize Takeout Folder]   :  0:00:02  
-> Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]      :  0:04:34  
-> Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]         :  0:32:05  
+> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]              :  0:36:42  
+> Step 2.1  : 🪛 [PRE-PROCESS]-[Sanitize Takeout Folder]     :  0:00:02  
+> Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]        :  0:04:34  
+> Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]           :  0:32:05  
 > 
-> STEP 3    : 🔢 [PRE]-[Analyze Takeout]                   :  0:24:55  
+> STEP 3    : 🔢 [PRE]-[Analyze Takeout]                     :  0:24:55  
 > 
-> STEP 4    : 🧠 [PROCESS]-[TOTAL DURATION]                :  7:34:13  
-> Step 4.1  : 👥 [PROCESS]-[People Metadata Capture]       :  0:00:02
-> Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]           :  7:34:13
-> Step 4.3  : 📁 [PROCESS]-[Copy/Move]                     :  Skipped
-> Step 4.4  : 🧩 [PROCESS]-[Recover Orphan Album Assets]   :  0:00:01
+> STEP 4    : 🧠 [PROCESS]-[TOTAL DURATION]                  :  7:34:13  
+> Step 4.1  : 👥 [PROCESS]-[People Metadata Capture]         :  0:00:02
+> Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]             :  7:34:13
+> Step 4.3  : 📁 [PROCESS]-[Copy/Move]                       :  Skipped
+> Step 4.4  : 🧩 [PROCESS]-[Recover Orphan Album Assets]     :  Deferred
 > 
-> STEP 5    : 🔢 [POST]-[Analyze Output]                   :  0:22:21  
+> STEP 5    : 🔢 [POST]-[Analyze Output]                     :  0:22:21  
 > 
-> STEP 6    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  0:14:47  
-> Step 6.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:12  
-> Step 6.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]   :  Skipped 
-> Step 6.3  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:01:34  
-> Step 6.4  : 📁 [POST-PROCESS]-[Create year/month struct] :  0:12:15  
-> Step 6.5  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:41  
-> Step 6.6  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped  
-> Step 6.7  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:03  
-> Step 6.8  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:02  
+> STEP 6    : ✅ [POST-PROCESS]-[TOTAL DURATION]             :  0:14:47  
+> Step 6.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]        :  0:00:12  
+> Step 6.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]     :  Skipped 
+> Step 6.3  : 📚 [POST-PROCESS]-[Albums Moving]              :  0:01:34  
+> Step 6.4  : 📁 [POST-PROCESS]-[Create year/month struct]   :  0:12:15  
+> Step 6.5  : 🧩 [POST-PROCESS]-[Recover Orphan Album Assets]:  0:00:01
+> Step 6.6  : 📝 [POST-PROCESS]-[Albums Renaming]            :  0:00:41
+> Step 6.7  : 👥 [POST-PROCESS]-[Remove Duplicates]          :  Skipped
+> Step 6.8  : 🔢 [POST-PROCESS]-[Count Albums]               :  0:00:03
+> Step 6.9  : 🧹 [POST-PROCESS]-[Remove Empty Folders]       :  0:00:02
 > 
-> STEP 7    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]            :  0:07:49  
-> Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]            :  0:07:47  
-> Step 7.2  : ❔ [FINAL-STEPS]-[Files without dates]       :  0:00:01  
+> STEP 7    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]              :  0:07:49  
+> Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]              :  0:07:47  
+> Step 7.2  : ❔ [FINAL-STEPS]-[Files without dates]         :  0:00:01  
 > 
 > **TOTAL PROCESSING TIME                                    :  10:38:28**  
 >
@@ -177,6 +179,7 @@ The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by def
 The final `<OUTPUT_FOLDER>` will include:
 - `Albums` subfolder with all the Albums without year/month structure (by default).
 - `<ALL_PHOTOS_FOLDER>` master-library subfolder with all photos and videos, with year/month structure by default.
+- `orphan_album_asset_recovery_manifest.json` when non-flat `ALL_PHOTOS` recovery evaluates JSON-only album memberships; it records recovered, unresolved, and shortcut-strategy-review entries.
 - `takeout_people_metadata.json`, when people processing is enabled. This map is keyed by normalized media filename and preserves the Google Takeout person labels plus its taken, creation, and modification dates after GPTH removes the original JSON sidecars. Album copies with the same capture time are consolidated. For other same-name entries, consumers compare EXIF with the Takeout capture time and filesystem `mtime` with the Takeout modification time. Creation time is retained for reference but is not matched to a different date type; equal results contribute all their people labels.
 
 ### Google Takeout people map
