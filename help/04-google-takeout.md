@@ -133,40 +133,40 @@ Below you can see the different steps of this feature:
 > Processing Time per Step:
 > -------------------------------------------------------------------
 > 
-> STEP 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]                            :  1:01:01  
-> Step 1.1  : 🔍 [PRE-CHECKS]-[Unzip Takeout]                             :  1:01:01  
-> Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]                             :  Skipped  
+> STEP 1    : 🔍 [PRE-CHECKS]-[TOTAL DURATION]             :  1:01:01  
+> Step 1.1  : 🔍 [PRE-CHECKS]-[Unzip Takeout]              :  1:01:01  
+> Step 1.2  : 🔍 [PRE-CHECKS]-[Clone Takeout]              :  Skipped  
 > 
-> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]                           :  0:36:42  
-> Step 2.1  : 🪛 [PRE-PROCESS]-[Sanitize Takeout Folder]                  :  0:00:02  
-> Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]                     :  0:04:34  
-> Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]                        :  0:32:05  
+> STEP 2    : 🪛 [PRE-PROCESS]-[TOTAL DURATION]            :  0:36:42  
+> Step 2.1  : 🪛 [PRE-PROCESS]-[Sanitize Takeout Folder]   :  0:00:02  
+> Step 2.2  : 🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer]      :  0:04:34  
+> Step 2.3  : 🪛 [PRE-PROCESS]-[Truncations Fixer]         :  0:32:05  
 > 
-> STEP 3    : 🔢 [PRE]-[Analyze Takeout]                                  :  0:24:55  
+> STEP 3    : 🔢 [PRE]-[Analyze Takeout]                   :  0:24:55  
 > 
-> STEP 4    : 🧠 [PROCESS]-[TOTAL DURATION]                               :  7:34:13  
-> Step 4.1  : 👥 [PROCESS]-[People Metadata Capture]                      :  0:00:02
-> Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]                          :  7:34:13
-> Step 4.3  : 📁 [PROCESS]-[Copy/Move]                                    :  Skipped
+> STEP 4    : 🧠 [PROCESS]-[TOTAL DURATION]                :  7:34:13  
+> Step 4.1  : 👥 [PROCESS]-[People Metadata Capture]       :  0:00:02
+> Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]           :  7:34:13
+> Step 4.3  : 📁 [PROCESS]-[Copy/Move]                     :  Skipped
 > 
-> STEP 5    : ✅ [POST-PROCESS]-[TOTAL DURATION]                          :  0:14:47
-> Step 5.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]                     :  0:00:12
-> Step 5.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]                  :  Skipped
-> Step 5.3  : 📚 [POST-PROCESS]-[Albums Moving]                           :  0:01:34
-> Step 5.4  : 📁 [POST-PROCESS]-[Create year/month struct]                :  0:12:15
-> Step 5.5  : 🧩 [POST-PROCESS]-[Reconcile Album Entries with ALL_PHOTOS] :  0:00:01
-> Step 5.6  : 📝 [POST-PROCESS]-[Albums Renaming]                         :  0:00:41
-> Step 5.7  : 👥 [POST-PROCESS]-[Remove Duplicates]                       :  Skipped
-> Step 5.8  : 🔢 [POST-PROCESS]-[Count Albums]                            :  0:00:03
-> Step 5.9  : 🧹 [POST-PROCESS]-[Remove Empty Folders]                    :  0:00:02
+> STEP 5    : ✅ [POST-PROCESS]-[TOTAL DURATION]           :  0:14:47
+> Step 5.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]      :  0:00:12
+> Step 5.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]   :  Skipped
+> Step 5.3  : 📚 [POST-PROCESS]-[Albums Moving]            :  0:01:34
+> Step 5.4  : 📁 [POST-PROCESS]-[Create year/month struct] :  0:12:15
+> Step 5.5  : 🧩 [POST-PROCESS]-[Reconcile Album Entries]  :  0:00:01
+> Step 5.6  : 📝 [POST-PROCESS]-[Albums Renaming]          :  0:00:41
+> Step 5.7  : 👥 [POST-PROCESS]-[Remove Duplicates]        :  Skipped
+> Step 5.8  : 🔢 [POST-PROCESS]-[Count Albums]             :  0:00:03
+> Step 5.9  : 🧹 [POST-PROCESS]-[Remove Empty Folders]     :  0:00:02
 > 
-> STEP 6    : 🔢 [POST]-[Analyze Output]                                  :  0:22:21
+> STEP 6    : 🔢 [POST]-[Analyze Output]                   :  0:22:21
 > 
-> STEP 7    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]                           :  0:07:49  
-> Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]                           :  0:07:47  
-> Step 7.2  : ❔ [FINAL-STEPS]-[Files without dates]                      :  0:00:01  
+> STEP 7    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]            :  0:07:49  
+> Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]            :  0:07:47  
+> Step 7.2  : ❔ [FINAL-STEPS]-[Files without dates]       :  0:00:01  
 > 
-> **TOTAL PROCESSING TIME                                                 :  10:38:28**  
+> **🟰TOTAL PROCESSING TIME                                :  10:38:28**  
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 

@@ -2960,7 +2960,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
 
             # Step 5.5: Reconcile album JSON-only memberships after ALL_PHOTOS is finalized.
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧩 [POST-PROCESS]-[Reconcile Album Entries with ALL_PHOTOS] : '
+            step_name = '🧩 [POST-PROCESS]-[Reconcile Album Entries] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
             self.substep += 1
             sub_step_start_time = datetime.now()
