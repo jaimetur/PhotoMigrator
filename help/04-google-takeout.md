@@ -85,17 +85,20 @@ Below you can see the different steps of this feature:
 
 #### 6. ✅ Post Process steps
 `(default=enabled. Can be disabled using flag '-gSkipPost; --google-skip-postprocess')`
-  - 6.1. 🕒 Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file. 
-  - 6.2. 🎞️ Repair conflicting Video XMP dates left by GPTH so the final metadata matches the intended capture date.
-  - 6.3. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
-  - 6.4. 📁 Organize your assets in a year/month structure for a better organization. 
+  - 5.1. 🕒 Synchronize MP4 files associated to Live pictures with the associated HEIC/JPG file.
+  - 5.2. 🎞️ Repair conflicting Video XMP dates left by GPTH so the final metadata matches the intended capture date.
+  - 5.3. 📚 Separate all your Albums folders within 'Albums' subfolder from the original assets within 'ALL_PHOTOS' subfolder. `(default=enabled. Can be disabled using flag '-gsma, --google-skip-move-albums')`
+  - 5.4. 📁 Organize your assets in a year/month structure for a better organization.
     - Can be customized using the flags: `-gafs, --google-albums-folders-structure` and `-gaps, --google-all-photos-folders-structure`. The master folder name is controlled by `--foldername-all-photos`.
     - `(default: 'flatten' for Albums; 'year/month' for ALL_PHOTOS)`  
-  - 6.5. 🧩 Reconcile Album Entries with `ALL_PHOTOS`. This applies only when `--google-all-photos-folders-structure` is `year`, `year/month`, or `year-month`. It recreates an album entry missing from the album when its JSON sidecar resolves one exact filename in the folder implied by `photoTakenTime`, then tries `creationTime` if needed; `flatten` is skipped because same-name assets cannot be safely disambiguated. When shortcut albums are enabled, an existing physical album file is replaced with the platform-native relative shortcut only when it is byte-for-byte identical to that unique canonical `ALL_PHOTOS` asset; different files are left untouched for review. Successful replacements are logged as information, while retained entries are warnings. Repeated sidecars for the same physical entry generate one console warning; the audit manifest retains every evaluated sidecar. The phase ends with a line-by-line summary of sidecars, recovered entries, shortcut replacements, retained entries, unresolved entries, and affected albums.
-  - 6.6. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates.</span>
+  - 5.5. 🧩 Reconcile Album Entries with `ALL_PHOTOS`. This applies only when `--google-all-photos-folders-structure` is `year`, `year/month`, or `year-month`. It recreates an album entry missing from the album when its JSON sidecar resolves one exact filename in the folder implied by `photoTakenTime`, then tries `creationTime` if needed; `flatten` is skipped because same-name assets cannot be safely disambiguated. When shortcut albums are enabled, an existing physical album file is replaced with the platform-native relative shortcut only when it is byte-for-byte identical to that unique canonical `ALL_PHOTOS` asset; different files are left untouched for review. Successful replacements are logged as information, while retained entries are warnings. Repeated sidecars for the same physical entry generate one console warning; the audit manifest retains every evaluated sidecar. The phase ends with a line-by-line summary of sidecars, recovered entries, shortcut replacements, retained entries, unresolved entries, and affected albums.
+  - 5.6. 📝 <span style="color:grey">Auto rename Albums folders to homogenize all names based on content dates.</span>
          `(default=disabled. Can be enabled using flag '-graf, --google-rename-albums-folders')`
-  - 6.7. 👥 <span style="color:grey">Detect and remove duplicates.</span>
+  - 5.7. 👥 <span style="color:grey">Detect and remove duplicates.</span>
          `(default=disabled. Can be enabled using flag '-grdf, --google-remove-duplicates-files')`
+  - 5.8. 🔢 Count final Albums folders.
+  - 5.9. 🧹 Remove empty folders.
+  - 6. 🔢 Analyze the final output after all post-processing operations have completed. The totals include both physical files and symlinks; some file explorers do not report symlinks as independent files.
   - 6.8. 🔢 Count Albums.
   - 6.9. 🧹 Remove empty folders.
 
@@ -118,9 +121,9 @@ Below you can see the different steps of this feature:
 > [!NOTE]
 > Step 4.3 is disabled by default, but It is automatically enabled if detect that Step 4.2 has been skipped.
 > 
-> Step 6.6 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
+> Step 5.6 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
 >
-> Step 6.7 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
+> Step 5.7 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (423807 files zipped, 220224 photos/video files, 900 albums) and moved it into Synology Photos.  
@@ -146,18 +149,18 @@ Below you can see the different steps of this feature:
 > Step 4.2  : 🧠 [PROCESS]-[Metadata Processing]                          :  7:34:13
 > Step 4.3  : 📁 [PROCESS]-[Copy/Move]                                    :  Skipped
 > 
-> STEP 5    : 🔢 [POST]-[Analyze Output]                                  :  0:22:21  
+> STEP 5    : ✅ [POST-PROCESS]-[TOTAL DURATION]                          :  0:14:47
+> Step 5.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]                     :  0:00:12
+> Step 5.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]                  :  Skipped
+> Step 5.3  : 📚 [POST-PROCESS]-[Albums Moving]                           :  0:01:34
+> Step 5.4  : 📁 [POST-PROCESS]-[Create year/month struct]                :  0:12:15
+> Step 5.5  : 🧩 [POST-PROCESS]-[Reconcile Album Entries with ALL_PHOTOS] :  0:00:01
+> Step 5.6  : 📝 [POST-PROCESS]-[Albums Renaming]                         :  0:00:41
+> Step 5.7  : 👥 [POST-PROCESS]-[Remove Duplicates]                       :  Skipped
+> Step 5.8  : 🔢 [POST-PROCESS]-[Count Albums]                            :  0:00:03
+> Step 5.9  : 🧹 [POST-PROCESS]-[Remove Empty Folders]                    :  0:00:02
 > 
-> STEP 6    : ✅ [POST-PROCESS]-[TOTAL DURATION]                          :  0:14:47  
-> Step 6.1  : 🕒 [POST-PROCESS]-[MP4 Timestamp Synch]                     :  0:00:12  
-> Step 6.2  : 🎞️ [POST-PROCESS]-[Repair Video XMP Dates]                  :  Skipped 
-> Step 6.3  : 📚 [POST-PROCESS]-[Albums Moving]                           :  0:01:34  
-> Step 6.4  : 📁 [POST-PROCESS]-[Create year/month struct]                :  0:12:15  
-> Step 6.5  : 🧩 [POST-PROCESS]-[Reconcile Album Entries with ALL_PHOTOS] :  0:00:01
-> Step 6.6  : 📝 [POST-PROCESS]-[Albums Renaming]                         :  0:00:41
-> Step 6.7  : 👥 [POST-PROCESS]-[Remove Duplicates]                       :  Skipped
-> Step 6.8  : 🔢 [POST-PROCESS]-[Count Albums]                            :  0:00:03
-> Step 6.9  : 🧹 [POST-PROCESS]-[Remove Empty Folders]                    :  0:00:02
+> STEP 6    : 🔢 [POST]-[Analyze Output]                                  :  0:22:21
 > 
 > STEP 7    : 🏁 [FINAL-STEPS]-[TOTAL DURATION]                           :  0:07:49  
 > Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]                           :  0:07:47  

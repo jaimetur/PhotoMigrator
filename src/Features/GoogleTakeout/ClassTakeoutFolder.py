@@ -1892,7 +1892,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             LOGGER.info(f"{step_name}Takeout structure normalized successfully for GPTH.")
             return True
 
-    def analyze_folder(self, folder_to_analyze, folder_type='output', step_name='', save_json=True, json_filename=None):
+    def analyze_folder(self, folder_to_analyze, folder_type='output', step_name='', save_json=True, json_filename=None, reuse_output_dates=False):
         # Analyze Folder using the New Class FolderAnalyzer to extract files dates and to count all file types from a given folder
         # ----------------------------------------------------------------------------------------------------------------------
         step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -1910,7 +1910,23 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             folder = 'Takeout folder'
             sub_dict = 'input_counters'
         elif folder_type.lower() == 'output':
-            self.output_folder_analyzer = FolderAnalyzer(folder_path=folder_to_analyze, force_date_extraction=True, logger=LOGGER, step_name=step_name)
+            previous_dates = self.output_folder_analyzer.extracted_dates if reuse_output_dates else {}
+            self.output_folder_analyzer = FolderAnalyzer(
+                folder_path=folder_to_analyze,
+                force_date_extraction=not reuse_output_dates,
+                logger=LOGGER,
+                step_name=step_name,
+            )
+            if reuse_output_dates:
+                current_paths = {Path(path).resolve().as_posix() for path in self.output_folder_analyzer.file_list}
+                self.output_folder_analyzer.extracted_dates = {
+                    path: date_info for path, date_info in previous_dates.items()
+                    if path in current_paths
+                }
+                LOGGER.info(
+                    f"{step_name}Reused extracted dates for {len(self.output_folder_analyzer.extracted_dates)} "
+                    f"final output entries; new entries without a cached date remain unclassified."
+                )
             # self.output_folder_analyzer.extract_dates(step_name=step_name)
             counters = self.output_folder_analyzer.count_files(exclude_fallbacks=False, step_name=step_name)
             if save_json:
@@ -2477,23 +2493,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '-[TOTAL DURATION]', 'duration': formatted_duration})
 
 
-            # STEP 5: Analyze final files in Output Folder after processed with GPTH
-            # ----------------------------------------------------------------------------------------------------------------------
-            self.step += 1
-            # Determine the input_folder depending on if the Takeout have been unzipped or not
-            input_folder = self.get_input_folder()
-            step_name = '🔢 [POST]-[Analyze Output] : '
-            LOGGER.info(f"")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"{self.step}. ANALYZING OUTPUT FILES... ")
-            LOGGER.info(f"================================================================================================================================================")
-            LOGGER.info(f"")
-            # Call analyze_folder to invoke FolderAnalyzer class with the selected folder_to_analyze
-            self.analyze_folder(folder_to_analyze=output_folder, folder_type='output', step_name=step_name, save_json=False)
-            # ----------------------------------------------------------------------------------------------------------------------
-
-
-            # STEP 6: Post Process Output folder
+            # STEP 5: Post Process Output folder
             # ----------------------------------------------------------------------------------------------------------------------
             # Increment self.step for the Post Process Steps
             self.step += 1
@@ -2510,6 +2510,25 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 formatted_duration = f"Skipped"
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
+
+            # STEP 6: Analyze final files in Output Folder after post-processing
+            # ----------------------------------------------------------------------------------------------------------------------
+            self.step += 1
+            step_name = '🔢 [POST]-[Analyze Output] : '
+            LOGGER.info(f"")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"{self.step}. ANALYZING FINAL OUTPUT FILES... ")
+            LOGGER.info(f"================================================================================================================================================")
+            LOGGER.info(f"")
+            # Analyze the finalized output after all folder, shortcut, and empty-folder operations.
+            self.analyze_folder(
+                folder_to_analyze=output_folder,
+                folder_type='output',
+                step_name=step_name,
+                save_json=False,
+                reuse_output_dates=not self.ARGS['google-skip-postprocess'],
+            )
 
 
             # STEP 7: Final Steps
@@ -2782,7 +2801,17 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             # Initialize self.substep counter for the Post Process Steps
             self.substep = 0
 
-            # Step 4.1: Sync .MP4 live pictures timestamp
+            # Build the date index before moving files; later steps update it as paths change.
+            step_name = '📅 [POST-PROCESS]-[Prepare Output Date Index] : '
+            LOGGER.info(f"{step_name}Building the output date index required by post-processing operations...")
+            self.output_folder_analyzer = FolderAnalyzer(
+                folder_path=output_folder,
+                force_date_extraction=True,
+                logger=LOGGER,
+                step_name=step_name,
+            )
+
+            # Step 5.1: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🕒 [POST-PROCESS]-[MP4 Timestamp Synch] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2801,7 +2830,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 4.2: Normalize conflicting video XMP dates left by GPTH
+            # Step 5.2: Normalize conflicting video XMP dates left by GPTH
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🎞️ [POST-PROCESS]-[Repair Video XMP Dates]    : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2824,7 +2853,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.2.1: [OPTIONAL] [Enabled by Default] - Move albums
+            # Step 5.3: [OPTIONAL] [Enabled by Default] - Move albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '📚 [POST-PROCESS]-[Albums Moving] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2854,7 +2883,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 replacements2 = move_albums_to_root(albums_root=albums_path, step_name=step_name, log_level=log_level)
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements2, step_name=step_name)
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
-                # Step 4.2.2: [OPTIONAL] [Enabled by Default] - Fix Broken Symbolic Links
+                # Step 5.3 supplemental: Fix broken symbolic links after moving albums.
                 # ----------------------------------------------------------------------------------------------------------------------
                 if not self.ARGS['google-no-symbolic-albums']:
                     LOGGER.info(f"")
@@ -2871,7 +2900,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.3: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
+            # Step 5.4: [OPTIONAL] [Enabled by Default] - Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '📁 [POST-PROCESS]-[Create year/month struct] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2915,7 +2944,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                     LOGGER.warning(f"{step_name}No argument '-gafs, --google-albums-folders-structure' and '-gaps, --google-all-photos-folders-structure' detected. All photos and videos will be flattened in their folders.")
 
                 if albums_structure != 'flatten' or no_albums_structure != 'flatten':
-                    # Step 6.4 supplemental: Fix broken symbolic links after reorganizing files.
+                    # Step 5.4 supplemental: Fix broken symbolic links after reorganizing files.
                     # ----------------------------------------------------------------------------------------------------------------------
                     if not self.ARGS['google-no-symbolic-albums']:
                         LOGGER.info(f"")
@@ -2932,7 +2961,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 6.5: Reconcile album JSON-only memberships after ALL_PHOTOS is finalized.
+            # Step 5.5: Reconcile album JSON-only memberships after ALL_PHOTOS is finalized.
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧩 [POST-PROCESS]-[Reconcile Album Entries with ALL_PHOTOS] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2969,7 +2998,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"{step_name}Step Skipped: no recoverable sidecars were captured, or ALL_PHOTOS uses 'flatten'.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 6.6: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
+            # Step 5.6: [OPTIONAL] [Disabled by Default] - Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '📝 [POST-PROCESS]-[Albums Renaming] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2989,7 +3018,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 self.output_folder_analyzer.update_folders_bulk(replacements=replacements, step_name=step_name)
                 # Merge all counts from rename_output into self.result in one go
                 self.result.update(rename_output)
-                # Step 6.6 supplemental: Fix broken symbolic links after album renaming.
+                # Step 5.6 supplemental: Fix broken symbolic links after album renaming.
                 # ----------------------------------------------------------------------------------------------------------------------
                 if not self.ARGS['google-no-symbolic-albums']:
                     LOGGER.info(f"")
@@ -3006,7 +3035,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.5: [OPTIONAL] [Disabled by Default] - Remove Duplicates
+            # Step 5.7: [OPTIONAL] [Disabled by Default] - Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '👥 [POST-PROCESS]-[Remove Duplicates] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -3054,7 +3083,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.6: Count Albums
+            # Step 5.8: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST-PROCESS]-[Count Albums] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -3078,7 +3107,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-            # Step 4.8: Remove Empty Folders
+            # Step 5.9: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -3118,7 +3147,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
         # Initialize self.substep counter for the Post Process Steps
         self.substep = 0
 
-        # Step 5.1: FINAL CLEANING
+        # Step 7.1: FINAL CLEANING
         # ----------------------------------------------------------------------------------------------------------------------
         step_name = '🧹 [FINAL-STEPS]-[Final Cleaning] : '
         step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -3157,7 +3186,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
         self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
 
-        # Step 5.2: SHOW FILES WITHOUT DATES
+        # Step 7.2: SHOW FILES WITHOUT DATES
         # ----------------------------------------------------------------------------------------------------------------------
         step_name = '❔ [FINAL-STEPS]-[Files without dates] : '
         step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
