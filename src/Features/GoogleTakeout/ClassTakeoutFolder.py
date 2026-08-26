@@ -458,6 +458,11 @@ def _album_asset_entry_paths(album_presence_index, expected_filename):
     return list(dict.fromkeys(paths))
 
 
+def _album_asset_entry_count(album_presence_index):
+    """Return the number of unique non-JSON entries currently indexed for an album."""
+    return len({path for paths in album_presence_index.get("exact_paths", {}).values() for path in paths})
+
+
 def _album_contains_expected_asset(album_root, expected_filename, album_presence_index=None):
     if not album_root.exists() or not album_root.is_dir():
         return False
@@ -609,39 +614,65 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
         no_albums_root = Path(output_folder) / FOLDERNAME_ALL_PHOTOS
 
         summary = {
+            "sidecars_evaluated": 0,
             "orphan_json_detected": 0,
             "recovered_assets": 0,
             "unresolved_assets": 0,
             "albums_touched": 0,
             "already_present_assets": 0,
             "shortcut_entries_repaired": 0,
+            "shortcut_entries_retained_for_review": 0,
         }
 
         all_photos_structure = str(all_photos_structure or "flatten").strip().lower()
         if all_photos_structure == "flatten":
-            LOGGER.info(f"{step_name}Skipping orphan album JSON recovery because ALL_PHOTOS uses the 'flatten' structure and same-name assets cannot be safely disambiguated.")
+            LOGGER.info(f"{step_name}Skipping album entry reconciliation because ALL_PHOTOS uses the 'flatten' structure and same-name assets cannot be safely disambiguated.")
             return summary
         if not no_albums_root.exists() or not no_albums_root.is_dir():
-            LOGGER.warning(f"{step_name}Skipping orphan album JSON recovery because '{FOLDERNAME_ALL_PHOTOS}' folder does not exist in output: '{no_albums_root}'")
+            LOGGER.warning(f"{step_name}Skipping album entry reconciliation because '{FOLDERNAME_ALL_PHOTOS}' folder does not exist in output: '{no_albums_root}'")
             return summary
 
         if descriptors is None:
             descriptors = collect_orphan_album_json_sidecars(input_folder)
+        else:
+            descriptors = list(descriptors)
+        summary["sidecars_evaluated"] = len(descriptors)
         candidate_index = _build_non_album_candidate_index(no_albums_root)
         per_album_stats = {}
         recovery_manifest = []
-        indexed_album_name = None
-        album_presence_index = None
+        album_presence_indices = {}
+        reported_shortcut_issues = set()
+        retained_shortcut_entries = set()
+
+        def retain_shortcut_entry_for_review(album_name, album_stat, entry_path):
+            entry_key = (album_name, str(Path(entry_path).resolve()))
+            if entry_key in retained_shortcut_entries:
+                return
+            retained_shortcut_entries.add(entry_key)
+            summary["shortcut_entries_retained_for_review"] += 1
+            album_stat["shortcuts_retained_for_review"] += 1
+
+        def log_shortcut_issue_once(issue_key, message):
+            if issue_key not in reported_shortcut_issues:
+                reported_shortcut_issues.add(issue_key)
+                LOGGER.warning(message)
 
         for descriptor in descriptors:
             output_album_name = descriptor["album"]
             output_album_dir = albums_root / output_album_name
-            if output_album_name != indexed_album_name:
+            album_presence_index = album_presence_indices.get(output_album_name)
+            if album_presence_index is None:
                 album_presence_index = _build_album_asset_presence_index(output_album_dir)
-                indexed_album_name = output_album_name
+                album_presence_indices[output_album_name] = album_presence_index
             album_stat = per_album_stats.setdefault(
                 output_album_name,
-                {"recovered": 0, "unresolved": 0, "already_present": 0, "shortcuts_repaired": 0},
+                {
+                    "recovered": 0,
+                    "unresolved": 0,
+                    "already_present": 0,
+                    "shortcuts_repaired": 0,
+                    "shortcuts_retained_for_review": 0,
+                },
             )
 
             expected_title = descriptor["title"]
@@ -678,15 +709,22 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                                 except OSError:
                                     pass
                                 if not _files_match_content(canonical_source, entry_path):
-                                    LOGGER.warning(
+                                    retain_shortcut_entry_for_review(output_album_name, album_stat, entry_path)
+                                    log_shortcut_issue_once(
+                                        (
+                                            output_album_name,
+                                            str(entry_path.resolve()),
+                                            "content-mismatch",
+                                            str(canonical_source.resolve()),
+                                        ),
                                         f"{step_name}Album entry requires review. Album: '{output_album_name}'; "
                                         f"File: '{entry_path.name}' is a physical file instead of a valid shortcut to "
                                         f"'{FOLDERNAME_ALL_PHOTOS}' while the Albums strategy is 'Shortcut', but it does not "
                                         f"match the canonical asset. The physical file was kept."
                                     )
                                     continue
-                                LOGGER.warning(
-                                    f"{step_name}Album entry requires review. Album: '{output_album_name}'; "
+                                LOGGER.info(
+                                    f"{step_name}Repaired album shortcut. Album: '{output_album_name}'; "
                                     f"File: '{entry_path.name}' is a physical file instead of a valid shortcut to "
                                     f"'{FOLDERNAME_ALL_PHOTOS}' while the Albums strategy is 'Shortcut'. "
                                     f"Creating a platform-native shortcut instead."
@@ -701,7 +739,13 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                                     repaired_entries.append(entry_path)
                         else:
                             for entry_path in physical_entries:
-                                LOGGER.warning(
+                                retain_shortcut_entry_for_review(output_album_name, album_stat, entry_path)
+                                log_shortcut_issue_once(
+                                    (
+                                        output_album_name,
+                                        str(entry_path.resolve()),
+                                        canonical_match_status,
+                                    ),
                                     f"{step_name}Album entry requires review. Album: '{output_album_name}'; "
                                     f"File: '{entry_path.name}' is a physical file instead of a valid shortcut to "
                                     f"'{FOLDERNAME_ALL_PHOTOS}' while the Albums strategy is 'Shortcut'. "
@@ -737,8 +781,15 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                         manifest_entry["existing_entries"] = existing_entries
                         recovery_manifest.append(manifest_entry)
                         for entry in shortcut_strategy_mismatches:
+                            entry_path = output_album_dir / entry["album_entry"]
+                            retain_shortcut_entry_for_review(output_album_name, album_stat, entry_path)
                             if entry.get("status") == "existing-link-outside-all-photos":
-                                LOGGER.warning(
+                                log_shortcut_issue_once(
+                                    (
+                                        output_album_name,
+                                        str(entry_path.resolve(strict=False)),
+                                        entry["status"],
+                                    ),
                                     f"{step_name}Album entry requires review. Album: '{output_album_name}'; "
                                     f"File: '{entry['album_entry']}' is a shortcut outside '{FOLDERNAME_ALL_PHOTOS}' "
                                     f"while the Albums strategy is 'Shortcut'. The entry was kept for review."
@@ -775,7 +826,7 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 recovery_manifest.append(manifest_entry)
                 if match_status == "ambiguous-exact-name-in-date-folder":
                     LOGGER.warning(
-                        f"{step_name}Leaving orphan album sidecar unresolved: '{descriptor['source_json']}' in "
+                        f"{step_name}Leaving missing album entry unresolved: '{descriptor['source_json']}' in "
                         f"'{output_album_name}' has multiple exact-name candidates in a configured date folder."
                     )
                 continue
@@ -828,21 +879,33 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 recovery_manifest.append(manifest_entry)
 
         for album_name, album_stat in per_album_stats.items():
-            if album_stat["recovered"] or album_stat["unresolved"] or album_stat["shortcuts_repaired"]:
+            if (
+                album_stat["recovered"]
+                or album_stat["unresolved"]
+                or album_stat["shortcuts_repaired"]
+                or album_stat["shortcuts_retained_for_review"]
+            ):
                 summary["albums_touched"] += 1
-                total_assets = album_stat["already_present"] + album_stat["recovered"]
                 LOGGER.info(
-                    f"{step_name}Album JSON Recovery: '{album_name}' already had {album_stat['already_present']} assets, "
-                    f"recovered {album_stat['recovered']} assets, replaced {album_stat['shortcuts_repaired']} physical "
-                    f"entries with shortcuts, and left {album_stat['unresolved']} unresolved. "
-                    f"Total assets: {total_assets}"
+                    f"{step_name}Album reconciliation: '{album_name}'\n"
+                    f"  Sidecars already mapped to an album entry: {album_stat['already_present']}\n"
+                    f"  Missing entries recovered: {album_stat['recovered']}\n"
+                    f"  Physical entries replaced with shortcuts: {album_stat['shortcuts_repaired']}\n"
+                    f"  Physical entries retained for review: {album_stat['shortcuts_retained_for_review']}\n"
+                    f"  Missing entries unresolved: {album_stat['unresolved']}\n"
+                    f"  Final physical album entries: {_album_asset_entry_count(album_presence_indices[album_name])}"
                 )
 
         LOGGER.info(
-            f"{step_name}Orphan album JSON sidecars detected: {summary['orphan_json_detected']}. "
-            f"Already present: {summary['already_present_assets']}. "
-            f"Recovered: {summary['recovered_assets']}. Shortcut entries repaired: "
-            f"{summary['shortcut_entries_repaired']}. Unresolved: {summary['unresolved_assets']}."
+            f"{step_name}Album entry reconciliation summary:\n"
+            f"  JSON sidecars evaluated: {summary['sidecars_evaluated']}\n"
+            f"  Sidecars already mapped to an album entry: {summary['already_present_assets']}\n"
+            f"  Missing album entries detected: {summary['orphan_json_detected']}\n"
+            f"  Missing album entries recovered: {summary['recovered_assets']}\n"
+            f"  Physical entries replaced with shortcuts: {summary['shortcut_entries_repaired']}\n"
+            f"  Physical entries retained for review: {summary['shortcut_entries_retained_for_review']}\n"
+            f"  Missing album entries unresolved: {summary['unresolved_assets']}\n"
+            f"  Albums changed or requiring review: {summary['albums_touched']}"
         )
         manifest_path = Path(output_folder) / "orphan_album_asset_recovery_manifest.json"
         try:
@@ -850,9 +913,9 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
                 json.dumps({"version": 1, "entries": recovery_manifest}, ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
-            LOGGER.info(f"{step_name}Saved orphan album recovery manifest: '{manifest_path}'.")
+            LOGGER.info(f"{step_name}Saved album entry reconciliation manifest: '{manifest_path}'.")
         except OSError as error:
-            LOGGER.warning(f"{step_name}Could not save orphan album recovery manifest: {error}")
+            LOGGER.warning(f"{step_name}Could not save album entry reconciliation manifest: {error}")
         return summary
 
 
@@ -2675,11 +2738,14 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"Total Albums folders found in Output folder : {result['valid_albums_found']}")
-                if result.get('orphan_album_json_detected', 0) or result.get('orphan_album_assets_recovered', 0) or result.get('orphan_album_assets_unresolved', 0) or result.get('orphan_album_shortcut_entries_repaired', 0):
-                    LOGGER.info(f"Orphan Album JSON Sidecars Detected         : {result.get('orphan_album_json_detected', 0)}")
-                    LOGGER.info(f"Orphan Album Assets Recovered               : {result.get('orphan_album_assets_recovered', 0)}")
-                    LOGGER.info(f"Orphan Album Shortcut Entries Repaired      : {result.get('orphan_album_shortcut_entries_repaired', 0)}")
-                    LOGGER.info(f"Orphan Album Assets Unresolved              : {result.get('orphan_album_assets_unresolved', 0)}")
+                if result.get('orphan_album_json_detected', 0) or result.get('orphan_album_assets_recovered', 0) or result.get('orphan_album_assets_unresolved', 0) or result.get('orphan_album_shortcut_entries_repaired', 0) or result.get('orphan_album_shortcut_entries_retained_for_review', 0):
+                    LOGGER.info(f"Album JSON Sidecars Evaluated                : {result.get('album_entry_sidecars_evaluated', 0)}")
+                    LOGGER.info(f"Sidecars Already Mapped to Album Entries     : {result.get('album_entry_sidecars_already_mapped', 0)}")
+                    LOGGER.info(f"Missing Album Entries Detected               : {result.get('orphan_album_json_detected', 0)}")
+                    LOGGER.info(f"Missing Album Entries Recovered              : {result.get('orphan_album_assets_recovered', 0)}")
+                    LOGGER.info(f"Physical Entries Replaced with Shortcuts     : {result.get('orphan_album_shortcut_entries_repaired', 0)}")
+                    LOGGER.info(f"Physical Entries Retained for Review         : {result.get('orphan_album_shortcut_entries_retained_for_review', 0)}")
+                    LOGGER.info(f"Missing Album Entries Unresolved             : {result.get('orphan_album_assets_unresolved', 0)}")
                 if ARGS['google-rename-albums-folders']:
                     LOGGER.info(f"Total Albums Renamed                        : {result['renamed_album_folders']}")
                     LOGGER.info(f"Total Albums Duplicated                     : {result['duplicates_album_folders']}")
@@ -2866,7 +2932,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                 LOGGER.info(f"{step_name}Step Skipped: '{step_name[step_name.rfind('[')+1 : step_name.rfind(']')].strip()}'")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Step 6.5: Recover album JSON-only memberships after ALL_PHOTOS is finalized.
+            # Step 6.5: Reconcile album JSON-only memberships after ALL_PHOTOS is finalized.
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧩 [POST-PROCESS]-[Reconcile Album Entries with ALL_PHOTOS] : '
             step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
@@ -2875,7 +2941,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
             if self.orphan_album_json_sidecars:
                 LOGGER.info(f"")
                 LOGGER.info(f"================================================================================================================================================")
-                LOGGER.info(f"{self.step}.{self.substep}. RECOVERING ORPHAN ALBUM ASSETS FROM THE FINAL ALL_PHOTOS STRUCTURE...")
+                LOGGER.info(f"{self.step}.{self.substep}. RECONCILING ALBUM ENTRIES WITH THE FINAL ALL_PHOTOS STRUCTURE...")
                 LOGGER.info(f"================================================================================================================================================")
                 recovery_summary = recover_orphan_album_assets_from_json_sidecars(
                     input_folder=input_folder,
@@ -2889,8 +2955,11 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                     log_level=LOG_LEVEL,
                 )
                 self.result['orphan_album_json_detected'] = recovery_summary['orphan_json_detected']
+                self.result['album_entry_sidecars_evaluated'] = recovery_summary['sidecars_evaluated']
+                self.result['album_entry_sidecars_already_mapped'] = recovery_summary['already_present_assets']
                 self.result['orphan_album_assets_recovered'] = recovery_summary['recovered_assets']
                 self.result['orphan_album_shortcut_entries_repaired'] = recovery_summary['shortcut_entries_repaired']
+                self.result['orphan_album_shortcut_entries_retained_for_review'] = recovery_summary['shortcut_entries_retained_for_review']
                 self.result['orphan_album_assets_unresolved'] = recovery_summary['unresolved_assets']
                 self.result['orphan_album_recovery_albums_touched'] = recovery_summary['albums_touched']
                 formatted_duration = str(timedelta(seconds=round((datetime.now() - sub_step_start_time).total_seconds())))

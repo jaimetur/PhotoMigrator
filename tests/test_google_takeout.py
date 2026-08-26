@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -757,7 +758,8 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertEqual(os.readlink(album_entry), "../../ALL_PHOTOS/2014/IMG_0001.MOV")
             manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["entries"][0]["status"], "repaired-physical-entries-with-shortcuts")
-            self.assertTrue(any("Creating a platform-native shortcut instead" in str(call) for call in mock_logger.warning.call_args_list))
+            self.assertTrue(any("Creating a platform-native shortcut instead" in str(call) for call in mock_logger.info.call_args_list))
+            self.assertFalse(any("Creating a platform-native shortcut instead" in str(call) for call in mock_logger.warning.call_args_list))
 
     @unittest.skipIf(os.name == "nt", "Windows shortcut albums use hard links")
     def test_recover_orphan_album_assets_warns_for_physical_entry_in_shortcut_mode(self):
@@ -792,9 +794,57 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
 
             self.assertEqual(summary["recovered_assets"], 0)
             self.assertEqual(summary["orphan_json_detected"], 0)
+            self.assertEqual(summary["shortcut_entries_retained_for_review"], 1)
             manifest = json.loads((output_root / "orphan_album_asset_recovery_manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["entries"][0]["status"], "already-present-shortcut-strategy-mismatch")
             self.assertTrue(any("physical file instead of a valid shortcut" in str(call) for call in mock_logger.warning.call_args_list))
+
+    @unittest.skipIf(os.name == "nt", "Windows shortcut albums use hard links")
+    def test_recover_orphan_album_assets_deduplicates_repeated_physical_entry_warnings(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            output_root = root / "Processed"
+            all_photos_asset = output_root / "ALL_PHOTOS" / "2014" / "IMG_0001.JPG"
+            all_photos_asset.parent.mkdir(parents=True)
+            all_photos_asset.write_bytes(b"canonical-asset")
+            album_entry = output_root / "Albums" / "Album_1" / "IMG_0001.JPG"
+            album_entry.parent.mkdir(parents=True)
+            album_entry.write_bytes(b"different-copy")
+            descriptors = [
+                {
+                    "source_json": f"/input/Album_1/duplicate-{number}.json",
+                    "album": "Album_1",
+                    "title": "IMG_0001.JPG",
+                    "year": 2014,
+                    "photo_taken_datetime": datetime(2014, 1, 1),
+                    "creation_datetime": None,
+                }
+                for number in (1, 2)
+            ]
+
+            mock_logger = MagicMock()
+            with patch.object(takeout_module, "LOGGER", mock_logger):
+                summary = recover_orphan_album_assets_from_json_sidecars(
+                    input_folder=root / "Takeout",
+                    output_folder=output_root,
+                    albums_folder=output_root / "Albums",
+                    no_symbolic_albums=False,
+                    all_photos_structure="year",
+                    descriptors=descriptors,
+                    step_name="TEST : ",
+                    log_level=logging.INFO,
+                )
+
+            matching_warnings = [
+                str(call) for call in mock_logger.warning.call_args_list
+                if "physical file instead of a valid shortcut" in str(call)
+            ]
+            self.assertEqual(summary["sidecars_evaluated"], 2)
+            self.assertEqual(summary["already_present_assets"], 2)
+            self.assertEqual(summary["shortcut_entries_retained_for_review"], 1)
+            self.assertEqual(len(matching_warnings), 1)
+            self.assertTrue(any("Album entry reconciliation summary:" in str(call) for call in mock_logger.info.call_args_list))
+            self.assertTrue(any("Final physical album entries: 1" in str(call) for call in mock_logger.info.call_args_list))
 
     def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
         with tempfile.TemporaryDirectory() as temp_dir:
