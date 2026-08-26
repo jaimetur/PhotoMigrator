@@ -844,7 +844,8 @@ class TestGoogleTakeoutHelpers(unittest.TestCase):
             self.assertEqual(summary["shortcut_entries_retained_for_review"], 1)
             self.assertEqual(len(matching_warnings), 1)
             self.assertTrue(any("Album entry reconciliation summary:" in str(call) for call in mock_logger.info.call_args_list))
-            self.assertTrue(any("Final physical album entries: 1" in str(call) for call in mock_logger.info.call_args_list))
+            self.assertTrue(any("Album reconciliation: 'Album_1'" in str(call) for call in mock_logger.info.call_args_list))
+            self.assertTrue(all("\n" not in str(call) for call in mock_logger.info.call_args_list))
 
     def test_fix_metadata_with_gpth_tool_forces_hardlinks_for_windows_shortcut_albums(self):
         with tempfile.TemporaryDirectory() as temp_dir:

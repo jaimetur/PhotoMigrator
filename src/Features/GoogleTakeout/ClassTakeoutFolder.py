@@ -459,7 +459,6 @@ def _album_asset_entry_paths(album_presence_index, expected_filename):
 
 
 def _album_asset_entry_count(album_presence_index):
-    """Return the number of unique non-JSON entries currently indexed for an album."""
     return len({path for paths in album_presence_index.get("exact_paths", {}).values() for path in paths})
 
 
@@ -887,26 +886,24 @@ def recover_orphan_album_assets_from_json_sidecars(input_folder, output_folder, 
             ):
                 summary["albums_touched"] += 1
                 LOGGER.info(
-                    f"{step_name}Album reconciliation: '{album_name}'\n"
-                    f"  Sidecars already mapped to an album entry: {album_stat['already_present']}\n"
-                    f"  Missing entries recovered: {album_stat['recovered']}\n"
-                    f"  Physical entries replaced with shortcuts: {album_stat['shortcuts_repaired']}\n"
-                    f"  Physical entries retained for review: {album_stat['shortcuts_retained_for_review']}\n"
-                    f"  Missing entries unresolved: {album_stat['unresolved']}\n"
-                    f"  Final physical album entries: {_album_asset_entry_count(album_presence_indices[album_name])}"
+                    f"{step_name}Album reconciliation: '{album_name}' | "
+                    f"sidecars mapped: {album_stat['already_present']} | "
+                    f"missing recovered: {album_stat['recovered']} | "
+                    f"shortcuts repaired: {album_stat['shortcuts_repaired']} | "
+                    f"physical entries retained: {album_stat['shortcuts_retained_for_review']} | "
+                    f"missing unresolved: {album_stat['unresolved']} | "
+                    f"final physical entries: {_album_asset_entry_count(album_presence_indices[album_name])}"
                 )
 
-        LOGGER.info(
-            f"{step_name}Album entry reconciliation summary:\n"
-            f"  JSON sidecars evaluated: {summary['sidecars_evaluated']}\n"
-            f"  Sidecars already mapped to an album entry: {summary['already_present_assets']}\n"
-            f"  Missing album entries detected: {summary['orphan_json_detected']}\n"
-            f"  Missing album entries recovered: {summary['recovered_assets']}\n"
-            f"  Physical entries replaced with shortcuts: {summary['shortcut_entries_repaired']}\n"
-            f"  Physical entries retained for review: {summary['shortcut_entries_retained_for_review']}\n"
-            f"  Missing album entries unresolved: {summary['unresolved_assets']}\n"
-            f"  Albums changed or requiring review: {summary['albums_touched']}"
-        )
+        LOGGER.info(f"{step_name}Album entry reconciliation summary:")
+        LOGGER.info(f"{step_name}JSON sidecars evaluated: {summary['sidecars_evaluated']}")
+        LOGGER.info(f"{step_name}Sidecars already mapped to an album entry: {summary['already_present_assets']}")
+        LOGGER.info(f"{step_name}Missing album entries detected: {summary['orphan_json_detected']}")
+        LOGGER.info(f"{step_name}Missing album entries recovered: {summary['recovered_assets']}")
+        LOGGER.info(f"{step_name}Physical entries replaced with shortcuts: {summary['shortcut_entries_repaired']}")
+        LOGGER.info(f"{step_name}Physical entries retained for review: {summary['shortcut_entries_retained_for_review']}")
+        LOGGER.info(f"{step_name}Missing album entries unresolved: {summary['unresolved_assets']}")
+        LOGGER.info(f"{step_name}Albums changed or requiring review: {summary['albums_touched']}")
         manifest_path = Path(output_folder) / "orphan_album_asset_recovery_manifest.json"
         try:
             manifest_path.write_text(
