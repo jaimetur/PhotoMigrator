@@ -166,7 +166,7 @@ Below you can see the different steps of this feature:
 > Step 7.1  : 🧹 [FINAL-STEPS]-[Final Cleaning]            :  0:07:47  
 > Step 7.2  : ❔ [FINAL-STEPS]-[Files without dates]       :  0:00:01  
 > 
-> **🟰TOTAL PROCESSING TIME                                :  10:38:28**  
+> **🟰 TOTAL PROCESSING TIME                               :  10:38:28**  
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 

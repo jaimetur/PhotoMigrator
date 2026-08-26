@@ -2564,7 +2564,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
 
             summary_label_width = max(
                 55,
-                _console_display_width('🟰TOTAL PROCESSING TIME'),
+                _console_display_width('🟰 TOTAL PROCESSING TIME'),
                 *(_console_display_width(step_id_and_label) for _, step_id_and_label, _ in summary_rows),
             )
             for is_principal_step, step_id_and_label, duration in summary_rows:
@@ -2573,7 +2573,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                     LOGGER.info("")
                 LOGGER.info(f"{_ljust_console_display_width(step_id_and_label, summary_label_width)} : {duration.rjust(8)}")
             LOGGER.info(f"")
-            LOGGER.info(f"{_ljust_console_display_width('🟰TOTAL PROCESSING TIME', summary_label_width)} : {formatted_duration.rjust(8)}")
+            LOGGER.info(f"{_ljust_console_display_width('🟰 TOTAL PROCESSING TIME', summary_label_width)} : {formatted_duration.rjust(8)}")
             LOGGER.info(f"================================================================================================================================================")
 
             # PRINT RESULTS
@@ -2753,7 +2753,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
 
                 LOGGER.info(f"")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
-                LOGGER.info(f"Total Albums folders found in Output folder : {result['valid_albums_found']}")
+                LOGGER.info(f"Total Albums folders found in Output folder  : {result['valid_albums_found']}")
                 if result.get('orphan_album_json_detected', 0) or result.get('orphan_album_assets_recovered', 0) or result.get('orphan_album_assets_unresolved', 0) or result.get('orphan_album_shortcut_entries_repaired', 0) or result.get('orphan_album_shortcut_entries_retained_for_review', 0):
                     LOGGER.info(f"Album JSON Sidecars Evaluated                : {result.get('album_entry_sidecars_evaluated', 0)}")
                     LOGGER.info(f"Sidecars Already Mapped to Album Entries     : {result.get('album_entry_sidecars_already_mapped', 0)}")
@@ -2763,20 +2763,20 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                     LOGGER.info(f"Physical Entries Retained for Review         : {result.get('orphan_album_shortcut_entries_retained_for_review', 0)}")
                     LOGGER.info(f"Missing Album Entries Unresolved             : {result.get('orphan_album_assets_unresolved', 0)}")
                 if ARGS['google-rename-albums-folders']:
-                    LOGGER.info(f"Total Albums Renamed                        : {result['renamed_album_folders']}")
-                    LOGGER.info(f"Total Albums Duplicated                     : {result['duplicates_album_folders']}")
-                    LOGGER.info(f"   - Total Albums Fully Merged              : {result['duplicates_albums_fully_merged']}")
-                    LOGGER.info(f"   - Total Albums Not Fully Merged          : {result['duplicates_albums_not_fully_merged']}")
+                    LOGGER.info(f"Total Albums Renamed                         : {result['renamed_album_folders']}")
+                    LOGGER.info(f"Total Albums Duplicated                      : {result['duplicates_album_folders']}")
+                    LOGGER.info(f"   - Total Albums Fully Merged               : {result['duplicates_albums_fully_merged']}")
+                    LOGGER.info(f"   - Total Albums Not Fully Merged           : {result['duplicates_albums_not_fully_merged']}")
                 if not ARGS['google-no-symbolic-albums']:
                     LOGGER.info(f"")
-                    LOGGER.info(f"Total Symlinks Fixed                        : {result['symlink_fixed']}")
-                    LOGGER.info(f"Total Symlinks Not Fixed                    : {result['symlink_not_fixed']}")
+                    LOGGER.info(f"Total Symlinks Fixed                         : {result['symlink_fixed']}")
+                    LOGGER.info(f"Total Symlinks Not Fixed                     : {result['symlink_not_fixed']}")
                 if ARGS['google-remove-duplicates-files']:
                     LOGGER.info(f"")
-                    LOGGER.info(f"Total Duplicates Removed                    : {result['duplicates_found']}")
-                    LOGGER.info(f"Total Empty Folders Removed                 : {result['removed_empty_folders']}")
+                    LOGGER.info(f"Total Duplicates Removed                     : {result['duplicates_found']}")
+                    LOGGER.info(f"Total Empty Folders Removed                  : {result['removed_empty_folders']}")
                 LOGGER.info(f"")
-                LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
+                LOGGER.info(f"Total time elapsed                           : {formatted_duration}")
                 LOGGER.info(f"{'-' * TOTAL_WIDTH}")
                 LOGGER.info(f"================================================================================================================================================")
                 LOGGER.info(f"")
