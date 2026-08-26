@@ -2567,7 +2567,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
 
             summary_label_width = max(
                 55,
-                _console_display_width('TOTAL PROCESSING TIME'),
+                _console_display_width('🟰TOTAL PROCESSING TIME'),
                 *(_console_display_width(step_id_and_label) for _, step_id_and_label, _ in summary_rows),
             )
             for is_principal_step, step_id_and_label, duration in summary_rows:
@@ -2576,7 +2576,7 @@ class ClassTakeoutFolder(ClassLocalPhotosFolder):
                     LOGGER.info("")
                 LOGGER.info(f"{_ljust_console_display_width(step_id_and_label, summary_label_width)} : {duration.rjust(8)}")
             LOGGER.info(f"")
-            LOGGER.info(f"{_ljust_console_display_width('TOTAL PROCESSING TIME', summary_label_width)} : {formatted_duration.rjust(8)}")
+            LOGGER.info(f"{_ljust_console_display_width('🟰TOTAL PROCESSING TIME', summary_label_width)} : {formatted_duration.rjust(8)}")
             LOGGER.info(f"================================================================================================================================================")
 
             # PRINT RESULTS
