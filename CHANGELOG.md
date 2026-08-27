@@ -5,7 +5,7 @@
 ---
 
 ## Release: v4.7.0
-### Release Date: 2026-08-24
+### Release Date: 2026-08-27
   
 #### 🚀 Enhancements:
   - Hardened Google Takeout orphan album-sidecar recovery. Before GPTH removes source JSON files, PhotoMigrator captures their album, exact filename, `photoTakenTime`, and `creationTime`; recovery then runs only after post-processing has created the configured non-flat `ALL_PHOTOS` layout. It resolves an exact filename only inside the expected `year`, `year/month`, or `year-month` folder, tries `photoTakenTime` first and `creationTime` only when needed, and leaves unresolved matches untouched. `flatten` layouts skip recovery because same-name assets cannot be safely disambiguated. The processor writes `orphan_album_asset_recovery_manifest.json` with the source sidecar, result, and candidates for later audit. Existing valid album shortcuts are treated as resolved without being counted as orphans or generating year-mismatch warnings; only actual missing entries and shortcut-strategy inconsistencies, such as a physical copy or an external/broken link where a shortcut is expected, require review.
