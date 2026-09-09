@@ -6,6 +6,14 @@
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="PHOTOMIGRATOR_STATE_PATH" value="/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/config/web_interface_state.json" />
+      <env name="PHOTOMIGRATOR_WEB_DB_PATH" value="/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/config/web_interface.db" />
+      <env name="PHOTOMIGRATOR_WEB_CONFIG_CACHE_DIR" value="/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/config/generated" />
+      <env name="PHOTOMIGRATOR_DOCKER_BASE_PATH" value="/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/data" />
+      <env name="PHOTOMIGRATOR_WEB_USER_ROOT_DATA" value="/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/data" />
+      <env name="PHOTOMIGRATOR_WEB_USER_ROOT_VOLUME1" value="/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/volumes" />
+      <env name="PHOTOMIGRATOR_WEB_DELETE_ROOTS" value="/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/data,/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/config,/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/volumes" />
+      <env name="PHOTOMIGRATOR_WEB_BACKUP_DIR" value="/Users/jaimetur/development/runtime_data/PhotoMigrator/web-dev/backups" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
