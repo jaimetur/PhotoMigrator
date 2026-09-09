@@ -2,10 +2,6 @@
 
 # Entornos virtuales
 .venv/
-.venv_mac/
-.venv_macmini/
-.venv_macbook/
-.venv_windows/
 venv/
 .env/
 

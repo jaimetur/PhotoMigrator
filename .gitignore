@@ -1,5 +1,6 @@
 # .github_ignore
-.github_ignore/
+/github_ignore/
+/gpth_tool/gpth_tool_history
 
 # Pycharm Folder
 #.idea/
@@ -7,16 +8,29 @@
 # Environments
 .env/
 .venv/
-.venv_mac/
-.venv_macmini/
-.venv_macbook/
-.venv_windows
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
 !docker-web/.env
+
+# Extracted ExifTool dir
+/exif_tool/exiftool
+/exif_tool/lib/
+
+# Runtime App dirs
+/config
+/data
+/.web-dev/
+/Comparativa.md
+
+# Exclude Logs folders
+Logs/
+src/Logs/
+
+# Extracted Dates
+/Extracted_Dates
 
 # FreeFileSync files
 /*.ffs_db
@@ -42,13 +56,6 @@ PhotoMigrator*.zip
 
 # Builts versions
 PhotoMigrator-builds/
-
-# Exclude Logs folders
-Logs/
-src/Logs/
-
-# Extracted Dates
-/Extracted_Dates
 
 # Temporary files created during build process
 RELEASE-NOTES.md
@@ -233,11 +240,4 @@ cython_debug/
 .DS_Store
 .idea/.DS_Store
 
-# Extracted ExifTool dir
-/exif_tool/exiftool
-/exif_tool/lib/
 
-# Config dir
-/config
-/.web-dev/
-/Comparativa.md
