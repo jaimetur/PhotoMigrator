@@ -19,14 +19,19 @@ LOCAL_DB_PATH = LOCAL_CONFIG_DIR / "web_interface.db"
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "Config.ini"
 
 
-def _ensure_local_dirs():
-    for path in (
-        LOCAL_CONFIG_DIR,
-        LOCAL_CONFIG_GENERATED_DIR,
-        LOCAL_DATA_DIR,
-        LOCAL_VOLUMES_DIR,
-        LOCAL_BACKUPS_DIR,
-    ):
+def _ensure_runtime_dirs():
+    """Create the directories selected by the effective environment."""
+    paths = (
+        Path(os.environ["PHOTOMIGRATOR_CONFIG_PATH"]).parent,
+        Path(os.environ["PHOTOMIGRATOR_STATE_PATH"]).parent,
+        Path(os.environ["PHOTOMIGRATOR_WEB_DB_PATH"]).parent,
+        Path(os.environ["PHOTOMIGRATOR_WEB_CONFIG_CACHE_DIR"]),
+        Path(os.environ["PHOTOMIGRATOR_DOCKER_BASE_PATH"]),
+        Path(os.environ["PHOTOMIGRATOR_WEB_USER_ROOT_DATA"]),
+        Path(os.environ["PHOTOMIGRATOR_WEB_USER_ROOT_VOLUME1"]),
+        Path(os.environ["PHOTOMIGRATOR_WEB_BACKUP_DIR"]),
+    )
+    for path in paths:
         path.mkdir(parents=True, exist_ok=True)
 
 
@@ -36,7 +41,6 @@ def _set_default_env(name, value):
 
 
 def _configure_local_web_environment():
-    _ensure_local_dirs()
     _set_default_env("PHOTOMIGRATOR_CONFIG_PATH", DEFAULT_CONFIG_PATH)
     _set_default_env("PHOTOMIGRATOR_STATE_PATH", LOCAL_STATE_PATH)
     _set_default_env("PHOTOMIGRATOR_WEB_DB_PATH", LOCAL_DB_PATH)
@@ -59,6 +63,7 @@ def _configure_local_web_environment():
     _set_default_env("PHOTOMIGRATOR_BOOTSTRAP_ADMIN_USER", "admin")
     _set_default_env("PHOTOMIGRATOR_BOOTSTRAP_ADMIN_PASS", "admin123")
     _set_default_env("PHOTOMIGRATOR_WEB_SECRET", "photomigrator-local-dev-secret")
+    _ensure_runtime_dirs()
 
 
 def main():
@@ -71,7 +76,15 @@ def main():
     port = int(os.environ.get("PHOTOMIGRATOR_WEB_PORT", "6078"))
     reload_enabled = os.environ.get("PHOTOMIGRATOR_WEB_RELOAD", "0") == "1"
 
-    uvicorn.run("src.web_interface.app:app", host=host, port=port, reload=reload_enabled)
+    # `SRC_ROOT` is the import root when this script is executed directly.
+    # Import the web package from it so this does not depend on PyCharm marking
+    # `src` as a source root.
+    from web_interface.app import app
+
+    # Passing the app object also makes the dependency visible to binary
+    # packagers. Uvicorn needs an import string only for its reload subprocess.
+    app_target = "web_interface.app:app" if reload_enabled else app
+    uvicorn.run(app_target, host=host, port=port, reload=reload_enabled)
 
 
 if __name__ == "__main__":
