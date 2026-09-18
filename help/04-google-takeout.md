@@ -121,7 +121,7 @@ Below you can see the different steps of this feature:
 > [!NOTE]
 > Step 4.3 is disabled by default, but It is automatically enabled if detect that Step 4.2 has been skipped.
 > 
-> Step 5.6 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#-folder-rename-content-based-extra-feature).
+> Step 5.6 is disabled by default, but it is very useful if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](10-other-features.md#folder-rename-content-based-extra-feature).
 >
 > Step 5.7 is disabled by default, and is only recommended if you don't use Symbolic Links for Albums assets, and you want to save disk space avoiding having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
