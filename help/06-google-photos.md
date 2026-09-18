@@ -102,6 +102,9 @@ Follow these steps:
    - `Client Secret` -> `GOOGLE_PHOTOS_CLIENT_SECRET_<N>`
 6. Generate a refresh token with OAuth authorization flow:
    - Request OAuth with `access_type=offline` and `prompt=consent`.
+   - Request the scopes you need:
+     - `https://www.googleapis.com/auth/photoslibrary.appendonly` — required to upload media items and create albums.
+     - `https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata` — required to list and download the media items and albums created by the app itself.
    - Authorize with the Google account you want to use in PhotoMigrator.
    - Exchange authorization code for tokens and copy `refresh_token`.
 7. Put all three values in `Config.ini` under `[Google Photos]`.
@@ -117,6 +120,9 @@ GOOGLE_PHOTOS_REFRESH_TOKEN_1   = 1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 > [!NOTE]
 > If the OAuth app is in **Testing** mode, only configured test users can authorize it.
 > Refresh tokens may be invalidated if you revoke app access or rotate client secrets.
+
+> [!IMPORTANT]
+> A refresh token is bound to the scopes granted during authorization. A token issued without `photoslibrary.appendonly` still authenticates, but every upload fails with `403 PERMISSION_DENIED` and `Request had insufficient authentication scopes` from `mediaItems:batchCreate`. If you see that error, re-issue the refresh token with the scope list above and update `GOOGLE_PHOTOS_REFRESH_TOKEN_<N>`.
 
 
 ## Upload Albums:
