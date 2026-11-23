@@ -47,7 +47,7 @@ They are designed to work as-is for a local deployment on Linux, Windows, and ma
 
 They are also included in the Docker ZIP package:
 
-- [`PhotoMigrator_v4.7.0_docker.zip`](https://github.com/jaimetur/PhotoMigrator/releases/download/v4.7.0/PhotoMigrator_v4.7.0_docker.zip)
+- [`PhotoMigrator_v5.0.0_docker.zip`](https://github.com/jaimetur/PhotoMigrator/releases/download/v5.0.0/PhotoMigrator_v5.0.0_docker.zip)
 
 ### What you can use without modifying anything
 

@@ -21,6 +21,7 @@
 - Within the same current/unreleased version, do not create multiple changelog bullets for incremental changes, fixes, or refinements to the same functionality.
 - If an existing changelog bullet already describes the same functionality, update or rewrite that bullet so it reflects the final behavior.
 - Do not add changelog entries for internal implementation changes that have no relevant user-facing or developer-facing impact.
+- Do not create blank lines between bullets on the same section.
 
 ## Documentation
 

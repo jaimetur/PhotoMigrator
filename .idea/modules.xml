@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/PhotoMigrator.iml" filepath="$PROJECT_DIR$/.idea/PhotoMigrator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/photomigrator.iml" filepath="$PROJECT_DIR$/.idea/photomigrator.iml" />
     </modules>
   </component>
 </project>
