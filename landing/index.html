@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PhotoMigrator · Move your photo library, keep every memory</title>
+<meta name="description" content="Free and open-source tool to migrate photos, videos and albums between Google Photos, Synology Photos, Immich, NextCloud and local folders, and to fix Google and iCloud Takeout exports. Web, desktop, terminal and Docker.">
+<meta name="theme-color" content="#0a0f1e">
+<meta property="og:title" content="PhotoMigrator · Move your photo library, keep every memory">
+<meta property="og:description" content="Migrate photos, videos and albums between Google Photos, Synology Photos, Immich, NextCloud and local folders. Fix Google and iCloud Takeout exports. Free and open source.">
+<meta property="og:image" content="media/og-image.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="media/logo.png">
+<link rel="apple-touch-icon" href="media/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Marketing landing page of PhotoMigrator: dark, colourful, built around real screenshots of the tool */
+:root{--bg:#0a0f1e;--bg2:#0e1528;--card:#121a30;--card2:#161f3a;--line:#243050;--ink:#eef2fb;--muted:#a5afc8;--faint:#6f7a96;
+  --a:#5b8cff;--b:#22d3c5;--c:#ffb547;--d:#ff6b8b;--e:#a78bfa;--good:#34d399;
+  --display:"Space Grotesk",system-ui,sans-serif;--body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--body);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}img{display:block;max-width:100%;height:auto}
+.wrap{width:min(1200px,100% - 32px);margin:0 auto}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.05;letter-spacing:-.02em;margin:0}
+.grad{background:linear-gradient(90deg,var(--b),var(--a) 45%,var(--e) 70%,var(--d));-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 22px;border-radius:999px;font:700 16px var(--body);text-decoration:none;border:0;cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s}
+.btn svg{width:18px;height:18px}
+.btn.pri{background:linear-gradient(135deg,var(--a),var(--e));color:#fff;box-shadow:0 12px 32px -10px color-mix(in srgb,var(--a) 75%,transparent)}
+.btn.pri:hover{transform:translateY(-2px);box-shadow:0 18px 40px -12px var(--a)}
+.btn.sec{background:rgba(255,255,255,.06);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}.btn.sec:hover{background:rgba(255,255,255,.11)}
+:focus-visible{outline:2px solid var(--b);outline-offset:3px}
+/* top bar */
+.top{position:sticky;top:0;z-index:30;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 75%,transparent);border-bottom:1px solid transparent;transition:border-color .3s}
+.top.sc{border-color:var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;height:68px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 21px var(--display);letter-spacing:-.01em}.logo img{width:34px;height:34px;border-radius:9px}
+.top nav{display:flex;gap:24px;margin-left:auto;font-weight:600;font-size:15px}.top nav a{text-decoration:none;color:var(--muted)}.top nav a:hover{color:var(--ink)}
+.top .btn{padding:10px 18px;font-size:15px}
+@media (max-width:900px){.top nav{display:none}.top .gh{margin-left:auto}}
+/* hero */
+.hero{position:relative;padding:72px 0 30px;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;pointer-events:none;animation:drift 20s ease-in-out infinite alternate}
+.blob.b1{width:560px;height:560px;background:var(--a);top:-200px;left:-160px}
+.blob.b2{width:460px;height:460px;background:var(--b);top:140px;right:-160px;animation-delay:-7s}
+.blob.b3{width:380px;height:380px;background:var(--d);bottom:-240px;left:35%;opacity:.3;animation-delay:-13s}
+@keyframes drift{to{transform:translate(60px,40px) scale(1.15)}}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:48px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px var(--line);font-size:14px;font-weight:600;color:var(--muted);text-decoration:none}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px color-mix(in srgb,var(--good) 25%,transparent)}
+.hero h1{font-size:clamp(44px,6.2vw,80px);margin:20px 0 20px}
+.hero p.lead{font-size:20px;color:var(--muted);max-width:36ch;margin:0 0 30px}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;font-size:14px;font-weight:600;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
+.chip b{width:8px;height:8px;border-radius:50%;background:var(--k)}
+.stage{position:relative;padding:20px 0 70px}
+.stage .laptop{transform:perspective(1600px) rotateY(-8deg) rotateX(3deg);transform-origin:left center}
+.stage .phone{position:absolute;right:-18px;bottom:-6px;width:min(158px,25%)}
+.stage .term{position:absolute;left:-40px;bottom:16px;width:min(360px,55%);animation-delay:-3s}
+@media (max-width:1000px){.hero .wrap{grid-template-columns:minmax(0,1fr)}.hero p.lead{max-width:none}.stage .laptop{transform:none}.stage .term{left:0}}
+@media (max-width:620px){.stage .term{display:none}.stage .phone{width:34%}}
+.float{animation:float 8s ease-in-out infinite}@keyframes float{50%{transform:translateY(-12px)}}
+/* device frames */
+.laptop{border-radius:16px;padding:10px 10px 0;background:linear-gradient(#2a3557,#121a32);box-shadow:0 50px 100px -40px #000,0 0 0 1px rgba(255,255,255,.08)}
+.laptop .bar{display:flex;gap:6px;padding:2px 4px 9px}.laptop .bar i{width:9px;height:9px;border-radius:50%;background:#ff5f57}.laptop .bar i:nth-child(2){background:#febc2e}.laptop .bar i:nth-child(3){background:#28c840}
+.laptop .scr{position:relative;border-radius:8px 8px 0 0;overflow:hidden;aspect-ratio:16/10;background:#0d1222}
+.laptop .scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top left;transition:opacity .5s}
+.laptop .scr img.off{opacity:0}
+.laptop+.base{height:14px;margin:0 -3%;border-radius:0 0 16px 16px;background:linear-gradient(#3a4466,#1b2238);box-shadow:0 20px 40px -20px #000}
+.phone{border-radius:34px;padding:8px;background:linear-gradient(160deg,#2a3557,#0d1222);box-shadow:0 30px 60px -24px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.1)}
+.phone .scr{border-radius:27px;overflow:hidden;aspect-ratio:390/844;background:#0d1222}.phone .scr img{width:100%;height:100%;object-fit:cover;object-position:top}
+.term{border-radius:12px;overflow:hidden;background:#0b1120;box-shadow:0 30px 70px -26px #000,0 0 0 1px rgba(255,255,255,.1)}
+.term .bar{display:flex;align-items:center;gap:6px;padding:9px 12px;background:#141c30;font:600 12px var(--body);color:var(--faint)}.term .bar i{width:9px;height:9px;border-radius:50%;background:#ff5f57}.term .bar i:nth-child(2){background:#febc2e}.term .bar i:nth-child(3){background:#28c840}.term .bar span{margin-left:8px}
+.term pre{margin:0;padding:14px 16px;font:12.5px/1.65 var(--mono);color:#cbd5e1;white-space:pre;overflow:hidden}
+.term .g{color:#6ee7b7}.term .bl{color:#93c5fd}.term .y{color:#fcd34d}.term .m{color:#7c8aa0}
+/* trust strip */
+.strip{border-block:1px solid var(--line);background:var(--bg2)}
+.strip .wrap{display:flex;flex-wrap:wrap;justify-content:space-around;gap:14px 30px;padding:20px 0;color:var(--muted);font-weight:600;font-size:16px}
+.strip b{color:var(--ink)}
+/* sections */
+section.sec{padding:110px 0;position:relative}
+.sh{text-align:center;max-width:780px;margin:0 auto 64px}.sh h2{font-size:clamp(36px,4.8vw,60px)}.sh p{color:var(--muted);font-size:19px;margin:18px 0 0}
+.kicker{display:inline-block;font:700 13px var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--k,var(--b));margin-bottom:14px}
+/* services */
+.svcs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.svc{padding:24px;border-radius:20px;background:linear-gradient(160deg,color-mix(in srgb,var(--k) 14%,var(--card)),var(--card) 65%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--k) 28%,var(--line));transition:transform .3s}
+.svc:hover{transform:translateY(-4px)}
+.svc .ic{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--k) 24%,transparent);color:var(--k);margin-bottom:16px}
+.svc .ic svg{width:24px;height:24px}
+.svc h3{font-size:21px;margin-bottom:6px}.svc p{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
+.svc .roles{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.svc .roles span{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--ink)}
+@media (max-width:1000px){.svcs{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.svcs{grid-template-columns:minmax(0,1fr)}}
+/* feature blocks */
+.feat{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:64px;align-items:center;margin:0 0 120px}
+.feat:last-child{margin-bottom:0}
+.feat.rev .media{order:2}
+.feat h3{font-size:clamp(32px,3.6vw,46px);margin-bottom:18px}
+.feat p{color:var(--muted);margin:0 0 20px;font-size:18px}
+.feat ul{list-style:none;padding:0;margin:0;display:grid;gap:11px}
+.feat li{display:flex;gap:12px;align-items:flex-start}.feat li::before{content:"";flex:none;width:22px;height:22px;margin-top:2px;border-radius:50%;
+  background:color-mix(in srgb,var(--k) 24%,transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;box-shadow:inset 0 0 0 1.5px var(--k)}
+.media{position:relative;min-width:0}
+.media .glow{position:absolute;inset:12% 12%;background:var(--k);filter:blur(90px);opacity:.32;border-radius:50%}
+.media .laptop,.media .base,.media .term{position:relative}
+.tabs{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 0 16px}
+.tabs button{border:0;border-radius:999px;padding:8px 14px;font:600 14px var(--body);color:var(--muted);background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;transition:background .25s,color .25s}
+.tabs button.on{background:var(--k);color:#0a0f1e;box-shadow:none}
+@media (max-width:900px){.feat{grid-template-columns:minmax(0,1fr);gap:36px;margin-bottom:90px}.feat.rev .media{order:0}}
+/* interfaces */
+.ifaces{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.iface{position:relative;padding:28px;border-radius:24px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden;display:flex;flex-direction:column;gap:12px}
+.iface h3{font-size:26px}.iface p{margin:0;color:var(--muted);font-size:16px}
+.iface .shot{margin-top:auto;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.iface .tag{align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:color-mix(in srgb,var(--k) 22%,transparent);color:var(--k)}
+.code{margin-top:auto;border-radius:12px;background:#070b16;box-shadow:inset 0 0 0 1px var(--line);font:13px/1.7 var(--mono);color:#cbd5e1;padding:14px 16px;overflow-x:auto;white-space:pre}
+.code .c{color:#6f7a96}.code .g{color:#6ee7b7}
+@media (max-width:900px){.ifaces{grid-template-columns:minmax(0,1fr)}}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;counter-reset:s}
+.step{padding:28px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.step .n{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font:700 20px var(--display);background:linear-gradient(135deg,var(--k),color-mix(in srgb,var(--k) 45%,#000));color:#fff;margin-bottom:16px}
+.step h3{font-size:22px;margin-bottom:8px}.step p{margin:0;color:var(--muted);font-size:16px}
+@media (max-width:900px){.steps{grid-template-columns:minmax(0,1fr)}}
+/* extras */
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.tile{padding:26px;border-radius:22px;background:linear-gradient(160deg,color-mix(in srgb,var(--k) 15%,var(--card)),var(--card) 60%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--k) 28%,var(--line));transition:transform .3s}
+.tile:hover{transform:translateY(-4px)}.tile h3{font-size:22px;margin:14px 0 8px}.tile p{margin:0;color:var(--muted);font-size:16px}
+.tile .ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--k) 24%,transparent);color:var(--k)}.tile .ic svg{width:22px;height:22px}
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.grid{grid-template-columns:minmax(0,1fr)}}
+/* download */
+.dls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.dl{padding:26px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:10px;transition:box-shadow .3s,transform .3s}
+.dl.me{box-shadow:inset 0 0 0 2px var(--a),0 24px 50px -30px var(--a);transform:translateY(-4px)}
+.dl .ic{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--k),color-mix(in srgb,var(--k) 40%,#000));color:#fff}.dl .ic svg{width:24px;height:24px}
+.dl h3{font-size:24px}.dl p{margin:0;color:var(--muted);font-size:15px}
+.dl .links{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:8px}
+.dl .links a{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-radius:12px;text-decoration:none;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px var(--line);font-weight:600;font-size:15px}
+.dl .links a:hover{background:rgba(255,255,255,.1)}
+.dl .links a small{color:var(--faint);font-weight:500}
+.mine{display:none;align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--a);color:#0a0f1e}.dl.me .mine{display:inline-block}
+@media (max-width:1000px){.dls{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.dls{grid-template-columns:minmax(0,1fr)}}
+.docker{margin-top:26px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:26px;align-items:center;padding:30px;border-radius:24px;background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--b) 22%,transparent),transparent 55%),var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.docker h3{font-size:30px;margin-bottom:10px}.docker p{margin:0;color:var(--muted)}
+.copy{position:relative}.copy button{position:absolute;top:10px;right:10px;border:0;border-radius:8px;padding:6px 10px;font:600 13px var(--body);background:rgba(255,255,255,.1);color:var(--ink);cursor:pointer}
+.copy button:hover{background:rgba(255,255,255,.18)}
+@media (max-width:900px){.docker{grid-template-columns:minmax(0,1fr)}}
+/* faq */
+.faq{max-width:840px;margin:0 auto;display:grid;gap:12px}
+.faq details{border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);padding:18px 22px}
+.faq summary{cursor:pointer;font-weight:700;font-size:18px;list-style:none;display:flex;justify-content:space-between;gap:12px}.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--b);font-size:24px;line-height:1}.faq details[open] summary::after{content:"−"}
+.faq details p{color:var(--muted);margin:12px 0 0}
+.faq code{font:14px var(--mono);background:rgba(255,255,255,.07);padding:1px 6px;border-radius:6px}
+/* final call */
+.final{text-align:center;padding:100px 0;background:radial-gradient(60% 80% at 50% 0%,color-mix(in srgb,var(--a) 32%,transparent),transparent)}
+.final h2{font-size:clamp(38px,5.5vw,72px);margin-bottom:18px}.final p{color:var(--muted);font-size:19px;margin:0 auto 28px;max-width:640px}
+.final .cta{justify-content:center}
+footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--faint);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center}footer a{color:var(--muted);text-decoration:none}footer a:hover{color:var(--ink)}
+footer .sp{margin-left:auto}
+/* reveal on scroll */
+.rvjs .rv{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.rvjs .rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rvjs .rv{opacity:1;transform:none;transition:none}.blob,.float{animation:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="top" id="top"><div class="wrap">
+  <a class="logo" href="#"><img src="media/logo.png" alt="">PhotoMigrator</a>
+  <nav aria-label="Sections"><a href="#services">Services</a><a href="#features">Features</a><a href="#interfaces">Interfaces</a><a href="#how">How it works</a><a href="#download">Download</a><a href="#faq">FAQ</a></nav>
+  <a class="btn sec gh" href="https://github.com/jaimetur/PhotoMigrator" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+    GitHub</a>
+</div></header>
+
+<main>
+  <section class="hero">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="wrap">
+      <div>
+        <a class="eyebrow" href="https://github.com/jaimetur/PhotoMigrator/releases" rel="noopener"><i></i>v5.0.0 · Free and open source</a>
+        <h1>Move your photo library.<br><span class="grad">Keep every memory.</span></h1>
+        <p class="lead">Migrate photos, videos and albums between Google Photos, Synology Photos, Immich, NextCloud and local folders, and turn messy Google or iCloud Takeout exports into a clean library with the right dates.</p>
+        <div class="cta">
+          <a class="btn pri" href="#download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>Download for free</a>
+          <a class="btn sec" href="#features">See what it does</a>
+        </div>
+        <div class="chips" aria-label="Supported services">
+          <span class="chip" style="--k:#ff6b8b"><b></b>Google Photos</span>
+          <span class="chip" style="--k:#cbd5e1"><b></b>Synology Photos</span>
+          <span class="chip" style="--k:#a78bfa"><b></b>Immich</span>
+          <span class="chip" style="--k:#22d3c5"><b></b>NextCloud</span>
+          <span class="chip" style="--k:#5b8cff"><b></b>Google Takeout</span>
+          <span class="chip" style="--k:#7dd3fc"><b></b>iCloud Takeout</span>
+          <span class="chip" style="--k:#ffb547"><b></b>Local folders</span>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="laptop"><div class="bar"><i></i><i></i><i></i></div><div class="scr"><img src="media/web-home.webp" alt="PhotoMigrator Web Interface home screen with the tasks grouped by Migrate, Process Takeout, Photo libraries and Tools" width="2400" height="1500" fetchpriority="high"></div></div><div class="base"></div>
+        <div class="term float"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><span class="m">$</span> PhotoMigrator --source=synology-photos-1 \
+    --target=immich-photos-1
+<span class="bl">PULL</span>  Album '2019 - Summer Trip' downloaded
+<span class="g">PUSH</span>  Album '2019 - Summer Trip' created
+<span class="g">PUSH</span>  IMG_4821.HEIC uploaded
+<span class="y">WARN</span>  VID_0193.MOV queued for retry
+<span class="g">PUSH</span>  VID_0193.MOV recovered on retry</pre></div>
+        <div class="phone float"><div class="scr"><img src="media/web-phone.webp" alt="PhotoMigrator Web Interface on a phone" width="1170" height="2532"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="strip"><div class="wrap">
+    <span><b>Albums, dates and GPS</b> preserved</span><span><b>Runs on your own</b> computer or NAS</span><span><b>Windows, macOS, Linux</b> and Docker</span><span><b>GPL-3.0</b>, free forever</span>
+  </div></div>
+
+  <section class="sec" id="services"><div class="wrap">
+    <div class="sh rv"><span class="kicker">One tool, every library</span><h2>Works with the services <span class="grad">you already use</span></h2><p>Connect up to three accounts per service and move your library in any direction, including between two accounts of the same service.</p></div>
+    <div class="svcs rv">
+      <div class="svc" style="--k:#ff6b8b"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 9.2 4.5 4.5 0 0 0 7 18z"/></svg></div><h3>Google Photos</h3><p>Upload your library and albums to Google Photos. To bring photos out of Google, use your Google Takeout export.</p><div class="roles"><span>Target</span><span>Manage</span></div></div>
+      <div class="svc" style="--k:#cbd5e1"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></div><h3>Synology Photos</h3><p>Your NAS library, with 2-step verification support and up to three accounts.</p><div class="roles"><span>Source</span><span>Target</span><span>Manage</span></div></div>
+      <div class="svc" style="--k:#a78bfa"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></div><h3>Immich</h3><p>Self-hosted photos with people labels from your Takeout, burst stacks and visual duplicate detection.</p><div class="roles"><span>Source</span><span>Target</span><span>Manage</span></div></div>
+      <div class="svc" style="--k:#22d3c5"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><circle cx="12" cy="12" r="4"/></svg></div><h3>NextCloud Photos</h3><p>Folder-based albums on your own NextCloud, with parallel uploads and downloads.</p><div class="roles"><span>Source</span><span>Target</span><span>Manage</span></div></div>
+      <div class="svc" style="--k:#5b8cff"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9"/><path d="M10 13h4"/></svg></div><h3>Google Takeout</h3><p>The export of your Google Photos account, fixed and organized before it goes anywhere else.</p><div class="roles"><span>Source</span><span>Fix</span></div></div>
+      <div class="svc" style="--k:#7dd3fc"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9"/><path d="M10 13h4"/></svg></div><h3>iCloud Takeout</h3><p>Apple's privacy export of iCloud Photos, with dates restored and albums and Memories rebuilt.</p><div class="roles"><span>Source</span><span>Fix</span></div></div>
+      <div class="svc" style="--k:#ffb547"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><h3>Local folders</h3><p>Any folder on your disk or NAS, used as a source, a target or a library you manage like a cloud service.</p><div class="roles"><span>Source</span><span>Target</span><span>Manage</span></div></div>
+      <div class="svc" style="--k:#34d399"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h14l-4-4"/><path d="M20 17H6l4 4"/></svg></div><h3>Any direction</h3><p>Synology to Immich, Takeout to NextCloud, Immich to a local folder… pick a source and a target and run.</p><div class="roles"><span>3 accounts each</span></div></div>
+    </div>
+  </div></section>
+
+  <section class="sec" id="features" style="padding-top:20px"><div class="wrap">
+    <div class="sh rv"><span class="kicker">What it does</span><h2>From a messy export to <span class="grad">a tidy library</span></h2><p>Every task shows only the options it needs, explains each one in plain language and shows the exact command before anything runs.</p></div>
+
+    <div class="feat rv" style="--k:var(--a)">
+      <div class="media" data-gallery>
+        <div class="glow"></div>
+        <div class="tabs" role="tablist" aria-label="Automatic Migration screens"><button type="button" class="on" data-src="media/web-migration.webp" data-alt="Automatic Migration with Synology Photos as source and Immich as target">Set up</button><button type="button" data-src="media/web-activity.webp" data-alt="Activity view with the progress and the log of a finished run">Follow the run</button></div>
+        <div class="laptop"><div class="bar"><i></i><i></i><i></i></div><div class="scr"><img src="media/web-migration.webp" alt="Automatic Migration with Synology Photos as source and Immich as target" width="2400" height="1500" loading="lazy"></div></div><div class="base"></div>
+      </div>
+      <div><span class="kicker" style="--k:var(--a)">Automatic Migration</span><h3>Your whole library, moved in one run</h3><p>Choose where your photos are and where they should go. PhotoMigrator downloads and uploads in parallel, recreates every album on the target and shows a live dashboard while it works.</p>
+        <ul><li>Copy or move assets, with albums and non-album photos</li><li>Retries, upload size limits and timeouts for big libraries</li><li>Filter by date, type, country, city or person</li><li>Optional album name clean-up and consolidation on the target</li></ul></div>
+    </div>
+
+    <div class="feat rev rv" style="--k:var(--b)">
+      <div class="media"><div class="glow"></div>
+        <div class="laptop"><div class="bar"><i></i><i></i><i></i></div><div class="scr"><img src="media/web-takeout.webp" alt="Google Takeout fixing screen with the input folder and the folder structure options" width="2400" height="1500" loading="lazy"></div></div><div class="base"></div>
+      </div>
+      <div><span class="kicker" style="--k:var(--b)">Google &amp; iCloud Takeout</span><h3>Exports that make sense again</h3><p>Takeout exports scatter dates and albums into side files. PhotoMigrator reads them, writes the real date, GPS and camera data back into every photo and rebuilds your albums.</p>
+        <ul><li>Dates and locations restored from JSON sidecars or Photo Details.csv</li><li>Albums as links to one copy of each photo, so nothing is duplicated</li><li>Year or year/month folders, duplicate removal and dated album names</li><li>People labels kept for Immich, iCloud Memories rebuilt as albums</li></ul></div>
+    </div>
+
+    <div class="feat rv" style="--k:var(--e)">
+      <div class="media" data-gallery>
+        <div class="glow"></div>
+        <div class="tabs" role="tablist" aria-label="Photo library screens"><button type="button" class="on" data-src="media/web-immich.webp" data-alt="Immich Photos actions grouped into Transfer, Organize and Clean up">Light</button><button type="button" data-src="media/web-dark.webp" data-alt="The same screen in the dark theme">Dark</button></div>
+        <div class="laptop"><div class="bar"><i></i><i></i><i></i></div><div class="scr"><img src="media/web-immich.webp" alt="Immich Photos actions grouped into Transfer, Organize and Clean up" width="2400" height="1500" loading="lazy"></div></div><div class="base"></div>
+      </div>
+      <div><span class="kicker" style="--k:var(--e)">Photo libraries</span><h3>Tidy up any library, safely</h3><p>Pick an action from a visual menu: upload or download albums, rename them by pattern, merge duplicates or clean up empty albums. Destructive actions are clearly marked and ask before they run.</p>
+        <ul><li>Upload and download albums or the whole library</li><li>Rename albums with text, wildcards or regular expressions</li><li>Remove duplicate assets, keeping the best copy and its people</li><li>Merge, consolidate and clean up albums</li></ul></div>
+    </div>
+
+    <div class="feat rev rv" style="--k:var(--c)">
+      <div class="media"><div class="glow"></div>
+        <div class="laptop"><div class="bar"><i></i><i></i><i></i></div><div class="scr"><img src="media/web-settings.webp" alt="Settings with the Immich account credentials" width="2400" height="1500" loading="lazy"></div></div><div class="base"></div>
+      </div>
+      <div><span class="kicker" style="--k:var(--c)">Local tools &amp; settings</span><h3>Everything else your library needs</h3><p>Helpers for the folders on your disk, and one place for the credentials of every account, encrypted in the Web Interface.</p>
+        <ul><li>Find duplicates across folders, review them and apply your decisions</li><li>Organize a folder by date and rename album folders from their content</li><li>Repair broken album links after moving folders</li><li>Import and export your configuration</li></ul></div>
+    </div>
+  </div></section>
+
+  <section class="sec" id="interfaces" style="padding-top:20px"><div class="wrap">
+    <div class="sh rv"><span class="kicker">Your way</span><h2>Web, desktop, terminal <span class="grad">or command line</span></h2><p>The same features in four interfaces. Use the one that fits where your photos live.</p></div>
+    <div class="ifaces">
+      <div class="iface rv" style="--k:var(--a)"><span class="tag">Web Interface</span><h3>In the browser, from Docker</h3><p>Run it on your NAS or server and use it from any computer or phone. Multiple users, an admin panel, encrypted credentials and live progress.</p><div class="shot"><img src="media/web-dark.webp" alt="Web Interface in the dark theme" width="2400" height="1500" loading="lazy"></div></div>
+      <div class="iface rv" style="--k:var(--b)"><span class="tag">Terminal</span><h3>A full interface over SSH</h3><p>A keyboard-driven terminal interface with the same features, ideal for headless servers and Docker consoles.</p><div class="shot"><img src="media/tui.webp" alt="Terminal interface of PhotoMigrator" width="2400" height="1430" loading="lazy"></div></div>
+      <div class="iface rv" style="--k:var(--e)"><span class="tag">Desktop</span><h3>A native window</h3><p>Double-click the app on Windows, macOS or Linux to open the desktop interface, with native folder pickers and a light or dark theme.</p><div class="code"><span class="c"># Windows, macOS or Linux</span>
+PhotoMigrator --gui</div></div>
+      <div class="iface rv" style="--k:var(--c)"><span class="tag">Command line</span><h3>Scriptable, every option</h3><p>Every feature is a command-line flag, so you can automate migrations and repeat them with the same settings.</p><div class="code"><span class="c"># Fix a Google Takeout</span>
+PhotoMigrator --google-takeout=./Takeout
+<span class="c"># Migrate it to Immich</span>
+PhotoMigrator --source=./Takeout --target=immich-photos-1</div></div>
+    </div>
+  </div></section>
+
+  <section class="sec" id="how" style="padding-top:20px"><div class="wrap">
+    <div class="sh rv"><span class="kicker">How it works</span><h2>Three steps, <span class="grad">no surprises</span></h2></div>
+    <div class="steps rv">
+      <div class="step" style="--k:var(--a)"><div class="n">1</div><h3>Connect your services</h3><p>Add the address and credentials of each account once. Up to three accounts per service.</p></div>
+      <div class="step" style="--k:var(--b)"><div class="n">2</div><h3>Choose a task</h3><p>Pick what you want to do. Only the fields that task needs are shown, with the defaults already set.</p></div>
+      <div class="step" style="--k:var(--d)"><div class="n">3</div><h3>Run and follow it</h3><p>Check the exact command, press Run and watch the progress and the log live, from any device.</p></div>
+    </div>
+    <div class="grid" style="margin-top:46px">
+      <div class="tile rv" style="--k:var(--good)"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div><h3>Private by design</h3><p>It runs on your own machine or NAS. Your photos go straight from one service to the other.</p></div>
+      <div class="tile rv" style="--k:var(--a)"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div><h3>Live dashboard</h3><p>Pull and push progress, queues, retries and estimated end time while a migration runs.</p></div>
+      <div class="tile rv" style="--k:var(--c)"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg></div><h3>Safe by default</h3><p>Destructive actions are marked in red and ask for confirmation. Copy is the default; move is your choice.</p></div>
+      <div class="tile rv" style="--k:var(--e)"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg></div><h3>The exact command</h3><p>Every screen shows the command it will run. Copy it to repeat the job or to put it in a script.</p></div>
+      <div class="tile rv" style="--k:var(--b)"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Built for big libraries</h3><p>Parallel transfers, delayed retries and size limits for libraries with tens of thousands of photos.</p></div>
+      <div class="tile rv" style="--k:var(--d)"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10z"/></svg></div><h3>Free and open source</h3><p>GPL-3.0 licensed, developed in the open on GitHub with a friendly community on Discord.</p></div>
+    </div>
+  </div></section>
+
+  <section class="sec" id="download" style="padding-top:20px"><div class="wrap">
+    <div class="sh rv"><span class="kicker">Download</span><h2>Get PhotoMigrator <span class="grad">v5.0.0</span></h2><p>One download for your system, nothing to install. Unzip it and open the app, or run the Web Interface with Docker.</p></div>
+    <div class="dls rv">
+      <div class="dl" data-os="windows" style="--k:#5b8cff"><div class="ic"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5 10 4.5v7H3zM11 4.4 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg></div><span class="mine">Your system</span><h3>Windows</h3><p>x64 and arm64.</p>
+        <div class="links"><a href="https://github.com/jaimetur/PhotoMigrator/releases/download/v5.0.0/PhotoMigrator_v5.0.0_windows_x64.zip">x64 <small>.zip</small></a><a href="https://github.com/jaimetur/PhotoMigrator/releases/download/v5.0.0/PhotoMigrator_v5.0.0_windows_arm64.zip">arm64 <small>.zip</small></a></div></div>
+      <div class="dl" data-os="macos" style="--k:#a78bfa"><div class="ic"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8C7 7.4 5.6 8.3 4.8 9.7c-1.6 2.8-.4 6.9 1.2 9.1.8 1.1 1.7 2.3 2.8 2.3 1.1 0 1.6-.7 3-.7s1.8.7 3 .7 2-1.1 2.7-2.2c.9-1.3 1.2-2.5 1.2-2.6 0 0-2.3-.9-2.3-3.7zM14.2 5.8c.6-.8 1-1.8.9-2.8-.9 0-2 .6-2.6 1.4-.6.7-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3z"/></svg></div><span class="mine">Your system</span><h3>macOS</h3><p>Apple silicon and Intel.</p>
+        <div class="links"><a href="https://github.com/jaimetur/PhotoMigrator/releases/download/v5.0.0/PhotoMigrator_v5.0.0_macos_arm64.zip">Apple silicon <small>.zip</small></a><a href="https://github.com/jaimetur/PhotoMigrator/releases/download/v5.0.0/PhotoMigrator_v5.0.0_macos_x64.zip">Intel <small>.zip</small></a></div></div>
+      <div class="dl" data-os="linux" style="--k:#ffb547"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg></div><span class="mine">Your system</span><h3>Linux</h3><p>x64 and arm64.</p>
+        <div class="links"><a href="https://github.com/jaimetur/PhotoMigrator/releases/download/v5.0.0/PhotoMigrator_v5.0.0_linux_x64.zip">x64 <small>.zip</small></a><a href="https://github.com/jaimetur/PhotoMigrator/releases/download/v5.0.0/PhotoMigrator_v5.0.0_linux_arm64.zip">arm64 <small>.zip</small></a></div></div>
+      <div class="dl" data-os="docker" style="--k:#22d3c5"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h18c0 4-3.5 7-9 7s-9-3-9-7z"/><path d="M6 13V9h3v4M9 13V6h3v7M12 13V9h3v4"/></svg></div><h3>Docker</h3><p>Command line in a container, on any platform.</p>
+        <div class="links"><a href="https://github.com/jaimetur/PhotoMigrator/releases/download/v5.0.0/PhotoMigrator_v5.0.0_docker.zip">Docker launcher <small>.zip</small></a><a href="https://github.com/jaimetur/PhotoMigrator/releases">All releases <small>GitHub</small></a></div></div>
+    </div>
+    <div class="docker rv">
+      <div><span class="kicker">Web Interface</span><h3>Run it on your NAS or server</h3><p>Two files and one command. Then open <b>http://localhost:6078</b> and sign in. The first admin account is created for you; change its password before you expose the service on your network.</p></div>
+      <div class="copy"><button type="button" data-copy="docker-cmd">Copy</button><div class="code" id="docker-cmd">curl -L -o docker-compose.yml https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/docker-compose.yml
+curl -L -o .env https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/docker-web/.env
+docker compose pull
+docker compose up -d</div></div>
+    </div>
+  </div></section>
+
+  <section class="sec" id="faq" style="padding-top:20px"><div class="wrap">
+    <div class="sh rv"><span class="kicker">FAQ</span><h2>Questions, <span class="grad">answered</span></h2></div>
+    <div class="faq rv">
+      <details><summary>Is PhotoMigrator really free?</summary><p>Yes. It is open source under the GPL-3.0 license, with no paid tiers, accounts or ads. You can read every line of code on GitHub.</p></details>
+      <details><summary>Will I keep my albums, dates and locations?</summary><p>Yes. Albums are recreated on the target, and when you start from a Google or iCloud Takeout the original date, GPS location and camera data are written back into each photo before it is migrated.</p></details>
+      <details><summary>Can I migrate out of Google Photos?</summary><p>Since April 2025 Google no longer lets third-party apps read your whole Google Photos library. Request a Google Takeout of your photos and use it as the source: PhotoMigrator fixes it and migrates it. Google Photos still works as a target.</p></details>
+      <details><summary>Where do my photos go?</summary><p>Only where you send them. PhotoMigrator runs on your own computer, NAS or server and talks directly to the services you configure. In the Web Interface, passwords and API keys are stored encrypted for each user.</p></details>
+      <details><summary>Can I use more than one account?</summary><p>Yes. Each service supports up to three accounts, so you can also migrate between two accounts of the same service, for example from one Immich user to another.</p></details>
+      <details><summary>What happens if a migration is interrupted?</summary><p>Uploads that fail are retried, and assets that keep failing are kept aside and listed so you can review them. You can run the migration again with the same settings by copying its command.</p></details>
+      <details><summary>Which interface should I use?</summary><p>On a NAS or server, the Web Interface with Docker. On your own computer, the desktop app. Over SSH, the terminal interface. For automation, the command line with <code>PhotoMigrator --help</code>.</p></details>
+    </div>
+  </div></section>
+
+  <section class="final"><div class="wrap rv">
+    <h2>Your memories, <span class="grad">wherever you want them</span></h2>
+    <p>Download PhotoMigrator, connect your services and move your whole library in a single run.</p>
+    <div class="cta"><a class="btn pri" href="#download">Download for free</a><a class="btn sec" href="https://github.com/jaimetur/PhotoMigrator/tree/main/help" rel="noopener">Read the documentation</a></div>
+  </div></section>
+</main>
+
+<footer><div class="wrap">
+  <a class="logo" href="#"><img src="media/logo.png" alt="">PhotoMigrator</a>
+  <a href="https://github.com/jaimetur/PhotoMigrator" rel="noopener">GitHub</a>
+  <a href="https://github.com/jaimetur/PhotoMigrator/tree/main/help" rel="noopener">Documentation</a>
+  <a href="https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md" rel="noopener">Release notes</a>
+  <a href="https://discord.gg/wTJ62qh5UC" rel="noopener">Discord</a>
+  <span class="sp">GPL-3.0 · © 2024-2026 Jaime Tur</span>
+</div></footer>
+
+<script>
+(() => {
+  const top = document.getElementById("top");
+  const onScroll = () => top.classList.toggle("sc", window.scrollY > 8);
+  window.addEventListener("scroll", onScroll, {passive: true});
+  onScroll();
+
+  // Reveal sections on scroll.
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce && "IntersectionObserver" in window) {
+    document.documentElement.classList.add("rvjs");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {rootMargin: "0px 0px -8% 0px", threshold: 0.08});
+    document.querySelectorAll(".rv").forEach((el) => observer.observe(el));
+  }
+
+  // Screen switchers inside the feature mockups.
+  document.querySelectorAll("[data-gallery]").forEach((gallery) => {
+    const img = gallery.querySelector(".scr img");
+    gallery.querySelectorAll(".tabs button").forEach((button) => {
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", button.classList.contains("on") ? "true" : "false");
+      button.addEventListener("click", () => {
+        if (button.classList.contains("on")) return;
+        gallery.querySelectorAll(".tabs button").forEach((other) => {
+          other.classList.toggle("on", other === button);
+          other.setAttribute("aria-selected", other === button ? "true" : "false");
+        });
+        img.classList.add("off");
+        const next = new Image();
+        next.onload = () => {
+          img.src = button.dataset.src;
+          img.alt = button.dataset.alt || "";
+          requestAnimationFrame(() => img.classList.remove("off"));
+        };
+        next.src = button.dataset.src;
+      });
+    });
+  });
+
+  // Highlight the download that matches the visitor's system.
+  const platform = (navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || "").toLowerCase();
+  const os = platform.includes("win") ? "windows" : (platform.includes("mac") ? "macos" : (platform.includes("linux") || platform.includes("x11") ? "linux" : ""));
+  if (os) document.querySelector(`.dl[data-os="${os}"]`)?.classList.add("me");
+
+  // Copy buttons for the code snippets.
+  document.querySelectorAll("[data-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const source = document.getElementById(button.dataset.copy);
+      if (!source) return;
+      try {
+        await navigator.clipboard.writeText(source.textContent.trim());
+        button.textContent = "Copied";
+      } catch (error) {
+        button.textContent = "Select and copy";
+      }
+      setTimeout(() => { button.textContent = "Copy"; }, 1500);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -21,7 +21,7 @@ PhotoMigrator also includes a native desktop GUI implemented with `tkinter`.
 
 - Running `PhotoMigrator --gui` opens the desktop GUI explicitly.
 - Running `PhotoMigrator --configuration-file <CONFIG_FILE>` together with `--gui` opens the desktop GUI with that configuration file already selected.
-- The desktop GUI reuses the same shared parser/config model as the CLI TUI, so it exposes the same top-level modules, `General Arguments`, `Features Config`, and `App Settings` views.
+- The desktop GUI reuses the same shared parser/config model as the CLI TUI and follows the Web Interface layout: a sidebar with `Home`, the features grouped by task, `Activity`, `Settings` (`Service credentials`, `General arguments` and `App settings`) and `Help`, a run bar with the command preview, and an `Activity` view with the job log and the answers to its questions.
 - When `PhotoMigrator` is executed without arguments, the desktop GUI is now the first launcher option.
 
 ## Launcher Flags
@@ -40,7 +40,7 @@ The following two flags are special launcher flags handled before the normal arg
 
 Interactive config-file behavior:
 - If no explicit config path is provided, GUI and TUI use `./Config.ini` from the current execution folder, matching the classic CLI behavior.
-- You can override it at startup with `--configuration-file`, or later inside `General Arguments > Configuration File`.
+- You can override it at startup with `--configuration-file`, or later inside `General Arguments > Configuration File` (`Settings > General arguments > Configuration File` in the desktop GUI).
 
 Examples:
 - `PhotoMigrator --gui --configuration-file ./Config.ini`

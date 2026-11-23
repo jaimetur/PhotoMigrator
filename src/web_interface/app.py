@@ -3920,7 +3920,7 @@ def home(session_token: str | None = Cookie(default=None, alias=WEB_SESSION_COOK
     current_user = _user_from_session_token(session_token)
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
-    return RedirectResponse(url="/features", status_code=302)
+    return RedirectResponse(url="/features?view=home", status_code=302)
 
 
 @app.get("/features", response_class=HTMLResponse)

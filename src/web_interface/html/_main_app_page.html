@@ -3,278 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhotoMigrator Web Interface</title>
+    <title>PhotoMigrator</title>
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
     <link rel="apple-touch-icon" href="/assets/logos/logo_17_1024x1024.png?v=1">
-    <link rel="stylesheet" href="/static/style.css?v=20260721-header-collapse-spacing">
+    <link rel="stylesheet" href="/static/style.css?v=20261201-v5-redesign">
 </head>
-<body data-theme="{{ initial_theme }}">
-<main class="page">
-    <header class="hero" data-panel-id="header-panel">
-        <div class="hero__content">
-            <div class="hero__heading">
-                <h1 class="hero__title">PhotoMigrator</h1>
-                <div class="hero__badge">{{ tool_version }} ({{ tool_date }})</div>
+{% set is_home_view = active_page == 'features' and request.query_params.get('view') == 'home' %}
+<body data-theme="{{ initial_theme }}" data-page="{{ active_page }}" class="app-body{% if is_home_view %} is-home-view{% endif %}">
+<div class="app-shell">
+    <aside class="sidebar" id="app-sidebar" aria-label="Main navigation">
+        <div class="sidebar__brand">
+            <img class="sidebar__logo" src="/assets/logos/logo_17_1024x1024.png" alt="">
+            <div class="sidebar__brand-text">
+                <span class="sidebar__name">PhotoMigrator</span>
+                <span class="sidebar__version">{{ tool_version }} · {{ tool_date }}</span>
             </div>
-            <div class="hero__collapse-content">
-                <h2 class="hero__subtitle">Web Interface for all supported Features Execution</h2>
-                <p>- Process your Takeout (from Google Photos or iCloud) to organice your photo-library and assign metadata (dates, gps-location, people or tags) to each asset.</p>
-                <p>- Migrate your Photos between different cloud services (Google Photos, Synology Photos, Immich Photos, NextCloud Photos). </p>
-                <p>- Manage your Photo-library (local or hosted in any of the supported cloud services) with easy customized actions.</p>
-                <div class="hero__session">
-                    <span id="session-user-label" class="hero__session-user">User: {{ username }} ({{ role }})</span>
-                    {% if is_admin %}
-                    <a id="admin-link" href="/admin" target="_blank" rel="noopener noreferrer" class="ghost-btn hero__doc-btn hero__session-btn hero__session-btn--admin">Admin Panel</a>
-                    {% endif %}
-                    <button type="button" id="logout-btn" class="ghost-btn hero__doc-btn hero__session-btn hero__session-btn--logout">Logout</button>
+            <button type="button" class="icon-btn sidebar__close" id="sidebar-close" aria-label="Close menu"><span class="ico" data-icon="close"></span></button>
+        </div>
+        <nav class="side-nav">
+            <a id="nav-home" href="/features?view=home&manual_navigation=1" class="side-link side-link--home">
+                <span class="side-link__icon"><span class="ico" data-icon="home"></span></span>
+                <span class="side-link__label">Home</span>
+            </a>
+            <div id="module-tabs" class="side-nav__modules"></div>
+            <div class="side-nav__label">Workspace</div>
+            <a href="/output?manual_navigation=1" class="side-link{% if active_page == 'output' %} side-link--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
+                <span class="side-link__icon"><span class="ico" data-icon="activity"></span></span>
+                <span class="side-link__label">Activity</span>
+                <span id="nav-live-badge" class="side-link__badge hidden">Running</span>
+            </a>
+            <a href="/configuration?manual_navigation=1" class="side-link{% if active_page == 'configuration' %} side-link--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
+                <span class="side-link__icon"><span class="ico" data-icon="settings"></span></span>
+                <span class="side-link__label">Settings</span>
+            </a>
+        </nav>
+        <div class="sidebar__footer">
+            <div class="sidebar__docs" aria-label="Documentation">
+                <button type="button" id="open-help-btn" class="doc-link" title="Open Help"><span class="ico" data-icon="book"></span>Help</button>
+                <button type="button" id="open-readme-btn" class="doc-link" title="Open Readme"><span class="ico" data-icon="file"></span>Readme</button>
+                <button type="button" id="open-changelog-btn" class="doc-link" title="Open Release Notes"><span class="ico" data-icon="sparkles"></span>Release Notes</button>
+                <button type="button" id="open-roadmap-btn" class="doc-link" title="Open Roadmap"><span class="ico" data-icon="map"></span>Roadmap</button>
+            </div>
+            <div class="user-card">
+                <span class="user-card__avatar" aria-hidden="true">{{ (username or "?")[:1] | upper }}</span>
+                <div class="user-card__text">
+                    <span id="session-user-label" class="user-card__name">{{ username }}</span>
+                    <span class="user-card__role">{{ role }}</span>
                 </div>
-                <div class="hero__docs">
-                    <button type="button" id="open-readme-btn" class="ghost-btn hero__doc-btn" title="Open Readme">
-                        📝 Readme
-                    </button>
-                    <button type="button" id="open-changelog-btn" class="ghost-btn hero__doc-btn" title="Open Release Notes">
-                        📜 Release Notes
-                    </button>
-                    <button type="button" id="open-roadmap-btn" class="ghost-btn hero__doc-btn" title="Open Roadmap">
-                        🗺️ Roadmap
-                    </button>
-                    <button type="button" id="open-help-btn" class="ghost-btn hero__doc-btn" title="Open Help">
-                        📚 Help
-                    </button>
-                </div>
+                {% if is_admin %}
+                <a id="admin-link" href="/admin" target="_blank" rel="noopener noreferrer" class="icon-btn" title="Admin Panel" aria-label="Admin Panel"><span class="ico" data-icon="shield"></span></a>
+                {% endif %}
+                <button type="button" id="logout-btn" class="icon-btn" title="Logout" aria-label="Logout"><span class="ico" data-icon="logout"></span></button>
             </div>
         </div>
-        <img class="hero__logo" src="/assets/logos/logo_17_1024x1024.png" alt="PhotoMigrator logo">
-        <button type="button" class="collapse-btn hero__collapse-btn" data-collapse-target="header-panel" aria-label="Collapse header">
-            <span class="collapse-btn__icon">▲</span>
-        </button>
-    </header>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
 
-    <div class="panel-shell{% if active_page != 'configuration' %} page-panel-hidden{% endif %}">
-        <div class="page-nav" aria-label="Main page navigation">
-            <a href="/features?manual_navigation=1" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
-                🧩 Features
-            </a>
-            <a href="/output?manual_navigation=1" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
-                📟 Output
-            </a>
-            <a href="/configuration?manual_navigation=1" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
-                ⚙️ Configuration
-            </a>
-        </div>
-        <section class="panel" data-panel-id="general-panel">
-        <div class="panel-head">
-            <h2>Configuration Panel</h2>
-            <button type="button" class="collapse-btn" data-collapse-target="general-panel" aria-label="Collapse panel">
-                <span class="collapse-btn__icon">▲</span>
-            </button>
-        </div>
-        <div class="panel-body">
-            <div class="tabs tabs--sub" id="general-tabs"></div>
-            <div id="general-general" class="general-pane"><div id="general-core-panel" class="module-special"></div></div>
-            <div id="general-features-config" class="general-pane hidden">
-                <div class="desc-card general-doc-card">
-                    <h3>Features Config - User Description:</h3>
-                    <p>
-                        <span class="desc-line">Use this section to edit the persistent feature-specific configuration stored for the current user. These values are saved in the web database, sensitive values remain encrypted at rest, and the resulting configuration is reused by the supported PhotoMigrator features.</span>
-                    </p>
-                </div>
-                <p class="config-note">This editor is persisted per user in database. Sensitive values are encrypted at rest.</p>
-                <div id="config-section-tabs" class="tabs tabs--sub"></div>
-                <div id="config-form-sections" class="config-form-sections"></div>
-                <div class="config-actions">
-                    <button type="button" id="import-config-btn" class="run-btn">Import Config</button>
-                    <button type="button" id="export-config-btn" class="run-btn">Export Config</button>
-                    <button type="button" id="save-config-btn" class="run-btn run-btn--danger">Save config</button>
-                </div>
-                <input id="config-import-input" type="file" accept=".cfg,.ini,.txt" class="hidden-file-input">
-                <div id="config-status" class="status">Config status: idle</div>
+    <main class="page">
+        <header class="topbar">
+            <button type="button" class="icon-btn topbar__menu" id="sidebar-open" aria-label="Open menu"><span class="ico" data-icon="menu"></span></button>
+            <div class="topbar__heading">
+                <span class="topbar__eyebrow" id="topbar-eyebrow">PhotoMigrator</span>
+                <span class="topbar__title" id="topbar-title">{% if active_page == 'output' %}Activity{% elif active_page == 'configuration' %}Settings{% elif is_home_view %}Home{% else %}&nbsp;{% endif %}</span>
             </div>
-            <div id="general-app-settings" class="general-pane hidden">
-                <div class="desc-card general-doc-card">
-                    <h3>App Settings - User Description:</h3>
-                    <p>
-                        <span class="desc-line">Use this section to manage application-level preferences for the current user. These settings affect the behavior and presentation of the Web Interface itself rather than the feature-specific migration configuration.</span>
-                    </p>
-                </div>
-                <p class="config-note">Application-level preferences for this user.</p>
-                <div id="app-settings-sections" class="config-form-sections"></div>
-                <div class="config-actions">
-                    <button type="button" id="save-app-settings-btn" class="run-btn run-btn--danger">Save app settings</button>
-                </div>
-                <div id="app-settings-status" class="status">App settings status: idle</div>
-            </div>
-        </div>
-        </section>
-    </div>
+            <a href="/output?manual_navigation=1" id="topbar-status" class="status-pill status-pill--idle" title="Open Activity">
+                <span class="status-pill__dot"></span><span id="topbar-status-text">No job running</span>
+            </a>
+        </header>
 
-    <div class="panel-shell{% if active_page != 'features' %} page-panel-hidden{% endif %}">
-        <div class="page-nav" aria-label="Main page navigation">
-            <a href="/features?manual_navigation=1" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
-                🧩 Features
-            </a>
-            <a href="/output?manual_navigation=1" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
-                📟 Output
-            </a>
-            <a href="/configuration?manual_navigation=1" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
-                ⚙️ Configuration
-            </a>
-        </div>
-        <section class="panel" data-panel-id="feature-panel">
-        <div class="panel-head">
-            <h2 id="feature-panel-title">Feature Selector Panel: Automatic Migration</h2>
-            <button type="button" class="collapse-btn" data-collapse-target="feature-panel" aria-label="Collapse panel">
-                <span class="collapse-btn__icon">▲</span>
-            </button>
-        </div>
-        <div class="panel-body">
-            <div class="tabs" id="module-tabs"></div>
-
-            <div id="cloud-action-panel" class="module-special hidden"></div>
-            <div id="standalone-action-panel" class="module-special hidden"></div>
-            <div id="upload-folder-panel" class="module-special hidden"></div>
-            <div id="migration-panel" class="module-special hidden"></div>
-
-            <form id="module-form" class="form-grid module-grid"></form>
-            <div id="feature-restore-actions" class="config-actions general-actions feature-restore-actions"></div>
-            <div class="command-preview-panel">
-                <h3>Command Preview:</h3>
-                <div id="command-preview-inline" class="command"></div>
-            </div>
-            <div class="module-actions">
-                <button id="run-btn" type="button" class="run-btn">Run</button>
-                <button id="stop-btn" type="button" class="run-btn run-btn--danger" disabled>Stop</button>
-            </div>
-        </div>
-        </section>
-    </div>
-
-    <div class="panel-shell{% if active_page != 'output' %} page-panel-hidden{% endif %}">
-        <div class="page-nav" aria-label="Main page navigation">
-            <a href="/features?manual_navigation=1" class="hero__nav-btn hero__nav-btn--features{% if active_page == 'features' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'features' %}page{% else %}false{% endif %}">
-                🧩 Features
-            </a>
-            <a href="/output?manual_navigation=1" class="hero__nav-btn hero__nav-btn--output{% if active_page == 'output' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'output' %}page{% else %}false{% endif %}">
-                📟 Output
-            </a>
-            <a href="/configuration?manual_navigation=1" class="hero__nav-btn hero__nav-btn--configuration{% if active_page == 'configuration' %} hero__nav-btn--active{% endif %}" aria-current="{% if active_page == 'configuration' %}page{% else %}false{% endif %}">
-                ⚙️ Configuration
-            </a>
-        </div>
-    <section class="panel output" data-panel-id="output-panel">
-        <div class="panel-head">
-            <h2 id="output-panel-title">Output Panel: Automatic Migration</h2>
-            <button type="button" class="collapse-btn" data-collapse-target="output-panel" aria-label="Collapse panel">
-                <span class="collapse-btn__icon">▲</span>
-            </button>
-        </div>
-        <div class="panel-body">
-            <h4>Command Preview:</h4>
-            <div id="command-preview" class="command"></div>
-            <div class="output-toolbar">
-                <div id="status" class="status">Output Status: idle</div>
-                <div class="output-toolbar__actions">
-                    <label class="autos-scroll">
-                        <input id="auto-scroll-check" type="checkbox">
-                        <span>Auto Scroll</span>
-                    </label>
-                    <button id="copy-log-btn" type="button" class="ghost-btn">Copy log</button>
+        <div class="panel-shell{% if active_page != 'configuration' %} page-panel-hidden{% endif %}">
+            <section class="panel settings-panel">
+                <div class="page-intro">
+                    <h2>Settings</h2>
+                    <p>Shared arguments, service credentials and preferences used by every feature.</p>
                 </div>
-            </div>
-            <div id="output-run-meta" class="output-run-meta" aria-live="polite">
-                <span id="output-start-time">Start Time: -</span>
-                <span id="output-elapsed">Elapsed Time: 00:00:00</span>
-                <span id="output-last-updated">Last Updated: -</span>
-            </div>
-            <section id="web-dashboard" class="web-dashboard hidden" aria-live="polite">
-                <div class="web-dashboard__header">
-                    <div>
-                        <h3 id="web-dashboard-title">Automatic Migration Live Dashboard</h3>
-                        <p id="web-dashboard-route" class="web-dashboard__route">-</p>
+                <div class="tabs tabs--sub segmented" id="general-tabs"></div>
+                <div id="general-general" class="general-pane"><div id="general-core-panel" class="module-special"></div></div>
+                <div id="general-features-config" class="general-pane hidden">
+                    <div class="callout callout--info general-doc-card">
+                        <span class="ico" data-icon="lock"></span>
+                        <p>Credentials and service settings are saved per user in the web database. Sensitive values stay encrypted at rest and are reused by every feature.</p>
                     </div>
-                    <div id="web-dashboard-chip" class="web-dashboard__chip">Idle</div>
-                </div>
-                <div class="web-dashboard__meta">
-                    <span>Elapsed Time: <span id="web-dashboard-elapsed-value" class="web-dashboard__meta-value">00:00:00</span></span>
-                    <span>Remaining Time: <span id="web-dashboard-remaining-value" class="web-dashboard__meta-value">-</span></span>
-                    <span>Estimated End: <span id="web-dashboard-estimated-end-value" class="web-dashboard__meta-value">-</span></span>
-                    <span>Last Updated: <span id="web-dashboard-updated-value" class="web-dashboard__meta-value">-</span></span>
-                </div>
-                <div class="stats-columns">
-                    <div class="stats-card">
-                        <h4 class="stats-card__title">📊 Info Panel</h4>
-                        <div class="stat-row"><span class="stat-label">🎯 Total Assets</span><span id="dash-total-assets" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">📷 Total Photos</span><span id="dash-total-photos" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">🎬 Total Videos</span><span id="dash-total-videos" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">📂 Total Albums</span><span id="dash-total-albums" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">🔒 Blocked Albums</span><span id="dash-blocked-albums" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">🔒 Blocked Assets</span><span id="dash-blocked-assets" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">📜 Total Metadata</span><span id="dash-total-metadata" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">🔗 Total Sidecar</span><span id="dash-total-sidecar" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">❔ Unknown Files</span><span id="dash-total-invalid" class="stat-value">-</span></div>
-                        <div class="stats-separator stats-separator--info-queues" aria-hidden="true"></div>
-                        <div class="bar-row bar-row--queue"><span>📊 Assets in Queue</span><div class="progress-track"><div id="bar-info-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-queue-count">0/100 (0.0%)</span></span></div>
-                        <div class="bar-row bar-row--queue"><span>⏱️ Delayed Retries Queue</span><div class="progress-track"><div id="bar-info-delayed-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-delayed-queue-count">0/- (-)</span></span></div>
-                        <div class="bar-row bar-row--queue"><span>🧾 Album Assoc Queue</span><div class="progress-track"><div id="bar-info-album-assoc-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-album-assoc-queue-count">0/- (-)</span></span></div>
+                    <div id="config-section-tabs" class="tabs tabs--sub chip-tabs"></div>
+                    <div id="config-form-sections" class="config-form-sections"></div>
+                    <div class="config-actions">
+                        <button type="button" id="import-config-btn" class="ghost-btn"><span class="ico" data-icon="upload"></span>Import Config</button>
+                        <button type="button" id="export-config-btn" class="ghost-btn"><span class="ico" data-icon="download"></span>Export Config</button>
+                        <button type="button" id="save-config-btn" class="run-btn"><span class="ico" data-icon="save"></span>Save config</button>
                     </div>
-                    <div class="stats-card stats-card--transfer">
-                        <h4 class="stats-card__title stats-card__title--with-context"><span id="dash-pull-title">⬇️ Pull Panel</span><span id="dash-pull-context" class="stats-card__context-inline" title=""></span></h4>
-                        <div class="bar-row"><span>🎯 Pulled Assets</span><div class="progress-track"><div id="bar-pulled-assets" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-assets-count">0/- (-)</span></span></div>
-                        <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Assets</span><span id="dash-pull-failed-assets" class="stat-value">0</span></div>
-                        <div class="bar-row"><span>📷 Pulled Photos</span><div class="progress-track"><div id="bar-pulled-photos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-photos-count">0/- (-)</span></span></div>
-                        <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Photos</span><span id="dash-pull-failed-photos" class="stat-value">0</span></div>
-                        <div class="bar-row"><span>🎬 Pulled Videos</span><div class="progress-track"><div id="bar-pulled-videos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-videos-count">0/- (-)</span></span></div>
-                        <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Videos</span><span id="dash-pull-failed-videos" class="stat-value">0</span></div>
-                        <div class="bar-row"><span>📂 Pulled Albums</span><div class="progress-track"><div id="bar-pulled-albums" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-albums-count">0/- (-)</span></span></div>
-                        <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Albums</span><span id="dash-pull-failed-albums" class="stat-value">0</span></div>
-                        <div class="stats-gap" aria-hidden="true"></div>
-                        <div class="stats-separator" aria-hidden="true"></div>
-                        <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
-                        <div class="stat-row"><span class="stat-label">⏳ Remaining Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
-                        <div class="stat-row"><span class="stat-label">📅 Estimated End</span><span id="dash-estimated-end" class="stat-value">-</span></div>
+                    <input id="config-import-input" type="file" accept=".cfg,.ini,.txt" class="hidden-file-input">
+                    <div id="config-status" class="status">Config status: idle</div>
+                </div>
+                <div id="general-app-settings" class="general-pane hidden">
+                    <div class="callout callout--info general-doc-card">
+                        <span class="ico" data-icon="palette"></span>
+                        <p>Preferences for how the Web Interface looks and behaves for your user. Theme and time zone changes are applied immediately.</p>
                     </div>
-                    <div class="stats-card stats-card--transfer">
-                        <h4 class="stats-card__title stats-card__title--with-context"><span id="dash-push-title">⬆️ Push Panel</span><span id="dash-push-context" class="stats-card__context-inline" title=""></span></h4>
-                        <div class="bar-row"><span>🎯 Pushed Assets</span><div class="progress-track"><div id="bar-pushed-assets" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-assets-count">0/- (-)</span></span></div>
-                        <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Assets (New / Duplicates / Failed)</span><span id="dash-push-assets-outcomes" class="stat-value">0 / 0 / 0</span></div>
-                        <div class="bar-row"><span>📷 Pushed Photos</span><div class="progress-track"><div id="bar-pushed-photos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-photos-count">0/- (-)</span></span></div>
-                        <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Photos (New / Duplicates / Failed)</span><span id="dash-push-photos-outcomes" class="stat-value">0 / 0 / 0</span></div>
-                        <div class="bar-row"><span>🎬 Pushed Videos</span><div class="progress-track"><div id="bar-pushed-videos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-videos-count">0/- (-)</span></span></div>
-                        <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Videos (New / Duplicates / Failed)</span><span id="dash-push-videos-outcomes" class="stat-value">0 / 0 / 0</span></div>
-                        <div class="bar-row"><span>📂 Pushed Albums</span><div class="progress-track"><div id="bar-pushed-albums" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-albums-count">0/- (-)</span></span></div>
-                        <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Albums (New / Duplicates / Failed)</span><span id="dash-push-albums-outcomes" class="stat-value">0 / 0 / 0</span></div>
-                        <div class="stats-separator stats-separator--push-delayed" aria-hidden="true"></div>
-                        <div class="stat-row"><span class="stat-label">⏱️ Delayed Retries</span><span id="dash-push-delayed-retries" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">⏱️ Delayed Recovered</span><span id="dash-push-delayed-recovered" class="stat-value">0</span></div>
-                        <div class="stat-row"><span class="stat-label">🚩 Album Assoc Failed</span><span id="dash-push-album-assoc-failed" class="stat-value">0</span></div>
+                    <div id="app-settings-sections" class="config-form-sections"></div>
+                    <div class="config-actions">
+                        <button type="button" id="save-app-settings-btn" class="run-btn"><span class="ico" data-icon="save"></span>Save app settings</button>
+                    </div>
+                    <div id="app-settings-status" class="status">App settings status: idle</div>
+                </div>
+            </section>
+        </div>
+
+        <div class="panel-shell{% if active_page != 'features' %} page-panel-hidden{% endif %}">
+            <section id="home-view" class="home-view{% if not is_home_view %} hidden{% endif %}" aria-labelledby="home-title"></section>
+            <section id="feature-view" class="feature-view{% if is_home_view %} hidden{% endif %}">
+                <div class="feature-hero">
+                    <div class="feature-hero__icon" id="feature-hero-icon" aria-hidden="true"></div>
+                    <div class="feature-hero__text">
+                        <span class="feature-hero__eyebrow" id="feature-hero-group"></span>
+                        <h2 id="feature-panel-title"></h2>
+                        <p id="feature-hero-tagline" class="feature-hero__tagline"></p>
+                    </div>
+                    <div id="feature-restore-actions" class="feature-restore-actions"></div>
+                </div>
+                <section class="panel feature-panel">
+                    <div id="cloud-action-panel" class="module-special hidden"></div>
+                    <div id="standalone-action-panel" class="module-special hidden"></div>
+                    <div id="upload-folder-panel" class="module-special hidden"></div>
+                    <div id="migration-panel" class="module-special hidden"></div>
+                    <form id="module-form" class="form-grid module-grid"></form>
+                </section>
+                <div class="action-bar" role="region" aria-label="Run this feature">
+                    <div class="action-bar__preview command-preview-panel">
+                        <span class="action-bar__label">Command</span>
+                        <code id="command-preview-inline" class="command"></code>
+                        <button type="button" id="copy-command-btn" class="icon-btn" title="Copy command" aria-label="Copy command"><span class="ico" data-icon="copy"></span></button>
+                    </div>
+                    <div class="module-actions">
+                        <button id="stop-btn" type="button" class="run-btn run-btn--danger" disabled><span class="ico" data-icon="stop"></span>Stop</button>
+                        <button id="run-btn" type="button" class="run-btn run-btn--primary"><span class="ico" data-icon="play"></span>Run</button>
                     </div>
                 </div>
             </section>
-            <div class="terminal-shell">
-                <div class="log-jump-zone log-jump-zone--top">
-                    <button id="log-scroll-top-btn" type="button" class="log-jump-btn" aria-label="Scroll log to the first line" title="Go to first line">↑</button>
-                </div>
-                <pre id="output" class="terminal"></pre>
-                <div class="log-jump-zone log-jump-zone--bottom">
-                    <button id="log-scroll-bottom-btn" type="button" class="log-jump-btn" aria-label="Scroll log to the last line" title="Go to last line">↓</button>
-                </div>
-                <div id="output-resize-handle" class="terminal-resize-handle" title="Drag from bottom edge or bottom corners to resize the log panel"></div>
-            </div>
-            <div id="job-input-controls" class="job-input-controls">
-                <span id="job-input-label" class="job-input-label">Process Input: idle</span>
-                <input id="job-input-text" type="text" class="field__input job-input-text" placeholder="Send text to the running job when it requests input">
-                <button id="job-input-send" type="button" class="run-btn">Send</button>
-                <button id="job-input-yes" type="button" class="run-btn">Yes</button>
-                <button id="job-input-no" type="button" class="run-btn run-btn--danger">No</button>
-            </div>
-            <div class="module-actions module-actions--output">
-                <button id="run-btn-output" type="button" class="run-btn">Run</button>
-                <button id="stop-btn-output" type="button" class="run-btn run-btn--danger" disabled>Stop</button>
-            </div>
         </div>
-    </section>
-    </div>
-</main>
+
+        <div class="panel-shell{% if active_page != 'output' %} page-panel-hidden{% endif %}">
+            <section class="panel output">
+                <div class="run-header">
+                    <div class="feature-hero__icon" id="run-header-icon" aria-hidden="true"></div>
+                    <div class="run-header__text">
+                        <span class="feature-hero__eyebrow">Current run</span>
+                        <h2 id="output-panel-title"></h2>
+                    </div>
+                    <div class="module-actions module-actions--output">
+                        <button id="stop-btn-output" type="button" class="run-btn run-btn--danger" disabled><span class="ico" data-icon="stop"></span>Stop</button>
+                        <button id="run-btn-output" type="button" class="run-btn run-btn--primary"><span class="ico" data-icon="play"></span>Run</button>
+                    </div>
+                </div>
+                <div class="run-summary">
+                    <div id="status" class="status status-chip">Output Status: idle</div>
+                    <div id="output-run-meta" class="output-run-meta" aria-live="polite">
+                        <span id="output-start-time">Start Time: -</span>
+                        <span id="output-elapsed">Elapsed Time: 00:00:00</span>
+                        <span id="output-last-updated">Last Updated: -</span>
+                    </div>
+                </div>
+                <div class="command-card">
+                    <span class="action-bar__label">Command</span>
+                    <div id="command-preview" class="command"></div>
+                </div>
+                <section id="web-dashboard" class="web-dashboard hidden" aria-live="polite">
+                    <div class="web-dashboard__header">
+                        <div>
+                            <h3 id="web-dashboard-title">Automatic Migration Live Dashboard</h3>
+                            <p id="web-dashboard-route" class="web-dashboard__route">-</p>
+                        </div>
+                        <div id="web-dashboard-chip" class="web-dashboard__chip">Idle</div>
+                    </div>
+                    <div class="web-dashboard__meta">
+                        <span>Elapsed Time <span id="web-dashboard-elapsed-value" class="web-dashboard__meta-value">00:00:00</span></span>
+                        <span>Remaining Time <span id="web-dashboard-remaining-value" class="web-dashboard__meta-value">-</span></span>
+                        <span>Estimated End <span id="web-dashboard-estimated-end-value" class="web-dashboard__meta-value">-</span></span>
+                        <span>Last Updated <span id="web-dashboard-updated-value" class="web-dashboard__meta-value">-</span></span>
+                    </div>
+                    <div class="stats-columns">
+                        <div class="stats-card">
+                            <h4 class="stats-card__title">📊 Info Panel</h4>
+                            <div class="stat-row"><span class="stat-label">🎯 Total Assets</span><span id="dash-total-assets" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">📷 Total Photos</span><span id="dash-total-photos" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">🎬 Total Videos</span><span id="dash-total-videos" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">📂 Total Albums</span><span id="dash-total-albums" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">🔒 Blocked Albums</span><span id="dash-blocked-albums" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">🔒 Blocked Assets</span><span id="dash-blocked-assets" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">📜 Total Metadata</span><span id="dash-total-metadata" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">🔗 Total Sidecar</span><span id="dash-total-sidecar" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">❔ Unknown Files</span><span id="dash-total-invalid" class="stat-value">-</span></div>
+                            <div class="stats-separator stats-separator--info-queues" aria-hidden="true"></div>
+                            <div class="bar-row bar-row--queue"><span>📊 Assets in Queue</span><div class="progress-track"><div id="bar-info-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-queue-count">0/100 (0.0%)</span></span></div>
+                            <div class="bar-row bar-row--queue"><span>⏱️ Delayed Retries Queue</span><div class="progress-track"><div id="bar-info-delayed-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-delayed-queue-count">0/- (-)</span></span></div>
+                            <div class="bar-row bar-row--queue"><span>🧾 Album Assoc Queue</span><div class="progress-track"><div id="bar-info-album-assoc-queue" class="progress-fill progress-fill--info" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-info-album-assoc-queue-count">0/- (-)</span></span></div>
+                        </div>
+                        <div class="stats-card stats-card--transfer">
+                            <h4 class="stats-card__title stats-card__title--with-context"><span id="dash-pull-title">⬇️ Pull Panel</span><span id="dash-pull-context" class="stats-card__context-inline" title=""></span></h4>
+                            <div class="bar-row"><span>🎯 Pulled Assets</span><div class="progress-track"><div id="bar-pulled-assets" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-assets-count">0/- (-)</span></span></div>
+                            <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Assets</span><span id="dash-pull-failed-assets" class="stat-value">0</span></div>
+                            <div class="bar-row"><span>📷 Pulled Photos</span><div class="progress-track"><div id="bar-pulled-photos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-photos-count">0/- (-)</span></span></div>
+                            <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Photos</span><span id="dash-pull-failed-photos" class="stat-value">0</span></div>
+                            <div class="bar-row"><span>🎬 Pulled Videos</span><div class="progress-track"><div id="bar-pulled-videos" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-videos-count">0/- (-)</span></span></div>
+                            <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Videos</span><span id="dash-pull-failed-videos" class="stat-value">0</span></div>
+                            <div class="bar-row"><span>📂 Pulled Albums</span><div class="progress-track"><div id="bar-pulled-albums" class="progress-fill progress-fill--pull" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pulled-albums-count">0/- (-)</span></span></div>
+                            <div class="stat-row stat-row--pull-failure"><span class="stat-label">🚩 Failed Albums</span><span id="dash-pull-failed-albums" class="stat-value">0</span></div>
+                            <div class="stats-gap" aria-hidden="true"></div>
+                            <div class="stats-separator" aria-hidden="true"></div>
+                            <div class="stat-row"><span class="stat-label">🕒 Elapsed Time</span><span id="dash-elapsed-time" class="stat-value">00:00:00</span></div>
+                            <div class="stat-row"><span class="stat-label">⏳ Remaining Time</span><span id="dash-estimated-time" class="stat-value">-</span></div>
+                            <div class="stat-row"><span class="stat-label">📅 Estimated End</span><span id="dash-estimated-end" class="stat-value">-</span></div>
+                        </div>
+                        <div class="stats-card stats-card--transfer">
+                            <h4 class="stats-card__title stats-card__title--with-context"><span id="dash-push-title">⬆️ Push Panel</span><span id="dash-push-context" class="stats-card__context-inline" title=""></span></h4>
+                            <div class="bar-row"><span>🎯 Pushed Assets</span><div class="progress-track"><div id="bar-pushed-assets" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-assets-count">0/- (-)</span></span></div>
+                            <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Assets (New / Duplicates / Failed)</span><span id="dash-push-assets-outcomes" class="stat-value">0 / 0 / 0</span></div>
+                            <div class="bar-row"><span>📷 Pushed Photos</span><div class="progress-track"><div id="bar-pushed-photos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-photos-count">0/- (-)</span></span></div>
+                            <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Photos (New / Duplicates / Failed)</span><span id="dash-push-photos-outcomes" class="stat-value">0 / 0 / 0</span></div>
+                            <div class="bar-row"><span>🎬 Pushed Videos</span><div class="progress-track"><div id="bar-pushed-videos" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-videos-count">0/- (-)</span></span></div>
+                            <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Videos (New / Duplicates / Failed)</span><span id="dash-push-videos-outcomes" class="stat-value">0 / 0 / 0</span></div>
+                            <div class="bar-row"><span>📂 Pushed Albums</span><div class="progress-track"><div id="bar-pushed-albums" class="progress-fill progress-fill--push" style="width:0%"></div></div><span class="bar-metrics"><span id="bar-pushed-albums-count">0/- (-)</span></span></div>
+                            <div class="stat-row stat-row--push-outcome"><span class="stat-label">🔢 Total Albums (New / Duplicates / Failed)</span><span id="dash-push-albums-outcomes" class="stat-value">0 / 0 / 0</span></div>
+                            <div class="stats-separator stats-separator--push-delayed" aria-hidden="true"></div>
+                            <div class="stat-row"><span class="stat-label">⏱️ Delayed Retries</span><span id="dash-push-delayed-retries" class="stat-value">0</span></div>
+                            <div class="stat-row"><span class="stat-label">⏱️ Delayed Recovered</span><span id="dash-push-delayed-recovered" class="stat-value">0</span></div>
+                            <div class="stat-row"><span class="stat-label">🚩 Album Assoc Failed</span><span id="dash-push-album-assoc-failed" class="stat-value">0</span></div>
+                        </div>
+                    </div>
+                </section>
+                <div class="log-card">
+                    <div class="output-toolbar">
+                        <h3 class="log-card__title"><span class="ico" data-icon="terminal"></span>Log</h3>
+                        <div class="output-toolbar__actions">
+                            <label class="autos-scroll switch">
+                                <input id="auto-scroll-check" type="checkbox">
+                                <span>Auto Scroll</span>
+                            </label>
+                            <button id="copy-log-btn" type="button" class="ghost-btn"><span class="ico" data-icon="copy"></span>Copy log</button>
+                        </div>
+                    </div>
+                    <div class="terminal-shell">
+                        <div class="log-jump-zone log-jump-zone--top">
+                            <button id="log-scroll-top-btn" type="button" class="log-jump-btn" aria-label="Scroll log to the first line" title="Go to first line">↑</button>
+                        </div>
+                        <pre id="output" class="terminal"></pre>
+                        <div class="log-jump-zone log-jump-zone--bottom">
+                            <button id="log-scroll-bottom-btn" type="button" class="log-jump-btn" aria-label="Scroll log to the last line" title="Go to last line">↓</button>
+                        </div>
+                        <div id="output-resize-handle" class="terminal-resize-handle" title="Drag from bottom edge or bottom corners to resize the log panel"></div>
+                    </div>
+                    <div id="job-input-controls" class="job-input-controls">
+                        <span id="job-input-label" class="job-input-label">Process Input: idle</span>
+                        <input id="job-input-text" type="text" class="field__input job-input-text" placeholder="Type an answer when the running job asks for input">
+                        <button id="job-input-send" type="button" class="run-btn">Send</button>
+                        <button id="job-input-yes" type="button" class="run-btn">Yes</button>
+                        <button id="job-input-no" type="button" class="run-btn run-btn--danger">No</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
 
 <dialog id="folder-dialog" class="folder-dialog">
     <div class="folder-dialog__header">
@@ -409,9 +397,9 @@
     };
 
     const GENERAL_TAB_NAMES = {
-        general: "GENERAL ARGUMENTS",
-        features_config: "FEATURES CONFIG",
-        app_settings: "APP SETTINGS"
+        features_config: "Service credentials",
+        general: "General arguments",
+        app_settings: "App settings"
     };
     const MODULE_TAB_VARIANT_CLASSES = {
         automatic_migration: "module-tab--migration",
@@ -427,6 +415,363 @@
     };
     const FEATURES_CONFIG_HIDDEN_SECTIONS = new Set(["Google Takeout", "iCloud Takeout"]);
 
+    // Visual metadata for the redesigned shell (icons, groups, taglines). Behavior stays in the logic below.
+    const ICON_PATHS = {
+        home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
+        activity: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+        settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+        book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
+        file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+        sparkles: '<path d="M12 3v18M5 8l7-5 7 5"/>',
+        map: '<path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>',
+        shield: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/>',
+        logout: '<path d="M9 4H5v16h4"/><path d="m16 8 4 4-4 4"/><path d="M20 12H10"/>',
+        menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+        close: '<path d="M6 6l12 12M18 6 6 18"/>',
+        lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+        palette: '<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10" r="1"/>',
+        upload: '<path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
+        download: '<path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
+        save: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+        copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+        stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+        play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
+        terminal: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/>',
+        migrate: '<path d="M4 7h14l-4-4"/><path d="M20 17H6l4 4"/>',
+        archive: '<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9"/><path d="M10 13h4"/>',
+        cloud: '<path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 9.2 4.5 4.5 0 0 0 7 18z"/>',
+        server: '<rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+        image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+        folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+        sliders: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+        pencil: '<path d="M4 20h4L20 8l-4-4L4 16z"/>',
+        layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+        merge: '<path d="M7 4v6a5 5 0 0 0 5 5 5 5 0 0 1 5 5"/><path d="M17 4v6a5 5 0 0 1-5 5"/>',
+        search: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',
+        duplicate: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>',
+        square: '<rect x="4" y="4" width="16" height="16" rx="2"/>',
+        trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+        alert: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+        info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+        check: '<path d="m5 12 4 4 10-10"/>',
+        chevronRight: '<path d="m9 6 6 6-6 6"/>',
+        chevronDown: '<path d="m6 9 6 6 6-6"/>',
+        arrowRight: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+        eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+        refresh: '<path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/>',
+        link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+        calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'
+    };
+
+    function iconSvg(name, extraClass = "") {
+        const paths = ICON_PATHS[name] || ICON_PATHS.square;
+        return `<svg class="ico-svg ${extraClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
+    }
+
+    function iconElement(name, extraClass = "") {
+        const span = document.createElement("span");
+        span.className = `ico ${extraClass}`.trim();
+        span.innerHTML = iconSvg(name);
+        return span;
+    }
+
+    function hydrateIcons(root = document) {
+        root.querySelectorAll(".ico[data-icon]").forEach((el) => {
+            if (el.dataset.hydrated === "1") return;
+            el.innerHTML = iconSvg(el.dataset.icon);
+            el.dataset.hydrated = "1";
+        });
+    }
+
+    const MODULE_GROUPS = [
+        {key: "migrate", title: "Migrate", modules: ["automatic_migration"]},
+        {key: "takeout", title: "Process Takeout", modules: ["google_takeout", "icloud_takeout"]},
+        {key: "libraries", title: "Photo libraries", modules: ["google_photos", "synology_photos", "immich_photos", "nextcloud_photos", "local_folder"]},
+        {key: "tools", title: "Tools", modules: ["standalone_features", "upload_folder"]}
+    ];
+
+    const MODULE_META = {
+        automatic_migration: {label: "Automatic Migration", icon: "migrate", tone: "mig", tagline: "Copy or move every photo, video and album from a source to a target in a single run. Albums are recreated on the target."},
+        google_takeout: {label: "Google Takeout", icon: "archive", tone: "gto", tagline: "Fix dates and metadata of a Google Photos Takeout export and rebuild its albums into a clean library."},
+        icloud_takeout: {label: "iCloud Takeout", icon: "archive", tone: "ico", tagline: "Restore dates and albums of an Apple iCloud Photos export into a portable library."},
+        google_photos: {label: "Google Photos", icon: "cloud", tone: "gph", tagline: "Upload, download, organize and clean up albums and assets in your Google Photos library."},
+        synology_photos: {label: "Synology Photos", icon: "server", tone: "syn", tagline: "Upload, download, organize and clean up albums and assets in your Synology Photos library."},
+        immich_photos: {label: "Immich Photos", icon: "image", tone: "imm", tagline: "Upload, download, organize and clean up albums and assets in your Immich library."},
+        nextcloud_photos: {label: "NextCloud Photos", icon: "cloud", tone: "nxc", tagline: "Upload, download, organize and clean up albums and assets in your NextCloud Photos library."},
+        local_folder: {label: "Local Photos Folder", icon: "folder", tone: "loc", tagline: "Treat a local folder as a photo library and run the same album and asset actions used for cloud services."},
+        standalone_features: {label: "Other Features", icon: "sliders", tone: "tool", tagline: "Local helpers: repair symlinks, rename or organize folders, and find or process duplicates."},
+        upload_folder: {label: "Upload to Server", icon: "upload", tone: "upl", tagline: "Upload a local folder or ZIP file to the server so the features can use it."}
+    };
+
+    const HOME_TILE_TEXT = {
+        google_takeout: {desc: "Google Photos export"},
+        icloud_takeout: {desc: "Apple iCloud Photos export"},
+        google_photos: {short: "Google"},
+        synology_photos: {short: "Synology"},
+        immich_photos: {short: "Immich"},
+        nextcloud_photos: {short: "NextCloud"},
+        local_folder: {short: "Local folder"},
+        standalone_features: {desc: "Fix symlinks · Rename folders · Organize by date · Duplicates"},
+        upload_folder: {desc: "Send a local folder or ZIP file to the server"}
+    };
+
+    const HOME_GROUP_TEXT = {
+        takeout: {title: "Fix an export from Google or Apple", text: "Restore dates and metadata and rebuild albums into a clean library."},
+        libraries: {title: "Manage a library", text: "Upload, download, rename, clean up and deduplicate albums and assets."},
+        tools: {title: "Local helpers", text: "Repair, rename, organize and deduplicate folders, or upload files to this server."}
+    };
+
+    const ACTION_GROUPS = [
+        {key: "transfer", title: "Transfer"},
+        {key: "organize", title: "Organize"},
+        {key: "cleanup", title: "Clean up"},
+        {key: "folders", title: "Folders"},
+        {key: "duplicates", title: "Duplicates"}
+    ];
+
+    const ACTION_META = {
+        "upload-albums": {group: "transfer", icon: "upload", tone: "info", desc: "One album per subfolder"},
+        "upload-all": {group: "transfer", icon: "upload", tone: "info", desc: "A whole folder, albums included"},
+        "download-albums": {group: "transfer", icon: "download", tone: "info", desc: "Selected albums to a folder"},
+        "download-all": {group: "transfer", icon: "download", tone: "info", desc: "Every album and asset"},
+        "rename-albums": {group: "organize", icon: "pencil", tone: "neutral", desc: "Pattern and replacement"},
+        "consolidate-albums-names": {group: "organize", icon: "layers", tone: "neutral", desc: "Merge equivalent album families"},
+        "merge-duplicates-albums": {group: "organize", icon: "merge", tone: "neutral", desc: "Albums with the same name"},
+        "remove-duplicates-assets": {group: "cleanup", icon: "search", tone: "neutral", desc: "Keep the best copy of each"},
+        "remove-duplicates-albums": {group: "cleanup", icon: "duplicate", tone: "neutral", desc: "Same name and size"},
+        "remove-empty-albums": {group: "cleanup", icon: "square", tone: "neutral", desc: "Albums with no assets"},
+        "remove-albums": {group: "cleanup", icon: "trash", tone: "danger", desc: "Albums matching a pattern"},
+        "remove-all-albums": {group: "cleanup", icon: "trash", tone: "danger", desc: "Every album, optionally its assets"},
+        "remove-all-assets": {group: "cleanup", icon: "alert", tone: "danger", desc: "Every asset and album"},
+        "fix-symlinks-broken": {group: "folders", icon: "link", tone: "neutral", desc: "Repair broken album links"},
+        "rename-folders-content-based": {group: "folders", icon: "pencil", tone: "neutral", desc: "Prefix album folders with their dates"},
+        "organize-local-folder-by-date": {group: "folders", icon: "calendar", tone: "neutral", desc: "Sort a folder into date subfolders"},
+        "find-duplicates": {group: "duplicates", icon: "search", tone: "neutral", desc: "List, move or remove duplicates"},
+        "process-duplicates": {group: "duplicates", icon: "file", tone: "neutral", desc: "Apply a reviewed duplicates CSV"}
+    };
+
+    const MIGRATION_ENDPOINT_KINDS = [
+        {kind: "google", label: "Google", icon: "cloud", tone: "gph", section: "Google Photos"},
+        {kind: "synology", label: "Synology", icon: "server", tone: "syn", section: "Synology Photos"},
+        {kind: "immich", label: "Immich", icon: "image", tone: "imm", section: "Immich Photos"},
+        {kind: "nextcloud", label: "NextCloud", icon: "cloud", tone: "nxc", section: "NextCloud Photos"},
+        {kind: "folder", label: "Folder", icon: "folder", tone: "loc", section: ""}
+    ];
+
+    const CONFIG_SECTION_ICONS = {
+        "Synology Photos": {icon: "server", tone: "syn"},
+        "Immich Photos": {icon: "image", tone: "imm"},
+        "NextCloud Photos": {icon: "cloud", tone: "nxc"},
+        "Google Photos": {icon: "cloud", tone: "gph"},
+        "Apple Photos": {icon: "image", tone: "tool"}
+    };
+
+    function moduleMeta(tabKey) {
+        return MODULE_META[tabKey] || {label: String(tabKey || ""), icon: "square", tone: "tool", tagline: ""};
+    }
+
+    function moduleGroupTitle(tabKey) {
+        const group = MODULE_GROUPS.find((item) => item.modules.includes(tabKey));
+        return group ? group.title : "";
+    }
+
+    function humanizeLabel(text) {
+        const raw = String(text || "").replace(/^--/, "").trim();
+        if (!raw) return "";
+        if (/\s/.test(raw)) return raw;
+        const acronyms = new Set(["url", "api", "id", "csv", "otp", "gps", "gpth", "exif", "zip", "mb", "utc"]);
+        const words = raw.replace(/[_-]+/g, " ").split(/\s+/).filter(Boolean).map((word) => {
+            const lower = word.toLowerCase();
+            if (acronyms.has(lower)) return lower.toUpperCase();
+            if (word === word.toUpperCase() && word.length > 1) return lower;
+            return word;
+        });
+        if (!words.length) return raw;
+        const first = words[0];
+        words[0] = first === first.toUpperCase() ? first : first.charAt(0).toUpperCase() + first.slice(1);
+        return words.join(" ");
+    }
+
+    function shortHelpText(text, maxLength = 180) {
+        const flat = String(text || "").replace(/\s+/g, " ").trim();
+        if (!flat) return "";
+        const match = flat.match(/^(.+?[.!?])(\s|$)/);
+        let sentence = match ? match[1] : flat;
+        sentence = sentence.replace(/^CAUTION!+\s*/i, "");
+        if (sentence.length > maxLength) sentence = `${sentence.slice(0, maxLength - 1).trimEnd()}…`;
+        return sentence;
+    }
+
+    let uiElementIdSeq = 0;
+    function nextUiElementId(prefix = "pm-field") {
+        uiElementIdSeq += 1;
+        return `${prefix}-${uiElementIdSeq}`;
+    }
+
+    function createStepCard(stepNumber, title, extraClass = "") {
+        const card = document.createElement("section");
+        card.className = `step-card ${extraClass}`.trim();
+        const head = document.createElement("div");
+        head.className = "step-card__head";
+        if (stepNumber) {
+            const num = document.createElement("span");
+            num.className = "step-card__num";
+            num.textContent = String(stepNumber);
+            head.appendChild(num);
+        }
+        const heading = document.createElement("h3");
+        heading.textContent = title;
+        head.appendChild(heading);
+        card.appendChild(head);
+        const body = document.createElement("div");
+        body.className = "step-card__body";
+        card.appendChild(body);
+        return {card, head, body};
+    }
+
+    function createCollapsibleCard(title, summaryText = "", open = false) {
+        const details = document.createElement("details");
+        details.className = "step-card step-card--collapsible";
+        if (open) details.open = true;
+        const summary = document.createElement("summary");
+        summary.className = "step-card__head";
+        const heading = document.createElement("h3");
+        heading.textContent = title;
+        summary.appendChild(heading);
+        if (summaryText) {
+            const tag = document.createElement("span");
+            tag.className = "soft-tag";
+            tag.textContent = summaryText;
+            summary.appendChild(tag);
+        }
+        summary.appendChild(iconElement("chevronDown", "step-card__chevron"));
+        details.appendChild(summary);
+        const body = document.createElement("div");
+        body.className = "step-card__body";
+        details.appendChild(body);
+        return {card: details, body};
+    }
+
+    function createInfoCard(title, html, tone = "info") {
+        const card = document.createElement("div");
+        card.className = `desc-card info-card info-card--${tone}`;
+        const head = document.createElement("div");
+        head.className = "info-card__head";
+        head.appendChild(iconElement(tone === "danger" ? "alert" : "info"));
+        const heading = document.createElement("h3");
+        heading.textContent = title;
+        head.appendChild(heading);
+        card.appendChild(head);
+        const body = document.createElement("p");
+        body.innerHTML = html;
+        card.appendChild(body);
+        return card;
+    }
+
+    function buildActionPicker(actions, selectedDest, onSelect) {
+        const wrap = document.createElement("div");
+        wrap.className = "action-picker";
+        const grouped = new Map();
+        actions.forEach((action) => {
+            const meta = ACTION_META[action.dest] || {group: "other", icon: "square", tone: "neutral", desc: ""};
+            if (!grouped.has(meta.group)) grouped.set(meta.group, []);
+            grouped.get(meta.group).push({action, meta});
+        });
+        const orderedGroups = [...ACTION_GROUPS.map((group) => group.key), ...[...grouped.keys()].filter((key) => !ACTION_GROUPS.some((group) => group.key === key))];
+        orderedGroups.forEach((groupKey) => {
+            const items = grouped.get(groupKey);
+            if (!items || !items.length) return;
+            const groupMeta = ACTION_GROUPS.find((group) => group.key === groupKey);
+            if (grouped.size > 1) {
+                const title = document.createElement("div");
+                title.className = "action-picker__group";
+                title.textContent = groupMeta ? groupMeta.title : "Other";
+                wrap.appendChild(title);
+            }
+            const grid = document.createElement("div");
+            grid.className = "action-picker__grid";
+            grid.setAttribute("role", "radiogroup");
+            items.forEach(({action, meta}) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = `action-tile action-tile--${meta.tone}${action.dest === selectedDest ? " is-selected" : ""}`;
+                button.setAttribute("role", "radio");
+                button.setAttribute("aria-checked", action.dest === selectedDest ? "true" : "false");
+                button.dataset.actionDest = action.dest;
+                const icon = iconElement(meta.icon, "action-tile__icon");
+                button.appendChild(icon);
+                const name = document.createElement("span");
+                name.className = "action-tile__name";
+                name.textContent = uiFeatureName(action);
+                button.appendChild(name);
+                const desc = document.createElement("span");
+                desc.className = "action-tile__desc";
+                desc.textContent = meta.desc || shortHelpText(uiHelpText(action), 60);
+                button.appendChild(desc);
+                button.addEventListener("click", () => {
+                    if (action.dest !== selectedDest) onSelect(action.dest);
+                });
+                grid.appendChild(button);
+            });
+            wrap.appendChild(grid);
+        });
+        return wrap;
+    }
+
+    function configSectionByName(sectionName) {
+        return (configSectionsData || []).find((section) => String(section?.name || "") === sectionName) || null;
+    }
+
+    const CREDENTIAL_KEY_PATTERN = /(USERNAME|PASSWORD|API_KEY|CLIENT_ID|CLIENT_SECRET|REFRESH_TOKEN|TOKEN)/i;
+
+    function configSectionHasAccountCredentials(section, accountId) {
+        const sectionName = String(section?.name || "");
+        const targetAccountId = String(accountId || "");
+        if (!sectionName || !targetAccountId) return false;
+        const credentialFields = (section?.fields || []).filter((field) => (
+            String(field?.account_id || "") === targetAccountId
+            && CREDENTIAL_KEY_PATTERN.test(String(field?.key || ""))
+        ));
+        if (!credentialFields.length) return configSectionHasAccountData(section, targetAccountId);
+        return credentialFields.some((field) => Boolean(configSectionFieldCurrentValue(sectionName, field).trim()));
+    }
+
+    function credentialStatusForAccount(sectionName, accountId) {
+        const section = configSectionByName(sectionName);
+        if (!section) return null;
+        const accountFields = (section.fields || []).filter((field) => String(field?.account_id || ""));
+        if (!accountFields.length) return null;
+        return configSectionHasAccountCredentials(section, String(accountId || "1"));
+    }
+
+    function createCredentialStatusNote(sectionName, accountId) {
+        const status = credentialStatusForAccount(sectionName, accountId);
+        if (status === null) return null;
+        const note = document.createElement("div");
+        note.className = `credential-note ${status ? "credential-note--ok" : "credential-note--missing"}`;
+        note.appendChild(iconElement(status ? "check" : "alert"));
+        const text = document.createElement("span");
+        if (status) {
+            text.textContent = `Credentials for account ${accountId} found in Settings`;
+            note.appendChild(text);
+        } else {
+            text.textContent = `No credentials for account ${accountId} yet. `;
+            note.appendChild(text);
+            const link = document.createElement("a");
+            link.href = "/configuration?manual_navigation=1";
+            link.textContent = "Add them in Settings";
+            link.addEventListener("click", async (event) => {
+                event.preventDefault();
+                uiState.active_general_tab = "features_config";
+                uiState.config_active_section = sectionName;
+                await saveStateNow();
+                window.location.href = "/configuration?manual_navigation=1";
+            });
+            note.appendChild(link);
+        }
+        return note;
+    }
+
     const THEMES = {
         ocean: {name: "Ocean", description: "Blue palette"},
         emerald: {name: "Emerald", description: "Green palette"},
@@ -439,7 +784,7 @@
 
     let schema = null;
     let activeModuleTab = "automatic_migration";
-    let activeGeneralTab = "general";
+    let activeGeneralTab = "features_config";
     let currentJob = null;
     let currentJobTab = "";
     let currentJobSelectedActionDest = "";
@@ -547,6 +892,35 @@
         "dashboard": "Dashboard",
         "parallel-migration": "Parallel Migration"
     };
+
+    Object.assign(ARG_LABELS, {
+        "google-takeout": "Takeout folder",
+        "icloud-takeout": "Takeout folder",
+        "google-output-folder-suffix": "Output folder suffix",
+        "icloud-output-folder-suffix": "Output folder suffix",
+        "google-albums-folders-structure": "Albums folder structure",
+        "icloud-albums-folders-structure": "Albums folder structure",
+        "google-all-photos-folders-structure": "All photos folder structure",
+        "icloud-all-photos-folders-structure": "All photos folder structure",
+        "foldername-all-photos": "All photos folder name",
+        "google-no-symbolic-albums": "Copy album files instead of symlinks",
+        "icloud-no-symbolic-albums": "Copy album files instead of symlinks",
+        "google-remove-duplicates-files": "Remove duplicate files",
+        "google-rename-albums-folders": "Rename album folders by date",
+        "google-skip-extras-files": "Skip extra files (-edited, -effects)",
+        "google-keep-takeout-folder": "Keep an untouched Takeout copy",
+        "google-process-people": "Save people labels",
+        "google-ignore-check-structure": "Ignore the Takeout structure check",
+        "google-skip-move-albums": "Skip moving albums",
+        "google-skip-gpth-tool": "Skip GPTH tool (not recommended)",
+        "google-skip-preprocess": "Skip pre-processing",
+        "google-skip-postprocess": "Skip post-processing",
+        "show-gpth-info": "Show GPTH info messages",
+        "show-gpth-errors": "Show GPTH error messages",
+        "gpth-no-log": "Do not save the GPTH log",
+        "icloud-include-memories": "Include Memories as albums",
+        "icloud-prefer-native-exif-writer": "Prefer the native EXIF writer"
+    });
 
     ARG_LABELS["sfrcb-date-separator"] = "date-separator";
     ARG_LABELS["sfrcb-range-separator"] = "range-separator";
@@ -789,8 +1163,10 @@
     ];
 
     const CURRENT_PAGE = "{{ active_page }}";
-    if (new URLSearchParams(window.location.search).get("manual_navigation") === "1") {
-        window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
+    const INITIAL_URL_PARAMS = new URLSearchParams(window.location.search);
+    let homeViewActive = CURRENT_PAGE === "features" && INITIAL_URL_PARAMS.get("view") === "home";
+    if (INITIAL_URL_PARAMS.get("manual_navigation") === "1") {
+        window.history.replaceState({}, "", `${window.location.pathname}${homeViewActive ? "?view=home" : ""}${window.location.hash}`);
     }
     let stateValues = {};
     let uiState = {collapsed_panels: {}};
@@ -1972,7 +2348,7 @@
         const text = lastOutputLines.length ? lastOutputLines.join("\n") : (lastRawOutput || "");
         if (!text) return;
         const button = document.getElementById("copy-log-btn");
-        const previousLabel = button.textContent;
+        const previousLabel = button.innerHTML;
         try {
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(text);
@@ -1987,17 +2363,64 @@
                 document.execCommand("copy");
                 ta.remove();
             }
-            button.textContent = "Copied";
+            button.innerHTML = `${iconSvg("check")}Copied`;
             setTimeout(() => {
-                button.textContent = previousLabel;
+                button.innerHTML = previousLabel;
             }, 1200);
         } catch (error) {
             console.error(error);
             button.textContent = "Copy failed";
             setTimeout(() => {
-                button.textContent = previousLabel;
+                button.innerHTML = previousLabel;
             }, 1200);
         }
+    }
+
+    async function copyTextToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+    }
+
+    async function copyCommandPreview() {
+        const preview = document.getElementById("command-preview-inline");
+        const button = document.getElementById("copy-command-btn");
+        const text = String(preview?.textContent || "").trim();
+        if (!text || !button) return;
+        const previous = button.innerHTML;
+        try {
+            await copyTextToClipboard(text);
+            button.innerHTML = iconSvg("check");
+            button.setAttribute("aria-label", "Command copied");
+        } catch (error) {
+            console.error(error);
+        }
+        setTimeout(() => {
+            button.innerHTML = previous;
+            button.setAttribute("aria-label", "Copy command");
+        }, 1200);
+    }
+
+    function openSidebar() {
+        document.body.classList.add("sidebar-open");
+        const backdrop = document.getElementById("sidebar-backdrop");
+        if (backdrop) backdrop.hidden = false;
+    }
+
+    function closeSidebar() {
+        document.body.classList.remove("sidebar-open");
+        const backdrop = document.getElementById("sidebar-backdrop");
+        if (backdrop) backdrop.hidden = true;
     }
 
     function duplicateAssetKeeperChoices(field) {
@@ -2186,7 +2609,7 @@
             const browseBtn = document.createElement("button");
             browseBtn.type = "button";
             browseBtn.className = "ghost-btn browse-btn";
-            browseBtn.textContent = "···";
+            browseBtn.innerHTML = `${iconSvg(field.dest === "process-duplicates" ? "file" : "folder")}<span>Browse</span>`;
             if (field.dest === "process-duplicates") {
                 browseBtn.title = "Open CSV selector";
                 browseBtn.setAttribute("aria-label", "Open CSV selector");
@@ -2245,17 +2668,47 @@
         }
     }
 
+    function argumentCliFlag(field) {
+        const dest = String(field?.dest || "");
+        const scoped = dest.match(/^(am|sfrcb)-(.+)$/);
+        const effectiveDest = scoped ? scoped[2] : dest;
+        const effectiveField = scoped ? getFieldByDest(effectiveDest) : field;
+        const longOption = String(effectiveField?.long_option || field?.long_option || `--${effectiveDest}`);
+        return longOption.startsWith("--") ? longOption : `--${longOption}`;
+    }
+
+    function createArgumentMeta(field, inputId = "") {
+        const meta = document.createElement("div");
+        meta.className = "arg-meta";
+        const help = shortHelpText(uiHelpText(field));
+        if (help) {
+            const helpEl = document.createElement("p");
+            helpEl.className = "arg-help";
+            helpEl.textContent = help;
+            if (inputId) helpEl.id = `${inputId}-help`;
+            meta.appendChild(helpEl);
+        }
+        const flag = document.createElement("code");
+        flag.className = "arg-flag";
+        flag.textContent = argumentCliFlag(field);
+        meta.appendChild(flag);
+        return meta;
+    }
+
     function createArgumentRow(field, isRequired = false) {
         const row = document.createElement("div");
         row.className = "arg-row";
+        const inputId = nextUiElementId("arg");
+        const fullHelp = uiHelpText(field);
+        if (fullHelp) row.title = String(fullHelp).replace(/\s+/g, " ").trim();
 
         const label = document.createElement("label");
         label.className = "arg-label";
+        label.htmlFor = inputId;
         const labelText = document.createElement("span");
         labelText.className = "arg-label__text";
-        labelText.textContent = ARG_LABELS[field.dest] || uiOptionName(field);
+        labelText.textContent = humanizeLabel(ARG_LABELS[field.dest] || uiOptionName(field));
         label.appendChild(labelText);
-        row.appendChild(label);
 
         const badge = document.createElement("span");
         badge.className = isRequired ? "arg-badge arg-badge--required" : "arg-badge arg-badge--optional";
@@ -2263,11 +2716,14 @@
         label.appendChild(badge);
 
         if (field.kind === "flag" || field.kind === "bool") {
-            const checkWrap = document.createElement("label");
-            checkWrap.className = "otp-wrap";
+            row.classList.add("arg-row--toggle");
+            const checkWrap = document.createElement("span");
+            checkWrap.className = "otp-wrap toggle-wrap";
             const check = document.createElement("input");
             check.type = "checkbox";
             check.className = "field__check";
+            check.id = inputId;
+            check.setAttribute("aria-describedby", `${inputId}-help`);
             check.dataset.dest = field.dest;
             const persisted = stateValues[field.dest];
             check.checked = uiCheckboxValueForField(field, persisted);
@@ -2311,6 +2767,9 @@
                     const thresholdInput = document.querySelector('[data-dest="small-album-max-assets"]');
                     if (thresholdInput) thresholdInput.disabled = !check.checked;
                 }
+                if (field.dest === "move-assets" && activeModuleTab === "automatic_migration") {
+                    setTimeout(renderMigrationPanel, 0);
+                }
                 queueSaveState();
                 queueCommandPreview();
             };
@@ -2320,11 +2779,24 @@
             check.addEventListener("input", syncFlagState);
             check.addEventListener("change", syncFlagState);
             check.addEventListener("click", syncFlagStateDeferred);
-            checkWrap.addEventListener("click", syncFlagStateDeferred);
             checkWrap.appendChild(check);
             row.appendChild(checkWrap);
+            const text = document.createElement("div");
+            text.className = "arg-row__text";
+            text.appendChild(label);
+            text.appendChild(createArgumentMeta(field, inputId));
+            row.appendChild(text);
         } else {
-            row.appendChild(createInput(field));
+            row.appendChild(label);
+            const inputRow = createInput(field);
+            const control = inputRow.querySelector("[data-dest]");
+            if (control) {
+                control.id = inputId;
+                control.setAttribute("aria-describedby", `${inputId}-help`);
+                if (isRequired) control.setAttribute("aria-required", "true");
+            }
+            row.appendChild(inputRow);
+            row.appendChild(createArgumentMeta(field, inputId));
         }
 
         return row;
@@ -2336,127 +2808,34 @@
         if (!fields || !fields.length) return;
 
         const fieldsByDest = new Map(fields.map((field) => [field.dest, field]));
-        const orderedFields = [];
-        const orderedSeen = new Set();
-        GENERAL_GROUPS.forEach((group) => {
-            group.dests.forEach((dest) => {
-                const field = fieldsByDest.get(dest);
-                if (field && !orderedSeen.has(dest)) {
-                    orderedFields.push(field);
-                    orderedSeen.add(dest);
-                }
-            });
-        });
-        fields.forEach((field) => {
-            if (!orderedSeen.has(field.dest)) {
-                orderedFields.push(field);
-                orderedSeen.add(field.dest);
-            }
-        });
-
-        const buildGroupedGeneralOptionalArgsHtml = (orderedOptionalFields) => {
-            const groupedHtml = [];
-            const consumed = new Set();
-            const makeItemsHtml = (groupFields) => optionalArgsItems(groupFields).map((item) =>
-                `<span class="desc-optional-item">· <span class="desc-optional-name">${escapeHtml(item.label)}</span>: ${escapeHtml(item.help)}</span>`
-            ).join("");
-
-            GENERAL_GROUPS.forEach((group) => {
-                const groupFields = group.dests
-                    .map((dest) => fieldsByDest.get(dest))
-                    .filter((field) => field && orderedOptionalFields.includes(field));
-                if (!groupFields.length) return;
-                groupFields.forEach((field) => consumed.add(field.dest));
-                groupedHtml.push(
-                    `<span class="desc-optional-title">${escapeHtml(group.title)}:</span>${makeItemsHtml(groupFields)}`
-                );
-            });
-
-            const remainingFields = orderedOptionalFields.filter((field) => !consumed.has(field.dest));
-            if (remainingFields.length) {
-                groupedHtml.push(
-                    `<span class="desc-optional-title">Other:</span>${makeItemsHtml(remainingFields)}`
-                );
-            }
-
-            if (!groupedHtml.length) return "";
-            return `<br><span class="desc-optional-title">Optional arguments:</span><br>${groupedHtml.join("<br>")}`;
-        };
 
         const overviewCard = document.createElement("div");
-        overviewCard.className = "desc-card general-doc-card";
-        const overviewTitle = document.createElement("h3");
-        overviewTitle.textContent = "General Arguments - User Description:";
+        overviewCard.className = "callout callout--info general-doc-card";
+        overviewCard.appendChild(iconElement("sliders"));
         const overviewBody = document.createElement("p");
-        const overviewMainHtml = formatDescriptionHtml(
-            {
-                dest: "general-arguments-module",
-                help: "Use this section to configure global arguments shared by multiple PhotoMigrator features. "
-                    + "These settings control logging, execution behavior, naming conventions, and cross-feature filters before the selected feature-specific arguments are applied. "
-                    + "Values defined here act as the common baseline for the current run."
-            },
-            [],
-        );
-        overviewBody.innerHTML = `${overviewMainHtml}${buildGroupedGeneralOptionalArgsHtml(orderedFields)}`;
-        overviewCard.appendChild(overviewTitle);
+        overviewBody.textContent = "Global arguments shared by every feature: logging, execution, folder names and filters. "
+            + "They are the baseline for each run; a feature can override some of them, for example the migration filters.";
         overviewCard.appendChild(overviewBody);
         panel.appendChild(overviewCard);
 
-        const wrap = document.createElement("div");
-        wrap.className = "bulk-layout";
-
         const groupsGrid = document.createElement("div");
         groupsGrid.className = "general-groups";
-
-        const desc = document.createElement("div");
-        desc.className = "desc-card desc-card--bottom";
-        const h3 = document.createElement("h3");
-        h3.textContent = "Selected argument";
-        const name = document.createElement("div");
-        name.className = "desc-card__name";
-        const p = document.createElement("p");
-        desc.appendChild(h3);
-        desc.appendChild(name);
-        desc.appendChild(p);
-
-        const setDescription = (field) => {
-            name.textContent = uiOptionName(field);
-            p.textContent = uiHelpText(field);
-        };
-
         const alreadyUsed = new Set();
-
-        const createArgumentBlock = (field) => {
-            const block = document.createElement("div");
-            block.className = "arg-block";
-            block.appendChild(createArgumentRow(field, false));
-            const inputs = block.querySelectorAll("[data-dest]");
-            inputs.forEach((input) => {
-                input.addEventListener("focus", () => setDescription(field));
-                input.addEventListener("click", () => setDescription(field));
-                input.addEventListener("change", () => setDescription(field));
-            });
-            block.addEventListener("mouseenter", () => setDescription(field));
-            return block;
-        };
 
         const appendGroup = (title, groupFields) => {
             if (!groupFields.length) return;
-            const card = document.createElement("div");
-            card.className = "general-group";
-
-            const groupTitle = document.createElement("h3");
-            groupTitle.textContent = title;
-            card.appendChild(groupTitle);
-
+            const step = createStepCard(0, title, "general-group");
             const list = document.createElement("div");
             list.className = "general-group__list";
             groupFields.forEach((field) => {
                 alreadyUsed.add(field.dest);
-                list.appendChild(createArgumentBlock(field));
+                const block = document.createElement("div");
+                block.className = "arg-block";
+                block.appendChild(createArgumentRow(field, false));
+                list.appendChild(block);
             });
-            card.appendChild(list);
-            groupsGrid.appendChild(card);
+            step.body.appendChild(list);
+            groupsGrid.appendChild(step.card);
         };
 
         GENERAL_GROUPS.forEach((group) => {
@@ -2468,19 +2847,14 @@
 
         const remaining = fields.filter((field) => !alreadyUsed.has(field.dest));
         appendGroup("Other", remaining);
-
-        if (fields[0]) setDescription(fields[0]);
-
-        wrap.appendChild(groupsGrid);
-        wrap.appendChild(desc);
-        panel.appendChild(wrap);
+        panel.appendChild(groupsGrid);
 
         const actions = document.createElement("div");
         actions.className = "config-actions general-actions";
         const restoreButton = document.createElement("button");
         restoreButton.type = "button";
-        restoreButton.className = "run-btn run-btn--danger";
-        restoreButton.textContent = "Restore Default";
+        restoreButton.className = "ghost-btn";
+        restoreButton.innerHTML = `${iconSvg("refresh")}Restore defaults`;
         restoreButton.addEventListener("click", () => {
             fields.forEach((field) => {
                 const defaultValue = field.default;
@@ -2662,6 +3036,7 @@
         if (dest === "foldername-all-photos" || dest === "icloud-albums-folders-structure" || dest === "icloud-all-photos-folders-structure") return "structure";
         if (dest === "google-process-people") return "flags";
         if (dest === "show-gpth-info" || dest === "show-gpth-errors" || dest === "gpth-no-log") return "runtime";
+        if ((/^google-skip-/.test(dest) && dest !== "google-skip-extras-files") || dest === "google-ignore-check-structure") return "advanced";
         if (field.kind === "flag") return "flags";
         return "advanced";
     }
@@ -2672,11 +3047,6 @@
         container.classList.add("google-layout--with-doc");
 
         const isGoogleTakeout = activeModuleTab === "google_takeout";
-        const docCard = document.createElement("div");
-        docCard.className = "desc-card takeout-doc-card";
-        const docTitle = document.createElement("h3");
-        docTitle.textContent = `${isGoogleTakeout ? "Google Takeout" : "iCloud Takeout"} - User Description:`;
-        const docBody = document.createElement("p");
         const requiredFieldsForDescription = (fields || []).filter((field) => {
             const dest = String(field?.dest || "");
             return dest === "google-takeout" || dest === "icloud-takeout" || Boolean(field?.required);
@@ -2703,19 +3073,26 @@
                     + "When enabled, Memories CSV collections are also reconstructed as album-like folders. "
                     + "IMPORTANT: This module is a local preprocessing pipeline. It does not push anything to a cloud target by itself."
             };
-        docBody.innerHTML = formatDescriptionHtml(mainField, optionalFieldsForDescription, {
-            requiredFields: requiredFieldsForDescription,
-        });
-        docCard.appendChild(docTitle);
-        docCard.appendChild(docBody);
-        container.appendChild(docCard);
+
+        const layout = document.createElement("div");
+        layout.className = "selector-layout";
+        const left = document.createElement("div");
+        left.className = "selector-main";
+        const right = document.createElement("div");
+        right.className = "selector-side";
+        const docCard = createInfoCard(
+            `About ${isGoogleTakeout ? "Google Takeout" : "iCloud Takeout"}`,
+            formatDescriptionHtml(mainField, optionalFieldsForDescription, {requiredFields: requiredFieldsForDescription})
+        );
+        docCard.classList.add("takeout-doc-card", "about-card");
+        right.appendChild(docCard);
 
         const groups = {
-            takeout: {title: "Takeout Input & Output", items: []},
-            structure: {title: "Folder Structure", items: []},
-            flags: {title: "Processing Flags", items: []},
-            runtime: {title: "GPTH Runtime", items: []},
-            advanced: {title: "Advanced", items: []}
+            takeout: {title: "Takeout input and output", items: []},
+            structure: {title: "Folder structure", items: []},
+            flags: {title: "Processing", items: []},
+            runtime: {title: "GPTH messages", items: []},
+            advanced: {title: "Advanced options", items: []}
         };
 
         (fields || []).forEach((field) => {
@@ -2727,23 +3104,37 @@
             groups.flags.items.push(groups.flags.items.splice(peopleProcessingIndex, 1)[0]);
         }
 
-        ["takeout", "structure", "flags", "runtime", "advanced"].forEach((key) => {
+        let stepNumber = 0;
+        ["takeout", "structure", "flags"].forEach((key) => {
             const group = groups[key];
             if (!group.items.length) return;
-
-            const panel = document.createElement("section");
-            panel.className = "google-subpanel";
-            panel.classList.add(`google-subpanel--${key}`);
-            const title = document.createElement("h3");
-            title.textContent = group.title;
-            panel.appendChild(title);
-
+            stepNumber += 1;
+            const step = createStepCard(stepNumber, group.title, `google-subpanel google-subpanel--${key}`);
+            if (key === "flags") step.body.classList.add("toggle-grid");
             group.items.forEach((field) => {
                 const required = field.dest === "google-takeout" || field.dest === "icloud-takeout";
-                panel.appendChild(createArgumentBlock(field, required));
+                step.body.appendChild(createArgumentRow(field, required));
             });
-            container.appendChild(panel);
+            left.appendChild(step.card);
         });
+        ["advanced", "runtime"].forEach((key) => {
+            const group = groups[key];
+            if (!group.items.length) return;
+            const openKey = `takeout_${key}_open`;
+            const collapsible = createCollapsibleCard(group.title, `${group.items.length} option${group.items.length === 1 ? "" : "s"}`, Boolean(uiState?.[openKey]));
+            collapsible.card.classList.add("google-subpanel", `google-subpanel--${key}`);
+            collapsible.card.addEventListener("toggle", () => {
+                uiState[openKey] = collapsible.card.open;
+                queueSaveState();
+            });
+            if (key === "advanced" || key === "runtime") collapsible.body.classList.add("toggle-grid");
+            group.items.forEach((field) => collapsible.body.appendChild(createArgumentRow(field, false)));
+            left.appendChild(collapsible.card);
+        });
+
+        layout.appendChild(left);
+        layout.appendChild(right);
+        container.appendChild(layout);
     }
 
     function renderFields(container, fields) {
@@ -2759,7 +3150,88 @@
         }
     }
 
+    function renderModuleNav(active, onClick) {
+        const container = document.getElementById("module-tabs");
+        if (!container) return;
+        container.innerHTML = "";
+        MODULE_GROUPS.forEach((group) => {
+            const modules = group.modules.filter((key) => MODULE_TAB_NAMES[key]);
+            if (!modules.length) return;
+            const label = document.createElement("div");
+            label.className = "side-nav__label";
+            label.textContent = group.title;
+            container.appendChild(label);
+            modules.forEach((key) => {
+                const meta = moduleMeta(key);
+                const link = document.createElement("a");
+                link.href = "/features?manual_navigation=1";
+                const isActive = CURRENT_PAGE === "features" && !homeViewActive && active === key;
+                link.className = `side-link${isActive ? " side-link--active" : ""}`;
+                if (isActive) link.setAttribute("aria-current", "page");
+                const iconWrap = document.createElement("span");
+                iconWrap.className = `side-link__icon tone-${meta.tone}`;
+                iconWrap.appendChild(iconElement(meta.icon));
+                link.appendChild(iconWrap);
+                const text = document.createElement("span");
+                text.className = "side-link__label";
+                text.textContent = meta.label;
+                link.appendChild(text);
+                link.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    closeSidebar();
+                    onClick(key);
+                });
+                container.appendChild(link);
+            });
+        });
+        const homeLink = document.getElementById("nav-home");
+        if (homeLink) {
+            const homeActive = CURRENT_PAGE === "features" && homeViewActive;
+            homeLink.classList.toggle("side-link--active", homeActive);
+            homeLink.setAttribute("aria-current", homeActive ? "page" : "false");
+        }
+    }
+
+    function renderConfigSectionList(mapping, active, onClick) {
+        const container = document.getElementById("config-section-tabs");
+        if (!container) return;
+        container.innerHTML = "";
+        Object.keys(mapping).forEach((key) => {
+            const section = configSectionByName(key);
+            const visual = CONFIG_SECTION_ICONS[key] || {icon: "settings", tone: "tool"};
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `section-item${active === key ? " is-active" : ""}`;
+            button.setAttribute("aria-current", active === key ? "true" : "false");
+            const iconWrap = document.createElement("span");
+            iconWrap.className = `side-link__icon tone-${visual.tone}`;
+            iconWrap.appendChild(iconElement(visual.icon));
+            button.appendChild(iconWrap);
+            const text = document.createElement("span");
+            text.className = "section-item__label";
+            text.textContent = mapping[key];
+            button.appendChild(text);
+            if (section && configSectionAccountIds(section).length) {
+                const configured = configSectionAccountIds(section).filter((accountId) => configSectionHasAccountCredentials(section, accountId)).length;
+                const badge = document.createElement("span");
+                badge.className = `section-item__status ${configured ? "is-ok" : "is-empty"}`;
+                badge.textContent = configured ? `${configured} account${configured === 1 ? "" : "s"}` : "Not set";
+                button.appendChild(badge);
+            }
+            button.addEventListener("click", () => onClick(key));
+            container.appendChild(button);
+        });
+    }
+
     function renderTabs(containerId, mapping, active, onClick) {
+        if (containerId === "module-tabs") {
+            renderModuleNav(active, onClick);
+            return;
+        }
+        if (containerId === "config-section-tabs") {
+            renderConfigSectionList(mapping, active, onClick);
+            return;
+        }
         const container = document.getElementById(containerId);
         container.innerHTML = "";
         for (const key of Object.keys(mapping)) {
@@ -2790,13 +3262,37 @@
         document.getElementById("migration-panel").classList.add("hidden");
     }
 
+    function createDangerNoticeForAction(tabKey, actionDest) {
+        const prompt = dangerousModuleConfirmationForPayload({
+            tab: tabKey,
+            selected_action_dest: actionDest,
+            values: stateValues
+        });
+        if (!prompt) return null;
+        const message = String(prompt.message || "").replace(/\s*Do you want to continue\?\s*$/i, "");
+        return createInfoCard(
+            "Changes your library",
+            `${escapeHtml(message)}<br><span class="info-card__note">You will be asked to confirm before it runs.</span>`,
+            "danger"
+        );
+    }
+
+    function createNoArgumentsNote() {
+        const note = document.createElement("div");
+        note.className = "arg-row arg-row--empty";
+        const tag = document.createElement("span");
+        tag.className = "flag-tag";
+        tag.textContent = "No extra arguments required";
+        note.appendChild(tag);
+        return note;
+    }
+
     function renderCloudActionPanel(tabKey) {
         const panel = document.getElementById("cloud-action-panel");
         const fields = (schema.tabs[tabKey] || []);
         const baseActions = fields.filter((f) => f.dest !== "one-time-password");
         let actions = baseActions.filter((f) => isCloudActionAvailable(tabKey, f.dest));
         if (!actions.length) actions = baseActions;
-        const otpField = fields.find((f) => f.dest === "one-time-password");
         const persistedCloudDest = uiState?.cloud_action_dest?.[tabKey];
         if (!cloudActionDest && persistedCloudDest && actions.find((f) => f.dest === persistedCloudDest)) {
             cloudActionDest = persistedCloudDest;
@@ -2816,52 +3312,14 @@
                     ? "Immich Photos"
                     : (tabKey === "nextcloud_photos" ? "NextCloud Photos" : (tabKey === "local_folder" ? "Local Photos Folder" : ""))));
 
-        const generalDocCard = document.createElement("div");
-        generalDocCard.className = "desc-card cloud-doc-card";
-        const generalDocTitle = document.createElement("h3");
-        generalDocTitle.textContent = `${moduleDisplayName} - User Description:`;
-        const generalDocBody = document.createElement("p");
-        const supportedModules = actions
-            .map((action) => uiFeatureName(action))
-            .filter(Boolean);
-        const introLines = [
-            `Use this feature to interact with your ${moduleDisplayName} library from PhotoMigrator.`,
-            "Select one of the supported actions below depending on whether you want to inspect, pull, push, clean up, or reorganize cloud content.",
-        ];
-        const introHtml = introLines
-            .map((line) => `<span class="desc-line">${escapeHtml(line)}</span>`)
-            .join("");
-        const modulesHtml = [
-            '<span class="desc-optional-title">Supported modules:</span>',
-            '<span class="desc-modules-grid">',
-            ...supportedModules.map((label) => `<span class="desc-modules-item">${escapeHtml(label)}</span>`),
-            '</span>',
-        ].join("");
-        generalDocBody.innerHTML = `${introHtml}<br>${modulesHtml}`;
-        generalDocCard.appendChild(generalDocTitle);
-        generalDocCard.appendChild(generalDocBody);
-        panel.appendChild(generalDocCard);
-
         const wrap = document.createElement("div");
         wrap.className = "selector-layout";
 
         const left = document.createElement("div");
         left.className = "selector-main";
 
-        const selectRow = document.createElement("div");
-        selectRow.className = "arg-row arg-row--stack";
-        const selectLabel = document.createElement("label");
-        selectLabel.className = "arg-label";
-        selectLabel.textContent = "Select Module";
-        const select = document.createElement("select");
-        select.className = "field__input";
-        select.id = "cloud-action-select";
-        actions.forEach((action) => {
-            select.add(new Option(uiFeatureName(action), action.dest));
-        });
-        select.value = cloudActionDest;
-        select.addEventListener("change", (event) => {
-            cloudActionDest = event.target.value || "";
+        const onCloudActionSelected = (dest) => {
+            cloudActionDest = dest || "";
             if (!uiState.cloud_action_dest) uiState.cloud_action_dest = {};
             uiState.cloud_action_dest[tabKey] = cloudActionDest;
             queueSaveState();
@@ -2870,15 +3328,18 @@
             updateOutputPanelTitle();
             restoreLastVisibleJobForCurrentContext();
             queueCommandPreview();
-        });
-        selectRow.appendChild(selectLabel);
-        selectRow.appendChild(select);
-        left.appendChild(selectRow);
+        };
+        const actionStep = createStepCard(1, "Choose an action");
+        actionStep.body.appendChild(buildActionPicker(actions, cloudActionDest, onCloudActionSelected));
+        left.appendChild(actionStep.card);
+
+        const optionsStep = createStepCard(2, `Options for ${selected ? uiFeatureName(selected) : "this action"}`);
+        const options = optionsStep.body;
 
         if (tabKey === "local_folder") {
             const localFolderField = getFieldByDest("local-photos-folder");
             if (localFolderField) {
-                left.appendChild(createArgumentRow(normalizeFieldForContext(localFolderField, tabKey), true));
+                options.appendChild(createArgumentRow(normalizeFieldForContext(localFolderField, tabKey), true));
             }
         }
 
@@ -2911,44 +3372,65 @@
             const hiddenRename = document.createElement("input");
             hiddenRename.type = "hidden";
             hiddenRename.dataset.dest = "rename-albums";
-            left.appendChild(hiddenRename);
+            options.appendChild(hiddenRename);
 
-            const patternRow = document.createElement("div");
-            patternRow.className = "arg-row";
-            const patternLabel = document.createElement("label");
-            patternLabel.className = "arg-label";
-            patternLabel.textContent = "Rename Pattern";
-            const patternBadge = document.createElement("span");
-            patternBadge.className = "arg-badge arg-badge--required";
-            patternBadge.textContent = "Required";
-            patternLabel.appendChild(patternBadge);
-            patternRow.appendChild(patternLabel);
-            const patternInput = document.createElement("input");
-            patternInput.type = "text";
-            patternInput.className = "field__input";
-            patternInput.placeholder = "Album name pattern (text, wildcard, or regex)";
-            patternInput.value = parsedRename.pattern || "";
-            patternRow.appendChild(patternInput);
-            left.appendChild(patternRow);
+            const createRenameRow = (labelText, placeholder, value, helpText, flagText) => {
+                const row = document.createElement("div");
+                row.className = "arg-row";
+                const inputId = nextUiElementId("arg");
+                const label = document.createElement("label");
+                label.className = "arg-label";
+                label.htmlFor = inputId;
+                const text = document.createElement("span");
+                text.className = "arg-label__text";
+                text.textContent = labelText;
+                label.appendChild(text);
+                const badge = document.createElement("span");
+                badge.className = "arg-badge arg-badge--required";
+                badge.textContent = "Required";
+                label.appendChild(badge);
+                row.appendChild(label);
+                const input = document.createElement("input");
+                input.type = "text";
+                input.id = inputId;
+                input.className = "field__input";
+                input.placeholder = placeholder;
+                input.value = value;
+                input.setAttribute("aria-required", "true");
+                const inputRow = document.createElement("div");
+                inputRow.className = "input-row";
+                inputRow.appendChild(input);
+                row.appendChild(inputRow);
+                const meta = document.createElement("div");
+                meta.className = "arg-meta";
+                const help = document.createElement("p");
+                help.className = "arg-help";
+                help.textContent = helpText;
+                meta.appendChild(help);
+                const flag = document.createElement("code");
+                flag.className = "arg-flag";
+                flag.textContent = flagText;
+                meta.appendChild(flag);
+                row.appendChild(meta);
+                options.appendChild(row);
+                return input;
+            };
 
-            const replacementRow = document.createElement("div");
-            replacementRow.className = "arg-row";
-            const replacementLabel = document.createElement("label");
-            replacementLabel.className = "arg-label";
-            replacementLabel.textContent = "Replacement Pattern";
-            const replacementBadge = document.createElement("span");
-            replacementBadge.className = "arg-badge arg-badge--required";
-            replacementBadge.textContent = "Required";
-            replacementLabel.appendChild(replacementBadge);
-            replacementRow.appendChild(replacementLabel);
-            const replacementInput = document.createElement("input");
-            replacementInput.type = "text";
-            replacementInput.className = "field__input";
-            replacementInput.placeholder = "Replacement text";
+            const patternInput = createRenameRow(
+                "Rename pattern",
+                "Album name pattern (text, wildcard, or regex)",
+                parsedRename.pattern || "",
+                "Albums whose names match this text, wildcard or regex are renamed.",
+                "--rename-albums <pattern>"
+            );
+            const replacementInput = createRenameRow(
+                "Replacement pattern",
+                "Replacement text",
+                String(stateValues["replacement-pattern"] || parsedRename.replacement || ""),
+                "New name for each matching album.",
+                "--rename-albums <replacement>"
+            );
             replacementInput.dataset.dest = "replacement-pattern";
-            replacementInput.value = String(stateValues["replacement-pattern"] || parsedRename.replacement || "");
-            replacementRow.appendChild(replacementInput);
-            left.appendChild(replacementRow);
 
             const syncRenameAlbumsValue = () => {
                 hiddenRename.value = composeRenameAlbumsValue(patternInput.value, replacementInput.value);
@@ -2966,28 +3448,27 @@
         }
 
         if (!renderArgSpecs.length && !isRenameAlbumsSelected) {
-            const noArgs = document.createElement("div");
-            noArgs.className = "arg-row";
-            const lbl = document.createElement("label");
-            lbl.className = "arg-label";
-            lbl.textContent = "Arguments";
-            noArgs.appendChild(lbl);
-            const tag = document.createElement("span");
-            tag.className = "flag-tag";
-            tag.textContent = "No extra arguments required";
-            noArgs.appendChild(tag);
-            left.appendChild(noArgs);
+            options.appendChild(createNoArgumentsNote());
         } else {
             renderArgSpecs.forEach((spec) => {
-                left.appendChild(createArgumentRow(spec.field, spec.required));
+                options.appendChild(createArgumentRow(spec.field, spec.required));
             });
         }
 
+        if (isRemoteCloudTab(tabKey)) {
+            const credentialNote = createCredentialStatusNote(moduleDisplayName, getScopedCloudAccountId(tabKey));
+            if (credentialNote) options.appendChild(credentialNote);
+            const accountInput = options.querySelector('[data-dest="account-id"]');
+            if (accountInput) {
+                accountInput.addEventListener("change", () => {
+                    setTimeout(() => renderCloudActionPanel(tabKey), 0);
+                });
+            }
+        }
+        left.appendChild(optionsStep.card);
+
         const right = document.createElement("div");
-        right.className = "desc-card";
-        const rightTitle = document.createElement("h3");
-        rightTitle.textContent = `${moduleDisplayName}: ${selected ? uiFeatureName(selected) : "-"} - Module Description:`;
-        const rightHelp = document.createElement("p");
+        right.className = "selector-side";
         const requiredFieldsForDescription = [
             ...(tabKey === "local_folder" ? [getFieldByDest("local-photos-folder")].filter(Boolean) : []),
             ...renderArgSpecs
@@ -2997,12 +3478,15 @@
         const optionalFieldsForDescription = renderArgSpecs
             .filter((spec) => !spec.required)
             .map((spec) => spec.field);
-        rightHelp.innerHTML = formatDescriptionHtml(selected, optionalFieldsForDescription, {
+        const aboutHtml = formatDescriptionHtml(selected, optionalFieldsForDescription, {
             requiredFields: requiredFieldsForDescription,
             clientName: tabKey === "google_photos" ? "Google Photos" : (tabKey === "synology_photos" ? "Synology" : (tabKey === "immich_photos" ? "Immich" : (tabKey === "nextcloud_photos" ? "NextCloud" : (tabKey === "local_folder" ? "Local Photos Folder" : ""))))
         });
-        right.appendChild(rightTitle);
-        right.appendChild(rightHelp);
+        const aboutCard = createInfoCard(`About ${selected ? uiFeatureName(selected) : "this action"}`, aboutHtml);
+        aboutCard.classList.add("about-card");
+        right.appendChild(aboutCard);
+        const dangerNotice = createDangerNoticeForAction(tabKey, selected?.dest || "");
+        if (dangerNotice) right.appendChild(dangerNotice);
 
         wrap.appendChild(left);
         wrap.appendChild(right);
@@ -3025,52 +3509,14 @@
         const selected = actions.find((f) => f.dest === standaloneActionDest);
         panel.innerHTML = "";
 
-        const generalDocCard = document.createElement("div");
-        generalDocCard.className = "desc-card cloud-doc-card";
-        const generalDocTitle = document.createElement("h3");
-        generalDocTitle.textContent = "Other Features - User Description:";
-        const generalDocBody = document.createElement("p");
-        const supportedFeatures = actions
-            .map((action) => uiFeatureName(action))
-            .filter(Boolean);
-        const introLines = [
-            "Use this feature to run standalone maintenance and local-library utilities that do not belong to a specific cloud provider.",
-            "Select one of the supported actions below depending on whether you want to analyze, organize, rename, clean, or deduplicate local content.",
-        ];
-        const introHtml = introLines
-            .map((line) => `<span class="desc-line">${escapeHtml(line)}</span>`)
-            .join("");
-        const featuresHtml = [
-            '<span class="desc-optional-title">Supported features:</span>',
-            '<span class="desc-features-list">',
-            ...supportedFeatures.map((label) => `<span class="desc-modules-item">${escapeHtml(label)}</span>`),
-            '</span>',
-        ].join("");
-        generalDocBody.innerHTML = `${introHtml}<br>${featuresHtml}`;
-        generalDocCard.appendChild(generalDocTitle);
-        generalDocCard.appendChild(generalDocBody);
-        panel.appendChild(generalDocCard);
-
         const wrap = document.createElement("div");
         wrap.className = "selector-layout";
 
         const left = document.createElement("div");
         left.className = "selector-main";
 
-        const selectRow = document.createElement("div");
-        selectRow.className = "arg-row arg-row--stack";
-        const selectLabel = document.createElement("label");
-        selectLabel.className = "arg-label";
-        selectLabel.textContent = "Select Feature";
-        const select = document.createElement("select");
-        select.className = "field__input";
-        select.id = "standalone-action-select";
-        actions.forEach((action) => {
-            select.add(new Option(uiFeatureName(action), action.dest));
-        });
-        select.value = standaloneActionDest;
-        select.addEventListener("change", (event) => {
-            standaloneActionDest = event.target.value || "";
+        const onStandaloneActionSelected = (dest) => {
+            standaloneActionDest = dest || "";
             uiState.standalone_action_dest = standaloneActionDest;
             queueSaveState();
             clearValidationErrorStatus();
@@ -3078,10 +3524,13 @@
             updateOutputPanelTitle();
             restoreLastVisibleJobForCurrentContext();
             queueCommandPreview();
-        });
-        selectRow.appendChild(selectLabel);
-        selectRow.appendChild(select);
-        left.appendChild(selectRow);
+        };
+        const actionStep = createStepCard(1, "Choose a tool");
+        actionStep.body.appendChild(buildActionPicker(actions, standaloneActionDest, onStandaloneActionSelected));
+        left.appendChild(actionStep.card);
+
+        const optionsStep = createStepCard(2, `Options for ${selected ? uiFeatureName(selected) : "this tool"}`);
+        const options = optionsStep.body;
 
         const argSpecs = buildArgumentSpecs("standalone_features", selected, true);
         if (selected && selected.dest === "find-duplicates") {
@@ -3091,13 +3540,18 @@
             const hidden = document.createElement("input");
             hidden.type = "hidden";
             hidden.dataset.dest = "find-duplicates";
-            left.appendChild(hidden);
+            options.appendChild(hidden);
 
             const foldersRow = document.createElement("div");
             foldersRow.className = "arg-row";
+            const foldersId = nextUiElementId("arg");
             const foldersLabel = document.createElement("label");
             foldersLabel.className = "arg-label";
-            foldersLabel.textContent = "Folder(s)";
+            foldersLabel.htmlFor = foldersId;
+            const foldersLabelText = document.createElement("span");
+            foldersLabelText.className = "arg-label__text";
+            foldersLabelText.textContent = "Folders to scan";
+            foldersLabel.appendChild(foldersLabelText);
             const foldersBadge = document.createElement("span");
             foldersBadge.className = "arg-badge arg-badge--required";
             foldersBadge.textContent = "Required";
@@ -3108,28 +3562,39 @@
             foldersWrap.className = "input-row";
             const foldersInput = document.createElement("input");
             foldersInput.type = "text";
+            foldersInput.id = foldersId;
             foldersInput.className = "field__input";
             foldersInput.placeholder = "Comma-separated folders";
             foldersInput.value = parsed.folders.join(", ");
             foldersInput.dataset.folderMulti = "1";
+            foldersInput.setAttribute("aria-required", "true");
             foldersWrap.appendChild(foldersInput);
 
             const browseBtn = document.createElement("button");
             browseBtn.type = "button";
             browseBtn.className = "ghost-btn browse-btn";
-            browseBtn.textContent = "...";
+            browseBtn.innerHTML = `${iconSvg("folder")}<span>Browse</span>`;
             browseBtn.title = "Open folder selector";
             browseBtn.setAttribute("aria-label", "Open folder selector");
             browseBtn.addEventListener("click", () => openFolderDialog(foldersInput));
             foldersWrap.appendChild(browseBtn);
             foldersRow.appendChild(foldersWrap);
-            left.appendChild(foldersRow);
+            const foldersMeta = document.createElement("div");
+            foldersMeta.className = "arg-meta";
+            foldersMeta.innerHTML = `<p class="arg-help">Comma-separated folder paths to scan for duplicates.</p><code class="arg-flag">--find-duplicates &lt;action&gt; &lt;folders&gt;</code>`;
+            foldersRow.appendChild(foldersMeta);
+            options.appendChild(foldersRow);
 
             const actionRow = document.createElement("div");
             actionRow.className = "arg-row";
+            const actionId = nextUiElementId("arg");
             const actionLabel = document.createElement("label");
             actionLabel.className = "arg-label";
-            actionLabel.textContent = "Action";
+            actionLabel.htmlFor = actionId;
+            const actionLabelText = document.createElement("span");
+            actionLabelText.className = "arg-label__text";
+            actionLabelText.textContent = "What to do with duplicates";
+            actionLabel.appendChild(actionLabelText);
             const actionBadge = document.createElement("span");
             actionBadge.className = "arg-badge arg-badge--required";
             actionBadge.textContent = "Required";
@@ -3137,13 +3602,21 @@
             actionRow.appendChild(actionLabel);
 
             const actionInput = document.createElement("select");
+            actionInput.id = actionId;
             actionInput.className = "field__input";
             actionInput.add(new Option("list", "list"));
             actionInput.add(new Option("move", "move"));
             actionInput.add(new Option("delete", "delete"));
             actionInput.value = parsed.action || "list";
-            actionRow.appendChild(actionInput);
-            left.appendChild(actionRow);
+            const actionWrap = document.createElement("div");
+            actionWrap.className = "input-row";
+            actionWrap.appendChild(actionInput);
+            actionRow.appendChild(actionWrap);
+            const actionMeta = document.createElement("div");
+            actionMeta.className = "arg-meta";
+            actionMeta.innerHTML = `<p class="arg-help">List only, move the duplicates to a folder, or delete them.</p>`;
+            actionRow.appendChild(actionMeta);
+            options.appendChild(actionRow);
 
             const syncFindDuplicatesValue = () => {
                 const folders = parseFolderListValue(foldersInput.value || "");
@@ -3158,30 +3631,20 @@
             syncFindDuplicatesValue();
         } else {
             if (!argSpecs.length) {
-                const noArgs = document.createElement("div");
-                noArgs.className = "arg-row";
-                const lbl = document.createElement("label");
-                lbl.className = "arg-label";
-                lbl.textContent = "Arguments";
-                noArgs.appendChild(lbl);
-                const tag = document.createElement("span");
-                tag.className = "flag-tag";
-                tag.textContent = "No extra arguments required";
-                noArgs.appendChild(tag);
-                left.appendChild(noArgs);
+                options.appendChild(createNoArgumentsNote());
             } else {
-                argSpecs.forEach((spec) => left.appendChild(createArgumentRow(spec.field, spec.required)));
+                argSpecs.forEach((spec) => options.appendChild(createArgumentRow(spec.field, spec.required)));
             }
 
             if (selected && selected.dest === "rename-folders-content-based") {
                 const namingCard = document.createElement("div");
-                namingCard.className = "flags-card";
-                const namingTitle = document.createElement("h3");
-                namingTitle.textContent = "Date/Ranges Separators";
+                namingCard.className = "flags-card subcard";
+                const namingTitle = document.createElement("h4");
+                namingTitle.textContent = "Date and range separators";
                 namingCard.appendChild(namingTitle);
                 const namingHint = document.createElement("div");
                 namingHint.className = "arg-inline-help";
-                namingHint.textContent = "If empty, value from General Arguments will be used.";
+                namingHint.textContent = "If empty, the value from Settings › General arguments is used.";
                 namingCard.appendChild(namingHint);
 
                 STANDALONE_RENAME_CONTENT_BASED_OVERRIDE_DESTS.forEach((dest) => {
@@ -3206,15 +3669,13 @@
                     namingCard.appendChild(createArgumentRow(overrideField, false));
                 });
 
-                left.appendChild(namingCard);
+                options.appendChild(namingCard);
             }
         }
+        left.appendChild(optionsStep.card);
 
         const right = document.createElement("div");
-        right.className = "desc-card";
-        const title = document.createElement("h3");
-        title.textContent = `Other Features: ${selected ? uiFeatureName(selected) : "-"} - Module Description:`;
-        const help = document.createElement("p");
+        right.className = "selector-side";
         const requiredFieldsForDescription = selected && selected.dest === "find-duplicates"
             ? [
                 {
@@ -3234,11 +3695,14 @@
         const optionalFieldsForDescription = argSpecs
             .filter((spec) => !spec.required)
             .map((spec) => spec.field);
-        help.innerHTML = formatDescriptionHtml(selected, optionalFieldsForDescription, {
+        const aboutHtml = formatDescriptionHtml(selected, optionalFieldsForDescription, {
             requiredFields: requiredFieldsForDescription,
         });
-        right.appendChild(title);
-        right.appendChild(help);
+        const aboutCard = createInfoCard(`About ${selected ? uiFeatureName(selected) : "this tool"}`, aboutHtml);
+        aboutCard.classList.add("about-card");
+        right.appendChild(aboutCard);
+        const dangerNotice = createDangerNoticeForAction("standalone_features", selected?.dest || "");
+        if (dangerNotice) right.appendChild(dangerNotice);
 
         wrap.appendChild(left);
         wrap.appendChild(right);
@@ -3296,17 +3760,28 @@
         const left = document.createElement("div");
         left.className = "selector-main";
 
+        const destinationStep = createStepCard(1, "Where to put the files on the server");
         const targetRow = document.createElement("div");
         targetRow.className = "arg-row";
+        const targetId = nextUiElementId("arg");
         const targetLabel = document.createElement("label");
         targetLabel.className = "arg-label";
-        targetLabel.textContent = "Destination Folder";
+        targetLabel.htmlFor = targetId;
+        const targetLabelText = document.createElement("span");
+        targetLabelText.className = "arg-label__text";
+        targetLabelText.textContent = "Destination folder";
+        targetLabel.appendChild(targetLabelText);
+        const targetBadge = document.createElement("span");
+        targetBadge.className = "arg-badge arg-badge--required";
+        targetBadge.textContent = "Required";
+        targetLabel.appendChild(targetBadge);
         targetRow.appendChild(targetLabel);
 
         const targetWrap = document.createElement("div");
         targetWrap.className = "input-row";
         const targetInput = document.createElement("input");
         targetInput.type = "text";
+        targetInput.id = targetId;
         targetInput.className = "field__input";
         targetInput.dataset.dest = "upload-folder-target-path";
         targetInput.placeholder = "Select destination folder";
@@ -3315,27 +3790,30 @@
         const browseBtn = document.createElement("button");
         browseBtn.type = "button";
         browseBtn.className = "ghost-btn browse-btn";
-        browseBtn.textContent = "...";
+        browseBtn.innerHTML = `${iconSvg("folder")}<span>Browse</span>`;
         browseBtn.title = "Open folder selector";
         browseBtn.setAttribute("aria-label", "Open folder selector");
         browseBtn.addEventListener("click", () => openFolderDialog(targetInput, {mode: "upload_folder"}));
         targetWrap.appendChild(browseBtn);
         targetRow.appendChild(targetWrap);
-        left.appendChild(targetRow);
+        destinationStep.body.appendChild(targetRow);
 
         const extractRow = document.createElement("div");
         extractRow.className = "arg-row";
+        const extractId = nextUiElementId("arg");
         const extractLabel = document.createElement("label");
         extractLabel.className = "arg-label";
-        extractLabel.textContent = "Extract ZIPs on upload";
-        const extractBadge = document.createElement("span");
-        extractBadge.className = "arg-badge arg-badge--optional";
-        extractBadge.textContent = "Optional";
-        extractLabel.appendChild(extractBadge);
+        extractLabel.htmlFor = extractId;
+        const extractLabelText = document.createElement("span");
+        extractLabelText.className = "arg-label__text";
+        extractLabelText.textContent = "Extract ZIPs on upload";
+        extractLabel.appendChild(extractLabelText);
         extractRow.appendChild(extractLabel);
 
         const extractWrap = document.createElement("div");
+        extractWrap.className = "input-row";
         const extractInput = document.createElement("select");
+        extractInput.id = extractId;
         extractInput.className = "field__input";
         extractInput.dataset.dest = "upload-folder-extract-zips";
         extractInput.add(new Option("No", "no"));
@@ -3343,16 +3821,20 @@
         extractInput.value = uploadExtractModeFromState(stateValues["upload-folder-extract-zips"]);
         extractWrap.appendChild(extractInput);
         extractRow.appendChild(extractWrap);
-        left.appendChild(extractRow);
+        const extractMeta = document.createElement("div");
+        extractMeta.className = "arg-meta";
+        extractMeta.innerHTML = '<p class="arg-help">When enabled, uploaded .zip files are extracted on the server and the .zip file is removed.</p>';
+        extractRow.appendChild(extractMeta);
+        destinationStep.body.appendChild(extractRow);
+        left.appendChild(destinationStep.card);
 
-        const actionRow = document.createElement("div");
-        actionRow.className = "arg-row";
+        const uploadStep = createStepCard(2, "Upload from this computer");
         const actionButtonsWrap = document.createElement("div");
         actionButtonsWrap.className = "input-row upload-action-row";
         const uploadFolderBtn = document.createElement("button");
         uploadFolderBtn.type = "button";
-        uploadFolderBtn.className = "run-btn upload-action-btn";
-        uploadFolderBtn.textContent = "Upload Local Folder";
+        uploadFolderBtn.className = "run-btn run-btn--primary upload-action-btn";
+        uploadFolderBtn.innerHTML = `${iconSvg("folder")}Upload Local Folder`;
         uploadFolderBtn.addEventListener("click", async () => {
             const destination = String(targetInput.value || "").trim();
             if (!destination) {
@@ -3371,7 +3853,7 @@
         const uploadZipBtn = document.createElement("button");
         uploadZipBtn.type = "button";
         uploadZipBtn.className = "run-btn upload-action-btn";
-        uploadZipBtn.textContent = "Upload Local Zip";
+        uploadZipBtn.innerHTML = `${iconSvg("archive")}Upload Local Zip`;
         uploadZipBtn.addEventListener("click", async () => {
             const destination = String(targetInput.value || "").trim();
             if (!destination) {
@@ -3389,27 +3871,25 @@
         });
         actionButtonsWrap.appendChild(uploadFolderBtn);
         actionButtonsWrap.appendChild(uploadZipBtn);
-        actionRow.appendChild(actionButtonsWrap);
-        left.appendChild(actionRow);
+        uploadStep.body.appendChild(actionButtonsWrap);
 
         const statusRow = document.createElement("div");
         statusRow.id = "upload-folder-status";
         statusRow.className = "status";
         statusRow.textContent = "Upload status: idle";
-        left.appendChild(statusRow);
+        uploadStep.body.appendChild(statusRow);
+        left.appendChild(uploadStep.card);
 
         const right = document.createElement("div");
-        right.className = "desc-card";
-        const title = document.createElement("h3");
-        title.textContent = "Upload to Server - Feature Description:";
-        const text = document.createElement("p");
-        text.innerHTML =
-            "Use this feature to upload local content (folder or ZIP) into the selected destination path in the server container.<br><br>" +
-            "Choose destination folder in container and upload local content.<br>" +
-            "If <strong>Extract ZIPs on upload</strong> is set to Yes, uploaded .zip files are extracted in server and the .zip file is removed.<br>" +
-            "If set to No, .zip files are kept as uploaded.";
-        right.appendChild(title);
-        right.appendChild(text);
+        right.className = "selector-side";
+        const aboutCard = createInfoCard(
+            "About Upload to Server",
+            "Upload local content (a folder or a ZIP file) into the selected destination folder on the server, so the other features can use it.<br><br>"
+            + "If <strong>Extract ZIPs on upload</strong> is set to Yes, uploaded .zip files are extracted on the server and the .zip file is removed. "
+            + "If set to No, .zip files are kept as uploaded."
+        );
+        aboutCard.classList.add("about-card");
+        right.appendChild(aboutCard);
 
         wrap.appendChild(left);
         wrap.appendChild(right);
@@ -3427,9 +3907,9 @@
         fields.forEach((field) => { byDest[field.dest] = field; });
 
         const wrap = document.createElement("div");
-        wrap.className = "migration-layout";
+        wrap.className = "migration-layout selector-layout";
         const left = document.createElement("div");
-        left.className = "migration-main";
+        left.className = "migration-main selector-main";
         const otpField = byDest["one-time-password"];
         const peopleField = byDest["import-people"];
         const stacksField = byDest["create-stacks"];
@@ -3464,11 +3944,14 @@
 
         const createMigrationEndpointRow = (dest, required = false) => {
             const row = document.createElement("div");
-            row.className = "arg-row";
+            row.className = "arg-row migration-endpoint-row";
 
-            const label = document.createElement("label");
+            const label = document.createElement("div");
             label.className = "arg-label";
-            label.textContent = dest;
+            const labelText = document.createElement("span");
+            labelText.className = "arg-label__text";
+            labelText.textContent = dest === "source" ? "Source" : "Target";
+            label.appendChild(labelText);
             const badge = document.createElement("span");
             badge.className = required ? "arg-badge arg-badge--required" : "arg-badge arg-badge--optional";
             badge.textContent = required ? "Required" : "Optional";
@@ -3478,13 +3961,10 @@
             const controls = document.createElement("div");
             controls.className = "migration-endpoint";
 
-            const typeSelect = document.createElement("select");
-            typeSelect.className = "field__input migration-endpoint__type";
-            typeSelect.add(new Option("Synology Photos", "synology"));
-            typeSelect.add(new Option("Immich Photos", "immich"));
-            typeSelect.add(new Option("NextCloud Photos", "nextcloud"));
-            typeSelect.add(new Option("Google Photos", "google"));
-            typeSelect.add(new Option("Select Folder", "folder"));
+            const typePicker = document.createElement("div");
+            typePicker.className = "service-picker migration-endpoint__type";
+            typePicker.setAttribute("role", "radiogroup");
+            typePicker.setAttribute("aria-label", `${dest === "source" ? "Source" : "Target"} service`);
 
             const secondaryWrap = document.createElement("div");
             secondaryWrap.className = "migration-endpoint__secondary";
@@ -3501,7 +3981,6 @@
                 account: String(persistedState?.account || parsedFromValue.account || "1"),
                 path: String(persistedState?.path || parsedFromValue.path || "")
             };
-            typeSelect.value = migrationEndpointsState[dest].kind;
 
             const updateComposedValue = (persist = true) => {
                 hidden.value = composeMigrationEndpoint(migrationEndpointsState[dest]);
@@ -3514,25 +3993,51 @@
                 }
             };
 
+            MIGRATION_ENDPOINT_KINDS.forEach((kindMeta) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                const isSelected = migrationEndpointsState[dest].kind === kindMeta.kind;
+                button.className = `service-option${isSelected ? " is-selected" : ""}`;
+                button.setAttribute("role", "radio");
+                button.setAttribute("aria-checked", isSelected ? "true" : "false");
+                const icon = document.createElement("span");
+                icon.className = `service-option__icon tone-${kindMeta.tone}`;
+                icon.appendChild(iconElement(kindMeta.icon));
+                button.appendChild(icon);
+                const name = document.createElement("span");
+                name.textContent = kindMeta.label;
+                button.appendChild(name);
+                button.addEventListener("click", () => {
+                    if (migrationEndpointsState[dest].kind === kindMeta.kind) return;
+                    migrationEndpointsState[dest].kind = kindMeta.kind || defaultKind;
+                    updateComposedValue();
+                    renderMigrationPanel();
+                });
+                typePicker.appendChild(button);
+            });
+
             const renderSecondary = () => {
                 secondaryWrap.innerHTML = "";
                 if (migrationEndpointsState[dest].kind === "folder") {
+                    const pathRow = document.createElement("div");
+                    pathRow.className = "input-row";
                     const pathInput = document.createElement("input");
                     pathInput.type = "text";
                     pathInput.className = "field__input";
                     pathInput.placeholder = "Folder path";
+                    pathInput.setAttribute("aria-label", `${dest === "source" ? "Source" : "Target"} folder path`);
                     pathInput.value = migrationEndpointsState[dest].path || "";
                     pathInput.dataset.dest = dest;
                     pathInput.addEventListener("input", () => {
                         migrationEndpointsState[dest].path = pathInput.value;
                         updateComposedValue();
                     });
-                    secondaryWrap.appendChild(pathInput);
+                    pathRow.appendChild(pathInput);
 
                     const browseBtn = document.createElement("button");
                     browseBtn.type = "button";
                     browseBtn.className = "ghost-btn browse-btn";
-                    browseBtn.textContent = "...";
+                    browseBtn.innerHTML = `${iconSvg("folder")}<span>Browse</span>`;
                     browseBtn.title = "Open folder selector";
                     browseBtn.setAttribute("aria-label", "Open folder selector");
                     browseBtn.addEventListener("click", () => openFolderDialog(pathInput));
@@ -3540,9 +4045,17 @@
                         migrationEndpointsState[dest].path = pathInput.value;
                         updateComposedValue();
                     });
-                    secondaryWrap.appendChild(browseBtn);
+                    pathRow.appendChild(browseBtn);
+                    secondaryWrap.appendChild(pathRow);
                 } else {
+                    const accountLabel = document.createElement("label");
+                    accountLabel.className = "arg-label arg-label--small";
+                    const accountId = nextUiElementId("account");
+                    accountLabel.htmlFor = accountId;
+                    accountLabel.textContent = "Account";
+                    secondaryWrap.appendChild(accountLabel);
                     const accountSelect = document.createElement("select");
+                    accountSelect.id = accountId;
                     accountSelect.className = "field__input migration-endpoint__account";
                     accountSelect.add(new Option("Account 1", "1"));
                     accountSelect.add(new Option("Account 2", "2"));
@@ -3551,19 +4064,18 @@
                     accountSelect.addEventListener("change", () => {
                         migrationEndpointsState[dest].account = accountSelect.value || "1";
                         updateComposedValue();
+                        renderSecondary();
                     });
                     secondaryWrap.appendChild(accountSelect);
+                    const kindMeta = MIGRATION_ENDPOINT_KINDS.find((item) => item.kind === migrationEndpointsState[dest].kind);
+                    const note = kindMeta?.section
+                        ? createCredentialStatusNote(kindMeta.section, migrationEndpointsState[dest].account || "1")
+                        : null;
+                    if (note) secondaryWrap.appendChild(note);
                 }
             };
 
-            typeSelect.addEventListener("change", () => {
-                migrationEndpointsState[dest].kind = typeSelect.value || defaultKind;
-                renderSecondary();
-                updateComposedValue();
-                renderMigrationPanel();
-            });
-
-            controls.appendChild(typeSelect);
+            controls.appendChild(typePicker);
             controls.appendChild(secondaryWrap);
             controls.appendChild(hidden);
             row.appendChild(controls);
@@ -3573,51 +4085,51 @@
             return row;
         };
 
-        left.appendChild(createMigrationEndpointRow("source", true));
-        left.appendChild(createMigrationEndpointRow("target", true));
+        const endpointsStep = createStepCard(1, "Where from and where to");
+        const endpointsGrid = document.createElement("div");
+        endpointsGrid.className = "migration-endpoints";
+        endpointsGrid.appendChild(createMigrationEndpointRow("source", true));
+        const arrow = document.createElement("div");
+        arrow.className = "migration-endpoints__arrow";
+        arrow.appendChild(iconElement("arrowRight"));
+        endpointsGrid.appendChild(arrow);
+        endpointsGrid.appendChild(createMigrationEndpointRow("target", true));
+        endpointsStep.body.appendChild(endpointsGrid);
+        left.appendChild(endpointsStep.card);
 
-        const flagsCard = document.createElement("div");
-        flagsCard.className = "flags-card";
-        const flagsTitle = document.createElement("h3");
-        flagsTitle.textContent = "Migration Flags";
-        flagsCard.appendChild(flagsTitle);
-
+        const flagsStep = createStepCard(2, "How to migrate", "flags-card");
         ["move-assets", "dashboard", "parallel-migration", "prefer-canonical-album-names", "consolidate-similar-albums"].forEach((dest) => {
             if (!byDest[dest]) return;
-            flagsCard.appendChild(createArgumentRow(byDest[dest]));
+            flagsStep.body.appendChild(createArgumentRow(byDest[dest]));
         });
         const migrationHasSynologyEndpoint = ["source", "target"]
             .some((dest) => migrationEndpointsState[dest]?.kind === "synology");
-        if (otpField && migrationHasSynologyEndpoint) flagsCard.appendChild(createArgumentRow(otpField));
+        if (otpField && migrationHasSynologyEndpoint) flagsStep.body.appendChild(createArgumentRow(otpField));
         if (peopleField && migrationEndpointsState.target?.kind === "immich") {
-            flagsCard.appendChild(createArgumentRow(peopleField));
+            flagsStep.body.appendChild(createArgumentRow(peopleField));
         }
         if (stacksField && migrationEndpointsState.target?.kind === "immich") {
-            flagsCard.appendChild(createArgumentRow(stacksField));
+            flagsStep.body.appendChild(createArgumentRow(stacksField));
         }
+        left.appendChild(flagsStep.card);
 
-        left.appendChild(flagsCard);
-
-        const recoveryCard = document.createElement("div");
-        recoveryCard.className = "flags-card";
-        const recoveryTitle = document.createElement("h3");
-        recoveryTitle.textContent = "Push Recovery";
-        recoveryCard.appendChild(recoveryTitle);
-        if (pushAssetMaxSizeField) recoveryCard.appendChild(createArgumentRow(pushAssetMaxSizeField));
-        if (immichUploadTimeoutField && migrationEndpointsState.target?.kind === "immich") {
-            recoveryCard.appendChild(createArgumentRow(immichUploadTimeoutField));
-        }
-        left.appendChild(recoveryCard);
-
-        const filtersCard = document.createElement("div");
-        filtersCard.className = "flags-card";
-        const filtersTitle = document.createElement("h3");
-        filtersTitle.textContent = "Migration Filters";
-        filtersCard.appendChild(filtersTitle);
+        const filterValues = MIGRATION_FILTER_DESTS
+            .map((dest) => String(stateValues[`am-${dest}`] ?? "").trim())
+            .filter(Boolean);
+        const filtersStep = createCollapsibleCard(
+            "Filters",
+            filterValues.length ? `${filterValues.length} set for this migration` : "Using Settings defaults",
+            Boolean(uiState?.migration_filters_open)
+        );
+        filtersStep.card.classList.add("flags-card");
+        filtersStep.card.addEventListener("toggle", () => {
+            uiState.migration_filters_open = filtersStep.card.open;
+            queueSaveState();
+        });
         const filtersHint = document.createElement("div");
         filtersHint.className = "arg-inline-help";
-        filtersHint.textContent = "If empty, value from General Arguments will be used.";
-        filtersCard.appendChild(filtersHint);
+        filtersHint.textContent = "If empty, the value from Settings › General arguments is used.";
+        filtersStep.body.appendChild(filtersHint);
 
         MIGRATION_FILTER_DESTS.forEach((dest) => {
             const baseField = getFieldByDest(dest);
@@ -3630,15 +4142,33 @@
                 dest: overrideDest,
                 default: overrideValue === undefined ? (inheritedValue ?? "") : overrideValue
             };
-            filtersCard.appendChild(createArgumentRow(overrideField, false));
+            filtersStep.body.appendChild(createArgumentRow(overrideField, false));
         });
+        left.appendChild(filtersStep.card);
 
-        left.appendChild(filtersCard);
+        const recoveryParts = [];
+        if (pushAssetMaxSizeField) recoveryParts.push(`max size ${String(stateValues["push-asset-max-size-mb"] ?? pushAssetMaxSizeField.default ?? 0)} MB`);
+        if (immichUploadTimeoutField && migrationEndpointsState.target?.kind === "immich") {
+            recoveryParts.push(`timeout ${String(stateValues["immich-upload-timeout-seconds"] ?? immichUploadTimeoutField.default ?? "")} s`);
+        }
+        const recoveryStep = createCollapsibleCard(
+            "Advanced · push recovery",
+            recoveryParts.join(" · "),
+            Boolean(uiState?.migration_recovery_open)
+        );
+        recoveryStep.card.classList.add("flags-card");
+        recoveryStep.card.addEventListener("toggle", () => {
+            uiState.migration_recovery_open = recoveryStep.card.open;
+            queueSaveState();
+        });
+        if (pushAssetMaxSizeField) recoveryStep.body.appendChild(createArgumentRow(pushAssetMaxSizeField));
+        if (immichUploadTimeoutField && migrationEndpointsState.target?.kind === "immich") {
+            recoveryStep.body.appendChild(createArgumentRow(immichUploadTimeoutField));
+        }
+        left.appendChild(recoveryStep.card);
 
         const right = document.createElement("div");
-        right.className = "desc-card";
-        const title = document.createElement("h3");
-        title.textContent = "Automatic Migration - Feature Description:";
+        right.className = "selector-side";
 
         const migrationDescriptionField = {
             dest: "automatic-migration",
@@ -3679,12 +4209,19 @@
             getFieldByDest("exclude-files")
         ].filter(Boolean);
 
-        const help = document.createElement("p");
-        help.innerHTML = formatDescriptionHtml(migrationDescriptionField, optionalFieldsForDescription, {
+        const aboutHtml = formatDescriptionHtml(migrationDescriptionField, optionalFieldsForDescription, {
             requiredFields: requiredFieldsForDescription,
         });
-        right.appendChild(title);
-        right.appendChild(help);
+        const aboutCard = createInfoCard("About Automatic Migration", aboutHtml);
+        aboutCard.classList.add("about-card");
+        right.appendChild(aboutCard);
+        if (uiBooleanValue(stateValues["move-assets"])) {
+            right.appendChild(createInfoCard(
+                "Move mode is on",
+                "Assets are removed from the source after they are migrated. Turn off “Move assets” to copy instead.",
+                "danger"
+            ));
+        }
 
         wrap.appendChild(left);
         wrap.appendChild(right);
@@ -3704,14 +4241,165 @@
         });
     }
 
-    function renderAll() {
-        renderTabs("module-tabs", MODULE_TAB_NAMES, activeModuleTab, (key) => {
-            activeModuleTab = key;
-            uiState.active_module_tab = key;
-            queueSaveState();
-            clearValidationErrorStatus();
-            renderAll();
+    async function openModuleFromNavigation(key) {
+        if (!MODULE_TAB_NAMES[key]) return;
+        activeModuleTab = key;
+        uiState.active_module_tab = key;
+        if (CURRENT_PAGE !== "features") {
+            await saveStateNow();
+            window.location.href = "/features?manual_navigation=1";
+            return;
+        }
+        if (uiState.cloud_action_dest?.[key]) cloudActionDest = uiState.cloud_action_dest[key];
+        if (isRemoteCloudTab(key)) stateValues["account-id"] = getScopedCloudAccountId(key);
+        queueSaveState();
+        clearValidationErrorStatus();
+        setHomeView(false, {render: false});
+        renderAll();
+        window.scrollTo({top: 0});
+    }
+
+    function setHomeView(active, options = {}) {
+        if (CURRENT_PAGE !== "features") return;
+        homeViewActive = Boolean(active);
+        const homeView = document.getElementById("home-view");
+        const featureView = document.getElementById("feature-view");
+        if (homeView) homeView.classList.toggle("hidden", !homeViewActive);
+        if (featureView) featureView.classList.toggle("hidden", homeViewActive);
+        document.body.classList.toggle("is-home-view", homeViewActive);
+        const url = homeViewActive ? "/features?view=home" : "/features";
+        if (`${window.location.pathname}${window.location.search}` !== url) {
+            window.history.replaceState({}, "", `${url}${window.location.hash}`);
+        }
+        if (homeViewActive) renderHomeView();
+        if (options.render !== false) {
+            renderModuleNav(activeModuleTab, openModuleFromNavigation);
+            updateFeaturePanelTitle();
+        }
+    }
+
+    function createHomeTile(key, compact = false) {
+        const meta = moduleMeta(key);
+        const tile = document.createElement("a");
+        tile.href = "/features?manual_navigation=1";
+        tile.className = `home-tile${compact ? " home-tile--compact" : ""}`;
+        const icon = document.createElement("span");
+        icon.className = `home-tile__icon tone-${meta.tone}`;
+        icon.appendChild(iconElement(meta.icon));
+        tile.appendChild(icon);
+        const text = document.createElement("span");
+        text.className = "home-tile__text";
+        const name = document.createElement("span");
+        name.className = "home-tile__name";
+        name.textContent = compact ? (HOME_TILE_TEXT[key]?.short || meta.label) : meta.label;
+        text.appendChild(name);
+        if (!compact) {
+            const desc = document.createElement("span");
+            desc.className = "home-tile__desc";
+            desc.textContent = HOME_TILE_TEXT[key]?.desc || shortHelpText(meta.tagline, 90);
+            text.appendChild(desc);
+        }
+        tile.appendChild(text);
+        if (!compact) tile.appendChild(iconElement("chevronRight", "home-tile__chevron"));
+        tile.addEventListener("click", (event) => {
+            event.preventDefault();
+            openModuleFromNavigation(key);
         });
+        return tile;
+    }
+
+    function renderHomeView() {
+        const root = document.getElementById("home-view");
+        if (!root) return;
+        root.innerHTML = "";
+        const userName = String(currentUser?.username || document.getElementById("session-user-label")?.textContent || "").trim();
+
+        const intro = document.createElement("section");
+        intro.className = "home-intro";
+        intro.innerHTML = `
+            <span class="eyebrow">${escapeHtml(userName ? `Welcome back, ${userName}` : "Welcome")}</span>
+            <h1 id="home-title">What would you like to do today?</h1>
+            <p>Pick a task. PhotoMigrator only shows the options that task needs and the exact command before anything runs.</p>`;
+        root.appendChild(intro);
+
+        const migration = document.createElement("section");
+        migration.className = "card home-feature";
+        const migrationText = document.createElement("div");
+        migrationText.className = "home-feature__text";
+        migrationText.innerHTML = `
+            <div class="home-feature__eyebrow"><span class="home-tile__icon tone-mig">${iconSvg("migrate")}</span><span class="eyebrow">Migrate</span></div>
+            <h2>Move your whole library to another service</h2>
+            <p>Automatic Migration copies (or moves) every photo, video and album from a source to a target in one run, with a live dashboard.</p>`;
+        const migrationButton = document.createElement("button");
+        migrationButton.type = "button";
+        migrationButton.className = "run-btn run-btn--primary";
+        migrationButton.innerHTML = `Start a migration${iconSvg("arrowRight")}`;
+        migrationButton.addEventListener("click", () => openModuleFromNavigation("automatic_migration"));
+        migrationText.appendChild(migrationButton);
+        migration.appendChild(migrationText);
+        const route = document.createElement("div");
+        route.className = "home-feature__route";
+        const sourceState = uiState?.migration_endpoints?.source || {kind: "synology"};
+        const targetState = uiState?.migration_endpoints?.target || {kind: "immich"};
+        const endpointChip = (label, state) => {
+            const kindMeta = MIGRATION_ENDPOINT_KINDS.find((item) => item.kind === state.kind) || MIGRATION_ENDPOINT_KINDS[0];
+            const name = kindMeta.section || "Local folder";
+            return `<div class="route-chip"><span class="home-tile__icon tone-${kindMeta.tone}">${iconSvg(kindMeta.icon)}</span><span><span class="route-chip__label">${label}</span><span class="route-chip__name">${escapeHtml(name)}</span></span></div>`;
+        };
+        route.innerHTML = `
+            <div class="route-row">${endpointChip("Source", sourceState)}<span class="route-arrow">${iconSvg("arrowRight")}</span>${endpointChip("Target", targetState)}</div>
+            <p class="muted">Works with Google Photos, Synology Photos, Immich Photos, NextCloud Photos and local folders, in any direction.</p>`;
+        migration.appendChild(route);
+        root.appendChild(migration);
+
+        const grid = document.createElement("section");
+        grid.className = "home-grid";
+        MODULE_GROUPS.filter((group) => group.key !== "migrate").forEach((group) => {
+            const card = document.createElement("div");
+            card.className = "card home-group";
+            const text = HOME_GROUP_TEXT[group.key] || {title: group.title, text: ""};
+            card.innerHTML = `<div><span class="eyebrow">${escapeHtml(group.title)}</span><h3>${escapeHtml(text.title)}</h3><p class="muted">${escapeHtml(text.text)}</p></div>`;
+            const list = document.createElement("div");
+            list.className = group.key === "libraries" ? "home-group__grid" : "home-group__list";
+            group.modules.filter((key) => MODULE_TAB_NAMES[key]).forEach((key) => {
+                list.appendChild(createHomeTile(key, group.key === "libraries"));
+            });
+            card.appendChild(list);
+            grid.appendChild(card);
+        });
+        root.appendChild(grid);
+
+        const bottom = document.createElement("section");
+        bottom.className = "home-bottom";
+        const steps = document.createElement("div");
+        steps.className = "card home-steps";
+        steps.innerHTML = `
+            <h3>Get started in three steps</h3>
+            <div class="home-step"><span class="home-step__num">1</span><div><strong>Connect your services</strong><p class="muted">Add the URL and credentials of each account in <a href="/configuration?manual_navigation=1">Settings › Service credentials</a>.</p></div></div>
+            <div class="home-step"><span class="home-step__num">2</span><div><strong>Choose a task</strong><p class="muted">Fill the required fields. Advanced options keep their defaults unless you open them.</p></div></div>
+            <div class="home-step"><span class="home-step__num">3</span><div><strong>Run and follow the progress</strong><p class="muted">Check the command preview, press Run and watch it live in <a href="/output?manual_navigation=1">Activity</a>.</p></div></div>`;
+        bottom.appendChild(steps);
+        const activity = document.createElement("div");
+        activity.className = "card home-activity";
+        const activeJobId = String(uiState?.active_job_id || "").trim();
+        const lastTab = String(uiState?.active_job_tab || uiState?.last_visible_job_tab || "").trim();
+        const lastMeta = lastTab ? moduleMeta(lastTab) : null;
+        activity.innerHTML = `
+            <h3>Activity</h3>
+            <p class="muted">${activeJobId
+                ? `A job${lastMeta ? ` (${escapeHtml(lastMeta.label)})` : ""} is linked to your session. Open Activity to follow its progress and log.`
+                : "No job is running. When you run a feature, its live progress and log appear in Activity."}</p>`;
+        const activityLink = document.createElement("a");
+        activityLink.className = "ghost-btn";
+        activityLink.href = "/output?manual_navigation=1";
+        activityLink.innerHTML = `${iconSvg("activity")}Open Activity`;
+        activity.appendChild(activityLink);
+        bottom.appendChild(activity);
+        root.appendChild(bottom);
+    }
+
+    function renderAll() {
+        renderTabs("module-tabs", MODULE_TAB_NAMES, activeModuleTab, openModuleFromNavigation);
         updateFeaturePanelTitle();
         updateOutputPanelTitle();
         renderGeneralTabs();
@@ -4084,7 +4772,35 @@
         document.getElementById("output-last-updated").textContent = `Last Updated: ${formatTimeOfDay(lastUpdated)}`;
     }
 
+    const GLOBAL_RUN_STATUS_LABELS = {
+        running: "Running",
+        stopping: "Stopping",
+        success: "Finished",
+        failed: "Failed",
+        stopped: "Stopped"
+    };
+
+    function updateGlobalRunIndicator(status = "idle") {
+        const normalized = String(status || "idle").trim().toLowerCase();
+        const pill = document.getElementById("topbar-status");
+        const pillText = document.getElementById("topbar-status-text");
+        const badge = document.getElementById("nav-live-badge");
+        const isLive = normalized === "running" || normalized === "stopping";
+        if (pill) {
+            pill.classList.remove("status-pill--idle", "status-pill--running", "status-pill--success", "status-pill--failed", "status-pill--stopped");
+            const tone = isLive ? "running" : (["success", "failed", "stopped"].includes(normalized) ? normalized : "idle");
+            pill.classList.add(`status-pill--${tone}`);
+        }
+        if (pillText) pillText.textContent = GLOBAL_RUN_STATUS_LABELS[normalized] || "No job running";
+        if (badge) {
+            badge.classList.toggle("hidden", !isLive);
+            badge.textContent = normalized === "stopping" ? "Stopping" : "Running";
+        }
+        document.body.classList.toggle("has-live-job", isLive);
+    }
+
     function updateRunStopButtons(status = "idle") {
+        updateGlobalRunIndicator(status);
         const runButtons = [
             document.getElementById("run-btn"),
             document.getElementById("run-btn-output")
@@ -4140,9 +4856,37 @@
     }
 
     function updateFeaturePanelTitle() {
+        const meta = moduleMeta(activeModuleTab);
         const titleEl = document.getElementById("feature-panel-title");
-        if (!titleEl) return;
-        titleEl.innerHTML = `Feature Selector Panel: <span class="feature-panel-title__badge">${escapeHtml(getActiveModuleDisplayName())}</span>`;
+        if (titleEl) titleEl.textContent = meta.label;
+        const taglineEl = document.getElementById("feature-hero-tagline");
+        if (taglineEl) taglineEl.textContent = meta.tagline || "";
+        const groupEl = document.getElementById("feature-hero-group");
+        if (groupEl) groupEl.textContent = moduleGroupTitle(activeModuleTab);
+        const iconEl = document.getElementById("feature-hero-icon");
+        if (iconEl) {
+            iconEl.className = `feature-hero__icon tone-${meta.tone}`;
+            iconEl.innerHTML = iconSvg(meta.icon);
+        }
+        const topTitle = document.getElementById("topbar-title");
+        const topEyebrow = document.getElementById("topbar-eyebrow");
+        if (CURRENT_PAGE === "features") {
+            if (homeViewActive) {
+                if (topTitle) topTitle.textContent = "Home";
+                if (topEyebrow) topEyebrow.textContent = "PhotoMigrator";
+                document.title = "PhotoMigrator";
+            } else {
+                if (topTitle) topTitle.textContent = meta.label;
+                if (topEyebrow) topEyebrow.textContent = moduleGroupTitle(activeModuleTab) || "Features";
+                document.title = `${meta.label} · PhotoMigrator`;
+            }
+        } else if (CURRENT_PAGE === "output") {
+            if (topEyebrow) topEyebrow.textContent = "Workspace";
+            document.title = "Activity · PhotoMigrator";
+        } else if (CURRENT_PAGE === "configuration") {
+            if (topEyebrow) topEyebrow.textContent = "Workspace";
+            document.title = "Settings · PhotoMigrator";
+        }
     }
 
     function updateOutputPanelTitle() {
@@ -4155,15 +4899,20 @@
             : (effectiveTab === "standalone_features" ? standaloneActionDest : cloudActionDest);
         const featureName = getModuleDisplayNameForContext(effectiveTab);
         const submoduleName = getSelectedSubmoduleDisplayNameForContext(effectiveTab, effectiveSelectedActionDest);
+        const effectiveMeta = moduleMeta(effectiveTab);
+        const runIcon = document.getElementById("run-header-icon");
+        if (runIcon) {
+            runIcon.className = `feature-hero__icon tone-${effectiveMeta.tone}`;
+            runIcon.innerHTML = iconSvg(effectiveMeta.icon);
+        }
         if (submoduleName) {
             titleEl.innerHTML =
-                `Output Panel: ` +
-                `<span class="feature-panel-title__badge">${escapeHtml(featureName)}</span>` +
-                ` &rarr; ` +
+                `${escapeHtml(effectiveMeta.label || featureName)}` +
+                `<span class="run-header__sep">›</span>` +
                 `<span class="feature-panel-title__badge feature-panel-title__badge--subtle">${escapeHtml(submoduleName)}</span>`;
             return;
         }
-        titleEl.innerHTML = `Output Panel: <span class="feature-panel-title__badge">${escapeHtml(featureName)}</span>`;
+        titleEl.textContent = effectiveMeta.label || featureName;
     }
 
     function getVisibleFeatureFieldDests() {
@@ -4210,8 +4959,9 @@
         actions.innerHTML = "";
         const restoreButton = document.createElement("button");
         restoreButton.type = "button";
-        restoreButton.className = "run-btn run-btn--danger";
-        restoreButton.textContent = "Restore Default";
+        restoreButton.className = "ghost-btn";
+        restoreButton.innerHTML = `${iconSvg("refresh")}Restore defaults`;
+        restoreButton.title = "Restore the default values of the fields shown for this feature";
         restoreButton.addEventListener("click", restoreFeatureDefaults);
         actions.appendChild(restoreButton);
     }
@@ -4741,6 +5491,18 @@
         });
     }
 
+    function configFieldFriendlyLabel(section, rawKey) {
+        let key = String(rawKey || "");
+        if (key === "TIMEZONE") return "Time zone";
+        const prefixes = ["GOOGLE_PHOTOS_", "SYNOLOGY_", "IMMICH_", "NEXTCLOUD_", "APPLE_PHOTOS_", "APPLE_"];
+        prefixes.forEach((prefix) => {
+            if (key.startsWith(prefix) && key.length > prefix.length) key = key.slice(prefix.length);
+        });
+        key = key.replace(/_\d+$/, "");
+        const label = humanizeLabel(key);
+        return label || String(rawKey || "");
+    }
+
     function renderConfigSectionField(card, section, field) {
         const row = document.createElement("div");
         row.className = "config-field-row";
@@ -4753,7 +5515,9 @@
         const displayKey = String(field.key || "") === "timezone"
             ? "TIMEZONE"
             : String(field.key || "");
-        name.textContent = displayKey;
+        const configInputId = nextUiElementId("config");
+        name.htmlFor = configInputId;
+        name.textContent = configFieldFriendlyLabel(section, displayKey);
         const nameLine = document.createElement("div");
         nameLine.className = "config-field-keyline";
         nameLine.appendChild(name);
@@ -4795,6 +5559,7 @@
         }
         input.dataset.section = sectionName;
         input.dataset.key = key;
+        input.id = configInputId;
         const applyNextcloudDefaultsFromUsername = () => {
             if (sectionName !== "NextCloud Photos") return;
             const match = /^NEXTCLOUD_USERNAME_(\d+)$/.exec(String(key || ""));
@@ -4841,7 +5606,31 @@
         };
         input.addEventListener("input", updateConfigValue);
         input.addEventListener("change", updateConfigValue);
-        inputColumn.appendChild(input);
+        if (!hasChoices && field.sensitive) {
+            const secretWrap = document.createElement("div");
+            secretWrap.className = "input-row secret-row";
+            secretWrap.appendChild(input);
+            const revealButton = document.createElement("button");
+            revealButton.type = "button";
+            revealButton.className = "icon-btn icon-btn--bordered";
+            revealButton.setAttribute("aria-label", `Show ${configFieldFriendlyLabel(section, displayKey)}`);
+            revealButton.setAttribute("aria-pressed", "false");
+            revealButton.innerHTML = iconSvg("eye");
+            revealButton.addEventListener("click", () => {
+                const reveal = input.type === "password";
+                input.type = reveal ? "text" : "password";
+                revealButton.setAttribute("aria-pressed", reveal ? "true" : "false");
+                revealButton.setAttribute("aria-label", `${reveal ? "Hide" : "Show"} ${configFieldFriendlyLabel(section, displayKey)}`);
+            });
+            secretWrap.appendChild(revealButton);
+            inputColumn.appendChild(secretWrap);
+        } else {
+            inputColumn.appendChild(input);
+        }
+        const keyCode = document.createElement("code");
+        keyCode.className = "arg-flag config-field-raw-key";
+        keyCode.textContent = displayKey;
+        inputColumn.appendChild(keyCode);
         row.appendChild(inputColumn);
 
         const helpPanel = document.createElement("aside");
@@ -4865,9 +5654,19 @@
     function buildConfigSectionCard(section) {
         const card = document.createElement("section");
         card.className = "config-section-card";
+        const titleRow = document.createElement("div");
+        titleRow.className = "config-section-card__head";
+        const visual = CONFIG_SECTION_ICONS[section.name];
+        if (visual) {
+            const iconWrap = document.createElement("span");
+            iconWrap.className = `feature-hero__icon feature-hero__icon--small tone-${visual.tone}`;
+            iconWrap.appendChild(iconElement(visual.icon));
+            titleRow.appendChild(iconWrap);
+        }
         const title = document.createElement("h4");
         title.textContent = section.display_name || section.name || "Section";
-        card.appendChild(title);
+        titleRow.appendChild(title);
+        card.appendChild(titleRow);
         if (section.description) {
             const desc = document.createElement("p");
             desc.className = "config-section-desc";
@@ -4887,20 +5686,35 @@
             selectorRow.className = "config-field-row config-account-selector";
             const selectorMain = document.createElement("div");
             selectorMain.className = "config-field-input-col config-account-selector__main";
-            const selectorLabel = document.createElement("label");
+            const selectorLabel = document.createElement("span");
             selectorLabel.className = "config-field-key config-account-selector__label";
-            selectorLabel.textContent = "Configure account";
-            const selectorInput = document.createElement("select");
-            selectorInput.className = "field__input config-account-selector__input";
+            selectorLabel.textContent = "Account";
+            const selectorInput = document.createElement("div");
+            selectorInput.className = "account-tabs config-account-selector__input";
+            selectorInput.setAttribute("role", "tablist");
+            selectorInput.setAttribute("aria-label", `${section.display_name || section.name} accounts`);
             configSectionAccountIds(section).forEach((accountId) => {
-                selectorInput.add(new Option(`Account ${accountId}`, accountId));
-            });
-            selectorInput.value = selectedAccountId;
-            selectorInput.addEventListener("change", (event) => {
-                if (!uiState.config_section_accounts) uiState.config_section_accounts = {};
-                uiState.config_section_accounts[section.name] = String(event.target.value || "");
-                queueSaveState();
-                renderActiveConfigSection();
+                const tab = document.createElement("button");
+                tab.type = "button";
+                const isSelected = accountId === selectedAccountId;
+                tab.className = `account-tab${isSelected ? " is-selected" : ""}`;
+                tab.setAttribute("role", "tab");
+                tab.setAttribute("aria-selected", isSelected ? "true" : "false");
+                const dot = document.createElement("span");
+                const configured = configSectionHasAccountCredentials(section, accountId);
+                dot.className = `account-tab__dot${configured ? " is-configured" : ""}`;
+                dot.title = configured ? "Configured" : "Not configured";
+                tab.appendChild(dot);
+                tab.appendChild(document.createTextNode(`Account ${accountId}`));
+                tab.addEventListener("click", () => {
+                    if (isSelected) return;
+                    syncVisibleConfigInputsToState();
+                    if (!uiState.config_section_accounts) uiState.config_section_accounts = {};
+                    uiState.config_section_accounts[section.name] = String(accountId || "");
+                    queueSaveState();
+                    renderActiveConfigSection();
+                });
+                selectorInput.appendChild(tab);
             });
             selectorMain.appendChild(selectorLabel);
             selectorMain.appendChild(selectorInput);
@@ -5310,7 +6124,11 @@
             : ["/app/data"];
         const label = document.getElementById("session-user-label");
         if (label && currentUser) {
-            label.textContent = `User: ${currentUser.username} (${currentUser.role})`;
+            label.textContent = String(currentUser.username || "");
+            const roleLabel = document.querySelector(".user-card__role");
+            if (roleLabel) roleLabel.textContent = String(currentUser.role || "");
+            const avatar = document.querySelector(".user-card__avatar");
+            if (avatar) avatar.textContent = String(currentUser.username || "?").slice(0, 1).toUpperCase();
         }
         const adminLink = document.getElementById("admin-link");
         if (adminLink) {
@@ -6107,7 +6925,22 @@
     window.closeFolderDialogs = closeFolderDialogs;
 
     function bindUi() {
+        hydrateIcons();
         bindCollapseButtons();
+        document.getElementById("copy-command-btn")?.addEventListener("click", copyCommandPreview);
+        document.getElementById("sidebar-open")?.addEventListener("click", openSidebar);
+        document.getElementById("sidebar-close")?.addEventListener("click", closeSidebar);
+        document.getElementById("sidebar-backdrop")?.addEventListener("click", closeSidebar);
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && document.body.classList.contains("sidebar-open")) closeSidebar();
+        });
+        document.getElementById("nav-home")?.addEventListener("click", (event) => {
+            if (CURRENT_PAGE !== "features") return;
+            event.preventDefault();
+            closeSidebar();
+            setHomeView(true);
+            window.scrollTo({top: 0});
+        });
         document.getElementById("open-help-btn").addEventListener("click", () => {
             window.open("/docs/view/help", "_blank", "noopener,noreferrer");
         });
@@ -6420,6 +7253,8 @@
         const response = await apiFetch("/api/schema");
         schema = await response.json();
         renderAll();
+        if (homeViewActive) setHomeView(true);
+        hydrateIcons();
         await tryResumeActiveJob();
     }
 

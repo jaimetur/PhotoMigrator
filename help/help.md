@@ -14,39 +14,45 @@ The web interface is a visual layer on top of the CLI: you choose options on scr
 
 ## Main Web Interface Areas
 
-### 1. Top Header
-- Tool name, tool version, tool description
-- Quick links to: `Readme`, `Release Notes`, and `Help`.
+### 1. Sidebar
+- `Home` and every feature grouped by task:
+  - **Migrate:** Automatic Migration
+  - **Process Takeout:** Google Takeout, iCloud Takeout
+  - **Photo libraries:** Google Photos, Synology Photos, Immich Photos, NextCloud Photos, Local Photos Folder
+  - **Tools:** Other Features, Upload to Server
+- `Activity` (with a `Running` badge while a job runs) and `Settings`.
+- Links to `Help`, `Readme`, `Release Notes` and `Roadmap`, your user, the `Admin Panel` (admins only) and `Logout`.
+- On a phone, the sidebar opens from the menu button in the top bar.
 
-### 2. General Panel
-- Global arguments (logging, filters, paths,...).
-- Configuration file editor.
-- Theme selector
+### 2. Home
+- Asks "What would you like to do today?" and lists the tasks as cards.
+- Shows the three steps to get started and a shortcut to `Activity`.
 
-### 3. Feature Selector
-- Main module selection:
-  - Automatic Migration
-  - Google Takeout
-  - iCloud Takeout
-  - Google Photos
-  - Synology Photos
-  - Immich Photos
-  - NextCloud Photos
-  - Other Features
-- Includes `Live Command Preview` so you can verify the exact CLI command before execution.
+### 3. Feature pages
+- A header with the feature name, a short description and `Restore defaults`.
+- For photo libraries and Other Features, a visual action picker grouped by purpose (for example Transfer, Organize and Clean up).
+- Numbered option cards with plain-language labels, a short help text and the CLI flag of each field. Advanced options are collapsed.
+- An `About` card with the full description of the selected feature or action, and a warning card for actions that delete or change data.
+- A run bar at the bottom with the live `Command` preview, a copy button, `Run` and `Stop`.
 
-### 4. Execution Output
-- Real-time terminal output.
-- Job status, logs, and interaction controls.
+### 4. Activity
+- Status, start time, elapsed time and last update of the current or last job.
+- The executed command, the Automatic Migration live dashboard and the real-time log.
+- `Process input` to answer the questions a running job asks (`Send`, `Yes`, `No`).
+
+### 5. Settings
+- `Service credentials`: one entry per service with its configured accounts, account tabs and import/export of the configuration.
+- `General arguments`: global arguments (logs, execution, folder names and filters).
+- `App settings`: theme and time zone.
 
 ---
 
 ## Recommended Workflow
-1. Configure accounts and credentials in `Config.ini` or through supported environment variables if you run the Web Interface in Docker/Compose/Kubernetes.
-2. Review `General Arguments` (logs, shared filters, paths).
-3. Select a module in `Feature Selector`.
-4. Validate the generated command in `Command Preview`.
-5. Run the module and monitor progress in `Execution Output`.
+1. Add the URL and credentials of each account in `Settings > Service credentials` (or through supported environment variables if you run the Web Interface in Docker/Compose/Kubernetes).
+2. Review `Settings > General arguments` (logs, shared filters, paths).
+3. Choose a task from `Home` or the sidebar.
+4. Validate the generated command in the `Command` preview of the run bar.
+5. Press `Run` and follow the progress in `Activity`.
 
 ---
 

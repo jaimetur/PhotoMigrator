@@ -4,7 +4,7 @@ You can see the default Configuration File ('Config.ini' by default) below:
 
 > [!NOTE]
 > In the local Desktop GUI and Terminal TUI, the default config path is `./Config.ini` from the current execution folder, matching the classic CLI behavior.
-> You can override that at startup with `--configuration-file <PATH>` or later inside `General Arguments > Configuration File`.
+> You can override that at startup with `--configuration-file <PATH>` or later inside `General Arguments > Configuration File` (`Settings > General arguments` in the desktop GUI).
 
 >```
 ># Configuration for Google Takeout

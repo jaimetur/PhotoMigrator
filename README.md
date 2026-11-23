@@ -29,35 +29,26 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 # 📸 Tool Screenshots
 
 ## 🌐 Web Interface
-### Automatic Migration Feature:
-![Automatic Migration](assets/screenshots/web-interface-automatic-migration.png?raw=true)  
+### Home:
+![Home](landing/media/web-home.webp?raw=true)  
 
-### Automatic Migration Feature (Live Dashboard):
-![Automatic Migration (Live Dashboard)](assets/screenshots/web-interface-automatic-migration-live-dashboard.png?raw=true)   
+### Automatic Migration Feature:
+![Automatic Migration](landing/media/web-migration.webp?raw=true)  
+
+### Activity (job progress and log):
+![Activity](landing/media/web-activity.webp?raw=true)  
 
 ### Google Takeout Feature:
-![Google Takeout](assets/screenshots/web-interface-google-takeout.png?raw=true)  
-
-### iCloud Takeout Feature:
-![iCloud Takeout](assets/screenshots/web-interface-icloud-takeout.png?raw=true)  
-
-### Synology Photos Feature:
-![Synology Photos](assets/screenshots/web-interface-synology-photos.png?raw=true)  
+![Google Takeout](landing/media/web-takeout.webp?raw=true)  
 
 ### Immich Photos Feature:
-![Immich Photos](assets/screenshots/web-interface-immich-photos.png?raw=true)  
+![Immich Photos](landing/media/web-immich.webp?raw=true)  
 
-### Other Features:
-![Other Features](assets/screenshots/web-interface-other-features.png?raw=true)  
+### Settings (Service credentials):
+![Settings](landing/media/web-settings.webp?raw=true)  
 
-### General Arguments:
-![General Arguments](assets/screenshots/web-interface-general-arguments.png?raw=true)  
-
-### Configuration Panel:
-![Configuration Panel](assets/screenshots/web-interface-configuration-panel.png?raw=true)  
-
-### App Settings:
-![App Settings](assets/screenshots/web-interface-app-settings.png?raw=true)  
+### Dark Theme:
+![Dark Theme](landing/media/web-dark.webp?raw=true)  
 
 ## 🖥️ Automatic Migration on Terminal
 ![Live Dashboard](assets/screenshots/live_dashboard.jpg?raw=true)  
@@ -184,17 +175,14 @@ Finally, the Tool also contains Other Useful Standalone Features such as:
 PhotoMigrator now includes a Web Interface that executes the same CLI arguments under the hood.
 
 Main characteristics:
-- Multi-tab UI separated by module:
-  - Automatic Migration
-  - Google Takeout
-  - iCloud Takeout
-  - Google Photos
-  - Synology Photos
-  - Immich Photos
-  - NextCloud Photos
-  - Local Photos Folder
-  - Other Features
-- General/optional arguments available for all tabs.
+- Task-first navigation: a `Home` page to pick what you want to do and a sidebar with the features grouped by task:
+  - **Migrate:** Automatic Migration
+  - **Process Takeout:** Google Takeout, iCloud Takeout
+  - **Photo libraries:** Google Photos, Synology Photos, Immich Photos, NextCloud Photos, Local Photos Folder
+  - **Tools:** Other Features, Upload to Server
+- Visual action picker, option cards with plain-language labels, inline help and the CLI flag of every field.
+- `Activity` page with the job status, live dashboard, log and answers to the questions a job asks.
+- `Settings` with `Service credentials`, `General arguments` (shared by all features) and `App settings` (theme and time zone).
 - Automatic Migration and Local Photos Folder workflows support exclusion filters for unwanted folders/files such as `@eaDir`, `.@__thumb`, `@Recycle`, `SYNOFILE_THUMB*`, `SYNOPHOTO_THUMB*`, `SYNOVIDEO_THUMB*`, `SYNOPHOTO_FILM*`, `Thumbs.db`, `ehthumbs.db`, `.DS_Store`, or `._*`.
 - Real command preview + execution output in the browser.
 - Backend powered by `FastAPI` + `uvicorn` on port `6078`.
@@ -238,12 +226,9 @@ PhotoMigrator includes two local interactive interfaces in addition to the Web I
 - **Desktop GUI**: a native windowed interface built with `tkinter`.
 - **Terminal TUI**: an interactive terminal interface built with `Textual`.
 
-Both interfaces expose the same high-level structure:
-- `Feature Selector`
-- `Features Config`
-- `General Arguments`
-- `App Settings`
-- command preview, status panel, and execution log
+Both interfaces expose the same features and settings:
+- The **Desktop GUI** follows the Web Interface layout: a sidebar with `Home`, the features grouped by task, `Activity`, `Settings` (`Service credentials`, `General arguments` and `App settings`) and `Help`, a run bar with the command preview, and an `Activity` view with the job log and the answers to its questions.
+- The **Terminal TUI** keeps its keyboard-driven layout: `Feature Selector`, `Features Config`, `General Arguments` and `App Settings`, with command preview, status panel, and execution log.
 
 Default launcher behavior:
 - Running `PhotoMigrator` without arguments tries to open the **Desktop GUI** first.
@@ -257,7 +242,7 @@ Explicit launchers:
 
 Config file behavior in GUI/TUI:
 - If no explicit configuration path is provided, both interfaces use `./Config.ini` from the current execution folder, matching the classic CLI behavior.
-- You can also change the file later inside `General Arguments > Configuration File`.
+- You can also change the file later inside `General Arguments > Configuration File` (`Settings > General arguments` in the Desktop GUI).
 
 Typical use:
 - Use the **Desktop GUI** on Windows, macOS, or Linux systems with graphical desktop access.

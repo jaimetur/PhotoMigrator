@@ -6,12 +6,17 @@
     <title>{{ tool_name }} Login</title>
     <link rel="icon" href="/assets/ico/PhotoMigrator.ico" sizes="any">
     <link rel="apple-touch-icon" href="/assets/logos/logo_17_1024x1024.png?v=1">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=20261201-v5-redesign">
 </head>
 <body class="login-page" data-theme="ocean">
 <main class="login-card">
-    <h1>{{ tool_name }}</h1>
-    <p class="login-subtitle">Version {{ tool_version }}</p>
+    <div class="login-brand">
+        <img src="/assets/logos/logo_17_1024x1024.png" alt="">
+        <div>
+            <h1>{{ tool_name }}</h1>
+            <p class="login-subtitle">Version {{ tool_version }} · Sign in to continue</p>
+        </div>
+    </div>
     <form id="login-form" class="login-form" autocomplete="off">
         <label>
             <span>Username</span>
@@ -24,7 +29,7 @@
                 <button id="toggle-password" class="login-password-toggle" type="button" aria-label="Show password" aria-pressed="false">Show</button>
             </div>
         </label>
-        <button type="submit" class="run-btn">Login</button>
+        <button type="submit" class="run-btn run-btn--primary">Sign in</button>
     </form>
     {% if show_default_admin_hint %}
     <p class="login-default-note">Default account available: <code>admin</code> / <code>admin123</code>.</p>

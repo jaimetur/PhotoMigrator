@@ -4,6 +4,24 @@
 
 ---
 
+## Release: v5.0.0
+### Release Date: 2026-12-01
+  
+#### 🌟 New Features:
+  - Added a marketing landing page in `landing/` (static HTML with screenshots of the new interfaces, ready for GitHub Pages or any static host) and `tools/CaptureLandingMedia.py` to regenerate its screenshots from a local test instance of the Web Interface.
+
+#### 🚀 Enhancements:
+  - Redesigned the Web Interface around tasks. A grouped sidebar (Migrate, Process Takeout, Photo libraries, Tools, Activity, Settings) replaces the module tabs, a new Home page lets you pick what to do, each feature shows a visual action picker, numbered option cards with plain-language labels, inline help and the CLI flag of every field, and a sticky run bar with the command preview and a copy button. Activity shows the run status, live dashboard and log; Settings groups Service credentials (per-service list with configured accounts, account tabs and show/hide for secrets), General arguments and App settings. Endpoints in Automatic Migration and cloud features show whether the selected account has credentials, destructive actions show a warning before you run them, and the four themes (Ocean, Emerald, Sunset, Dark) and phone layouts were redesigned. The login and admin pages use the same style. Every previous option, action, dialog, import/export, upload and admin function is still available.
+  - Redesigned the Desktop GUI with the same structure as the Web Interface: grouped sidebar with Home, Activity, Settings and Help, feature headers, action tiles, numbered option cards with inline help, switches and segmented choices, a run bar with command preview and copy, and an Activity view with status, log and Yes/No answers for running jobs. The themes are now light (Ocean, Emerald, Sunset) or Dark, and mouse-wheel scrolling works on macOS. The Terminal TUI keeps its current design.
+
+#### 🐛 Bug fixes:
+  - Fixed confirmation prompts of jobs launched from the Desktop GUI: they were cancelled automatically because the child process did not accept answers through its input pipe, so the `Process input` answers never reached the job.
+
+#### 📚 Documentation:
+  - Updated the Web Interface and Desktop GUI descriptions in the README and help guides to the new navigation (Home, grouped features, Activity and Settings).
+
+---
+
 ## Release: v4.7.0
 ### Release Date: 2026-08-27
   
