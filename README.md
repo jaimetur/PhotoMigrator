@@ -20,7 +20,11 @@ The Tool supports multiple accounts for the same service, so you can migrate you
 <p align="center"> 
   <br/>
   <a href="https://photomigrator.jtgcloud.com/" target="_blank">
-    <img src="https://img.shields.io/badge/Visit_the_PhotoMigrator_website-photomigrator.jtgcloud.com-7c3aed?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=db2777" alt="Visit the PhotoMigrator website" height="40"/>
+    <img src="https://img.shields.io/badge/Visit_the_website-photomigrator.jtgcloud.com-2563eb?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0f1e" alt="Visit the PhotoMigrator website" height="40"/>
+  </a>
+  &nbsp;
+  <a href="https://photomigrator.jtgcloud.com/app" target="_blank">
+    <img src="https://img.shields.io/badge/Open_the_app-photomigrator.jtgcloud.com%2Fapp-0d9488?style=for-the-badge&logo=googlephotos&logoColor=white&labelColor=0a0f1e" alt="Open the PhotoMigrator app" height="40"/>
   </a>
   <br/>
   <br/>
