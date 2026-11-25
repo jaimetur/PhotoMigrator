@@ -53,7 +53,7 @@ jobs:
       matrix:
 #        os: [ubuntu-latest, windows-latest]  # os list
         os: [ubuntu-latest]  # os list
-        python-version: [ "3.12.10" ]
+        python-version: [ "3.12" ]
 
     runs-on: ${{ matrix.os }}
 
