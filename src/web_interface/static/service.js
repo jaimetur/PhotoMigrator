@@ -63,7 +63,13 @@
     return date.toLocaleString(window.PM_LANG || undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   }
   function formatDuration(seconds) {
-    const hours = Math.max(1, Math.ceil(Number(seconds || 0) / 3600));
+    const total = Number(seconds || 0);
+    if (total < 3600) {
+      const minutes = Math.max(5, Math.ceil(total / 300) * 5);
+      return minutes >= 60 ? "About 1 hour" : `About ${minutes} minutes`;
+    }
+    const hours = Math.ceil(total / 3600);
+    if (hours === 1) return "About 1 hour";
     return hours < 48 ? `About ${hours} hours` : `About ${Math.ceil(hours / 24)} days`;
   }
   function estimatePrice(bytes) {
@@ -419,7 +425,7 @@
           rows[name].state.textContent = value.fraction >= 1 ? t("Uploaded") : `${Math.round(value.fraction * 100)}%`;
         }
       });
-      const picker = el("input", { type: "file", multiple: true, accept: ".zip,.tgz,.gz,.tar", class: "hidden" });
+      const picker = el("input", { type: "file", multiple: true, accept: ".zip", class: "hidden" });
       const onProgress = (name, fraction, failure) => {
         uploadProgress[name] = { fraction };
         const row = rows[name];
@@ -545,6 +551,7 @@
         stat("Duration", formatDuration(task.eta_seconds))));
       const checks = el("div", { class: "svc-checks" });
       checks.appendChild(el("span", {}, icon("check"), `Data measured: ${formatBytes(task.size_bytes)}`));
+      if (task.media_count) checks.appendChild(el("span", {}, icon("check"), `Photos and videos found: ${task.media_count}`));
       if (task.target_service) checks.appendChild(el("span", {}, icon("check"), `${label(task.target_service)} can receive uploads`));
       card.appendChild(checks);
       const payText = task.kind === "process_takeout" ? (task.billable ? "Start (you pay when it is ready)" : "Start")
@@ -559,7 +566,7 @@
     if (s === "queued") {
       card.append(el("h2", { text: "In the queue" }),
         el("div", { class: "svc-stats" }, stat("Position", String(task.queue_position || 1)), stat("Estimated start", formatWhen(task.eta_start_at)), stat("Duration", formatDuration(task.eta_seconds))),
-        task.status_detail ? notice(task.status_detail) : null,
+        ...(task.status_detail ? [notice(task.status_detail)] : []),
         el("p", { class: "svc-hint", text: "We email you when it starts and when it ends. You can cancel it until then with a full refund." }),
         el("div", { class: "svc-actions" }, cancelButton(task)));
       return card;
@@ -607,7 +614,7 @@
     created: "Task created. Terms of service accepted.", storage_connected: "Storage connected (read-only).",
     analysis_failed: "The check failed.", target_checked: "Destination checked: it can receive uploads.", quoted: "Quote sent to your email.",
     checkout_created: "Payment page opened.", paid: "Payment received.", queued: "Added to the queue.", requeued: "Queued again after a server restart.",
-    input_downloaded: "Takeout files imported.", started: "Task started.", completed: "Task completed.", result_ready: "Download ready.",
+    input_downloaded: "Takeout files imported.", input_checked: "Takeout files checked.", started: "Task started.", completed: "Task completed.", result_ready: "Download ready.",
     failed: "Task failed.", refunded: "Payment refunded.", canceled: "Task canceled.", expired: "Expired.", rejected: "Rejected: too large.",
     data_deleted: "Data and credentials deleted from our server.", refund_failed: "The refund failed; we will review it.",
   };

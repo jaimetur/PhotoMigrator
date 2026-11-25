@@ -1,12 +1,14 @@
 import hashlib
 import hmac
 import importlib
+import io
 import json
 import os
 import sys
 import tempfile
 import time
 import unittest
+import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -108,6 +110,14 @@ class TestCloudService(unittest.TestCase):
         self.assertEqual(response.status_code, 201, response.text)
         return response.json()["task"]
 
+    @staticmethod
+    def _zip(files):
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            for name, content in files.items():
+                archive.writestr(name, content)
+        return buffer.getvalue()
+
     def _upload(self, task_id, name, data):
         started = self.client.post(f"/api/service/tasks/{task_id}/uploads", json={"name": name, "size": len(data)}).json()["upload"]
         half = len(data) // 2
@@ -164,7 +174,8 @@ class TestCloudService(unittest.TestCase):
         self._enable()
         self._login("alice", "alice-pass-123")
         task = self._create()
-        data = os.urandom(4096)
+        data = self._zip({"Takeout/Google Photos/Photos from 2024/a.jpg": os.urandom(2048),
+                          "Takeout/Google Photos/Photos from 2024/a.jpg.json": "{}"})
         upload = self._upload(task["id"], "takeout-001.zip", data)
         self.assertTrue(upload["complete"])
         self.assertEqual((self.work / task["id"] / "input" / "takeout-001.zip").read_bytes(), data)
@@ -174,6 +185,7 @@ class TestCloudService(unittest.TestCase):
             self.svc.analyze(task["id"])
         quoted = self.svc.get_task(task["id"])
         self.assertEqual(quoted["status"], "quoted")
+        self.assertEqual(quoted["media_count"], 1)
         self.assertEqual(quoted["price_cents"], 500)
         self.assertEqual(quoted["billable"], 0)
         self.assertIn("Your PhotoMigrator quote", self.mails)
@@ -186,6 +198,55 @@ class TestCloudService(unittest.TestCase):
         task = self._create()
         response = self.client.post(f"/api/service/tasks/{task['id']}/uploads", json={"name": "photo.jpg", "size": 10})
         self.assertEqual(response.status_code, 400)
+
+    def test_quote_checks_the_uploaded_zip_files(self):
+        self._enable()
+        self._login("alice", "alice-pass-123")
+        inner = self._zip({"Takeout/Google Photos/Album/b.heic": b"x" * 100, "Takeout/Google Photos/Album/c.mp4": b"y" * 100})
+        cases = [
+            ("nested.zip", self._zip({"Takeout-short/Takeout-short.zip": inner}), "quoted", 2),
+            ("no-media.zip", self._zip({"Takeout/archive_browser.html": "<html></html>", "Takeout/a.json": "{}"}), "draft", 0),
+            ("damaged.zip", b"PK" + os.urandom(500), "draft", 0),
+        ]
+        for name, data, expected, media in cases:
+            with self.subTest(name=name):
+                task = self._create(kind="process_takeout", target_service="", target=None)
+                self._upload(task["id"], name, data)
+                self.svc.analyze(task["id"])
+                checked = self.svc.get_task(task["id"])
+                self.assertEqual(checked["status"], expected)
+                self.assertEqual(checked["media_count"], media)
+                if expected == "draft":
+                    self.assertTrue(checked["error"])
+
+    def test_tgz_takeouts_are_not_accepted(self):
+        self._enable()
+        self._login("alice", "alice-pass-123")
+        task = self._create()
+        response = self.client.post(f"/api/service/tasks/{task['id']}/uploads", json={"name": "takeout-001.tgz", "size": 10})
+        self.assertEqual(response.status_code, 400)
+
+    def test_run_without_media_fails_and_is_not_charged(self):
+        self._enable_billing()
+        self._login("alice", "alice-pass-123")
+        task = self._create(kind="process_takeout", target_service="", target=None)
+        self.svc.update_task(task["id"], status="running", job_id="job-9", size_bytes=10, price_cents=500)
+        processed = self.work / task["id"] / "input_processed_20261125"
+        processed.mkdir(parents=True)
+        (processed / "takeout_people_metadata.json").write_text("{}")
+        logs = self.work / task["id"] / "logs"
+        logs.mkdir(parents=True, exist_ok=True)
+        (logs / "run.log").write_text("Discovered 0 media files (0 from year folders, 0 from albums)")
+        self.svc.DEPS.job_state = lambda job_id: {"status": "success", "return_code": 0}
+        with patch.object(self.svc.stripe, "refund_payment") as refund:
+            self.svc._finish_running(self.svc.get_task(task["id"]))
+        refund.assert_not_called()
+        failed = self.svc.get_task(task["id"])
+        self.assertEqual(failed["status"], "failed")
+        self.assertIn("no photos or videos", failed["error"])
+        self.assertFalse(failed["paid_at"])
+        self.assertIn("Your task could not be completed", self.mails)
+        self.assertFalse((self.work / task["id"]).exists())
 
     def test_task_too_large_is_rejected_and_deleted(self):
         self._enable(max_task_bytes=1000 ** 3)

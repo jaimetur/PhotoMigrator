@@ -23,7 +23,7 @@ When the service is enabled, the sidebar shows `Cloud service > My tasks` with t
 2. Send your Takeout:
    - `Upload from this browser`: drop the ZIP files. Uploads are sent in parts and resume if the connection drops: add the same file again to continue.
    - `Import from Dropbox` / `Import from OneDrive` (when the server offers them): in Google Takeout choose "Add to Dropbox" or "Add to OneDrive", then connect the storage (read-only) and choose the folder with the files.
-3. `Check and get a quote`: PhotoMigrator measures the data and tests the destination (Immich and NextCloud: a tiny test image is uploaded and deleted; Synology: sign-in and read access; Google Photos: the token can upload). You get the quote by email: size, price, estimated start and duration. A quote is valid for 7 days.
+3. `Check and get a quote`: PhotoMigrator checks that the uploaded ZIP files can be opened and contain photos or videos (a Takeout compressed again into another ZIP is accepted), measures the data and tests the destination (Immich and NextCloud: a tiny test image is uploaded and deleted; Synology: sign-in and read access; Google Photos: the token can upload). You get the quote by email: size, price, estimated start and duration. A quote is valid for 7 days.
 4. Pay with Stripe (or `Start` when the task is free). The task joins the queue; you get an email when it starts and when it ends, and you can follow it live in `Activity`.
 5. Result:
    - Migrations end with an email confirming that the data and credentials were deleted.
@@ -31,7 +31,7 @@ When the service is enabled, the sidebar shows `Cloud service > My tasks` with t
 
 ### Price, refunds and cancellation
 - 5 € minimum per task, then 5 cents per GB, VAT included (the server owner can change these values).
-- If a task fails, the full amount is refunded automatically.
+- If a task fails, the full amount is refunded automatically. A task that ends without any photo or video to deliver counts as failed, so it is never charged.
 - Canceling a task before it starts refunds the full amount. A task that has started can be stopped, but it is not refunded.
 
 ### How your data is protected

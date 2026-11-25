@@ -639,11 +639,7 @@ def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level
             return
         os.makedirs(unzip_folder, exist_ok=True)
 
-        for zip_file in os.listdir(input_folder):
-            if not zip_file.lower().endswith(".zip"):
-                continue
-
-            zip_path = os.path.join(input_folder, zip_file)
+        def extract_zip(zip_path, zip_file, dest_folder):
             try:
                 with zipfile.ZipFile(zip_path, 'r', allowZip64=True) as zip_ref:
                     logger.info(f"{step_name}Unzipping: {zip_file}")
@@ -657,7 +653,7 @@ def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level
                             sanitized_parts.append(sanitize_component(comp, comp_is_dir))
 
                         # Build safe destination under unzip_folder
-                        dst_path = safe_join_under(unzip_folder, sanitized_parts)
+                        dst_path = safe_join_under(dest_folder, sanitized_parts)
                         parent = dst_path.parent
                         parent.mkdir(parents=True, exist_ok=True)
 
@@ -677,7 +673,31 @@ def sanitize_and_unpack_zips(input_folder, unzip_folder, step_name="", log_level
 
                 logger.debug(f"{step_name}Done: {zip_file}")
 
+                return True
             except zipfile.BadZipFile:
                 logger.warning(f"{step_name}Could not unzip file (BadZipFile): {zip_file}")
             except Exception as e:
                 logger.warning(f"{step_name}Unzip error for {zip_file}: {e}")
+            return False
+
+        for zip_file in os.listdir(input_folder):
+            if not zip_file.lower().endswith(".zip"):
+                continue
+            extract_zip(os.path.join(input_folder, zip_file), zip_file, unzip_folder)
+
+        # A Takeout ZIP compressed again (ZIP files inside the ZIP) would leave no media to process: unpack nested ZIP
+        # files into the unzip folder, as if they had been given directly, and remove them (a few levels deep).
+        for _level in range(3):
+            nested = sorted(Path(unzip_folder).rglob("*.zip"), key=lambda item: str(item).casefold())
+            nested = [item for item in nested if item.is_file()]
+            if not nested:
+                break
+            for nested_zip in nested:
+                logger.info(f"{step_name}Unzipping nested ZIP: {nested_zip.relative_to(unzip_folder)}")
+                if not extract_zip(str(nested_zip), nested_zip.name, unzip_folder):
+                    continue
+                nested_zip.unlink(missing_ok=True)
+                folder = nested_zip.parent
+                while folder != Path(unzip_folder) and folder.is_dir() and not any(folder.iterdir()):
+                    folder.rmdir()
+                    folder = folder.parent

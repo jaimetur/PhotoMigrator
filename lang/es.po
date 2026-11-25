@@ -117,6 +117,12 @@ msgstr "Un Takeout procesado se puede descargar durante {0} días, en partes ZIP
 msgid "A whole folder, albums included"
 msgstr "Una carpeta completa, con sus álbumes"
 
+msgid "About 1 hour"
+msgstr "Alrededor de 1 hora"
+
+msgid "About {0} minutes"
+msgstr "Unos {0} minutos"
+
 msgid "ALL_PHOTOS Folder Name"
 msgstr "Nombre de la carpeta ALL_PHOTOS"
 
@@ -1252,10 +1258,10 @@ msgid "Download all albums and all non-album assets into <OUTPUT_FOLDER>. - Albu
 msgstr "Descarga todos los álbumes y todos los elementos que no pertenecen a ningún álbum en <OUTPUT_FOLDER>. - Los álbumes se descargan en <OUTPUT_FOLDER>/Albums/<AlbumName> (sin subcarpetas). - Los elementos sin álbum van a <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ con estructura year/month. Ejemplo: --download-all ./MyLibrary"
 
 msgid "Download days"
-msgstr "Descarga lista."
+msgstr "Días de descarga"
 
 msgid "Download ready."
-msgstr "Días de descarga"
+msgstr "Descarga lista."
 
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
 msgstr "Descarga álbumes concretos en <OUTPUT_FOLDER> (obligatorio: -o/--output-folder)."
@@ -2814,6 +2820,9 @@ msgstr "Sitio web de PhotoMigrator"
 msgid "Photos"
 msgstr "Fotos"
 
+msgid "Photos and videos found: {0}"
+msgstr "Fotos y vídeos encontrados: {0}"
+
 msgid "Photos folder"
 msgstr "Carpeta de fotos"
 
@@ -3986,6 +3995,9 @@ msgstr "Synology Photos · PhotoMigrator"
 
 msgid "Synology Photos → Immich Photos"
 msgstr "Synology Photos → Immich Photos"
+
+msgid "Takeout files checked."
+msgstr "Archivos de Takeout comprobados."
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "CONSEJO: si <TAKEOUT_FOLDER> contiene los archivos zip originales, se conservarán de todos modos."

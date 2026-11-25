@@ -18,7 +18,7 @@ import requests
 
 TIMEOUT_SECONDS = 60
 CHUNK_BYTES = 8 * 1024 * 1024
-ARCHIVE_SUFFIXES = (".zip", ".tgz", ".tar.gz", ".tar")
+ARCHIVE_SUFFIXES = (".zip",)  # PhotoMigrator unpacks ZIP Takeouts only
 PROVIDERS = ("dropbox", "onedrive")
 
 DROPBOX_AUTHORIZE = "https://www.dropbox.com/oauth2/authorize"

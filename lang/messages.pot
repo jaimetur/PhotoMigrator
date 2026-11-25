@@ -107,6 +107,12 @@ msgstr ""
 msgid "A whole folder, albums included"
 msgstr ""
 
+msgid "About 1 hour"
+msgstr ""
+
+msgid "About {0} minutes"
+msgstr ""
+
 msgid "ALL_PHOTOS Folder Name"
 msgstr ""
 
@@ -2612,6 +2618,9 @@ msgstr ""
 msgid "Photos"
 msgstr ""
 
+msgid "Photos and videos found: {0}"
+msgstr ""
+
 msgid "Photos folder"
 msgstr ""
 
@@ -3669,6 +3678,9 @@ msgid "Synology Photos · PhotoMigrator"
 msgstr ""
 
 msgid "Synology Photos → Immich Photos"
+msgstr ""
+
+msgid "Takeout files checked."
 msgstr ""
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."

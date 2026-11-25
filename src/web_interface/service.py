@@ -282,6 +282,7 @@ TASK_COLUMNS = {
     "size_bytes": "INTEGER NOT NULL DEFAULT 0",
     "disk_bytes": "INTEGER NOT NULL DEFAULT 0",
     "result_bytes": "INTEGER NOT NULL DEFAULT 0",
+    "media_count": "INTEGER NOT NULL DEFAULT 0",
     "price_cents": "INTEGER NOT NULL DEFAULT 0",
     "currency": "TEXT NOT NULL DEFAULT 'eur'",
     "billable": "INTEGER NOT NULL DEFAULT 0",
@@ -308,7 +309,7 @@ TASK_COLUMNS = {
 }
 PUBLIC_TASK_FIELDS = [
     "id", "kind", "takeout_type", "input_mode", "source_service", "target_service", "title", "status", "status_detail",
-    "error", "remote_path", "size_bytes", "disk_bytes", "result_bytes", "price_cents", "currency", "billable",
+    "error", "remote_path", "size_bytes", "disk_bytes", "result_bytes", "media_count", "price_cents", "currency", "billable",
     "amount_paid_cents", "paid_at", "refunded_at", "quoted_at", "queued_at", "started_at", "finished_at",
     "eta_start_at", "eta_seconds", "job_id", "download_expires_at", "purged_at", "created_at", "updated_at",
 ]
@@ -797,6 +798,63 @@ def max_input_bytes(kind: str) -> int:
     return int(int(load_settings()["max_task_bytes"]) / DISK_FACTORS[kind])
 
 
+MEDIA_SUFFIXES = frozenset((
+    ".3fr .ari .arw .cap .cin .cr2 .cr3 .crw .dcr .dng .erf .fff .iiq .k25 .kdc .mrw .nef .nrw .orf .ori .pef .psd .raf "
+    ".raw .rw2 .rwl .sr2 .srf .srw .x3f .avif .bmp .gif .heic .heif .hif .insp .jp2 .jpe .jpeg .jpg .jxl .png .svg .tif "
+    ".tiff .webp .3gp .3gpp .avi .flv .insv .m2t .m2ts .m4v .mkv .mov .mp4 .mpe .mpeg .mpg .mts .vob .webm .wmv"
+).split())
+
+
+def _count_zip(archive: zipfile.ZipFile, depth: int) -> Tuple[int, int]:
+    entries = media = 0
+    for info in archive.infolist():
+        if info.is_dir():
+            continue
+        entries += 1
+        suffix = Path(info.filename).suffix.lower()
+        if suffix in MEDIA_SUFFIXES:
+            media += 1
+        elif suffix == ".zip" and depth < 2:
+            # A Takeout ZIP compressed again: PhotoMigrator unpacks nested ZIP files too.
+            with archive.open(info) as handle, zipfile.ZipFile(handle) as nested:
+                nested_entries, nested_media = _count_zip(nested, depth + 1)
+            entries += nested_entries
+            media += nested_media
+    return entries, media
+
+
+def inspect_archives(paths: List[Path]) -> Tuple[int, int]:
+    """Count the files and the photos/videos of the uploaded Takeout ZIP files. Raises ProbeError for damaged files."""
+    entries = media = 0
+    for path in paths:
+        try:
+            with zipfile.ZipFile(path) as archive:
+                found_entries, found_media = _count_zip(archive, 0)
+        except (zipfile.BadZipFile, OSError, EOFError) as exc:
+            raise probes.ProbeError(f"{path.name} is not a valid ZIP file or is damaged. Upload it again.") from exc
+        entries += found_entries
+        media += found_media
+    return entries, media
+
+
+def _result_problem(task: Dict[str, Any]) -> str:
+    """Why a run that ended without errors produced nothing usable ("" when the result is fine)."""
+    log_text = ""
+    for log_file in sorted((task_dir(task["id"]) / LOGS_DIR).glob("*.log")):
+        try:
+            log_text += log_file.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+    no_media = "We found no photos or videos to process in your Takeout files."
+    if "No files found in Output Folder" in log_text or "Discovered 0 media files" in log_text:
+        return no_media
+    if task["kind"] == "process_takeout":
+        processed = _processed_folder(task["id"])
+        if processed is None or not any(path.is_file() and path.suffix.lower() in MEDIA_SUFFIXES for path in processed.rglob("*")):
+            return no_media
+    return ""
+
+
 def analyze(task_id: str) -> None:
     """Measure the data, test the destination and send the quote (runs in a background thread)."""
     task = get_task(task_id)
@@ -811,13 +869,19 @@ def analyze(task_id: str) -> None:
             if not files or not all(item.get("complete") for item in files):
                 raise probes.ProbeError("Upload every Takeout file before continuing.")
             size = sum(int(item.get("size") or 0) for item in files)
+            entries, media = inspect_archives([task_dir(task_id) / INPUT_DIR / item["name"] for item in files])
+            record_event(task_id, "input_checked", f"{len(files)} ZIP file(s) · {entries} entries · {media} photos and videos")
+            if media <= 0:
+                raise probes.ProbeError("We found no photos or videos in your Takeout files. Upload the ZIP files that "
+                                        "Google or Apple sent you, without compressing them again.")
+            update_task(task_id, media_count=media)
         else:
             if not task.get("remote_path"):
                 raise probes.ProbeError("Choose the folder with the Takeout files.")
             storage = _remote_storage(task)
             archives = storage.archives_in(task["remote_path"])
             if not archives:
-                raise probes.ProbeError("The chosen folder has no Takeout files (.zip or .tgz).")
+                raise probes.ProbeError("The chosen folder has no Takeout ZIP files.")
             update_task(task_id, input_files=[{"name": a["name"], "path": a["path"], "id": a.get("id", ""), "size": a["size"]} for a in archives])
             size = sum(int(a["size"]) for a in archives)
         if size <= 0:
@@ -1096,7 +1160,10 @@ def _finish_running(task: Dict[str, Any]) -> None:
         return
     (task_dir(task["id"]) / SECRETS_DIR / "Config.ini").unlink(missing_ok=True)
     if status == "success":
-        if task["kind"] == "process_takeout":
+        problem = _result_problem(task)
+        if problem:
+            fail_task(task["id"], problem)
+        elif task["kind"] == "process_takeout":
             update_task(task["id"], status="packaging", status_detail="Preparing the download")
             _spawn(f"package-{task['id']}", package_result, task["id"])
         else:
@@ -1216,7 +1283,7 @@ SAFE_NAME = re.compile(r"[^A-Za-z0-9._ ()+-]+")
 def _clean_file_name(name: str) -> str:
     clean = SAFE_NAME.sub("_", Path(str(name or "")).name).strip(" .")
     if not clean or not remote.is_archive(clean):
-        raise HTTPException(status_code=400, detail="Only Takeout archives can be uploaded (.zip, .tgz, .tar.gz or .tar).")
+        raise HTTPException(status_code=400, detail="Only Takeout ZIP files can be uploaded.")
     return clean[:200]
 
 

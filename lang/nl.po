@@ -117,6 +117,12 @@ msgstr "Een verwerkte Takeout kan {0} dagen worden gedownload, in ZIP-delen van 
 msgid "A whole folder, albums included"
 msgstr "Een hele map, inclusief albums"
 
+msgid "About 1 hour"
+msgstr "Ongeveer 1 uur"
+
+msgid "About {0} minutes"
+msgstr "Ongeveer {0} minuten"
+
 msgid "ALL_PHOTOS Folder Name"
 msgstr "Mapnaam ALL_PHOTOS"
 
@@ -1255,7 +1261,7 @@ msgid "Download days"
 msgstr "Downloaddagen"
 
 msgid "Download ready."
-msgstr "Downloadsnelheid (Mbps)"
+msgstr "Download gereed."
 
 msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder)."
 msgstr "Download specifieke albums naar <OUTPUT_FOLDER> (vereist: -o/--output-folder)."
@@ -1264,13 +1270,13 @@ msgid "Download specific albums to <OUTPUT_FOLDER> (required: -o/--output-folder
 msgstr "Download specifieke albums naar <OUTPUT_FOLDER> (vereist: -o/--output-folder). - Gebruik 'ALL' om ALLE albums te downloaden. - Gebruik patronen: bijv. --download-albums 'dron*' - Meerdere albums kunnen worden gescheiden door een komma of spatie en tussen aanhalingstekens worden gezet. Voorbeeld: --download-albums \"Album 1\", \"Album 2\" -o ./MyLibrary"
 
 msgid "Download speed (Mbps)"
-msgstr "Sleep je Takeout-ZIP-bestanden hierheen"
+msgstr "Downloadsnelheid (Mbps)"
 
 msgid "Drag from bottom edge or bottom corners to resize the log panel"
 msgstr "Sleep vanaf de onderrand of de onderhoeken om het logboekpaneel te vergroten of verkleinen"
 
 msgid "Drop your Takeout ZIP files here"
-msgstr "Download gereed."
+msgstr "Sleep je Takeout-ZIP-bestanden hierheen"
 
 msgid "Dropbox App key"
 msgstr "Dropbox App key"
@@ -2814,6 +2820,9 @@ msgstr "PhotoMigrator-website"
 msgid "Photos"
 msgstr "Foto's"
 
+msgid "Photos and videos found: {0}"
+msgstr "Gevonden foto's en video's: {0}"
+
 msgid "Photos folder"
 msgstr "Fotomap"
 
@@ -3986,6 +3995,9 @@ msgstr "Synology Photos · PhotoMigrator"
 
 msgid "Synology Photos → Immich Photos"
 msgstr "Synology Photos → Immich Photos"
+
+msgid "Takeout files checked."
+msgstr "Takeout-bestanden gecontroleerd."
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "TIP: Als <TAKEOUT_FOLDER> de originele zipbestanden bevat, blijven die in elk geval behouden."

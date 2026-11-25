@@ -117,6 +117,12 @@ msgstr "Ein verarbeitetes Takeout kann {0} Tage lang heruntergeladen werden, in 
 msgid "A whole folder, albums included"
 msgstr "Ein ganzer Ordner, einschließlich Alben"
 
+msgid "About 1 hour"
+msgstr "Etwa 1 Stunde"
+
+msgid "About {0} minutes"
+msgstr "Etwa {0} Minuten"
+
 msgid "ALL_PHOTOS Folder Name"
 msgstr "Ordnername für ALL_PHOTOS"
 
@@ -2814,6 +2820,9 @@ msgstr "PhotoMigrator-Website"
 msgid "Photos"
 msgstr "Fotos"
 
+msgid "Photos and videos found: {0}"
+msgstr "Gefundene Fotos und Videos: {0}"
+
 msgid "Photos folder"
 msgstr "Fotoordner"
 
@@ -3986,6 +3995,9 @@ msgstr "Synology Photos · PhotoMigrator"
 
 msgid "Synology Photos → Immich Photos"
 msgstr "Synology Photos → Immich Photos"
+
+msgid "Takeout files checked."
+msgstr "Takeout-Dateien geprüft."
 
 msgid "TIP: If <TAKEOUT_FOLDER> contains the original zip files, you will preserve them anyway."
 msgstr "TIPP: Wenn <TAKEOUT_FOLDER> die originalen Zip-Dateien enthält, bleiben diese auf jeden Fall erhalten."
