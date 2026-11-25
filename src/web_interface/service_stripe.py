@@ -86,6 +86,12 @@ def check_connection(secret_key: str) -> Dict[str, Any]:
     return {"ok": True, "mode": key_mode(secret_key)}
 
 
+# Tag of every Stripe object created by the cloud service, so a Stripe account shared with other businesses
+# can tell its payments apart (the webhook ignores events without it).
+SERVICE_TAG = "photomigrator"
+STATEMENT_SUFFIX = "PHOTOMIGRATOR"
+
+
 def create_checkout_session(secret_key: str, *, task_id: str, purpose: str, amount_cents: int, currency: str,
                             description: str, customer_email: str, success_url: str, cancel_url: str,
                             automatic_tax: bool = False, locale: str = "auto") -> Dict[str, Any]:
@@ -100,8 +106,14 @@ def create_checkout_session(secret_key: str, *, task_id: str, purpose: str, amou
         "mode": "payment",
         "line_items": [{"price_data": price_data, "quantity": 1}],
         "client_reference_id": task_id,
-        "metadata": {"task_id": task_id, "purpose": purpose},
-        "payment_intent_data": {"metadata": {"task_id": task_id, "purpose": purpose}},
+        # Card only (Apple Pay and Google Pay included): delayed methods such as SEPA Direct Debit, which a shared
+        # Stripe account may have enabled, would leave the task unpaid until a later asynchronous event.
+        "payment_method_types": ["card"],
+        "metadata": {"service": SERVICE_TAG, "task_id": task_id, "purpose": purpose},
+        "payment_intent_data": {
+            "metadata": {"service": SERVICE_TAG, "task_id": task_id, "purpose": purpose},
+            "statement_descriptor_suffix": STATEMENT_SUFFIX,
+        },
         "success_url": success_url,
         "cancel_url": cancel_url,
         "locale": locale or "auto",

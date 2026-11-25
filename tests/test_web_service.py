@@ -213,7 +213,7 @@ class TestCloudService(unittest.TestCase):
         self.assertEqual(checkout.call_args.kwargs["amount_cents"], 1500)
         event = {"type": "checkout.session.completed", "data": {"object": {
             "id": "cs_1", "payment_status": "paid", "amount_total": 1500, "payment_intent": "pi_1",
-            "metadata": {"task_id": task["id"], "purpose": "migration"}}}}
+            "metadata": {"service": "photomigrator", "task_id": task["id"], "purpose": "migration"}}}}
         payload = json.dumps(event).encode()
         stamp = str(int(time.time()))
         signature = hmac.new(b"whsec_test", f"{stamp}.".encode() + payload, hashlib.sha256).hexdigest()
@@ -323,6 +323,39 @@ class TestCloudService(unittest.TestCase):
         self.assertEqual(self.svc.stripe.verify_webhook(payload, f"t={stamp},v1={signature}", "whsec_x")["type"], "x")
         with self.assertRaises(ValueError):
             self.svc.stripe.verify_webhook(payload, f"t={stamp - 1000},v1={signature}", "whsec_x")
+
+    def test_checkout_session_is_card_only_and_tagged(self):
+        with patch.object(self.svc.stripe.requests, "request") as request:
+            request.return_value.status_code = 200
+            request.return_value.json.return_value = {"id": "cs_1", "url": "https://checkout.stripe.com/c/1"}
+            self.svc.stripe.create_checkout_session(
+                "rk_test_x", task_id="t1", purpose="migration", amount_cents=500, currency="eur", description="Task",
+                customer_email="", success_url="https://example.com/ok", cancel_url="https://example.com/ko")
+        data = request.call_args.kwargs["data"]
+        self.assertEqual(data["payment_method_types[0]"], "card")
+        self.assertNotIn("payment_method_types[1]", data)
+        self.assertEqual(data["metadata[service]"], "photomigrator")
+        self.assertEqual(data["payment_intent_data[metadata][service]"], "photomigrator")
+        self.assertEqual(data["payment_intent_data[statement_descriptor_suffix]"], "PHOTOMIGRATOR")
+
+    def test_webhook_ignores_events_of_other_businesses(self):
+        self._enable_billing()
+        self._login("alice", "alice-pass-123")
+        task = self._create()
+        self.svc.update_task(task["id"], status="awaiting_payment", price_cents=500)
+        foreign = {"type": "checkout.session.completed", "data": {"object": {
+            "id": "cs_other", "payment_status": "paid", "amount_total": 500, "payment_intent": "pi_other",
+            "client_reference_id": task["id"], "metadata": {"task_id": task["id"], "purpose": "migration"}}}}
+        payload = json.dumps(foreign).encode()
+        stamp = str(int(time.time()))
+        signature = hmac.new(b"whsec_test", f"{stamp}.".encode() + payload, hashlib.sha256).hexdigest()
+        response = self.client.post("/api/service/stripe/webhook", content=payload, headers={"stripe-signature": f"t={stamp},v1={signature}"})
+        self.assertEqual(response.status_code, 200)
+        unpaid = self.svc.get_task(task["id"])
+        self.assertEqual(unpaid["status"], "awaiting_payment")
+        self.assertFalse(unpaid.get("amount_paid_cents"))
+        self.svc.handle_webhook_event({"type": "charge.refunded", "data": {"object": {"metadata": {"task_id": task["id"]}}}})
+        self.assertFalse(self.svc.get_task(task["id"])["refunded_at"])
 
     def test_admin_settings_keep_secrets_hidden(self):
         self._login("admin", "admin123")

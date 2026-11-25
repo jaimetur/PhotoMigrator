@@ -751,6 +751,8 @@ def refund(task: Dict[str, Any], reason: str) -> Dict[str, Any]:
 def handle_webhook_event(event: Dict[str, Any]) -> None:
     kind = str(event.get("type") or "")
     obj = ((event.get("data") or {}).get("object")) or {}
+    if str((obj.get("metadata") or {}).get("service") or "") != stripe.SERVICE_TAG:
+        return  # Event of another business sharing the Stripe account.
     if kind in {"checkout.session.completed", "checkout.session.async_payment_succeeded"}:
         task_id = str((obj.get("metadata") or {}).get("task_id") or obj.get("client_reference_id") or "")
         if task_id:

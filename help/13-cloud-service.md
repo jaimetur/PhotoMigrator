@@ -56,13 +56,15 @@ Tasks run one after another (or several at a time if you allow it). A task start
 ### Payments with Stripe
 1. Create a Stripe account at https://dashboard.stripe.com/register and complete the activation. Until then you can use the test mode.
 2. `Settings > Business > Public details`: business name, support email and statement descriptor (`PHOTOMIGRATOR`). `Settings > Branding`: logo and colour.
-3. `Settings > Payment methods`: keep Card, Apple Pay and Google Pay. Turn off delayed methods such as SEPA Direct Debit.
+3. `Settings > Payment methods`: keep Card, Apple Pay and Google Pay. PhotoMigrator asks Checkout for card payments only (Apple Pay and Google Pay are included), so other methods of the account, such as SEPA Direct Debit, can stay on.
 4. `Settings > Customer emails`: turn on receipts for successful payments and refunds.
 5. Optional: `Settings > Tax` (Stripe Tax) and tick `Calculate VAT with Stripe Tax` in the Administration Panel. Prices then include VAT.
-6. `Developers > API keys > Create restricted key` with **Write** access to Checkout Sessions, PaymentIntents, Refunds and Customers. Copy the key (`rk_test_…`).
-7. `Developers > Webhooks > Add endpoint`: URL `https://<your server>/api/service/stripe/webhook` (the Administration Panel shows it), events `checkout.session.completed`, `checkout.session.expired`, `payment_intent.payment_failed` and `charge.refunded`. Copy the signing secret (`whsec_…`).
+6. `Developers > API keys > Create restricted key` with **Write** access to Checkout Sessions and Refunds (nothing else is needed). Copy the key (`rk_test_…`).
+7. `Developers > Webhooks > Add endpoint`: URL `https://<your server>/api/service/stripe/webhook` (the Administration Panel shows it), events `checkout.session.completed` and `charge.refunded`. Copy the signing secret (`whsec_…`).
 8. Paste both in `Administration Panel > Cloud service`, save and press `Test connection`. Pay a test task with the card `4242 4242 4242 4242`.
 9. To go live, repeat steps 6 and 7 in live mode and replace the key and the secret.
+
+**Shared Stripe account.** The account can also be used by other businesses. Every Checkout session and payment of the cloud service carries the metadata `service=photomigrator`, the webhook answers `200` and ignores any event without it, and the card statement shows your account prefix followed by `PHOTOMIGRATOR` (for example `JTG* PHOTOMIGRATOR`).
 
 ### Import from Dropbox (optional)
 1. https://www.dropbox.com/developers/apps → `Create app` → `Scoped access` → **Full Dropbox** (Takeout saves the files outside the app folder).
