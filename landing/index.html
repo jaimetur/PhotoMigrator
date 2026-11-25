@@ -38,16 +38,14 @@ h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.05;letter-spac
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 21px var(--display);letter-spacing:-.01em}.logo img{width:34px;height:34px;border-radius:9px}
 .top nav{display:flex;gap:24px;margin-left:auto;font-weight:600;font-size:15px}.top nav a{text-decoration:none;color:var(--muted)}.top nav a:hover{color:var(--ink)}
 .top .btn{padding:10px 18px;font-size:15px}
-.lang{position:relative}
-.lang>button{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;border:0;background:#161f3a;color:var(--ink);font:600 14px var(--body);cursor:pointer;box-shadow:inset 0 0 0 1px var(--a)}
-.lang>button svg{width:17px;height:17px}.lang>button .chev{width:13px;height:13px;opacity:.8}
-.lang ul{position:absolute;right:0;top:calc(100% + 8px);min-width:180px;margin:0;padding:6px;list-style:none;background:var(--card);border-radius:14px;box-shadow:inset 0 0 0 1px var(--line),0 20px 40px -12px #000;z-index:40}
-.lang ul[hidden]{display:none}
-.lang li button{display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 11px;border:0;border-radius:9px;background:none;color:#d5dbea;font:500 14px var(--body);text-align:left;cursor:pointer}
-.lang li button:hover{background:rgba(255,255,255,.06)}.lang li button[aria-checked="true"]{background:#1d2a4d;color:var(--ink)}
-.lang li button[aria-checked="true"]::after{content:"✓";color:var(--b)}
+.lang{position:relative;display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 3px 3px 10px;box-shadow:inset 0 0 0 1px var(--line);background:rgba(255,255,255,.06);color:var(--muted);font:700 13px var(--body);white-space:nowrap;cursor:pointer}
+.lang:hover{background:rgba(255,255,255,.11);color:var(--ink)}
+.lang svg{width:16px;height:16px}
+.lang b{padding:6px 10px;border-radius:999px;background:var(--ink);color:var(--bg);text-transform:uppercase;letter-spacing:.02em}
+.lang select{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;font-size:16px}
+.lang:focus-within{outline:2px solid var(--a);outline-offset:2px}
 .top nav a,.top .btn{white-space:nowrap}
-.top.compact .wrap{gap:14px}.top.compact nav{gap:12px;font-size:14px}.top.compact .gh{padding:10px 12px;font-size:0;gap:0}.top.compact .lang>button .name,.top.compact .lang>button .chev{display:none}.top.compact .lang>button{padding:9px}
+.top.compact .wrap{gap:14px}.top.compact nav{gap:12px;font-size:14px}.top.compact .gh{padding:10px 12px;font-size:0;gap:0}
 @media (max-width:900px){.top nav{display:none}.lang{margin-left:auto}}
 .top.tight nav{display:none}.top.tight .lang{margin-left:auto}
 @media (max-width:560px){.top .gh{display:none}.top .wrap{gap:10px}.top .btn{padding:9px 14px;font-size:14px}.top .logo{flex-shrink:0;white-space:nowrap}}
@@ -221,10 +219,7 @@ footer .sp{margin-left:auto}
 <header class="top" id="top"><div class="wrap">
   <a class="logo" href="#"><img src="media/logo.png?v=18" alt="">PhotoMigrator</a>
   <nav aria-label="Sections"><a class="navnew" href="#cloud">Cloud service <i>NEW</i></a><a href="#services">Services</a><a href="#features">Features</a><a href="#interfaces">Interfaces</a><a href="#how">How it works</a><a href="#download">Download</a><a href="#faq">FAQ</a></nav>
-  <div class="lang" data-no-i18n>
-    <button type="button" aria-haspopup="true" aria-expanded="false" aria-label="Language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"/></svg><span class="name">English</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-    <ul role="menu" hidden></ul>
-  </div>
+  <label class="lang" data-no-i18n><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 1 0 18M12 3a14.5 14.5 0 0 0 0 18"/></svg><b aria-hidden="true">en</b><select aria-label="Language"><option value="en">English</option></select></label>
   <a class="btn sec gh" href="https://github.com/jaimetur/PhotoMigrator" rel="noopener">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
     GitHub</a>
@@ -557,41 +552,30 @@ docker compose up -d</div></div>
   var box = document.querySelector(".lang");
   if (!box) return;
   if (!langs) { box.hidden = true; return; }
-  var toggle = box.querySelector("button"), menu = box.querySelector("ul");
-  box.querySelector(".name").textContent = langs[current] || "English";
+  var select = box.querySelector("select");
+  box.querySelector("b").textContent = current;
+  select.innerHTML = "";
   Object.keys(langs).forEach(function (code) {
-    var item = document.createElement("li"), option = document.createElement("button");
-    option.type = "button";
-    option.setAttribute("role", "menuitemradio");
-    option.setAttribute("aria-checked", code === current ? "true" : "false");
-    option.setAttribute("lang", code);
+    var option = document.createElement("option");
+    option.value = code;
     option.textContent = langs[code];
-    option.addEventListener("click", function () {
-      if (code === current) { close(); return; }
-      fetch("/api/lang", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lang: code }) })
-        .finally(function () { window.location.reload(); });
-    });
-    item.appendChild(option);
-    menu.appendChild(item);
+    option.selected = code === current;
+    select.appendChild(option);
   });
-  function close() { menu.hidden = true; toggle.setAttribute("aria-expanded", "false"); }
-  toggle.addEventListener("click", function (event) {
-    event.stopPropagation();
-    menu.hidden = !menu.hidden;
-    toggle.setAttribute("aria-expanded", menu.hidden ? "false" : "true");
+  select.addEventListener("change", function () {
+    fetch("/api/lang", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lang: select.value }) })
+      .finally(function () { window.location.reload(); });
   });
-  document.addEventListener("click", function (event) { if (!box.contains(event.target)) close(); });
-  document.addEventListener("keydown", function (event) { if (event.key === "Escape") close(); });
 })();
-/* The header fits any language and width: first the language and GitHub buttons become icons, then the section
-   links are hidden (as on phones). */
+/* The header fits any language and width: first the GitHub button becomes an icon, then the section links are hidden
+   (as on phones). */
 (function () {
   var top = document.querySelector(".top"), wrap = top && top.querySelector(".wrap");
   if (!wrap) return;
   function overflows() { return wrap.scrollWidth > wrap.clientWidth + 1; }
   function fit() {
     top.classList.remove("compact", "tight");
-    if (overflows()) top.classList.add("compact");  // icon-only language and GitHub buttons
+    if (overflows()) top.classList.add("compact");  // icon-only GitHub button, tighter links
     if (overflows()) top.classList.add("tight");    // then no section links
   }
   window.addEventListener("resize", fit);
